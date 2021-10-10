@@ -24,20 +24,24 @@ static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
 ROC::ROC(I2C& i2c, int ibus) : i2c_{i2c},ibus_{ibus} {
 }
 
-std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
+std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_active_bus(ibus_);
   i2c_.set_bus_speed(1000);
 
   std::vector<uint8_t> retval;
-  for (int i=0; i<14; i++) {
+  for (int i=0; i<len; i++) {
     // set the address
-    uint16_t fulladdr=(block_for_chan[i]<<5)|i;
+    uint16_t fulladdr=(ipage<<5)|i;
     i2c_.write_byte(0,fulladdr&0xFF);
     i2c_.write_byte(1,(fulladdr>>8)&0xFF);
     // now read
     retval.push_back(i2c_.read_byte(2));
   }
   return retval;
+}
+
+std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
+  return readPage(block_for_chan[ichan],14);
 }
 
 }

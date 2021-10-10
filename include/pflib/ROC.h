@@ -14,6 +14,8 @@ class ROC {
  public:
   ROC(I2C& i2c, int ibus=0);
 
+  std::vector<uint8_t> readPage(int ipage, int len);
+  
   std::vector<uint8_t> getChannelParameters(int ichan);
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
 
