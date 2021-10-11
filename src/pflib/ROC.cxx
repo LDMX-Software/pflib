@@ -26,7 +26,7 @@ ROC::ROC(I2C& i2c, int ibus) : i2c_{i2c},ibus_{ibus} {
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_active_bus(ibus_);
-  i2c_.set_bus_speed(1000);
+  i2c_.set_bus_speed(1400);
 
   std::vector<uint8_t> retval;
   for (int i=0; i<len; i++) {
@@ -43,5 +43,14 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
   return readPage(block_for_chan[ichan],14);
 }
+
+  void ROC::setValue(int page, int offset, uint32_t value) {
+    i2c_.set_active_bus(ibus_);
+    i2c_.set_bus_speed(1400);
+    uint16_t fulladdr=(page<<5)|offset;
+    i2c_.write_byte(0,fulladdr&0xFF);
+    i2c_.write_byte(1,(fulladdr>>8)&0xFF);
+    i2c_.write_byte(2,value&0xFF);
+  }
 
 }
