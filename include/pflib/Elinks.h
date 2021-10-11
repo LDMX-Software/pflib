@@ -16,6 +16,7 @@ class Elinks : public WishboneTarget {
   uint32_t getStatusRaw(int ilink);
 
   void scanAlign(int ilink);
+  void setDelay(int ilink, int idelay);
   
 };
 
