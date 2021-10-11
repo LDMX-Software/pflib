@@ -32,11 +32,11 @@ LIBTARGET_SHARED := ${LIBDIR}/libpflib.so
 
 LIBOBJS := $(LIBSRCS:.cxx=.o)
 
-all: ${LIBTARGET_STATIC}
+all: ${LIBTARGET_SHARED}
 
 ${LIBTARGET_STATIC} : $(LIBOBJS)
 	ar rcs $@ $^ 
 
 ${LIBTARGET_SHARED} : $(LIBOBJS)
-	g++ -shared -Wl,-soname,pflib.so -o $@ $^ ${LDFLAGS} ${LOADLIBES}
+	g++ -shared -Wl,-soname,libpflib.so -o $@ $^ ${LDFLAGS} ${LOADLIBES}
 
