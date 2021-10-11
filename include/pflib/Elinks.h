@@ -14,7 +14,8 @@ class Elinks : public WishboneTarget {
   void setBitslip(int ilink, int bitslip);
   int getBitslip(int ilink);
   uint32_t getStatusRaw(int ilink);
-  
+
+  void scanAlign(int ilink);
   
 };
 
