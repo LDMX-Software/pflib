@@ -9,7 +9,8 @@ enum StandardWishboneTargets {
   tgt_COMMON      = 0,
   tgt_FASTCONTROL = 1,
   tgt_GPIO        = 2,
-  tgt_I2C         = 3
+  tgt_I2C         = 3,
+  tgt_Elinks      = 4
 };
 
 /**
