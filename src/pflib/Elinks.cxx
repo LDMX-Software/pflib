@@ -11,9 +11,9 @@ static const int LINK_CTL_BASE             = 0x40;
 static const int LINK_CTL_BITSLIP_MASK     = 0x70;
 static const int LINK_CTL_BITSLIP_SHIFT    = 4;
 static const int LINK_CTL_DELAY_DIR        = 0x00000001;
-static const int LINK_CTL_DELAY_MOVE       = 0x00000002;
-static const int LINK_CTL_DELAY_LOAD       = 0x00008000;
 static const int LINK_CTL_EYE_CLEAR        = 0x00010000;
+static const int LINK_CTL_DELAY_MOVE       = 0x00040000;
+static const int LINK_CTL_DELAY_LOAD       = 0x00080000;
 
 static const int LINK_STATUS_BASE          = 0x80;
 
@@ -37,7 +37,7 @@ void Elinks::setBitslip(int ilink, int bitslip) {
 }
 
 int Elinks::getBitslip(int ilink) {
-  return (wb_read(LINK_CTL_BASE+ilink)|LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
+  return (wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
 }
 
 uint32_t Elinks::getStatusRaw(int ilink) {
@@ -50,12 +50,10 @@ void Elinks::scanAlign(int ilink) {
   uint32_t status;
   // first, reload to the beginning
   wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_LOAD,LINK_CTL_DELAY_LOAD);
-  wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_LOAD);
   // now, step until we get range edge
   wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_DIR|LINK_CTL_DELAY_MOVE);
   do {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
-    wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_MOVE);
     status=getStatusRaw(ilink);
   } while ((status&LINK_STATUS_DELAYRANGE)==0);
   // change direction and start stepping...
@@ -63,7 +61,6 @@ void Elinks::scanAlign(int ilink) {
   wb_rmw(LINK_CTL_BASE+ilink,1,LINK_CTL_DELAY_DIR);
   do {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
-    wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_MOVE);
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_EYE_CLEAR,LINK_CTL_EYE_CLEAR);
     status=getStatusRaw(ilink);
     printf("%d %08x\n",istep,status);
@@ -77,20 +74,16 @@ void Elinks::setDelay(int ilink,int idelay) {
   uint32_t status;
   // first, reload to the beginning
   wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_LOAD,LINK_CTL_DELAY_LOAD);
-  wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_LOAD);
   // now, step until we get range edge
   wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_DIR|LINK_CTL_DELAY_MOVE);
   do {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
-    wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_MOVE);
     status=getStatusRaw(ilink);
   } while ((status&LINK_STATUS_DELAYRANGE)==0);
   // change direction and start stepping...
   wb_rmw(LINK_CTL_BASE+ilink,1,LINK_CTL_DELAY_DIR);
   for (int istep=0; istep<idelay; istep++) {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
-    wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_MOVE);
-    wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_EYE_CLEAR,LINK_CTL_EYE_CLEAR);
   }
 }
 
