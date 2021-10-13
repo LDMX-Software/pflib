@@ -37,7 +37,7 @@ void Elinks::setBitslip(int ilink, int bitslip) {
 }
 
 int Elinks::getBitslip(int ilink) {
-  return (wb_read(LINK_CTL_BASE+ilink)|LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
+  return (wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
 }
 
 uint32_t Elinks::getStatusRaw(int ilink) {
