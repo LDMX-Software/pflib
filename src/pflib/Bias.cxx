@@ -41,9 +41,6 @@ void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
   return;
 }
 
-/**
- * get by DAC index
- */
 std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
   int num_dacs = 1;
   if (i_dac > 7) {
@@ -58,9 +55,6 @@ std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
   return vals;
 }
 
-/**
- * set by DAC index
- */
 void MAX5825::setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes) {
   if (i_dac > 7) i_dac = 8;
   // for the MAX5825, the voltages are 12-bits,
@@ -69,7 +63,7 @@ void MAX5825::setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes) {
   set(cmd+i_dac, data_bytes);
 }
 
-/// DAC chip addresses
+/// DAC chip addresses taken from HGCROC specs
 const uint8_t Bias::ADDR_LED_0  = 0x18;
 const uint8_t Bias::ADDR_LED_1  = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
@@ -82,14 +76,22 @@ Bias::Bias(I2C& i2c, int bus) {
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1 , bus);
 }
 
-void Bias::codeLED(uint8_t i_led, uint16_t code) {
+void Bias::setLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_led > 7);
-  led_.at(i_chip).codeDAC(i_led - i_chip*8, code);
+  led_.at(i_chip).setByDAC(i_led - i_chip*8, cmd, twelve_bit_setting);
+}
+
+void Bias::setSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
+  int i_chip = (i_sipm > 7);
+  sipm_.at(i_chip).setByDAC(i_sipm - i_chip*8, cmd, twelve_bit_setting);
+}
+
+void Bias::codeLED(uint8_t i_led, uint16_t code) {
+  setLED(i_led, MAX5825::CODEn_LOADn, code);
 }
 
 void Bias::codeSiPM(uint8_t i_sipm, uint16_t code) {
-  int i_chip = (i_sipm > 7);
-  sipm_.at(i_chip).codeDAC(i_sipm - i_chip*8, code);
+  setSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
 }
 
 }

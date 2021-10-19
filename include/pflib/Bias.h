@@ -45,30 +45,58 @@ class MAX5825 {
 
   /**
    * Get the settings for the DACs on this MAX
+   *
+   * We return the bytes requested i.e. further parsing
+   * will be necessary especially in the per-DAC case where
+   * the settings are the twelve MSBs from two concatenated
+   * returned bytes.
    */
   std::vector<uint8_t> get(uint8_t cmd, int n_return_bytes = 2);
 
   /**
    * Write a setting for the DACs on this MAX
+   *
+   * The input two data bytes is a single 16-bit word
+   * where the 8 MSBs are the first data byte and the 8 LSBs
+   * are the second.
+   * Some pre-parsing may be necessary e.g. 12-bit settings for
+   * a specific DAC would need to be passed as
+   *   data_bytes = actual_12_bit_setting << 4;
+   * Since the chip expects the 12-bit settings to be the 12 MSBs
+   * from these two concatenated data words.
    */
   void set(uint8_t cmd, uint16_t data_bytes);
 
   /**
    * get by DAC index
+   *
+   * The per-DAC commands return the 12-bit settings as the 12 MSBs
+   * of two adjacent concatenated bits. We do this concatenation
+   * in this file as well as determine how many bytes to request
+   * depending on if we are requesting a single DAC (i_dac <= 7)
+   * or if we are requesting all DACs (i_dac > 7).
+   *
+   * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
+   * to make the DAC selection. Using the commands defined as 
+   * static constants in this class, the combination of i_dac and
+   * command is simply adding them together, which is done here.
    */
   std::vector<uint16_t> getByDAC(uint8_t i_dac, uint8_t cmd);
 
   /**
    * set by DAC index
+   *
+   * The per-DAC commands expect the 12-bit settings as the 12 MSBs
+   * of the two adjacent concatenated data bytes. We do the shifting
+   * inside of this function, so the twelve_bit_setting should be the 
+   * value you want the DAC to be set at.
+   *
+   * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
+   * to make the DAC selection. Using the commands defined as 
+   * static constants in this class, the combination of i_dac and
+   * command is simply adding them together, which is done here.
    */
-  void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes);
-
-  /**
-   * CODE a specific DAC and load that code into action.
-   */
-  void codeDAC(uint8_t dac, uint16_t twelve_bit_dac_code) {
-    setByDAC(dac, CODEn_LOADn, twelve_bit_dac_code);
-  }
+  void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
 
  private:
   /// our connection
@@ -101,16 +129,39 @@ class Bias {
  public:
   /**
    * Wrap an I2C class for communicating with all the DAC chips.
+   *
+   * The bus is 4 + <board-number>, so we set the default to 4 for 
+   * the case where we only have one board with bus number 0.
    */
   Bias(I2C& i2c, int bus = 4);
 
   /**
+   * Pass a setting to one LED DAC
+   */
+  void setLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
+
+  /**
+   * Pass a setting to one SiPM DAC
+   */
+  void setSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+
+  /**
    * Set and load the passed CODE for an LED bias
+   *
+   * Uses MAX5825::CODEn_LOADn
+   *
+   * This is a common procedure and operates as an example
+   * of how to use setLED.
    */
   void codeLED(uint8_t i_led, uint16_t code);
 
   /**
    * Set and load the passed CODE for an SiPM bias
+   *
+   * Uses MAX5825::CODEn_LOADn
+   *
+   * This is a common procedure and operates as an example
+   * of how to use setSiPM.
    */
   void codeSiPM(uint8_t i_sipm, uint16_t code);
 
