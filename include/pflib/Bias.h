@@ -17,20 +17,25 @@ namespace pflib {
  * LOAD - load CODE into DAC outputs
  * CODE_LOAD - CODE and then LOAD
  *
+ * The lower-level set and get functions are for chip-wide
+ * configuration (e.g. the watch dog WDOG configuration).
+ *
+ * Use the {set,get}byDAC functions when setting or getting 
+ * DAC parameters.
  */
 class MAX5825 {
  public:
   // Board Commands
-  static const uint8_t WDOG = 1 << 4;
+  static const uint8_t WDOG;
 
   // DAC Commands
   //  add the DAC selection to these commands
   //  to get the full command byte
-  static const uint8_t RETURNn       = 7  << 4;
-  static const uint8_t CODEn         = 8  << 4;
-  static const uint8_t LOADn         = 9  << 4;
-  static const uint8_t CODEn_LOADALL = 10 << 4;
-  static const uint8_t CODEn_LOADn   = 11 << 4;
+  static const uint8_t RETURNn;
+  static const uint8_t CODEn;
+  static const uint8_t LOADn;
+  static const uint8_t CODEn_LOADALL;
+  static const uint8_t CODEn_LOADn;
  public:
   /**
    * Wrap an I2C class for communicating with the MAX5825.
@@ -41,12 +46,29 @@ class MAX5825 {
   /**
    * Get the settings for the DACs on this MAX
    */
-  std::vector<uint16_t> getCODE(unsigned int i_dac);
+  std::vector<uint8_t> get(uint8_t cmd, int n_return_bytes = 2);
 
   /**
    * Write a setting for the DACs on this MAX
    */
-  void setCODE(unsigned int i_dac, uint16_t code);
+  void set(uint8_t cmd, uint16_t data_bytes);
+
+  /**
+   * get by DAC index
+   */
+  std::vector<uint16_t> getByDAC(uint8_t i_dac, uint8_t cmd);
+
+  /**
+   * set by DAC index
+   */
+  void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes);
+
+  /**
+   * CODE a specific DAC and load that code into action.
+   */
+  void codeDAC(uint8_t dac, uint16_t twelve_bit_dac_code) {
+    setByDAC(dac, CODEn_LOADn, twelve_bit_dac_code);
+  }
 
  private:
   /// our connection
@@ -72,10 +94,10 @@ class MAX5825 {
 class Bias {
  public:
   /// DAC chip addresses
-  static const uint8_t ADDR_LED_0  = 0x18;
-  static const uint8_t ADDR_LED_1  = 0x1A;
-  static const uint8_t ADDR_SIPM_0 = 0x10;
-  static const uint8_t ADDR_SIPM_1 = 0x12;
+  static const uint8_t ADDR_LED_0;
+  static const uint8_t ADDR_LED_1;
+  static const uint8_t ADDR_SIPM_0;
+  static const uint8_t ADDR_SIPM_1;
  public:
   /**
    * Wrap an I2C class for communicating with all the DAC chips.
@@ -85,7 +107,12 @@ class Bias {
   /**
    * Set and load the passed CODE for an LED bias
    */
-  void setLED_CODE(uint8_t i_led, uint16_t code);
+  void codeLED(uint8_t i_led, uint16_t code);
+
+  /**
+   * Set and load the passed CODE for an SiPM bias
+   */
+  void codeSiPM(uint8_t i_sipm, uint16_t code);
 
  private:
   /// LED bias chips
