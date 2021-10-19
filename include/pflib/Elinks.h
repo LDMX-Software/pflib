@@ -12,7 +12,7 @@ class Elinks : public WishboneTarget {
   
   std::vector<uint8_t> spy(int ilink);
   void setBitslip(int ilink, int bitslip);
-  void setBitslipAuto(int ilink);
+  void setBitslipAuto(int ilink,bool enable);
   bool isBitslipAuto(int ilink);
   int getBitslip(int ilink);
   uint32_t getStatusRaw(int ilink);

@@ -4,7 +4,6 @@ namespace pflib {
 static const int GPO_BIT_SOFTRESET0  = 0;
 static const int GPO_BIT_RESYNCLOAD0 = 4;
 static const int GPO_BIT_HARDRESET   = 8;
-
     
 static const int N_ROC = 4;
 

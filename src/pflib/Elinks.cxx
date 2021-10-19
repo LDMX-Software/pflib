@@ -64,9 +64,12 @@ void Elinks::setBitslip(int ilink, int bitslip) {
   wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_AUTO_ENABLE);
 }
 
-void Elinks::setBitslipAuto(int ilink) {
-  wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_AUTO_ENABLE,LINK_CTL_AUTO_ENABLE);
-}
+  void Elinks::setBitslipAuto(int ilink,bool enable) {
+    if (enable)
+      wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_AUTO_ENABLE,LINK_CTL_AUTO_ENABLE);
+    else
+      wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_AUTO_ENABLE);
+  }
 
 bool Elinks::isBitslipAuto(int ilink) {
   return wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_AUTO_ENABLE;
