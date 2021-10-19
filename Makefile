@@ -40,3 +40,5 @@ ${LIBTARGET_STATIC} : $(LIBOBJS)
 ${LIBTARGET_SHARED} : $(LIBOBJS)
 	g++ -shared -Wl,-soname,libpflib.so -o $@ $^ ${LDFLAGS} ${LOADLIBES}
 
+clean: 
+	rm $(LIBOBJS)
