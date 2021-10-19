@@ -7,10 +7,14 @@ namespace pflib {
 
 enum StandardWishboneTargets {
   tgt_COMMON      = 0,
-  tgt_FASTCONTROL = 1,
+  tgt_FastControl = 1,
   tgt_GPIO        = 2,
   tgt_I2C         = 3,
-  tgt_Elinks      = 4
+  tgt_Elinks      = 4,
+  tgt_DAQ_Control = 8,
+  tgt_DAQ_Inbuffer = 9,
+  tgt_DAQ_LinkFmt  = 10,
+  tgt_DAQ_Outbuffer= 11
 };
 
 /**

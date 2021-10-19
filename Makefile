@@ -41,3 +41,5 @@ ${LIBTARGET_SHARED} : $(LIBOBJS)
 	mkdir -f ${LIBDIR}
 	g++ -shared -Wl,-soname,libpflib.so -o $@ $^ ${LDFLAGS} ${LOADLIBES}
 
+clean: 
+	rm $(LIBOBJS)
