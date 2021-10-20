@@ -138,12 +138,12 @@ class Bias {
   /**
    * Pass a setting to one LED DAC
    */
-  void setLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
+  void cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
 
   /**
    * Pass a setting to one SiPM DAC
    */
-  void setSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+  void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
 
   /**
    * Set and load the passed CODE for an LED bias
@@ -153,7 +153,7 @@ class Bias {
    * This is a common procedure and operates as an example
    * of how to use setLED.
    */
-  void codeLED(uint8_t i_led, uint16_t code);
+  void setLED(uint8_t i_led, uint16_t code);
 
   /**
    * Set and load the passed CODE for an SiPM bias
@@ -163,7 +163,7 @@ class Bias {
    * This is a common procedure and operates as an example
    * of how to use setSiPM.
    */
-  void codeSiPM(uint8_t i_sipm, uint16_t code);
+  void setSiPM(uint8_t i_sipm, uint16_t code);
 
  private:
   /// LED bias chips

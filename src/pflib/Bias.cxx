@@ -20,29 +20,44 @@ const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
 MAX5825::MAX5825(I2C& i2c, uint8_t addr, int bus) : i2c_{i2c}, our_addr_{addr}, bus_{bus} {}
 
 std::vector<uint8_t> MAX5825::get(uint8_t cmd, int n_return_bytes) {
+  int savebus=i2c_.get_active_bus();
+  int savespeed=i2c_.get_bus_speed();
   i2c_.set_active_bus(bus_);
-  i2c_.set_bus_speed(1300);
+  i2c_.set_bus_speed(100);
+  i2c_.backplane_hack(true);
   
-  return i2c_.general_write_read(our_addr_, {cmd}, n_return_bytes);
+  std::vector<uint8_t> retval=i2c_.general_write_read(our_addr_, {cmd}, n_return_bytes);
+
+  i2c_.set_active_bus(savebus);
+  i2c_.set_bus_speed(savespeed);
+  i2c_.backplane_hack(false);
+
+  return retval;
 }
 
 void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
+  int savebus=i2c_.get_active_bus();
+  int savespeed=i2c_.get_bus_speed();
   i2c_.set_active_bus(bus_);
-  i2c_.set_bus_speed(1300);
+  i2c_.set_bus_speed(100);
+  i2c_.backplane_hack(true);
 
   std::vector<unsigned char> instructions = { 
     cmd, // CODE for this dac
-    data_bytes >> 8, // first data byte
-    data_bytes & 0xFF, // second data byte
+    uint8_t(data_bytes >> 8), // first data byte
+    uint8_t(data_bytes & 0xFF), // second data byte
   };
 
   i2c_.general_write_read(our_addr_, instructions);
 
+  i2c_.set_active_bus(savebus);
+  i2c_.set_bus_speed(savespeed);
+  i2c_.backplane_hack(false);
   return;
 }
 
 std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
-  int num_dacs = 1;
+  uint8_t num_dacs = 1;
   if (i_dac > 7) {
     i_dac = 8;
     num_dacs = 8;
@@ -76,22 +91,22 @@ Bias::Bias(I2C& i2c, int bus) {
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1 , bus);
 }
 
-void Bias::setLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
+void Bias::cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_led > 7);
   led_.at(i_chip).setByDAC(i_led - i_chip*8, cmd, twelve_bit_setting);
 }
 
-void Bias::setSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
+void Bias::cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_sipm > 7);
   sipm_.at(i_chip).setByDAC(i_sipm - i_chip*8, cmd, twelve_bit_setting);
 }
 
-void Bias::codeLED(uint8_t i_led, uint16_t code) {
-  setLED(i_led, MAX5825::CODEn_LOADn, code);
+void Bias::setLED(uint8_t i_led, uint16_t code) {
+  cmdLED(i_led, MAX5825::CODEn_LOADn, code);
 }
 
-void Bias::codeSiPM(uint8_t i_sipm, uint16_t code) {
-  setSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
+void Bias::setSiPM(uint8_t i_sipm, uint16_t code) {
+  cmdSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
 }
 
 }

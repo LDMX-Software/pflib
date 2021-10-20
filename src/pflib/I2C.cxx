@@ -57,6 +57,13 @@ void I2C::set_bus_speed(int speed) {
   usec_per_byte_=8*1000/speed;
 }
 
+int I2C::get_bus_speed() {
+  const int clockspeed=38000; // nominal clock speed
+  uint32_t prescaler=(wb_read(REG_PRESCALE1)<<8)+wb_read(REG_PRESCALE0);
+  int speed=clockspeed/(prescaler*5);
+  return speed;
+}
+
   void I2C::backplane_hack(bool enable) {
     if (enable) wb_rmw(REG_BUS_SELECT,MASK_BACKPLANE_HACK,MASK_BACKPLANE_HACK);
     else wb_rmw(REG_BUS_SELECT,0,MASK_BACKPLANE_HACK);

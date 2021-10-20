@@ -35,6 +35,11 @@ class I2C : public WishboneTarget {
    * Set the speed for the bus in kbps
    */
   void set_bus_speed(int speed=100);
+
+  /**
+   * Get the speed for the bus in kbps
+   */
+  int get_bus_speed();
   
   /** 
    * Write a single byte using the efficient interface, and wait for completion
