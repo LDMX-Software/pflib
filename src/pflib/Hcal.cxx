@@ -27,6 +27,13 @@ ROC Hcal::roc(int which) {
   return ROC(i2c_,which+0); 
 }
 
+  Bias Hcal::bias(int which) {
+    if (which<0 || which>=N_ROC) {
+      PFEXCEPTION_RAISE("InvalidBoardId","Requested out-of-range Board id");
+    }
+    return Bias(i2c_,which+4); 
+  }
+  
 void Hcal::hardResetROCs() {
   gpio_.setGPO(GPO_BIT_HARDRESET,false);
   gpio_.setGPO(GPO_BIT_HARDRESET,true);

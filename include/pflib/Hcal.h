@@ -3,6 +3,7 @@
 
 #include "pflib/ROC.h"
 #include "pflib/I2C.h"
+#include "pflib/Bias.h"
 #include "pflib/GPIO.h"
 
 namespace pflib {
@@ -17,7 +18,7 @@ class Hcal {
   ROC roc(int which);
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
-  I2C biasBus(int which);
+  Bias bias(int which);
 
   /** Generate a hard reset to all the HGCROC boards */
   void hardResetROCs();
