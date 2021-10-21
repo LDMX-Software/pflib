@@ -5,6 +5,7 @@
 #include "pflib/I2C.h"
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
+#include "pflib/DAQ.h"
 
 namespace pflib {
 /**
@@ -29,6 +30,9 @@ class Hcal {
   /** Generate a resyncLoad to a specific HGCROC board, -1 for all */
   void resyncLoadROC(int which=-1);
 
+  /** get the DAQ object */
+  DAQ& daq() { return daq_; }
+  
  private:
   /** The wishbone interface */
   WishboneInterface* wb_;
@@ -38,7 +42,10 @@ class Hcal {
   
   /** The I2C interface */
   I2C i2c_;
-    
+
+  /** The DAQ interface */
+  DAQ daq_;
+  
 };
 
 }

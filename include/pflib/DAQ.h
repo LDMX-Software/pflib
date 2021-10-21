@@ -12,7 +12,7 @@ namespace pflib {
    */
 class DAQ {
  public:
-  DAQ(WishboneInterface* wb) : wb_{wb} { }
+  DAQ(WishboneInterface* wb);
 
   // 
   void reset();
@@ -30,9 +30,15 @@ class DAQ {
   void bufferStatus(int ilink, bool postfmt, bool& empty, bool& full);
   // enable/disable the readout
   void enable(bool enable=true);
-  
+  // is the readout enabled?
+  bool enabled();
+
+  // number of elinks
+  int nlinks() const { return n_links; }
  private:
   WishboneInterface* wb_;
+  // number of links
+  int n_links;
 };      
   
 }
