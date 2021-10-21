@@ -11,12 +11,14 @@ const uint8_t MAX5825::WDOG = 1 << 4;
 // DAC Commands
 //  add the DAC selection to these commands
 //  to get the full command byte
-const uint8_t MAX5825::RETURNn       = 7  << 4;
-const uint8_t MAX5825::CODEn         = 8  << 4;
-const uint8_t MAX5825::LOADn         = 9  << 4;
-const uint8_t MAX5825::CODEn_LOADALL = 10 << 4;
-const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
-
+  const uint8_t MAX5825::RETURNn       = 7  << 4;
+  const uint8_t MAX5825::CODEn         = 8  << 4;
+  const uint8_t MAX5825::LOADn         = 9  << 4;
+  const uint8_t MAX5825::CODEn_LOADALL = 10 << 4;
+  const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
+  const uint8_t MAX5825::REFn          = 2 << 4;
+  const uint8_t MAX5825::POWERn        = 4 << 4;
+  
 MAX5825::MAX5825(I2C& i2c, uint8_t addr, int bus) : i2c_{i2c}, our_addr_{addr}, bus_{bus} {}
 
 std::vector<uint8_t> MAX5825::get(uint8_t cmd, int n_return_bytes) {
@@ -56,6 +58,11 @@ void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
   return;
 }
 
+  void MAX5825::setRefVoltage(int level) {
+    uint8_t cmd=REFn|0x4|(level&0x3);
+    set(cmd,0);
+  }
+  
 std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
   uint8_t num_dacs = 1;
   if (i_dac > 7) {
@@ -90,6 +97,16 @@ Bias::Bias(I2C& i2c, int bus) {
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0, bus);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1 , bus);
 }
+
+  void Bias::initialize() {
+    led_[0].setRefVoltage(3);
+    led_[1].setRefVoltage(3);
+    sipm_[0].setRefVoltage(3);
+    sipm_[1].setRefVoltage(3);
+
+    led_[0].set(MAX5825::POWERn,0xFF00);
+    
+  }
 
 void Bias::cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_led > 7);

@@ -36,6 +36,8 @@ class MAX5825 {
   static const uint8_t LOADn;
   static const uint8_t CODEn_LOADALL;
   static const uint8_t CODEn_LOADn;
+  static const uint8_t REFn;
+  static const uint8_t POWERn;
  public:
   /**
    * Wrap an I2C class for communicating with the MAX5825.
@@ -98,6 +100,15 @@ class MAX5825 {
    */
   void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
 
+
+  /** Set reference voltage 
+   * 0 - external
+   * 1 - 2.5V
+   * 2 - 2.048V
+   * 3 - 4.096V
+   */
+  void setRefVoltage(int level);
+  
  private:
   /// our connection
   I2C& i2c_;
@@ -135,6 +146,12 @@ class Bias {
    */
   Bias(I2C& i2c, int bus = 4);
 
+  /** 
+   * Initialize to standard settings 
+   *  Reference voltage - 4.096V
+   */
+  void initialize();
+  
   /**
    * Pass a setting to one LED DAC
    */
