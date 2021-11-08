@@ -1,6 +1,7 @@
 #ifndef PFLIB_DAQ_H_INCLUDED
 #define PFLIB_DAQ_H_INCLUDED
 
+#include <boost/python.hpp>
 #include <vector>
 #include "pflib/WishboneInterface.h"
 
@@ -35,6 +36,15 @@ class DAQ {
 
   // number of elinks
   int nlinks() const { return n_links; }
+ public:
+  static void declare_python() {
+    boost::python::_class<DAQ>("DAQ")
+      .def("reset", &reset)
+      .def("getHeaderOccupancy", &getHeaderOccupancy)
+      .def("setIds", &setIds)
+    ;
+  }
+
  private:
   WishboneInterface* wb_;
   // number of links

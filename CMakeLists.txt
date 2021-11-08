@@ -12,18 +12,11 @@ project(pflib
 #   https://github.com/slaclab/rogue/blob/370431eba80b39b62af48ff54b6602c828f7e215/CMakeLists.txt#L44
 find_package(PythonInterp 3 QUIET REQUIRED)
 find_package(PythonLibs 3 QUIET REQUIRED)
-
-# Find Numpy
-execute_process(
-   COMMAND python3 -c "import numpy; print(numpy.get_include(), end='')"
-   RESULT_VARIABLE Python3_NumPy_RESULT
-   OUTPUT_VARIABLE Python3_NumPy_INCLUDE_DIRS
-   ERROR_QUIET
-   OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if (Python3_NumPy_RESULT)
-  message("")
-  message(FATAL_ERROR "Failed to find numpy includes!")
+if(NOT TARGET Python::Interface)
+  add_library(Python::Interface INTERFACE IMPORTED GLOBAL)
+  set_target_properties(Python::Interface PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}"
+    INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
 endif()
 
 set(Boost_USE_MULTITHREADED ON)
@@ -59,5 +52,5 @@ if (NOT Boost_FOUND)
 endif()
 
 # Build the emulator library
-setup_library(module pflib dependencies Boost::python)
+setup_library(module pflib dependencies Boost::python Python::Interface)
 

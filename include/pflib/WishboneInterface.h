@@ -1,6 +1,7 @@
 #ifndef PFLIB_WISHBONEINTERFACE_H_
 #define PFLIB_WISHBONEINTERFACE_H_
 
+#include <boost/python.hpp>
 #include <pflib/Exception.h>
 #include <stdint.h>
 
@@ -40,8 +41,23 @@ class WishboneInterface {
    * Clear the monitoring counters
    */
   virtual void wb_clear_counters() = 0;  
-  
+
+  /// declare the python module for this
+  static void declare_python();
 };
+
+struct WishboneInterfaceWrapper : WishboneInterface, boost::python::wrapper<WishboneInterface> {
+  void wb_write(int target, uint32_t addr, uint32_t data) {
+    this->get_override("wb_write")(target, addr, data);
+  }
+};
+
+void WishboneInterface::declare_python() {
+  boost::python::class_<WishboneInterfaceWrapper, boost::noncopyable>("WishboneInterface")
+    .def("wb_write", boost::python::pure_virtual(&WishboneInterface::wb_write))
+  ;
+}
+
 }
 
 #endif // PFLIB_WISHBONEINTERFACE_H_
