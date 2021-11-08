@@ -37,45 +37,27 @@ elseif (DEFINED ENV{BOOST_PATH})
    set(BOOST_ROOT $ENV{BOOST_PATH})
 endif()
 
-# libboost_python3.7 style libraries
-message("Looking for libboost_python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-find_package(Boost 1.58 QUIET COMPONENTS python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
-set(Boost_python "Boost::python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-
-# libboost_python3 style libraries
-if (NOT Boost_FOUND)
-  message("Looking for libboost_python${PYTHON_VERSION_MAJOR}")
-  find_package(Boost 1.58 QUIET COMPONENTS python${PYTHON_VERSION_MAJOR})
-  set(Boost_python "Boost::python${PYTHON_VERSION_MAJOR}")
-endif()
-
-# libboost_python style libraries
-if (NOT Boost_FOUND)
-  message("Looking for libboost_python")
-  find_package(Boost 1.58 QUIET COMPONENTS system thread python)
-  set(Boost_python "Boost::python")
-endif()
-
-# libboost_python-py37 style libraries
-if (NOT Boost_FOUND)
-  message("Looking for libboost_python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-  find_package(Boost 1.58 QUIET COMPONENTS python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
-  set(Boost_python "Boost::python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-endif()
-
-# libboost_python3-py37 style libraries
-if (NOT Boost_FOUND)
-  message("Looking for libboost_python3-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-  find_package(Boost 1.58 QUIET COMPONENTS python3-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
-  set(Boost_python "Boost::python3-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-endif()
+set(BOOSTPY_TARGET_OPTIONS 
+  "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
+  "python${PYTHON_VERSION_MAJOR}"
+  "python"
+  "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
+  "python3-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+foreach(target_opt ${BOOSTPY_TARGET_OPTIONS})
+  message("looking for libboost_${target_opt}")
+  find_package(Boost 1.58 QUIET COMPONENTS ${target_opt})
+  if (Boost_FOUND)
+    add_library(Boost::python ALIAS Boost::${target_opt})
+    break()
+  endif()
+endforeach()
 
 # Nothing worked
 if (NOT Boost_FOUND)
-   message("")
-   message(FATAL_ERROR "Failed to find boost libraries!")
+  message("")
+  message(FATAL_ERROR "Failed to find boost libraries!")
 endif()
 
 # Build the emulator library
-setup_library(module pflib dependencies ${Boost_python})
+setup_library(module pflib dependencies Boost::python)
 
