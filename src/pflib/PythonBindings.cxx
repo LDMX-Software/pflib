@@ -3,6 +3,12 @@
  * class methods across all of their files. This makes sense for 
  * such a large code base; however, for a smaller codebase like pflib
  * isolating the python bindings to one file takes priority.
+ *
+ * The boost tutorial is a good reference for example code blocks
+ * that we can almost straight copy. Note: the tutorial assumes
+ * 'using namespace boost::python' which we will not do.
+ * 
+ * https://www.boost.org/doc/libs/1_75_0/libs/python/doc/html/tutorial/tutorial/exposing.html
  */
 
 #include <boost/python.hpp>
@@ -26,18 +32,64 @@ void (*GPIO_setGPO_all)(const std::vector<bool>&) = &GPIO::setGPO;
  */
 
 }  // namespace python
+
+namespace test {
+/**
+ * Want to make sure I can pass derived class through Python bindings
+ */
+class DerivedWBI : public WishboneInterface {
+ public:
+  // just doing an easy one
+  void wb_reset() {
+    std::cout << "I am in DerivedWBI!" << std::endl;
+  }
+}; //
+
+class TestWBIUser {
+ public:
+  TestWBIUser(WishboneInterface* wb) : wb_{wb} {}
+  void reset() { wb_->wb_reset(); }
+ private:
+  WishboneInterface* wb_;
+};
+
+}
+
 }  // namespace pflib
 
+/**
+ * We define the name of the module to be 'pflib'
+ * this needs to be the same as the name of the compiled dynamic library (everything before .so),
+ * so cmake needs to be told to strip the default 'lib' prefix.
+ */
 BOOST_PYTHON_MODULE(pflib) {
 
-  /// abstract base
-  bp::class_<pflib::WishboneInterface>("WishboneInterface", bp::no_init);
+  /**
+   * I call this class "no_init" because it shouldn't be created in Python.
+   * We don't bind any of its member functions because it shouldn't exist as an instance.
+   */
+  bp::class_<pflib::WishboneInterface>("WishboneInterface",bp::no_init);
+
+  /**
+   * Defining a new wishbone interface needs to clearly state that
+   * it is a derived class in the python bindings as well.
+   * This allows us to pass a Python instance of DerivedWBI to a function that
+   * takes a WBI as an input.
+   *
+   * We don't need to bind any of its methods since all of its methods
+   * are only used within a "WBI User" within the C++.
+   */
+  bp::class_<pflib::test::DerivedWBI, bp::bases<pflib::WishboneInterface>>("DerivedWBI");
+
+  bp::class_<pflib::test::TestWBIUser>("TestWBIUser",bp::init<pflib::WishboneInterface*>())
+    .def("reset",&pflib::test::TestWBIUser::reset)
+  ;
 
   /**
    * Could combine set/get into a r/w python property
    *  https://www.boost.org/doc/libs/1_75_0/libs/python/doc/html/tutorial/tutorial/exposing.html#tutorial.exposing.class_properties
    */
-  bp::class_<pflib::I2C>("I2C",bp::init<pflib::WishboneInterface,int>())
+  bp::class_<pflib::I2C>("I2C",bp::init<pflib::WishboneInterface*,int>())
     .def("set_active_bus", &pflib::I2C::set_active_bus)
     .def("get_active_bus", &pflib::I2C::get_active_bus)
     .def("get_bus_count", &pflib::I2C::get_bus_count)
