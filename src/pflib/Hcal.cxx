@@ -69,4 +69,8 @@ uint32_t Hcal::getFirmwareVersion() {
   return wb_->wb_read(0,1);
 }
 
+DAQ& Hcal::daq() {
+  return daq_;
+}
+
 }

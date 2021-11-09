@@ -42,7 +42,7 @@ class Hcal {
   FastControl& fc() { return fc_; }
 
   /** get the DAQ object */
-  DAQ& daq() { return daq_; }
+  DAQ& daq();
   
  private:
   /** The wishbone interface */

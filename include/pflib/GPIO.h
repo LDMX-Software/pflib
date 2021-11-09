@@ -52,6 +52,12 @@ class GPIO : public WishboneTarget {
    */
   std::vector<bool> getGPO();
 
+  /// convenience wrapper for python bindings
+  bool getGPI_single(int ibit) { return getGPI(ibit); }
+  std::vector<bool> getGPI_all() { return getGPI(); }
+  void setGPO_single(int ibit, bool t) { return setGPO(ibit,t); }
+  void setGPO_all(const std::vector<bool>& b) { return setGPO(b); }
+
  private:
   /** 
    * Cached numbers of GPI and GPO bits

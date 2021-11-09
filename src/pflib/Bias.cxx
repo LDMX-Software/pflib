@@ -11,15 +11,15 @@ const uint8_t MAX5825::WDOG = 1 << 4;
 // DAC Commands
 //  add the DAC selection to these commands
 //  to get the full command byte
-  const uint8_t MAX5825::RETURNn       = 7  << 4;
-  const uint8_t MAX5825::CODEn         = 8  << 4;
-  const uint8_t MAX5825::LOADn         = 9  << 4;
-  const uint8_t MAX5825::CODEn_LOADALL = 10 << 4;
-  const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
-  const uint8_t MAX5825::REFn          = 2 << 4;
-  const uint8_t MAX5825::POWERn        = 4 << 4;
+const uint8_t MAX5825::RETURNn       = 7  << 4;
+const uint8_t MAX5825::CODEn         = 8  << 4;
+const uint8_t MAX5825::LOADn         = 9  << 4;
+const uint8_t MAX5825::CODEn_LOADALL = 10 << 4;
+const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
+const uint8_t MAX5825::REFn          = 2 << 4;
+const uint8_t MAX5825::POWERn        = 4 << 4;
   
-MAX5825::MAX5825(I2C& i2c, uint8_t addr, int bus) : i2c_{i2c}, our_addr_{addr}, bus_{bus} {}
+MAX5825::MAX5825(const I2C& i2c, uint8_t addr, int bus) : i2c_{const_cast<I2C&>(i2c)}, our_addr_{addr}, bus_{bus} {}
 
 std::vector<uint8_t> MAX5825::get(uint8_t cmd, int n_return_bytes) {
   int savebus=i2c_.get_active_bus();
@@ -91,22 +91,21 @@ const uint8_t Bias::ADDR_LED_1  = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
-Bias::Bias(I2C& i2c, int bus) {
+Bias::Bias(const I2C& i2c, int bus) {
   led_.emplace_back(i2c, Bias::ADDR_LED_0, bus);
   led_.emplace_back(i2c, Bias::ADDR_LED_1 , bus);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0, bus);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1 , bus);
 }
 
-  void Bias::initialize() {
-    led_[0].setRefVoltage(3);
-    led_[1].setRefVoltage(3);
-    sipm_[0].setRefVoltage(3);
-    sipm_[1].setRefVoltage(3);
+void Bias::initialize() {
+  led_[0].setRefVoltage(3);
+  led_[1].setRefVoltage(3);
+  sipm_[0].setRefVoltage(3);
+  sipm_[1].setRefVoltage(3);
 
-    led_[0].set(MAX5825::POWERn,0xFF00);
-    
-  }
+  led_[0].set(MAX5825::POWERn,0xFF00);
+}
 
 void Bias::cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_led > 7);
