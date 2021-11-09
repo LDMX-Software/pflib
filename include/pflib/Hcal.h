@@ -5,6 +5,7 @@
 #include "pflib/I2C.h"
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
+#include "pflib/FastControl.h"
 #include "pflib/DAQ.h"
 
 namespace pflib {
@@ -30,6 +31,9 @@ class Hcal {
   /** Generate a resyncLoad to a specific HGCROC board, -1 for all */
   void resyncLoadROC(int which=-1);
 
+  /** get the FastControl object */
+  FastControl& fc() { return fc_; }
+
   /** get the DAQ object */
   DAQ& daq() { return daq_; }
   
@@ -43,9 +47,12 @@ class Hcal {
   /** The I2C interface */
   I2C i2c_;
 
+  /** The FastControl interface */
+  FastControl fc_;
+
   /** The DAQ interface */
   DAQ daq_;
-  
+
 };
 
 }

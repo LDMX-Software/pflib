@@ -7,7 +7,7 @@ static const int GPO_BIT_HARDRESET   = 8;
     
 static const int N_ROC = 4;
 
-Hcal::Hcal(WishboneInterface* wb) : wb_(wb), gpio_(wb), i2c_(wb), daq_(wb) {
+Hcal::Hcal(WishboneInterface* wb) : wb_(wb), gpio_(wb), i2c_(wb), fc_(wb), daq_(wb) {
   // make sure reset is /disabled/
   std::vector<bool> gpo=gpio_.getGPO();
 
