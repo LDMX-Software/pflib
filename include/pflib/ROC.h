@@ -12,7 +12,7 @@ namespace pflib {
    */
 class ROC {
  public:
-  ROC(const I2C& i2c, int ibus=0);
+  ROC(I2C& i2c, int ibus=0);
 
   std::vector<uint8_t> readPage(int ipage, int len);
   void setValue(int page, int offset, uint32_t value);

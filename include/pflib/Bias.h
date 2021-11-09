@@ -43,7 +43,7 @@ class MAX5825 {
    * Wrap an I2C class for communicating with the MAX5825.
    * The bus we are on is the same as the ROC's bus.
    */
-  MAX5825(const I2C& i2c, uint8_t max_addr, int bus = 4);
+  MAX5825(I2C& i2c, uint8_t max_addr, int bus = 4);
 
   /**
    * Get the settings for the DACs on this MAX
@@ -144,7 +144,7 @@ class Bias {
    * The bus is 4 + <board-number>, so we set the default to 4 for 
    * the case where we only have one board with bus number 0.
    */
-  Bias(const I2C& i2c, int bus = 4);
+  Bias(I2C& i2c, int bus = 4);
 
   /** 
    * Initialize to standard settings 

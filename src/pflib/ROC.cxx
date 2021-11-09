@@ -22,7 +22,7 @@ static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
   30, 31, 32, 33, // 64-67
   34, 35, 36, 37}; // 68-71
 
-ROC::ROC(const I2C& i2c, int ibus) : i2c_{const_cast<I2C&>(i2c)},ibus_{ibus} {
+ROC::ROC(I2C& i2c, int ibus) : i2c_{i2c},ibus_{ibus} {
 }
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {

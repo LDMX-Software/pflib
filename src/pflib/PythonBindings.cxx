@@ -66,7 +66,8 @@ BOOST_PYTHON_MODULE(pflib) {
    * We don't need to bind any of its methods since all of its methods
    * are only used within a "WBI User" within the C++.
    */
-  bp::class_<pflib::rogue::RogueWishboneInterface, bp::bases<pflib::WishboneInterface>>("RogueWishboneInterface", bp::init<std::string,int>());
+  bp::class_<pflib::rogue::RogueWishboneInterface, 
+    bp::bases<pflib::WishboneInterface>>("RogueWishboneInterface", bp::init<std::string,int>());
 
   bp::class_<pflib::I2C>("I2C",bp::init<pflib::WishboneInterface*,bp::optional<int>>())
     .def("set_active_bus", &pflib::I2C::set_active_bus)
@@ -80,9 +81,6 @@ BOOST_PYTHON_MODULE(pflib) {
     .def("backplane_hack", &pflib::I2C::backplane_hack)
   ;
 
-  /**
-   * Need to define pointers for overloading function names
-   */
   bp::class_<pflib::GPIO>("GPIO",bp::init<pflib::WishboneInterface*,bp::optional<int>>())
     .def("getGPOcount", &pflib::GPIO::getGPOcount)
     .def("getGPIcount", &pflib::GPIO::getGPIcount)
@@ -133,14 +131,14 @@ BOOST_PYTHON_MODULE(pflib) {
     .def("setDelay", &pflib::Elinks::setDelay)
   ;
 
-  bp::class_<pflib::ROC>("ROC",bp::init<pflib::I2C,bp::optional<int>>())
+  bp::class_<pflib::ROC>("ROC",bp::init<pflib::I2C&,bp::optional<int>>())
     .def("readPage", &pflib::ROC::readPage)
     .def("setValue", &pflib::ROC::setValue)
     .def("getChannelParameters", &pflib::ROC::getChannelParameters)
     .def("setChannelParameters", &pflib::ROC::setChannelParameters)
   ;
 
-  bp::class_<pflib::MAX5825>("MAX5825",bp::init<pflib::I2C,uint8_t,bp::optional<int>>())
+  bp::class_<pflib::MAX5825>("MAX5825",bp::init<pflib::I2C&,uint8_t,bp::optional<int>>())
     .def_readonly("WDOG",&pflib::MAX5825::WDOG)
     .def_readonly("RETURNn",&pflib::MAX5825::RETURNn)
     .def_readonly("CODEn",&pflib::MAX5825::CODEn)
@@ -157,7 +155,7 @@ BOOST_PYTHON_MODULE(pflib) {
   ;
 
   // choosing to not bind addresss variables because they should be used by end user
-  bp::class_<pflib::Bias>("Bias",bp::init<pflib::I2C,bp::optional<int>>())
+  bp::class_<pflib::Bias>("Bias",bp::init<pflib::I2C&,bp::optional<int>>())
     .def("initialize", &pflib::Bias::initialize)
     .def("cmdLED", &pflib::Bias::cmdLED)
     .def("cmdSiPM", &pflib::Bias::cmdSiPM)

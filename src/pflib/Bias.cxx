@@ -19,7 +19,7 @@ const uint8_t MAX5825::CODEn_LOADn   = 11 << 4;
 const uint8_t MAX5825::REFn          = 2 << 4;
 const uint8_t MAX5825::POWERn        = 4 << 4;
   
-MAX5825::MAX5825(const I2C& i2c, uint8_t addr, int bus) : i2c_{const_cast<I2C&>(i2c)}, our_addr_{addr}, bus_{bus} {}
+MAX5825::MAX5825(I2C& i2c, uint8_t addr, int bus) : i2c_{i2c}, our_addr_{addr}, bus_{bus} {}
 
 std::vector<uint8_t> MAX5825::get(uint8_t cmd, int n_return_bytes) {
   int savebus=i2c_.get_active_bus();
@@ -91,7 +91,7 @@ const uint8_t Bias::ADDR_LED_1  = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
-Bias::Bias(const I2C& i2c, int bus) {
+Bias::Bias(I2C& i2c, int bus) {
   led_.emplace_back(i2c, Bias::ADDR_LED_0, bus);
   led_.emplace_back(i2c, Bias::ADDR_LED_1 , bus);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0, bus);
