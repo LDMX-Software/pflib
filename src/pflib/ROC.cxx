@@ -1,4 +1,5 @@
 #include "pflib/ROC.h"
+#include <iostream>
 
 namespace pflib {
 
@@ -21,7 +22,7 @@ static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
   30, 31, 32, 33, // 64-67
   34, 35, 36, 37}; // 68-71
 
-ROC::ROC(I2C& i2c, int ibus) : i2c_{i2c},ibus_{ibus} {
+ROC::ROC(const I2C& i2c, int ibus) : i2c_{const_cast<I2C&>(i2c)},ibus_{ibus} {
 }
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
@@ -44,13 +45,17 @@ std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
   return readPage(block_for_chan[ichan],14);
 }
 
-  void ROC::setValue(int page, int offset, uint32_t value) {
-    i2c_.set_active_bus(ibus_);
-    i2c_.set_bus_speed(1400);
-    uint16_t fulladdr=(page<<5)|offset;
-    i2c_.write_byte(0,fulladdr&0xFF);
-    i2c_.write_byte(1,(fulladdr>>8)&0xFF);
-    i2c_.write_byte(2,value&0xFF);
-  }
+void ROC::setChannelParameters(int ichan, std::vector<uint8_t>& values) {
+  std::cout << "I don't do anything right now" << std::endl;
+}
+
+void ROC::setValue(int page, int offset, uint32_t value) {
+  i2c_.set_active_bus(ibus_);
+  i2c_.set_bus_speed(1400);
+  uint16_t fulladdr=(page<<5)|offset;
+  i2c_.write_byte(0,fulladdr&0xFF);
+  i2c_.write_byte(1,(fulladdr>>8)&0xFF);
+  i2c_.write_byte(2,value&0xFF);
+}
 
 }
