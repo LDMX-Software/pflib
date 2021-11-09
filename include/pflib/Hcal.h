@@ -4,6 +4,7 @@
 #include "pflib/ROC.h"
 #include "pflib/I2C.h"
 #include "pflib/Bias.h"
+#include "pflib/Elinks.h"
 #include "pflib/GPIO.h"
 #include "pflib/FastControl.h"
 #include "pflib/DAQ.h"
@@ -31,6 +32,9 @@ class Hcal {
   /** Generate a resyncLoad to a specific HGCROC board, -1 for all */
   void resyncLoadROC(int which=-1);
 
+  /** get the Elinks object */
+  Elinks& elinks() { return elinks_; }
+  
   /** get the FastControl object */
   FastControl& fc() { return fc_; }
 
@@ -47,6 +51,9 @@ class Hcal {
   /** The I2C interface */
   I2C i2c_;
 
+  /** The Elinks interface */
+  Elinks elinks_;
+  
   /** The FastControl interface */
   FastControl fc_;
 
