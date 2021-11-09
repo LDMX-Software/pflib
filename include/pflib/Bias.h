@@ -1,7 +1,6 @@
 #ifndef PFLIB_MAX5825_H_
 #define PFLIB_MAX5825_H_
 
-#include <boost/python.hpp>
 #include "pflib/I2C.h"
 #include <vector>
 
@@ -109,17 +108,6 @@ class MAX5825 {
    * 3 - 4.096V
    */
   void setRefVoltage(int level);
- 
- public:
-  static void declare_python() {
-    boost::python::class_<MAX5825>("MAX5825")
-      .def("set", &MAX5825::set)
-      .def("get", &MAX5825::get)
-      .def("setByDAC", &MAX5825::setByDAC)
-      .def("getByDAC", &MAX5825::getByDAC)
-      .def("setRefVoltage", &MAX5825::setRefVoltage)
-    ;
-  }
   
  private:
   /// our connection
