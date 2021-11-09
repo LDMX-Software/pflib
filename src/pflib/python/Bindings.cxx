@@ -43,11 +43,11 @@ void ExceptionTranslator(Exception const& e) {
 }  // namespace pflib
 
 /**
- * We define the name of the module to be 'pflib'
+ * We define the name of the module to be 'pflib_python'
  * this needs to be the same as the name of the compiled dynamic library (everything before .so),
  * so cmake needs to be told to strip the default 'lib' prefix.
  */
-BOOST_PYTHON_MODULE(pflib) {
+BOOST_PYTHON_MODULE(pflib_python) {
 
   bp::register_exception_translator<pflib::Exception>(pflib::ExceptionTranslator);
 

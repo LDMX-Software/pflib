@@ -7,6 +7,19 @@ project(pflib
 	DESCRIPTION "Polarfire configuration library."
 	LANGUAGES CXX)
 
+# Build the polarfire library
+file(GLOB pflib_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/[a-zA-Z]*.cxx)
+add_library(pflib SHARED ${pflib_src})
+target_include_directories(pflib PUBLIC ${PROJECT_SOURCE_DIR}/include)
+install(TARGETS pflib LIBRARY DESTINATION lib)
+
+setup_rogue()
+
+file(GLOB pflib_rogue_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/rogue/[a-zA-Z]*.cxx)
+add_library(pflib_rogue SHARED ${pflib_rogue_src})
+target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
+install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+
 # Search for Boost + Python
 #   shamelessly stolen from slaclab/rogue central CMakeLists.txt
 #   need python includes and libraries for compiling boost python bindings
@@ -59,11 +72,11 @@ if (NOT Boost_FOUND)
   endif()
 endif()
 
-setup_rogue()
-
-# Build the polarfire library
-setup_library(module pflib dependencies Rogue::Rogue Boost::python Python::Interface)
+add_library(pflib_python SHARED ${PROJECT_SOURCE_DIR}/src/pflib/python/Bindings.cxx)
+target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
+install(TARGETS pflib_python LIBRARY DESTINATION lib)
 
 # remove 'lib' prefix from compiled shared library
 #   this enables us to do 'import pflib' instead of 'import libpflib'
-set_target_properties(pflib PROPERTIES PREFIX "")
+set_target_properties(pflib_python PROPERTIES PREFIX "")
+
