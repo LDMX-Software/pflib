@@ -11,6 +11,17 @@ import pflib_python as pflib
 inside a python shell or script.
 
 There are many ways for the library to be "findable by python", here are a few:
-- Add the directory to `LD_LIBRARY_PATH`
 - Add the directory to `PYTHONPATH`
 - Be in the directory that `pflib_python.so` is in
+
+After you are able to get the library compiled and installed,
+you can start interacting with the polarfire in a python terminal.
+
+```python
+>>> import pflib_python as pflib
+>>> wbi = pflib.RogueWishboneInterface('<host>',<port>)
+>>> i2c = pflib.I2C(wbi)
+>>> roc = pflib.ROC(i2c, 0)
+```
+
+This is simply nice for experimentation. Common tasks can be coded into the library as they are discovered.
