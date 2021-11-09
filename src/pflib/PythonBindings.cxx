@@ -25,30 +25,9 @@ namespace bp = boost::python;
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
 #include "pflib/WishboneInterface.h"
+#include "pflib/rogue/RogueWishboneInterface.h"
 
 namespace pflib {
-
-namespace test {
-/**
- * Want to make sure I can pass derived class through Python bindings
- */
-class DerivedWBI : public WishboneInterface {
- public:
-  // just doing an easy one
-  void wb_reset() {
-    std::cout << "I am in DerivedWBI!" << std::endl;
-  }
-}; //
-
-class TestWBIUser {
- public:
-  TestWBIUser(WishboneInterface* wb) : wb_{wb} {}
-  void reset() { wb_->wb_reset(); }
- private:
-  WishboneInterface* wb_;
-};
-
-}
 
 /**
  * Exception translation.
@@ -87,12 +66,7 @@ BOOST_PYTHON_MODULE(pflib) {
    * We don't need to bind any of its methods since all of its methods
    * are only used within a "WBI User" within the C++.
    */
-  bp::class_<pflib::test::DerivedWBI, bp::bases<pflib::WishboneInterface>>("DerivedWBI");
-
-  /// test WBI user
-  bp::class_<pflib::test::TestWBIUser>("TestWBIUser",bp::init<pflib::WishboneInterface*>())
-    .def("reset",&pflib::test::TestWBIUser::reset)
-  ;
+  bp::class_<pflib::rogue::RogueWishboneInterface, bp::bases<pflib::WishboneInterface>>("RogueWishboneInterface", bp::init<std::string,int>());
 
   bp::class_<pflib::I2C>("I2C",bp::init<pflib::WishboneInterface*,bp::optional<int>>())
     .def("set_active_bus", &pflib::I2C::set_active_bus)

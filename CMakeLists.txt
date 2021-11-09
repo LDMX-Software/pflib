@@ -59,8 +59,10 @@ if (NOT Boost_FOUND)
   endif()
 endif()
 
+setup_rogue()
+
 # Build the polarfire library
-setup_library(module pflib dependencies Boost::python Python::Interface)
+setup_library(module pflib dependencies Rogue::Rogue Boost::python Python::Interface)
 
 # remove 'lib' prefix from compiled shared library
 #   this enables us to do 'import pflib' instead of 'import libpflib'
