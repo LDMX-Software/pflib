@@ -6,11 +6,11 @@ The Polarfire Libary (pflib) encapsulates the higher-level functionality for com
 This library has its 'lib' prefix removed so that _if_ the directory the built library ends up in is findable by python,
 then the user can
 ```
-import pflib
+import pflib_python as pflib
 ```
 inside a python shell or script.
 
 There are many ways for the library to be "findable by python", here are a few:
 - Add the directory to `LD_LIBRARY_PATH`
 - Add the directory to `PYTHONPATH`
-- Be in the directory that `pflib.so` is in
+- Be in the directory that `pflib_python.so` is in
