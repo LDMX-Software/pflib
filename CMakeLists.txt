@@ -9,6 +9,7 @@ project(pflib
 
 # Search for Boost + Python
 #   shamelessly stolen from slaclab/rogue central CMakeLists.txt
+#   need python includes and libraries for compiling boost python bindings
 find_package(PythonInterp 3 QUIET REQUIRED)
 find_package(PythonLibs 3 QUIET REQUIRED)
 if(NOT TARGET Python::Interface)
@@ -30,6 +31,8 @@ if (NOT Boost_FOUND)
      set(BOOST_ROOT $ENV{BOOST_PATH})
   endif()
   
+  # Boost.Python is pretty new and the target has changed
+  #   naming conventions several times as it was developed
   set(BOOSTPY_TARGET_OPTIONS 
     "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
     "python${PYTHON_VERSION_MAJOR}"
@@ -41,14 +44,16 @@ if (NOT Boost_FOUND)
     find_package(Boost 1.58 QUIET COMPONENTS ${target_opt})
     if (Boost_FOUND)
       if (NOT ${target_opt} STREQUAL "python")
+        # make an alias so we can use the simple target name
         add_library(Boost::python ALIAS Boost::${target_opt})
       endif()
+      # we found it, leave
       break()
     endif()
   endforeach()
   
-  # Nothing worked
   if (NOT Boost_FOUND)
+    # nothing worked
     message("")
     message(FATAL_ERROR "Failed to find boost libraries!")
   endif()

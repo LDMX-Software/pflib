@@ -16,7 +16,6 @@
 namespace bp = boost::python;
 
 #include "pflib/Exception.h"
-
 #include "pflib/Hcal.h"
 #include "pflib/Elinks.h"
 #include "pflib/Bias.h"
