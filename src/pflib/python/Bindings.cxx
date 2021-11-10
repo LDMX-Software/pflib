@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 namespace bp = boost::python;
 
 #include "pflib/Exception.h"
@@ -40,6 +41,12 @@ void ExceptionTranslator(Exception const& e) {
   PyErr_SetString(PyExc_UserWarning, msg.c_str());
 }
 
+/// array of bytes
+typedef std::vector<uint8_t> ByteArray;
+
+/// array of words
+typedef std::vector<uint32_t> WordArray;
+
 }  // namespace pflib
 
 /**
@@ -48,6 +55,12 @@ void ExceptionTranslator(Exception const& e) {
  * so cmake needs to be told to strip the default 'lib' prefix.
  */
 BOOST_PYTHON_MODULE(pflib_python) {
+
+  bp::class_<pflib::ByteArray>("ByteArray","Wrapper of std::vector<uint8_t>")
+    .def(bp::vector_indexing_suite<pflib::ByteArray>());
+
+  bp::class_<pflib::WordArray>("WordArray","Wrapper of std::vector<uint32_t>")
+    .def(bp::vector_indexing_suite<pflib::WordArray>());
 
   bp::register_exception_translator<pflib::Exception>(pflib::ExceptionTranslator);
 
