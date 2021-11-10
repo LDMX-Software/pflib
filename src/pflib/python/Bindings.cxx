@@ -55,7 +55,9 @@ BOOST_PYTHON_MODULE(pflib_python) {
    * I call this class "no_init" because it shouldn't be created in Python.
    * We don't bind any of its member functions because it shouldn't exist as an instance.
    */
-  bp::class_<pflib::WishboneInterface>("WishboneInterface",bp::no_init);
+  bp::class_<pflib::WishboneInterface>("WishboneInterface",
+      "Abstract base class for different types of interfaces to the wishbone protocol",
+      bp::no_init);
 
   /**
    * Defining a new wishbone interface needs to clearly state that
