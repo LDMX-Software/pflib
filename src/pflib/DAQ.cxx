@@ -55,11 +55,13 @@ void DAQ::setupLink(int ilink, bool zs, bool zs_all, int l1a_delay, int l1a_capt
   reg1=reg1&0xFFFFFFF0u;
   if (zs) reg1|=CTL_LINK_ZS_ENABLE;
   if (zs && zs_all) reg1|=CTL_LINK_ZS_FULLSUPPRESS;
+  printf("%d %08x\n",ilink,reg1);
   wb_->wb_write(tgt_DAQ_LinkFmt,(ilink<<7)|1,reg1);
 
   // set l1a capture setup
-  reg1=wb_->wb_read(tgt_DAQ_Inbuffer,(ilink<<7)|1);
-  reg1=(reg1&0xFF)|((l1a_delay&0xFF)<<8)|((l1a_capture_width&0xFF)<<16);
+  uint32_t regi=wb_->wb_read(tgt_DAQ_Inbuffer,(ilink<<7)|1);
+  regi=(regi&0xFF)|((l1a_delay&0xFF)<<8)|((l1a_capture_width&0xFF)<<16);
+  wb_->wb_write(tgt_DAQ_Inbuffer,(ilink<<7)|1,regi);
   
   if (isEnable) {
     reg1|=0x1;
