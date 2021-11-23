@@ -157,7 +157,7 @@ void Elinks::scanAlign(int ilink) {
 
 
 void Elinks::setDelay(int ilink,int idelay) {
-
+  wb_write(LINK_CTL_BASE+ilink,0);
   uint32_t status;
   // first, reload to the beginning
   wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_LOAD,LINK_CTL_DELAY_LOAD);
@@ -165,7 +165,9 @@ void Elinks::setDelay(int ilink,int idelay) {
   wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_DELAY_DIR|LINK_CTL_DELAY_MOVE);
   do {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
+    uint32_t val=wb_read(LINK_CTL_BASE+ilink);
     status=getStatusRaw(ilink);
+    printf("%08x %08x\n", status, val);
   } while ((status&LINK_STATUS_DELAYRANGE)==0);
   // change direction and start stepping...
   wb_rmw(LINK_CTL_BASE+ilink,1,LINK_CTL_DELAY_DIR);

@@ -63,8 +63,8 @@ void DAQ::setupLink(int ilink, bool zs, bool zs_all, int l1a_delay, int l1a_capt
   
   if (isEnable) {
     reg1|=0x1;
-    wb_->wb_write(tgt_DAQ_LinkFmt,(ilink<<7)|1,reg1);
   }
+  wb_->wb_write(tgt_DAQ_LinkFmt,(ilink<<7)|1,reg1);
 }
 
 void DAQ::getLinkSetup(int ilink, bool& zs, bool& zs_all, int& l1a_delay, int& l1a_capture_width) {
