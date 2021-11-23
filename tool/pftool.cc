@@ -20,11 +20,13 @@
 #include "pflib/Elinks.h"
 #include "pflib/Bias.h"
 #include "pflib/FastControl.h"
+#include "pflib/Backend.h"
 #include "pflib/rogue/RogueWishboneInterface.h"
 
 struct PolarfireTarget {
   pflib::WishboneInterface* wb;
-  pflib::Hcal* hcal; 
+  pflib::Hcal* hcal;
+  pflib::Backend* backend;
 };
 
 static std::string tool_readline(const std::string& prompt) ; 
@@ -129,7 +131,6 @@ typedef Menu<PolarfireTarget> uMenu ;
 
 static void RunMenu( PolarfireTarget* pft_  )  ;
 
-static void card_status( PolarfireTarget* pft );
 static void ldmx_status( PolarfireTarget* pft );
 static void wb_action( const std::string& cmd, PolarfireTarget* pft );
 static void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft );
@@ -351,8 +352,11 @@ int main(int argc, char* argv[]) {
       if ( mId == -1 ) break ;
       
       PolarfireTarget pft_;
-      pft_.wb=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
+      pflib::rogue::RogueWishboneInterface wbi(ipV[mId],5970);
+      pft_.wb=&wbi;
       pft_.hcal=new pflib::Hcal(pft_.wb);
+      pft_.backend=&wbi;
+      ldmx_status(&pft_);
       RunMenu( &pft_  ) ;
 
       if (ipV.size()>1)  {      
@@ -500,7 +504,7 @@ uMenu menu_ldmx_daq(menu_ldmx_daq_lines);
      uMenu menu_expert(menu_expert_lines);
 
      uMenu::Line menu_utop_lines[] = { 
-       uMenu::Line("STATUS","Status summary", &card_status),
+       uMenu::Line("STATUS","Status summary", &ldmx_status),
        uMenu::Line("FAST_CONTROL","Fast Control", &menu_ldmx_fc ),
        uMenu::Line("ROC","ROC Configuration", &menu_ldmx_roc ),
        uMenu::Line("BIAS","BIAS voltage setting", &menu_ldmx_bias ),
@@ -517,11 +521,6 @@ uMenu menu_ldmx_daq(menu_ldmx_daq_lines);
 
 }
 
-
-void card_status( PolarfireTarget* pft_  ) {
-  
-  ldmx_status(pft_);
-}
 
 
 void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
@@ -560,7 +559,8 @@ void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_status( PolarfireTarget* pft) {
-
+  uint32_t pf_firmware=pft->hcal->getFirmwareVersion();
+  printf(" Polarfire firmware : %4x.%02x\n",pf_firmware>>8,pf_firmware&0xFF);
 }
 
 void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft ) {
@@ -825,15 +825,15 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
 
   pflib::FastControl& fc=pft->hcal->fc();
   if (cmd=="SW_L1A") {
-    //    ldmx->fc_send(true,false,false);
+    pft->backend->fc_sendL1A();
     printf("Sent SW L1A\n");
   }
   if (cmd=="LINK_RESET") {
-    //    ldmx->fc_send(false,true,false);
+    pft->backend->fc_linkreset();
     printf("Sent LINK RESET\n");
   }
   if (cmd=="BUFFER_CLEAR") {
-    //    ldmx->fc_send(false,false,true);
+    pft->backend->fc_bufferclear();
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd=="COUNTER_RESET") {
@@ -901,8 +901,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     }
 
     printf("-----Off-detector FIFO-----\n");
-    //    ldmx->daq_status(full, empty, events);
-    //asize=ldmx->daq_next_event_size();
+    pft->backend->daq_status(full, empty, events,asize);
+   
     printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
 	   (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
   }
@@ -915,12 +915,12 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     printf("..Sending a buffer clear\n");
     ldmx_fc("BUFFER_CLEAR",pft);
     printf("..Sending DAQ reset\n");
-    //ldmx->daq_reset();
+    pft->backend->daq_reset();
   }
   if (cmd=="HARD_RESET") {
     printf("..HARD reset\n");
     daq.reset();
-    //ldmx->daq_reset();
+    pft->backend->daq_reset();
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
@@ -953,11 +953,11 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     
   if (cmd=="READ") {
     bool full, empty;
-    int events;
-    //ldmx->daq_status(full, empty, events);
+    int events, esize;
+    pft->backend->daq_status(full, empty, events, esize);
     std::vector<uint32_t> buffer;
-    //    std::vector<uint32_t> buffer=ldmx->daq_read_event();
-    //    if (!empty) ldmx->daq_advance_ptr();
+    buffer=pft->backend->daq_read_event();
+    if (!empty) pft->backend->daq_advance_ptr();
 
     for (size_t i=0; i<buffer.size() && i<32; i++) {
       printf("%04d %08x\n",int(i),buffer[i]);
@@ -974,8 +974,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
     for (int i=0; i<daq.nlinks(); i++) {
-      if (i<6) daq.setupLink(i,false,false,15,40);
-      else daq.setupLink(i,true,true,15,40);
+      if (i<2) daq.setupLink(i,false,false,14,40);
+      else daq.setupLink(i,true,true,14,40);
     }
   }
   if (cmd=="PEDESTAL") {
@@ -989,15 +989,15 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     FILE* f=fopen(fname.c_str(),"w");
 
     for (int ievt=0; ievt<nevents; ievt++) {
-      //ldmx->fc_send(true,false,false);
+      pft->backend->fc_sendL1A();
            
       bool full, empty;
-      int events;
-      /*
+      int events, esize;
+      
       do {
-	ldmx->daq_status(full, empty, events);
+	pft->backend->daq_status(full, empty, events, esize);
       } while (empty);
-      */
+      
       
       std::vector<uint32_t> superbuffer;
       std::vector<int> lens;
@@ -1006,8 +1006,9 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       
       for (int i=0; i<(extra_samples+1); i++) {
         std::vector<uint32_t> buffer;
-        //        std::vector<uint32_t> buffer=ldmx->daq_read_event();
-        //if (!empty) ldmx->daq_advance_ptr();
+        
+        buffer=pft->backend->daq_read_event();
+        if (!empty) pft->backend->daq_advance_ptr();
 
         lens.push_back(int(buffer.size()));
         // add to the superbuffer
