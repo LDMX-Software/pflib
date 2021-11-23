@@ -9,7 +9,7 @@ namespace pflib {
 /** 
  * @class Exception class for PFlib
  */
-class Exception : std::exception {
+class Exception : public std::exception {
  public:
   /**
    * Empty constructor.
