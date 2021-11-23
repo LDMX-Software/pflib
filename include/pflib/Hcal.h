@@ -26,6 +26,9 @@ class Hcal {
   /** Generate a hard reset to all the HGCROC boards */
   void hardResetROCs();
 
+  /** Get the firmware version */
+  uint32_t getFirmwareVersion();
+
   /** Generate a soft reset to a specific HGCROC board, -1 for all */
   void softResetROC(int which=-1);
 

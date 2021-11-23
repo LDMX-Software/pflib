@@ -65,6 +65,8 @@ void Hcal::resyncLoadROC(int which) {
   }
 }
 
-
+uint32_t Hcal::getFirmwareVersion() {
+  return wb_->wb_read(0,1);
+}
 
 }
