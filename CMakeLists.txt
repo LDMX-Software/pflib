@@ -80,3 +80,7 @@ install(TARGETS pflib_python LIBRARY DESTINATION lib)
 #   this enables us to do 'import pflib' instead of 'import libpflib'
 set_target_properties(pflib_python PROPERTIES PREFIX "")
 
+add_executable(pftool tool/pftool.cc)
+target_link_libraries(pftool PRIVATE pflib pflib_rogue readline)
+install(TARGETS pftool DESTINATION bin)
+
