@@ -22,7 +22,7 @@ DAQ::DAQ(WishboneInterface* wb) : wb_{wb} {
 void DAQ::reset() {
   wb_->wb_write(tgt_DAQ_Control,CTL_CONTROL_REG,CTL_RESET); // hard reset
 }
-
+  
 void DAQ::getHeaderOccupancy(int& current, int& maximum) {
   uint32_t val=wb_->wb_read(tgt_DAQ_Control,CTL_OCCUPANCY_REG);
   current=(val>>CTL_OCCUPANCY_CURRENT_SHIFT)&CTL_OCCUPANCY_MASK;
