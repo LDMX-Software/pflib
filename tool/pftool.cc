@@ -142,6 +142,7 @@ static void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft );
 static void ldmx_roc( const std::string& cmd, PolarfireTarget* pft );
 static void ldmx_roc_render( PolarfireTarget* pft );
 static void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft );
+static void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft );
 
 static void loadOptions(const std::string& optfile);
 static std::string getOpt(const std::string& opt, const std::string& def);
@@ -423,15 +424,19 @@ uMenu::Line menu_ldmx_elinks_lines[] = {
 
 uMenu menu_ldmx_elinks(menu_ldmx_elinks_lines);
 
-uMenu::Line menu_ldmx_roc_lines[] = {
-  uMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
-  uMenu::Line("CHAN","Dump link status", &ldmx_roc ),
-  uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
-  uMenu::Line("POKE","Change a single value", &ldmx_roc ),
-  uMenu::Line("LOAD","Load values from file", &ldmx_roc ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
+uMenu::Line menu_ldmx_roc_lines[] =
+  {
+   uMenu::Line("HARDRESET","Hard reset to all rocs", &ldmx_roc),
+   uMenu::Line("SOFTRESET","Soft reset to all rocs", &ldmx_roc),
+   uMenu::Line("RESYNCLOAD","ResyncLoad to all rocs", &ldmx_roc),
+   uMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
+   uMenu::Line("CHAN","Dump link status", &ldmx_roc ),
+   uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
+   uMenu::Line("POKE","Change a single value", &ldmx_roc ),
+   uMenu::Line("LOAD","Load values from file", &ldmx_roc ),
+   uMenu::Line("QUIT","Back to top menu"),
+   uMenu::Line()
+  };
 
 uMenu menu_ldmx_roc(ldmx_roc_render, menu_ldmx_roc_lines);
 
@@ -476,16 +481,26 @@ uMenu::Line menu_ldmx_daq_debug_lines[] = {
 
 uMenu menu_ldmx_daq_debug(menu_ldmx_daq_debug_lines);
 
-uMenu::Line menu_ldmx_daq_lines[] = {
+uMenu::Line menu_ldmx_daq_setup_lines[] = {
+  uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq_setup),
+  uMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq_setup),
+  uMenu::Line("ZS", "Toggle ZS status", &ldmx_daq_setup),
+  uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
+  uMenu::Line("FPGA", "Setup parameters for L1A capture", &ldmx_daq_setup),
+  uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
+  uMenu::Line("QUIT","Back to DAQ menu"),
+  uMenu::Line()
+};
+
+uMenu menu_ldmx_daq_setup(menu_ldmx_daq_setup_lines);
+
+ uMenu::Line menu_ldmx_daq_lines[] = {
   uMenu::Line("DEBUG", "Debugging menu",  &menu_ldmx_daq_debug ),
   uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq),
-  uMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq),
-  uMenu::Line("ZS", "Toggle ZS status", &ldmx_daq),
-  uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq),
+  uMenu::Line("SETUP", "Setup the DAQ", &menu_ldmx_daq_setup),
   uMenu::Line("READ", "Read an event", &ldmx_daq),
   uMenu::Line("RESET", "Reset the DAQ", &ldmx_daq),
   uMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
-  uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq),
   uMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
@@ -765,6 +780,15 @@ void ldmx_roc_render(PolarfireTarget*) {
 
 void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
 
+  if (cmd=="HARDRESET") {
+    pft->hcal->hardResetROCs();
+  }
+  if (cmd=="SOFTRESET") {
+    pft->hcal->softResetROC();
+  }
+  if (cmd=="RESYNCLOAD") {
+    pft->hcal->resyncLoadROC();
+  }
   if (cmd=="IROC") {
     iroc=tool_readline_int("Which ROC to manage: ",iroc);
   }
@@ -876,51 +900,46 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   static const int tgt_buffer = 11;
 static int nlinks=8; // need to read this eventually
 
+void prepare_new_run(PolarfireTarget* pft) {
+  pflib::DAQ& daq=pft->hcal->daq();
+  pft->backend->fc_bufferclear();
+  pft->backend->daq_reset();
+  daq.enable(true);
+}
 
+void daq_status(PolarfireTarget* pft, int mode=0) {
+  pflib::DAQ& daq=pft->hcal->daq();
+  bool full, empty;
+  int events, asize;
+  uint32_t reg, reg1, reg2;
+  
+  printf("-----Front-end FIFO-----\n");
+  reg=pft->wb->wb_read(tgt_ctl,4);
+  printf(" Header occupancy : %d  Maximum occupancy : %d \n",(reg>>8)&0x3F,(reg>>0)&0x3F);
+  reg=pft->wb->wb_read(tgt_ctl,5);
+  reg2=pft->wb->wb_read(tgt_ctl,2);
+  printf(" Next event info: 0x%08x (BX=%d, RREQ=%d, OR=%d)  RREQ=%d\n",reg,reg&0xFFF,(reg>>12)&0x3FF,(reg>>20)&0x3FF,(reg2>>22)&0x3FF);
+  
+  printf("-----Per-ROCLINK processing-----\n");
+  printf(" Link  ID  EN ZS FL EM\n");
+  for (int ilink=0; ilink<nlinks; ilink++) {
+    reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
+    reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
+    printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
+  }
+  
+  printf("-----Off-detector FIFO-----\n");
+  pft->backend->daq_status(full, empty, events,asize);
+   
+  printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
+	 (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
+}
 
-void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
+void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
-    bool full, empty;
-    int events, asize;
-    uint32_t reg;
-
-    printf("-----Front-end FIFO-----\n");
-    reg=pft->wb->wb_read(tgt_ctl,4);
-    printf(" Header occupancy : %d  Maximum occupancy : %d \n",(reg>>8)&0x3F,(reg>>0)&0x3F);
-    reg=pft->wb->wb_read(tgt_ctl,5);
-    printf(" Next event info: 0x%08x\n",reg);
-
-    printf("-----Per-ROCLINK processing-----\n");
-    printf(" Link  ID  EN ZS FL EM\n");
-    for (int ilink=0; ilink<nlinks; ilink++) {
-      uint32_t reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-      uint32_t reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
-      printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
-    }
-
-    printf("-----Off-detector FIFO-----\n");
-    pft->backend->daq_status(full, empty, events,asize);
-   
-    printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
-	   (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
-  }
-  if (cmd=="RESET") {
-    printf("..Halting the event builder\n");
-    for (int ilink=0; ilink<nlinks; ilink++) {
-      uint32_t reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-      pft->wb->wb_write(tgt_fmt,(ilink<<7)|1,(reg1&0xfffffffeu)|0x2);
-    }
-    printf("..Sending a buffer clear\n");
-    ldmx_fc("BUFFER_CLEAR",pft);
-    printf("..Sending DAQ reset\n");
-    pft->backend->daq_reset();
-  }
-  if (cmd=="HARD_RESET") {
-    printf("..HARD reset\n");
-    daq.reset();
-    pft->backend->daq_reset();
+    daq_status(pft,0);
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
@@ -950,7 +969,42 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       pft->wb->wb_write(tgt_rocbuf,(ilink<<7)|1,reg1);
     }
   }
-    
+  if (cmd=="STANDARD") {
+    int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
+    daq.setIds(fpgaid);
+    for (int i=0; i<daq.nlinks(); i++) {
+      if (i<2) daq.setupLink(i,false,false,14,40);
+      else daq.setupLink(i,true,true,14,40);
+    }
+  }
+  if (cmd=="FPGA") {
+    int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
+    daq.setIds(fpgaid);
+  }
+}
+
+void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
+
+  pflib::DAQ& daq=pft->hcal->daq();
+  if (cmd=="STATUS") {
+    daq_status(pft);
+  }
+  if (cmd=="RESET") {
+    printf("..Halting the event builder\n");
+    for (int ilink=0; ilink<nlinks; ilink++) {
+      uint32_t reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
+      pft->wb->wb_write(tgt_fmt,(ilink<<7)|1,(reg1&0xfffffffeu)|0x2);
+    }
+    printf("..Sending a buffer clear\n");
+    ldmx_fc("BUFFER_CLEAR",pft);
+    printf("..Sending DAQ reset\n");
+    pft->backend->daq_reset();
+  }
+  if (cmd=="HARD_RESET") {
+    printf("..HARD reset\n");
+    daq.reset();
+    pft->backend->daq_reset();
+  }
   if (cmd=="READ") {
     bool full, empty;
     int events, esize;
@@ -970,14 +1024,6 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       fclose(f);
     }
   }
-  if (cmd=="STANDARD") {
-    int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
-    daq.setIds(fpgaid);
-    for (int i=0; i<daq.nlinks(); i++) {
-      if (i<2) daq.setupLink(i,false,false,14,40);
-      else daq.setupLink(i,true,true,14,40);
-    }
-  }
   if (cmd=="PEDESTAL") {
     bool enable;
     int extra_samples;
@@ -988,6 +1034,10 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     std::string fname=tool_readline("Filename :  ");
     FILE* f=fopen(fname.c_str(),"w");
 
+    daq_status(pft,0);
+    prepare_new_run(pft);
+    daq_status(pft,0);
+    
     for (int ievt=0; ievt<nevents; ievt++) {
       pft->backend->fc_sendL1A();
            
@@ -997,8 +1047,10 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       do {
 	pft->backend->daq_status(full, empty, events, esize);
       } while (empty);
-      
-      
+
+      printf("Event %d ",ievt);
+      daq_status(pft,0);
+    
       std::vector<uint32_t> superbuffer;
       std::vector<int> lens;
       int fpgaid=0;
@@ -1009,6 +1061,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
         
         buffer=pft->backend->daq_read_event();
         if (!empty) pft->backend->daq_advance_ptr();
+	printf("Sample %d ",i);
+	daq_status(pft,0);
 
         lens.push_back(int(buffer.size()));
         // add to the superbuffer
