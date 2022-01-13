@@ -1032,6 +1032,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     FILE* f=fopen(fname.c_str(),"w");
 
     for (int ievt=0; ievt<nevents; ievt++) {
+      // some other controller would send L1A (normally)
       pft->backend->fc_sendL1A();
            
       bool full, empty;
