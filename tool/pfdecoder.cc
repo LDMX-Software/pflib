@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     int rel_packet=i-packet_header;
     int rel_link=i-link_header;
     if (rel_super==1) word_type=wt_junk; // the 0xbeef2021
-    if (rel_super==2) {
+    else if (rel_super==2) {
       word_type=wt_superheader;
       samples=(data[i]>>16)&0xF;
       printf("%04d S%02d %08x  FPGA=%3d  SAMPLES=%d  Total Length=%d (0x%x)\n",i,rel_super,data[i],(data[i]>>20)&0xFF,samples,(data[i])&0xFFFF,(data[i])&0xFFFF);
@@ -86,27 +86,33 @@ int main(int argc, char* argv[]) {
     } else if (rel_super>2 && rel_super<=2+(samples+1)/2) {
       word_type=wt_superheader;
       printf("%04d S%02d %08x  ",i,rel_super,data[i]);
-      int isample=(rel_super-2)/2;
+      int jsample=(rel_super-3)*2;
       int len=(data[i]&0xFFF);
       
-      printf("Sample %d length=%d (0x%x)",isample, len, len);
+      printf("Sample %d length=%d (0x%x)",jsample, len, len);
       packet_pointers.push_back(packet_pointers.back()+len);
       
-      if (samples>(rel_super-2)/2+1) {
-	isample++;
+      if (samples>jsample+1) {
+	jsample++;
 	len=(data[i]>>16)&0xFFF;
-	printf("  Sample %d length=%d (0x%x)",isample,len,len);
+	printf("  Sample %d length=%d (0x%x)",jsample,len,len);
 	packet_pointers.push_back(packet_pointers.back()+len);
       }
       printf("\n");     
     } else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
       packet_header=i;
+      isample++;
       word_type=wt_packetheader;
       links=(data[i]>>14)&0x3F;
       link_pointers.clear();
       link_pointers.push_back(packet_header+2+(links+3)/4);
       printf("%04d P%02d %08x  FPGA=%3d  LINKS=%d  Length=%d (0x%x)\n",i,0,data[i],(data[i]>>20)&0x3F,links,(data[i])&0xFFF,(data[i])&0xFFF);
       ilink=-1;
+    } else if (isample>0 && i+1==packet_pointers[isample+1]) { // packet trailer
+      printf("%04d PXX %08x  CRC\n",i,0,data[i]);
+      if (isample+1==samples) {
+	superpacket_header=-1;
+      }
     } else if (packet_header>=0 && i==packet_header+1) { // second packet header word
       word_type=wt_packetheader;
       packet_bx=(data[i]>>20)&0xFFF;
