@@ -477,6 +477,7 @@ uMenu::Line menu_ldmx_daq_debug_lines[] = {
   uMenu::Line("SPY", "Spy on the front-end buffer",  &ldmx_daq_debug ),
   uMenu::Line("IBSPY","Spy on an input buffer",  &ldmx_daq_debug ),
   uMenu::Line("EFSPY","Spy on an event formatter buffer",  &ldmx_daq_debug ),
+  uMenu::Line("READOUT","Enable/disable readout debugging logging", &ldmx_daq_debug),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -909,6 +910,8 @@ void prepare_new_run(PolarfireTarget* pft) {
   daq.enable(true);
 }
 
+static bool debug_readout=false;
+
 void daq_status(PolarfireTarget* pft, int mode=0) {
   pflib::DAQ& daq=pft->hcal->daq();
   bool full, empty;
@@ -986,6 +989,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
+  
 
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
@@ -1036,9 +1040,9 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     std::string fname=tool_readline("Filename :  ");
     FILE* f=fopen(fname.c_str(),"w");
 
-    daq_status(pft,0);
+    if (debug_readout) daq_status(pft,0);
     prepare_new_run(pft);
-    daq_status(pft,0);
+    if (debug_readout) daq_status(pft,0);
     
     for (int ievt=0; ievt<nevents; ievt++) {
 
@@ -1051,8 +1055,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
 	pft->backend->daq_status(full, empty, events, esize);
       } while (empty);
 
-      printf("Event %d ",ievt);
-      daq_status(pft,0);
+      if (debug_readout) printf("Event %d ",ievt);
+      if (debug_readout) daq_status(pft,0);
     
       std::vector<uint32_t> superbuffer;
       std::vector<int> lens;
@@ -1064,8 +1068,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
         
         buffer=pft->backend->daq_read_event();
         if (!empty) pft->backend->daq_advance_ptr();
-	printf("Sample %d ",i);
-	daq_status(pft,0);
+	if (debug_readout) printf("Sample %d ",i);
+	if (debug_readout) daq_status(pft,0);
 
         lens.push_back(int(buffer.size()));
         // add to the superbuffer
@@ -1171,6 +1175,11 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     uint32_t reg2=pft->wb->wb_read(tgt_ctl,1);
     reg2=reg2|0x40000000;// set the send bit
     pft->wb->wb_write(tgt_ctl,1,reg2);
+  }
+  if (cmd=="READOUT") {
+    if (debug_readout) printf("...Disabling readout debugging\n\n");
+    else printf("...Enabling readout debugging\n\n");
+    debug_readout=!debug_readout;
   }
   if (cmd=="FULL_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
