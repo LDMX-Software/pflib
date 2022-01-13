@@ -475,6 +475,8 @@ uMenu::Line menu_ldmx_daq_debug_lines[] = {
   uMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &ldmx_daq_debug ),
   uMenu::Line("FULL_SEND", "Send the buffer to the off-detector electronics",  &ldmx_daq_debug ),
   uMenu::Line("SPY", "Spy on the front-end buffer",  &ldmx_daq_debug ),
+  uMenu::Line("IBSPY","Spy on an input buffer",  &ldmx_daq_debug ),
+  uMenu::Line("EFSPY","Spy on an event formatter buffer",  &ldmx_daq_debug ),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -486,7 +488,7 @@ uMenu::Line menu_ldmx_daq_setup_lines[] = {
   uMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq_setup),
   uMenu::Line("ZS", "Toggle ZS status", &ldmx_daq_setup),
   uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
-  uMenu::Line("FPGA", "Setup parameters for L1A capture", &ldmx_daq_setup),
+  uMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
   uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
   uMenu::Line("QUIT","Back to DAQ menu"),
   uMenu::Line()
@@ -921,11 +923,11 @@ void daq_status(PolarfireTarget* pft, int mode=0) {
   printf(" Next event info: 0x%08x (BX=%d, RREQ=%d, OR=%d)  RREQ=%d\n",reg,reg&0xFFF,(reg>>12)&0x3FF,(reg>>20)&0x3FF,(reg2>>22)&0x3FF);
   
   printf("-----Per-ROCLINK processing-----\n");
-  printf(" Link  ID  EN ZS FL EM\n");
+  printf(" Link  ID  EN ZS iFL iEM oFL oEM\n");
   for (int ilink=0; ilink<nlinks; ilink++) {
     reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
     reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
-    printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
+    printf("  %2d  %04x %2d %2d %2d  %2d  %2d  %2d     %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,(reg1>>12)&1,(reg1>>13)&1,reg1);
   }
   
   printf("-----Off-detector FIFO-----\n");
@@ -1039,6 +1041,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     daq_status(pft,0);
     
     for (int ievt=0; ievt<nevents; ievt++) {
+
       pft->backend->fc_sendL1A();
            
       bool full, empty;
@@ -1188,6 +1191,33 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     reg2=reg2&0xFFFF;// remove the upper bits
     reg2=reg2|(data.size()<<16);
     pft->wb->wb_write(tgt_buffer,2,reg2);
+  }
+  if (cmd=="IBSPY") {
+    static int input=0;
+    input=tool_readline_int("Which input?",input);
+    uint32_t reg=pft->wb->wb_read(tgt_rocbuf,(input<<7)|3);
+    int rp=tool_readline_int("Read page?",(reg>>16)&0xF);
+    reg=reg&0xFFFFFFF0u;
+    reg=reg|(rp&0xF);
+    pft->wb->wb_write(tgt_rocbuf,((input<<7)|3),reg);
+    for (int i=0; i<40; i++) {
+      uint32_t val=pft->wb->wb_read(tgt_rocbuf,(input<<7)|0x40|i);
+      printf("%2d %08x\n",i,val);
+    }      
+  }
+  if (cmd=="EFSPY") {
+    static int input=0;
+    input=tool_readline_int("Which input?",input);
+    pft->wb->wb_write(tgt_fmt,(input<<7)|3,0);
+    uint32_t reg=pft->wb->wb_read(tgt_fmt,(input<<7)|4);
+    printf("PTRs now: 0x%08x\n",reg);
+    int rp=tool_readline_int("Read page?",reg&0xF);
+    for (int i=0; i<40; i++) {
+      pft->wb->wb_write(tgt_fmt,(input<<7)|3,0x400|(rp<<6)|i);
+      uint32_t val=pft->wb->wb_read(tgt_fmt,(input<<7)|4);
+      printf("%2d %08x\n",i,val);
+    }
+    pft->wb->wb_write(tgt_fmt,(input<<7)|3,0);    
   }
   if (cmd=="SPY") {
     // set the spy page to match the read page
