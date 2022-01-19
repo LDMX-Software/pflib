@@ -15,59 +15,7 @@
 #include <string>
 #include <list>
 #include <exception>
-#include "pflib/Hcal.h"
-#include "pflib/ROC.h"
-#include "pflib/Elinks.h"
-#include "pflib/Bias.h"
-#include "pflib/FastControl.h"
-#include "pflib/Backend.h"
-#include "pflib/rogue/RogueWishboneInterface.h"
-
-/**
- * Modern RAII-styled CSV extractor taken from
- * https://stackoverflow.com/a/1120224/17617632
- * this allows us to **discard white space within the cells**
- * making the CSV more human readable.
- */
-static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
-  std::vector<int> result;
-
-  std::string line, cell;
-  std::getline(ss, line);
-
-  if (line.empty() or line[0] == '#') {
-    // empty line or comment, return empty container
-    return result;
-  }
-
-  std::stringstream line_stream(line);
-  while (std::getline(line_stream, cell, ',')) {
-    /**
-     * std stoi has a auto-detect base feature
-     * https://en.cppreference.com/w/cpp/string/basic_string/stol
-     * which we can enable by setting the pre-defined base to 0
-     * (the third parameter).
-     * The second parameter is and address to put the number of characters processed,
-     * which I disregard at this time.
-     *
-     * Do we allow empty cells?
-     */
-    result.push_back(cell.empty() ? 0 : std::stoi(cell,nullptr,0));
-  }
-  // checks for a trailing comma with no data after it
-  if (!line_stream and cell.empty()) {
-    // trailing comma, put in one more 0
-    result.push_back(0);
-  }
-
-  return result;
-}
-
-struct PolarfireTarget {
-  pflib::WishboneInterface* wb;
-  pflib::Hcal* hcal;
-  pflib::Backend* backend;
-};
+#include "pflib/PolarfireTarget.h"
 
 static std::string tool_readline(const std::string& prompt) ; 
 static std::string tool_readline(const std::string& prompt, const std::string& defval);
@@ -392,13 +340,9 @@ int main(int argc, char* argv[]) {
       
       if ( mId == -1 ) break ;
       
-      PolarfireTarget pft_;
-      pflib::rogue::RogueWishboneInterface wbi(ipV[mId],5970);
-      pft_.wb=&wbi;
-      pft_.hcal=new pflib::Hcal(pft_.wb);
-      pft_.backend=&wbi;
-      ldmx_status(&pft_);
-      RunMenu( &pft_  ) ;
+      PolarfireTarget pft(ipV[mId],5970);
+      ldmx_status(&pft);
+      RunMenu(&pft);
 
       if (ipV.size()>1)  {      
 	static std::string RunOrExit = "Exit" ;

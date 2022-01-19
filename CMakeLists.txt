@@ -17,7 +17,8 @@ add_library(pflib SHARED
   src/pflib/Hcal.cxx
   src/pflib/I2C.cxx
   src/pflib/ROC.cxx
-  src/pflib/WishboneTarget.cxx)
+  src/pflib/WishboneTarget.cxx
+  src/pflib/PolarfireTarget.cxx)
 target_include_directories(pflib PUBLIC include)
 add_library(pflib::pflib ALIAS pflib)
 
