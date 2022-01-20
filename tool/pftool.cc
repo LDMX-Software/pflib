@@ -21,7 +21,12 @@
 #include "pflib/Bias.h"
 #include "pflib/FastControl.h"
 #include "pflib/Backend.h"
+#ifdef PFTOOL_ROGUE
 #include "pflib/rogue/RogueWishboneInterface.h"
+#endif
+#ifdef PFTOOL_UHAL
+#include "pflib/uhal/uhalWishboneInterface.h"
+#endif
 
 /**
  * Modern RAII-styled CSV extractor taken from
@@ -330,15 +335,42 @@ std::string getOpt(const std::string& opt, const std::string& def) {
 }
 
 int main(int argc, char* argv[]) {
-   //if not enough arguments output usage
+
+  //if not enough arguments output usage
   if (argc<2 || !strcmp(argv[1],"-h")) {
-    printf("Usage: pftool [hostname/ip for bridge] [-u] [-s script] [-o host_uri]\n");
-    printf("   -ho : help on options settable in the rc file\n");
-    printf("   Loads options file from ${HOME}/.uhtrtoolrc and ${PWD}/.uhtrtoolrc\n");
+#ifdef PFTOOL_ROGUE
+#ifdef PFTOOL_UHAL
+    printf("Usage: pftool [hostname] [-u] [-r] [-s script]\n");
+    printf("  Supporting both UHAL and ROGUE\n");
+    printf("  -u uHAL connection");
+    printf("  -r rogue connection");
+#else
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting only ROGUE\n");
+#endif
+#else
+#ifdef PFTOOL_UHAL
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting only UHAL\n");
+#else
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting NO TRANSPORTS\n");
+#endif
+#endif
     printf("\n");
     return 1;
   }
-  
+
+
+  bool isuhal=false;
+  bool isrogue=false;
+
+#ifdef PFTOOL_ROGUE
+  isrogue=true; // default
+#else
+  isuhal=true; // default
+#endif
+
   std::string home=getenv("HOME");
   std::vector<std::string> ipV ;
 
@@ -352,9 +384,11 @@ int main(int argc, char* argv[]) {
     for ( int i =0 ; i < argc; i++)  {  skip[i] = false ; }
     
     for ( int i = 1 ; i < argc ; i++ ) {
+      std::string arg(argv[i]);
         if ( skip[i] ) continue ;
-
-        ipV.push_back( argv[i] ) ;
+        if (arg=="-u") isuhal=true;
+        else if (arg=="-r") isrogue=true;
+        else         ipV.push_back( arg ) ;
     }
     
 
@@ -391,14 +425,26 @@ int main(int argc, char* argv[]) {
       } while (1);
       
       if ( mId == -1 ) break ;
-      
+
       PolarfireTarget pft_;
-      pflib::rogue::RogueWishboneInterface wbi(ipV[mId],5970);
-      pft_.wb=&wbi;
+#ifdef PFTOOL_ROGUE
+      if (isrogue) {
+        pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
+        pft_.wb=wbi;
+        pft_.backend=wbi;
+      }
+#endif
+#ifdef PFTOOL_UHAL
+      if (isuhal) {
+        pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId]);
+        pft_.wb=wbi;
+        pft_.backend=wbi;
+      }
+#endif      
       pft_.hcal=new pflib::Hcal(pft_.wb);
-      pft_.backend=&wbi;
       ldmx_status(&pft_);
       RunMenu( &pft_  ) ;
+      
 
       if (ipV.size()>1)  {      
 	static std::string RunOrExit = "Exit" ;
@@ -945,7 +991,6 @@ void prepare_new_run(PolarfireTarget* pft) {
   daq.enable(true);
 }
 
-<<<<<<< HEAD
 static bool debug_readout=false;
 
 void daq_status(PolarfireTarget* pft, int mode=0) {
@@ -967,34 +1012,6 @@ void daq_status(PolarfireTarget* pft, int mode=0) {
     reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
     reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
     printf("  %2d  %04x %2d %2d %2d  %2d  %2d  %2d     %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,(reg1>>12)&1,(reg1>>13)&1,reg1);
-  }
-  
-  printf("-----Off-detector FIFO-----\n");
-  pft->backend->daq_status(full, empty, events,asize);
-   
-  printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
-	 (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
-}
-
-void daq_status(PolarfireTarget* pft, int mode=0) {
-  pflib::DAQ& daq=pft->hcal->daq();
-  bool full, empty;
-  int events, asize;
-  uint32_t reg, reg1, reg2;
-  
-  printf("-----Front-end FIFO-----\n");
-  reg=pft->wb->wb_read(tgt_ctl,4);
-  printf(" Header occupancy : %d  Maximum occupancy : %d \n",(reg>>8)&0x3F,(reg>>0)&0x3F);
-  reg=pft->wb->wb_read(tgt_ctl,5);
-  reg2=pft->wb->wb_read(tgt_ctl,2);
-  printf(" Next event info: 0x%08x (BX=%d, RREQ=%d, OR=%d)  RREQ=%d\n",reg,reg&0xFFF,(reg>>12)&0x3FF,(reg>>20)&0x3FF,(reg2>>22)&0x3FF);
-  
-  printf("-----Per-ROCLINK processing-----\n");
-  printf(" Link  ID  EN ZS FL EM\n");
-  for (int ilink=0; ilink<nlinks; ilink++) {
-    reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-    reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
-    printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
   }
   
   printf("-----Off-detector FIFO-----\n");

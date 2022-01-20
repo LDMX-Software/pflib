@@ -20,21 +20,17 @@ add_library(pflib SHARED
   src/pflib/WishboneTarget.cxx)
 target_include_directories(pflib PUBLIC include)
 add_library(pflib::pflib ALIAS pflib)
+install(TARGETS pflib LIBRARY DESTINATION lib)
 
 setup_rogue()
+setup_uhal()
 
-<<<<<<< HEAD
 if (Rogue_FOUND)
-  file(GLOB pflib_rogue_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/rogue/[a-zA-Z]*.cxx)
-  add_library(pflib_rogue SHARED ${pflib_rogue_src})
+  add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
   target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
-  install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+  add_library(pflib::rogue ALIAS pflib_rogue)
 endif()
-=======
-add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
-target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
-add_library(pflib::rogue ALIAS pflib_rogue)
->>>>>>> tom/polarfire-lib-dev
+
 
 # Search for Boost + Python
 #   shamelessly stolen from slaclab/rogue central CMakeLists.txt
@@ -88,28 +84,37 @@ if (NOT Boost_FOUND)
   endif()
 endif()
 
-<<<<<<< HEAD
+
 if (Rogue_FOUND)
-  add_library(pflib_python SHARED ${PROJECT_SOURCE_DIR}/src/pflib/python/Bindings.cxx)
+  add_library(pflib_python SHARED src/pflib/python/Bindings.cxx)
   target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
+
   install(TARGETS pflib_python LIBRARY DESTINATION lib)
 
   # remove 'lib' prefix from compiled shared library
   #   this enables us to do 'import pflib' instead of 'import libpflib'
   set_target_properties(pflib_python PROPERTIES PREFIX "")
+  add_library(pflib::python ALIAS pflib_python)
 endif()
-=======
-add_library(pflib_python SHARED src/pflib/python/Bindings.cxx)
-target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
 
-# remove 'lib' prefix from compiled shared library
-#   this enables us to do 'import pflib' instead of 'import libpflib'
-set_target_properties(pflib_python PROPERTIES PREFIX "")
-add_library(pflib::python ALIAS pflib_python)
 
 add_executable(pftool tool/pftool.cc)
-target_link_libraries(pftool PRIVATE pflib pflib_rogue readline)
+target_link_libraries(pftool PRIVATE pflib readline)
+
+if (Rogue_FOUND)
+  target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
+  target_link_libraries(pftool PRIVATE pflib_rogue)
+endif()
+
+if (Uhal_FOUND)
+  add_library(pflib_uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
+  target_link_libraries(pflib_uhal PUBLIC pflib Uhal::Uhal)
+  add_library(pflib::uhal ALIAS pflib_uhal)
+  target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
+  target_link_libraries(pftool PRIVATE pflib_uhal)
+endif()
+
 
 install(TARGETS pftool DESTINATION bin)
-install(TARGETS pflib pflib_rogue pflib_python LIBRARY DESTINATION lib)
->>>>>>> tom/polarfire-lib-dev
+
+
