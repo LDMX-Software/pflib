@@ -23,6 +23,46 @@
 #include "pflib/Backend.h"
 #include "pflib/rogue/RogueWishboneInterface.h"
 
+/**
+ * Modern RAII-styled CSV extractor taken from
+ * https://stackoverflow.com/a/1120224/17617632
+ * this allows us to **discard white space within the cells**
+ * making the CSV more human readable.
+ */
+static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
+  std::vector<int> result;
+
+  std::string line, cell;
+  std::getline(ss, line);
+
+  if (line.empty() or line[0] == '#') {
+    // empty line or comment, return empty container
+    return result;
+  }
+
+  std::stringstream line_stream(line);
+  while (std::getline(line_stream, cell, ',')) {
+    /**
+     * std stoi has a auto-detect base feature
+     * https://en.cppreference.com/w/cpp/string/basic_string/stol
+     * which we can enable by setting the pre-defined base to 0
+     * (the third parameter).
+     * The second parameter is and address to put the number of characters processed,
+     * which I disregard at this time.
+     *
+     * Do we allow empty cells?
+     */
+    result.push_back(cell.empty() ? 0 : std::stoi(cell,nullptr,0));
+  }
+  // checks for a trailing comma with no data after it
+  if (!line_stream and cell.empty()) {
+    // trailing comma, put in one more 0
+    result.push_back(0);
+  }
+
+  return result;
+}
+
 struct PolarfireTarget {
   pflib::WishboneInterface* wb;
   pflib::Hcal* hcal;
@@ -821,28 +861,23 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     printf(" --- Line starting with # are ignored.\n");
     std::string fname=tool_readline("Filename: ");
     if (!fname.empty()) {
-      FILE* f=fopen(fname.c_str(),"r");
-      if (f==0) {
-	printf("\n\n  ERROR: Unable to open '%s'\n\n",fname.c_str());
-	return;
+      std::ifstream f{fname};
+      if (!f.is_open()) {
+	      printf("\n\n  ERROR: Unable to open '%s'\n\n",fname.c_str());
+	      return;
       }
-      char buffer[1025];
-      while (!feof(f)) {
-	buffer[0]=0;
-	fgets(buffer,1024,f);
-	if (strchr(buffer,'#')!=0) *(strchr(buffer,'#'))=0;
-	int vals[3];
-	int itok=0;
-	for (itok=0; itok<3; itok++) {
-	  char* tok=strtok((itok==0)?(buffer):(0),", \t");
-	  if (tok==0) break;
-	  vals[itok]=strtol(tok,0,0);
-	}
-	if (itok==3) {
-	  roc.setValue(vals[0],vals[1],vals[2]);
-	}
+      while (f) {
+        auto cells = getNextLineAndExtractValues(f);
+        if (cells.empty()) {
+          // empty line or comment
+          continue;
+        }
+        if (cells.size() == 3) {
+          roc.setValue(cells.at(0), cells.at(1), cells.at(2));
+        } else {
+          printf("WARNING: Ignoring line without exactly three columns.\n");
+        }
       }
-      fclose(f);
     }
   }
 }
@@ -910,6 +945,7 @@ void prepare_new_run(PolarfireTarget* pft) {
   daq.enable(true);
 }
 
+<<<<<<< HEAD
 static bool debug_readout=false;
 
 void daq_status(PolarfireTarget* pft, int mode=0) {
@@ -940,9 +976,38 @@ void daq_status(PolarfireTarget* pft, int mode=0) {
 	 (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
 }
 
+void daq_status(PolarfireTarget* pft, int mode=0) {
+  pflib::DAQ& daq=pft->hcal->daq();
+  bool full, empty;
+  int events, asize;
+  uint32_t reg, reg1, reg2;
+  
+  printf("-----Front-end FIFO-----\n");
+  reg=pft->wb->wb_read(tgt_ctl,4);
+  printf(" Header occupancy : %d  Maximum occupancy : %d \n",(reg>>8)&0x3F,(reg>>0)&0x3F);
+  reg=pft->wb->wb_read(tgt_ctl,5);
+  reg2=pft->wb->wb_read(tgt_ctl,2);
+  printf(" Next event info: 0x%08x (BX=%d, RREQ=%d, OR=%d)  RREQ=%d\n",reg,reg&0xFFF,(reg>>12)&0x3FF,(reg>>20)&0x3FF,(reg2>>22)&0x3FF);
+  
+  printf("-----Per-ROCLINK processing-----\n");
+  printf(" Link  ID  EN ZS FL EM\n");
+  for (int ilink=0; ilink<nlinks; ilink++) {
+    reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
+    reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
+    printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
+  }
+  
+  printf("-----Off-detector FIFO-----\n");
+  pft->backend->daq_status(full, empty, events,asize);
+   
+  printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
+	 (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
+}
+
 void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 
   pflib::DAQ& daq=pft->hcal->daq();
+
   if (cmd=="STATUS") {
     daq_status(pft,0);
   }
@@ -989,8 +1054,6 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
-  
-
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
     daq_status(pft);
@@ -1035,9 +1098,17 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     int extra_samples;
     pflib::FastControl& fc=pft->hcal->fc();
     fc.getMultisampleSetup(enable,extra_samples);
+
+    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+
+    char fname_def[64];
+    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
     
     int nevents=tool_readline_int("How many events? ", 100);
-    std::string fname=tool_readline("Filename :  ");
+    std::string fname=tool_readline("Filename :  ", fname_def);
     FILE* f=fopen(fname.c_str(),"w");
 
     if (debug_readout) daq_status(pft,0);
@@ -1045,7 +1116,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     if (debug_readout) daq_status(pft,0);
     
     for (int ievt=0; ievt<nevents; ievt++) {
-
+      // some other controller would send L1A (normally)
       pft->backend->fc_sendL1A();
            
       bool full, empty;
@@ -1068,6 +1139,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
         
         buffer=pft->backend->daq_read_event();
         if (!empty) pft->backend->daq_advance_ptr();
+
 	if (debug_readout) printf("Sample %d ",i);
 	if (debug_readout) daq_status(pft,0);
 

@@ -8,19 +8,33 @@ project(pflib
 	LANGUAGES CXX)
 
 # Build the polarfire library
-file(GLOB pflib_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/[a-zA-Z]*.cxx)
-add_library(pflib SHARED ${pflib_src})
-target_include_directories(pflib PUBLIC ${PROJECT_SOURCE_DIR}/include)
-install(TARGETS pflib LIBRARY DESTINATION lib)
+add_library(pflib SHARED 
+  src/pflib/Bias.cxx
+  src/pflib/DAQ.cxx
+  src/pflib/Elinks.cxx
+  src/pflib/FastControl.cxx
+  src/pflib/GPIO.cxx
+  src/pflib/Hcal.cxx
+  src/pflib/I2C.cxx
+  src/pflib/ROC.cxx
+  src/pflib/WishboneTarget.cxx)
+target_include_directories(pflib PUBLIC include)
+add_library(pflib::pflib ALIAS pflib)
 
 setup_rogue()
 
+<<<<<<< HEAD
 if (Rogue_FOUND)
   file(GLOB pflib_rogue_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/rogue/[a-zA-Z]*.cxx)
   add_library(pflib_rogue SHARED ${pflib_rogue_src})
   target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
   install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
 endif()
+=======
+add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
+target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
+add_library(pflib::rogue ALIAS pflib_rogue)
+>>>>>>> tom/polarfire-lib-dev
 
 # Search for Boost + Python
 #   shamelessly stolen from slaclab/rogue central CMakeLists.txt
@@ -74,6 +88,7 @@ if (NOT Boost_FOUND)
   endif()
 endif()
 
+<<<<<<< HEAD
 if (Rogue_FOUND)
   add_library(pflib_python SHARED ${PROJECT_SOURCE_DIR}/src/pflib/python/Bindings.cxx)
   target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
@@ -83,3 +98,18 @@ if (Rogue_FOUND)
   #   this enables us to do 'import pflib' instead of 'import libpflib'
   set_target_properties(pflib_python PROPERTIES PREFIX "")
 endif()
+=======
+add_library(pflib_python SHARED src/pflib/python/Bindings.cxx)
+target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
+
+# remove 'lib' prefix from compiled shared library
+#   this enables us to do 'import pflib' instead of 'import libpflib'
+set_target_properties(pflib_python PROPERTIES PREFIX "")
+add_library(pflib::python ALIAS pflib_python)
+
+add_executable(pftool tool/pftool.cc)
+target_link_libraries(pftool PRIVATE pflib pflib_rogue readline)
+
+install(TARGETS pftool DESTINATION bin)
+install(TARGETS pflib pflib_rogue pflib_python LIBRARY DESTINATION lib)
+>>>>>>> tom/polarfire-lib-dev
