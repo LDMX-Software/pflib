@@ -15,10 +15,12 @@ install(TARGETS pflib LIBRARY DESTINATION lib)
 
 setup_rogue()
 
-file(GLOB pflib_rogue_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/rogue/[a-zA-Z]*.cxx)
-add_library(pflib_rogue SHARED ${pflib_rogue_src})
-target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
-install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+if (Rogue_FOUND)
+  file(GLOB pflib_rogue_src CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/pflib/rogue/[a-zA-Z]*.cxx)
+  add_library(pflib_rogue SHARED ${pflib_rogue_src})
+  target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
+  install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+endif()
 
 # Search for Boost + Python
 #   shamelessly stolen from slaclab/rogue central CMakeLists.txt
@@ -72,11 +74,12 @@ if (NOT Boost_FOUND)
   endif()
 endif()
 
-add_library(pflib_python SHARED ${PROJECT_SOURCE_DIR}/src/pflib/python/Bindings.cxx)
-target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
-install(TARGETS pflib_python LIBRARY DESTINATION lib)
+if (Rogue_FOUND)
+  add_library(pflib_python SHARED ${PROJECT_SOURCE_DIR}/src/pflib/python/Bindings.cxx)
+  target_link_libraries(pflib_python PUBLIC pflib pflib_rogue Boost::python Python::Interface)
+  install(TARGETS pflib_python LIBRARY DESTINATION lib)
 
-# remove 'lib' prefix from compiled shared library
-#   this enables us to do 'import pflib' instead of 'import libpflib'
-set_target_properties(pflib_python PROPERTIES PREFIX "")
-
+  # remove 'lib' prefix from compiled shared library
+  #   this enables us to do 'import pflib' instead of 'import libpflib'
+  set_target_properties(pflib_python PROPERTIES PREFIX "")
+endif()
