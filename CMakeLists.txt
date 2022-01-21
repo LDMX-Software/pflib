@@ -44,7 +44,7 @@ if(NOT TARGET Python::Interface)
     INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
 endif()
 
-if (NOT Boost_FOUND)
+if (Boost_FOUND)
   set(Boost_USE_MULTITHREADED ON)
   set(Boost_NO_BOOST_CMAKE ON)
   
@@ -97,9 +97,11 @@ if (Rogue_FOUND)
   add_library(pflib::python ALIAS pflib_python)
 endif()
 
-
 add_executable(pftool tool/pftool.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
+
+add_executable(pfdecoder tool/pfdecoder.cc)
+
 
 if (Rogue_FOUND)
   target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
@@ -115,6 +117,6 @@ if (Uhal_FOUND)
 endif()
 
 
-install(TARGETS pftool DESTINATION bin)
+install(TARGETS pftool pfdecoder DESTINATION bin)
 
 
