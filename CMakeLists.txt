@@ -9,11 +9,16 @@ project(pflib
 
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
-find_package(yaml-cpp)
+find_package(yaml-cpp REQUIRED)
 if (yaml-cpp_FOUND)
   # now we are able to compile the yaml->csv "compiler" of polarfire/hgcroc settings
+  get_target_property(libs yaml-cpp INTERFACE_LINK_LIBRARIES)
+  message("yaml-cpp libs: ${libs}")
+  get_target_property(head yaml-cpp INTERFACE_INCLUDE_DIRECTORIES)
+  message("yaml-cpp inc : ${head}")
   add_library(pflib_compile SHARED src/pflib/compile/Compiler.cxx)
   target_link_libraries(pflib_compile PUBLIC yaml-cpp)
+  target_include_directories(pflib_compile PUBLIC include)
 
   add_executable(pfcompile tool/pfcompile.cxx)
   target_link_libraries(pfcompile pflib_compile)

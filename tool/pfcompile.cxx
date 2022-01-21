@@ -5,3 +5,7 @@
  *
  * Only compiled and installed if yaml-cpp is found by CMake.
  */
+
+int main(int argc, char *argv[]) {
+  return 0;
+}

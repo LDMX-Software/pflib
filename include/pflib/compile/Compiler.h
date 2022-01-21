@@ -1,7 +1,7 @@
 #ifndef PFLIB_COMPILE_COMPILER_H
 #define PFLIB_COMPILE_COMPILER_H
 
-#include <yaml-cpp/yaml>
+#include <yaml-cpp/yaml.h>
 
 namespace pflib::compile {
 
