@@ -16,6 +16,7 @@
 #include <list>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
+using pflib::PolarfireTarget;
 
 static std::string tool_readline(const std::string& prompt) ; 
 static std::string tool_readline(const std::string& prompt, const std::string& defval);
@@ -558,15 +559,15 @@ void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_status( PolarfireTarget* pft) {
-  uint32_t pf_firmware=pft->hcal->getFirmwareVersion();
-  printf(" Polarfire firmware : %4x.%02x\n",pf_firmware>>8,pf_firmware&0xFF);
+  std::pair<int,int> version = pft->getFirmwareVersion();
+  printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
 }
 
 void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft ) {
   static uint32_t addr=0;
   static int waddrlen=1;
   static int i2caddr=0;
-  pflib::I2C i2c(pft->wb);
+  pflib::I2C i2c(pft->wb.get());
 
   if (cmd=="BUS") {
     int ibus=i2c.get_active_bus();
@@ -682,11 +683,7 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
     int mode=tool_readline_int("Mode? (0=immediate, 1=L1A) ",0);
     ilink=tool_readline_int("Which elink? ",ilink);
     int presamples=tool_readline_int("Presamples? ",20);
-    elinks.setupBigspy(mode,ilink,presamples);
-    if (mode==1) {
-      ldmx_fc("SW_L1A",pft);
-    }
-    std::vector<uint32_t> words=elinks.bigspy();
+    std::vector<uint32_t> words = pft->elinksBigSpy(ilink,presamples,mode==1);
     for (int i=0; i<presamples+100; i++) {
       printf("%03d %08x\n",i,words[i]);
     }
@@ -704,58 +701,9 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
     elinks.scanAlign(ilink);
   }
   if (cmd=="STATUS") {
-    // need to get link count someday
-    int nlinks=8;
-    std::vector<uint32_t> status;
-    for (int i=0; i<nlinks; i++) 
-      status.push_back(elinks.getStatusRaw(i));
-
-    printf("%20s","");
-    for (int i=0; i<nlinks; i++)
-      printf("%4d ",i);
-    printf("\n");
-    printf("%20s","DLY_RANGE");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",status[i]&0x1);
-    printf("\n");
-    printf("%20s","EYE_EARLY");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>1)&0x1);
-    printf("\n");
-    printf("%20s","EYE_LATE");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>2)&0x1);
-    printf("\n");
-    printf("%20s","IS_IDLE");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>3)&0x1);
-    printf("\n");
-    printf("%20s","IS_ALIGNED");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>4)&0x1);
-    printf("\n");
-    printf("%20s","AUTO_LOCKED");
-    for (int i=0; i<nlinks; i++) {
-      if (!elinks.isBitslipAuto(i)) printf("  X  ");
-      else printf(" %3d ",(status[i]>>5)&0x1);
-    }
-    printf("\n");
-    printf("%20s","AUTO_PHASE");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>8)&0x7);
-    printf("\n");
-    printf("%20s","BAD_COUNT");
-    for (int i=0; i<nlinks; i++)
-      printf("%4d ",(status[i]>>16)&0xFFF);
-    printf("\n");
-    printf("%20s","AUTO_COUNT");
-    for (int i=0; i<nlinks; i++)
-      printf(" %3d ",(status[i]>>28)&0xF);
-    printf("\n");
-  }
-    
+    pft->elinkStatus(std::cout);
+  } 
 }
-
 
 static int iroc=0;
 void ldmx_roc_render(PolarfireTarget*) {
@@ -801,24 +749,8 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("\n --- This command expects a CSV file with columns [page,offset,value].\n");
     printf(" --- Line starting with # are ignored.\n");
     std::string fname=tool_readline("Filename: ");
-    if (!fname.empty()) {
-      std::ifstream f{fname};
-      if (!f.is_open()) {
-	      printf("\n\n  ERROR: Unable to open '%s'\n\n",fname.c_str());
-	      return;
-      }
-      while (f) {
-        auto cells = getNextLineAndExtractValues(f);
-        if (cells.empty()) {
-          // empty line or comment
-          continue;
-        }
-        if (cells.size() == 3) {
-          roc.setValue(cells.at(0), cells.at(1), cells.at(2));
-        } else {
-          printf("WARNING: Ignoring line without exactly three columns.\n");
-        }
-      }
+    if (not pft->loadROCSettings(iroc,fname)) {
+      std::cerr<< "\n\n  ERROR: Unable to open " << fname << std::endl;
     }
   }
 }
@@ -868,84 +800,30 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     std::vector<uint32_t> cnt=pft->hcal->fc().getCmdCounters();
     for (int i=0; i<8; i++) 
       printf("  Bit %d count: %u\n",i,cnt[i]); 
-      
   }
-
-}
-
-  static const int tgt_ctl    = 8;
-  static const int tgt_rocbuf = 9;
-  static const int tgt_fmt    = 10;
-  static const int tgt_buffer = 11;
-static int nlinks=8; // need to read this eventually
-
-void prepare_new_run(PolarfireTarget* pft) {
-  pflib::DAQ& daq=pft->hcal->daq();
-  pft->backend->fc_bufferclear();
-  pft->backend->daq_reset();
-  daq.enable(true);
-}
-
-void daq_status(PolarfireTarget* pft, int mode=0) {
-  pflib::DAQ& daq=pft->hcal->daq();
-  bool full, empty;
-  int events, asize;
-  uint32_t reg, reg1, reg2;
-  
-  printf("-----Front-end FIFO-----\n");
-  reg=pft->wb->wb_read(tgt_ctl,4);
-  printf(" Header occupancy : %d  Maximum occupancy : %d \n",(reg>>8)&0x3F,(reg>>0)&0x3F);
-  reg=pft->wb->wb_read(tgt_ctl,5);
-  reg2=pft->wb->wb_read(tgt_ctl,2);
-  printf(" Next event info: 0x%08x (BX=%d, RREQ=%d, OR=%d)  RREQ=%d\n",reg,reg&0xFFF,(reg>>12)&0x3FF,(reg>>20)&0x3FF,(reg2>>22)&0x3FF);
-  
-  printf("-----Per-ROCLINK processing-----\n");
-  printf(" Link  ID  EN ZS FL EM\n");
-  for (int ilink=0; ilink<nlinks; ilink++) {
-    reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-    reg2=pft->wb->wb_read(tgt_fmt,(ilink<<7)|2);
-    printf("  %2d  %04x %2d %2d %2d %2d      %08x\n",ilink,reg2,(reg1>>0)&1,(reg1>>1)&0x1,(reg1>>22)&1,(reg1>>23)&1,reg1);
-  }
-  
-  printf("-----Off-detector FIFO-----\n");
-  pft->backend->daq_status(full, empty, events,asize);
-   
-  printf(" %8s %9s  Events ready : %3d  Next event size : %d\n",
-	 (full)?("FULL"):("NOT-FULL"),(empty)?("EMPTY"):("NOT-EMPTY"),events,asize);
 }
 
 void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
-
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
-    daq_status(pft,0);
+    pft->daqStatus(std::cout);
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
   }
   if (cmd=="ZS") {
     int jlink=tool_readline_int("Which link (-1 for all)? ",-1);    
-
-    for (int ilink=0; ilink<nlinks; ilink++) {
-      if (ilink!=jlink && jlink>=0) continue;
-      uint32_t reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-      bool wasZS=(reg1&0x2)!=0;
-      if (jlink>=0 && !wasZS) {
-	bool fullSuppress=tool_readline_bool("Suppress all channels? ",false);
-	reg1=reg1|0x4;
-	if (!fullSuppress) reg1=reg1^0x4;
-      }
-      pft->wb->wb_write(tgt_fmt,(ilink<<7)|1,reg1^0x2);
-    }
+	  bool fullSuppress=tool_readline_bool("Suppress all channels? ",false);
+    pft->enableZeroSuppression(jlink,fullSuppress);
   }
   if (cmd=="L1APARAMS") {
     int ilink=tool_readline_int("Which link? ",-1);    
     if (ilink>=0) {
-      uint32_t reg1=pft->wb->wb_read(tgt_rocbuf,(ilink<<7)|1);
+      uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|1);
       int delay=tool_readline_int("L1A delay? ",(reg1>>8)&0xFF);
       int capture=tool_readline_int("L1A capture length? ",(reg1>>16)&0xFF);
       reg1=(reg1&0xFF)|((delay&0xFF)<<8)|((capture&0xFF)<<16);
-      pft->wb->wb_write(tgt_rocbuf,(ilink<<7)|1,reg1);
+      pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|1,reg1);
     }
   }
   if (cmd=="STANDARD") {
@@ -966,32 +844,16 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
 
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
-    daq_status(pft);
+    pft->daqStatus(std::cout);
   }
   if (cmd=="RESET") {
-    printf("..Halting the event builder\n");
-    for (int ilink=0; ilink<nlinks; ilink++) {
-      uint32_t reg1=pft->wb->wb_read(tgt_fmt,(ilink<<7)|1);
-      pft->wb->wb_write(tgt_fmt,(ilink<<7)|1,(reg1&0xfffffffeu)|0x2);
-    }
-    printf("..Sending a buffer clear\n");
-    ldmx_fc("BUFFER_CLEAR",pft);
-    printf("..Sending DAQ reset\n");
-    pft->backend->daq_reset();
+    pft->daqSoftReset();
   }
   if (cmd=="HARD_RESET") {
-    printf("..HARD reset\n");
-    daq.reset();
-    pft->backend->daq_reset();
+    pft->daqHardReset();
   }
   if (cmd=="READ") {
-    bool full, empty;
-    int events, esize;
-    pft->backend->daq_status(full, empty, events, esize);
-    std::vector<uint32_t> buffer;
-    buffer=pft->backend->daq_read_event();
-    if (!empty) pft->backend->daq_advance_ptr();
-
+    std::vector<uint32_t> buffer = pft->daqReadDirect();
     for (size_t i=0; i<buffer.size() && i<32; i++) {
       printf("%04d %08x\n",int(i),buffer[i]);
     }
@@ -1021,68 +883,11 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     std::string fname=tool_readline("Filename :  ", fname_def);
     FILE* f=fopen(fname.c_str(),"w");
 
-    daq_status(pft,0);
-    prepare_new_run(pft);
-    daq_status(pft,0);
+    pft->prepareNewRun();
     
     for (int ievt=0; ievt<nevents; ievt++) {
-      // some other controller would send L1A (normally)
-      pft->backend->fc_sendL1A();
-           
-      bool full, empty;
-      int events, esize;
-      
-      do {
-	pft->backend->daq_status(full, empty, events, esize);
-      } while (empty);
-
-      printf("Event %d ",ievt);
-      daq_status(pft,0);
-    
-      std::vector<uint32_t> superbuffer;
-      std::vector<int> lens;
-      int fpgaid=0;
-      int totlen=0;
-      
-      for (int i=0; i<(extra_samples+1); i++) {
-        std::vector<uint32_t> buffer;
-        
-        buffer=pft->backend->daq_read_event();
-        if (!empty) pft->backend->daq_advance_ptr();
-	printf("Sample %d ",i);
-	daq_status(pft,0);
-
-        lens.push_back(int(buffer.size()));
-        // add to the superbuffer
-        superbuffer.insert(superbuffer.end(),buffer.begin(),buffer.end());
-        if (i==0) fpgaid=(buffer[0]>>(12+2+6))&0xFF;        
-        totlen+=buffer.size();
-      }
-
-      std::vector<uint32_t> header;
-      header.push_back(0x11111111u);
-      header.push_back(0xBEEF2021u);
-      uint32_t val=(0x1<<28); // version
-      val|=(fpgaid&0xFF)<<20;
-      val|=(lens.size())<<16;
-      totlen+=1; //header
-      totlen+=(lens.size()+1)/2;
-      val|=totlen;
-      header.push_back(val);
-      val=0;
-      // now the various subpackets
-      for (int i=0; i<int(lens.size()); i++) {
-        val|=(lens[i])<<(16*(i%2));
-        if ((i%2)||(i+1==int(lens.size()))) {
-          header.push_back(val);
-          val=0;
-        }
-      }
-      fwrite(&(header[0]),sizeof(uint32_t),header.size(),f);
-
-      superbuffer.push_back(0xd07e2021u);
-      superbuffer.push_back(0x12345678u);
-      fwrite(&(superbuffer[0]),sizeof(uint32_t),superbuffer.size(),f);      
+      std::vector<uint32_t> event = pft->daqReadEvent();
+      fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);      
     }
     fclose(f);
   }
@@ -1117,97 +922,97 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     ldmx_daq("STATUS", pft); 
     uint32_t reg1,reg2;
     printf("-----Per-ROC Controls-----\n");
-    reg1=pft->wb->wb_read(tgt_ctl,1);
+    reg1=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
     printf(" Disable ROC links: %s\n",(reg1&0x80000000u)?("TRUE"):("FALSE"));
 
     printf(" Link  F E RP WP \n");
-    for (int ilink=0; ilink<nlinks; ilink++) {
-      uint32_t reg=pft->wb->wb_read(tgt_rocbuf,(ilink<<7)|3);
+    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
+      uint32_t reg=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|3);
       printf("   %2d  %d %d %2d %2d       %08x\n",ilink,(reg>>26)&1,(reg>>27)&1,(reg>>16)&0xf,(reg>>12)&0xf,reg);
     }
     printf("-----Event builder    -----\n");
-    reg1=pft->wb->wb_read(tgt_ctl,6);
+    reg1=pft->wb->wb_read(PolarfireTarget::TGT_CTL,6);
     printf(" EVB Debug word: %08x\n",reg1);
-    reg1=pft->wb->wb_read(tgt_buffer,1);
-    reg2=pft->wb->wb_read(tgt_buffer,4);
+    reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
+    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,4);
     printf(" Event buffer Debug word: %08x %08x\n",reg1,reg2);
 
     printf("-----Full event buffer-----\n");
-    reg1=pft->wb->wb_read(tgt_buffer,1);
-    reg2=pft->wb->wb_read(tgt_buffer,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
+    reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
+    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
     printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event : %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
   } 
   if (cmd=="FULL_DEBUG") {
-    uint32_t reg2=pft->wb->wb_read(tgt_buffer,2);
+    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
     reg2=reg2^0x2;// invert
-    pft->wb->wb_write(tgt_buffer,2,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
   }
   if (cmd=="DISABLE_ROCLINKS") {
-    uint32_t reg=pft->wb->wb_read(tgt_ctl,1);
+    uint32_t reg=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
     reg=reg^0x80000000u;// invert
-    pft->wb->wb_write(tgt_ctl,1,reg);
+    pft->wb->wb_write(PolarfireTarget::TGT_CTL,1,reg);
   }
   if (cmd=="FULL_SEND") {
-    uint32_t reg2=pft->wb->wb_read(tgt_buffer,2);
+    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
     reg2=reg2|0x1000;// set the send bit
-    pft->wb->wb_write(tgt_buffer,2,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
   }
   if (cmd=="ROC_SEND") {
-    uint32_t reg2=pft->wb->wb_read(tgt_ctl,1);
+    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
     reg2=reg2|0x40000000;// set the send bit
-    pft->wb->wb_write(tgt_ctl,1,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_CTL,1,reg2);
   }
   if (cmd=="FULL_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
 
     // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(tgt_buffer,1);
-    uint32_t reg2=pft->wb->wb_read(tgt_buffer,2);
+    uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
+    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
     int rpage=(reg1>>12)&0x1;
     if (rpage) reg2=reg2|0x1;
     else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(tgt_buffer,2,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
 
     for (size_t i=0; i<data.size(); i++) 
-      pft->wb->wb_write(tgt_buffer,0x1000+i,data[i]);
+      pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,0x1000+i,data[i]);
           
     /// set the length
-    reg2=pft->wb->wb_read(tgt_buffer,2);
+    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
     reg2=reg2&0xFFFF;// remove the upper bits
     reg2=reg2|(data.size()<<16);
-    pft->wb->wb_write(tgt_buffer,2,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
   }
   if (cmd=="SPY") {
     // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(tgt_buffer,1);
-    uint32_t reg2=pft->wb->wb_read(tgt_buffer,2);
+    uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
+    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
     int rpage=(reg1>>12)&0x1;
     if (rpage) reg2=reg2|0x1;
     else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(tgt_buffer,2,reg2);
+    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
 
     for (size_t i=0; i<32; i++) {
-      uint32_t val=pft->wb->wb_read(tgt_buffer,0x1000|i);
+      uint32_t val=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,0x1000|i);
       printf("%04d %08x\n",int(i),val);
     }
   }
     
   if (cmd=="ROC_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
-    if (int(data.size())!=nlinks*40) {
-      printf("Expected %d words, got only %d\n",nlinks*40,int(data.size()));
+    if (int(data.size())!=PolarfireTarget::NLINKS*40) {
+      printf("Expected %d words, got only %d\n",PolarfireTarget::NLINKS*40,int(data.size()));
       return;
     }
-    for (int ilink=0; ilink<nlinks; ilink++) {
+    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
       uint32_t reg;
       // set the wishbone page to match the read page, and set the length
-      reg=pft->wb->wb_read(tgt_rocbuf,(ilink<<7)+3);
+      reg=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)+3);
       int rpage=(reg>>16)&0xF;
       reg=(reg&0xFFFFF000u)|rpage|(40<<4);
-      pft->wb->wb_write(tgt_rocbuf,(ilink<<7)+3,reg);
+      pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)+3,reg);
       // load the bytes
       for (int i=0; i<40; i++)
-	pft->wb->wb_write(tgt_rocbuf,(ilink<<7)|0x40|i,data[40*ilink+i]);      
+	pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|0x40|i,data[40*ilink+i]);      
     }
   }
 }
@@ -1232,40 +1037,15 @@ void ldmx_bias( const std::string& cmd, PolarfireTarget* pft ) {
     int ichan=tool_readline_int(" Which HDMI connector? ",-1);
     int dac=tool_readline_int(" What DAC value? ",0);
     if (ichan>=0) {
-      pflib::Bias bias=pft->hcal->bias(iboard);
-      if (!led_sipm) bias.setSiPM(ichan,dac);
-      else bias.setLED(ichan,dac);
+      pft->setBiasSetting(iboard,led_sipm==1,ichan,dac);
     }
   }
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with four columns [0=SiPM/1=LED,board,hdmi#,value].\n");
     printf(" --- Line starting with # are ignored.\n");
     std::string fname=tool_readline("Filename: ");
-    if (!fname.empty()) {
-      FILE* f=fopen(fname.c_str(),"r");
-      if (f==0) {
-	printf("\n\n  ERROR: Unable to open '%s'\n\n",fname.c_str());
-	return;
-      }
-      char buffer[1025];
-      while (!feof(f)) {
-	buffer[0]=0;
-	fgets(buffer,1024,f);
-	if (strchr(buffer,'#')!=0) *(strchr(buffer,'#'))=0;
-	int vals[4];
-	int itok=0;
-	for (itok=0; itok<4; itok++) {
-	  char* tok=strtok((itok==0)?(buffer):(0),", \t");
-	  if (tok==0) break;
-	  vals[itok]=strtol(tok,0,0);
-	}
-	if (itok==4) {	  
-	  pflib::Bias bias=pft->hcal->bias(vals[0]);
-	  if (!vals[1]) bias.setSiPM(vals[2],vals[3]);
-	  else bias.setLED(vals[2],vals[3]);
-	}
-      }
-      fclose(f);
+    if (not pft->loadBiasSettings(fname)) {
+      std::cerr << "\n\n  ERROR: Unable to access " << fname << std::endl;
     }
   }
 }
