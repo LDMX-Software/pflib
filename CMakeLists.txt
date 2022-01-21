@@ -7,6 +7,27 @@ project(pflib
 	DESCRIPTION "Polarfire configuration library."
 	LANGUAGES CXX)
 
+# YAML->register value "compiler"
+#   optional, build it if we can find the yaml parser we use
+find_package(yaml-cpp)
+if (yaml-cpp_FOUND)
+  # now we are able to compile the yaml->csv "compiler" of polarfire/hgcroc settings
+  add_library(pflib_compile SHARED src/pflib/compile/Compiler.cxx)
+  target_link_libraries(pflib_compile PUBLIC yaml-cpp)
+
+  add_executable(pfcompile tool/pfcompile.cxx)
+  target_link_libraries(pfcompile pflib_compile)
+
+  set(PFLIB_CAN_COMPILE_YAML "YES")
+
+  install(TARGETS pfcompile DESTINATION bin)
+  install(TARGETS pflib_compile LIBRARY DESTINATION lib)
+else()
+  message(WARNING "Unable to find yaml-cpp. pflib will not be able to 'compile' yaml files into HGC ROC settings that can be loaded onto the chip.")
+endif()
+configure_file(${PROJECT_SOURCE_DIR}/include/pflib/compile/CanCompile.h.in
+               ${PROJECT_SOURCE_DIR}/include/pflib/compile/CanCompile.h)
+
 # Build the polarfire library
 add_library(pflib SHARED 
   src/pflib/Bias.cxx
