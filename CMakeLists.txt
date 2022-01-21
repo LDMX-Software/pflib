@@ -12,10 +12,6 @@ project(pflib
 find_package(yaml-cpp REQUIRED)
 if (yaml-cpp_FOUND)
   # now we are able to compile the yaml->csv "compiler" of polarfire/hgcroc settings
-  get_target_property(libs yaml-cpp INTERFACE_LINK_LIBRARIES)
-  message("yaml-cpp libs: ${libs}")
-  get_target_property(head yaml-cpp INTERFACE_INCLUDE_DIRECTORIES)
-  message("yaml-cpp inc : ${head}")
   add_library(pflib_compile SHARED src/pflib/compile/Compiler.cxx)
   target_link_libraries(pflib_compile PUBLIC yaml-cpp)
   target_include_directories(pflib_compile PUBLIC include)
@@ -46,6 +42,9 @@ add_library(pflib SHARED
   src/pflib/WishboneTarget.cxx
   src/pflib/PolarfireTarget.cxx)
 target_include_directories(pflib PUBLIC include)
+if (PFLIB_CAN_COMPILE_YAML)
+  target_link_libraries(pflib PUBLIC pflib_compile)
+endif()
 add_library(pflib::pflib ALIAS pflib)
 
 setup_rogue()
