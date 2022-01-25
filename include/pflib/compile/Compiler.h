@@ -16,9 +16,10 @@ class Compiler {
   /// apply the input YAML node to the settings map
   void apply(YAML::Node params);
  public:
-  Compiler(const std::vector<std::string>& setting_files);
+  Compiler(const std::vector<std::string>& setting_files, bool prepend_defaults = true);
   /// short hand for a single setting file
-  Compiler(const std::string& setting_file) : Compiler({setting_file}) {}
+  Compiler(const std::string& setting_file, bool prepend_defaults = true) 
+    : Compiler(std::vector<std::string>{setting_file}, prepend_defaults) {}
   /**
    * get the register values from the settings
    * 

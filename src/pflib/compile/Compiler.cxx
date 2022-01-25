@@ -1,6 +1,9 @@
 #include "pflib/compile/Compiler.h"
+#include "pflib/Exception.h"
 
 #include <map>
+#include <regex>
+
 #include <yaml-cpp/yaml.h>
 
 namespace pflib::compile {
@@ -17,15 +20,12 @@ struct RegisterLocation {
   const short n_bits;
   /// the mask for this number of bits
   const short mask;
-  /// the clearing mask for this min_bit and number of bits
-  const short clear;
   /**
    * Usable constructor
    */
   RegisterLocation(short r, short m, short n)
     : reg{r}, min_bit{m}, n_bits{n},
-      mask{((1 << n_bits) - 1)},
-      clear{(mask << min_bit) ^ 0b11111111} {}
+      mask{((static_cast<short>(1) << n_bits) - static_cast<short>(1))} {}
 };
 
 struct Parameter {
@@ -55,25 +55,23 @@ void Compiler::apply(YAML::Node params) {
   }
 
   if (not params.IsMap()) {
-    std::cerr << "BAD FORMAT" << std::endl;
-    throw;
+    PFEXCEPTION_RAISE("BadFormat", "The YAML node provided is not a map.");
   }
 
-  for (std::size_t i_page{params.size()}; i_page < params.size(); i_page++) {
-    if (not params[i_page].IsMap()) {
-      std::cerr << "BAD FORMAT" << std::endl;
-      throw;
+  for (const auto& page_pair : params) {
+    std::string page_name = page_pair.first.as<std::string>();
+    YAML::Node page_settings = page_pair.second;
+    if (not page_settings.IsMap()) {
+      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a specific page is not a map.");
     }
 
-    auto page_settings = params[i_page].as<std::map<std::string,int>>();
-
     // apply these settings only to pages that match the regex
-    std::regex page_regex(params[i_page].key());
-    for (auto& page : page_names) {
+    std::regex page_regex(page_name);
+    for (const auto& page : page_names) {
       if (not std::regex_match(page,page_regex)) continue;
 
       for (const auto& param : page_settings)
-        settings_[page][param.first] = param.second;
+        settings_[page][param.first.as<std::string>()] = param.second.as<int>();
     }
   }
 }
@@ -84,8 +82,7 @@ std::map<int,std::map<int,uint8_t>> Compiler::compile() {
     // page.first => page name
     // page.second => parameter to value map
     if (PARAMETER_LUT.find(page.first) == PARAMETER_LUT.end()) {
-      std::cerr << page.first << " not found in Parameter Look Up Table." << std::endl;
-      continue;
+      PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
     }
     const auto& page_id{PARAMETER_LUT.at(page.first).first};
     const auto& page_lut{PARAMETER_LUT.at(page.first).second};
@@ -93,8 +90,8 @@ std::map<int,std::map<int,uint8_t>> Compiler::compile() {
       // param.first => parameter name
       // param.second => value
       if (page_lut.find(param.first) == page_lut.end()) {
-        std::cerr << param << " not found in LUT for page " << page.first << std::endl;
-        continue;
+        PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
+            +"' is not found in the look up table for page "+page.first);
       }
 
       const Parameter& spec{page_lut.at(param.first)};
@@ -117,7 +114,7 @@ std::map<int,std::map<int,uint8_t>> Compiler::compile() {
   return register_values;
 }
 
-void Compiler::Compiler(const std::vector<std::string>& setting_files) {
+Compiler::Compiler(const std::vector<std::string>& setting_files, bool prepend_defaults) {
   // if we prepend the defaults, put all settings and their defaults 
   // into the settings map
   if (prepend_defaults) {
