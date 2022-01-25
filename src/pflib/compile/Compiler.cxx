@@ -62,14 +62,20 @@ void Compiler::apply(YAML::Node params) {
     std::string page_name = page_pair.first.as<std::string>();
     YAML::Node page_settings = page_pair.second;
     if (not page_settings.IsMap()) {
-      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a specific page is not a map.");
+      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page "+page_name+" is not a map.");
     }
 
     // apply these settings only to pages that match the regex
     std::regex page_regex(page_name);
-    for (const auto& page : page_names) {
-      if (not std::regex_match(page,page_regex)) continue;
+    std::vector<std::string> matching_pages;
+    std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
+        [&](const std::string& page) { return std::regex_match(page,page_regex); });
 
+    if (matching_pages.empty()) {
+      PFEXCEPTION_RAISE("NotFound", "The page "+page_name+" does not match any pages in the look up table.");
+    }
+
+    for (const auto& page : matching_pages) {
       for (const auto& param : page_settings)
         settings_[page][param.first.as<std::string>()] = param.second.as<int>();
     }
@@ -82,6 +88,9 @@ std::map<int,std::map<int,uint8_t>> Compiler::compile() {
     // page.first => page name
     // page.second => parameter to value map
     if (PARAMETER_LUT.find(page.first) == PARAMETER_LUT.end()) {
+      // this exception shouldn't really ever happen because we check if the input
+      // page matches any of the pages in the LUT in Compiler::apply, but
+      // we leave this check in here for future development
       PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
     }
     const auto& page_id{PARAMETER_LUT.at(page.first).first};
@@ -126,7 +135,12 @@ Compiler::Compiler(const std::vector<std::string>& setting_files, bool prepend_d
   }
 
   for (auto& setting_file : setting_files) {
-    YAML::Node setting_yaml = YAML::LoadFile(setting_file);
+    YAML::Node setting_yaml;
+    try {
+       setting_yaml = YAML::LoadFile(setting_file);
+    } catch (const YAML::BadFile& e) {
+      PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
+    }
     if (setting_yaml.IsSequence()) {
       for (std::size_t i{0}; i < setting_yaml.size(); i++) apply(setting_yaml[i]);
     } else {
