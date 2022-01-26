@@ -1,9 +1,9 @@
-#ifndef PFLIB_COMPILE_COMPILER_H
-#define PFLIB_COMPILE_COMPILER_H
+#ifndef PFLIB_COMPILE_H
+#define PFLIB_COMPILE_H
 
 #include <yaml-cpp/yaml.h>
 
-namespace pflib::compile {
+namespace pflib {
 
 /**
  * Compiling which translates parameter values for the HGCROC
@@ -39,9 +39,7 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults = t
 
 /// short hand for a single setting file
 std::map<int,std::map<int,uint8_t>>
-compile(const std::string& setting_file, bool prepend_defaults = true) {
-  return compile(std::vector<std::string>{setting_file}, prepend_defaults);
-}
+compile(const std::string& setting_file, bool prepend_defaults = true);
 
 }
 

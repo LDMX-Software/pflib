@@ -9,8 +9,10 @@
 #include <iomanip>
 #include <fstream>
 
+#include <yaml-cpp/yaml.h>
+
 #include "pflib/Exception.h"
-#include "pflib/compile/Compiler.h"
+#include "pflib/Compile.h"
 
 static void usage() {
   std::cout <<
@@ -145,7 +147,7 @@ int main(int argc, char *argv[]) {
     parameters;
   try {
     // compilation checks parameter/page names
-    parameters = pflib::compile::decompile(settings);
+    parameters = pflib::decompile(settings);
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

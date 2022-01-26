@@ -5,7 +5,7 @@
 #include "pflib/Bias.h"
 #include "pflib/FastControl.h"
 #include "pflib/rogue/RogueWishboneInterface.h"
-#include "pflib/compile/Compiler.h"
+#include "pflib/Compile.h"
 
 #include <iostream>
 #include <sstream>
@@ -158,7 +158,7 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
       });
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
     try {
-      auto settings = compile::compile(file_name);
+      auto settings = compile(file_name);
       for (auto page : settings) {
         for (auto reg : page.second) {
           hcal->roc(roc).setValue(page.first,reg.first,reg.second);
@@ -174,14 +174,14 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
   }
 }
 
-bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool decompile) {
+bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool should_decompile) {
   if (filename.empty()) return false;
   std::ofstream f{filename};
   if (not f.is_open()) return false;
 
   auto roc_obj{hcal->roc(roc)};
 
-  if (decompile) {
+  if (should_decompile) {
     // read all the pages and store them in memory
     std::map<int,std::map<int,uint8_t>> register_values;
     for (int page{0}; page<300; page++) {
@@ -193,7 +193,7 @@ bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool de
     }
 
     std::map<std::string,std::map<std::string,int>>
-      parameter_values = compile::decompile(register_values);
+      parameter_values = decompile(register_values);
 
     YAML::Emitter out;
     out << YAML::BeginMap;

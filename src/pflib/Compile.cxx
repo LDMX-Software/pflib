@@ -1,4 +1,4 @@
-#include "pflib/compile/Compiler.h"
+#include "pflib/Compile.h"
 #include "pflib/Exception.h"
 
 #include <map>
@@ -7,7 +7,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace pflib::compile {
+namespace pflib {
 
 /**
  * Structure holding a location in the registers
@@ -518,4 +518,8 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
   return compile(settings);
 }
 
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::string& setting_file, bool prepend_defaults) {
+  return compile(std::vector<std::string>{setting_file}, prepend_defaults);
+}
 }

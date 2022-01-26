@@ -11,7 +11,7 @@
 #include <fstream>
 
 #include "pflib/Exception.h"
-#include "pflib/compile/Compiler.h"
+#include "pflib/Compile.h"
 
 static void usage() {
   std::cout <<
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   std::map<int,std::map<int,uint8_t>> settings;
   try {
     // compilation checks parameter/page names
-    settings = pflib::compile::compile(setting_files, prepend_defaults);
+    settings = pflib::compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

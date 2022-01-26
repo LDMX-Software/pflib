@@ -10,24 +10,6 @@ project(pflib
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)
-if (yaml-cpp_FOUND)
-  # now we are able to compile the yaml->csv "compiler" of polarfire/hgcroc settings
-  add_library(pflib_compile SHARED src/pflib/compile/Compiler.cxx)
-  target_link_libraries(pflib_compile PUBLIC yaml-cpp)
-  target_include_directories(pflib_compile PUBLIC include)
-
-  add_executable(pfcompile tool/pfcompile.cxx)
-  target_link_libraries(pfcompile pflib_compile)
-
-  set(PFLIB_CAN_COMPILE_YAML "YES")
-
-  install(TARGETS pfcompile DESTINATION bin)
-  install(TARGETS pflib_compile LIBRARY DESTINATION lib)
-else()
-  message(WARNING "Unable to find yaml-cpp. pflib will not be able to 'compile' yaml files into HGC ROC settings that can be loaded onto the chip.")
-endif()
-configure_file(${PROJECT_SOURCE_DIR}/include/pflib/compile/CanCompile.h.in
-               ${PROJECT_SOURCE_DIR}/include/pflib/compile/CanCompile.h)
 
 # Build the polarfire library
 add_library(pflib SHARED 
@@ -40,11 +22,10 @@ add_library(pflib SHARED
   src/pflib/I2C.cxx
   src/pflib/ROC.cxx
   src/pflib/WishboneTarget.cxx
+  src/pflib/Compile.cxx
   src/pflib/PolarfireTarget.cxx)
 target_include_directories(pflib PUBLIC include)
-if (PFLIB_CAN_COMPILE_YAML)
-  target_link_libraries(pflib PUBLIC pflib_compile)
-endif()
+target_link_libraries(pflib PUBLIC yaml-cpp)
 add_library(pflib::pflib ALIAS pflib)
 
 setup_rogue()
@@ -116,5 +97,11 @@ add_library(pflib::python ALIAS pflib_python)
 add_executable(pftool tool/pftool.cc)
 target_link_libraries(pftool PRIVATE pflib pflib_rogue readline)
 
-install(TARGETS pftool DESTINATION bin)
+add_executable(pfcompile tool/pfcompile.cxx)
+target_link_libraries(pfcompile pflib pflib_rogue)
+
+add_executable(pfdecompile tool/pfdecompile.cxx)
+target_link_libraries(pfdecompile pflib pflib_rogue)
+
+install(TARGETS pftool pfcompile pfdecompile DESTINATION bin)
 install(TARGETS pflib pflib_rogue pflib_python LIBRARY DESTINATION lib)
