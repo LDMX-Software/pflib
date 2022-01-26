@@ -5,6 +5,7 @@
 #include "pflib/Bias.h"
 #include "pflib/FastControl.h"
 #include "pflib/rogue/RogueWishboneInterface.h"
+#include "pflib/compile/Compiler.h"
 
 #include <iostream>
 #include <sstream>
@@ -36,8 +37,11 @@ static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
      * std stoi has a auto-detect base feature
      * https://en.cppreference.com/w/cpp/string/basic_string/stol
      * which we can enable by setting the pre-defined base to 0
-     * (the third parameter).
-     * The second parameter is and address to put the number of characters processed,
+     * (the third parameter) - this auto-detect base feature
+     * can handle hexidecial (prefix == 0x or 0X), octal (prefix == 0),
+     * and decimal (no prefix).
+     *
+     * The second parameter is an address to put the number of characters processed,
      * which I disregard at this time.
      *
      * Do we allow empty cells?
@@ -151,8 +155,17 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
         }
       });
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
-    std::cerr << "Loading settings from YAML not implemented here yet." << std::endl;
-    return false;
+    try {
+      auto settings = compile::Compiler(file_name).compile();
+      for (auto page : settings) {
+        for (auto reg : page.second) {
+          hcal->roc(roc).setValue(page.first,reg.first,reg.second);
+        }
+      }
+    } catch (const pflib::Exception& e) {
+      std::cerr << "ERROR [" << e.name() << "] " << e.message() << std::endl;
+      return false;
+    }
   } else {
     std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
     return false;
