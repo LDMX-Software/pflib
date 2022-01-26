@@ -3,6 +3,7 @@
 
 #include <map>
 #include <regex>
+#include <iostream>
 
 #include <yaml-cpp/yaml.h>
 
@@ -349,7 +350,90 @@ PARAMETER_LUT = {
   {"Channel_71", {37, CHANNEL_WISE_LUT}}
 };
 
-void Compiler::apply(YAML::Node params) {
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::map<std::string,std::map<std::string,int>>& settings) {
+  std::map<int,std::map<int,uint8_t>> register_values;
+  for (const auto& page : settings) {
+    // page.first => page name
+    // page.second => parameter to value map
+    if (PARAMETER_LUT.find(page.first) == PARAMETER_LUT.end()) {
+      // this exception shouldn't really ever happen because we check if the input
+      // page matches any of the pages in the LUT in detail::apply, but
+      // we leave this check in here for future development
+      PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
+    }
+    const auto& page_id{PARAMETER_LUT.at(page.first).first};
+    const auto& page_lut{PARAMETER_LUT.at(page.first).second};
+    for (const auto& param : page.second) {
+      // param.first => parameter name
+      // param.second => value
+      if (page_lut.find(param.first) == page_lut.end()) {
+        PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
+            +"' is not found in the look up table for page "+page.first);
+      }
+
+      const Parameter& spec{page_lut.at(param.first)};
+      std::size_t value_curr_min_bit{0};
+      for (const RegisterLocation& location : spec.registers) {
+        // grab sub value of parameter in this register
+        uint8_t sub_val = ((param.second >> value_curr_min_bit) & location.mask);
+        value_curr_min_bit += location.n_bits;
+        // initialize register value to zero if it hasn't been touched before
+        if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
+          register_values[page_id][location.reg] = 0;
+        }
+
+        // put value into register at the specified location
+        register_values[page_id][location.reg] += (sub_val << location.min_bit);
+      } // loop over register locations
+    }   // loop over parameters in page
+  }     // loop over pages
+
+  return register_values;
+}
+
+std::map<std::string,std::map<std::string,int>>
+decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
+  std::map<std::string,std::map<std::string,int>> settings;
+  for (const auto& page : PARAMETER_LUT) {
+    const std::string& page_name{page.first};
+    const int& page_id{page.second.first};
+    const auto& page_lut{page.second.second};
+    if (compiled_config.find(page_id) == compiled_config.end()) {
+      std::cerr << "WARNING: Page " << page_name
+        << " wasn't provided the necessary registers to be deduced." << std::endl;
+      continue;
+    }
+    const auto& page_conf{compiled_config.at(page_id)};
+    for (const auto& param : page_lut) {
+      const Parameter& spec{page_lut.at(param.first)};
+      std::size_t value_curr_min_bit{0};
+      int pval{0};
+      bool skip{false};
+      for (const RegisterLocation& location : spec.registers) {
+        if (page_conf.find(location.reg) == page_conf.end()) {
+          std::cerr << "WARNING: Parameter " << param.first << " in page " << page_name
+            << " wasn't provided the necessary registers to be deduced." << std::endl;
+          skip = true;
+          break;
+        }
+
+        // grab sub value of parameter in this register
+        uint8_t sub_val = ((page_conf.at(location.reg) >> location.min_bit) & location.mask);
+        pval += (sub_val << value_curr_min_bit);
+        value_curr_min_bit += location.n_bits;
+      }
+
+      if (not skip) settings[page_name][param.first] = pval;
+    }
+  }
+
+  return settings;
+}
+
+namespace detail {
+
+void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
   // deduce list of page names for regex search
   //    only do this once per program run
   static std::vector<std::string> page_names;
@@ -395,61 +479,24 @@ void Compiler::apply(YAML::Node params) {
             sval = sval.substr(2);
           }
         }
-        settings_[page][param.first.as<std::string>()] 
+        settings[page][param.first.as<std::string>()] 
           = std::stoi(sval,nullptr,base);
       }
     }
   }
 }
 
-std::map<int,std::map<int,uint8_t>> Compiler::compile() {
-  std::map<int,std::map<int,uint8_t>> register_values;
-  for (const auto& page : settings_) {
-    // page.first => page name
-    // page.second => parameter to value map
-    if (PARAMETER_LUT.find(page.first) == PARAMETER_LUT.end()) {
-      // this exception shouldn't really ever happen because we check if the input
-      // page matches any of the pages in the LUT in Compiler::apply, but
-      // we leave this check in here for future development
-      PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
-    }
-    const auto& page_id{PARAMETER_LUT.at(page.first).first};
-    const auto& page_lut{PARAMETER_LUT.at(page.first).second};
-    for (const auto& param : page.second) {
-      // param.first => parameter name
-      // param.second => value
-      if (page_lut.find(param.first) == page_lut.end()) {
-        PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
-            +"' is not found in the look up table for page "+page.first);
-      }
+} // namespace detail
 
-      const Parameter& spec{page_lut.at(param.first)};
-      std::size_t value_curr_min_bit{0};
-      for (const RegisterLocation& location : spec.registers) {
-        // grab sub value of parameter in this register
-        uint8_t sub_val = ((param.second >> value_curr_min_bit) & location.mask);
-        value_curr_min_bit += location.n_bits;
-        // initialize register value to zero if it hasn't been touched before
-        if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
-          register_values[page_id][location.reg] = 0;
-        }
-
-        // put value into register at the specified location
-        register_values[page_id][location.reg] += (sub_val << location.min_bit);
-      } // loop over register locations
-    }   // loop over parameters in page
-  }     // loop over pages
-
-  return register_values;
-}
-
-Compiler::Compiler(const std::vector<std::string>& setting_files, bool prepend_defaults) {
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
   // if we prepend the defaults, put all settings and their defaults 
   // into the settings map
+  std::map<std::string,std::map<std::string,int>> settings;
   if (prepend_defaults) {
     for(auto& page : PARAMETER_LUT) {
       for (auto& param : page.second.second) {
-        settings_[page.first][param.first] = param.second.def;
+        settings[page.first][param.first] = param.second.def;
       }
     }
   }
@@ -462,11 +509,13 @@ Compiler::Compiler(const std::vector<std::string>& setting_files, bool prepend_d
       PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
     }
     if (setting_yaml.IsSequence()) {
-      for (std::size_t i{0}; i < setting_yaml.size(); i++) apply(setting_yaml[i]);
+      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::apply(setting_yaml[i],settings);
     } else {
-      apply(setting_yaml);
+      detail::apply(setting_yaml, settings);
     }
   }
+
+  return compile(settings);
 }
 
 }

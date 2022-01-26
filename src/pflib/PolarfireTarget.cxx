@@ -156,7 +156,7 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
       });
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
     try {
-      auto settings = compile::Compiler(file_name).compile();
+      auto settings = compile::compile(file_name);
       for (auto page : settings) {
         for (auto reg : page.second) {
           hcal->roc(roc).setValue(page.first,reg.first,reg.second);

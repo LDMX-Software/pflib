@@ -87,14 +87,10 @@ int main(int argc, char *argv[]) {
 
   std::map<int,std::map<int,uint8_t>> settings;
   try {
-    // read setting files, checking for YAML format
-    pflib::compile::Compiler c(setting_files, prepend_defaults);
-  
     // compilation checks parameter/page names
-    settings = c.compile();
+    settings = pflib::compile::compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
-    std::cerr << "ERROR: " 
-      << "[" << e.name() << "] "
+    std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;
     return -1;
   }
