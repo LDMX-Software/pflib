@@ -13,19 +13,19 @@ namespace pflib::compile {
  */
 struct RegisterLocation {
   /// the register the parameter is in (0-15)
-  const short reg;
+  const int reg;
   /// the min bit the location is in the register (0-7)
-  const short min_bit;
+  const int min_bit;
   /// the number of bits the location has in the register (1-8)
-  const short n_bits;
+  const int n_bits;
   /// the mask for this number of bits
-  const short mask;
+  const int mask;
   /**
    * Usable constructor
    */
-  RegisterLocation(short r, short m, short n)
+  RegisterLocation(int r, int m, int n)
     : reg{r}, min_bit{m}, n_bits{n},
-      mask{((static_cast<short>(1) << n_bits) - static_cast<short>(1))} {}
+      mask{((1 << n_bits) - 1)} {}
 };
 
 struct Parameter {
@@ -37,7 +37,7 @@ struct Parameter {
   Parameter(std::initializer_list<RegisterLocation> r,int def)
     : def{def}, registers{r} {}
   /// short constructor for single-location parameters
-  Parameter(short r, short m, short n, int def)
+  Parameter(int r, int m, int n, int def)
     : Parameter({RegisterLocation(r,m,n)},def) {}
 };
 
@@ -263,18 +263,18 @@ PARAMETER_LUT = {
   {"Reference_Voltage_0", {296, REFERENCE_VOLTAGE_LUT}},
   {"Global_Analog_0", {297, GLOBAL_ANALOG_LUT}},
   {"Master_TDC_0", {298, MASTER_TDC_LUT}},
-  //{"Digital_Half_0", {299, DIGITAL_HALF_LUT}},
+  {"Digital_Half_0", {299, DIGITAL_HALF_LUT}},
   {"Reference_Voltage_1", {40, REFERENCE_VOLTAGE_LUT}},
   {"Global_Analog_1", {41, GLOBAL_ANALOG_LUT}},
   {"Master_TDC_1", {42, MASTER_TDC_LUT}},
-  //{"Digital_Half_1", {43, DIGITAL_HALF_LUT}},
-  //{"Top", {44,TOP_LUT}},
-  //{"CM0", {275, CHANNEL_WISE_LUT}},
-  //{"CM1", {276, CHANNEL_WISE_LUT}},
-  //{"CALIB0", {274, CHANNEL_WISE_LUt}},
-  //{"CM2", {19, CHANNEL_WISE_LUT}},
-  //{"CM3", {20, CHANNEL_WISE_LUT}},
-  //{"CALIB1", {18, CHANNEL_WISE_LUT}},
+  {"Digital_Half_1", {43, DIGITAL_HALF_LUT}},
+  {"Top", {44,TOP_LUT}},
+  {"CM0", {275, CHANNEL_WISE_LUT}},
+  {"CM1", {276, CHANNEL_WISE_LUT}},
+  {"CALIB0", {274, CHANNEL_WISE_LUT}},
+  {"CM2", {19, CHANNEL_WISE_LUT}},
+  {"CM3", {20, CHANNEL_WISE_LUT}},
+  {"CALIB1", {18, CHANNEL_WISE_LUT}},
   {"Channel_0", {261, CHANNEL_WISE_LUT}},
   {"Channel_1", {260, CHANNEL_WISE_LUT}},
   {"Channel_2", {259, CHANNEL_WISE_LUT}},
@@ -379,8 +379,25 @@ void Compiler::apply(YAML::Node params) {
     }
 
     for (const auto& page : matching_pages) {
-      for (const auto& param : page_settings)
-        settings_[page][param.first.as<std::string>()] = param.second.as<int>();
+      for (const auto& param : page_settings) {
+        std::string sval = param.second.as<std::string>();
+        if (sval.empty()) {
+          PFEXCEPTION_RAISE("BadFormat",
+              "Non-existent value for parameter "+param.first.as<std::string>());
+        }
+        int base = 10;
+        if (sval[0] == '0') {
+          if (sval[1] == 'b' or sval[1] == 'B') {
+            base = 2;
+            sval = sval.substr(2);
+          } else if (sval[1] == 'x' or sval[1] == 'X') {
+            base = 16;
+            sval = sval.substr(2);
+          }
+        }
+        settings_[page][param.first.as<std::string>()] 
+          = std::stoi(sval,nullptr,base);
+      }
     }
   }
 }
