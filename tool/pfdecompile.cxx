@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 
   if (output_filename.empty()) {
     // strip extension
-    output_filename = output_filename.substr(0,input_filename.find_last_of('.'));
+    output_filename = input_filename.substr(0,input_filename.find_last_of('.'));
     // add yaml extension
     output_filename += ".yaml";
   }
