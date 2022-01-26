@@ -419,6 +419,7 @@ uMenu::Line menu_ldmx_roc_lines[] =
    uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
    uMenu::Line("POKE","Change a single value", &ldmx_roc ),
    uMenu::Line("LOAD","Load values from file", &ldmx_roc ),
+   uMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
    uMenu::Line("QUIT","Back to top menu"),
    uMenu::Line()
   };
@@ -747,10 +748,25 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with columns [page,offset,value].\n");
-    printf(" --- Line starting with # are ignored.\n");
+    printf(" --- Or a YAML file to be passed through the 'compiler'.\n");
     std::string fname=tool_readline("Filename: ");
     if (not pft->loadROCSettings(iroc,fname)) {
       std::cerr<< "\n\n  ERROR: Unable to open " << fname << std::endl;
+    }
+  }
+  if (cmd=="DUMP") {
+    static std::string fname_def_format = "hgcroc_settings_%Y%m%d_%H%M%S.yaml";
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+
+    char fname_def[64];
+    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
+    
+    std::string fname = tool_readline("Filename: ", fname_def);
+	  bool decompile = tool_readline_bool("Decompile register values? ",true);
+    if (not pft->dumpSettings(iroc,fname,decompile)) {
+      std::cerr << "\n\n ERROR: Unable to open " << fname << std::endl;
     }
   }
 }

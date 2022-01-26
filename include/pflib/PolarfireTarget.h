@@ -94,6 +94,15 @@ struct PolarfireTarget {
    */
   bool loadROCSettings(int roc, const std::string& file_name);
 
+  /**
+   * Request all of the ROC setting register values
+   *
+   * The input lets you choose if you want the output
+   * to be "decompiled", i.e. the the registr values are
+   * unpacked into the parameter values.
+   */
+  bool dumpSettings(int roc, const std::string& file_name, bool decompile);
+
   void prepareNewRun();
 
   /**

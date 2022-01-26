@@ -12,6 +12,8 @@
 #include <iomanip>
 #include <fstream>
 
+#include <yaml-cpp/yaml.h>
+
 namespace pflib {
 
 /**
@@ -170,6 +172,60 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
     std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
     return false;
   }
+}
+
+bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool decompile) {
+  if (filename.empty()) return false;
+  std::ofstream f{filename};
+  if (not f.is_open()) return false;
+
+  auto roc_obj{hcal->roc(roc)};
+
+  if (decompile) {
+    // read all the pages and store them in memory
+    std::map<int,std::map<int,uint8_t>> register_values;
+    for (int page{0}; page<300; page++) {
+      // all pages have up to 16 registers
+      std::vector<uint8_t> v = roc_obj.readPage(page,16);
+      for (int reg{0}; reg < 16; reg++) {
+        register_values[page][reg] = v.at(reg);
+      }
+    }
+
+    std::map<std::string,std::map<std::string,int>>
+      parameter_values = compile::decompile(register_values);
+
+    YAML::Emitter out;
+    out << YAML::BeginMap;
+    for (const auto& page : parameter_values) {
+      out << YAML::Key << page.first;
+      out << YAML::Value << YAML::BeginMap;
+      for (const auto& param : page.second) {
+        out << YAML::Key << param.first << YAML::Value << param.second;
+      }
+      out << YAML::EndMap;
+    }
+    out << YAML::EndMap;
+
+    f << out.c_str();
+  } else {
+    // read all the pages and write to CSV while reading
+    std::map<int,std::map<int,uint8_t>> register_values;
+    for (int page{0}; page<300; page++) {
+      // all pages have up to 16 registers
+      std::vector<uint8_t> v = roc_obj.readPage(page,16);
+      for (int reg{0}; reg < 16; reg++) {
+        f << page << "," 
+          << reg << ","
+          << std::hex << std::setfill('0') << std::setw(2)
+          << static_cast<int>(v.at(reg)) << std::dec
+          << '\n';
+      }
+    }
+  }
+
+  f.flush();
+  return true;
 }
 
 void PolarfireTarget::prepareNewRun() {
