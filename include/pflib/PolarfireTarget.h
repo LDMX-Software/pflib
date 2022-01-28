@@ -29,6 +29,8 @@ struct PolarfireTarget {
   static const int TGT_ROCBUF;
   static const int TGT_FMT;
   static const int TGT_BUFFER;
+  static const int N_PAGES;
+  static const int N_REGISTERS_PER_PAGE;
   // need to read this eventually
   static int NLINKS;
 

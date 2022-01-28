@@ -71,6 +71,8 @@ const int PolarfireTarget::TGT_CTL    = 8 ;
 const int PolarfireTarget::TGT_ROCBUF = 9 ;
 const int PolarfireTarget::TGT_FMT    = 10;
 const int PolarfireTarget::TGT_BUFFER = 11;
+const int PolarfireTarget::N_PAGES    = 300;
+const int PolarfireTarget::N_REGISTERS_PER_PAGE = 16;
 int       PolarfireTarget::NLINKS     = 8 ;
 
 PolarfireTarget::PolarfireTarget(const std::string& host, int port) {
@@ -184,10 +186,10 @@ bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
   if (should_decompile) {
     // read all the pages and store them in memory
     std::map<int,std::map<int,uint8_t>> register_values;
-    for (int page{0}; page<300; page++) {
+    for (int page{0}; page<N_PAGES; page++) {
       // all pages have up to 16 registers
-      std::vector<uint8_t> v = roc_obj.readPage(page,16);
-      for (int reg{0}; reg < 16; reg++) {
+      std::vector<uint8_t> v = roc_obj.readPage(page,N_REGISTERS_PER_PAGE);
+      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
         register_values[page][reg] = v.at(reg);
       }
     }
@@ -211,10 +213,10 @@ bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
   } else {
     // read all the pages and write to CSV while reading
     std::map<int,std::map<int,uint8_t>> register_values;
-    for (int page{0}; page<300; page++) {
+    for (int page{0}; page<N_PAGES; page++) {
       // all pages have up to 16 registers
-      std::vector<uint8_t> v = roc_obj.readPage(page,16);
-      for (int reg{0}; reg < 16; reg++) {
+      std::vector<uint8_t> v = roc_obj.readPage(page,N_REGISTERS_PER_PAGE);
+      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
         f << page << "," 
           << reg << ","
           << std::hex << std::setfill('0') << std::setw(2)
