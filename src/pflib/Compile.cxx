@@ -2,7 +2,6 @@
 #include "pflib/Exception.h"
 
 #include <map>
-#include <regex>
 #include <iostream>
 
 #include <yaml-cpp/yaml.h>
@@ -434,7 +433,7 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
 namespace detail {
 
 void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
-  // deduce list of page names for regex search
+  // deduce list of page names for search
   //    only do this once per program run
   static std::vector<std::string> page_names;
   if (page_names.empty()) {
@@ -452,14 +451,14 @@ void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& s
       PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page "+page_name+" is not a map.");
     }
 
-    // apply these settings only to pages that match the regex
-    std::regex page_regex(page_name);
+    // apply these settings only to pages the input name
     std::vector<std::string> matching_pages;
     std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
-        [&](const std::string& page) { return std::regex_match(page,page_regex); });
+        [&](const std::string& page) { return page.find(page_name) != std::string::npos; });
 
     if (matching_pages.empty()) {
-      PFEXCEPTION_RAISE("NotFound", "The page "+page_name+" does not match any pages in the look up table.");
+      PFEXCEPTION_RAISE("NotFound", 
+          "The page "+page_name+" does not match any pages in the look up table.");
     }
 
     for (const auto& page : matching_pages) {
