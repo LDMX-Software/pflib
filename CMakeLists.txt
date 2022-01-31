@@ -44,4 +44,4 @@ add_executable(pfdecompile tool/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib pflib_rogue)
 
 install(TARGETS pftool pfcompile pfdecompile DESTINATION bin)
-install(TARGETS pflib pflib_rogue pflib_python LIBRARY DESTINATION lib)
+install(TARGETS pflib pflib_rogue LIBRARY DESTINATION lib)
