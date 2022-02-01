@@ -29,6 +29,7 @@ if (Rogue_FOUND)
   add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
   target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
   add_library(pflib::rogue ALIAS pflib_rogue)
+  install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
 endif()
 
 
