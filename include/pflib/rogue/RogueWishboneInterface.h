@@ -60,6 +60,10 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   virtual void fc_sendL1A();
   virtual void fc_linkreset();
   virtual void fc_bufferclear();
+  virtual void fc_calibpulse();
+  virtual void fc_setup_calib(int pulse_len, int l1a_offset);
+  virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset);
+  
   virtual void daq_reset();
   virtual void daq_advance_ptr();
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size);
