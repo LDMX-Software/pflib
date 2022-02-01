@@ -546,6 +546,7 @@ uMenu::Line menu_ldmx_fc_lines[] = {
   uMenu::Line("COUNTER_RESET","Reset counters", &ldmx_fc ),
   uMenu::Line("FC_RESET","Reset the fast control", &ldmx_fc ),
   uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
+  uMenu::Line("CALIB","Setup calibration pulse", &ldmx_fc ),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -556,6 +557,7 @@ uMenu::Line menu_ldmx_daq_debug_lines[] = {
   uMenu::Line("STATUS","Provide the status", &ldmx_daq_debug ),
   uMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &ldmx_daq_debug ),
   uMenu::Line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  &ldmx_daq_debug ),
+  uMenu::Line("READ", "Read an event", &ldmx_daq),
   uMenu::Line("ROC_LOAD", "Load a practice ROC events from a file",  &ldmx_daq_debug ),
   uMenu::Line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  &ldmx_daq_debug ),
   uMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &ldmx_daq_debug ),
@@ -577,6 +579,7 @@ uMenu::Line menu_ldmx_daq_setup_lines[] = {
   uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
   uMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
   uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
+  uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
   uMenu::Line("QUIT","Back to DAQ menu"),
   uMenu::Line()
 };
@@ -587,10 +590,10 @@ uMenu menu_ldmx_daq_setup(menu_ldmx_daq_setup_lines);
   uMenu::Line("DEBUG", "Debugging menu",  &menu_ldmx_daq_debug ),
   uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq),
   uMenu::Line("SETUP", "Setup the DAQ", &menu_ldmx_daq_setup),
-  uMenu::Line("READ", "Read an event", &ldmx_daq),
   uMenu::Line("RESET", "Reset the DAQ", &ldmx_daq),
   uMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
   uMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
+  uMenu::Line("CHARGE","Take a charge-injection run", &ldmx_daq),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -951,6 +954,13 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="FC_RESET") {
     pft->hcal->fc().resetTransmitter();
   }
+  if (cmd=="CALIB") {
+    int len, offset;
+    pft->backend->fc_get_setup_calib(len,offset);
+    len=tool_readline_int("Calibration pulse length?",len);
+    offset=tool_readline_int("Calibration L1A offset?",offset);
+    pft->backend->fc_setup_calib(len,offset);
+  }
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
@@ -1060,8 +1070,8 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
     for (int i=0; i<daq.nlinks(); i++) {
-      if (i<2) daq.setupLink(i,false,false,14,40);
-      else daq.setupLink(i,true,true,14,40);
+      if (i<2) daq.setupLink(i,false,false,15,40);
+      else daq.setupLink(i,true,true,15,40);
     }
   }
   if (cmd=="FPGA") {
@@ -1110,13 +1120,14 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       fclose(f);
     }
   }
-  if (cmd=="PEDESTAL") {
+  if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     bool enable;
     int extra_samples;
     pflib::FastControl& fc=pft->hcal->fc();
     fc.getMultisampleSetup(enable,extra_samples);
 
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
+    if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
 
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -1134,7 +1145,10 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     
     for (int ievt=0; ievt<nevents; ievt++) {
       // some other controller would send L1A (normally)
-      pft->backend->fc_sendL1A();
+      if (cmd=="PEDESTAL")
+	pft->backend->fc_sendL1A();
+      if (cmd=="CHARGE")
+	pft->backend->fc_calibpulse();
            
       bool full, empty;
       int events, esize;
