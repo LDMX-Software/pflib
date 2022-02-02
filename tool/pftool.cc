@@ -44,7 +44,7 @@ static bool quiet_batch_mode=false;
 template<class ctr_T>
 class Menu {
 public:
-	
+  
   class Line {
   public:
     Line(const char* n, const char* d, void (*f)( ctr_T* mCTR_ )) : name(n),desc(d),subMenu(0),func(f),func2(0), isNull(false) { }
@@ -90,7 +90,7 @@ void Menu<ctr_T>::steer( ctr_T* mCTR_ ) {
     }
     if (!quiet_batch_mode) 
       for (size_t i=0; i<lines.size(); i++) {
-	printf("   %-12s %s\n",lines[i].name,lines[i].desc);	       
+  printf("   %-12s %s\n",lines[i].name,lines[i].desc);         
       }
     std::string request=tool_readline(" > ");
     theMatch=0;
@@ -98,8 +98,8 @@ void Menu<ctr_T>::steer( ctr_T* mCTR_ ) {
     int nmatch=0;
     for (size_t i=0; i<lines.size(); i++) 
       if (strncasecmp(request.c_str(),lines[i].name,request.length())==0) {
-	theMatch=&(lines[i]);
-	nmatch++;
+  theMatch=&(lines[i]);
+  nmatch++;
       }
     if (nmatch>1) theMatch=0;
     // ok
@@ -109,15 +109,15 @@ void Menu<ctr_T>::steer( ctr_T* mCTR_ ) {
     if (theMatch!=0 && theMatch->subMenu!=0)          theMatch->subMenu->steer( mCTR_ );
     else if (theMatch!=0 && theMatch->func!=0 )       {
       try {
-	theMatch->func( mCTR_ ) ;
+  theMatch->func( mCTR_ ) ;
       } catch (std::exception& e) {
-	printf("  Exception: %s\n",e.what());
+  printf("  Exception: %s\n",e.what());
       }
     } else if (theMatch!=0 && theMatch->func2!=0 )       {
       try  {
-	theMatch->func2( theMatch->name, mCTR_ ) ;
+  theMatch->func2( theMatch->name, mCTR_ ) ;
       } catch (std::exception& e) {
-       	printf("  Exception: %s\n",e.what());
+        printf("  Exception: %s\n",e.what());
       }
     }
   } while (theMatch==0 || theMatch->subMenu!=0 || (theMatch->func!=0 || theMatch->func2 !=0) );
@@ -161,7 +161,7 @@ static void write_buffer_to_file(std::vector<uint32_t>& buffer) {
     if (f==0) printf("Unable to open '%s' for writing\n\n",of.c_str());
     else {
       for (size_t i=0; i<buffer.size(); i++) {
-	fprintf(f,"%5d %08x\n",int(i),buffer[i]);
+  fprintf(f,"%5d %08x\n",int(i),buffer[i]);
       }   
       fclose(f);
     }
@@ -200,14 +200,14 @@ static std::string tool_readline(const std::string& prompt, const std::string& d
     bool lastWasWhite=true;
     for (size_t i=0; i<retval.size(); i++) {
       if (isspace(retval[i])) {
-	if (!lastWasWhite) {
-	  cmdTextQueue.push_back(rvwork);
-	  rvwork="";
-	}	  
-	lastWasWhite=true;
+  if (!lastWasWhite) {
+    cmdTextQueue.push_back(rvwork);
+    rvwork="";
+  }   
+  lastWasWhite=true;
       } else {
-	rvwork+=retval[i];
-	lastWasWhite=false;
+  rvwork+=retval[i];
+  lastWasWhite=false;
       }
     }
     if (!rvwork.empty()) cmdTextQueue.push_back(rvwork);
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
   ipV.clear() ;
   std::string line;
 
- try {
+  try {
 
     static int sz = argc ;
     bool skip[sz] ; 
@@ -336,76 +336,68 @@ int main(int argc, char* argv[]) {
     
     for ( int i = 1 ; i < argc ; i++ ) {
       std::string arg(argv[i]);
-        if ( skip[i] ) continue ;
-        if (arg=="-u") isuhal=true;
-        else if (arg=="-r") isrogue=true;
-        else         ipV.push_back( arg ) ;
+      if ( skip[i] ) continue ;
+      if (arg=="-u") isuhal=true;
+      else if (arg=="-r") isrogue=true;
+      else ipV.push_back( arg ) ;
     }
     
-
     bool exitMenu = false ;
     do {
-      
       do {
-	
-	if ( ipV.size()==0) {
-	  std::cout << "No IP's loaded" << std::endl;
-	  mId = -1;
-	  break;
-	}
+        if ( ipV.size()==0) {
+          std::cout << "No IP's loaded" << std::endl;
+          mId = -1;
+          break;
+        }
 
-
-	if ( ipV.size()==1) {
-	  mId = 0;
-	} else {
-	
-	  for ( size_t k=0; k< ipV.size(); k++) {  
-	    //std::cout<<" ("<<k<<")  IP["<< ipV[k] <<"]  Type:"<< typeV[k] << std::endl ; 
-	    printf(" ID[%d] IP[%s]  Type: %s \n", (int)k, ipV[k].c_str(),"PolarfireTarget" ) ;
-	  }
-	
-	  mId = tool_readline_int(" ID of pft (-1 for exiting the tool) :: ", mId );
-	}
-	
-	if( (mId < int(ipV.size()) && mId >= 0) || mId == -1)
-	  break;
-	
-	//mId = tool_readline_int(" ID of mCTR/pft ( -1 for exiting the tool ) : ", mId );
-	
-	std::cout << "Not a Valid ID\n";
-      } while (1);
+        if ( ipV.size()==1) {
+          mId = 0;
+        } else {
+          for ( size_t k=0; k< ipV.size(); k++) {  
+            //std::cout<<" ("<<k<<")  IP["<< ipV[k] <<"]  Type:"<< typeV[k] << std::endl ; 
+            printf(" ID[%d] IP[%s]  Type: %s \n", (int)k, ipV[k].c_str(),"PolarfireTarget" ) ;
+          }
+          mId = tool_readline_int(" ID of pft (-1 for exiting the tool) :: ", mId );
+        }
+  
+        if( (mId < int(ipV.size()) && mId >= 0) || mId == -1) break;
+  
+        //mId = tool_readline_int(" ID of mCTR/pft ( -1 for exiting the tool ) : ", mId );
+        std::cout << "Not a Valid ID\n";
+      } while (true);
       
       if ( mId == -1 ) break ;
       
-      PolarfireTarget* p_pft(0);
+      std::unique_ptr<PolarfireTarget> p_pft;
 
 #ifdef PFTOOL_ROGUE
       if (isrogue) {
+        // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
         pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
-	p_pft=new PolarfireTarget(wbi,wbi);
+        p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
       }
 #endif
 #ifdef PFTOOL_UHAL
       if (isuhal) {
+        // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
         pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId]);
-	p_pft=new PolarfireTarget(wbi,wbi);
+        p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
       }
-#endif      
+#endif
 
-      if (p_pft!=0) {
-	ldmx_status(p_pft);
-	RunMenu(p_pft);
-	delete p_pft;
+      if (p_pft) {
+        ldmx_status(p_pft.get());
+        RunMenu(p_pft.get());
       } else {
-	fprintf(stderr,"No Polarfire Target available\n");
+        fprintf(stderr,"No Polarfire Target available\n");
       }
-
 
       if (ipV.size()>1)  {      
-	static std::string RunOrExit = "Exit" ;
-	RunOrExit = tool_readline(" Choose a new card(new) or Exit(exit) ? ", RunOrExit );
-	if (strncasecmp( RunOrExit.c_str(), "NEW",  1)==0) exitMenu = false ;
-	if (strncasecmp( RunOrExit.c_str(), "EXIT", 1)==0) exitMenu = true ;
+        static std::string RunOrExit = "Exit" ;
+        RunOrExit = tool_readline(" Choose a new card(new) or Exit(exit) ? ", RunOrExit );
+        if (strncasecmp( RunOrExit.c_str(), "NEW",  1)==0) exitMenu = false ;
+        if (strncasecmp( RunOrExit.c_str(), "EXIT", 1)==0) exitMenu = true ;
       } else exitMenu=true;
     } while( !exitMenu ) ;
     
@@ -483,7 +475,7 @@ uMenu::Line menu_ldmx_roc_lines[] =
 uMenu menu_ldmx_roc(ldmx_roc_render, menu_ldmx_roc_lines);
 
 uMenu::Line menu_ldmx_bias_lines[] = {
-				      //  uMenu::Line("STATUS","Read the bias line settings", &ldmx_bias ),
+              //  uMenu::Line("STATUS","Read the bias line settings", &ldmx_bias ),
   uMenu::Line("INIT","Initialize a board", &ldmx_bias ),
   uMenu::Line("SET","Set a specific bias line setting", &ldmx_bias ),
   uMenu::Line("LOAD","Load bias values from file", &ldmx_bias ),
@@ -556,11 +548,11 @@ uMenu menu_ldmx_daq_setup(menu_ldmx_daq_setup_lines);
 uMenu menu_ldmx_daq(menu_ldmx_daq_lines);
 
      uMenu::Line menu_expert_lines[] = { 
-					uMenu::Line("OLINK","Optical link functions", &menu_ldmx_link),
-					uMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
-					uMenu::Line("I2C","Access the I2C Core", &menu_ldmx_i2c ),
-					uMenu::Line("QUIT","Back to top menu"),
-					uMenu::Line()
+          uMenu::Line("OLINK","Optical link functions", &menu_ldmx_link),
+          uMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
+          uMenu::Line("I2C","Access the I2C Core", &menu_ldmx_i2c ),
+          uMenu::Line("QUIT","Back to top menu"),
+          uMenu::Line()
      };
 
      uMenu menu_expert(menu_expert_lines);
@@ -736,8 +728,8 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
       if (ilink>=0 && jlink!=ilink) continue;
       if (bitslip<0) elinks.setBitslipAuto(jlink,true);
       else {
-	elinks.setBitslipAuto(jlink,false);
-	elinks.setBitslip(jlink,bitslip);
+  elinks.setBitslipAuto(jlink,false);
+  elinks.setBitslip(jlink,bitslip);
       }
     }
   }
@@ -825,7 +817,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
     
     std::string fname = tool_readline("Filename: ", fname_def);
-	  bool decompile = tool_readline_bool("Decompile register values? ",true);
+    bool decompile = tool_readline_bool("Decompile register values? ",true);
     if (not pft->dumpSettings(iroc,fname,decompile)) {
       std::cerr << "\n\n ERROR: Unable to open " << fname << std::endl;
     }
@@ -898,7 +890,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="ZS") {
     int jlink=tool_readline_int("Which link (-1 for all)? ",-1);    
-	  bool fullSuppress=tool_readline_bool("Suppress all channels? ",false);
+    bool fullSuppress=tool_readline_bool("Suppress all channels? ",false);
     pft->enableZeroSuppression(jlink,fullSuppress);
   }
   if (cmd=="L1APARAMS") {
@@ -974,9 +966,9 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       // normally, some other controller would send the L1A
       //  we are sending it so we get data during no signal
       if (cmd=="PEDESTAL")
-	pft->backend->fc_sendL1A();
+  pft->backend->fc_sendL1A();
       if (cmd=="CHARGE")
-	pft->backend->fc_calibpulse();
+  pft->backend->fc_calibpulse();
       
       std::vector<uint32_t> event = pft->daqReadEvent();
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);      
@@ -1131,7 +1123,7 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
       pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
       // load the bytes
       for (int i=0; i<40; i++)
-	pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
+  pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
     }
   }
 }
