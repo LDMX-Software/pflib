@@ -38,7 +38,7 @@ class WishboneTarget {
   /**
    * Get the subblock firmware version
    */
-  int firmware_verion();
+  int firmware_version();
 
  protected:
 
