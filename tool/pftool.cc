@@ -5,13 +5,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
-#include <memory>
 #include <map>
 #include <iomanip>
 #include <stdlib.h>
 #include <string>
-#include <list>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
 #ifdef PFTOOL_ROGUE
@@ -21,7 +18,7 @@
 #include "pflib/uhal/uhalWishboneInterface.h"
 #endif
 #include "Menu.h"
-//#include "Rcfile.h"
+#include "Rcfile.h"
 
 using pflib::PolarfireTarget;
 
@@ -42,67 +39,21 @@ static void ldmx_roc_render( PolarfireTarget* pft );
 static void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft );
 static void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft );
 
-static void loadOptions(const std::string& optfile);
-static std::string getOpt(const std::string& opt, const std::string& def);
-
-static std::map<std::string,std::string> Options;
-static const double clockFreq=1.6e9; // Hz
-static int mId = 0 ;
-
-//**tool_readline functions
-//helper functions for Menu to handle user input
-//works for _float and _int. Parameters (prompt, defval={"",0} , bool preserve_last_blank = false)
-//overloaded so you can leave out the last param or last 2 params
-
-/*
-static void write_buffer_to_file(std::vector<uint32_t>& buffer) {
-  std::string of=tool_readline("Save to filename (blank for no save) : ");
-  if (!of.empty()) {
-    FILE* f=fopen(of.c_str(),"wt");
-    if (f==0) printf("Unable to open '%s' for writing\n\n",of.c_str());
-    else {
-      for (size_t i=0; i<buffer.size(); i++) {
-	fprintf(f,"%5d %08x\n",int(i),buffer[i]);
-      }   
-      fclose(f);
-    }
-  }
-}
-*/
-
-void loadOptions(const std::string& optfile) {
-  FILE* f=fopen(optfile.c_str(),"r");
-  if (f==0) return;
-  char buffer[2048];
-  
-  while (!feof(f)) {
-    buffer[0]=0;
-    fgets(buffer,2047,f);
-    if (strchr(buffer,'#')!=0) (*strchr(buffer,'#'))=0; // trim out comments
-    if (!strchr(buffer,'=')) continue; // no equals sign.
-    std::string key;
-    int i;
-    for (i=0; buffer[i]!='='; i++)
-      if (!isspace(buffer[i])) key+=toupper(buffer[i]);
-    std::string value;
-    bool quoted=false;
-    for (i++; buffer[i]!=0; i++) 
-      if (buffer[i]=='"') quoted=!quoted;
-      else if (!isspace(buffer[i]) || quoted) value+=buffer[i];
-    Options[key]=value;
-  }
+Rcfile options;
+bool file_exists(const std::string& fname) {
+  FILE* f=fopen(fname.c_str(),"r");
+  if (f==0) return false;
   fclose(f);
+  return true;
 }
 
-
-std::string getOpt(const std::string& opt, const std::string& def) {
-  std::map<std::string,std::string>::const_iterator i=Options.find(opt);
-  if (i==Options.end()) return def;
-  else return i->second;
+void prepareOpts(Rcfile& rcfile) {
+  rcfile.declareVBool("roclinks","Vector Bool[8] indicating which roc links are active");
 }
 
 int main(int argc, char* argv[]) {
-
+  prepareOpts(options);
+  
   //if not enough arguments output usage
   if (argc<2 || !strcmp(argv[1],"-h")) {
 #ifdef PFTOOL_ROGUE
@@ -124,10 +75,22 @@ int main(int argc, char* argv[]) {
     printf("  Supporting NO TRANSPORTS\n");
 #endif
 #endif
+    printf("Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, ${HOME}/.pftoolrc with priority in this order\n");
+    options.help();
+    
     printf("\n");
     return 1;
   }
 
+  std::string home=getenv("HOME");
+
+  if (getenv("PFTOOLRC") && file_exists(getenv("PFTOOLRC"))) {
+    options.load(getenv("PFTOOLRC"));    
+  }
+  if (file_exists("pftoolrc"))
+    options.load("pftoolrc");
+  if (file_exists(home+"/.pftoolrc"))
+    options.load(home+"/.pftoolrc");
 
   bool isuhal=false;
   bool isrogue=false;
@@ -138,7 +101,6 @@ int main(int argc, char* argv[]) {
   isuhal=true; // default
 #endif
 
-  std::string home=getenv("HOME");
   std::vector<std::string> ipV ;
 
   ipV.clear() ;
@@ -157,7 +119,7 @@ int main(int argc, char* argv[]) {
         else if (arg=="-r") isrogue=true;
         else         ipV.push_back( arg ) ;
     }
-    
+    int mId;
 
     bool exitMenu = false ;
     do {
@@ -209,7 +171,16 @@ int main(int argc, char* argv[]) {
 #endif      
 
       if (p_pft!=0) {
+
+	// prepare the links
+	if (options.contents().is_vector("roclinks")) {	  
+	  std::vector<bool> actives=options.contents().getVBool("roclinks");
+	  for (int ilink=0; ilink<p_pft->hcal->elinks().nlinks() && ilink<int(actives.size()); ilink++)
+	    p_pft->hcal->elinks().markActive(ilink,actives[ilink]);
+	}
+
 	ldmx_status(p_pft);
+	
 	RunMenu(p_pft);
 	delete p_pft;
       } else {
@@ -439,6 +410,10 @@ void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
 void ldmx_status( PolarfireTarget* pft) {
   std::pair<int,int> version = pft->getFirmwareVersion();
   printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
+  printf("  Active DAQ links: ");
+  for (int ilink=0; ilink<pft->hcal->elinks().nlinks(); ilink++)
+    if (pft->hcal->elinks().isActive(ilink)) printf("%d ",ilink);
+  printf("\n");
 }
 
 void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft ) {
@@ -730,8 +705,10 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="STANDARD") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
+    pflib::Elinks& elinks=pft->hcal->elinks();
+    
     for (int i=0; i<daq.nlinks(); i++) {
-      if (i<2) daq.setupLink(i,false,false,15,40);
+      if (elinks.isActive(i) daq.setupLink(i,false,false,15,40);
       else daq.setupLink(i,true,true,15,40);
     }
   }
