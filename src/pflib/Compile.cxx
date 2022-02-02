@@ -3,6 +3,7 @@
 
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 #include <yaml-cpp/yaml.h>
 
