@@ -1,29 +1,25 @@
-#ifndef ROGUE_WISHBONE_INTERFACE_H_
-#define ROGUE_WISHBONE_INTERFACE_H_ 1
+#ifndef UHAL_WISHBONE_INTERFACE_H_
+#define UHAL_WISHBONE_INTERFACE_H_ 1
 
 #include "pflib/WishboneInterface.h"
 #include "pflib/Backend.h"
 #include <memory>
 
-// Forward declaration of the TCP client
-namespace rogue {
-namespace interfaces {
-namespace memory {
-class TcpClient;
-class Master;
-}
-}
+// Forward declarations of the TCP client
+namespace uhal {
+class HwInterface;
+class Node;
 }
       
 namespace pflib {
-namespace rogue {
+namespace uhal {
 
-class RogueWishboneInterface : public WishboneInterface, public Backend {
+class uhalWishboneInterface : public WishboneInterface, public Backend {
  public:
   /** Construct a TCP bridge*/
-  RogueWishboneInterface(const std::string& host, int port);
+  uhalWishboneInterface(const std::string& target);
 
-  virtual ~RogueWishboneInterface();
+  virtual ~uhalWishboneInterface();
   
   /**
    * write a 32-bit word to the given target and address
@@ -60,21 +56,17 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   virtual void fc_sendL1A();
   virtual void fc_linkreset();
   virtual void fc_bufferclear();
-  virtual void fc_calibpulse();
-  virtual void fc_setup_calib(int pulse_len, int l1a_offset);
-  virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset);
-  
   virtual void daq_reset();
   virtual void daq_advance_ptr();
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size);
   virtual std::vector<uint32_t> daq_read_event();  
  private:
-  std::shared_ptr<::rogue::interfaces::memory::TcpClient> client_;
-  std::shared_ptr<::rogue::interfaces::memory::Master> intf_;  
+  void dispatch();
+  std::shared_ptr<::uhal::HwInterface> hw_;
 };
 
 }
 }
 
 
-#endif // ROGUE_WISHBONE_INTERFACE_H_
+#endif // UHAL_WISHBONE_INTERFACE_H_

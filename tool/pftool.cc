@@ -16,6 +16,13 @@
 #include <list>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
+#ifdef PFTOOL_ROGUE
+#include "pflib/rogue/RogueWishboneInterface.h"
+#endif
+#ifdef PFTOOL_UHAL
+#include "pflib/uhal/uhalWishboneInterface.h"
+#endif
+
 using pflib::PolarfireTarget;
 
 static std::string tool_readline(const std::string& prompt) ; 
@@ -279,15 +286,42 @@ std::string getOpt(const std::string& opt, const std::string& def) {
 }
 
 int main(int argc, char* argv[]) {
-   //if not enough arguments output usage
+
+  //if not enough arguments output usage
   if (argc<2 || !strcmp(argv[1],"-h")) {
-    printf("Usage: pftool [hostname/ip for bridge] [-u] [-s script] [-o host_uri]\n");
-    printf("   -ho : help on options settable in the rc file\n");
-    printf("   Loads options file from ${HOME}/.uhtrtoolrc and ${PWD}/.uhtrtoolrc\n");
+#ifdef PFTOOL_ROGUE
+#ifdef PFTOOL_UHAL
+    printf("Usage: pftool [hostname] [-u] [-r] [-s script]\n");
+    printf("  Supporting both UHAL and ROGUE\n");
+    printf("  -u uHAL connection");
+    printf("  -r rogue connection");
+#else
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting only ROGUE\n");
+#endif
+#else
+#ifdef PFTOOL_UHAL
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting only UHAL\n");
+#else
+    printf("Usage: pftool [hostname] [-s script]\n");
+    printf("  Supporting NO TRANSPORTS\n");
+#endif
+#endif
     printf("\n");
     return 1;
   }
-  
+
+
+  bool isuhal=false;
+  bool isrogue=false;
+
+#ifdef PFTOOL_ROGUE
+  isrogue=true; // default
+#else
+  isuhal=true; // default
+#endif
+
   std::string home=getenv("HOME");
   std::vector<std::string> ipV ;
 
@@ -301,9 +335,11 @@ int main(int argc, char* argv[]) {
     for ( int i =0 ; i < argc; i++)  {  skip[i] = false ; }
     
     for ( int i = 1 ; i < argc ; i++ ) {
+      std::string arg(argv[i]);
         if ( skip[i] ) continue ;
-
-        ipV.push_back( argv[i] ) ;
+        if (arg=="-u") isuhal=true;
+        else if (arg=="-r") isrogue=true;
+        else         ipV.push_back( arg ) ;
     }
     
 
@@ -341,9 +377,29 @@ int main(int argc, char* argv[]) {
       
       if ( mId == -1 ) break ;
       
-      PolarfireTarget pft(ipV[mId],5970);
-      ldmx_status(&pft);
-      RunMenu(&pft);
+      PolarfireTarget* p_pft(0);
+
+#ifdef PFTOOL_ROGUE
+      if (isrogue) {
+        pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
+	p_pft=new PolarfireTarget(wbi,wbi);
+      }
+#endif
+#ifdef PFTOOL_UHAL
+      if (isuhal) {
+        pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId]);
+	p_pft=new PolarfireTarget(wbi,wbi);
+      }
+#endif      
+
+      if (p_pft!=0) {
+	ldmx_status(p_pft);
+	RunMenu(p_pft);
+	delete p_pft;
+      } else {
+	fprintf(stderr,"No Polarfire Target available\n");
+      }
+
 
       if (ipV.size()>1)  {      
 	static std::string RunOrExit = "Exit" ;
@@ -446,6 +502,7 @@ uMenu::Line menu_ldmx_fc_lines[] = {
   uMenu::Line("COUNTER_RESET","Reset counters", &ldmx_fc ),
   uMenu::Line("FC_RESET","Reset the fast control", &ldmx_fc ),
   uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
+  uMenu::Line("CALIB","Setup calibration pulse", &ldmx_fc ),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -456,11 +513,14 @@ uMenu::Line menu_ldmx_daq_debug_lines[] = {
   uMenu::Line("STATUS","Provide the status", &ldmx_daq_debug ),
   uMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &ldmx_daq_debug ),
   uMenu::Line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  &ldmx_daq_debug ),
+  uMenu::Line("READ", "Read an event", &ldmx_daq),
   uMenu::Line("ROC_LOAD", "Load a practice ROC events from a file",  &ldmx_daq_debug ),
   uMenu::Line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  &ldmx_daq_debug ),
   uMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &ldmx_daq_debug ),
   uMenu::Line("FULL_SEND", "Send the buffer to the off-detector electronics",  &ldmx_daq_debug ),
   uMenu::Line("SPY", "Spy on the front-end buffer",  &ldmx_daq_debug ),
+  uMenu::Line("IBSPY","Spy on an input buffer",  &ldmx_daq_debug ),
+  uMenu::Line("EFSPY","Spy on an event formatter buffer",  &ldmx_daq_debug ),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -472,8 +532,9 @@ uMenu::Line menu_ldmx_daq_setup_lines[] = {
   uMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq_setup),
   uMenu::Line("ZS", "Toggle ZS status", &ldmx_daq_setup),
   uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
-  uMenu::Line("FPGA", "Setup parameters for L1A capture", &ldmx_daq_setup),
+  uMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
   uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
+  uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
   uMenu::Line("QUIT","Back to DAQ menu"),
   uMenu::Line()
 };
@@ -484,10 +545,10 @@ uMenu menu_ldmx_daq_setup(menu_ldmx_daq_setup_lines);
   uMenu::Line("DEBUG", "Debugging menu",  &menu_ldmx_daq_debug ),
   uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq),
   uMenu::Line("SETUP", "Setup the DAQ", &menu_ldmx_daq_setup),
-  uMenu::Line("READ", "Read an event", &ldmx_daq),
   uMenu::Line("RESET", "Reset the DAQ", &ldmx_daq),
   uMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
   uMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
+  uMenu::Line("CHARGE","Take a charge-injection run", &ldmx_daq),
   uMenu::Line("QUIT","Back to top menu"),
   uMenu::Line()
 };
@@ -794,6 +855,13 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="FC_RESET") {
     pft->hcal->fc().resetTransmitter();
   }
+  if (cmd=="CALIB") {
+    int len, offset;
+    pft->backend->fc_get_setup_calib(len,offset);
+    len=tool_readline_int("Calibration pulse length?",len);
+    offset=tool_readline_int("Calibration L1A offset?",offset);
+    pft->backend->fc_setup_calib(len,offset);
+  }
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
@@ -821,6 +889,7 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
 
 void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal->daq();
+
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
   }
@@ -835,19 +904,19 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="L1APARAMS") {
     int ilink=tool_readline_int("Which link? ",-1);    
     if (ilink>=0) {
-      uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|1);
+      uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1);
       int delay=tool_readline_int("L1A delay? ",(reg1>>8)&0xFF);
       int capture=tool_readline_int("L1A capture length? ",(reg1>>16)&0xFF);
       reg1=(reg1&0xFF)|((delay&0xFF)<<8)|((capture&0xFF)<<16);
-      pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|1,reg1);
+      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1,reg1);
     }
   }
   if (cmd=="STANDARD") {
     int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
     for (int i=0; i<daq.nlinks(); i++) {
-      if (i<2) daq.setupLink(i,false,false,14,40);
-      else daq.setupLink(i,true,true,14,40);
+      if (i<2) daq.setupLink(i,false,false,15,40);
+      else daq.setupLink(i,true,true,15,40);
     }
   }
   if (cmd=="FPGA") {
@@ -857,7 +926,6 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
-
   pflib::DAQ& daq=pft->hcal->daq();
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
@@ -881,13 +949,14 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       fclose(f);
     }
   }
-  if (cmd=="PEDESTAL") {
+  if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     bool enable;
     int extra_samples;
     pflib::FastControl& fc=pft->hcal->fc();
     fc.getMultisampleSetup(enable,extra_samples);
 
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
+    if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
 
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -902,6 +971,13 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     pft->prepareNewRun();
     
     for (int ievt=0; ievt<nevents; ievt++) {
+      // normally, some other controller would send the L1A
+      //  we are sending it so we get data during no signal
+      if (cmd=="PEDESTAL")
+	pft->backend->fc_sendL1A();
+      if (cmd=="CHARGE")
+	pft->backend->fc_calibpulse();
+      
       std::vector<uint32_t> event = pft->daqReadEvent();
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);      
     }
@@ -938,77 +1014,104 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     ldmx_daq("STATUS", pft); 
     uint32_t reg1,reg2;
     printf("-----Per-ROC Controls-----\n");
-    reg1=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
     printf(" Disable ROC links: %s\n",(reg1&0x80000000u)?("TRUE"):("FALSE"));
 
     printf(" Link  F E RP WP \n");
     for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
-      uint32_t reg=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|3);
+      uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|3);
       printf("   %2d  %d %d %2d %2d       %08x\n",ilink,(reg>>26)&1,(reg>>27)&1,(reg>>16)&0xf,(reg>>12)&0xf,reg);
     }
     printf("-----Event builder    -----\n");
-    reg1=pft->wb->wb_read(PolarfireTarget::TGT_CTL,6);
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,6);
     printf(" EVB Debug word: %08x\n",reg1);
-    reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
-    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,4);
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,4);
     printf(" Event buffer Debug word: %08x %08x\n",reg1,reg2);
 
     printf("-----Full event buffer-----\n");
-    reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
-    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
     printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event : %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
   } 
   if (cmd=="FULL_DEBUG") {
-    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     reg2=reg2^0x2;// invert
-    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
   }
   if (cmd=="DISABLE_ROCLINKS") {
-    uint32_t reg=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
     reg=reg^0x80000000u;// invert
-    pft->wb->wb_write(PolarfireTarget::TGT_CTL,1,reg);
+    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg);
   }
   if (cmd=="FULL_SEND") {
-    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     reg2=reg2|0x1000;// set the send bit
-    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
   }
   if (cmd=="ROC_SEND") {
-    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_CTL,1);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
     reg2=reg2|0x40000000;// set the send bit
-    pft->wb->wb_write(PolarfireTarget::TGT_CTL,1,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg2);
   }
   if (cmd=="FULL_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
 
     // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
-    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
+    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     int rpage=(reg1>>12)&0x1;
     if (rpage) reg2=reg2|0x1;
     else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
 
     for (size_t i=0; i<data.size(); i++) 
-      pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,0x1000+i,data[i]);
+      pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,0x1000+i,data[i]);
           
     /// set the length
-    reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     reg2=reg2&0xFFFF;// remove the upper bits
     reg2=reg2|(data.size()<<16);
-    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+  }
+  if (cmd=="IBSPY") {
+    static int input=0;
+    input=tool_readline_int("Which input?",input);
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|3);
+    int rp=tool_readline_int("Read page?",(reg>>16)&0xF);
+    reg=reg&0xFFFFFFF0u;
+    reg=reg|(rp&0xF);
+    pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,((input<<7)|3),reg);
+    for (int i=0; i<40; i++) {
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|0x40|i);
+      printf("%2d %08x\n",i,val);
+    }      
+  }
+  if (cmd=="EFSPY") {
+    static int input=0;
+    input=tool_readline_int("Which input?",input);
+    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
+    printf("PTRs now: 0x%08x\n",reg);
+    int rp=tool_readline_int("Read page?",reg&0xF);
+    for (int i=0; i<40; i++) {
+      pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0x400|(rp<<6)|i);
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
+      printf("%2d %08x\n",i,val);
+    }
+    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);    
   }
   if (cmd=="SPY") {
     // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,1);
-    uint32_t reg2=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,2);
+    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     int rpage=(reg1>>12)&0x1;
     if (rpage) reg2=reg2|0x1;
     else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(PolarfireTarget::TGT_BUFFER,2,reg2);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
 
     for (size_t i=0; i<32; i++) {
-      uint32_t val=pft->wb->wb_read(PolarfireTarget::TGT_BUFFER,0x1000|i);
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,0x1000|i);
       printf("%04d %08x\n",int(i),val);
     }
   }
@@ -1022,13 +1125,13 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
       uint32_t reg;
       // set the wishbone page to match the read page, and set the length
-      reg=pft->wb->wb_read(PolarfireTarget::TGT_ROCBUF,(ilink<<7)+3);
+      reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3);
       int rpage=(reg>>16)&0xF;
       reg=(reg&0xFFFFF000u)|rpage|(40<<4);
-      pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)+3,reg);
+      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
       // load the bytes
       for (int i=0; i<40; i++)
-	pft->wb->wb_write(PolarfireTarget::TGT_ROCBUF,(ilink<<7)|0x40|i,data[40*ilink+i]);      
+	pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
     }
   }
 }

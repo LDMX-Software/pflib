@@ -22,6 +22,15 @@ public:
   /** send a single L1A */
   virtual void fc_bufferclear() = 0;
 
+  /** send a single calib pulse */
+  virtual void fc_calibpulse() = 0;
+
+  /** calib pulse setup */
+  virtual void fc_setup_calib(int pulse_len, int l1a_offset) = 0;
+
+  /** calib pulse setup */
+  virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset) = 0;
+
   virtual void daq_reset() = 0;
   virtual void daq_advance_ptr() = 0;
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size) = 0;

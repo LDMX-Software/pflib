@@ -67,8 +67,13 @@ static const int REG_FC_SINGLES                        = 1;
 static const int MASK_FC_SINGLE_L1A                    = 0x1;
 static const int MASK_FC_SINGLE_LINKRESET              = 0x2;
 static const int MASK_FC_SINGLE_BUFFERRESET            = 0x4;
-
-
+static const int MASK_FC_SINGLE_CALIBPULSE             = 0x8;
+static const int REG_FC_SETUP                          = 2;
+static const int SHIFT_FC_SETUP_CALIB_PULSELEN         = 24;
+static const int MASK_FC_SETUP_CALIB_PULSELEN          = 0xF;
+static const int SHIFT_FC_SETUP_CALIB_L1AOFFSET        = 16;
+static const int MASK_FC_SETUP_CALIB_L1AOFFSET         = 0xFF;
+  
 void RogueWishboneInterface::fc_sendL1A() {
   wb_write(TARGET_FC_BACKEND,REG_FC_SINGLES,MASK_FC_SINGLE_L1A);
 }
@@ -78,7 +83,26 @@ void RogueWishboneInterface::fc_linkreset() {
 void RogueWishboneInterface::fc_bufferclear() {
   wb_write(TARGET_FC_BACKEND,REG_FC_SINGLES,MASK_FC_SINGLE_BUFFERRESET);
 }
+void RogueWishboneInterface::fc_calibpulse() {
+  wb_write(TARGET_FC_BACKEND,REG_FC_SINGLES,MASK_FC_SINGLE_CALIBPULSE);
+}
+void RogueWishboneInterface::fc_setup_calib(int pulse_len, int l1a_offset) {
+  uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_SETUP);
+  // remove old values
+  reg=reg&(0xFFFFFFFFu^(MASK_FC_SETUP_CALIB_PULSELEN<<SHIFT_FC_SETUP_CALIB_PULSELEN));
+  reg=reg&(0xFFFFFFFFu^(MASK_FC_SETUP_CALIB_L1AOFFSET<<SHIFT_FC_SETUP_CALIB_L1AOFFSET));
+  // add new values
+  reg=reg|((pulse_len&MASK_FC_SETUP_CALIB_PULSELEN)<<SHIFT_FC_SETUP_CALIB_PULSELEN);
+  reg=reg|((l1a_offset&MASK_FC_SETUP_CALIB_L1AOFFSET)<<SHIFT_FC_SETUP_CALIB_L1AOFFSET);
+  wb_write(TARGET_FC_BACKEND,REG_FC_SETUP,reg);
+}
+void RogueWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset) {
+  uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_SETUP);
+  pulse_len=(reg>>SHIFT_FC_SETUP_CALIB_PULSELEN)&MASK_FC_SETUP_CALIB_PULSELEN;
+  l1a_offset=(reg>>SHIFT_FC_SETUP_CALIB_L1AOFFSET)&MASK_FC_SETUP_CALIB_L1AOFFSET;
+}
 
+  
 static const int REG_DAQ_CTL                             = 1;
 static const int MASK_DAQ_RESET                          = 0x1;
 static const int MASK_DAQ_ADVANCEPTR                     = 0x2;

@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include <yaml-cpp/yaml.h>
+#include <algorithm>
 
 namespace pflib {
 

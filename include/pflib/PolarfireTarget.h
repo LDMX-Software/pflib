@@ -25,10 +25,6 @@ struct PolarfireTarget {
   std::shared_ptr<WishboneInterface> wb;
   std::shared_ptr<Backend> backend;
   std::unique_ptr<Hcal> hcal;
-  static const int TGT_CTL;
-  static const int TGT_ROCBUF;
-  static const int TGT_FMT;
-  static const int TGT_BUFFER;
   static const int N_PAGES;
   static const int N_REGISTERS_PER_PAGE;
   // need to read this eventually
@@ -37,7 +33,7 @@ struct PolarfireTarget {
   /**
    * Define where the polarfire we will be talking to is.
    */
-  PolarfireTarget(const std::string& host, int port);
+  PolarfireTarget(WishboneInterface* wbi, Backend* be);
 
   /**
    * deduce firmware major/minor version
@@ -166,6 +162,9 @@ struct PolarfireTarget {
    * @return false if unable to open file
    */
   bool loadBiasSettings(const std::string& file_name);
+
+private:
+  int samples_per_event_;  
 };
 
 }

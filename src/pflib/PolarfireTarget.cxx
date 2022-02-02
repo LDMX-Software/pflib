@@ -4,7 +4,6 @@
 #include "pflib/Elinks.h"
 #include "pflib/Bias.h"
 #include "pflib/FastControl.h"
-#include "pflib/rogue/RogueWishboneInterface.h"
 #include "pflib/Compile.h"
 
 #include <iostream>
@@ -67,20 +66,15 @@ static bool endsWith(const std::string& full, const std::string& ending) {
   return (0 == full.compare(full.length()-ending.length(), ending.length(), ending));
 }
 
-const int PolarfireTarget::TGT_CTL    = 8 ;
-const int PolarfireTarget::TGT_ROCBUF = 9 ;
-const int PolarfireTarget::TGT_FMT    = 10;
-const int PolarfireTarget::TGT_BUFFER = 11;
 const int PolarfireTarget::N_PAGES    = 300;
 const int PolarfireTarget::N_REGISTERS_PER_PAGE = 16;
 int       PolarfireTarget::NLINKS     = 8 ;
 
-PolarfireTarget::PolarfireTarget(const std::string& host, int port) {
-  auto rwbi{std::make_shared<rogue::RogueWishboneInterface>(host,port)};
-  wb = rwbi;
-  backend = rwbi;
-  hcal = std::make_unique<Hcal>(wb.get());
-}
+  PolarfireTarget::PolarfireTarget(WishboneInterface* wbi, Backend *be) {
+    wb = std::shared_ptr<WishboneInterface>(wbi);
+    backend = std::shared_ptr<Backend>(be);
+    hcal = std::make_unique<Hcal>(wb.get());
+  }
 
 std::pair<int,int> PolarfireTarget::getFirmwareVersion() {
   uint32_t w = hcal->getFirmwareVersion();
@@ -149,15 +143,15 @@ bool PolarfireTarget::loadIntegerCSV(const std::string& file_name,
 bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
   if (endsWith(file_name, ".csv")) {
     return loadIntegerCSV(file_name,[&](const std::vector<int>& cells) {
-        if (cells.size() == 3) 
-          hcal->roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
-        else {
-          std::cout << 
-            "WARNING: Ignoring ROC CSV settings line"
-            "without exactly three columns." 
-            << std::endl;
-        }
-      });
+				      if (cells.size() == 3) 
+					hcal->roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
+				      else {
+					std::cout << 
+					  "WARNING: Ignoring ROC CSV settings line"
+					  "without exactly three columns." 
+						  << std::endl;
+				      }
+				    });
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
     try {
       auto settings = compile(file_name);
@@ -166,6 +160,7 @@ bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
           hcal->roc(roc).setValue(page.first,reg.first,reg.second);
         }
       }
+      return true;
     } catch (const pflib::Exception& e) {
       std::cerr << "ERROR [" << e.name() << "] " << e.message() << std::endl;
       return false;
@@ -234,6 +229,12 @@ void PolarfireTarget::prepareNewRun() {
   auto& daq = hcal->daq();
   backend->fc_bufferclear();
   backend->daq_reset();
+
+  bool enable;
+  int extra_samples;
+  hcal->fc().getMultisampleSetup(enable,extra_samples);
+  samples_per_event_=extra_samples+1;
+
   daq.enable(true);
 }
 
@@ -243,12 +244,12 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
   uint32_t reg1, reg2;
   
   os << "-----Front-end FIFO-----\n";
-  reg1 = wb->wb_read(TGT_CTL,4);
+  reg1 = wb->wb_read(tgt_DAQ_Control,4);
   os << " Header occupancy : " << ((reg1 >> 8) & 0x3f)
     << "  Maximum occupancy : " << (reg1 & 0x3f)
     <<" \n";
-  reg1 = wb->wb_read(TGT_CTL,5);
-  reg2 = wb->wb_read(TGT_CTL,2);
+  reg1 = wb->wb_read(tgt_DAQ_Control,5);
+  reg2 = wb->wb_read(tgt_DAQ_Control,2);
   os << " Next event info: 0x"
      << std::hex << std::setw(8) << std::setfill('0') << reg1 << std::dec
      << " (BX=" << (reg1&0xfff)
@@ -259,8 +260,8 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
   os << "-----Per-ROCLINK processing-----\n";
   os << " Link  ID  EN ZS FL EM\n";
   for (int ilink=0; ilink < NLINKS; ilink++) {
-    reg1=wb->wb_read(TGT_FMT,(ilink<<7)|1);
-    reg2=wb->wb_read(TGT_FMT,(ilink<<7)|2);
+    reg1=wb->wb_read(tgt_DAQ_LinkFmt,(ilink<<7)|1);
+    reg2=wb->wb_read(tgt_DAQ_LinkFmt,(ilink<<7)|2);
     os << " " << std::setw(4) << ilink
        << " " << std::hex << std::setw(4) << std::setfill('0') << reg2 << std::dec
        << " " << std::setw(2) << ((reg1>>0)&1)
@@ -283,21 +284,21 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
 void PolarfireTarget::enableZeroSuppression(int link, bool full_suppress) {
   for (int i{0}; i < NLINKS; i++) {
     if (i != link and link > 0) continue;
-    uint32_t reg = wb->wb_read(TGT_FMT,(i<<7)|1);
+    uint32_t reg = wb->wb_read(tgt_DAQ_LinkFmt,(i<<7)|1);
     bool wasZS = (reg & 0x2)!=0;
     if (link >= 0 and not wasZS) {
 	    reg |= 0x4;
 	    if (not full_suppress) reg ^= 0x4;
     }
-    wb->wb_write(TGT_FMT,(i<<7)|1,reg^0x2);
+    wb->wb_write(tgt_DAQ_LinkFmt,(i<<7)|1,reg^0x2);
   }
 }
 
 void PolarfireTarget::daqSoftReset() {
   printf("..Halting the event builder\n");
   for (int ilink=0; ilink<NLINKS; ilink++) {
-    uint32_t reg1=wb->wb_read(TGT_FMT,(ilink<<7)|1);
-    wb->wb_write(TGT_FMT,(ilink<<7)|1,(reg1&0xfffffffeu)|0x2);
+    uint32_t reg1=wb->wb_read(tgt_DAQ_LinkFmt,(ilink<<7)|1);
+    wb->wb_write(tgt_DAQ_LinkFmt,(ilink<<7)|1,(reg1&0xfffffffeu)|0x2);
   }
   printf("..Sending a buffer clear\n");
   backend->fc_bufferclear();
@@ -322,13 +323,7 @@ std::vector<uint32_t> PolarfireTarget::daqReadDirect() {
 }
 
 std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
-  bool enable;
-  int extra_samples;
-  hcal->fc().getMultisampleSetup(enable,extra_samples);
 
-  // normally, some other controller would send the L1A
-  //  we are sending it so we get data during no signal
-  backend->fc_sendL1A();
 
   // listen until we actually get data
   bool full, empty;
@@ -344,7 +339,7 @@ std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
   std::vector<uint32_t> event = { 0x11111111u, 0xBEEF2021u, };
   // n_samples = 1 + extra_samples
   // n sample length words = n_samples/2 rounded up = (n_samples+1)/2
-  std::size_t header_len = 1 + (extra_samples+1+1)/2;
+  std::size_t header_len = 1 + (samples_per_event_+1)/2;
   // add unset header words into event, set them after read
   event.resize(event.size() + header_len);
 
@@ -352,7 +347,7 @@ std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
   std::size_t totlen = header_len;
   unsigned int fpgaid = 0;
   
-  for (int i=0; i<(extra_samples+1); i++) {
+  for (int i=0; i<(samples_per_event_); i++) {
     std::vector<uint32_t> buffer = backend->daq_read_event();
     if (!empty) backend->daq_advance_ptr();
     lens.push_back(buffer.size());
