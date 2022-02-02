@@ -40,9 +40,11 @@ target_link_libraries(pfcompile pflib)
 add_executable(pfdecompile tool/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
 
-setup_rogue()
-setup_uhal()
+install(TARGETS pftool pfdecoder pfcompile pfdecompile DESTINATION bin)
 
+# Now determine which method of interaction to use for communicating with the polarfire
+#   - if neither are available, fatal cmake error - this library is useless without one
+setup_rogue()
 if (Rogue_FOUND)
   add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
   target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
@@ -50,15 +52,17 @@ if (Rogue_FOUND)
   install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
   target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
   target_link_libraries(pftool PRIVATE pflib_rogue)
-elseif(Uhal_FOUND)
+endif()
+
+setup_uhal()
+if (Uhal_FOUND)
   add_library(pflib_uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
   target_link_libraries(pflib_uhal PUBLIC pflib Uhal::Uhal)
   add_library(pflib::uhal ALIAS pflib_uhal)
   target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
   target_link_libraries(pftool PRIVATE pflib_uhal)
-else()
-  message(FATAL_ERROR "Neither Rogue or Uhal were found. At least one is necessary for polarfire interaction library.")
 endif()
 
-install(TARGETS pftool pfdecoder pfcompile pfdecompile DESTINATION bin)
-
+if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
+  message(FATAL_ERROR "Neither Rogue or Uhal were found. At least one is necessary for polarfire interaction library.")
+endif()
