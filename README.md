@@ -2,6 +2,9 @@
 
 The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends.  The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.
 
+## YAML->Register "Compilation"
+Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use [yaml-cpp](https://github.com/jbeder/yaml-cpp) which is very light and easy to install. This compilation is only built if yaml-cpp is found by CMake. Without the YAML to register "compilation", pflib will not be able to handle YAML files, it will still be able to handle CSV files with already "compiled" register values.
+
 ## Python Bindings
 This library has its 'lib' prefix removed so that _if_ the directory the built library ends up in is findable by python,
 then the user can

@@ -6,10 +6,10 @@
 
 namespace pflib {
 
-  /**
-   * @class DAQ setup
-   *
-   */
+/**
+ * @class DAQ setup
+ *
+ */
 class DAQ {
  public:
   DAQ(WishboneInterface* wb);
