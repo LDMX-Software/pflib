@@ -39,7 +39,7 @@ if (Rogue_FOUND)
   install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
 endif()
 
-add_executable(pftool tool/pftool.cc)
+add_executable(pftool tool/pftool.cc tool/Menu.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 add_executable(pfdecoder tool/pfdecoder.cc)

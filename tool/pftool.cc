@@ -5,9 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <malloc.h>
+
 #include <memory>
 #include <map>
 #include <iomanip>
@@ -22,106 +20,10 @@
 #ifdef PFTOOL_UHAL
 #include "pflib/uhal/uhalWishboneInterface.h"
 #endif
+#include "Menu.h"
+//#include "Rcfile.h"
 
 using pflib::PolarfireTarget;
-
-static std::string tool_readline(const std::string& prompt) ; 
-static std::string tool_readline(const std::string& prompt, const std::string& defval);
-static std::string tool_readline_nosplit(const std::string& prompt, const std::string& defval);
-static int tool_readline_int(const std::string& prompt) ; 
-static int tool_readline_int(const std::string& prompt, int aval) ; 
-
-static bool tool_readline_bool(const std::string& prompt,bool aval) {
-  char buffer[50];
-  if (aval) sprintf(buffer,"Y");
-  else sprintf(buffer,"N");
-  std::string rv=tool_readline(prompt+" (Y/N) ",buffer);
-  return (rv.find_first_of("yY1tT")!=std::string::npos);
-}
-
-static bool quiet_batch_mode=false;
-
-template<class ctr_T>
-class Menu {
-public:
-	
-  class Line {
-  public:
-    Line(const char* n, const char* d, void (*f)( ctr_T* mCTR_ )) : name(n),desc(d),subMenu(0),func(f),func2(0), isNull(false) { }
-    Line(const char* n, const char* d, void (*f2)( const std::string& cmd, ctr_T* mCTR_ )) : name(n),desc(d),subMenu(0),func(0),func2(f2), isNull(false) { }
-    Line(const char* n, const char* d, Menu* sb ) : name(n),desc(d),subMenu(sb), func(0),func2(0), isNull(false) { }
-    Line(const char* n, const char* d) : name(n),desc(d),subMenu(0), func(0),func2(0), isNull(false) { }
-    Line() : isNull(true) { }
-    bool null() const { return isNull; }
-    const char* name;
-    const char* desc;
-    Menu* subMenu;
-    void (*func)( ctr_T* mCTR_ ) ;
-    void (*func2)( const std::string& cmd, ctr_T* mCTR_ ) ;
-  private:
-    bool isNull;
-  };
-  
-  Menu(void (*renderf)( ctr_T* mCTR_ ), const Line* tlines) : renderFunc(renderf) { 
-    for (size_t i=0; !tlines[i].null(); i++) lines.push_back(tlines[i]);
-  }
-  
-  Menu(const Line* tlines) : renderFunc(0) {
-    for (size_t i=0; !tlines[i].null(); i++) lines.push_back(tlines[i]);
-  }
-  
-  void addLine(const Line& line) { lines.push_back(line); }
-  
-  void (*renderFunc)( ctr_T* mCTR_ );
-  
-  std::vector<Line> lines;
-  
-  void steer( ctr_T* mCTR_  ) ;
-};
-
-template<class ctr_T>
-void Menu<ctr_T>::steer( ctr_T* mCTR_ ) {
-  
-  const Line* theMatch=0;
-  do {
-    printf("\n");
-    if (renderFunc!=0) {
-      this->renderFunc( mCTR_ ) ;
-    }
-    if (!quiet_batch_mode) 
-      for (size_t i=0; i<lines.size(); i++) {
-	printf("   %-12s %s\n",lines[i].name,lines[i].desc);	       
-      }
-    std::string request=tool_readline(" > ");
-    theMatch=0;
-    // check for a unique match...
-    int nmatch=0;
-    for (size_t i=0; i<lines.size(); i++) 
-      if (strncasecmp(request.c_str(),lines[i].name,request.length())==0) {
-	theMatch=&(lines[i]);
-	nmatch++;
-      }
-    if (nmatch>1) theMatch=0;
-    // ok
-    if (theMatch==0) printf("  Command '%s' not understood.\n\n",request.c_str());
-    else add_history(theMatch->name);
-    // actions
-    if (theMatch!=0 && theMatch->subMenu!=0)          theMatch->subMenu->steer( mCTR_ );
-    else if (theMatch!=0 && theMatch->func!=0 )       {
-      try {
-	theMatch->func( mCTR_ ) ;
-      } catch (std::exception& e) {
-	printf("  Exception: %s\n",e.what());
-      }
-    } else if (theMatch!=0 && theMatch->func2!=0 )       {
-      try  {
-	theMatch->func2( theMatch->name, mCTR_ ) ;
-      } catch (std::exception& e) {
-       	printf("  Exception: %s\n",e.what());
-      }
-    }
-  } while (theMatch==0 || theMatch->subMenu!=0 || (theMatch->func!=0 || theMatch->func2 !=0) );
-}
 
 typedef Menu<PolarfireTarget> uMenu ;
 
@@ -146,7 +48,6 @@ static std::string getOpt(const std::string& opt, const std::string& def);
 static std::map<std::string,std::string> Options;
 static const double clockFreq=1.6e9; // Hz
 static int mId = 0 ;
-static std::list<std::string> cmdTextQueue;
 
 //**tool_readline functions
 //helper functions for Menu to handle user input
@@ -168,91 +69,6 @@ static void write_buffer_to_file(std::vector<uint32_t>& buffer) {
   }
 }
 */
-
-static std::string tool_readline(const std::string& prompt, const std::string& defval, bool preserve_last_blank) {
-  std::string retval;
-  std::string trueprompt(prompt);
-  if (!defval.empty()) trueprompt+=" ["+defval+"] ";
-
-
-  if (!cmdTextQueue.empty()) {
-    retval=cmdTextQueue.front();
-    printf("%s %s\n",trueprompt.c_str(),retval.c_str());
-
-    if (!retval.empty() && retval[0]=='~') {
-      retval.erase(0,1);
-      retval.insert(0,getenv("HOME"));
-    }
-    cmdTextQueue.pop_front();
-  } else {
-    char* res=readline(trueprompt.c_str());
-    retval=std::string(res);
-    free(res);
-    if (retval.empty()) retval=defval;
-    else if (!preserve_last_blank && isspace(retval[retval.size()-1])) retval.erase(retval.size()-1);
-
-    if (!retval.empty() && retval[0]=='~') {
-      retval.erase(0,1);
-      retval.insert(0,getenv("HOME"));
-    }
-    
-    std::string rvwork;
-    bool lastWasWhite=true;
-    for (size_t i=0; i<retval.size(); i++) {
-      if (isspace(retval[i])) {
-	if (!lastWasWhite) {
-	  cmdTextQueue.push_back(rvwork);
-	  rvwork="";
-	}	  
-	lastWasWhite=true;
-      } else {
-	rvwork+=retval[i];
-	lastWasWhite=false;
-      }
-    }
-    if (!rvwork.empty()) cmdTextQueue.push_back(rvwork);
-    if (!cmdTextQueue.empty()) {
-      retval=cmdTextQueue.front();
-      cmdTextQueue.pop_front();    
-    }
-  }
-  return retval;
-}
-
-
-static std::string tool_readline_nosplit(const std::string& prompt, const std::string& defval) {
-  std::string retval;
-  std::string trueprompt(prompt);
-  if (!defval.empty()) trueprompt+=" ["+defval+"] ";
-
-
-  char* res=readline(trueprompt.c_str());
-  retval=std::string(res);
-  free(res);
-  
-  if (retval.empty()) retval=defval;
-  else if (isspace(retval[retval.size()-1])) retval.erase(retval.size()-1);
-
-  return retval;
-}
-
-
-static std::string tool_readline(const std::string& prompt, const std::string& defval) { return tool_readline(prompt,defval,false); }
-static std::string tool_readline(const std::string& prompt) { return tool_readline(prompt,"",false); }
-
-static int tool_readline_int(const std::string& prompt) {
-  return strtol(tool_readline(prompt).c_str(),0,0);
-}
-
-double tool_readline_float(const std::string& prompt) {
-  return atof(tool_readline(prompt).c_str());
-}
-
-int tool_readline_int(const std::string& prompt,int aval) {
-  char buffer[50];
-  sprintf(buffer,"%d",aval);
-  return strtol(tool_readline(prompt,buffer).c_str(),0,0);
-}
 
 void loadOptions(const std::string& optfile) {
   FILE* f=fopen(optfile.c_str(),"r");
@@ -364,13 +180,13 @@ int main(int argc, char* argv[]) {
 	    printf(" ID[%d] IP[%s]  Type: %s \n", (int)k, ipV[k].c_str(),"PolarfireTarget" ) ;
 	  }
 	
-	  mId = tool_readline_int(" ID of pft (-1 for exiting the tool) :: ", mId );
+	  mId = BaseMenu::readline_int(" ID of pft (-1 for exiting the tool) :: ", mId );
 	}
 	
 	if( (mId < int(ipV.size()) && mId >= 0) || mId == -1)
 	  break;
 	
-	//mId = tool_readline_int(" ID of mCTR/pft ( -1 for exiting the tool ) : ", mId );
+	//mId = BaseMenu::readline_int(" ID of mCTR/pft ( -1 for exiting the tool ) : ", mId );
 	
 	std::cout << "Not a Valid ID\n";
       } while (1);
@@ -403,7 +219,7 @@ int main(int argc, char* argv[]) {
 
       if (ipV.size()>1)  {      
 	static std::string RunOrExit = "Exit" ;
-	RunOrExit = tool_readline(" Choose a new card(new) or Exit(exit) ? ", RunOrExit );
+	RunOrExit = BaseMenu::readline(" Choose a new card(new) or Exit(exit) ? ", RunOrExit );
 	if (strncasecmp( RunOrExit.c_str(), "NEW",  1)==0) exitMenu = false ;
 	if (strncasecmp( RunOrExit.c_str(), "EXIT", 1)==0) exitMenu = true ;
       } else exitMenu=true;
@@ -592,21 +408,21 @@ void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
     pft->wb->wb_reset();
   }
   if (cmd=="WRITE") {
-    target=tool_readline_int("Target",target);
-    addr=tool_readline_int("Address",addr);
-    uint32_t val=tool_readline_int("Value",0);
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Address",addr);
+    uint32_t val=BaseMenu::readline_int("Value",0);
     pft->wb->wb_write(target,addr,val);
   }
   if (cmd=="READ") {
-    target=tool_readline_int("Target",target);
-    addr=tool_readline_int("Address",addr);
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Address",addr);
     uint32_t val=pft->wb->wb_read(target,addr);
     printf(" Read: 0x%08x\n",val);
   }
   if (cmd=="BLOCKREAD") {
-    target=tool_readline_int("Target",target);
-    addr=tool_readline_int("Starting address",addr);
-    int len=tool_readline_int("Number of words",8);
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Starting address",addr);
+    int len=BaseMenu::readline_int("Number of words",8);
     for (int i=0; i<len; i++) {
       uint32_t val=pft->wb->wb_read(target,addr+i);
       printf(" %2d/0x%04x : 0x%08x\n",target,addr+i,val);
@@ -633,54 +449,54 @@ void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft ) {
 
   if (cmd=="BUS") {
     int ibus=i2c.get_active_bus();
-    ibus=tool_readline_int("Bus to make active",ibus);
+    ibus=BaseMenu::readline_int("Bus to make active",ibus);
     i2c.set_active_bus(ibus);
   }
   if (cmd=="WRITE") {
-    i2caddr=tool_readline_int("I2C Target ",i2caddr);
-    uint32_t val=tool_readline_int("Value ",0);
+    i2caddr=BaseMenu::readline_int("I2C Target ",i2caddr);
+    uint32_t val=BaseMenu::readline_int("Value ",0);
     i2c.set_bus_speed(1000);
     i2c.write_byte(i2caddr,val);
   }
   if (cmd=="READ") {
-    i2caddr=tool_readline_int("I2C Target",i2caddr);
+    i2caddr=BaseMenu::readline_int("I2C Target",i2caddr);
     i2c.set_bus_speed(100);
 //    ldmx->i2c().set_bus_speed(1000);
     uint8_t val=i2c.read_byte(i2caddr);
     printf("%02x : %02x\n",i2caddr,val);
   }
   if (cmd=="MULTIREAD") {
-    i2caddr=tool_readline_int("I2C Target",i2caddr);
-    waddrlen=tool_readline_int("Read address length",waddrlen);
+    i2caddr=BaseMenu::readline_int("I2C Target",i2caddr);
+    waddrlen=BaseMenu::readline_int("Read address length",waddrlen);
     std::vector<uint8_t> waddr;
     if (waddrlen>0) {
-      addr=tool_readline_int("Read address",addr);
+      addr=BaseMenu::readline_int("Read address",addr);
       for (int i=0; i<waddrlen; i++) {
         waddr.push_back(uint8_t(addr&0xFF));
         addr=(addr>>8);
       }
     }
-    int len=tool_readline_int("Read length",1);
+    int len=BaseMenu::readline_int("Read length",1);
     std::vector<uint8_t> data=i2c.general_write_read(i2caddr,waddr);
     for (size_t i=0; i<data.size(); i++)
       printf("%02x : %02x\n",int(i),data[i]);
   }
   if (cmd=="MULTIWRITE") {
-    i2caddr=tool_readline_int("I2C Target",i2caddr);
-    waddrlen=tool_readline_int("Write address length",waddrlen);
+    i2caddr=BaseMenu::readline_int("I2C Target",i2caddr);
+    waddrlen=BaseMenu::readline_int("Write address length",waddrlen);
     std::vector<uint8_t> wdata;
     if (waddrlen>0) {
-      addr=tool_readline_int("Write address",addr);
+      addr=BaseMenu::readline_int("Write address",addr);
       for (int i=0; i<waddrlen; i++) {
         wdata.push_back(uint8_t(addr&0xFF));
         addr=(addr>>8);
       }
     }
-    int len=tool_readline_int("Write data length",1);
+    int len=BaseMenu::readline_int("Write data length",1);
     for (int j=0; j<len; j++) {
       char prompt[64];
       sprintf(prompt,"Byte %d: ",j);
-      int id=tool_readline_int(prompt,0);
+      int id=BaseMenu::readline_int(prompt,0);
       wdata.push_back(uint8_t(id));
     }
     i2c.general_write_read(i2caddr,wdata);
@@ -695,16 +511,16 @@ void ldmx_link( const std::string& cmd, PolarfireTarget* pft ) {
     printf("Link Status: %08x   TX Rate: %d   RX Rate: %d   K Rate : %d\n",status,ratetx,raterx,ratek);
   }
   if (cmd=="CONFIG") {
-    bool reset_txpll=tool_readline_bool("TX-PLL Reset?", false);
-    bool reset_gtxtx=tool_readline_bool("GTX-TX Reset?", false);
-    bool reset_tx=tool_readline_bool("TX Reset?", false);
-    bool reset_rx=tool_readline_bool("RX Reset?", false);
+    bool reset_txpll=BaseMenu::readline_bool("TX-PLL Reset?", false);
+    bool reset_gtxtx=BaseMenu::readline_bool("GTX-TX Reset?", false);
+    bool reset_tx=BaseMenu::readline_bool("TX Reset?", false);
+    bool reset_rx=BaseMenu::readline_bool("RX Reset?", false);
     static bool polarity=false;
-    polarity=tool_readline_bool("Choose negative TX polarity?",polarity);
+    polarity=BaseMenu::readline_bool("Choose negative TX polarity?",polarity);
     static bool polarity2=false;
-    polarity2=tool_readline_bool("Choose negative RX polarity?",polarity2);
+    polarity2=BaseMenu::readline_bool("Choose negative RX polarity?",polarity2);
     static bool bypass=false;
-    bypass=tool_readline_bool("Bypass CRC on receiver?",false);
+    bypass=BaseMenu::readline_bool("Bypass CRC on receiver?",false);
     //    ldmx->link_setup(polarity,polarity2,bypass);
     // ldmx->link_resets(reset_txpll,reset_gtxtx,reset_tx,reset_rx);
   }
@@ -723,15 +539,15 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::Elinks& elinks=pft->hcal->elinks();
   static int ilink=0;
   if (cmd=="SPY") {
-    ilink=tool_readline_int("Which elink? ",ilink);
+    ilink=BaseMenu::readline_int("Which elink? ",ilink);
     std::vector<uint8_t> spy=elinks.spy(ilink);
     for (size_t i=0; i<spy.size(); i++)
       printf("%02d %05x\n",int(i),spy[i]);
   }
   if (cmd=="BITSLIP") {
-    ilink=tool_readline_int("Which elink? ",ilink);
+    ilink=BaseMenu::readline_int("Which elink? ",ilink);
     
-    int bitslip=tool_readline_int("Bitslip value (-1 for auto): ",elinks.getBitslip(ilink));
+    int bitslip=BaseMenu::readline_int("Bitslip value (-1 for auto): ",elinks.getBitslip(ilink));
     for (int jlink=0; jlink<8; jlink++) {
       if (ilink>=0 && jlink!=ilink) continue;
       if (bitslip<0) elinks.setBitslipAuto(jlink,true);
@@ -742,24 +558,24 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
   if (cmd=="BIGSPY") {
-    int mode=tool_readline_int("Mode? (0=immediate, 1=L1A) ",0);
-    ilink=tool_readline_int("Which elink? ",ilink);
-    int presamples=tool_readline_int("Presamples? ",20);
+    int mode=BaseMenu::readline_int("Mode? (0=immediate, 1=L1A) ",0);
+    ilink=BaseMenu::readline_int("Which elink? ",ilink);
+    int presamples=BaseMenu::readline_int("Presamples? ",20);
     std::vector<uint32_t> words = pft->elinksBigSpy(ilink,presamples,mode==1);
     for (int i=0; i<presamples+100; i++) {
       printf("%03d %08x\n",i,words[i]);
     }
   }
   if (cmd=="DELAY") {
-    ilink=tool_readline_int("Which elink? ",ilink);
-    int idelay=tool_readline_int("Delay value: ",128);
+    ilink=BaseMenu::readline_int("Which elink? ",ilink);
+    int idelay=BaseMenu::readline_int("Delay value: ",128);
     elinks.setDelay(ilink,idelay);
   }
   if (cmd=="HARD_RESET") {
     elinks.resetHard();
   }
   if (cmd=="SCAN") {
-    ilink=tool_readline_int("Which elink? ",ilink);
+    ilink=BaseMenu::readline_int("Which elink? ",ilink);
     elinks.scanAlign(ilink);
   }
   if (cmd=="STATUS") {
@@ -784,33 +600,33 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal->resyncLoadROC();
   }
   if (cmd=="IROC") {
-    iroc=tool_readline_int("Which ROC to manage: ",iroc);
+    iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
   }
   pflib::ROC roc=pft->hcal->roc(iroc);
   if (cmd=="CHAN") {
-    int chan=tool_readline_int("Which channel? ",0);
+    int chan=BaseMenu::readline_int("Which channel? ",0);
     std::vector<uint8_t> v=roc.getChannelParameters(chan);
     for (int i=0; i<int(v.size()); i++)
       printf("%02d : %02x\n",i,v[i]);
   }
   if (cmd=="PAGE") {
-    int page=tool_readline_int("Which page? ",0);
-    int len=tool_readline_int("Length?", 8);
+    int page=BaseMenu::readline_int("Which page? ",0);
+    int len=BaseMenu::readline_int("Length?", 8);
     std::vector<uint8_t> v=roc.readPage(page,len);
     for (int i=0; i<int(v.size()); i++)
       printf("%02d : %02x\n",i,v[i]);
   }
   if (cmd=="POKE") {
-    int page=tool_readline_int("Which page? ",0);
-    int entry=tool_readline_int("Offset: ",0);
-    int value=tool_readline_int("New value: ",0);
+    int page=BaseMenu::readline_int("Which page? ",0);
+    int entry=BaseMenu::readline_int("Offset: ",0);
+    int value=BaseMenu::readline_int("New value: ",0);
 
     roc.setValue(page,entry,value);
   }
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with columns [page,offset,value].\n");
     printf(" --- Or a YAML file to be passed through the 'compiler'.\n");
-    std::string fname=tool_readline("Filename: ");
+    std::string fname=BaseMenu::readline("Filename: ");
     if (not pft->loadROCSettings(iroc,fname)) {
       std::cerr<< "\n\n  ERROR: Unable to open " << fname << std::endl;
     }
@@ -824,8 +640,8 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     char fname_def[64];
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
     
-    std::string fname = tool_readline("Filename: ", fname_def);
-	  bool decompile = tool_readline_bool("Decompile register values? ",true);
+    std::string fname = BaseMenu::readline("Filename: ", fname_def);
+	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
     if (not pft->dumpSettings(iroc,fname,decompile)) {
       std::cerr << "\n\n ERROR: Unable to open " << fname << std::endl;
     }
@@ -858,17 +674,17 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="CALIB") {
     int len, offset;
     pft->backend->fc_get_setup_calib(len,offset);
-    len=tool_readline_int("Calibration pulse length?",len);
-    offset=tool_readline_int("Calibration L1A offset?",offset);
+    len=BaseMenu::readline_int("Calibration pulse length?",len);
+    offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
     pft->backend->fc_setup_calib(len,offset);
   }
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
     pft->hcal->fc().getMultisampleSetup(multi,nextra);
-    multi=tool_readline_bool("Enable multisample readout? ",multi);
+    multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
     if (multi)
-      nextra=tool_readline_int("Extra samples (total is +1 from this number) : ",nextra);
+      nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
     pft->hcal->fc().setupMultisample(multi,nextra);
   }
   if (cmd=="STATUS" || do_status) {
@@ -897,22 +713,22 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     daq.enable(!daq.enabled());
   }
   if (cmd=="ZS") {
-    int jlink=tool_readline_int("Which link (-1 for all)? ",-1);    
-	  bool fullSuppress=tool_readline_bool("Suppress all channels? ",false);
+    int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);    
+	  bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
     pft->enableZeroSuppression(jlink,fullSuppress);
   }
   if (cmd=="L1APARAMS") {
-    int ilink=tool_readline_int("Which link? ",-1);    
+    int ilink=BaseMenu::readline_int("Which link? ",-1);    
     if (ilink>=0) {
       uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1);
-      int delay=tool_readline_int("L1A delay? ",(reg1>>8)&0xFF);
-      int capture=tool_readline_int("L1A capture length? ",(reg1>>16)&0xFF);
+      int delay=BaseMenu::readline_int("L1A delay? ",(reg1>>8)&0xFF);
+      int capture=BaseMenu::readline_int("L1A capture length? ",(reg1>>16)&0xFF);
       reg1=(reg1&0xFF)|((delay&0xFF)<<8)|((capture&0xFF)<<16);
       pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1,reg1);
     }
   }
   if (cmd=="STANDARD") {
-    int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
+    int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
     for (int i=0; i<daq.nlinks(); i++) {
       if (i<2) daq.setupLink(i,false,false,15,40);
@@ -920,7 +736,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
   if (cmd=="FPGA") {
-    int fpgaid=tool_readline_int("FPGA id: ",daq.getFPGAid());
+    int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
   }
 }
@@ -941,9 +757,9 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     for (size_t i=0; i<buffer.size() && i<32; i++) {
       printf("%04d %08x\n",int(i),buffer[i]);
     }
-    bool save_to_disk=tool_readline_bool("Save to disk?  ",false);
+    bool save_to_disk=BaseMenu::readline_bool("Save to disk?  ",false);
     if (save_to_disk) {
-      std::string fname=tool_readline("Filename :  ");
+      std::string fname=BaseMenu::readline("Filename :  ");
       FILE* f=fopen(fname.c_str(),"w");
       fwrite(&(buffer[0]),sizeof(uint32_t),buffer.size(),f);
       fclose(f);
@@ -964,8 +780,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     char fname_def[64];
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
     
-    int nevents=tool_readline_int("How many events? ", 100);
-    std::string fname=tool_readline("Filename :  ", fname_def);
+    int nevents=BaseMenu::readline_int("How many events? ", 100);
+    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
     FILE* f=fopen(fname.c_str(),"w");
 
     pft->prepareNewRun();
@@ -988,7 +804,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
 std::vector<uint32_t> read_words_from_file() {
   std::vector<uint32_t> data;
   /// load from file
-  std::string fname=tool_readline("Read from text file (line by line hex 32-bit words)");
+  std::string fname=BaseMenu::readline("Read from text file (line by line hex 32-bit words)");
   char buffer[512];
   FILE* f=fopen(fname.c_str(),"r");
   if (f==0) {
@@ -1076,9 +892,9 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="IBSPY") {
     static int input=0;
-    input=tool_readline_int("Which input?",input);
+    input=BaseMenu::readline_int("Which input?",input);
     uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|3);
-    int rp=tool_readline_int("Read page?",(reg>>16)&0xF);
+    int rp=BaseMenu::readline_int("Read page?",(reg>>16)&0xF);
     reg=reg&0xFFFFFFF0u;
     reg=reg|(rp&0xF);
     pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,((input<<7)|3),reg);
@@ -1089,11 +905,11 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="EFSPY") {
     static int input=0;
-    input=tool_readline_int("Which input?",input);
+    input=BaseMenu::readline_int("Which input?",input);
     pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
     uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
     printf("PTRs now: 0x%08x\n",reg);
-    int rp=tool_readline_int("Read page?",reg&0xF);
+    int rp=BaseMenu::readline_int("Read page?",reg&0xF);
     for (int i=0; i<40; i++) {
       pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0x400|(rp<<6)|i);
       uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
@@ -1140,21 +956,21 @@ void ldmx_bias( const std::string& cmd, PolarfireTarget* pft ) {
 
   static int iboard=0;
   if (cmd=="STATUS") {
-    iboard=tool_readline_int("Which board? ",iboard);
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal->bias(iboard);
   }
   
   if (cmd=="INIT") {
-    iboard=tool_readline_int("Which board? ",iboard);
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal->bias(iboard);
     bias.initialize();
   }
   if (cmd=="SET") {
-    iboard=tool_readline_int("Which board? ",iboard);    
+    iboard=BaseMenu::readline_int("Which board? ",iboard);    
     static int led_sipm=0;
-    led_sipm=tool_readline_int(" SiPM(0) or LED(1)? ",led_sipm);
-    int ichan=tool_readline_int(" Which HDMI connector? ",-1);
-    int dac=tool_readline_int(" What DAC value? ",0);
+    led_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ",led_sipm);
+    int ichan=BaseMenu::readline_int(" Which HDMI connector? ",-1);
+    int dac=BaseMenu::readline_int(" What DAC value? ",0);
     if (ichan>=0) {
       pft->setBiasSetting(iboard,led_sipm==1,ichan,dac);
     }
@@ -1162,7 +978,7 @@ void ldmx_bias( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with four columns [0=SiPM/1=LED,board,hdmi#,value].\n");
     printf(" --- Line starting with # are ignored.\n");
-    std::string fname=tool_readline("Filename: ");
+    std::string fname=BaseMenu::readline("Filename: ");
     if (not pft->loadBiasSettings(fname)) {
       std::cerr << "\n\n  ERROR: Unable to access " << fname << std::endl;
     }
