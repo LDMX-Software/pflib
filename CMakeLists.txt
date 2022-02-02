@@ -29,7 +29,7 @@ target_link_libraries(pflib PUBLIC yaml-cpp)
 add_library(pflib::pflib ALIAS pflib)
 install(TARGETS pflib LIBRARY DESTINATION lib)
 
-add_executable(pftool tool/pftool.cc)
+add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 add_executable(pfdecoder tool/pfdecoder.cc)

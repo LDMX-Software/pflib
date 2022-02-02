@@ -49,7 +49,17 @@ static const int BIGSPY_DONE               = 0x20000000u;
 
 static const int SPY_WINDOW                = 0xC0;
 static const int BIGSPY_WINDOW             = 0x400;
+static const int REG_NLINKS                = 9;
 
+  Elinks::Elinks(WishboneInterface* wb, int target) : WishboneTarget(wb,target) {
+    if (firmware_version()<0x11) { // read n-links from DAQ
+      n_links=(wb_->wb_read(tgt_DAQ_Control,1)>>8)&0xFF;
+    } else { // read it here
+      n_links=wb_read(REG_NLINKS);
+    }
+    m_linksActive=std::vector<bool>(n_links,true);
+  }
+  
 std::vector<uint8_t> Elinks::spy(int ilink) {
   wb_rmw(REG_CONTROL,CTL_SPYSTART,CTL_SPYSTART); // do the spy now...
   wb_rmw(REG_CONTROL,ilink<<CTL_SPYPICK_SHIFT,CTL_SPYPICK_MASK); // pick a winner
@@ -150,7 +160,7 @@ void Elinks::scanAlign(int ilink) {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_EYE_CLEAR,LINK_CTL_EYE_CLEAR);
     status=getStatusRaw(ilink);
-    printf("%d %08x\n",istep,status);
+    //    printf("%d %08x\n",istep,status);
     istep++;
   } while ((status&LINK_STATUS_DELAYRANGE)==0);
 }
@@ -167,7 +177,7 @@ void Elinks::setDelay(int ilink,int idelay) {
     wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_DELAY_MOVE,LINK_CTL_DELAY_MOVE);
     uint32_t val=wb_read(LINK_CTL_BASE+ilink);
     status=getStatusRaw(ilink);
-    printf("%08x %08x\n", status, val);
+    //printf("%08x %08x\n", status, val);
   } while ((status&LINK_STATUS_DELAYRANGE)==0);
   // change direction and start stepping...
   wb_rmw(LINK_CTL_BASE+ilink,1,LINK_CTL_DELAY_DIR);
