@@ -733,11 +733,6 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
-    bool enable;
-    int extra_samples;
-    pflib::FastControl& fc=pft->hcal->fc();
-    fc.getMultisampleSetup(enable,extra_samples);
-
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
     if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
 
