@@ -8,7 +8,11 @@ namespace pflib {
 
 class Elinks : public WishboneTarget {
  public:
-  Elinks(WishboneInterface* wb, int target = tgt_Elinks) : WishboneTarget(wb,target) { }
+  Elinks(WishboneInterface* wb, int target = tgt_Elinks);
+
+  int nlinks() const { return n_links; }
+  void markActive(int ilink, bool active) { if (ilink<n_links && ilink>0) m_linksActive[ilink]=active; }
+  bool isActive(int ilink) const { return (ilink>=n_links || ilink<0)?(false):(m_linksActive[ilink]); }
   
   std::vector<uint8_t> spy(int ilink);
   void setBitslip(int ilink, int bitslip);
@@ -29,7 +33,9 @@ class Elinks : public WishboneTarget {
   
   void scanAlign(int ilink);
   void setDelay(int ilink, int idelay);
-  
+private:
+  int n_links;
+  std::vector<bool> m_linksActive;
 };
 
   
