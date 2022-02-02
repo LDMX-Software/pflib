@@ -1,7 +1,9 @@
 #ifndef PFLIB_COMPILE_H
 #define PFLIB_COMPILE_H
 
-#include <yaml-cpp/yaml.h>
+#include <map>
+#include <string>
+#include <vector>
 
 namespace pflib {
 
@@ -44,14 +46,7 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings);
 std::map<std::string,std::map<std::string,int>>
 decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
 
-namespace detail {
-/**
- * apply the input YAML node onto the input settings map
- */
-void apply(YAML::Node params,
-    std::map<std::string,std::map<std::string,int>>& settings);
-}
-
+ 
 /**
  * Compile a series of yaml files
  */
