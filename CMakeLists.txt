@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # Set the project name
 project(pflib
-	VERSION 0.1
+	VERSION 3.0
 	DESCRIPTION "Polarfire configuration library."
 	LANGUAGES CXX)
 
@@ -44,23 +44,60 @@ install(TARGETS pftool pfdecoder pfcompile pfdecompile DESTINATION bin)
 
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one
-setup_rogue()
+
+# Rogue
+if (DEFINED ENV{ROGUE_DIR})
+   set(Rogue_DIR $ENV{ROGUE_DIR}/lib)
+else()
+   set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
+endif()
+find_package(Rogue CONFIG)
+
 if (Rogue_FOUND)
+  # the libraries parameter includes the PUBLIC keyword annoyingly
+  list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
+  # define source files this submodule uses
   add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
-  target_link_libraries(pflib_rogue PUBLIC pflib Rogue::Rogue)
+  # attach dependencies of this submodule
+  target_link_libraries(pflib_rogue PUBLIC pflib ${ROGUE_LIBRARIES})
+  target_include_directories(pflib_rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
+  # add the alias to act like we were imported (even if we aren't)
   add_library(pflib::rogue ALIAS pflib_rogue)
+  # install rogue submodule
   install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+  # let pftool know that rogue is available
   target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
+  # link submodule lib to pftool
   target_link_libraries(pftool PRIVATE pflib_rogue)
+else()
+  message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
 endif()
 
-setup_uhal()
-if (Uhal_FOUND)
+# uHal
+if (DEFINED ENV{UHAL_DIR})
+  set(Uhal_DIR $ENV{UHAL_DIR})
+else()
+  set(Uhal_DIR /opt/cactus)
+endif()
+
+if(EXISTS ${Uhal_DIR}/include/uhal/Node.hpp)
+  # we found uHal!
+  set(Uhal_FOUND YES)
+  # define source files this submodule uses
   add_library(pflib_uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
-  target_link_libraries(pflib_uhal PUBLIC pflib Uhal::Uhal)
+  # link us to the uHal library
+  target_link_libraries(pflib_uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
+  # include the uHal header
+  target_include_directories(pflib_uhal PUBLIC "${Uhal_DIR}/include")
+  # add lias to act like we were imported (even if we aren't)
   add_library(pflib::uhal ALIAS pflib_uhal)
+  # let pftool know that uHal is available
   target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
+  # link submodule lib to pftool
   target_link_libraries(pftool PRIVATE pflib_uhal)
+else()
+  set(Uhal_FOUND NO)
+  message(STATUS "Unable to find uHal, will not compile uhal submodule of pflib.")
 endif()
 
 if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
