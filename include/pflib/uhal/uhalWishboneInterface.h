@@ -17,7 +17,7 @@ namespace uhal {
 class uhalWishboneInterface : public WishboneInterface, public Backend {
  public:
   /** Construct a TCP bridge*/
-  uhalWishboneInterface(const std::string& target);
+  uhalWishboneInterface(const std::string& target, const std::string& ipbus_map_path);
 
   virtual ~uhalWishboneInterface();
   
