@@ -36,9 +36,6 @@ The `pftool` looks at the following locations for a RC file to load configuratio
 2. File named `pftoolrc` in the current directory
 3. File named `.pftoolrc` in your home directory
 
-Currently, the only configuration parameter in this RC file is `roclinks` defining
-which DAQ links are active, but the structure for other parameters is available.
-
 **Tip** A potentially helpful alias is to prepend `pftool` with the environment
 variable so that `pftool` always loads the RC file in this repository.
 ```
@@ -50,8 +47,8 @@ environment variable.
 #### uHal Config Files
 uHal needs to load a set of XML files defining the IP-bus mapping.
 You can support this by either running pftool from within the uhal directory
-or by providing the full path to that directory in the `IPBUS_MAP_PATH` environment
-variable.
+or by providing the full path to that directory using the `ipbus_map_path` parameter
+in the RC file.
 
 #### Exiting
 You can leave the tool at anytime by pressing ctrl+C.
