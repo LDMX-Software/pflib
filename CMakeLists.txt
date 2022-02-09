@@ -26,7 +26,6 @@ add_library(pflib SHARED
   src/pflib/PolarfireTarget.cxx)
 target_include_directories(pflib PUBLIC include)
 target_link_libraries(pflib PUBLIC yaml-cpp)
-add_library(pflib::pflib ALIAS pflib)
 install(TARGETS pflib LIBRARY DESTINATION lib)
 
 add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
@@ -58,11 +57,9 @@ if (Rogue_FOUND)
   list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
   # define source files this submodule uses
   add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
-  # attach dependencies of this submodule
+  # attach rogue as a dependency
   target_link_libraries(pflib_rogue PUBLIC pflib ${ROGUE_LIBRARIES})
   target_include_directories(pflib_rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
-  # add the alias to act like we were imported (even if we aren't)
-  add_library(pflib::rogue ALIAS pflib_rogue)
   # install rogue submodule
   install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
   # let pftool know that rogue is available
@@ -85,12 +82,11 @@ if(EXISTS ${Uhal_DIR}/include/uhal/Node.hpp)
   set(Uhal_FOUND YES)
   # define source files this submodule uses
   add_library(pflib_uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
-  # link us to the uHal library
+  # attach uHal as a dependency
   target_link_libraries(pflib_uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
-  # include the uHal header
   target_include_directories(pflib_uhal PUBLIC "${Uhal_DIR}/include")
-  # add lias to act like we were imported (even if we aren't)
-  add_library(pflib::uhal ALIAS pflib_uhal)
+  # install uHal submodule
+  install(TARGETS pflib_uhal LIBRARY DESTINATION lib)
   # let pftool know that uHal is available
   target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
   # link submodule lib to pftool
