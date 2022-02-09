@@ -49,6 +49,7 @@ if (DEFINED ENV{ROGUE_DIR})
 else()
    set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
 endif()
+# issues its own "found Rogue version ___" message
 find_package(Rogue CONFIG)
 
 if (Rogue_FOUND)
@@ -75,9 +76,16 @@ else()
   set(Uhal_DIR /opt/cactus)
 endif()
 
-if(EXISTS ${Uhal_DIR}/include/uhal/Node.hpp)
+if(EXISTS ${Uhal_DIR}/include/uhal/version.hpp)
   # we found uHal!
   set(Uhal_FOUND YES)
+  # deduce its version
+  file(STRINGS ${Uhal_DIR}/include/uhal/version.hpp version_lines REGEX "^#define UHAL_VERSION_(.*)$")
+  foreach(version_line ${version_lines})
+    string(REGEX REPLACE "^#define " "" trimmed ${version_line})
+    message(STATUS ${trimmed})
+  endforeach()  
+  #message(STATUS "Uhal version: ${UHAL_VERSION_MAJOR}.${UHAL_VERSION_MINOR}.${UHAL_VERSION_PATCH}")
   # define source files this submodule uses
   add_library(uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
   # attach uHal as a dependency
