@@ -1,1 +1,2 @@
 roclinks : [ true, true, false, false, false, false, false, false ]
+#ipbus_map_path : # not needed at UMN with rogue, used for uHal connection
