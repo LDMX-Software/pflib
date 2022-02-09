@@ -47,6 +47,12 @@ alias pftool='PFTOOLRC=/full/path/to/pflib/pftoolrc pftool'
 This specific alias assumes that `pftool` is installed to a directory in the `PATH`
 environment variable.
 
+#### uHal Config Files
+uHal needs to load a set of XML files defining the IP-bus mapping.
+You can support this by either running pftool from within the uhal directory
+or by providing the full path to that directory in the `IPBUS_MAP_PATH` environment
+variable.
+
 #### Exiting
 You can leave the tool at anytime by pressing ctrl+C.
 

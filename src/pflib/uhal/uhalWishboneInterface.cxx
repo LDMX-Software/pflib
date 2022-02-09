@@ -11,10 +11,12 @@ uhalWishboneInterface::uhalWishboneInterface(const std::string& target) {
   std::string mappath;
   if (getenv("IPBUS_MAP_PATH")!=0) { 
     mappath=getenv("IPBUS_MAP_PATH");
+    // make sure path ends with trailing slash
+    if (mappath.back() != '/') mappath+="/";
   }
   std::string addressTable_uMNio("file://");
   addressTable_uMNio+=mappath;
-  addressTable_uMNio+="/uMNio.xml";
+  addressTable_uMNio+="uMNio.xml";
 
   std::string location="chtcp-2.0://localhost:10203?target=";
   location+=target;
