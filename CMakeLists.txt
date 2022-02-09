@@ -24,9 +24,10 @@ add_library(pflib SHARED
   src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
   src/pflib/PolarfireTarget.cxx)
-target_include_directories(pflib PUBLIC include)
+target_include_directories(pflib PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp)
-install(TARGETS pflib LIBRARY DESTINATION lib)
 
 add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
@@ -38,8 +39,6 @@ target_link_libraries(pfcompile pflib)
 
 add_executable(pfdecompile tool/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
-
-install(TARGETS pftool pfdecoder pfcompile pfdecompile DESTINATION bin)
 
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one
@@ -56,16 +55,15 @@ if (Rogue_FOUND)
   # the libraries parameter includes the PUBLIC keyword annoyingly
   list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
   # define source files this submodule uses
-  add_library(pflib_rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
+  add_library(rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
   # attach rogue as a dependency
-  target_link_libraries(pflib_rogue PUBLIC pflib ${ROGUE_LIBRARIES})
-  target_include_directories(pflib_rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
-  # install rogue submodule
-  install(TARGETS pflib_rogue LIBRARY DESTINATION lib)
+  target_link_libraries(rogue PUBLIC pflib ${ROGUE_LIBRARIES})
+  target_include_directories(rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
   # let pftool know that rogue is available
   target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
   # link submodule lib to pftool
-  target_link_libraries(pftool PRIVATE pflib_rogue)
+  target_link_libraries(pftool PRIVATE rogue)
+  list(APPEND comm_libs rogue)
 else()
   message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
 endif()
@@ -81,16 +79,15 @@ if(EXISTS ${Uhal_DIR}/include/uhal/Node.hpp)
   # we found uHal!
   set(Uhal_FOUND YES)
   # define source files this submodule uses
-  add_library(pflib_uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
+  add_library(uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
   # attach uHal as a dependency
-  target_link_libraries(pflib_uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
-  target_include_directories(pflib_uhal PUBLIC "${Uhal_DIR}/include")
-  # install uHal submodule
-  install(TARGETS pflib_uhal LIBRARY DESTINATION lib)
+  target_link_libraries(uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
+  target_include_directories(uhal PUBLIC "${Uhal_DIR}/include")
   # let pftool know that uHal is available
   target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
   # link submodule lib to pftool
-  target_link_libraries(pftool PRIVATE pflib_uhal)
+  target_link_libraries(pftool PRIVATE uhal)
+  list(APPEND comm_libs uhal)
 else()
   set(Uhal_FOUND NO)
   message(STATUS "Unable to find uHal, will not compile uhal submodule of pflib.")
@@ -99,3 +96,32 @@ endif()
 if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
   message(FATAL_ERROR "Neither Rogue or Uhal were found. At least one is necessary for polarfire interaction library.")
 endif()
+
+set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
+
+install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile
+  EXPORT pflibTargets 
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+  )
+install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
+install(EXPORT pflibTargets
+  FILE pflibTargets.cmake
+  NAMESPACE pflib::
+  DESTINATION lib/cmake/pflib
+  )
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfig.cmake"
+  INSTALL_DESTINATION lib/cmake/pflib
+  )
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/pflibConfigVersion.cmake"
+  COMPATIBILITY AnyNewerVersion)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfigVersion.cmake"
+  DESTINATION lib/cmake/pflib
+  )
