@@ -10,7 +10,7 @@ namespace uhal {
 uhalWishboneInterface::uhalWishboneInterface(const std::string& target, const std::string& ipbus_map_path) {
   std::string addressTable_uMNio("file://");
   addressTable_uMNio+=ipbus_map_path;
-  if (ipbus_map_path.back() != '/') addressTable_uMNio += '/';
+  if (not ipbus_map_path.empty() and ipbus_map_path.back() != '/') addressTable_uMNio += '/';
   addressTable_uMNio+="uMNio.xml";
 
   std::string location="chtcp-2.0://localhost:10203?target=";
