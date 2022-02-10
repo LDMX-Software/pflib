@@ -85,8 +85,13 @@ int main(int argc, char* argv[]) {
 
   std::string home=getenv("HOME");
 
-  if (getenv("PFTOOLRC") && file_exists(getenv("PFTOOLRC"))) {
-    options.load(getenv("PFTOOLRC"));    
+  if (getenv("PFTOOLRC")) {
+    if (file_exists(getenv("PFTOOLRC"))) {
+      options.load(getenv("PFTOOLRC"));
+    } else {
+      std::cerr << "WARNING: PFTOOLRC=" << getenv("PFTOOLRC") 
+        << " is not loaded because it doesn't exist." << std::endl;
+    }
   }
   if (file_exists("pftoolrc"))
     options.load("pftoolrc");
