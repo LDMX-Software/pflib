@@ -7,15 +7,10 @@ namespace pflib {
 namespace uhal {
 
   /** Construct a TCP bridge*/
-uhalWishboneInterface::uhalWishboneInterface(const std::string& target) {
-  std::string mappath;
-  if (getenv("IPBUS_MAP_PATH")!=0) { 
-    mappath=getenv("IPBUS_MAP_PATH");
-    // make sure path ends with trailing slash
-    if (mappath.back() != '/') mappath+="/";
-  }
+uhalWishboneInterface::uhalWishboneInterface(const std::string& target, const std::string& ipbus_map_path) {
   std::string addressTable_uMNio("file://");
-  addressTable_uMNio+=mappath;
+  addressTable_uMNio+=ipbus_map_path;
+  if (not ipbus_map_path.empty() and ipbus_map_path.back() != '/') addressTable_uMNio += '/';
   addressTable_uMNio+="uMNio.xml";
 
   std::string location="chtcp-2.0://localhost:10203?target=";

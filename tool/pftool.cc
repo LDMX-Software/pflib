@@ -49,6 +49,7 @@ bool file_exists(const std::string& fname) {
 
 void prepareOpts(Rcfile& rcfile) {
   rcfile.declareVBool("roclinks","Vector Bool[8] indicating which roc links are active");
+  rcfile.declareString("ipbus_map_path", "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
 }
 
 int main(int argc, char* argv[]) {
@@ -84,8 +85,13 @@ int main(int argc, char* argv[]) {
 
   std::string home=getenv("HOME");
 
-  if (getenv("PFTOOLRC") && file_exists(getenv("PFTOOLRC"))) {
-    options.load(getenv("PFTOOLRC"));    
+  if (getenv("PFTOOLRC")) {
+    if (file_exists(getenv("PFTOOLRC"))) {
+      options.load(getenv("PFTOOLRC"));
+    } else {
+      std::cerr << "WARNING: PFTOOLRC=" << getenv("PFTOOLRC") 
+        << " is not loaded because it doesn't exist." << std::endl;
+    }
   }
   if (file_exists("pftoolrc"))
     options.load("pftoolrc");
@@ -159,7 +165,7 @@ int main(int argc, char* argv[]) {
 #ifdef PFTOOL_UHAL
       if (isuhal) {
         // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-        pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId]);
+        pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId],options.contents().getString("ipbus_map_path"));
         p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
       }
 #endif
