@@ -603,7 +603,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
   if (cmd=="DUMP") {
-    static std::string fname_def_format = "hgcroc_settings_%Y%m%d_%H%M%S.yaml";
+    std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
 
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -758,9 +758,9 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
       // normally, some other controller would send the L1A
       //  we are sending it so we get data during no signal
       if (cmd=="PEDESTAL")
-  pft->backend->fc_sendL1A();
+        pft->backend->fc_sendL1A();
       if (cmd=="CHARGE")
-  pft->backend->fc_calibpulse();
+        pft->backend->fc_calibpulse();
       
       std::vector<uint32_t> event = pft->daqReadEvent();
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);      
