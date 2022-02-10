@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # Set the project name
 project(pflib
-	VERSION 1.2
+	VERSION 1.3
 	DESCRIPTION "Polarfire configuration library."
 	LANGUAGES CXX)
 
