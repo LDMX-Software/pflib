@@ -29,6 +29,8 @@ can help the user double-check that their `pftoolrc` was loaded successfully.
 
 The listing of commands in your current menu is always printed
 after you execute a command. I will omit these menu printouts in this document.
+The commands are listed in all-caps, but the tool is case-insensitive,
+so I will often list the commands in all lower-case.
 
 #### pftoolrc Files
 The `pftool` looks at the following locations for a RC file to load configuration options.
@@ -60,7 +62,7 @@ directly entering a command from a sub-menu. You will need
 to enter the submenu before entring the command. For example,
 `DAQ.STATUS` should be interpreted (in keystrokes) as `DAQ<Enter>STATUS`.
 
-### DAQ.STATUS
+### daq.status
 ```
 -----Front-end FIFO-----
  Header occupancy : 0  Maximum occupancy : 1
@@ -86,7 +88,7 @@ The ID number is defined during the execution of `daq.standard` and is `(<fpga-i
 This is the status for a "standard" setup. You can get back to the "standard" setup
 by running the `daq` commands `hard_reset`, `standard`, `enable` (in that order).
 
-### ROC.HARD\_RESET
+### roc.hard\_reset
 This sets the HGC ROC back to its power-on default state, including resetting all of its parameters.
 If this command is issued, any ROC parameters that were loaded (via `roc.load` need to be re-loaded).
 
@@ -95,6 +97,9 @@ This forcefully clears the event buffers as if a run wasn't started *and* resets
 
 ### elinks.spy
 This should show the "idle" pattern (ac cc cc cc repeated) when the link is behaving correctly.
+
+### elinks.bitsplit and elinks.delay
+Theses parameters help "align" the links so that they correctly show the "idle" pattern when you `elinks.spy`.
 
 ### daq.setup.l1aparams
 These parameters should be stable for a given setup. **Across setups**, the readout length should be 40. For UMN, the delay should be 15.
