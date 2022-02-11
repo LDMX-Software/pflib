@@ -100,6 +100,7 @@ This should show the "idle" pattern (ac cc cc cc repeated) when the link is beha
 
 ### elinks.bitsplit and elinks.delay
 Theses parameters help "align" the links so that they correctly show the "idle" pattern when you `elinks.spy`.
+The values should be relatively constant for a given physical chip and firmware version even if they need to be reset when the chip is restarted.
 
 ### daq.setup.l1aparams
 These parameters should be stable for a given setup. **Across setups**, the readout length should be 40. For UMN, the delay should be 15.
