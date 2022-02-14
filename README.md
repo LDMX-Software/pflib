@@ -29,7 +29,8 @@ This software can communicate with the polarfire using two different methods. At
  - [Installing Rogue on Archlinux](https://slaclab.github.io/rogue/installing/build.html#archlinux)
 
 ### uHal
- - ???
+ - [Installation Docs](https://ipbus.web.cern.ch/doc/user/html/software/installation.html)
+ - [General uHAL Docs](https://ipbus.web.cern.ch/doc/user/html/software/index.html)
 
 ## Other Dependencies
 Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
