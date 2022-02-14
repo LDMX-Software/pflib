@@ -256,7 +256,8 @@ uMenu::Line menu_ldmx_roc_lines[] =
    uMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
    uMenu::Line("CHAN","Dump link status", &ldmx_roc ),
    uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
-   uMenu::Line("POKE","Change a single value", &ldmx_roc ),
+   uMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
+   uMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
    uMenu::Line("LOAD","Load values from file", &ldmx_roc ),
    uMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
    uMenu::Line("QUIT","Back to top menu"),
@@ -587,12 +588,23 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     for (int i=0; i<int(v.size()); i++)
       printf("%02d : %02x\n",i,v[i]);
   }
-  if (cmd=="POKE") {
+  if (cmd=="POKE_REG") {
     int page=BaseMenu::readline_int("Which page? ",0);
     int entry=BaseMenu::readline_int("Offset: ",0);
     int value=BaseMenu::readline_int("New value: ",0);
-
+  
     roc.setValue(page,entry,value);
+  }
+  if (cmd=="POKE_PARAM") {
+    std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
+    std::string param = BaseMenu::readline("Parameter: ");
+    int val = BaseMenu::readline_int("New value: ", 0);
+
+    try {
+      roc.applyParameter(page, param, val);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
+    }
   }
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with columns [page,offset,value].\n");
