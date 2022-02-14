@@ -351,6 +351,52 @@ PARAMETER_LUT = {
   {"Channel_71", {37, CHANNEL_WISE_LUT}}
 };
 
+namespace detail {
+
+/**
+ * implementation of compiling a single value for the input parameter specification
+ * into the list of registers.
+ *
+ * This accesses the PARAMETER_LUT map, its submaps, and the register_values map without
+ * any checks so it may throw a std::out_of_range error. Do checking in public functions
+ * before calling this one.
+ */
+void compile(const std::string& page_name, const std::string& param_name, const int& val, 
+    std::map<int,std::map<int,uint8_t>>& register_values) {
+  const auto& page_id {PARAMETER_LUT.at(page_name).first};
+  const Parameter& spec{PARAMETER_LUT.at(page_name).second.at(param_name)};
+  std::size_t value_curr_min_bit{0};
+  for (const RegisterLocation& location : spec.registers) {
+    // grab sub value of parameter in this register
+    uint8_t sub_val = ((val >> value_curr_min_bit) & location.mask);
+    value_curr_min_bit += location.n_bits;
+    // initialize register value to zero if it hasn't been touched before
+    if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
+      register_values[page_id][location.reg] = 0;
+    }
+    // put value into register at the specified location
+    register_values[page_id][location.reg] += (sub_val << location.min_bit);
+  } // loop over register locations
+  return;
+}
+
+}
+
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::string& page_name, const std::string& param_name, const int& val) {
+  if (PARAMETER_LUT.find(page_name) == PARAMETER_LUT.end()) {
+    PFEXCEPTION_RAISE("NotFound", "The page named '"+page_name+"' is not found in the look up table.");
+  }
+  const auto& page_lut{PARAMETER_LUT.at(page_name).second};
+  if (page_lut.find(param_name) == page_lut.end()) {
+    PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param_name
+        +"' is not found in the look up table for page "+page_name);
+  }
+  std::map<int,std::map<int,uint8_t>> rv;
+  detail::compile(page_name, param_name, val, rv);
+  return rv;
+}
+
 std::map<int,std::map<int,uint8_t>> 
 compile(const std::map<std::string,std::map<std::string,int>>& settings) {
   std::map<int,std::map<int,uint8_t>> register_values;
@@ -363,7 +409,6 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
       // we leave this check in here for future development
       PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
     }
-    const auto& page_id{PARAMETER_LUT.at(page.first).first};
     const auto& page_lut{PARAMETER_LUT.at(page.first).second};
     for (const auto& param : page.second) {
       // param.first => parameter name
@@ -372,21 +417,7 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
         PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
             +"' is not found in the look up table for page "+page.first);
       }
-
-      const Parameter& spec{page_lut.at(param.first)};
-      std::size_t value_curr_min_bit{0};
-      for (const RegisterLocation& location : spec.registers) {
-        // grab sub value of parameter in this register
-        uint8_t sub_val = ((param.second >> value_curr_min_bit) & location.mask);
-        value_curr_min_bit += location.n_bits;
-        // initialize register value to zero if it hasn't been touched before
-        if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
-          register_values[page_id][location.reg] = 0;
-        }
-
-        // put value into register at the specified location
-        register_values[page_id][location.reg] += (sub_val << location.min_bit);
-      } // loop over register locations
+      detail::compile(page.first, param.first, param.second, register_values);
     }   // loop over parameters in page
   }     // loop over pages
 
@@ -434,6 +465,10 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
 
 namespace detail {
 
+/**
+ * Exctract a map of page_name,param_name to their values by crawling the YAML
+ * tree.
+ */
 void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run

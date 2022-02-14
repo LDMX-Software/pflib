@@ -8,6 +8,14 @@
 namespace pflib {
 
 /**
+ * Compile a single parameter into the (potentially several)
+ * registers that it should set. Any other bits in the register(s)
+ * that this parameter affects will be set to zero.
+ */
+std::map<int,std::map<int,uint8_t>>
+compile(const std::string& page_name, const std::string& param_name, int val);
+
+/**
  * Compiling which translates parameter values for the HGCROC
  * into register values that can be written to the chip
  *
