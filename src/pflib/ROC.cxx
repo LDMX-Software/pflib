@@ -1,4 +1,5 @@
 #include "pflib/ROC.h"
+#include "pflib/Compile.h"
 #include <iostream>
 
 namespace pflib {
@@ -57,5 +58,32 @@ void ROC::setValue(int page, int offset, uint32_t value) {
   i2c_.write_byte(1,(fulladdr>>8)&0xFF);
   i2c_.write_byte(2,value&0xFF);
 }
+
+void ROC::applyParameter(const std::string& page, const std::string& param, const int& val) {
+  // compile parameter to get registers that it touches
+  auto registers = compile(page,param,val);
+  // get the current register values on the chip
+  std::map<int,std::map<int,uint8_t>> chip_reg;
+  for (auto& page : registers) {
+    int page_id = page.first;
+    std::vector<uint8_t> on_chip_reg_values = this->readPage(page_id, 16);
+    for (int i{0}; i < 16; i++) {
+      // skip un-touched registers
+      if (page.second.find(i) == page.second.end()) 
+        continue;
+      chip_reg[page_id][i] = on_chip_reg_values.at(i);
+    }
+  }
+  // compile this parameter onto those register values
+  compile(page,param,val,chip_reg);
+  // put these updated register values onto the chip
+  for (auto& page : chip_reg) {
+    int page_id = page.first;
+    for (auto& reg : page.second) {
+      this->setValue(page_id, reg.first, reg.second);
+    }
+  }
+}
+
 
 }

@@ -6,10 +6,10 @@
 
 namespace pflib {
 
-  /**
-   * @class ROC setup
-   *
-   */
+/**
+ * @class ROC setup
+ *
+ */
 class ROC {
  public:
   ROC(I2C& i2c, int ibus=0);
@@ -19,6 +19,8 @@ class ROC {
   
   std::vector<uint8_t> getChannelParameters(int ichan);
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
+
+  void applyParameter(const std::string& page, const std::string& param, const int& val);
 
 
  private:

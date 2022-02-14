@@ -351,16 +351,6 @@ PARAMETER_LUT = {
   {"Channel_71", {37, CHANNEL_WISE_LUT}}
 };
 
-namespace detail {
-
-/**
- * implementation of compiling a single value for the input parameter specification
- * into the list of registers.
- *
- * This accesses the PARAMETER_LUT map, its submaps, and the register_values map without
- * any checks so it may throw a std::out_of_range error. Do checking in public functions
- * before calling this one.
- */
 void compile(const std::string& page_name, const std::string& param_name, const int& val, 
     std::map<int,std::map<int,uint8_t>>& register_values) {
   const auto& page_id {PARAMETER_LUT.at(page_name).first};
@@ -370,16 +360,17 @@ void compile(const std::string& page_name, const std::string& param_name, const 
     // grab sub value of parameter in this register
     uint8_t sub_val = ((val >> value_curr_min_bit) & location.mask);
     value_curr_min_bit += location.n_bits;
-    // initialize register value to zero if it hasn't been touched before
     if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
+      // initialize register value to zero if it hasn't been touched before
       register_values[page_id][location.reg] = 0;
+    } else {
+      // make sure to clear old value
+      register_values[page_id][location.reg] &= ((location.mask << location.min_bit) ^ 0b11111111);
     }
     // put value into register at the specified location
     register_values[page_id][location.reg] += (sub_val << location.min_bit);
   } // loop over register locations
   return;
-}
-
 }
 
 std::map<int,std::map<int,uint8_t>> 
@@ -393,7 +384,7 @@ compile(const std::string& page_name, const std::string& param_name, const int& 
         +"' is not found in the look up table for page "+page_name);
   }
   std::map<int,std::map<int,uint8_t>> rv;
-  detail::compile(page_name, param_name, val, rv);
+  compile(page_name, param_name, val, rv);
   return rv;
 }
 
@@ -417,7 +408,7 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
         PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
             +"' is not found in the look up table for page "+page.first);
       }
-      detail::compile(page.first, param.first, param.second, register_values);
+      compile(page.first, param.first, param.second, register_values);
     }   // loop over parameters in page
   }     // loop over pages
 

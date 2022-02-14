@@ -8,12 +8,28 @@
 namespace pflib {
 
 /**
+ * Overlay a single parameter onto the input register map.
+ * This only overwrites the bits that need to be changed
+ * for the input parameter. Any registers that don't exist
+ * will be set to 0 before being written to.
+ *
+ * implementation of compiling a single value for the input parameter specification
+ * into the list of registers.
+ *
+ * This accesses the PARAMETER_LUT map, its submaps, and the register_values map without
+ * any checks so it may throw a std::out_of_range error. Do checking of names
+ * before calling this one.
+ */
+void compile(const std::string& page, const std::string& param, const int& val,
+    std::map<int,std::map<int,uint8_t>>& registers);
+
+/**
  * Compile a single parameter into the (potentially several)
  * registers that it should set. Any other bits in the register(s)
  * that this parameter affects will be set to zero.
  */
 std::map<int,std::map<int,uint8_t>>
-compile(const std::string& page_name, const std::string& param_name, int val);
+compile(const std::string& page_name, const std::string& param_name, const int& val);
 
 /**
  * Compiling which translates parameter values for the HGCROC
