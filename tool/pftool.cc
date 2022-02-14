@@ -61,8 +61,8 @@ int main(int argc, char* argv[]) {
 #ifdef PFTOOL_UHAL
     printf("Usage: pftool [hostname] [-u] [-r] [-s script]\n");
     printf("  Supporting both UHAL and ROGUE\n");
-    printf("  -u uHAL connection");
-    printf("  -r rogue connection");
+    printf("   -u uHAL connection\n");
+    printf("   -r rogue connection\n");
 #else
     printf("Usage: pftool [hostname] [-s script]\n");
     printf("  Supporting only ROGUE\n");
