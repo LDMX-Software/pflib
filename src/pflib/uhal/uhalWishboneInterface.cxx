@@ -99,14 +99,39 @@ void uhalWishboneInterface::wb_clear_counters() {
   /// Backend implementation
 void uhalWishboneInterface::fc_sendL1A() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.SEND_L1A").write(1);
+  dispatch();
 }
 void uhalWishboneInterface::fc_linkreset() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
-  
+  m_base.getNode("FAST_CONTROL.SEND_LINK_RESET").write(1);
+  dispatch();  
 }
 void uhalWishboneInterface::fc_bufferclear() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.SEND_BUFFER_CLEAR").write(1);
+  dispatch();
 }
+void uhalWishboneInterface::fc_calibpulse() {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.SEND_CALIB_REQ").write(1);
+  dispatch();
+}
+void uhalWishboneInterface::fc_setup_calib(int pulse_len, int l1a_offset) {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.CALIB_PULSE_LEN").write(pulse_len&0xF);
+  m_base.getNode("FAST_CONTROL.CALIB_L1A_OFFSET").write(pulse_len&0xF);
+  dispatch();  
+}
+void uhalWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset) {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  ::uhal::ValWord<uint32_t> pl=m_base.getNode("FAST_CONTROL.CALIB_PULSE_LEN").read();
+  ::uhal::ValWord<uint32_t> lo=m_base.getNode("FAST_CONTROL.CALIB_L1A_OFFSET").read();
+  dispatch();
+  pulse_len=pl;
+  l1a_offset=lo;
+}
+
 void uhalWishboneInterface::daq_reset() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("DAQ.DAQ_CLEAR").write(1);
@@ -117,6 +142,8 @@ void uhalWishboneInterface::daq_advance_ptr() {
   m_base.getNode("DAQ.ADVANCE_READ_PTR").write(1);
   dispatch();
 }
+
+
 void uhalWishboneInterface::daq_status(bool& full, bool& empty, int& nevents, int& next_event_size) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   ::uhal::ValWord<uint32_t> bf,be,n,next_size;
