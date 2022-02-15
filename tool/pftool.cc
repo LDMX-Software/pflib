@@ -259,6 +259,7 @@ uMenu::Line menu_ldmx_roc_lines[] =
    uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
    uMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
    uMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
+   uMenu::Line("POKE","Alias for POKE_PARAM", &ldmx_roc ),
    uMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &ldmx_roc ),
    uMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &ldmx_roc ),
    uMenu::Line("LOAD","Alias for LOAD_PARAM", &ldmx_roc ),
@@ -564,7 +565,6 @@ void ldmx_roc_render(PolarfireTarget*) {
 }
 
 void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
-
   if (cmd=="HARDRESET") {
     pft->hcal->hardResetROCs();
   }
@@ -598,7 +598,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
   
     roc.setValue(page,entry,value);
   }
-  if (cmd=="POKE_PARAM") {
+  if (cmd=="POKE"||cmd=="POKE_PARAM") {
     std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
     std::string param = BaseMenu::readline("Parameter: ");
     int val =pflib::str_to_int(BaseMenu::readline("New value: "));
