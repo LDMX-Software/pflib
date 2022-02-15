@@ -603,11 +603,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     std::string param = BaseMenu::readline("Parameter: ");
     int val =pflib::str_to_int(BaseMenu::readline("New value: "));
 
-    try {
-      roc.applyParameter(page, param, val);
-    } catch (const pflib::Exception& e) {
-      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
-    }
+    roc.applyParameter(page, param, val);
   }
   if (cmd=="LOAD_REG") {
     std::cout <<
@@ -615,11 +611,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
       " --- This command expects a CSV file with columns [page,offset,value].\n"
       << std::flush;
     std::string fname = BaseMenu::readline("Filename: ");
-    try {
-      pft->loadROCRegisters(iroc,fname);
-    } catch (const pflib::Exception& e) {
-      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
-    }
+    pft->loadROCRegisters(iroc,fname);
   }
   if (cmd=="LOAD"||cmd=="LOAD_PARAM") {
     std::cout <<
@@ -628,11 +620,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
       << std::flush;
     std::string fname = BaseMenu::readline("Filename: ");
     bool prepend_defaults = BaseMenu::readline_bool("Update all parameter values on the chip using the defaults in the manual for any values not provided? ", false);
-    try {
-      pft->loadROCParameters(iroc,fname,prepend_defaults);
-    } catch (const pflib::Exception& e) {
-      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
-    }
+    pft->loadROCParameters(iroc,fname,prepend_defaults);
   }
   if (cmd=="DUMP") {
     std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
@@ -645,11 +633,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     
     std::string fname = BaseMenu::readline("Filename: ", fname_def);
 	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
-    try {
-      pft->dumpSettings(iroc,fname,decompile);
-    } catch (const pflib::Exception& e) {
-      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
-    }
+    pft->dumpSettings(iroc,fname,decompile);
   }
 }
 
