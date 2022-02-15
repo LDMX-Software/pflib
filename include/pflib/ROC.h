@@ -3,6 +3,8 @@
 
 #include "pflib/I2C.h"
 #include <vector>
+#include <map>
+#include <string>
 
 namespace pflib {
 
@@ -20,6 +22,10 @@ class ROC {
   std::vector<uint8_t> getChannelParameters(int ichan);
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
 
+  void setRegisters(const std::map<int,std::map<int,uint8_t>>& registers);
+  void applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters);
+
+  // short-hand for just applying a single parameter
   void applyParameter(const std::string& page, const std::string& param, const int& val);
 
 

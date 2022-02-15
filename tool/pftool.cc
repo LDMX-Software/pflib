@@ -259,7 +259,9 @@ uMenu::Line menu_ldmx_roc_lines[] =
    uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
    uMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
    uMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
-   uMenu::Line("LOAD","Load values from file", &ldmx_roc ),
+   uMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &ldmx_roc ),
+   uMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &ldmx_roc ),
+   uMenu::Line("LOAD","Alias for LOAD_PARAM", &ldmx_roc ),
    uMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
    uMenu::Line("QUIT","Back to top menu"),
    uMenu::Line()
@@ -607,12 +609,29 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
       std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
     }
   }
-  if (cmd=="LOAD") {
-    printf("\n --- This command expects a CSV file with columns [page,offset,value].\n");
-    printf(" --- Or a YAML file to be passed through the 'compiler'.\n");
-    std::string fname=BaseMenu::readline("Filename: ");
-    if (not pft->loadROCSettings(iroc,fname)) {
-      std::cerr<< "\n\n  ERROR: Unable to open " << fname << std::endl;
+  if (cmd=="LOAD_REG") {
+    std::cout <<
+      "\n"
+      " --- This command expects a CSV file with columns [page,offset,value].\n"
+      << std::flush;
+    std::string fname = BaseMenu::readline("Filename: ");
+    try {
+      pft->loadROCRegisters(iroc,fname);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
+    }
+  }
+  if (cmd=="LOAD"||cmd=="LOAD_PARAM") {
+    std::cout <<
+      "\n"
+      " --- This command expects a YAML file with page names, parameter names and their values.\n"
+      << std::flush;
+    std::string fname = BaseMenu::readline("Filename: ");
+    bool prepend_defaults = BaseMenu::readline_bool("Update all parameter values on the chip using the defaults in the manual for any values not provided? ", false);
+    try {
+      pft->loadROCParameters(iroc,fname,prepend_defaults);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
     }
   }
   if (cmd=="DUMP") {
@@ -626,8 +645,10 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     
     std::string fname = BaseMenu::readline("Filename: ", fname_def);
 	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
-    if (not pft->dumpSettings(iroc,fname,decompile)) {
-      std::cerr << "\n\n ERROR: Unable to open " << fname << std::endl;
+    try {
+      pft->dumpSettings(iroc,fname,decompile);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "\n ERROR: [" << e.name() << "] : " << e.message() << std::endl;
     }
   }
 }

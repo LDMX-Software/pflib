@@ -85,6 +85,12 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings);
 std::map<std::string,std::map<std::string,int>>
 decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
 
+/**
+ * Extract the page name, parameter name, and parameter values from
+ * the YAML files into the passed settings map
+ */
+void extract(const std::vector<std::string>& setting_files, 
+    std::map<std::string,std::map<std::string,int>>& settings);
  
 /**
  * Compile a series of yaml files
