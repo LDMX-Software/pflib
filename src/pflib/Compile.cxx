@@ -351,6 +351,27 @@ PARAMETER_LUT = {
   {"Channel_71", {37, CHANNEL_WISE_LUT}}
 };
 
+int str_to_int(std::string str) {
+  if (str == "0") return 0;
+  int base = 10;
+  if (str[0] == '0' and str.length() > 2) {
+    // binary or hexadecimal
+    if (str[1] == 'b' or str[1] == 'B') {
+      base = 2;
+      str = str.substr(2);
+    } else if (str[1] == 'x' or str[1] == 'X') {
+      base = 16;
+      str = str.substr(2);
+    } 
+  } else if (str[0] == '0' and str.length() > 1) {
+    // octal
+    base = 8;
+    str = str.substr(1);
+  }
+
+  return std::stoi(str,nullptr,base);
+}
+
 void compile(const std::string& page_name, const std::string& param_name, const int& val, 
     std::map<int,std::map<int,uint8_t>>& register_values) {
   const auto& page_id {PARAMETER_LUT.at(page_name).first};
@@ -496,18 +517,7 @@ void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& s
           PFEXCEPTION_RAISE("BadFormat",
               "Non-existent value for parameter "+param.first.as<std::string>());
         }
-        int base = 10;
-        if (sval[0] == '0') {
-          if (sval[1] == 'b' or sval[1] == 'B') {
-            base = 2;
-            sval = sval.substr(2);
-          } else if (sval[1] == 'x' or sval[1] == 'X') {
-            base = 16;
-            sval = sval.substr(2);
-          }
-        }
-        settings[page][param.first.as<std::string>()] 
-          = std::stoi(sval,nullptr,base);
+        settings[page][param.first.as<std::string>()] = str_to_int(sval);
       }
     }
   }
