@@ -525,19 +525,8 @@ void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& s
 
 } // namespace detail
 
-std::map<int,std::map<int,uint8_t>> 
-compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
-  // if we prepend the defaults, put all settings and their defaults 
-  // into the settings map
-  std::map<std::string,std::map<std::string,int>> settings;
-  if (prepend_defaults) {
-    for(auto& page : PARAMETER_LUT) {
-      for (auto& param : page.second.second) {
-        settings[page.first][param.first] = param.second.def;
-      }
-    }
-  }
-
+void extract(const std::vector<std::string>& setting_files,
+    std::map<std::string,std::map<std::string,int>>& settings) {
   for (auto& setting_file : setting_files) {
     YAML::Node setting_yaml;
     try {
@@ -551,7 +540,21 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
       detail::apply(setting_yaml, settings);
     }
   }
+}
 
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
+  std::map<std::string,std::map<std::string,int>> settings;
+  // if we prepend the defaults, put all settings and their defaults 
+  // into the settings map before extraction
+  if (prepend_defaults) {
+    for(auto& page : PARAMETER_LUT) {
+      for (auto& param : page.second.second) {
+        settings[page.first][param.first] = param.second.def;
+      }
+    }
+  }
+  extract(setting_files,settings);
   return compile(settings);
 }
 

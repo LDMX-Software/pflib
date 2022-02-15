@@ -74,23 +74,28 @@ struct PolarfireTarget {
    *
    * @return false if unable to open file
    */
-  bool loadIntegerCSV(const std::string& file_name, 
+  void loadIntegerCSV(const std::string& file_name, 
       const std::function<void(const std::vector<int>&)>& Action);
 
   /**
-   * ## Files ending in .csv
+   * Load register values onto ROC chip from inptu file
+   *
    * Defines an Action with calls ROC::setValue if there
    * are three cells and prints a warning otherwise.
    *
-   * ## Files ending in .yaml or .yml
-   * Prints a not-implemented error.
-   *
-   * ## Other extensions
-   * Prints a error.
+   * @return false if unable to open file
+   */
+  void loadROCRegisters(int roc, const std::string& file_name);
+
+  /**
+   * Compile the input YAML file including the defaults
+   * if prepend_defaults is true, otherwise using current
+   * ROC settings  as "base" settings, then writes register
+   * values onto chip.
    *
    * @return false if unable to open file
    */
-  bool loadROCSettings(int roc, const std::string& file_name);
+  void loadROCParameters(int roc, const std::string& file_name, bool prepend_defaults);
 
   /**
    * Request all of the ROC setting register values
@@ -99,7 +104,7 @@ struct PolarfireTarget {
    * to be "decompiled", i.e. the the registr values are
    * unpacked into the parameter values.
    */
-  bool dumpSettings(int roc, const std::string& file_name, bool decompile);
+  void dumpSettings(int roc, const std::string& file_name, bool decompile);
 
   void prepareNewRun();
 

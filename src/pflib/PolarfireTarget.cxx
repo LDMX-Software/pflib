@@ -126,55 +126,58 @@ void PolarfireTarget::elinkStatus(std::ostream& os) {
   print_row("AUTO_COUNT", 28, 0xF);
 }
 
-bool PolarfireTarget::loadIntegerCSV(const std::string& file_name, 
+void PolarfireTarget::loadIntegerCSV(const std::string& file_name, 
     const std::function<void(const std::vector<int>&)>& Action) {
-  if (file_name.empty()) return false;
+  if (file_name.empty()) {
+    PFEXCEPTION_RAISE("Filename", "No file provided to load CSV function.");
+  }
   std::ifstream f{file_name};
-  if (not f.is_open()) return false;
+  if (not f.is_open()) {
+    PFEXCEPTION_RAISE("File", "Unable to open "+file_name+" in load CSV function.");
+  }
   while (f) {
     auto cells = getNextLineAndExtractValues(f);
     // skip comments and blank lines
     if (cells.empty()) continue;
     Action(cells);
   }
-  return true;
 }
 
-bool PolarfireTarget::loadROCSettings(int roc, const std::string& file_name) {
-  if (endsWith(file_name, ".csv")) {
-    return loadIntegerCSV(file_name,[&](const std::vector<int>& cells) {
-				      if (cells.size() == 3) 
-					hcal->roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
-				      else {
-					std::cout << 
-					  "WARNING: Ignoring ROC CSV settings line"
-					  "without exactly three columns." 
-						  << std::endl;
-				      }
-				    });
-  } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
-    try {
-      auto settings = compile(file_name);
-      for (auto page : settings) {
-        for (auto reg : page.second) {
-          hcal->roc(roc).setValue(page.first,reg.first,reg.second);
-        }
+void PolarfireTarget::loadROCRegisters(int roc, const std::string& file_name) {
+  loadIntegerCSV(file_name,[&](const std::vector<int>& cells) {
+      if (cells.size() == 3) 
+        hcal->roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
+      else {
+        std::cout << 
+          "WARNING: Ignoring ROC CSV settings line"
+          "without exactly three columns." 
+          << std::endl;
       }
-      return true;
-    } catch (const pflib::Exception& e) {
-      std::cerr << "ERROR [" << e.name() << "] " << e.message() << std::endl;
-      return false;
-    }
+    });
+}
+
+void PolarfireTarget::loadROCParameters(int roc, const std::string& file_name, bool prepend_defaults) {
+  if (prepend_defaults) {
+    // compile settings with PDF defaults added at bottom,
+    // ==> sets ALL parameters on chip
+    auto settings = compile(file_name, true);
+    hcal->roc(roc).setRegisters(settings);
   } else {
-    std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
-    return false;
+    // only change parameters that YAML file contains
+    std::map<std::string,std::map<std::string,int>> parameters;
+    extract(std::vector<std::string>{file_name}, parameters);
+    hcal->roc(roc).applyParameters(parameters);
   }
 }
 
-bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool should_decompile) {
-  if (filename.empty()) return false;
+void PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool should_decompile) {
+  if (filename.empty()) {
+    PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings.");
+  }
   std::ofstream f{filename};
-  if (not f.is_open()) return false;
+  if (not f.is_open()) {
+    PFEXCEPTION_RAISE("File", "Unable to open file "+filename+" in dump roc settings.");
+  }
 
   auto roc_obj{hcal->roc(roc)};
 
@@ -222,7 +225,6 @@ bool PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
   }
 
   f.flush();
-  return true;
 }
 
 void PolarfireTarget::prepareNewRun() {
@@ -287,8 +289,8 @@ void PolarfireTarget::enableZeroSuppression(int link, bool full_suppress) {
     uint32_t reg = wb->wb_read(tgt_DAQ_LinkFmt,(i<<7)|1);
     bool wasZS = (reg & 0x2)!=0;
     if (link >= 0 and not wasZS) {
-	    reg |= 0x4;
-	    if (not full_suppress) reg ^= 0x4;
+      reg |= 0x4;
+      if (not full_suppress) reg ^= 0x4;
     }
     wb->wb_write(tgt_DAQ_LinkFmt,(i<<7)|1,reg^0x2);
   }
@@ -329,7 +331,7 @@ std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
   bool full, empty;
   int events, esize;
   do {
-	  backend->daq_status(full, empty, events, esize);
+    backend->daq_status(full, empty, events, esize);
   } while (empty);
 
   // initialize event buffer with header words
@@ -389,7 +391,7 @@ void PolarfireTarget::setBiasSetting(int board, bool led, int hdmi, int val) {
 
 bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
   if (endsWith(file_name, ".csv")) {
-    return loadIntegerCSV(file_name,
+    loadIntegerCSV(file_name,
         [&](const std::vector<int>& cells) {
           if (cells.size() == 4) {
             setBiasSetting(cells.at(0), cells.at(1) == 1, cells.at(2), cells.at(3));
@@ -402,10 +404,8 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
         });
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
     std::cerr << "Loading settings from YAML not implemented here yet." << std::endl;
-    return false;
   } else {
     std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
-    return false;
   }
 }
 
