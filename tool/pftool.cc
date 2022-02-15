@@ -11,6 +11,7 @@
 #include <string>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
+#include "pflib/Compile.h" // for str_to_int
 #ifdef PFTOOL_ROGUE
 #include "pflib/rogue/RogueWishboneInterface.h"
 #endif
@@ -591,14 +592,14 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="POKE_REG") {
     int page=BaseMenu::readline_int("Which page? ",0);
     int entry=BaseMenu::readline_int("Offset: ",0);
-    int value=BaseMenu::readline_int("New value: ",0);
+    int value=pflib::str_to_int(BaseMenu::readline("New value: "));
   
     roc.setValue(page,entry,value);
   }
   if (cmd=="POKE_PARAM") {
     std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
     std::string param = BaseMenu::readline("Parameter: ");
-    int val = BaseMenu::readline_int("New value: ", 0);
+    int val =pflib::str_to_int(BaseMenu::readline("New value: "));
 
     try {
       roc.applyParameter(page, param, val);

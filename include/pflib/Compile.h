@@ -8,6 +8,21 @@
 namespace pflib {
 
 /**
+ * Get an integer from the input string
+ *
+ * The normal stoi (and similar) tools don't support binary inputs
+ * which are helpful in our case where sometimes the value is set
+ * in binary but each bit has a non-base-2 scale.
+ *
+ * Supported prefixes:
+ *  0b --> binary
+ *  0x --> hexidecimal
+ *  0  --> octal
+ *  none of the above --> decimal
+ */
+int str_to_int(std::string str);
+
+/**
  * Overlay a single parameter onto the input register map.
  * This only overwrites the bits that need to be changed
  * for the input parameter. Any registers that don't exist
