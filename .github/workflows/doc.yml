@@ -10,7 +10,6 @@ on:
 
 jobs:
   update-docs:
-    needs: test
     runs-on: ubuntu-20.04
     steps:
       -
