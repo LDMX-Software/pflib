@@ -844,7 +844,8 @@ INPUT_ENCODING         = UTF-8
 # C comment), *.py, *.pyw, *.f90, *.f95, *.f03, *.f08, *.f, *.for, *.tcl, *.vhd,
 # *.vhdl, *.ucf, *.qsf and *.ice.
 
-FILE_PATTERNS          = *.cxx \
+FILE_PATTERNS          = *.cc \
+                         *.cxx \
                          *.h \
                          *.h.in \
                          *.md
