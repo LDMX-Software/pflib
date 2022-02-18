@@ -26,12 +26,12 @@ var NAVTREE =
 [
   [ "fire", "index.html", [
     [ "pflib", "index.html", [
-      [ "YAML->Register \"Compilation\"", "index.html#autotoc_md23", null ],
-      [ "Communication Method", "index.html#autotoc_md24", [
-        [ "Rogue 5.9.3", "index.html#autotoc_md25", null ],
-        [ "uHal", "index.html#autotoc_md26", null ]
+      [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
+      [ "Communication Method", "index.html#autotoc_md21", [
+        [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
+        [ "uHal", "index.html#autotoc_md23", null ]
       ] ],
-      [ "Other Dependencies", "index.html#autotoc_md27", null ]
+      [ "Other Dependencies", "index.html#autotoc_md24", null ]
     ] ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
@@ -54,14 +54,14 @@ var NAVTREE =
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md29", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md34", [
-        [ "daq.status", "md_tool_README.html#autotoc_md35", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md36", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md37", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md38", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md39", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md40", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md26", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md31", [
+        [ "daq.status", "md_tool_README.html#autotoc_md32", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md33", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md34", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md35", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md36", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md37", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [

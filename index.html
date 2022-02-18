@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">fire<span id="projectnumber">&#160;v1.4</span>
+   <div id="projectname">fire<span id="projectnumber">&#160;v1.4-7-g2f08918</span>
    </div>
    <div id="projectbrief">Framework for sImulation and Reconstruction of Events</div>
   </td>
@@ -88,7 +88,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><a class="anchor" id="md_README"></a> The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends. The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.</p>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md20"></a>
 YAML-&gt;Register "Compilation"</h1>
 <p >Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> which is very light and easy to install.</p>
 <p ><b>Note</b>: Make sure to build yaml-cpp with the <code>YAML_BUILD_SHARED_LIBS=ON</code> cmake option so that we can link it properly to our code.</p>
@@ -101,23 +101,23 @@ YAML-&gt;Register "Compilation"</h1>
 <div class="line">cmake -B build -S . -DYAML_BUILD_SHARED_LIBS=ON</div>
 <div class="line">cd build</div>
 <div class="line">make install</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md24"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md21"></a>
 Communication Method</h1>
 <p >This software can communicate with the polarfire using two different methods. At least one is required to be available in order for the library to be built.</p>
-<h2><a class="anchor" id="autotoc_md25"></a>
+<h2><a class="anchor" id="autotoc_md22"></a>
 Rogue 5.9.3</h2>
 <ul>
 <li><a href="https://slaclab.github.io/rogue/index.html">Documentation</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/anaconda.html">Installng Rogue with Anaconda</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/build.html#archlinux">Installing Rogue on Archlinux</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md26"></a>
+<h2><a class="anchor" id="autotoc_md23"></a>
 uHal</h2>
 <ul>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/installation.html">Installation Docs</a></li>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/index.html">General uHAL Docs</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md27"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 Other Dependencies</h1>
 <p >Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the <code>pftool</code>. This effectively restricts us to relatively new Linux systems; however, we haven't tested this library on are large set of potentional options. </p>
 </div></div><!-- PageDoc -->
