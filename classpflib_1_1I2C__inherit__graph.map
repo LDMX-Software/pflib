@@ -1,0 +1,4 @@
+<map id="pflib::I2C" name="pflib::I2C">
+<area shape="rect" id="node1" title="Class which encapsulates the I2C controller in the Polarfire." alt="" coords="47,80,126,107"/>
+<area shape="rect" id="node2" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="5,5,168,32"/>
+</map>

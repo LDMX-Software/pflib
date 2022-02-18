@@ -1,0 +1,10 @@
+<map id="pflib::Hcal" name="pflib::Hcal">
+<area shape="rect" id="node1" title="Class representing a standard HCAL motherboard." alt="" coords="791,119,877,145"/>
+<area shape="rect" id="node2" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="5,111,185,137"/>
+<area shape="rect" id="node4" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="264,111,427,137"/>
+<area shape="rect" id="node8" href="$classpflib_1_1DAQ.html" title=" " alt="" coords="451,241,537,268"/>
+<area shape="rect" id="node3" href="$classpflib_1_1GPIO.html" title="Class which encapsulates the GPIO controller in the Polarfire." alt="" coords="581,41,672,68"/>
+<area shape="rect" id="node5" href="$classpflib_1_1I2C.html" title="Class which encapsulates the I2C controller in the Polarfire." alt="" coords="587,92,666,119"/>
+<area shape="rect" id="node6" href="$classpflib_1_1Elinks.html" title=" " alt="" coords="578,143,675,169"/>
+<area shape="rect" id="node7" href="$classpflib_1_1FastControl.html" title="Class which encapsulates the FastControl controller in the Polarfire." alt="" coords="561,193,692,220"/>
+</map>

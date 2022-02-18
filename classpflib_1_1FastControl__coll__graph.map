@@ -1,0 +1,5 @@
+<map id="pflib::FastControl" name="pflib::FastControl">
+<area shape="rect" id="node1" title="Class which encapsulates the FastControl controller in the Polarfire." alt="" coords="30,171,161,197"/>
+<area shape="rect" id="node2" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="14,95,177,121"/>
+<area shape="rect" id="node3" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="5,5,185,32"/>
+</map>

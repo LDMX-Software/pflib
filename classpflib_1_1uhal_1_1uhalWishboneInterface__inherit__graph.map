@@ -1,0 +1,5 @@
+<map id="pflib::uhal::uhalWishboneInterface" name="pflib::uhal::uhalWishboneInterface">
+<area shape="rect" id="node1" title=" " alt="" coords="87,80,274,121"/>
+<area shape="rect" id="node2" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="5,5,185,32"/>
+<area shape="rect" id="node3" href="$classpflib_1_1Backend.html" title="Abstract interface for various backend manipulations." alt="" coords="209,5,323,32"/>
+</map>

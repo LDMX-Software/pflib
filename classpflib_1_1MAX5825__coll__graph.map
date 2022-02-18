@@ -1,0 +1,6 @@
+<map id="pflib::MAX5825" name="pflib::MAX5825">
+<area shape="rect" id="node1" title="Class representing communication with the Digital&#45;Analog Converter on the HGC ROC." alt="" coords="35,260,155,287"/>
+<area shape="rect" id="node2" href="$classpflib_1_1I2C.html" title="Class which encapsulates the I2C controller in the Polarfire." alt="" coords="56,171,135,197"/>
+<area shape="rect" id="node3" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="14,95,177,121"/>
+<area shape="rect" id="node4" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="5,5,185,32"/>
+</map>
