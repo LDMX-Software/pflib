@@ -9,6 +9,14 @@
 #include "pflib/Backend.h"
 #include "pflib/Hcal.h"
 
+/**
+ * Polarfire Interaction Library
+ *
+ * This library is designed to ease the burden of configuring
+ * HGC ROCs connected to a Polarfire FPGA as well as define
+ * some helpful debugging functionalities for determining
+ * the optimal configuration of an HGC ROC.
+ */
 namespace pflib {
 
 /**

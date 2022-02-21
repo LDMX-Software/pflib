@@ -24,12 +24,20 @@ struct RegisterLocation {
   const int mask;
   /**
    * Usable constructor
+   *
+   * This constructor allows us to calculat the mask from the
+   * number of bits so that the downstream compilation functions
+   * don't have to calculate it themselves.
    */
   RegisterLocation(int r, int m, int n)
     : reg{r}, min_bit{m}, n_bits{n},
       mask{((1 << n_bits) - 1)} {}
 };
 
+/**
+ * A parameter for the HGC ROC includes one or more register locations
+ * and a default value defined in the manual.
+ */
 struct Parameter {
   /// the default parameter value
   const int def;
@@ -43,6 +51,10 @@ struct Parameter {
     : Parameter({RegisterLocation(r,m,n)},def) {}
 };
 
+/**
+ * The Look Up Table of for the Global Analog sub-blocks
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter>
 GLOBAL_ANALOG_LUT = {
   {"ON_dac_trim", Parameter(0,0,1,1)},
@@ -89,6 +101,10 @@ GLOBAL_ANALOG_LUT = {
   {"Delay9", Parameter(14,5,3,0)}
 };
 
+/**
+ * The Look Up Table of for the Reference Voltage sub-blocks
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter>
 REFERENCE_VOLTAGE_LUT = {
   {"Probe_vref_pa", Parameter(0,0,1,0)},
@@ -106,6 +122,10 @@ REFERENCE_VOLTAGE_LUT = {
   {"Probe_dc", Parameter(8,0,8,0)}
 };
 
+/**
+ * The Look Up Table of for the Master TDC sub-blocks`
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter>
 MASTER_TDC_LUT = {
   {"GLOBAL_TA_SELECT_GAIN_TOA", Parameter(0,0,4,0b0011)},
@@ -164,6 +184,10 @@ MASTER_TDC_LUT = {
   {"GLOBAL_FORCE_EN_TOT", Parameter(15,3,1,0)}
 };
 
+/**
+ * The Look Up Table of for the individual channel sub-blocks`
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
   {"Inputdac", Parameter(0,0,6,0b011111)},
   {"Dacb", Parameter({RegisterLocation(2,6,2),RegisterLocation(1,6,2),RegisterLocation(0,6,2)},0b111111)},
@@ -196,6 +220,10 @@ const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
   {"Adc_pedestal", Parameter(12,0,8,0)}
 };
 
+/**
+ * The Look Up Table of for the Digital Half sub-blocks`
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
   {"SelRawData", Parameter(0,0,1,1)},
   {"SelTC4"    , Parameter(0,1,1,1)},
@@ -217,6 +245,10 @@ const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
   {"Tot_P3"    , Parameter(14,0,7,0)}
 };
 
+/**
+ * The Look Up Table of for the Top sub-block
+ * of an HGC ROC
+ */
 const std::map<std::string,Parameter> TOP_LUT = {
   {"EN_LOCK_CONTROL", Parameter(0,0,1,1)},
   {"ERROR_LIMIT_SC" , Parameter(0,1,3,0b010)},
@@ -248,6 +280,9 @@ const std::map<std::string,Parameter> TOP_LUT = {
   {"En_pll_ext"    , Parameter(7,7,1,0)}
 };
 
+/**
+ * Entire parameter Look Up Table.
+ */
 const std::map<std::string,std::pair<int,std::map<std::string,Parameter>>>
 PARAMETER_LUT = {
   {"Global_Analog_0", { 297, GLOBAL_ANALOG_LUT }},
@@ -464,13 +499,22 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
   return settings;
 }
 
+/**
+ * Hidden functions to avoid users using them
+ */
 namespace detail {
 
 /**
- * Exctract a map of page_name,param_name to their values by crawling the YAML
- * tree.
+ * Extract a map of page_name, param_name to their values by crawling the YAML tree.
+ *
+ * @throw pflib::Exception if YAML file has a bad format (root node is not a map,
+ * page nodes are not maps, page name doesn't match any pages, or parameter's value
+ * does not exist).
+ *
+ * @param[in] params a YAML::Node to start extraction from
+ * @param[in,out] settings map of names to values for extract parameters
  */
-void apply(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
+void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run
   static std::vector<std::string> page_names;
@@ -524,9 +568,9 @@ void extract(const std::vector<std::string>& setting_files,
       PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
     }
     if (setting_yaml.IsSequence()) {
-      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::apply(setting_yaml[i],settings);
+      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::extract(setting_yaml[i],settings);
     } else {
-      detail::apply(setting_yaml, settings);
+      detail::extract(setting_yaml, settings);
     }
   }
 }

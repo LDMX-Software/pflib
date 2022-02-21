@@ -21,15 +21,19 @@ namespace pflib {
  * in binary but each bit has a non-base-2 scale.
  *
  * Supported prefixes:
- *  0b --> binary
- *  0x --> hexidecimal
- *  0  --> octal
- *  none of the above --> decimal
+ * - `0b` --> binary
+ * - `0x` --> hexidecimal
+ * - `0`  --> octal
+ * - none of the above --> decimal
+ *
+ * @param[in] str string form of integer
+ * @return integer decoded from string
  */
 int str_to_int(std::string str);
 
 /**
  * Overlay a single parameter onto the input register map.
+ *
  * This only overwrites the bits that need to be changed
  * for the input parameter. Any registers that don't exist
  * will be set to 0 before being written to.
@@ -52,6 +56,12 @@ int str_to_int(std::string str);
  * - EN{1,2,3} -> eT_amplitude (three bit field)
  * - EN-pE{0,1,2} -> eT_pre_scale (three bit field)
  * - S{0,1} -> eT_pre_phase (two bit field)
+ *
+ * @param[in] page name of page parameter is on
+ * @param[in] param name of parameter
+ * @param[in] val value parameter should be
+ * @param[in,out] registers page numbers, register numbers, and register values
+ *  to apply parameter to
  */
 void compile(const std::string& page, const std::string& param, const int& val,
     std::map<int,std::map<int,uint8_t>>& registers);
@@ -60,6 +70,11 @@ void compile(const std::string& page, const std::string& param, const int& val,
  * Compile a single parameter into the (potentially several)
  * registers that it should set. Any other bits in the register(s)
  * that this parameter affects will be set to zero.
+ *
+ * @param[in] page_name name of page parameter is on
+ * @param[in] param_name name of parameter
+ * @param[in] val value parameter should be set to
+ * @return page numbers, register numbers, and register values to set
  */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::string& page_name, const std::string& param_name, const int& val);
@@ -68,12 +83,14 @@ compile(const std::string& page_name, const std::string& param_name, const int& 
  * Compiling which translates parameter values for the HGCROC
  * into register values that can be written to the chip
  *
+ * ```
  * ret_map[page_number][register_number] == register_value
- *
+ * ```
+ * 
  * The input settings map has an expected structure:
- *  key1: name of page (e.g. Channel_0, or Digital_Half_1)
- *  key2: name of parameter (e.g. Inputdac)
- *  val: value of parameter
+ * - key1: name of page (e.g. Channel_0, or Digital_Half_1)
+ * - key2: name of parameter (e.g. Inputdac)
+ * - val: value of parameter
  *
  * The pages that a specific parameter and its value are applied
  * to are decided by if key1 is a substring of the full page name.
@@ -81,9 +98,12 @@ compile(const std::string& page_name, const std::string& param_name, const int& 
  * a partial page name that is a substring of the pages that you
  * wish to apply the parameter to. For example,
  *
- *  Channel_ - matches all 71 channels pages
- *  CALIB    - matches both calib channel pages
- *  Global_Analog - matches both global analog pages
+ * - Channel_ - matches all 71 channels pages
+ * - CALIB    - matches both calib channel pages
+ * - Global_Analog - matches both global analog pages
+ *
+ * @param[in] settings page names, parameter names, and parameter value settings
+ * @return page numbers, register numbers, and register value settings
  */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::map<std::string,std::map<std::string,int>>& settings);
@@ -99,6 +119,9 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings);
  * the input compiled config. If any of the registers 
  * required to deduce a parameter is missing, warnings
  * are printed to std::cerr and the parameters is skipped.
+ *
+ * @param[in] compiled_config page number, register number, register value settings
+ * @return page name, parameter name, parameter value of registers provided
  */
 std::map<std::string,std::map<std::string,int>>
 decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
@@ -106,18 +129,32 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
 /**
  * Extract the page name, parameter name, and parameter values from
  * the YAML files into the passed settings map
+ *
+ * @param[in] setting_files list of YAML files to extract in order
+ * @param[in,out] settings page name, parameter name, parameter value settings
+ *  extracted from YAML file(s)
  */
 void extract(const std::vector<std::string>& setting_files, 
     std::map<std::string,std::map<std::string,int>>& settings);
  
 /**
  * compile a series of yaml files
+ *
+ * @param[in] setting_files list of YAML files to extract in order and compile
+ * @param[in] prepend_defaults start construction of settings map by including
+ *    defaults from **all** parameter settings
+ * @return page numbers, register numbers, and register value settings
  */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::vector<std::string>& setting_files, bool prepend_defaults = true);
 
 /**
  * short hand for a single setting file
+ *
+ * @param[in] setting_file YAML file to extract and compile
+ * @param[in] prepend_defaults start construction of settings map by including
+ *    defaults from **all** parameter settings
+ * @return page numbers, register numbers, and register value settings
  */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::string& setting_file, bool prepend_defaults = true);
