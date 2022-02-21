@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-1-g1d37c89</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-2-g31190ff</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -90,6 +90,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <div class="textblock"><p ><a class="anchor" id="md_README"></a> The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends. The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.</p>
 <h1><a class="anchor" id="autotoc_md20"></a>
 YAML-&gt;Register "Compilation"</h1>
+<p >The more detailed documentation for this compilation can be found in the <a class="el" href="Compile_8h.html" title="Definition of compiling and decompiling functions between page numbers, register numbers,...">pflib/Compile.h</a> file.</p>
 <p >Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> which is very light and easy to install.</p>
 <p ><b>Note</b>: Make sure to build yaml-cpp with the <code>YAML_BUILD_SHARED_LIBS=ON</code> cmake option so that we can link it properly to our code.</p>
 <p >An outline of the terminal commands necessary to install yaml-cpp is given below.</p>

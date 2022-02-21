@@ -1,6 +1,6 @@
 var annotated_dup =
 [
-    [ "pflib", null, [
+    [ "pflib", "namespacepflib.html", [
       [ "rogue", null, [
         [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", "classpflib_1_1rogue_1_1RogueWishboneInterface" ]
       ] ],

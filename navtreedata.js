@@ -63,7 +63,12 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ]
+      ] ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -84,9 +89,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1WishboneTarget.html#a664d86046a02474f2faca03410e8e9f8",
-"cpp/io/c/tmpfile.html",
-"cpp/string/multibyte/mbstowcs.html"
+"classpflib_1_1rogue_1_1RogueWishboneInterface.html",
+"cpp/io/c/vfscanf.html",
+"cpp/string/wide/iswblank.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
