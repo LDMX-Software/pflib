@@ -40,6 +40,18 @@ int str_to_int(std::string str);
  * This accesses the PARAMETER_LUT map, its submaps, and the register_values map without
  * any checks so it may throw a std::out_of_range error. Do checking of names
  * before calling this one.
+ *
+ * **Most** of the parameters have the same names as the ones in the manual;
+ * however, a few parameters on the Top sub-block (page) different in format
+ * and so we have changed them here. The translations from the manual to what
+ * is used here are listed below.
+ * - DIV_PLL_{A,B} -> DIV_PLL (two bit field)
+ * - EN{1,2,3}_probe_pll -> PLL_probe_amplitude (three bit field)
+ * - EN-pE{0,1,2}_probe_pll -> PLL_probe_pre_scale (three bit field)
+ * - S{0,1}_probe_pll -> PLL_probe_pre_phase (two bit field)
+ * - EN{1,2,3} -> eT_amplitude (three bit field)
+ * - EN-pE{0,1,2} -> eT_pre_scale (three bit field)
+ * - S{0,1} -> eT_pre_phase (two bit field)
  */
 void compile(const std::string& page, const std::string& param, const int& val,
     std::map<int,std::map<int,uint8_t>>& registers);
