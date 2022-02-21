@@ -23,7 +23,6 @@
 
 using pflib::PolarfireTarget;
 
-typedef Menu<PolarfireTarget> uMenu ;
 
 static void RunMenu( PolarfireTarget* pft_  )  ;
 
@@ -200,178 +199,140 @@ int main(int argc, char* argv[]) {
 }
 
 void RunMenu( PolarfireTarget* pft_ ) {
+  
+  using pfMenu = Menu<PolarfireTarget>;
 
-uMenu::Line menu_wb_lines[] = { 
-  uMenu::Line("RESET", "Enable/disable (toggle)",  &wb_action ),
-  uMenu::Line("READ", "Read from an address",  &wb_action ),
-  uMenu::Line("BLOCKREAD", "Read several words starting at an address",  &wb_action ),
-  uMenu::Line("WRITE", "Write to an address",  &wb_action ),
-  uMenu::Line("STATUS", "Wishbone errors counters",  &wb_action ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_wishbone(menu_wb_lines);
-
-uMenu::Line menu_ldmx_i2c_lines[] = {
-  uMenu::Line("BUS","Pick the I2C bus to use", &ldmx_i2c ),
-  uMenu::Line("READ", "Read from an address",  &ldmx_i2c ),
-  uMenu::Line("WRITE", "Write to an address",  &ldmx_i2c ),
-  uMenu::Line("MULTIREAD", "Read from an address",  &ldmx_i2c ),
-  uMenu::Line("MULTIWRITE", "Write to an address",  &ldmx_i2c ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_i2c(menu_ldmx_i2c_lines);
-
-uMenu::Line menu_ldmx_link_lines[] = {
-  uMenu::Line("STATUS","Dump link status", &ldmx_link ),
-  uMenu::Line("CONFIG","Setup link", &ldmx_link ),
-  uMenu::Line("SPY", "Spy on the uplink",  &ldmx_link ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_link(menu_ldmx_link_lines);
-
-uMenu::Line menu_ldmx_elinks_lines[] = {
-  uMenu::Line("HARD_RESET","Hard reset of the PLL", &ldmx_elinks),
-  uMenu::Line("STATUS", "Elink status summary",  &ldmx_elinks ),
-  uMenu::Line("SPY", "Spy on an elink",  &ldmx_elinks ),
-  uMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &ldmx_elinks),
-  uMenu::Line("SCAN", "Scan on an elink",  &ldmx_elinks ),
-  uMenu::Line("DELAY", "Set the delay on an elink", &ldmx_elinks),
-  uMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &ldmx_elinks),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_elinks(menu_ldmx_elinks_lines);
-
-uMenu::Line menu_ldmx_roc_lines[] =
-  {
-   uMenu::Line("HARDRESET","Hard reset to all rocs", &ldmx_roc),
-   uMenu::Line("SOFTRESET","Soft reset to all rocs", &ldmx_roc),
-   uMenu::Line("RESYNCLOAD","ResyncLoad to all rocs", &ldmx_roc),
-   uMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
-   uMenu::Line("CHAN","Dump link status", &ldmx_roc ),
-   uMenu::Line("PAGE","Dump a page", &ldmx_roc ),
-   uMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
-   uMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
-   uMenu::Line("POKE","Alias for POKE_PARAM", &ldmx_roc ),
-   uMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &ldmx_roc ),
-   uMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &ldmx_roc ),
-   uMenu::Line("LOAD","Alias for LOAD_PARAM", &ldmx_roc ),
-   uMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
-   uMenu::Line("QUIT","Back to top menu"),
-   uMenu::Line()
-  };
-
-uMenu menu_ldmx_roc(ldmx_roc_render, menu_ldmx_roc_lines);
-
-uMenu::Line menu_ldmx_bias_lines[] = {
-              //  uMenu::Line("STATUS","Read the bias line settings", &ldmx_bias ),
-  uMenu::Line("INIT","Initialize a board", &ldmx_bias ),
-  uMenu::Line("SET","Set a specific bias line setting", &ldmx_bias ),
-  uMenu::Line("LOAD","Load bias values from file", &ldmx_bias ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_bias(menu_ldmx_bias_lines);
-
-
-uMenu::Line menu_ldmx_fc_lines[] = {
-  uMenu::Line("STATUS","Check status and counters", &ldmx_fc ),
-  uMenu::Line("SW_L1A","Send a software L1A", &ldmx_fc ),
-  uMenu::Line("LINK_RESET","Send a link reset", &ldmx_fc ),
-  uMenu::Line("BUFFER_CLEAR","Send a buffer clear", &ldmx_fc ),
-  uMenu::Line("COUNTER_RESET","Reset counters", &ldmx_fc ),
-  uMenu::Line("FC_RESET","Reset the fast control", &ldmx_fc ),
-  uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
-  uMenu::Line("CALIB","Setup calibration pulse", &ldmx_fc ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_fc(menu_ldmx_fc_lines);
-
-uMenu::Line menu_ldmx_daq_debug_lines[] = {
-  uMenu::Line("STATUS","Provide the status", &ldmx_daq_debug ),
-  uMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &ldmx_daq_debug ),
-  uMenu::Line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  &ldmx_daq_debug ),
-  uMenu::Line("READ", "Read an event", &ldmx_daq),
-  uMenu::Line("ROC_LOAD", "Load a practice ROC events from a file",  &ldmx_daq_debug ),
-  uMenu::Line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  &ldmx_daq_debug ),
-  uMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &ldmx_daq_debug ),
-  uMenu::Line("FULL_SEND", "Send the buffer to the off-detector electronics",  &ldmx_daq_debug ),
-  uMenu::Line("SPY", "Spy on the front-end buffer",  &ldmx_daq_debug ),
-  uMenu::Line("IBSPY","Spy on an input buffer",  &ldmx_daq_debug ),
-  uMenu::Line("EFSPY","Spy on an event formatter buffer",  &ldmx_daq_debug ),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_daq_debug(menu_ldmx_daq_debug_lines);
-
-uMenu::Line menu_ldmx_daq_setup_lines[] = {
-  uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq_setup),
-  uMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq_setup),
-  uMenu::Line("ZS", "Toggle ZS status", &ldmx_daq_setup),
-  uMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
-  uMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
-  uMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
-  uMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
-  uMenu::Line("QUIT","Back to DAQ menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_daq_setup(menu_ldmx_daq_setup_lines);
-
- uMenu::Line menu_ldmx_daq_lines[] = {
-  uMenu::Line("DEBUG", "Debugging menu",  &menu_ldmx_daq_debug ),
-  uMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq),
-  uMenu::Line("SETUP", "Setup the DAQ", &menu_ldmx_daq_setup),
-  uMenu::Line("RESET", "Reset the DAQ", &ldmx_daq),
-  uMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
-  uMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
-  uMenu::Line("CHARGE","Take a charge-injection run", &ldmx_daq),
-  uMenu::Line("QUIT","Back to top menu"),
-  uMenu::Line()
-};
-
-uMenu menu_ldmx_daq(menu_ldmx_daq_lines);
-
-     uMenu::Line menu_expert_lines[] = { 
-          uMenu::Line("OLINK","Optical link functions", &menu_ldmx_link),
-          uMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
-          uMenu::Line("I2C","Access the I2C Core", &menu_ldmx_i2c ),
-          uMenu::Line("QUIT","Back to top menu"),
-          uMenu::Line()
-     };
-
-     uMenu menu_expert(menu_expert_lines);
-
-     uMenu::Line menu_utop_lines[] = { 
-       uMenu::Line("STATUS","Status summary", &ldmx_status),
-       uMenu::Line("FAST_CONTROL","Fast Control", &menu_ldmx_fc ),
-       uMenu::Line("ROC","ROC Configuration", &menu_ldmx_roc ),
-       uMenu::Line("BIAS","BIAS voltage setting", &menu_ldmx_bias ),
-       uMenu::Line("ELINKS","Manage the elinks", &menu_ldmx_elinks ),
-       uMenu::Line("DAQ","DAQ", &menu_ldmx_daq ),
-       uMenu::Line("EXPERT","Expert functions", &menu_expert ),
-       uMenu::Line() 
-     };
-     uMenu menu_utop(menu_utop_lines);
-
-     menu_utop.addLine(uMenu::Line("EXIT", "Exit this tool" ));
-
-     menu_utop.steer( pft_ ) ;
-
+  pfMenu menu_wishbone({
+    pfMenu::Line("RESET", "Enable/disable (toggle)",  &wb_action ),
+    pfMenu::Line("READ", "Read from an address",  &wb_action ),
+    pfMenu::Line("BLOCKREAD", "Read several words starting at an address",  &wb_action ),
+    pfMenu::Line("WRITE", "Write to an address",  &wb_action ),
+    pfMenu::Line("STATUS", "Wishbone errors counters",  &wb_action ),
+    pfMenu::Line("QUIT","Back to top menu")
+    });
+  
+  pfMenu menu_ldmx_i2c({
+    pfMenu::Line("BUS","Pick the I2C bus to use", &ldmx_i2c ),
+    pfMenu::Line("READ", "Read from an address",  &ldmx_i2c ),
+    pfMenu::Line("WRITE", "Write to an address",  &ldmx_i2c ),
+    pfMenu::Line("MULTIREAD", "Read from an address",  &ldmx_i2c ),
+    pfMenu::Line("MULTIWRITE", "Write to an address",  &ldmx_i2c ),
+    pfMenu::Line("QUIT","Back to top menu")
+    });
+  
+  pfMenu menu_ldmx_link({
+    pfMenu::Line("STATUS","Dump link status", &ldmx_link ),
+    pfMenu::Line("CONFIG","Setup link", &ldmx_link ),
+    pfMenu::Line("SPY", "Spy on the uplink",  &ldmx_link ),
+    pfMenu::Line("QUIT","Back to top menu")
+    });
+  
+  pfMenu menu_ldmx_elinks({
+    pfMenu::Line("HARD_RESET","Hard reset of the PLL", &ldmx_elinks),
+    pfMenu::Line("STATUS", "Elink status summary",  &ldmx_elinks ),
+    pfMenu::Line("SPY", "Spy on an elink",  &ldmx_elinks ),
+    pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &ldmx_elinks),
+    pfMenu::Line("SCAN", "Scan on an elink",  &ldmx_elinks ),
+    pfMenu::Line("DELAY", "Set the delay on an elink", &ldmx_elinks),
+    pfMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &ldmx_elinks),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+  
+  pfMenu menu_ldmx_roc(ldmx_roc_render, {
+     pfMenu::Line("HARDRESET","Hard reset to all rocs", &ldmx_roc),
+     pfMenu::Line("SOFTRESET","Soft reset to all rocs", &ldmx_roc),
+     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs", &ldmx_roc),
+     pfMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
+     pfMenu::Line("CHAN","Dump link status", &ldmx_roc ),
+     pfMenu::Line("PAGE","Dump a page", &ldmx_roc ),
+     pfMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
+     pfMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
+     pfMenu::Line("POKE","Alias for POKE_PARAM", &ldmx_roc ),
+     pfMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &ldmx_roc ),
+     pfMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &ldmx_roc ),
+     pfMenu::Line("LOAD","Alias for LOAD_PARAM", &ldmx_roc ),
+     pfMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
+     pfMenu::Line("QUIT","Back to top menu")
+    });
+  
+  pfMenu menu_ldmx_bias({
+  //  pfMenu::Line("STATUS","Read the bias line settings", &ldmx_bias ),
+    pfMenu::Line("INIT","Initialize a board", &ldmx_bias ),
+    pfMenu::Line("SET","Set a specific bias line setting", &ldmx_bias ),
+    pfMenu::Line("LOAD","Load bias values from file", &ldmx_bias ),
+    pfMenu::Line("QUIT","Back to top menu"),
+  });
+  
+  pfMenu menu_ldmx_fc({
+    pfMenu::Line("STATUS","Check status and counters", &ldmx_fc ),
+    pfMenu::Line("SW_L1A","Send a software L1A", &ldmx_fc ),
+    pfMenu::Line("LINK_RESET","Send a link reset", &ldmx_fc ),
+    pfMenu::Line("BUFFER_CLEAR","Send a buffer clear", &ldmx_fc ),
+    pfMenu::Line("COUNTER_RESET","Reset counters", &ldmx_fc ),
+    pfMenu::Line("FC_RESET","Reset the fast control", &ldmx_fc ),
+    pfMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
+    pfMenu::Line("CALIB","Setup calibration pulse", &ldmx_fc ),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+  
+  pfMenu menu_ldmx_daq_debug({
+    pfMenu::Line("STATUS","Provide the status", &ldmx_daq_debug ),
+    pfMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &ldmx_daq_debug ),
+    pfMenu::Line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  &ldmx_daq_debug ),
+    pfMenu::Line("READ", "Read an event", &ldmx_daq),
+    pfMenu::Line("ROC_LOAD", "Load a practice ROC events from a file",  &ldmx_daq_debug ),
+    pfMenu::Line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  &ldmx_daq_debug ),
+    pfMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &ldmx_daq_debug ),
+    pfMenu::Line("FULL_SEND", "Send the buffer to the off-detector electronics",  &ldmx_daq_debug ),
+    pfMenu::Line("SPY", "Spy on the front-end buffer",  &ldmx_daq_debug ),
+    pfMenu::Line("IBSPY","Spy on an input buffer",  &ldmx_daq_debug ),
+    pfMenu::Line("EFSPY","Spy on an event formatter buffer",  &ldmx_daq_debug ),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+  
+  pfMenu menu_ldmx_daq_setup({
+    pfMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq_setup),
+    pfMenu::Line("ENABLE", "Toggle enable status", &ldmx_daq_setup),
+    pfMenu::Line("ZS", "Toggle ZS status", &ldmx_daq_setup),
+    pfMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &ldmx_daq_setup),
+    pfMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
+    pfMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
+    pfMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
+    pfMenu::Line("QUIT","Back to DAQ menu")
+  });
+  
+  pfMenu menu_ldmx_daq({
+    pfMenu::Line("DEBUG", "Debugging menu",  &menu_ldmx_daq_debug ),
+    pfMenu::Line("STATUS", "Status of the DAQ", &ldmx_daq),
+    pfMenu::Line("SETUP", "Setup the DAQ", &menu_ldmx_daq_setup),
+    pfMenu::Line("RESET", "Reset the DAQ", &ldmx_daq),
+    pfMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
+    pfMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
+    pfMenu::Line("CHARGE","Take a charge-injection run", &ldmx_daq),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+  
+  pfMenu menu_expert_lines({ 
+    pfMenu::Line("OLINK","Optical link functions", &menu_ldmx_link),
+    pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
+    pfMenu::Line("I2C","Access the I2C Core", &menu_ldmx_i2c ),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+  
+  pfMenu menu_utop({ 
+    pfMenu::Line("STATUS","Status summary", &ldmx_status),
+    pfMenu::Line("FAST_CONTROL","Fast Control", &menu_ldmx_fc ),
+    pfMenu::Line("ROC","ROC Configuration", &menu_ldmx_roc ),
+    pfMenu::Line("BIAS","BIAS voltage setting", &menu_ldmx_bias ),
+    pfMenu::Line("ELINKS","Manage the elinks", &menu_ldmx_elinks ),
+    pfMenu::Line("DAQ","DAQ", &menu_ldmx_daq ),
+    pfMenu::Line("EXPERT","Expert functions", &menu_expert )
+  });
+  
+  menu_utop.addLine(pfMenu::Line("EXIT", "Exit this tool" ));
+  
+  menu_utop.steer( pft_ ) ;
 }
-
-
 
 void wb_action( const std::string& cmd, PolarfireTarget* pft ) {
   static uint32_t target=0;
