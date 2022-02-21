@@ -1,3 +1,9 @@
+/**
+ * @file Compile.h
+ * Definition of compiling and decompiling functions
+ * between page numbers, register numbers, and register values
+ * to and from page names, parameter names, and parameter values.
+ */
 #ifndef PFLIB_COMPILE_H
 #define PFLIB_COMPILE_H
 
@@ -93,12 +99,14 @@ void extract(const std::vector<std::string>& setting_files,
     std::map<std::string,std::map<std::string,int>>& settings);
  
 /**
- * Compile a series of yaml files
+ * compile a series of yaml files
  */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::vector<std::string>& setting_files, bool prepend_defaults = true);
 
-/// short hand for a single setting file
+/**
+ * short hand for a single setting file
+ */
 std::map<int,std::map<int,uint8_t>>
 compile(const std::string& setting_file, bool prepend_defaults = true);
 
