@@ -24,15 +24,13 @@
 */
 var NAVTREE =
 [
-  [ "fire", "index.html", [
-    [ "pflib", "index.html", [
-      [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
-      [ "Communication Method", "index.html#autotoc_md21", [
-        [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
-        [ "uHal", "index.html#autotoc_md23", null ]
-      ] ],
-      [ "Other Dependencies", "index.html#autotoc_md24", null ]
+  [ "pflib", "index.html", [
+    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
+    [ "Communication Method", "index.html#autotoc_md21", [
+      [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
+      [ "uHal", "index.html#autotoc_md23", null ]
     ] ],
+    [ "Other Dependencies", "index.html#autotoc_md24", null ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
       [ "Features", "md_docs_doxygen_awesome_css_README.html#autotoc_md2", null ],
