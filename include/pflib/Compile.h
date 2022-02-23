@@ -45,7 +45,7 @@ int str_to_int(std::string str);
  * any checks so it may throw a std::out_of_range error. Do checking of names
  * before calling this one.
  *
- * **Most** of the parameters have the same names as the ones in the manual;
+ * **Most** of the parameters have the same names as the ones in the \hgcrocmanual;
  * however, a few parameters on the Top sub-block (page) different in format
  * and so we have changed them here. The translations from the manual to what
  * is used here are listed below.
