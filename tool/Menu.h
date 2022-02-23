@@ -212,7 +212,7 @@ class Menu : public BaseMenu {
     /// the name of this line
     const char* name_;
     /// short description for what this line is
-    const char* desc_;
+    const char* desc;
     /// pointer to sub menu (if it exists)
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
