@@ -557,14 +557,14 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="POKE_REG") {
     int page=BaseMenu::readline_int("Which page? ",0);
     int entry=BaseMenu::readline_int("Offset: ",0);
-    int value=BaseMenu::readline("New value: ");
+    int value=BaseMenu::readline_int("New value: ");
   
     roc.setValue(page,entry,value);
   }
   if (cmd=="POKE"||cmd=="POKE_PARAM") {
     std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
     std::string param = BaseMenu::readline("Parameter: ");
-    int val = BaseMenu::readline("New value: ");
+    int val = BaseMenu::readline_int("New value: ");
 
     roc.applyParameter(page, param, val);
   }
