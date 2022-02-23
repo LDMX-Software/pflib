@@ -238,7 +238,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
   });
   
-  pfMenu menu_ldmx_roc(ldmx_roc_render, {
+  pfMenu menu_ldmx_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &ldmx_roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &ldmx_roc),
      pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs", &ldmx_roc),
@@ -253,7 +253,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("LOAD","Alias for LOAD_PARAM", &ldmx_roc ),
      pfMenu::Line("DUMP","Dump hgcroc settings to a file", &ldmx_roc ),
      pfMenu::Line("QUIT","Back to top menu")
-    });
+    }, ldmx_roc_render);
   
   pfMenu menu_ldmx_bias({
   //  pfMenu::Line("STATUS","Read the bias line settings", &ldmx_bias ),
