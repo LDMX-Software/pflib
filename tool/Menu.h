@@ -152,13 +152,14 @@ class Menu : public BaseMenu {
    public:
     /// define a menu line that uses a single target command
     Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_(0), single_cmd_(f), multiple_cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(0), cmd_(f) {}
     /// define a menu line that uses a multiple command function
     Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(f) {}
+        : name_(n), desc_(d), sub_menu_(0), 
+          cmd_([&](TargetType* p) { f(this->name_, p); }) {}
     /// define a menu line that enters a sub menu
     Line(const char* n, const char* d, Menu* m)
-        : name_(n), desc_(d), sub_menu_(m), single_cmd_(0), multiple_cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(m), cmd_(0) {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -166,10 +167,7 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(0) {}
-
-
-    
+        : name_(n), desc_(d), sub_menu_(0), cmd_(0) {}
     
     /**
      * Execute this line
@@ -187,8 +185,7 @@ class Menu : public BaseMenu {
         sub_menu_->steer(p);
       } else {
         try {
-          if (single_cmd_) single_cmd_(p);
-          else if (multiple_cmd_) multiple_cmd_(name(), p);
+          if (cmd_) cmd_(p);
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
             << "] : " << e.message() << std::endl;
@@ -202,7 +199,7 @@ class Menu : public BaseMenu {
      * Check if this line is an empty one
      */
     bool empty() const {
-      return sub_menu_ == 0 and single_cmd_ == 0 and multiple_cmd_ == 0;
+      return sub_menu_ == 0 and cmd_ == 0;
     }
 
     const char* name() const { return name_; }
@@ -217,8 +214,6 @@ class Menu : public BaseMenu {
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
     SingleTargetCommand single_cmd_;
-    /// function pointer to execute (if exists)
-    MultipleTargetCommands multiple_cmd_;
     /// is this a null line?
     bool is_null;
   };
@@ -236,6 +231,7 @@ class Menu : public BaseMenu {
   /**
    * Construct a menu with a rendering function and the input lines
    */
+<<<<<<< HEAD
   Menu(RenderFuncType f, std::initializer_list<Line> lines)
       : render_func_(f), lines_{lines} {}
 
@@ -244,18 +240,39 @@ class Menu : public BaseMenu {
    */
   Menu(std::initializer_list<Line> lines)
     : Menu(0,lines) {}
+=======
+  Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
+      : lines_{lines} render_func_{0} {}
+>>>>>>> b187fb3... clean up cmd handling in menus, add steer docs
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
 
-  /// give control over the target to this menu
+  /**
+   * give control over the target to this menu
+   *
+   * We enter a do-while loop that continues until the user selects
+   * an empty line to execute. The contents of the do-while loop
+   * follow the procedure below.
+   *
+   * 1. If we have a render function set, we give the target to it.
+   * 2. If we aren't in batch mode, we print all of our lines and 
+   *    their descriptions.
+   * 3. Use the readline function to get the requested command from
+   *    the user
+   * 4. Loop through our lines to find all available matches.
+   * 5. Execute the line if there is a unique match; otherwise,
+   *    print an error message.
+   *
+   * @param[in] p_target pointer to the target
+   */
   void steer(TargetType* p_target);
 
  private:
-  /// function pointer to render the menu prompt
-  RenderFuncType render_func_;
   /// lines in this menu
   std::vector<Line> lines_;
+  /// function pointer to render the menu prompt
+  RenderFuncType render_func_;
 };
 
 template <class TargetType>
@@ -287,7 +304,7 @@ void Menu<TargetType>::steer(TargetType* p_target) {
       add_to_history(theMatch->name());
       theMatch->execute(p_target);
     }
-  } while (theMatch == 0 or not theMatch->empty());
+  } while (theMatch != 0 and theMatch->empty());
 }
 
 #endif  // PFLIB_TOOL_MENU_H
