@@ -7,6 +7,10 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <functional>
+#include <iostream>
+
+#include "pflib/Exception.h"
 
 /**
  * Compile-time constant for determining verbosity
@@ -114,7 +118,7 @@ class BaseMenu {
    *
    * @param[in] cmd Command string that was executed
    */
-  void add_to_history(const std::string& cmd);
+  void add_to_history(const std::string& cmd) const;
 
   /// the ordered list of commands that have been executed
   static std::list<std::string> cmdTextQueue_;
@@ -129,9 +133,9 @@ template <class TargetType>
 class Menu : public BaseMenu {
  public:
   /// type of function which does something with the target
-  using SingleTargetCommand = void (*)(TargetType*);
+  using SingleTargetCommand = std::function<void(TargetType*)>;
   /// type of function which does one of several commands with target
-  using MultipleTargetCommands = void (*)(const std::string&, TargetType*);
+  using MultipleTargetCommands = std::function<void(const std::string&, TargetType*)>;
 
   /**
    * A command in the menu
@@ -205,7 +209,6 @@ class Menu : public BaseMenu {
     const char* name() const { return name_; }
     const char* desc() const { return desc_; }
    private:
-    friend class BaseMenu;
     /// the name of this line
     const char* name_;
     /// short description for what this line is
@@ -213,7 +216,7 @@ class Menu : public BaseMenu {
     /// pointer to sub menu (if it exists)
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
-    SingleTargetCommand single_cmd_;
+    SingleTargetCommand cmd_;
     /// is this a null line?
     bool is_null;
   };
@@ -231,19 +234,8 @@ class Menu : public BaseMenu {
   /**
    * Construct a menu with a rendering function and the input lines
    */
-<<<<<<< HEAD
-  Menu(RenderFuncType f, std::initializer_list<Line> lines)
-      : render_func_(f), lines_{lines} {}
-
-  /**
-   * Construct a menu without a rendering function
-   */
-  Menu(std::initializer_list<Line> lines)
-    : Menu(0,lines) {}
-=======
   Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
-      : lines_{lines} render_func_{0} {}
->>>>>>> b187fb3... clean up cmd handling in menus, add steer docs
+      : lines_{lines} render_func_{f} {}
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
@@ -266,7 +258,7 @@ class Menu : public BaseMenu {
    *
    * @param[in] p_target pointer to the target
    */
-  void steer(TargetType* p_target);
+  void steer(TargetType* p_target) const;
 
  private:
   /// lines in this menu
@@ -276,7 +268,7 @@ class Menu : public BaseMenu {
 };
 
 template <class TargetType>
-void Menu<TargetType>::steer(TargetType* p_target) {
+void Menu<TargetType>::steer(TargetType* p_target) const {
   const Line* theMatch = 0;
   do {
     printf("\n");

@@ -9,7 +9,7 @@
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 
-void BaseMenu::add_to_history(const std::string& cmd) {
+void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
 }
 
@@ -89,7 +89,7 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-  return pflib::str_to_int(BaseMenu::readline(prompt).c_str(), 0, 0);
+  return pflib::str_to_int(BaseMenu::readline(prompt).c_str());
 }
 
 double BaseMenu::readline_float(const std::string& prompt) {
@@ -99,7 +99,7 @@ double BaseMenu::readline_float(const std::string& prompt) {
 int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
-  return pflib::str_to_int(BaseMenu::readline(prompt, buffer).c_str(), 0, 0);
+  return pflib::str_to_int(BaseMenu::readline(prompt, buffer).c_str());
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
