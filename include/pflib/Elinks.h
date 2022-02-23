@@ -36,6 +36,7 @@ class Elinks : public WishboneTarget {
 private:
   int n_links;
   std::vector<bool> m_linksActive;
+  std::vector<int> phaseDelay;
 };
 
   

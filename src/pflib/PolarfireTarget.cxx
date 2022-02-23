@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <unistd.h>
 
 #include <yaml-cpp/yaml.h>
 
@@ -112,6 +113,7 @@ void PolarfireTarget::elinkStatus(std::ostream& os) {
   print_row("IS_IDLE"  , 3, 0x1);
   print_row("IS_ALIGNED", 4, 0x1);
 
+  /*
   os << std::setw(20) << "AUTO_LOCKED";
   for (int i{0}; i < NLINKS; i++) {
     os << std::setw(4);
@@ -120,10 +122,10 @@ void PolarfireTarget::elinkStatus(std::ostream& os) {
     os << " ";
   }
   os << "\n";
-
-  print_row("AUTO_PHASE", 8, 0x7);
+  */
+  //  print_row("AUTO_PHASE", 8, 0x7);
   print_row("BAD_COUNT" , 16, 0xFFF);
-  print_row("AUTO_COUNT", 28, 0xF);
+  //  print_row("AUTO_COUNT", 28, 0xF);
 }
 
 void PolarfireTarget::loadIntegerCSV(const std::string& file_name, 
@@ -408,6 +410,61 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
     std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
   }
 }
+
+void PolarfireTarget::elink_relink(int verbosity) {
+  pflib::Elinks& elinks=hcal->elinks();
+
+  if (verbosity>0) 
+    printf("...Setting phase delays\n");    
+  for (int ilink=0; ilink<elinks.nlinks(); ilink++) 
+    if (elinks.isActive(ilink)) 
+      elinks.setDelay(ilink,20);
+
+  
+  if (verbosity>0) {
+    printf("...Hard reset\n");
+  }
+  elinks.resetHard();
+  sleep(1);
+  
+  
+
+  
+  if (verbosity>0) {
+    printf("...Scanning bitslip values\n");
+  }
+
+  for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
+    if (!elinks.isActive(ilink)) continue;
+    
+    elinks.setBitslipAuto(ilink,false);
+    
+    int okcount[8];
+    
+    for (int slip=0; slip<8; slip++) {
+      elinks.setBitslip(ilink,slip);
+      okcount[slip]=0;
+      for (int cycles=0; cycles<5; cycles++) {
+        std::vector<uint8_t> spy=elinks.spy(ilink);
+        for (size_t i=0; i+4<spy.size(); ) {
+          if (spy[i]==0x9c || spy[i]==0xac) {
+            if (spy[i+1]==0xcc && spy[i+2]==0xcc && spy[i+3]==0xcc) okcount[slip]++;
+            i+=4;
+          } else i++;
+        } 
+      }
+    }
+    int imax=-1;
+    for (int slip=0; slip<8; slip++) {
+      if (imax<0 || okcount[slip]>okcount[imax]) imax=slip;
+    }
+    elinks.setBitslip(ilink,imax);
+    printf("    Link %d bitslip %d  (ok count=%d)\n",ilink,imax,okcount[imax]);
+  }
+  
+}
+
+  
 
 }  // namespace pflib
 

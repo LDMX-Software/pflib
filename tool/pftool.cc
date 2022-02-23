@@ -228,7 +228,8 @@ void RunMenu( PolarfireTarget* pft_ ) {
     });
   
   pfMenu menu_ldmx_elinks({
-    pfMenu::Line("HARD_RESET","Hard reset of the PLL", &ldmx_elinks),
+    pfMenu::Line("RELINK","Follow standard procedure to establish links", &ldmx_elinks),
+    pfMenu::Line("HARD_RESET","Hard reset of the PLL", &ldmx_elinks),    
     pfMenu::Line("STATUS", "Elink status summary",  &ldmx_elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &ldmx_elinks ),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &ldmx_elinks),
@@ -312,7 +313,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
   });
   
-  pfMenu menu_expert_lines({ 
+  pfMenu menu_expert({ 
     pfMenu::Line("OLINK","Optical link functions", &menu_ldmx_link),
     pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
     pfMenu::Line("I2C","Access the I2C Core", &menu_ldmx_i2c ),
@@ -475,6 +476,8 @@ void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
   
   pflib::Elinks& elinks=pft->hcal->elinks();
   static int ilink=0;
+  if (cmd=="RELINK")
+    pft->elink_relink(2);
   if (cmd=="SPY") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
     std::vector<uint8_t> spy=elinks.spy(ilink);
