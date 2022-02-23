@@ -5,6 +5,8 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 
+#include "pflib/Compile.h" // for str_to_int
+
 std::list<std::string> BaseMenu::cmdTextQueue_;
 
 void BaseMenu::add_to_history(const std::string& cmd) {
@@ -87,7 +89,7 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-  return strtol(BaseMenu::readline(prompt).c_str(), 0, 0);
+  return pflib::str_to_int(BaseMenu::readline(prompt).c_str(), 0, 0);
 }
 
 double BaseMenu::readline_float(const std::string& prompt) {
@@ -97,7 +99,7 @@ double BaseMenu::readline_float(const std::string& prompt) {
 int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
-  return strtol(BaseMenu::readline(prompt, buffer).c_str(), 0, 0);
+  return pflib::str_to_int(BaseMenu::readline(prompt, buffer).c_str(), 0, 0);
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
