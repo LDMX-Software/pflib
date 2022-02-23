@@ -152,13 +152,13 @@ class Menu : public BaseMenu {
    public:
     /// define a menu line that uses a single target command
     Line(const char* n, const char* d, SingleTargetCommand f)
-        : name(n), desc(d), sub_menu_(0), single_cmd_(f), multiple_cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(0), single_cmd_(f), multiple_cmd_(0) {}
     /// define a menu line that uses a multiple command function
     Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name(n), desc(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(f) {}
+        : name_(n), desc_(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(f) {}
     /// define a menu line that enters a sub menu
     Line(const char* n, const char* d, Menu* m)
-        : name(n), desc(d), sub_menu_(m), single_cmd_(0), multiple_cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(m), single_cmd_(0), multiple_cmd_(0) {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -166,8 +166,11 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name(n), desc(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(0), single_cmd_(0), multiple_cmd_(0) {}
 
+
+    
+    
     /**
      * Execute this line
      *
@@ -179,13 +182,13 @@ class Menu : public BaseMenu {
      *
      * @param[in] p pointer to target
      */
-    void execute(TargetType* p) {
+    void execute(TargetType* p) const {
       if (sub_menu_) {
         sub_menu_->steer(p);
       } else {
         try {
           if (single_cmd_) single_cmd_(p);
-          else if (multiple_cmd_) multiple_cmd_(name, p);
+          else if (multiple_cmd_) multiple_cmd_(name(), p);
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
             << "] : " << e.message() << std::endl;
@@ -201,11 +204,15 @@ class Menu : public BaseMenu {
     bool empty() const {
       return sub_menu_ == 0 and single_cmd_ == 0 and multiple_cmd_ == 0;
     }
+
+    const char* name() const { return name_; }
+    const char* desc() const { return desc_; }
    private:
+    friend class BaseMenu;
     /// the name of this line
-    const char* name;
+    const char* name_;
     /// short description for what this line is
-    const char* desc;
+    const char* desc_;
     /// pointer to sub menu (if it exists)
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
@@ -230,7 +237,7 @@ class Menu : public BaseMenu {
    * Construct a menu with a rendering function and the input lines
    */
   Menu(RenderFuncType f, std::initializer_list<Line> lines)
-      : renderFunc(f), lines_{lines} {}
+      : render_func_(f), lines_{lines} {}
 
   /**
    * Construct a menu without a rendering function
@@ -239,7 +246,7 @@ class Menu : public BaseMenu {
     : Menu(0,lines) {}
 
   /// add a new line to this menu
-  void addLine(const Line& line) { lines.push_back(line); }
+  void addLine(const Line& line) { lines_.push_back(line); }
 
   /// give control over the target to this menu
   void steer(TargetType* p_target);
@@ -261,14 +268,14 @@ void Menu<TargetType>::steer(TargetType* p_target) {
     }
     if (!quiet_batch_mode)
       for (size_t i = 0; i < lines_.size(); i++) {
-        printf("   %-12s %s\n", lines_[i].name, lines_[i].desc);
+        printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
     std::string request = readline(" > ");
     theMatch = 0;
     // check for a unique match...
     int nmatch = 0;
     for (size_t i = 0; i < lines_.size(); i++)
-      if (strncasecmp(request.c_str(), lines_[i].name, request.length()) == 0) {
+      if (strncasecmp(request.c_str(), lines_[i].name(), request.length()) == 0) {
         theMatch = &(lines_[i]);
         nmatch++;
       }
@@ -277,8 +284,8 @@ void Menu<TargetType>::steer(TargetType* p_target) {
     if (theMatch == 0)
       printf("  Command '%s' not understood.\n\n", request.c_str());
     else {
-      add_to_history(theMatch->name);
-      theMatch->execute(p);
+      add_to_history(theMatch->name());
+      theMatch->execute(p_target);
     }
   } while (theMatch == 0 or not theMatch->empty());
 }
