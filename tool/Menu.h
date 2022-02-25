@@ -116,11 +116,6 @@ class BaseMenu {
 
  protected:
   /**
-   * Get any inherited menus to provide their command options.
-   */
-  virtual std::vector<std::string> command_options() const = 0;
-
-  /**
    * Add a command to the history of commands that have been executed.
    *
    * Uses readline's add_to_history.
@@ -132,19 +127,25 @@ class BaseMenu {
   /// the ordered list of commands that have been executed
   static std::list<std::string> cmdTextQueue_;
 
-  /// the current menu doing the steering (for tab completion)
-  static const BaseMenu* steerer_;
+  /// the current command options (for interfacing with readline's tab completion)
+  static std::vector<std::string> cmd_options_;
  
  private:
   /**
    * matcher function following readline's function signature
+   *
+   * We get the command options from the BaseMenu::cmd_options_
+   * which is determined by the Menu::command_options function
+   * at the beginning of Menu::steer or after leaving a sub-menu.
+   *
+   * We check for matching with strncasecmp so that the tab completion
+   * is also case-insensitive (same as the menu selection itself).
+   *
+   * @param[in] text the text to potentionally match
+   * @param[in] state 0 if first call, incrementing otherwise
+   * @return matching string until all out, NULL at end
    */
   static char* command_matcher(const char* text, int state);
-
-  /**
-   * completion function following readline's function signature
-   */
-  static char** command_completion(const char* text, int start, int end);
 };  // BaseMenu
 
 /**
@@ -206,13 +207,16 @@ class Menu : public BaseMenu {
      * @note Empty menu lines will just do nothing when executed.
      *
      * @param[in] p pointer to target
+     * @return true if we were a sub-menu and the command options
+     *  need to be reset to the parent menu options
      */
-    void execute(TargetType* p) const {
+    bool execute(TargetType* p) const {
       if (sub_menu_) {
         sub_menu_->steer(p);
-      } else {
+        return true;
+      } else if (cmd_) {
         try {
-          if (cmd_) cmd_(p);
+          cmd_(p);
 #ifndef PFLIB_TEST_MENU
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
@@ -222,6 +226,9 @@ class Menu : public BaseMenu {
           std::cerr << " Unknown Exception " << e.what() << std::endl;
         }
       }
+      // empty and command lines don't need the parent menu
+      // to reset the command options
+      return false;
     }
 
     /**
@@ -231,7 +238,9 @@ class Menu : public BaseMenu {
       return sub_menu_ == 0 and cmd_ == 0;
     }
 
+    /// name of this line to select it
     const char* name() const { return name_; }
+    /// short description to print with menu
     const char* desc() const { return desc_; }
    private:
     /// the name of this line
@@ -277,6 +286,8 @@ class Menu : public BaseMenu {
    *    their descriptions.
    * 3. Use the readline function to get the requested command from
    *    the user
+   *    - We use the BaseMenu::command_matcher function to provide
+   *      options given the user attempting <TAB> completion.
    * 4. Loop through our lines to find all available matches.
    * 5. Execute the line if there is a unique match; otherwise,
    *    print an error message.
@@ -285,11 +296,13 @@ class Menu : public BaseMenu {
    */
   void steer(TargetType* p_target) const;
 
- protected:
+ private:
   /**
    * Provide the list of command options
+   *
+   * @return list of commands that could be run from this menu
    */
-  virtual std::vector<std::string> command_options() const final override {
+  virtual std::vector<std::string> command_options() const {
     std::vector<std::string> v;
     v.reserve(lines_.size());
     for (const auto& l : lines_) v.push_back(l.name());
@@ -305,7 +318,7 @@ class Menu : public BaseMenu {
 
 template <class TargetType>
 void Menu<TargetType>::steer(TargetType* p_target) const {
-  this->steerer_ = this; // we are the captain now
+  this->cmd_options_ = this->command_options(); // we are the captain now
   const Line* theMatch = 0;
   do {
     printf("\n");
@@ -317,9 +330,7 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
         printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
     rl_completion_entry_function = &BaseMenu::command_matcher;
-    //rl_attempted_completion_function = BaseMenu::command_completion;
     std::string request = readline(" > ");
-    //rl_attempted_completion_function = 0;
     rl_completion_entry_function = NULL;
     theMatch = 0;
     // check for a unique match...
@@ -335,9 +346,10 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       printf("  Command '%s' not understood.\n\n", request.c_str());
     else {
       add_to_history(theMatch->name());
-      theMatch->execute(p_target);
-      // resume control in case the above line was a submenu
-      this->steerer_ = this;
+      if (theMatch->execute(p_target)) {
+        // resume control when the chosen line was a submenu
+        this->cmd_options_ = this->command_options();
+      }
     }
   } while (theMatch == 0 or not theMatch->empty());
 }

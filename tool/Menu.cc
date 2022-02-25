@@ -12,7 +12,7 @@
 #endif
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
-const BaseMenu* BaseMenu::steerer_{0};
+std::vector<std::string> BaseMenu::cmd_options_;
 
 void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
@@ -127,31 +127,20 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
 
 char *BaseMenu::command_matcher(const char* prefix, int state) {
   static int list_index, len;
-  static std::vector<std::string> list;
   char *name; 
 
   if (state == 0) {
     // first call, reset static variables
-    list = steerer_->command_options();
     list_index = 0;
     len = strlen(prefix);
   }
 
-  while (list_index < list.size()) {
-    bool match{strncasecmp(list.at(list_index).c_str(), prefix, len) == 0};
+  while (list_index < cmd_options_.size()) {
+    bool match{strncasecmp(cmd_options_.at(list_index).c_str(), prefix, len) == 0};
     list_index++;
     if (match) {
-      return strdup(list.at(list_index-1).c_str());
+      return strdup(cmd_options_.at(list_index-1).c_str());
     }
   }
   return NULL;
-}
-
-char **BaseMenu::command_completion(const char* text, int start, int end) {
-  rl_attempted_completion_over = 1; // don't try files/dirs, we are the final completion
-  char ** matches = (char **)NULL;
-  if (start == 0) {
-    matches = rl_completion_matches(text, BaseMenu::command_matcher);
-  }
-  return matches;
 }
