@@ -12,7 +12,7 @@
 #include <functional>
 #include <iostream>
 
-#ifndef TEST_MENU
+#ifndef PFLIB_TEST_MENU
 #include "pflib/Exception.h"
 #endif
 
@@ -213,7 +213,7 @@ class Menu : public BaseMenu {
       } else {
         try {
           if (cmd_) cmd_(p);
-#ifndef TEST_MENU
+#ifndef PFLIB_TEST_MENU
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
             << "] : " << e.message() << std::endl;
