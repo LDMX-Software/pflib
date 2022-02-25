@@ -28,7 +28,7 @@ static void RunMenu(int* p) {
  * without the rest of pflib by executing the compiler
  * directly. In the tool directory,
  * ```
- * g++ -o test-menu test_menu.cxx Menu.cc -lreadline
+ * g++ -DTEST_MENU=1 -o test-menu test_menu.cxx Menu.cc -lreadline
  * ```
  */
 int main(int argc, char* argv[]) {

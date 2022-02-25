@@ -12,7 +12,9 @@
 #include <functional>
 #include <iostream>
 
-//#include "pflib/Exception.h"
+#ifndef TEST_MENU
+#include "pflib/Exception.h"
+#endif
 
 /**
  * Compile-time constant for determining verbosity
@@ -211,11 +213,11 @@ class Menu : public BaseMenu {
       } else {
         try {
           if (cmd_) cmd_(p);
-          /*
+#ifndef TEST_MENU
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
             << "] : " << e.message() << std::endl;
-            */
+#endif
         } catch(const std::exception& e) {
           std::cerr << " Unknown Exception " << e.what() << std::endl;
         }
@@ -332,6 +334,8 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
     else {
       add_to_history(theMatch->name());
       theMatch->execute(p_target);
+      // resume control in case the above line was a submenu
+      this->steerer_ = this;
     }
   } while (theMatch != 0 and not theMatch->empty());
 }

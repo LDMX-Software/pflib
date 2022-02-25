@@ -1,11 +1,15 @@
-#include <iostream>
 #include "Menu.h"
+
 #include <malloc.h>
 #include <readline/history.h>
 
-#include <string> // for stol
+#include <iostream>
 
-//#include "pflib/Compile.h" // for str_to_int
+#ifndef TEST_MENU
+#include "pflib/Compile.h" // for str_to_int
+#else
+#include <string> // for stol
+#endif
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 const BaseMenu* BaseMenu::steerer_{0};
@@ -90,7 +94,11 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-  return /*pflib::str_to_int*/std::stol(BaseMenu::readline(prompt),0,0);
+#ifdef TEST_MENU
+  return std::stol(BaseMenu::readline(prompt),0,0);
+#else
+  return pflib::str_to_int(BaseMenu::readline(prompt));
+#endif
 }
 
 double BaseMenu::readline_float(const std::string& prompt) {
@@ -100,7 +108,11 @@ double BaseMenu::readline_float(const std::string& prompt) {
 int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
-  return /*pflib::str_to_int*/std::stol(BaseMenu::readline(prompt, buffer),0,0);
+#ifdef TEST_MENU
+  return std::stol(BaseMenu::readline(prompt,buffer),0,0);
+#else
+  return pflib::str_to_int(BaseMenu::readline(prompt,buffer));
+#endif
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
