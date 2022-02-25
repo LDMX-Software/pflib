@@ -1,6 +1,6 @@
 #include "Menu.h"
 
-#include <malloc.h>
+#include <readline/readline.h>
 #include <readline/history.h>
 
 #include <iostream>
@@ -123,6 +123,13 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
     sprintf(buffer, "N");
   std::string rv = readline(prompt + " (Y/N) ", buffer);
   return (rv.find_first_of("yY1tT") != std::string::npos);
+}
+
+std::string BaseMenu::readline_cmd() {
+  rl_completion_entry_function = &BaseMenu::command_matcher;
+  std::string cmd = readline(" > ");
+  rl_completion_entry_function = NULL;
+  return cmd;
 }
 
 char *BaseMenu::command_matcher(const char* prefix, int state) {
