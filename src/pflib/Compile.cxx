@@ -532,6 +532,7 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
     if (not page_settings.IsMap()) {
       PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page "+page_name+" is not a map.");
     }
+    page_name = page_name.substr(0,page_name.find('*'));
 
     // apply these settings only to pages the input name
     std::vector<std::string> matching_pages;
