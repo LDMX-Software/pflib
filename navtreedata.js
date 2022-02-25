@@ -77,7 +77,8 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+        [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -89,9 +90,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1rogue_1_1RogueWishboneInterface.html",
-"cpp/io/c/vfscanf.html",
-"cpp/string/wide/iswblank.html"
+"classpflib_1_1MAX5825.html#ab7f6c2239d6ced130f33bfcb3bcf4cd8",
+"cpp/io/c/fscanf.html",
+"cpp/string/byte/strtof.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

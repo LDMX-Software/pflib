@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-3-gc44139d</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-6-gf3cb79f</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -92,49 +92,397 @@ $(document).ready(function(){initNavTree('classBaseMenu.html',''); initResizable
   <div class="headertitle"><div class="title">BaseMenu Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Type-less menu base for common tasks.  
+ <a href="classBaseMenu.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="Menu_8h_source.html">Menu.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for BaseMenu:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classBaseMenu__inherit__graph.svg" width="154" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classBaseMenu__inherit__graph.svg" width="170" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a89e4d320254632d2ae9181f9baf31850"><td class="memItemLeft" align="right" valign="top"><a id="a89e4d320254632d2ae9181f9baf31850" name="a89e4d320254632d2ae9181f9baf31850"></a>
-static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>readline</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;defval, bool preserve_last_blank=false)</td></tr>
+<tr class="memitem:a89e4d320254632d2ae9181f9baf31850"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a89e4d320254632d2ae9181f9baf31850">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;defval, bool preserve_last_blank=false)</td></tr>
+<tr class="memdesc:a89e4d320254632d2ae9181f9baf31850"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read in a parameter using the default value if nothing provided.  <a href="classBaseMenu.html#a89e4d320254632d2ae9181f9baf31850">More...</a><br /></td></tr>
 <tr class="separator:a89e4d320254632d2ae9181f9baf31850"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3507417c72254885fb915f28aa1093e"><td class="memItemLeft" align="right" valign="top"><a id="ab3507417c72254885fb915f28aa1093e" name="ab3507417c72254885fb915f28aa1093e"></a>
-static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>readline</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
-<tr class="separator:ab3507417c72254885fb915f28aa1093e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71933427b1fce9cad07f0385a1b26698"><td class="memItemLeft" align="right" valign="top"><a id="a71933427b1fce9cad07f0385a1b26698" name="a71933427b1fce9cad07f0385a1b26698"></a>
-static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>readline_nosplit</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;defval)</td></tr>
+<tr class="memitem:a71933427b1fce9cad07f0385a1b26698"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a71933427b1fce9cad07f0385a1b26698">readline_nosplit</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;defval)</td></tr>
+<tr class="memdesc:a71933427b1fce9cad07f0385a1b26698"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a raw input value without the additional splitting and modifications done in base readline.  <a href="classBaseMenu.html#a71933427b1fce9cad07f0385a1b26698">More...</a><br /></td></tr>
 <tr class="separator:a71933427b1fce9cad07f0385a1b26698"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acdbc8e5d011304ef933c03f084cceb87"><td class="memItemLeft" align="right" valign="top"><a id="acdbc8e5d011304ef933c03f084cceb87" name="acdbc8e5d011304ef933c03f084cceb87"></a>
-static int&#160;</td><td class="memItemRight" valign="bottom"><b>readline_int</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
+<tr class="memitem:ab3507417c72254885fb915f28aa1093e"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
+<tr class="memdesc:ab3507417c72254885fb915f28aa1093e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a string parameter without a default.  <a href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">More...</a><br /></td></tr>
+<tr class="separator:ab3507417c72254885fb915f28aa1093e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdbc8e5d011304ef933c03f084cceb87"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">readline_int</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
+<tr class="memdesc:acdbc8e5d011304ef933c03f084cceb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read an integer parameter without a default.  <a href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">More...</a><br /></td></tr>
 <tr class="separator:acdbc8e5d011304ef933c03f084cceb87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7dfeb1e2fb921de9b0671c75842f7f8"><td class="memItemLeft" align="right" valign="top"><a id="af7dfeb1e2fb921de9b0671c75842f7f8" name="af7dfeb1e2fb921de9b0671c75842f7f8"></a>
-static int&#160;</td><td class="memItemRight" valign="bottom"><b>readline_int</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, int aval)</td></tr>
+<tr class="memitem:af7dfeb1e2fb921de9b0671c75842f7f8"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#af7dfeb1e2fb921de9b0671c75842f7f8">readline_int</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, int aval)</td></tr>
+<tr class="memdesc:af7dfeb1e2fb921de9b0671c75842f7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read an integer parameter with a default.  <a href="classBaseMenu.html#af7dfeb1e2fb921de9b0671c75842f7f8">More...</a><br /></td></tr>
 <tr class="separator:af7dfeb1e2fb921de9b0671c75842f7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd1a4173cc29b709dea11ab9b9551844"><td class="memItemLeft" align="right" valign="top"><a id="abd1a4173cc29b709dea11ab9b9551844" name="abd1a4173cc29b709dea11ab9b9551844"></a>
-static double&#160;</td><td class="memItemRight" valign="bottom"><b>readline_float</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
+<tr class="memitem:abd1a4173cc29b709dea11ab9b9551844"><td class="memItemLeft" align="right" valign="top">static double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#abd1a4173cc29b709dea11ab9b9551844">readline_float</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
+<tr class="memdesc:abd1a4173cc29b709dea11ab9b9551844"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a float parameter with a default.  <a href="classBaseMenu.html#abd1a4173cc29b709dea11ab9b9551844">More...</a><br /></td></tr>
 <tr class="separator:abd1a4173cc29b709dea11ab9b9551844"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abac79ac6670361b5ccdfdeb13f0ce28f"><td class="memItemLeft" align="right" valign="top"><a id="abac79ac6670361b5ccdfdeb13f0ce28f" name="abac79ac6670361b5ccdfdeb13f0ce28f"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><b>readline_bool</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, bool aval)</td></tr>
+<tr class="memitem:abac79ac6670361b5ccdfdeb13f0ce28f"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#abac79ac6670361b5ccdfdeb13f0ce28f">readline_bool</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, bool aval)</td></tr>
+<tr class="memdesc:abac79ac6670361b5ccdfdeb13f0ce28f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a bool parameter with a default.  <a href="classBaseMenu.html#abac79ac6670361b5ccdfdeb13f0ce28f">More...</a><br /></td></tr>
 <tr class="separator:abac79ac6670361b5ccdfdeb13f0ce28f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a3162f00fdb180a5dd0e305e7fe93267f"><td class="memItemLeft" align="right" valign="top"><a id="a3162f00fdb180a5dd0e305e7fe93267f" name="a3162f00fdb180a5dd0e305e7fe93267f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>add_to_history</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd)</td></tr>
+<tr class="memitem:a3162f00fdb180a5dd0e305e7fe93267f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a3162f00fdb180a5dd0e305e7fe93267f">add_to_history</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd)</td></tr>
+<tr class="memdesc:a3162f00fdb180a5dd0e305e7fe93267f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a command to the history of commands that have been executed.  <a href="classBaseMenu.html#a3162f00fdb180a5dd0e305e7fe93267f">More...</a><br /></td></tr>
 <tr class="separator:a3162f00fdb180a5dd0e305e7fe93267f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-attribs" name="pro-static-attribs"></a>
 Static Protected Attributes</h2></td></tr>
 <tr class="memitem:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="memItemLeft" align="right" valign="top"><a id="a4dc8f822250779b2dc59e4cbd2a96cea" name="a4dc8f822250779b2dc59e4cbd2a96cea"></a>
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/list.html">std::list</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmdTextQueue_</b></td></tr>
+<tr class="memdesc:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">the ordered list of commands that have been executed <br /></td></tr>
 <tr class="separator:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p >Type-less menu base for common tasks. </p>
+<p >This base menu class handles most of the interaction with the GNU readline library. This includes some helper commands for obtaining parameters via readline and keeping command history. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a3162f00fdb180a5dd0e305e7fe93267f" name="a3162f00fdb180a5dd0e305e7fe93267f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3162f00fdb180a5dd0e305e7fe93267f">&#9670;&nbsp;</a></span>add_to_history()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void BaseMenu::add_to_history </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>cmd</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Add a command to the history of commands that have been executed. </p>
+<p >Uses readline's add_to_history.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">cmd</td><td>Command string that was executed </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab3507417c72254885fb915f28aa1093e" name="ab3507417c72254885fb915f28aa1093e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3507417c72254885fb915f28aa1093e">&#9670;&nbsp;</a></span>readline() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> BaseMenu::readline </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a string parameter without a default. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classBaseMenu.html#a89e4d320254632d2ae9181f9baf31850" title="Read in a parameter using the default value if nothing provided.">readline</a> with an empty default value</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
+
+</div>
+</div>
+<a id="a89e4d320254632d2ae9181f9baf31850" name="a89e4d320254632d2ae9181f9baf31850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89e4d320254632d2ae9181f9baf31850">&#9670;&nbsp;</a></span>readline() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> BaseMenu::readline </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>defval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>preserve_last_blank</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read in a parameter using the default value if nothing provided. </p>
+<p >Expands '~' into $HOME within strings.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">defval</td><td>default value if user does not provide anything </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">preserve_last_blank</td><td>keep whitespace at end of input </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user or default value </dd></dl>
+
+</div>
+</div>
+<a id="abac79ac6670361b5ccdfdeb13f0ce28f" name="abac79ac6670361b5ccdfdeb13f0ce28f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abac79ac6670361b5ccdfdeb13f0ce28f">&#9670;&nbsp;</a></span>readline_bool()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool BaseMenu::readline_bool </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>aval</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a bool parameter with a default. </p>
+<p >The characters y, Y, 1, t, and T are accepted as equivalent to "true" while all others are equivalent to "false". The prompt should be in the form of a yes/no question since the string ' [Y/N]' is appended to it before passing along.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">defval</td><td>default value if user does not provide anything </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
+
+</div>
+</div>
+<a id="abd1a4173cc29b709dea11ab9b9551844" name="abd1a4173cc29b709dea11ab9b9551844"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd1a4173cc29b709dea11ab9b9551844">&#9670;&nbsp;</a></span>readline_float()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double BaseMenu::readline_float </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a float parameter with a default. </p>
+<p >Uses string readline and then converts the output string into a float using atof.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">defval</td><td>default value if user does not provide anything </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
+
+</div>
+</div>
+<a id="acdbc8e5d011304ef933c03f084cceb87" name="acdbc8e5d011304ef933c03f084cceb87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdbc8e5d011304ef933c03f084cceb87">&#9670;&nbsp;</a></span>readline_int() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int BaseMenu::readline_int </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read an integer parameter without a default. </p>
+<p >Uses string readline and then converts the output string into a integer using stol.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
+
+</div>
+</div>
+<a id="af7dfeb1e2fb921de9b0671c75842f7f8" name="af7dfeb1e2fb921de9b0671c75842f7f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7dfeb1e2fb921de9b0671c75842f7f8">&#9670;&nbsp;</a></span>readline_int() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int BaseMenu::readline_int </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>aval</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read an integer parameter with a default. </p>
+<p >Uses string readline and then converts the output string into a integer using stol.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">defval</td><td>default value if user does not provide anything </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
+
+</div>
+</div>
+<a id="a71933427b1fce9cad07f0385a1b26698" name="a71933427b1fce9cad07f0385a1b26698"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71933427b1fce9cad07f0385a1b26698">&#9670;&nbsp;</a></span>readline_nosplit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> BaseMenu::readline_nosplit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>defval</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get a raw input value without the additional splitting and modifications done in base readline. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">defval</td><td>default value if user does not provide anything </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user or default value </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>tool/<a class="el" href="Menu_8h_source.html">Menu.h</a></li>
 <li>tool/Menu.cc</li>
