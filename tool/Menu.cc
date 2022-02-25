@@ -136,10 +136,9 @@ char *BaseMenu::command_matcher(const char* prefix, int state) {
   }
 
   while (list_index < cmd_options_.size()) {
-    bool match{strncasecmp(cmd_options_.at(list_index).c_str(), prefix, len) == 0};
-    list_index++;
-    if (match) {
-      return strdup(cmd_options_.at(list_index-1).c_str());
+    const char* curr_opt{cmd_options_.at(list_index++).c_str()};
+    if (strncasecmp(curr_opt, prefix, len) == 0) {
+      return strdup(curr_opt);
     }
   }
   return NULL;
