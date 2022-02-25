@@ -10,7 +10,7 @@
 #include <functional>
 #include <iostream>
 
-#include "pflib/Exception.h"
+//#include "pflib/Exception.h"
 
 /**
  * Compile-time constant for determining verbosity
@@ -190,9 +190,11 @@ class Menu : public BaseMenu {
       } else {
         try {
           if (cmd_) cmd_(p);
+          /*
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
             << "] : " << e.message() << std::endl;
+            */
         } catch(const std::exception& e) {
           std::cerr << " Unknown Exception " << e.what() << std::endl;
         }

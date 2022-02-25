@@ -2,10 +2,12 @@
 #include <iostream>
 #include "Menu.h"
 #include <malloc.h>
-#include <readline/history.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 
-#include "pflib/Compile.h" // for str_to_int
+#include <string> // for stol
+
+//#include "pflib/Compile.h" // for str_to_int
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 
@@ -89,7 +91,7 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-  return pflib::str_to_int(BaseMenu::readline(prompt).c_str());
+  return /*pflib::str_to_int*/std::stol(BaseMenu::readline(prompt),0,0);
 }
 
 double BaseMenu::readline_float(const std::string& prompt) {
@@ -99,7 +101,7 @@ double BaseMenu::readline_float(const std::string& prompt) {
 int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
-  return pflib::str_to_int(BaseMenu::readline(prompt, buffer).c_str());
+  return /*pflib::str_to_int*/std::stol(BaseMenu::readline(prompt, buffer),0,0);
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
