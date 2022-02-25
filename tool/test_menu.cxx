@@ -1,9 +1,15 @@
 #include "Menu.h"
 
+/**
+ * Just print the command that is provided
+ */
 static void print_cmd(const std::string& cmd, int* p) {
   std::cout << " Ran command " << cmd << std::endl;
 }
 
+/**
+ * Define the menu options
+ */
 static void RunMenu(int* p) {
   using Menu = Menu<int>;
   Menu menu({
@@ -14,6 +20,17 @@ static void RunMenu(int* p) {
   menu.steer(p);
 }
 
+/**
+ * test-menu executable
+ *
+ * A light executable that is useful for developing
+ * the Menu apparatus. You can compile this executable
+ * without the rest of pflib by executing the compiler
+ * directly. In the tool directory,
+ * ```
+ * g++ -o test-menu test_menu.cxx Menu.cc -lreadline
+ * ```
+ */
 int main(int argc, char* argv[]) {
   try {
     int i = 3;

@@ -235,7 +235,7 @@ class Menu : public BaseMenu {
     /// the name of this line
     const char* name_;
     /// short description for what this line is
-    const char* desc;
+    const char* desc_;
     /// pointer to sub menu (if it exists)
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
@@ -290,7 +290,7 @@ class Menu : public BaseMenu {
   virtual std::vector<std::string> command_options() const final override {
     std::vector<std::string> v;
     v.reserve(lines_.size());
-    for (const auto& l : lines_) v.push_back(l.name);
+    for (const auto& l : lines_) v.push_back(l.name());
     return v;
   }
 
