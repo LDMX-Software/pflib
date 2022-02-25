@@ -1,8 +1,6 @@
 #ifndef PFLIB_TOOL_MENU_H
 #define PFLIB_TOOL_MENU_H
 
-#include <readline/readline.h>
-
 #include <stdio.h>
 #include <string.h>
 
@@ -113,6 +111,18 @@ class BaseMenu {
    * @return value input by user
    */
   static bool readline_bool(const std::string& prompt, bool aval);
+
+  /**
+   * Read a command from the menu
+   *
+   * We use the prompt ' > ' before the command and we wrap the 
+   * underlying readline call with the setup/teardown of the
+   * TAB-completion function that readline calls if the user presses
+   * TAB.
+   *
+   * @return command entered by user
+   */
+  static std::string readline_cmd();
 
  protected:
   /**
@@ -329,9 +339,7 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       for (size_t i = 0; i < lines_.size(); i++) {
         printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
-    rl_completion_entry_function = &BaseMenu::command_matcher;
-    std::string request = readline(" > ");
-    rl_completion_entry_function = NULL;
+    std::string request = readline_cmd();
     theMatch = 0;
     // check for a unique match...
     int nmatch = 0;
