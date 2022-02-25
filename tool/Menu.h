@@ -1,6 +1,8 @@
 #ifndef PFLIB_TOOL_MENU_H
 #define PFLIB_TOOL_MENU_H
 
+#include <readline/readline.h>
+
 #include <stdio.h>
 #include <string.h>
 
@@ -112,6 +114,11 @@ class BaseMenu {
 
  protected:
   /**
+   * Get any inherited menus to provide their command options.
+   */
+  virtual std::vector<std::string> command_options() const = 0;
+
+  /**
    * Add a command to the history of commands that have been executed.
    *
    * Uses readline's add_to_history.
@@ -122,6 +129,20 @@ class BaseMenu {
 
   /// the ordered list of commands that have been executed
   static std::list<std::string> cmdTextQueue_;
+
+  /// the current menu doing the steering (for tab completion)
+  static const BaseMenu* steerer_;
+ 
+ private:
+  /**
+   * matcher function following readline's function signature
+   */
+  static char* command_matcher(const char* text, int state);
+
+  /**
+   * completion function following readline's function signature
+   */
+  static char** command_completion(const char* text, int start, int end);
 };  // BaseMenu
 
 /**
@@ -262,6 +283,17 @@ class Menu : public BaseMenu {
    */
   void steer(TargetType* p_target) const;
 
+ protected:
+  /**
+   * Provide the list of command options
+   */
+  virtual std::vector<std::string> command_options() const final override {
+    std::vector<std::string> v;
+    v.reserve(lines_.size());
+    for (const auto& l : lines_) v.push_back(l.name);
+    return v;
+  }
+
  private:
   /// lines in this menu
   std::vector<Line> lines_;
@@ -271,6 +303,7 @@ class Menu : public BaseMenu {
 
 template <class TargetType>
 void Menu<TargetType>::steer(TargetType* p_target) const {
+  this->steerer_ = this; // we are the captain now
   const Line* theMatch = 0;
   do {
     printf("\n");
@@ -281,7 +314,9 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       for (size_t i = 0; i < lines_.size(); i++) {
         printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
+    rl_attempted_completion_function = BaseMenu::command_completion;
     std::string request = readline(" > ");
+    rl_attempted_completion_function = 0;
     theMatch = 0;
     // check for a unique match...
     int nmatch = 0;

@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Menu.h"
 #include <malloc.h>
-#include <readline/readline.h>
 #include <readline/history.h>
 
 #include <string> // for stol
@@ -10,6 +9,7 @@
 //#include "pflib/Compile.h" // for str_to_int
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
+const BaseMenu* BaseMenu::steerer_{0};
 
 void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
@@ -112,4 +112,36 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
     sprintf(buffer, "N");
   std::string rv = readline(prompt + " (Y/N) ", buffer);
   return (rv.find_first_of("yY1tT") != std::string::npos);
+}
+
+char *BaseMenu::command_matcher(const char* prefix, int state) {
+  static int list_index, len;
+  static std::vector<std::string> list;
+  char *name; 
+
+  if (!state) {
+    // first call, reset static variables
+    list = steerer_->command_options();
+    list_index = 0;
+    len = strlen(prefix);
+  }
+
+  while (list_index < list.size()) {
+    // make sure to iterate before potential exit
+    static std::string curr = list.at(list_index++);
+    if (strncasecmp(curr.c_str(), prefix, len) == 0) {
+      return strdup(curr.c_str());
+    }
+  }
+  // got to end of list, nothing else
+  return NULL;
+}
+
+char **BaseMenu::command_completion(const char* text, int start, int end) {
+  rl_attempted_completion_over = 1; // don't try files/dirs, we are the final completion
+  char ** matches = (char **)NULL;
+  if (start == 0) {
+    matches = rl_completion_matches(text, BaseMenu::command_matcher);
+  }
+  return matches;
 }
