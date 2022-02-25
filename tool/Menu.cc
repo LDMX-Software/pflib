@@ -5,10 +5,10 @@
 
 #include <iostream>
 
-#ifndef TEST_MENU
-#include "pflib/Compile.h" // for str_to_int
-#else
+#ifdef PFLIB_TEST_MENU
 #include <string> // for stol
+#else
+#include "pflib/Compile.h" // for str_to_int
 #endif
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
@@ -94,7 +94,7 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-#ifdef TEST_MENU
+#ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt),0,0);
 #else
   return pflib::str_to_int(BaseMenu::readline(prompt));
@@ -108,7 +108,7 @@ double BaseMenu::readline_float(const std::string& prompt) {
 int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
-#ifdef TEST_MENU
+#ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt,buffer),0,0);
 #else
   return pflib::str_to_int(BaseMenu::readline(prompt,buffer));
