@@ -316,9 +316,11 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       for (size_t i = 0; i < lines_.size(); i++) {
         printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
-    rl_attempted_completion_function = BaseMenu::command_completion;
+    rl_completion_entry_function = &BaseMenu::command_matcher;
+    //rl_attempted_completion_function = BaseMenu::command_completion;
     std::string request = readline(" > ");
-    rl_attempted_completion_function = 0;
+    //rl_attempted_completion_function = 0;
+    rl_completion_entry_function = NULL;
     theMatch = 0;
     // check for a unique match...
     int nmatch = 0;
@@ -337,7 +339,7 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       // resume control in case the above line was a submenu
       this->steerer_ = this;
     }
-  } while (theMatch != 0 and not theMatch->empty());
+  } while (theMatch == 0 or not theMatch->empty());
 }
 
 #endif  // PFLIB_TOOL_MENU_H

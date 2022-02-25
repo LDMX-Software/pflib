@@ -130,7 +130,7 @@ char *BaseMenu::command_matcher(const char* prefix, int state) {
   static std::vector<std::string> list;
   char *name; 
 
-  if (!state) {
+  if (state == 0) {
     // first call, reset static variables
     list = steerer_->command_options();
     list_index = 0;
@@ -138,13 +138,12 @@ char *BaseMenu::command_matcher(const char* prefix, int state) {
   }
 
   while (list_index < list.size()) {
-    // make sure to iterate before potential exit
-    static std::string curr = list.at(list_index++);
-    if (strncasecmp(curr.c_str(), prefix, len) == 0) {
-      return strdup(curr.c_str());
+    bool match{strncasecmp(list.at(list_index).c_str(), prefix, len) == 0};
+    list_index++;
+    if (match) {
+      return strdup(list.at(list_index-1).c_str());
     }
   }
-  // got to end of list, nothing else
   return NULL;
 }
 

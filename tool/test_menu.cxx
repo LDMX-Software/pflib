@@ -12,9 +12,15 @@ static void print_cmd(const std::string& cmd, int* p) {
  */
 static void RunMenu(int* p) {
   using Menu = Menu<int>;
+  Menu sb({
+      Menu::Line("THREE", "third command", &print_cmd),
+      Menu::Line("TWOTWO", "second two", &print_cmd),
+      Menu::Line("BACK", "go back")
+      });
   Menu menu({
       Menu::Line("ONE", "One command", &print_cmd),
       Menu::Line("TWO", "Second command", &print_cmd),
+      Menu::Line("SB", "Submenu", &sb),
       Menu::Line("EXIT", "Leave")
       });
   menu.steer(p);
