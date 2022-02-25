@@ -90,9 +90,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1MAX5825.html#ab7f6c2239d6ced130f33bfcb3bcf4cd8",
-"cpp/io/c/fscanf.html",
-"cpp/string/byte/strtof.html"
+"classpflib_1_1MAX5825.html#ae87b699ff1742e1d3aa3e462fcae9462",
+"cpp/io/c/fsetpos.html",
+"cpp/string/byte/strtoimax.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

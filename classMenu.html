@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-6-gf3cb79f</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.5-11-g2b8f2ff</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -119,47 +119,42 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a72b844ab81b89cff7c10389b9847a680"><td class="memItemLeft" align="right" valign="top"><a id="a72b844ab81b89cff7c10389b9847a680" name="a72b844ab81b89cff7c10389b9847a680"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>SingleTargetCommand</b> = void(*)(TargetType *)</td></tr>
-<tr class="memdesc:a72b844ab81b89cff7c10389b9847a680"><td class="mdescLeft">&#160;</td><td class="mdescRight">type of function which does something with the target <br /></td></tr>
-<tr class="separator:a72b844ab81b89cff7c10389b9847a680"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a365ca7c40f84dd8c5f54182bd59087b2"><td class="memItemLeft" align="right" valign="top"><a id="a365ca7c40f84dd8c5f54182bd59087b2" name="a365ca7c40f84dd8c5f54182bd59087b2"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>MultipleTargetCommands</b> = void(*)(const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;, TargetType *)</td></tr>
-<tr class="memdesc:a365ca7c40f84dd8c5f54182bd59087b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">type of function which does one of several commands with target <br /></td></tr>
-<tr class="separator:a365ca7c40f84dd8c5f54182bd59087b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68070630a2b5da1061a3308eca1eb42e"><td class="memItemLeft" align="right" valign="top"><a id="a68070630a2b5da1061a3308eca1eb42e" name="a68070630a2b5da1061a3308eca1eb42e"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>SingleTargetCommand</b> = <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/functional/function.html">std::function</a>&lt; void(TargetType *)&gt;</td></tr>
+<tr class="memdesc:a68070630a2b5da1061a3308eca1eb42e"><td class="mdescLeft">&#160;</td><td class="mdescRight">type of function which does something with the target <br /></td></tr>
+<tr class="separator:a68070630a2b5da1061a3308eca1eb42e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb7378e6b32be13b43111626c40eb27f"><td class="memItemLeft" align="right" valign="top"><a id="aeb7378e6b32be13b43111626c40eb27f" name="aeb7378e6b32be13b43111626c40eb27f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>MultipleTargetCommands</b> = <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/functional/function.html">std::function</a>&lt; void(const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;, TargetType *)&gt;</td></tr>
+<tr class="memdesc:aeb7378e6b32be13b43111626c40eb27f"><td class="mdescLeft">&#160;</td><td class="mdescRight">type of function which does one of several commands with target <br /></td></tr>
+<tr class="separator:aeb7378e6b32be13b43111626c40eb27f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac55b8834124ad8dfba4fbefbec469e85"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">RenderFuncType</a> = void(*)(TargetType *)</td></tr>
 <tr class="memdesc:ac55b8834124ad8dfba4fbefbec469e85"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of function used to "render" a menu.  <a href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">More...</a><br /></td></tr>
 <tr class="separator:ac55b8834124ad8dfba4fbefbec469e85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a307049cf0a084793b070fb8bef154eab"><td class="memItemLeft" align="right" valign="top"><a id="a307049cf0a084793b070fb8bef154eab" name="a307049cf0a084793b070fb8bef154eab"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b> (<a class="el" href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">RenderFuncType</a> f, <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/initializer_list.html">std::initializer_list</a>&lt; <a class="el" href="classMenu_1_1Line.html">Line</a> &gt; lines)</td></tr>
-<tr class="memdesc:a307049cf0a084793b070fb8bef154eab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a menu with a rendering function and the input lines. <br /></td></tr>
-<tr class="separator:a307049cf0a084793b070fb8bef154eab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae593c410b4e8cca0f8fa129341f4e7da"><td class="memItemLeft" align="right" valign="top"><a id="ae593c410b4e8cca0f8fa129341f4e7da" name="ae593c410b4e8cca0f8fa129341f4e7da"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b> (<a class="elRef" href="http://en.cppreference.com/w/cpp/utility/initializer_list.html">std::initializer_list</a>&lt; <a class="el" href="classMenu_1_1Line.html">Line</a> &gt; lines)</td></tr>
-<tr class="memdesc:ae593c410b4e8cca0f8fa129341f4e7da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a menu without a rendering function. <br /></td></tr>
-<tr class="separator:ae593c410b4e8cca0f8fa129341f4e7da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c51dda3db3cded56e0c82d7c0cd3fad"><td class="memItemLeft" align="right" valign="top"><a id="a2c51dda3db3cded56e0c82d7c0cd3fad" name="a2c51dda3db3cded56e0c82d7c0cd3fad"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b> (<a class="elRef" href="http://en.cppreference.com/w/cpp/utility/initializer_list.html">std::initializer_list</a>&lt; <a class="el" href="classMenu_1_1Line.html">Line</a> &gt; lines, <a class="el" href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">RenderFuncType</a> f=0)</td></tr>
+<tr class="memdesc:a2c51dda3db3cded56e0c82d7c0cd3fad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a menu with a rendering function and the input lines. <br /></td></tr>
+<tr class="separator:a2c51dda3db3cded56e0c82d7c0cd3fad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbef58f29fd7f6087ff5468c19ea3d50"><td class="memItemLeft" align="right" valign="top"><a id="abbef58f29fd7f6087ff5468c19ea3d50" name="abbef58f29fd7f6087ff5468c19ea3d50"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>addLine</b> (const <a class="el" href="classMenu_1_1Line.html">Line</a> &amp;line)</td></tr>
 <tr class="memdesc:abbef58f29fd7f6087ff5468c19ea3d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a new line to this menu <br /></td></tr>
 <tr class="separator:abbef58f29fd7f6087ff5468c19ea3d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7d8e14309a5f35b0e5ba0a674cbcedb"><td class="memItemLeft" align="right" valign="top"><a id="aa7d8e14309a5f35b0e5ba0a674cbcedb" name="aa7d8e14309a5f35b0e5ba0a674cbcedb"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>steer</b> (TargetType *p_target)</td></tr>
-<tr class="memdesc:aa7d8e14309a5f35b0e5ba0a674cbcedb"><td class="mdescLeft">&#160;</td><td class="mdescRight">give control over the target to this menu <br /></td></tr>
-<tr class="separator:aa7d8e14309a5f35b0e5ba0a674cbcedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a930c63077b267eda8adfeeddf27e0739"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMenu.html#a930c63077b267eda8adfeeddf27e0739">steer</a> (TargetType *p_target) const</td></tr>
+<tr class="memdesc:a930c63077b267eda8adfeeddf27e0739"><td class="mdescLeft">&#160;</td><td class="mdescRight">give control over the target to this menu  <a href="classMenu.html#a930c63077b267eda8adfeeddf27e0739">More...</a><br /></td></tr>
+<tr class="separator:a930c63077b267eda8adfeeddf27e0739"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a7e732734c8a16031eae04b4003700514"><td class="memItemLeft" align="right" valign="top"><a id="a7e732734c8a16031eae04b4003700514" name="a7e732734c8a16031eae04b4003700514"></a>
-<a class="el" href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">RenderFuncType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>render_func_</b></td></tr>
-<tr class="memdesc:a7e732734c8a16031eae04b4003700514"><td class="mdescLeft">&#160;</td><td class="mdescRight">function pointer to render the menu prompt <br /></td></tr>
-<tr class="separator:a7e732734c8a16031eae04b4003700514"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1539495cd4a4fa550d8d92f0e10e9ca0"><td class="memItemLeft" align="right" valign="top"><a id="a1539495cd4a4fa550d8d92f0e10e9ca0" name="a1539495cd4a4fa550d8d92f0e10e9ca0"></a>
 <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="el" href="classMenu_1_1Line.html">Line</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>lines_</b></td></tr>
 <tr class="memdesc:a1539495cd4a4fa550d8d92f0e10e9ca0"><td class="mdescLeft">&#160;</td><td class="mdescRight">lines in this menu <br /></td></tr>
 <tr class="separator:a1539495cd4a4fa550d8d92f0e10e9ca0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e732734c8a16031eae04b4003700514"><td class="memItemLeft" align="right" valign="top"><a id="a7e732734c8a16031eae04b4003700514" name="a7e732734c8a16031eae04b4003700514"></a>
+<a class="el" href="classMenu.html#ac55b8834124ad8dfba4fbefbec469e85">RenderFuncType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>render_func_</b></td></tr>
+<tr class="memdesc:a7e732734c8a16031eae04b4003700514"><td class="mdescLeft">&#160;</td><td class="mdescRight">function pointer to render the menu prompt <br /></td></tr>
+<tr class="separator:a7e732734c8a16031eae04b4003700514"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -186,9 +181,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:abac79ac6670361b5ccdfdeb13f0ce28f inherit pub_static_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a bool parameter with a default.  <a href="classBaseMenu.html#abac79ac6670361b5ccdfdeb13f0ce28f">More...</a><br /></td></tr>
 <tr class="separator:abac79ac6670361b5ccdfdeb13f0ce28f inherit pub_static_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classBaseMenu"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classBaseMenu')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classBaseMenu.html">BaseMenu</a></td></tr>
-<tr class="memitem:a3162f00fdb180a5dd0e305e7fe93267f inherit pro_methods_classBaseMenu"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a3162f00fdb180a5dd0e305e7fe93267f">add_to_history</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd)</td></tr>
-<tr class="memdesc:a3162f00fdb180a5dd0e305e7fe93267f inherit pro_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a command to the history of commands that have been executed.  <a href="classBaseMenu.html#a3162f00fdb180a5dd0e305e7fe93267f">More...</a><br /></td></tr>
-<tr class="separator:a3162f00fdb180a5dd0e305e7fe93267f inherit pro_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0554f046a4ec84044081001e43214c03 inherit pro_methods_classBaseMenu"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a0554f046a4ec84044081001e43214c03">add_to_history</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd) const</td></tr>
+<tr class="memdesc:a0554f046a4ec84044081001e43214c03 inherit pro_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a command to the history of commands that have been executed.  <a href="classBaseMenu.html#a0554f046a4ec84044081001e43214c03">More...</a><br /></td></tr>
+<tr class="separator:a0554f046a4ec84044081001e43214c03 inherit pro_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_static_attribs_classBaseMenu"><td colspan="2" onclick="javascript:toggleInherit('pro_static_attribs_classBaseMenu')"><img src="closed.png" alt="-"/>&#160;Static Protected Attributes inherited from <a class="el" href="classBaseMenu.html">BaseMenu</a></td></tr>
 <tr class="memitem:a4dc8f822250779b2dc59e4cbd2a96cea inherit pro_static_attribs_classBaseMenu"><td class="memItemLeft" align="right" valign="top"><a id="a4dc8f822250779b2dc59e4cbd2a96cea" name="a4dc8f822250779b2dc59e4cbd2a96cea"></a>
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/list.html">std::list</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmdTextQueue_</b></td></tr>
@@ -221,6 +216,43 @@ template&lt;class TargetType &gt; </div>
 
 <p>The type of function used to "render" a menu. </p>
 <p >"rendering" allows the user to have a handle for when the menu will be printed to the terminal prompt. Moreover, this can include necessary initiliazation procedures if need be. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a930c63077b267eda8adfeeddf27e0739" name="a930c63077b267eda8adfeeddf27e0739"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a930c63077b267eda8adfeeddf27e0739">&#9670;&nbsp;</a></span>steer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class TargetType &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classMenu.html">Menu</a>&lt; TargetType &gt;::steer </td>
+          <td>(</td>
+          <td class="paramtype">TargetType *&#160;</td>
+          <td class="paramname"><em>p_target</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>give control over the target to this menu </p>
+<p >We enter a do-while loop that continues until the user selects an empty line to execute. The contents of the do-while loop follow the procedure below.</p>
+<ol type="1">
+<li>If we have a render function set, we give the target to it.</li>
+<li>If we aren't in batch mode, we print all of our lines and their descriptions.</li>
+<li>Use the readline function to get the requested command from the user</li>
+<li>Loop through our lines to find all available matches.</li>
+<li>Execute the line if there is a unique match; otherwise, print an error message.</li>
+</ol>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">p_target</td><td>pointer to the target </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

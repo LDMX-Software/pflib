@@ -1,7 +1,6 @@
 <map id="Menu&lt; TargetType &gt;::Line" name="Menu&lt; TargetType &gt;::Line">
-<area shape="rect" id="node1" title="A command in the menu." alt="" coords="79,185,237,227"/>
-<area shape="rect" id="node2" href="$classMenu.html" title="A menu to execute commands with a specific target." alt="" coords="5,96,164,123"/>
-<area shape="rect" id="node3" href="$classBaseMenu.html" title="Type&#45;less menu base for common tasks." alt="" coords="39,13,130,39"/>
-<area shape="rect" id="node4" href="/home/runner/work/pflib/pflib/docs/cppreference-doxygen-web.tag.xml$cpp/string/basic_string.html" title=" " alt="" coords="188,96,275,123"/>
-<area shape="rect" id="node5" href="/home/runner/work/pflib/pflib/docs/cppreference-doxygen-web.tag.xml$cpp/string/basic_string.html" title=" " alt="" coords="162,5,301,47"/>
+<area shape="rect" id="node1" title="A command in the menu." alt="" coords="95,185,253,227"/>
+<area shape="rect" id="node2" href="$classMenu.html" title="A menu to execute commands with a specific target." alt="" coords="5,89,164,115"/>
+<area shape="rect" id="node3" href="$classBaseMenu.html" title="Type&#45;less menu base for common tasks." alt="" coords="39,5,130,32"/>
+<area shape="rect" id="node4" href="/home/runner/work/pflib/pflib/docs/cppreference-doxygen-web.tag.xml$cpp/utility/functional/function.html" title=" " alt="" coords="189,81,335,123"/>
 </map>

@@ -12,7 +12,7 @@ var searchData=
   ['add_5flvalue_5freference_9',['add_lvalue_reference',['http://en.cppreference.com/w/cpp/types/add_reference.html',1,'std']]],
   ['add_5fpointer_10',['add_pointer',['http://en.cppreference.com/w/cpp/types/add_pointer.html',1,'std']]],
   ['add_5frvalue_5freference_11',['add_rvalue_reference',['http://en.cppreference.com/w/cpp/types/add_reference.html',1,'std']]],
-  ['add_5fto_5fhistory_12',['add_to_history',['../classBaseMenu.html#a3162f00fdb180a5dd0e305e7fe93267f',1,'BaseMenu']]],
+  ['add_5fto_5fhistory_12',['add_to_history',['../classBaseMenu.html#a0554f046a4ec84044081001e43214c03',1,'BaseMenu']]],
   ['add_5fvolatile_13',['add_volatile',['http://en.cppreference.com/w/cpp/types/add_cv.html',1,'std']]],
   ['addline_14',['addLine',['../classMenu.html#abbef58f29fd7f6087ff5468c19ea3d50',1,'Menu']]],
   ['addr_5fled_5f0_15',['ADDR_LED_0',['../classpflib_1_1Bias.html#ab460db740f5df7528eb31460200fbbf3',1,'pflib::Bias']]],

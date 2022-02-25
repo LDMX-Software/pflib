@@ -43,7 +43,7 @@ var searchData=
   ['memcpy_40',['memcpy',['http://en.cppreference.com/w/cpp/string/byte/memcpy.html',1,'std']]],
   ['memmove_41',['memmove',['http://en.cppreference.com/w/cpp/string/byte/memmove.html',1,'std']]],
   ['memset_42',['memset',['http://en.cppreference.com/w/cpp/string/byte/memset.html',1,'std']]],
-  ['menu_43',['Menu',['../classMenu.html',1,'Menu&lt; TargetType &gt;'],['../classMenu.html#a307049cf0a084793b070fb8bef154eab',1,'Menu::Menu(RenderFuncType f, std::initializer_list&lt; Line &gt; lines)'],['../classMenu.html#ae593c410b4e8cca0f8fa129341f4e7da',1,'Menu::Menu(std::initializer_list&lt; Line &gt; lines)']]],
+  ['menu_43',['Menu',['../classMenu.html',1,'Menu&lt; TargetType &gt;'],['../classMenu.html#a2c51dda3db3cded56e0c82d7c0cd3fad',1,'Menu::Menu()']]],
   ['merge_44',['merge',['http://en.cppreference.com/w/cpp/algorithm/merge.html',1,'std::merge()'],['http://en.cppreference.com/w/cpp/container/list/merge.html',1,'std::list::merge()'],['http://en.cppreference.com/w/cpp/container/forward_list/merge.html',1,'std::forward_list::merge()']]],
   ['mersenne_5ftwister_5fengine_45',['mersenne_twister_engine',['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine/mersenne_twister_engine.html',1,'std::mersenne_twister_engine::mersenne_twister_engine()'],['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine.html',1,'std::mersenne_twister_engine']]],
   ['message_46',['message',['http://en.cppreference.com/w/cpp/error/error_category/message.html',1,'std::error_category::message()'],['../classpflib_1_1Exception.html#a7da2d96dc9af9380dcea347b2728e54f',1,'pflib::Exception::message()'],['http://en.cppreference.com/w/cpp/error/error_condition/message.html',1,'std::error_condition::message()'],['http://en.cppreference.com/w/cpp/error/error_code/message.html',1,'std::error_code::message()']]],
@@ -82,9 +82,8 @@ var searchData=
   ['mt19937_79',['mt19937',['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine/mersenne_twister_engine.html',1,'std::mt19937::mt19937()'],['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine.html',1,'std::mt19937']]],
   ['mt19937_5f64_80',['mt19937_64',['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine/mersenne_twister_engine.html',1,'std::mt19937_64::mt19937_64()'],['http://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine.html',1,'std::mt19937_64']]],
   ['multimap_81',['multimap',['http://en.cppreference.com/w/cpp/container/multimap/multimap.html',1,'std::multimap::multimap()'],['http://en.cppreference.com/w/cpp/container/multimap.html',1,'std::multimap&lt; K, T &gt;']]],
-  ['multiple_5fcmd_5f_82',['multiple_cmd_',['../classMenu_1_1Line.html#a611bfcff763645a9d75db34a22a755e8',1,'Menu::Line']]],
-  ['multipletargetcommands_83',['MultipleTargetCommands',['../classMenu.html#a365ca7c40f84dd8c5f54182bd59087b2',1,'Menu']]],
-  ['multiplies_84',['multiplies',['http://en.cppreference.com/w/cpp/utility/functional/multiplies.html',1,'std']]],
-  ['multiset_85',['multiset',['http://en.cppreference.com/w/cpp/container/multiset/multiset.html',1,'std::multiset::multiset()'],['http://en.cppreference.com/w/cpp/container/multiset.html',1,'std::multiset&lt; K &gt;']]],
-  ['mutex_86',['mutex',['http://en.cppreference.com/w/cpp/thread/unique_lock/mutex.html',1,'std::unique_lock::mutex()'],['http://en.cppreference.com/w/cpp/thread/shared_lock/mutex.html',1,'std::shared_lock::mutex()'],['http://en.cppreference.com/w/cpp/thread/mutex/mutex.html',1,'std::mutex::mutex()'],['http://en.cppreference.com/w/cpp/thread/mutex.html',1,'std::mutex']]]
+  ['multipletargetcommands_82',['MultipleTargetCommands',['../classMenu.html#aeb7378e6b32be13b43111626c40eb27f',1,'Menu']]],
+  ['multiplies_83',['multiplies',['http://en.cppreference.com/w/cpp/utility/functional/multiplies.html',1,'std']]],
+  ['multiset_84',['multiset',['http://en.cppreference.com/w/cpp/container/multiset/multiset.html',1,'std::multiset::multiset()'],['http://en.cppreference.com/w/cpp/container/multiset.html',1,'std::multiset&lt; K &gt;']]],
+  ['mutex_85',['mutex',['http://en.cppreference.com/w/cpp/thread/unique_lock/mutex.html',1,'std::unique_lock::mutex()'],['http://en.cppreference.com/w/cpp/thread/shared_lock/mutex.html',1,'std::shared_lock::mutex()'],['http://en.cppreference.com/w/cpp/thread/mutex/mutex.html',1,'std::mutex::mutex()'],['http://en.cppreference.com/w/cpp/thread/mutex.html',1,'std::mutex']]]
 ];
