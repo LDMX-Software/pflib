@@ -235,7 +235,7 @@ class Menu : public BaseMenu {
    * Construct a menu with a rendering function and the input lines
    */
   Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
-      : lines_{lines} render_func_{f} {}
+      : lines_{lines}, render_func_{f} {}
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
@@ -296,7 +296,7 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
       add_to_history(theMatch->name());
       theMatch->execute(p_target);
     }
-  } while (theMatch != 0 and theMatch->empty());
+  } while (theMatch != 0 and not theMatch->empty());
 }
 
 #endif  // PFLIB_TOOL_MENU_H
