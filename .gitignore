@@ -3,3 +3,5 @@ build**
 *.root
 .*.swp
 ~*
+docs/html/**
+tool/test-menu
