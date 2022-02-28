@@ -765,7 +765,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     for(int value = minvalue; value <= maxvalue; value += step){
       //Catch errors from using incorrect page or value names
       try{
-        pft->hcal->roc(iroc).applyParameter(pagename, valuename, value);
+        pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
 
         for (int ievt=0; ievt<nevents; ievt++) {
           pft->backend->fc_sendL1A();
