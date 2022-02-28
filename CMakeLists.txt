@@ -32,6 +32,10 @@ target_link_libraries(pflib PUBLIC yaml-cpp)
 add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
+# don't install test-menu executable! just for Menu developments
+add_executable(test-menu tool/test_menu.cxx tool/Menu.cc)
+target_link_libraries(test-menu PRIVATE pflib readline)
+
 add_executable(pfdecoder tool/pfdecoder.cc)
 
 add_executable(pfcompile tool/pfcompile.cxx)
