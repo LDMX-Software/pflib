@@ -98,9 +98,9 @@ compile(const std::string& page_name, const std::string& param_name, const int& 
  * a partial page name that is a substring of the pages that you
  * wish to apply the parameter to. For example,
  *
- * - Channel_ - matches all 71 channels pages
- * - CALIB    - matches both calib channel pages
- * - Global_Analog - matches both global analog pages
+ * - Channel_* - matches all 71 channels pages
+ * - CALIB*    - matches both calib channel pages
+ * - Global_Analog* - matches both global analog pages
  *
  * @param[in] settings page names, parameter names, and parameter value settings
  * @return page numbers, register numbers, and register value settings

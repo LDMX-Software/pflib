@@ -4,6 +4,7 @@
 #include <map>
 #include <iostream>
 #include <algorithm>
+#include <strings.h>
 
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
@@ -57,48 +58,48 @@ struct Parameter {
  */
 const std::map<std::string,Parameter>
 GLOBAL_ANALOG_LUT = {
-  {"ON_dac_trim", Parameter(0,0,1,1)},
-  {"ON_input_dac", Parameter(0,1,1,1)},
-  {"ON_conv", Parameter(0,2,1,1)},
-  {"ON_pa", Parameter(0,3,1,1)},
-  {"Gain_conv", Parameter(0,4,4,0b0100)},
-  {"ON_rtr", Parameter(1,0,1,1)},
-  {"Sw_super_conv", Parameter(1,1,1,1)},
-  {"Dacb_vb_conv", Parameter(1,2,6,0b110011)},
-  {"ON_toa", Parameter(2,0,1,1)},
-  {"ON_tot", Parameter(2,1,1,1)},
-  {"Dacb_vbi_pa", Parameter(2,2,6,0b011111)},
-  {"Ibi_sk", Parameter(3,0,2,0)},
-  {"Ibo_sk", Parameter(3,2,6,0b001010)},
-  {"Ibi_inv", Parameter(4,0,2,0)},
-  {"Ibo_inv", Parameter(4,2,6,0b001010)},
-  {"Ibi_noinv", Parameter(5,0,2,0)},
-  {"Ibo_noinv", Parameter(5,2,6,0b001010)},
-  {"Ibi_inv_buf", Parameter(6,0,2,0b11)},
-  {"Ibo_inv_buf", Parameter(6,2,6,0b100110)},
-  {"Ibi_noinv_buf", Parameter(7,0,2,0b11)},
-  {"Ibo_noinv_buf", Parameter(7,2,6,0b100110)},
-  {"Sw_cd", Parameter(8,0,3,0b111)},
-  {"En_hyst_tot", Parameter(8,3,1,0)},
-  {"Sw_Cf_comp", Parameter(8,4,4,0b1010)},
-  {"Sw_Cf", Parameter(9,0,4,0b1010)},
-  {"Sw_Rf", Parameter(9,4,4,0b1000)},
-  {"Clr_ShaperTail", Parameter(10,1,1,0)},
-  {"SelRisingEdge", Parameter(10,2,1,1)},
-  {"SelExtADC", Parameter(10,3,1,0)},
-  {"Clr_ADC", Parameter(10,4,1,0)},
-  {"S_sk", Parameter(10,5,3,0b010)},
-  {"S_inv", Parameter(11,2,3,0b010)},
-  {"S_noinv", Parameter(11,5,3,0b010)},
-  {"S_inv_buf", Parameter(12,2,3,0b110)},
-  {"S_noinv_buf", Parameter(12,5,3,0b110)},
-  {"Ref_adc", Parameter(13,0,2,0)},
-  {"Delay40", Parameter(13,2,3,0)},
-  {"Delay65", Parameter(13,5,3,0)},
-  {"ON_ref_adc", Parameter(14,0,1,1)},
-  {"Pol_adc", Parameter(14,1,1,1)},
-  {"Delay87", Parameter(14,2,3,0)},
-  {"Delay9", Parameter(14,5,3,0)}
+  {"ON_DAC_TRIM", Parameter(0,0,1,1)},
+  {"ON_INPUT_DAC", Parameter(0,1,1,1)},
+  {"ON_CONV", Parameter(0,2,1,1)},
+  {"ON_PA", Parameter(0,3,1,1)},
+  {"GAIN_CONV", Parameter(0,4,4,0b0100)},
+  {"ON_RTR", Parameter(1,0,1,1)},
+  {"SW_SUPER_CONV", Parameter(1,1,1,1)},
+  {"DACB_VB_CONV", Parameter(1,2,6,0b110011)},
+  {"ON_TOA", Parameter(2,0,1,1)},
+  {"ON_TOT", Parameter(2,1,1,1)},
+  {"DACB_VBI_PA", Parameter(2,2,6,0b011111)},
+  {"IBI_SK", Parameter(3,0,2,0)},
+  {"IBO_SK", Parameter(3,2,6,0b001010)},
+  {"IBI_INV", Parameter(4,0,2,0)},
+  {"IBO_INV", Parameter(4,2,6,0b001010)},
+  {"IBI_NOINV", Parameter(5,0,2,0)},
+  {"IBO_NOINV", Parameter(5,2,6,0b001010)},
+  {"IBI_INV_BUF", Parameter(6,0,2,0b11)},
+  {"IBO_INV_BUF", Parameter(6,2,6,0b100110)},
+  {"IBI_NOINV_BUF", Parameter(7,0,2,0b11)},
+  {"IBO_NOINV_BUF", Parameter(7,2,6,0b100110)},
+  {"SW_CD", Parameter(8,0,3,0b111)},
+  {"EN_HYST_TOT", Parameter(8,3,1,0)},
+  {"SW_CF_COMP", Parameter(8,4,4,0b1010)},
+  {"SW_CF", Parameter(9,0,4,0b1010)},
+  {"SW_RF", Parameter(9,4,4,0b1000)},
+  {"CLR_SHAPERTAIL", Parameter(10,1,1,0)},
+  {"SELRISINGEDGE", Parameter(10,2,1,1)},
+  {"SELEXTADC", Parameter(10,3,1,0)},
+  {"CLR_ADC", Parameter(10,4,1,0)},
+  {"S_SK", Parameter(10,5,3,0b010)},
+  {"S_INV", Parameter(11,2,3,0b010)},
+  {"S_NOINV", Parameter(11,5,3,0b010)},
+  {"S_INV_BUF", Parameter(12,2,3,0b110)},
+  {"S_NOINV_BUF", Parameter(12,5,3,0b110)},
+  {"REF_ADC", Parameter(13,0,2,0)},
+  {"DELAY40", Parameter(13,2,3,0)},
+  {"DELAY65", Parameter(13,5,3,0)},
+  {"ON_REF_ADC", Parameter(14,0,1,1)},
+  {"POL_ADC", Parameter(14,1,1,1)},
+  {"DELAY87", Parameter(14,2,3,0)},
+  {"DELAY9", Parameter(14,5,3,0)}
 };
 
 /**
@@ -107,19 +108,19 @@ GLOBAL_ANALOG_LUT = {
  */
 const std::map<std::string,Parameter>
 REFERENCE_VOLTAGE_LUT = {
-  {"Probe_vref_pa", Parameter(0,0,1,0)},
-  {"Probe_vref_time", Parameter(0,1,1,0)},
-  {"Refi", Parameter(0,2,2,0b11)},
-  {"Vbg_1v", Parameter(0,4,3,0b111)},
-  {"ON_dac", Parameter(0,7,1,1)},
-  {"Noinv_vref", Parameter({RegisterLocation(1,0,2),RegisterLocation(5,0,8)},0b0100111100)},
-  {"Inv_vref", Parameter({RegisterLocation(1,2,2),RegisterLocation(4,0,8)},0b0110000000)},
-  {"Toa_vref", Parameter({RegisterLocation(1,4,2),RegisterLocation(3,0,8)},0b0001110000)},
-  {"Tot_vref", Parameter({RegisterLocation(1,6,2),RegisterLocation(2,0,8)},0b0110110000)},
-  {"Calib_dac", Parameter({RegisterLocation(6,0,8),RegisterLocation(7,0,4)},0)},
-  {"IntCtest", Parameter(7,6,1,0)},
-  {"ExtCtest", Parameter(7,7,1,0)},
-  {"Probe_dc", Parameter(8,0,8,0)}
+  {"PROBE_VREF_PA", Parameter(0,0,1,0)},
+  {"PROBE_VREF_TIME", Parameter(0,1,1,0)},
+  {"REFI", Parameter(0,2,2,0b11)},
+  {"VBG_1V", Parameter(0,4,3,0b111)},
+  {"ON_DAC", Parameter(0,7,1,1)},
+  {"NOINV_VREF", Parameter({RegisterLocation(1,0,2),RegisterLocation(5,0,8)},0b0100111100)},
+  {"INV_VREF", Parameter({RegisterLocation(1,2,2),RegisterLocation(4,0,8)},0b0110000000)},
+  {"TOA_VREF", Parameter({RegisterLocation(1,4,2),RegisterLocation(3,0,8)},0b0001110000)},
+  {"TOT_VREF", Parameter({RegisterLocation(1,6,2),RegisterLocation(2,0,8)},0b0110110000)},
+  {"CALIB_DAC", Parameter({RegisterLocation(6,0,8),RegisterLocation(7,0,4)},0)},
+  {"INTCTEST", Parameter(7,6,1,0)},
+  {"EXTCTEST", Parameter(7,7,1,0)},
+  {"PROBE_DC", Parameter(8,0,8,0)}
 };
 
 /**
@@ -189,35 +190,35 @@ MASTER_TDC_LUT = {
  * of an HGC ROC
  */
 const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
-  {"Inputdac", Parameter(0,0,6,0b011111)},
-  {"Dacb", Parameter({RegisterLocation(2,6,2),RegisterLocation(1,6,2),RegisterLocation(0,6,2)},0b111111)},
-  {"Sign_dac", Parameter(1,0,1,0)},
-  {"Ref_dac_toa", Parameter(1,1,5,0)},
-  {"Probe_noinv", Parameter(2,0,1,0)},
-  {"Ref_dac_tot", Parameter(2,1,5,0)},
-  {"Mask_toa", Parameter(3,0,1,0)},
-  {"Ref_dac_inv", Parameter(3,1,5,0)},
-  {"Sel_trigger_toa", Parameter(3,6,1,0)},
-  {"Probe_inv", Parameter(3,7,1,0)},
-  {"Probe_pa", Parameter(4,0,1,0)},
-  {"LowRange", Parameter(4,1,1,0)},
-  {"HighRange", Parameter(4,2,1,0)},
-  {"Channel_off", Parameter(4,3,1,0)},
-  {"Sel_trigger_tot", Parameter(4,4,1,0)},
-  {"Mask_tot", Parameter(4,5,1,0)},
-  {"Probe_tot", Parameter(4,6,1,0)},
-  {"Probe_toa", Parameter(4,7,1,0)},
+  {"INPUTDAC", Parameter(0,0,6,0b011111)},
+  {"DACB", Parameter({RegisterLocation(2,6,2),RegisterLocation(1,6,2),RegisterLocation(0,6,2)},0b111111)},
+  {"SIGN_DAC", Parameter(1,0,1,0)},
+  {"REF_DAC_TOA", Parameter(1,1,5,0)},
+  {"PROBE_NOINV", Parameter(2,0,1,0)},
+  {"REF_DAC_TOT", Parameter(2,1,5,0)},
+  {"MASK_TOA", Parameter(3,0,1,0)},
+  {"REF_DAC_INV", Parameter(3,1,5,0)},
+  {"SEL_TRIGGER_TOA", Parameter(3,6,1,0)},
+  {"PROBE_INV", Parameter(3,7,1,0)},
+  {"PROBE_PA", Parameter(4,0,1,0)},
+  {"LOWRANGE", Parameter(4,1,1,0)},
+  {"HIGHRANGE", Parameter(4,2,1,0)},
+  {"CHANNEL_OFF", Parameter(4,3,1,0)},
+  {"SEL_TRIGGER_TOT", Parameter(4,4,1,0)},
+  {"MASK_TOT", Parameter(4,5,1,0)},
+  {"PROBE_TOT", Parameter(4,6,1,0)},
+  {"PROBE_TOA", Parameter(4,7,1,0)},
   {"DAC_CAL_FTDC_TOA", Parameter(5,0,6,0)},
-  {"Mask_adc", Parameter(5,7,1,0)},
+  {"MASK_ADC", Parameter(5,7,1,0)},
   {"DAC_CAL_CTDC_TOA", Parameter(6,0,6,0)},
   {"DAC_CAL_FTDC_TOT", Parameter(7,0,6,0)},
   {"DAC_CAL_CTDC_TOT", Parameter(8,0,6,0)},
   {"IN_FTDC_ENCODER_TOA", Parameter(9,0,6,0)},
   {"IN_FTDC_ENCODER_TOT", Parameter(10,0,6,0)},
   {"DIS_TDC", Parameter(10,7,1,0)},
-  {"ExtData", Parameter({RegisterLocation(13,0,8),RegisterLocation(11,0,2)},0)},
-  {"Mask_AlignBuffer", Parameter(11,7,1,0)},
-  {"Adc_pedestal", Parameter(12,0,8,0)}
+  {"EXTDATA", Parameter({RegisterLocation(13,0,8),RegisterLocation(11,0,2)},0)},
+  {"MASK_ALIGNBUFFER", Parameter(11,7,1,0)},
+  {"ADC_PEDESTAL", Parameter(12,0,8,0)}
 };
 
 /**
@@ -225,24 +226,24 @@ const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
  * of an HGC ROC
  */
 const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
-  {"SelRawData", Parameter(0,0,1,1)},
-  {"SelTC4"    , Parameter(0,1,1,1)},
-  {"CmdSelEdge", Parameter(0,2,1,1)},
-  {"Adc_TH"    , Parameter(0,4,4,0)},
-  {"MultFactor", Parameter(1,0,5,0b11001)},
-  {"L1Offset"  , Parameter({RegisterLocation(2,0,8),RegisterLocation(1,7,1)},0b000001000)},
-  {"IdleFrame" , Parameter({RegisterLocation(3,0,8),RegisterLocation(4,0,8),RegisterLocation(5,0,8),RegisterLocation(6,0,4)},0b1100110011001100110011001100)},
-  {"ByPassCh0" , Parameter(6,4,1,0)},
-  {"ByPassCh17", Parameter(6,5,1,0)},
-  {"ByPassCh35", Parameter(6,6,1,0)},
-  {"Tot_TH0"   , Parameter(7,0,8,0)},
-  {"Tot_TH1"   , Parameter(8,0,8,0)},
-  {"Tot_TH2"   , Parameter(9,0,8,0)},
-  {"Tot_TH3"   , Parameter(10,0,8,0)},
-  {"Tot_P0"    , Parameter(11,0,7,0)},
-  {"Tot_P1"    , Parameter(12,0,7,0)},
-  {"Tot_P2"    , Parameter(13,0,7,0)},
-  {"Tot_P3"    , Parameter(14,0,7,0)}
+  {"SELRAWDATA", Parameter(0,0,1,1)},
+  {"SELTC4"    , Parameter(0,1,1,1)},
+  {"CMDSELEDGE", Parameter(0,2,1,1)},
+  {"ADC_TH"    , Parameter(0,4,4,0)},
+  {"MULTFACTOR", Parameter(1,0,5,0b11001)},
+  {"L1OFFSET"  , Parameter({RegisterLocation(2,0,8),RegisterLocation(1,7,1)},0b000001000)},
+  {"IDLEFRAME" , Parameter({RegisterLocation(3,0,8),RegisterLocation(4,0,8),RegisterLocation(5,0,8),RegisterLocation(6,0,4)},0b1100110011001100110011001100)},
+  {"BYPASSCH0" , Parameter(6,4,1,0)},
+  {"BYPASSCH17", Parameter(6,5,1,0)},
+  {"BYPASSCH35", Parameter(6,6,1,0)},
+  {"TOT_TH0"   , Parameter(7,0,8,0)},
+  {"TOT_TH1"   , Parameter(8,0,8,0)},
+  {"TOT_TH2"   , Parameter(9,0,8,0)},
+  {"TOT_TH3"   , Parameter(10,0,8,0)},
+  {"TOT_P0"    , Parameter(11,0,7,0)},
+  {"TOT_P1"    , Parameter(12,0,7,0)},
+  {"TOT_P2"    , Parameter(13,0,7,0)},
+  {"TOT_P3"    , Parameter(14,0,7,0)}
 };
 
 /**
@@ -252,9 +253,9 @@ const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
 const std::map<std::string,Parameter> TOP_LUT = {
   {"EN_LOCK_CONTROL", Parameter(0,0,1,1)},
   {"ERROR_LIMIT_SC" , Parameter(0,1,3,0b010)},
-  {"Sel_PLL_Locked" , Parameter(0,4,1,1)},
-  {"PllLockedSc"    , Parameter(0,5,1,1)},
-  {"OrbitSync_sc"   , Parameter(0,7,1,0)},
+  {"SEL_PLL_LOCKED" , Parameter(0,4,1,1)},
+  {"PLLLOCKEDSC"    , Parameter(0,5,1,1)},
+  {"ORBITSYNC_SC"   , Parameter(0,7,1,0)},
   {"EN_PLL"         , Parameter(1,0,1,1)},
   {"DIV_PLL"        , Parameter(1,1,2,0)},
   {"EN_HIGH_CAPA"   , Parameter(1,3,1,0)},
@@ -264,20 +265,20 @@ const std::map<std::string,Parameter> TOP_LUT = {
   {"VOUT_INIT_EXT_D" , Parameter(2,1,5,0)},
   {"FOLLOWER_PLL_EN" , Parameter(3,0,1,1)},
   {"BIAS_I_PLL_D"    , Parameter(3,1,6,0b011000)},
-  {"Sel_40M_ext"     , Parameter(3,7,1,0)},
-  {"PLL_probe_amplitude" , Parameter(4,0,3,0b011)},
-  {"PLL_probe_pre_scale" , Parameter(4,3,3,0)},
-  {"PLL_probe_pre_phase" , Parameter(4,6,2,0)},
-  {"eT_amplitude"        , Parameter(5,0,3,0b011)},
-  {"eT_pre_scale"        , Parameter(5,3,3,0)},
-  {"eT_pre_phase"        , Parameter(5,6,2,0)},
-  {"Sel_ReSync_fcmd" , Parameter(6,0,1,1)},
-  {"Sel_L1_fcmd"     , Parameter(6,1,1,1)},
-  {"Sel_STROBE_fcmd" , Parameter(6,2,1,1)},
-  {"Sel_OrbitSync_fcmd", Parameter(6,3,1,1)},
-  {"En_PhaseShift" , Parameter(7,0,1,1)},
-  {"Phase"         , Parameter(7,1,4,0)},
-  {"En_pll_ext"    , Parameter(7,7,1,0)}
+  {"SEL_40M_EXT"     , Parameter(3,7,1,0)},
+  {"PLL_PROBE_AMPLITUDE" , Parameter(4,0,3,0b011)},
+  {"PLL_PROBE_PRE_SCALE" , Parameter(4,3,3,0)},
+  {"PLL_PROBE_PRE_PHASE" , Parameter(4,6,2,0)},
+  {"ET_AMPLITUDE"        , Parameter(5,0,3,0b011)},
+  {"ET_PRE_SCALE"        , Parameter(5,3,3,0)},
+  {"ET_PRE_PHASE"        , Parameter(5,6,2,0)},
+  {"SEL_RESYNC_FCMD" , Parameter(6,0,1,1)},
+  {"SEL_L1_FCMD"     , Parameter(6,1,1,1)},
+  {"SEL_STROBE_FCMD" , Parameter(6,2,1,1)},
+  {"SEL_ORBITSYNC_FCMD", Parameter(6,3,1,1)},
+  {"EN_PHASESHIFT" , Parameter(7,0,1,1)},
+  {"PHASE"         , Parameter(7,1,4,0)},
+  {"EN_PLL_EXT"    , Parameter(7,7,1,0)}
 };
 
 /**
@@ -285,94 +286,94 @@ const std::map<std::string,Parameter> TOP_LUT = {
  */
 const std::map<std::string,std::pair<int,std::map<std::string,Parameter>>>
 PARAMETER_LUT = {
-  {"Global_Analog_0", { 297, GLOBAL_ANALOG_LUT }},
-  {"Reference_Voltage_0", {296, REFERENCE_VOLTAGE_LUT}},
-  {"Global_Analog_0", {297, GLOBAL_ANALOG_LUT}},
-  {"Master_TDC_0", {298, MASTER_TDC_LUT}},
-  {"Digital_Half_0", {299, DIGITAL_HALF_LUT}},
-  {"Reference_Voltage_1", {40, REFERENCE_VOLTAGE_LUT}},
-  {"Global_Analog_1", {41, GLOBAL_ANALOG_LUT}},
-  {"Master_TDC_1", {42, MASTER_TDC_LUT}},
-  {"Digital_Half_1", {43, DIGITAL_HALF_LUT}},
-  {"Top", {44,TOP_LUT}},
+  {"GLOBAL_ANALOG_0", { 297, GLOBAL_ANALOG_LUT }},
+  {"REFERENCE_VOLTAGE_0", {296, REFERENCE_VOLTAGE_LUT}},
+  {"GLOBAL_ANALOG_0", {297, GLOBAL_ANALOG_LUT}},
+  {"MASTER_TDC_0", {298, MASTER_TDC_LUT}},
+  {"DIGITAL_HALF_0", {299, DIGITAL_HALF_LUT}},
+  {"REFERENCE_VOLTAGE_1", {40, REFERENCE_VOLTAGE_LUT}},
+  {"GLOBAL_ANALOG_1", {41, GLOBAL_ANALOG_LUT}},
+  {"MASTER_TDC_1", {42, MASTER_TDC_LUT}},
+  {"DIGITAL_HALF_1", {43, DIGITAL_HALF_LUT}},
+  {"TOP", {44,TOP_LUT}},
   {"CM0", {275, CHANNEL_WISE_LUT}},
   {"CM1", {276, CHANNEL_WISE_LUT}},
   {"CALIB0", {274, CHANNEL_WISE_LUT}},
   {"CM2", {19, CHANNEL_WISE_LUT}},
   {"CM3", {20, CHANNEL_WISE_LUT}},
   {"CALIB1", {18, CHANNEL_WISE_LUT}},
-  {"Channel_0", {261, CHANNEL_WISE_LUT}},
-  {"Channel_1", {260, CHANNEL_WISE_LUT}},
-  {"Channel_2", {259, CHANNEL_WISE_LUT}},
-  {"Channel_3", {258, CHANNEL_WISE_LUT}},
-  {"Channel_4", {265, CHANNEL_WISE_LUT}},
-  {"Channel_5", {264, CHANNEL_WISE_LUT}},
-  {"Channel_6", {263, CHANNEL_WISE_LUT}},
-  {"Channel_7", {262, CHANNEL_WISE_LUT}},
-  {"Channel_8", {269, CHANNEL_WISE_LUT}},
-  {"Channel_9", {268, CHANNEL_WISE_LUT}},
-  {"Channel_10", {267, CHANNEL_WISE_LUT}},
-  {"Channel_11", {266, CHANNEL_WISE_LUT}},
-  {"Channel_12", {273, CHANNEL_WISE_LUT}},
-  {"Channel_13", {272, CHANNEL_WISE_LUT}},
-  {"Channel_14", {271, CHANNEL_WISE_LUT}},
-  {"Channel_15", {270, CHANNEL_WISE_LUT}},
-  {"Channel_16", {294, CHANNEL_WISE_LUT}},
-  {"Channel_17", {256, CHANNEL_WISE_LUT}},
-  {"Channel_18", {277, CHANNEL_WISE_LUT}},
-  {"Channel_19", {295, CHANNEL_WISE_LUT}},
-  {"Channel_20", {278, CHANNEL_WISE_LUT}},
-  {"Channel_21", {279, CHANNEL_WISE_LUT}},
-  {"Channel_22", {280, CHANNEL_WISE_LUT}},
-  {"Channel_23", {281, CHANNEL_WISE_LUT}},
-  {"Channel_24", {282, CHANNEL_WISE_LUT}},
-  {"Channel_25", {283, CHANNEL_WISE_LUT}},
-  {"Channel_26", {284, CHANNEL_WISE_LUT}},
-  {"Channel_27", {285, CHANNEL_WISE_LUT}},
-  {"Channel_28", {286, CHANNEL_WISE_LUT}},
-  {"Channel_29", {287, CHANNEL_WISE_LUT}},
-  {"Channel_30", {288, CHANNEL_WISE_LUT}},
-  {"Channel_31", {289, CHANNEL_WISE_LUT}},
-  {"Channel_32", {290, CHANNEL_WISE_LUT}},
-  {"Channel_33", {291, CHANNEL_WISE_LUT}},
-  {"Channel_34", {292, CHANNEL_WISE_LUT}},
-  {"Channel_35", {293, CHANNEL_WISE_LUT}},
-  {"Channel_36", {5, CHANNEL_WISE_LUT}},
-  {"Channel_37", {4, CHANNEL_WISE_LUT}},
-  {"Channel_38", {3, CHANNEL_WISE_LUT}},
-  {"Channel_39", {2, CHANNEL_WISE_LUT}},
-  {"Channel_40", {9, CHANNEL_WISE_LUT}},
-  {"Channel_41", {8, CHANNEL_WISE_LUT}},
-  {"Channel_42", {7, CHANNEL_WISE_LUT}},
-  {"Channel_43", {6, CHANNEL_WISE_LUT}},
-  {"Channel_44", {13, CHANNEL_WISE_LUT}},
-  {"Channel_45", {12, CHANNEL_WISE_LUT}},
-  {"Channel_46", {11, CHANNEL_WISE_LUT}},
-  {"Channel_47", {10, CHANNEL_WISE_LUT}},
-  {"Channel_48", {17, CHANNEL_WISE_LUT}},
-  {"Channel_49", {16, CHANNEL_WISE_LUT}},
-  {"Channel_50", {15, CHANNEL_WISE_LUT}},
-  {"Channel_51", {14, CHANNEL_WISE_LUT}},
-  {"Channel_52", {38, CHANNEL_WISE_LUT}},
-  {"Channel_53", {0, CHANNEL_WISE_LUT}},
-  {"Channel_54", {21, CHANNEL_WISE_LUT}},
-  {"Channel_55", {39, CHANNEL_WISE_LUT}},
-  {"Channel_56", {22, CHANNEL_WISE_LUT}},
-  {"Channel_57", {23, CHANNEL_WISE_LUT}},
-  {"Channel_58", {24, CHANNEL_WISE_LUT}},
-  {"Channel_59", {25, CHANNEL_WISE_LUT}},
-  {"Channel_60", {26, CHANNEL_WISE_LUT}},
-  {"Channel_61", {27, CHANNEL_WISE_LUT}},
-  {"Channel_62", {28, CHANNEL_WISE_LUT}},
-  {"Channel_63", {29, CHANNEL_WISE_LUT}},
-  {"Channel_64", {30, CHANNEL_WISE_LUT}},
-  {"Channel_65", {31, CHANNEL_WISE_LUT}},
-  {"Channel_66", {32, CHANNEL_WISE_LUT}},
-  {"Channel_67", {33, CHANNEL_WISE_LUT}},
-  {"Channel_68", {34, CHANNEL_WISE_LUT}},
-  {"Channel_69", {35, CHANNEL_WISE_LUT}},
-  {"Channel_70", {36, CHANNEL_WISE_LUT}},
-  {"Channel_71", {37, CHANNEL_WISE_LUT}}
+  {"CHANNEL_0", {261, CHANNEL_WISE_LUT}},
+  {"CHANNEL_1", {260, CHANNEL_WISE_LUT}},
+  {"CHANNEL_2", {259, CHANNEL_WISE_LUT}},
+  {"CHANNEL_3", {258, CHANNEL_WISE_LUT}},
+  {"CHANNEL_4", {265, CHANNEL_WISE_LUT}},
+  {"CHANNEL_5", {264, CHANNEL_WISE_LUT}},
+  {"CHANNEL_6", {263, CHANNEL_WISE_LUT}},
+  {"CHANNEL_7", {262, CHANNEL_WISE_LUT}},
+  {"CHANNEL_8", {269, CHANNEL_WISE_LUT}},
+  {"CHANNEL_9", {268, CHANNEL_WISE_LUT}},
+  {"CHANNEL_10", {267, CHANNEL_WISE_LUT}},
+  {"CHANNEL_11", {266, CHANNEL_WISE_LUT}},
+  {"CHANNEL_12", {273, CHANNEL_WISE_LUT}},
+  {"CHANNEL_13", {272, CHANNEL_WISE_LUT}},
+  {"CHANNEL_14", {271, CHANNEL_WISE_LUT}},
+  {"CHANNEL_15", {270, CHANNEL_WISE_LUT}},
+  {"CHANNEL_16", {294, CHANNEL_WISE_LUT}},
+  {"CHANNEL_17", {256, CHANNEL_WISE_LUT}},
+  {"CHANNEL_18", {277, CHANNEL_WISE_LUT}},
+  {"CHANNEL_19", {295, CHANNEL_WISE_LUT}},
+  {"CHANNEL_20", {278, CHANNEL_WISE_LUT}},
+  {"CHANNEL_21", {279, CHANNEL_WISE_LUT}},
+  {"CHANNEL_22", {280, CHANNEL_WISE_LUT}},
+  {"CHANNEL_23", {281, CHANNEL_WISE_LUT}},
+  {"CHANNEL_24", {282, CHANNEL_WISE_LUT}},
+  {"CHANNEL_25", {283, CHANNEL_WISE_LUT}},
+  {"CHANNEL_26", {284, CHANNEL_WISE_LUT}},
+  {"CHANNEL_27", {285, CHANNEL_WISE_LUT}},
+  {"CHANNEL_28", {286, CHANNEL_WISE_LUT}},
+  {"CHANNEL_29", {287, CHANNEL_WISE_LUT}},
+  {"CHANNEL_30", {288, CHANNEL_WISE_LUT}},
+  {"CHANNEL_31", {289, CHANNEL_WISE_LUT}},
+  {"CHANNEL_32", {290, CHANNEL_WISE_LUT}},
+  {"CHANNEL_33", {291, CHANNEL_WISE_LUT}},
+  {"CHANNEL_34", {292, CHANNEL_WISE_LUT}},
+  {"CHANNEL_35", {293, CHANNEL_WISE_LUT}},
+  {"CHANNEL_36", {5, CHANNEL_WISE_LUT}},
+  {"CHANNEL_37", {4, CHANNEL_WISE_LUT}},
+  {"CHANNEL_38", {3, CHANNEL_WISE_LUT}},
+  {"CHANNEL_39", {2, CHANNEL_WISE_LUT}},
+  {"CHANNEL_40", {9, CHANNEL_WISE_LUT}},
+  {"CHANNEL_41", {8, CHANNEL_WISE_LUT}},
+  {"CHANNEL_42", {7, CHANNEL_WISE_LUT}},
+  {"CHANNEL_43", {6, CHANNEL_WISE_LUT}},
+  {"CHANNEL_44", {13, CHANNEL_WISE_LUT}},
+  {"CHANNEL_45", {12, CHANNEL_WISE_LUT}},
+  {"CHANNEL_46", {11, CHANNEL_WISE_LUT}},
+  {"CHANNEL_47", {10, CHANNEL_WISE_LUT}},
+  {"CHANNEL_48", {17, CHANNEL_WISE_LUT}},
+  {"CHANNEL_49", {16, CHANNEL_WISE_LUT}},
+  {"CHANNEL_50", {15, CHANNEL_WISE_LUT}},
+  {"CHANNEL_51", {14, CHANNEL_WISE_LUT}},
+  {"CHANNEL_52", {38, CHANNEL_WISE_LUT}},
+  {"CHANNEL_53", {0, CHANNEL_WISE_LUT}},
+  {"CHANNEL_54", {21, CHANNEL_WISE_LUT}},
+  {"CHANNEL_55", {39, CHANNEL_WISE_LUT}},
+  {"CHANNEL_56", {22, CHANNEL_WISE_LUT}},
+  {"CHANNEL_57", {23, CHANNEL_WISE_LUT}},
+  {"CHANNEL_58", {24, CHANNEL_WISE_LUT}},
+  {"CHANNEL_59", {25, CHANNEL_WISE_LUT}},
+  {"CHANNEL_60", {26, CHANNEL_WISE_LUT}},
+  {"CHANNEL_61", {27, CHANNEL_WISE_LUT}},
+  {"CHANNEL_62", {28, CHANNEL_WISE_LUT}},
+  {"CHANNEL_63", {29, CHANNEL_WISE_LUT}},
+  {"CHANNEL_64", {30, CHANNEL_WISE_LUT}},
+  {"CHANNEL_65", {31, CHANNEL_WISE_LUT}},
+  {"CHANNEL_66", {32, CHANNEL_WISE_LUT}},
+  {"CHANNEL_67", {33, CHANNEL_WISE_LUT}},
+  {"CHANNEL_68", {34, CHANNEL_WISE_LUT}},
+  {"CHANNEL_69", {35, CHANNEL_WISE_LUT}},
+  {"CHANNEL_70", {36, CHANNEL_WISE_LUT}},
+  {"CHANNEL_71", {37, CHANNEL_WISE_LUT}}
 };
 
 int str_to_int(std::string str) {
@@ -420,16 +421,19 @@ void compile(const std::string& page_name, const std::string& param_name, const 
 
 std::map<int,std::map<int,uint8_t>> 
 compile(const std::string& page_name, const std::string& param_name, const int& val) {
-  if (PARAMETER_LUT.find(page_name) == PARAMETER_LUT.end()) {
-    PFEXCEPTION_RAISE("NotFound", "The page named '"+page_name+"' is not found in the look up table.");
+  std::string PAGE_NAME{page_name}, PARAM_NAME{param_name};
+  for (auto& c : PAGE_NAME) c = toupper(c);
+  for (auto& c : PARAM_NAME) c = toupper(c);
+  if (PARAMETER_LUT.find(PAGE_NAME) == PARAMETER_LUT.end()) {
+    PFEXCEPTION_RAISE("NotFound", "The page named '"+PAGE_NAME+"' is not found in the look up table.");
   }
-  const auto& page_lut{PARAMETER_LUT.at(page_name).second};
-  if (page_lut.find(param_name) == page_lut.end()) {
-    PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param_name
-        +"' is not found in the look up table for page "+page_name);
+  const auto& page_lut{PARAMETER_LUT.at(PAGE_NAME).second};
+  if (page_lut.find(PARAM_NAME) == page_lut.end()) {
+    PFEXCEPTION_RAISE("NotFound", "The parameter named '"+PARAM_NAME
+        +"' is not found in the look up table for page "+PAGE_NAME);
   }
   std::map<int,std::map<int,uint8_t>> rv;
-  compile(page_name, param_name, val, rv);
+  compile(PAGE_NAME, PARAM_NAME, val, rv);
   return rv;
 }
 
@@ -439,21 +443,25 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
   for (const auto& page : settings) {
     // page.first => page name
     // page.second => parameter to value map
-    if (PARAMETER_LUT.find(page.first) == PARAMETER_LUT.end()) {
+    std::string page_name = page.first;
+    for (auto& c : page_name) c = toupper(c);
+    if (PARAMETER_LUT.find(page_name) == PARAMETER_LUT.end()) {
       // this exception shouldn't really ever happen because we check if the input
       // page matches any of the pages in the LUT in detail::apply, but
       // we leave this check in here for future development
       PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
     }
-    const auto& page_lut{PARAMETER_LUT.at(page.first).second};
+    const auto& page_lut{PARAMETER_LUT.at(page_name).second};
     for (const auto& param : page.second) {
       // param.first => parameter name
       // param.second => value
-      if (page_lut.find(param.first) == page_lut.end()) {
+      std::string param_name = param.first;
+      for (auto& c : param_name) c = toupper(c);
+      if (page_lut.find(param_name) == page_lut.end()) {
         PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
             +"' is not found in the look up table for page "+page.first);
       }
-      compile(page.first, param.first, param.second, register_values);
+      compile(page_name, param_name, param.second, register_values);
     }   // loop over parameters in page
   }     // loop over pages
 
@@ -537,7 +545,9 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
     // apply these settings only to pages the input name
     std::vector<std::string> matching_pages;
     std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
-        [&](const std::string& page) { return page.find(page_name) != std::string::npos; });
+        [&](const std::string& page) { 
+          return strncasecmp(page.c_str(), page_name.c_str(), page_name.size()) == 0; 
+        });
 
     if (matching_pages.empty()) {
       PFEXCEPTION_RAISE("NotFound", 
@@ -551,7 +561,9 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
           PFEXCEPTION_RAISE("BadFormat",
               "Non-existent value for parameter "+param.first.as<std::string>());
         }
-        settings[page][param.first.as<std::string>()] = str_to_int(sval);
+        std::string param_name = param.first.as<std::string>();
+        for (auto& c : param_name) c = toupper(c);
+        settings[page][param_name] = str_to_int(sval);
       }
     }
   }
