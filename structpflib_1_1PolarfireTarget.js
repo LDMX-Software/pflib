@@ -1,6 +1,7 @@
 var structpflib_1_1PolarfireTarget =
 [
     [ "PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a521e5031d92b42ac0d6b40083a811487", null ],
+    [ "~PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a63a53aab81f6f4bb3f61ef5a2a75a667", null ],
     [ "daqHardReset", "structpflib_1_1PolarfireTarget.html#ab7ad7b580e1cc360a1720f329797a100", null ],
     [ "daqReadDirect", "structpflib_1_1PolarfireTarget.html#ab51ecc18a560b4e9dc1ec748d57bd3d0", null ],
     [ "daqReadEvent", "structpflib_1_1PolarfireTarget.html#a9e5b04664e72942784ba5e556f63d991", null ],
