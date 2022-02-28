@@ -22,7 +22,6 @@
 
 using pflib::PolarfireTarget;
 
-
 static void RunMenu( PolarfireTarget* pft_  )  ;
 
 static void ldmx_status( PolarfireTarget* pft );
@@ -153,29 +152,33 @@ int main(int argc, char* argv[]) {
       if ( mId == -1 ) break ;
       
       std::unique_ptr<PolarfireTarget> p_pft;
-
+      try {
 #ifdef PFTOOL_ROGUE
-      if (isrogue) {
-        // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-        pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
-        p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
-      }
+        if (isrogue) {
+          // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
+          pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
+          p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
+        }
 #endif
 #ifdef PFTOOL_UHAL
-      if (isuhal) {
-        // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-        pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId],options.contents().getString("ipbus_map_path"));
-        p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
-      }
+        if (isuhal) {
+          // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
+          pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId],options.contents().getString("ipbus_map_path"));
+          p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
+        }
 #endif
+      } catch (const pflib::Exception& e) {
+        std::cerr << "pflib Init Error [" << e.name() << "] : " << e.message() << std::endl;
+        return 1;
+      }
 
       if (p_pft) {
       	// prepare the links
       	if (options.contents().is_vector("roclinks")) {	  
       	  std::vector<bool> actives=options.contents().getVBool("roclinks");
       	  for (int ilink=0; 
-              ilink<p_pft->hcal->elinks().nlinks() and ilink<int(actives.size()); 
-              ilink++) p_pft->hcal->elinks().markActive(ilink,actives[ilink]);
+              ilink<p_pft->hcal.elinks().nlinks() and ilink<int(actives.size()); 
+              ilink++) p_pft->hcal.elinks().markActive(ilink,actives[ilink]);
       	}
         ldmx_status(p_pft.get());
         RunMenu(p_pft.get());
@@ -190,7 +193,6 @@ int main(int argc, char* argv[]) {
         if (strncasecmp( RunOrExit.c_str(), "EXIT", 1)==0) exitMenu = true ;
       } else exitMenu=true;
     } while( !exitMenu ) ;
-    
   } catch (std::exception& e) {
     fprintf(stderr, "Exception!  %s\n",e.what());
   }
@@ -326,11 +328,10 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("BIAS","BIAS voltage setting", &menu_ldmx_bias ),
     pfMenu::Line("ELINKS","Manage the elinks", &menu_ldmx_elinks ),
     pfMenu::Line("DAQ","DAQ", &menu_ldmx_daq ),
-    pfMenu::Line("EXPERT","Expert functions", &menu_expert )
+    pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
+    pfMenu::Line("EXIT","Exit this tool")
   });
-  
-  menu_utop.addLine(pfMenu::Line("EXIT", "Exit this tool" ));
-  
+
   menu_utop.steer( pft_ ) ;
 }
 
@@ -373,8 +374,8 @@ void ldmx_status( PolarfireTarget* pft) {
   std::pair<int,int> version = pft->getFirmwareVersion();
   printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
   printf("  Active DAQ links: ");
-  for (int ilink=0; ilink<pft->hcal->elinks().nlinks(); ilink++)
-    if (pft->hcal->elinks().isActive(ilink)) printf("%d ",ilink);
+  for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++)
+    if (pft->hcal.elinks().isActive(ilink)) printf("%d ",ilink);
   printf("\n");
 }
 
@@ -382,7 +383,7 @@ void ldmx_i2c( const std::string& cmd, PolarfireTarget* pft ) {
   static uint32_t addr=0;
   static int waddrlen=1;
   static int i2caddr=0;
-  pflib::I2C i2c(pft->wb.get());
+  pflib::I2C i2c(pft->wb);
 
   if (cmd=="BUS") {
     int ibus=i2c.get_active_bus();
@@ -473,7 +474,7 @@ void ldmx_link( const std::string& cmd, PolarfireTarget* pft ) {
 
 void ldmx_elinks( const std::string& cmd, PolarfireTarget* pft ) {
   
-  pflib::Elinks& elinks=pft->hcal->elinks();
+  pflib::Elinks& elinks=pft->hcal.elinks();
   static int ilink=0;
   if (cmd=="RELINK")
     pft->elink_relink(2);
@@ -529,18 +530,18 @@ void ldmx_roc_render(PolarfireTarget*) {
 
 void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="HARDRESET") {
-    pft->hcal->hardResetROCs();
+    pft->hcal.hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    pft->hcal->softResetROC();
+    pft->hcal.softResetROC();
   }
   if (cmd=="RESYNCLOAD") {
-    pft->hcal->resyncLoadROC();
+    pft->hcal.resyncLoadROC();
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
   }
-  pflib::ROC roc=pft->hcal->roc(iroc);
+  pflib::ROC roc=pft->hcal.roc(iroc);
   if (cmd=="CHAN") {
     int chan=BaseMenu::readline_int("Which channel? ",0);
     std::vector<uint8_t> v=roc.getChannelParameters(chan);
@@ -603,7 +604,7 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
 void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   bool do_status=false;
 
-  pflib::FastControl& fc=pft->hcal->fc();
+  pflib::FastControl& fc=pft->hcal.fc();
   if (cmd=="SW_L1A") {
     pft->backend->fc_sendL1A();
     printf("Sent SW L1A\n");
@@ -617,11 +618,11 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd=="COUNTER_RESET") {
-    pft->hcal->fc().resetCounters();
+    pft->hcal.fc().resetCounters();
     do_status=true;
   }
   if (cmd=="FC_RESET") {
-    pft->hcal->fc().resetTransmitter();
+    pft->hcal.fc().resetTransmitter();
   }
   if (cmd=="CALIB") {
     int len, offset;
@@ -633,30 +634,30 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
-    pft->hcal->fc().getMultisampleSetup(multi,nextra);
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
     multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
     if (multi)
       nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
-    pft->hcal->fc().setupMultisample(multi,nextra);
+    pft->hcal.fc().setupMultisample(multi,nextra);
   }
   if (cmd=="STATUS" || do_status) {
     bool multi;
     int nextra;
-    pft->hcal->fc().getMultisampleSetup(multi,nextra);
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
     if (multi) printf(" Multisample readout enabled : %d extra L1a (%d total samples)\n",nextra,nextra+1);
     else printf(" Multisaple readout disabled\n");
     printf(" Snapshot: %03x\n",pft->wb->wb_read(1,3));
     uint32_t sbe,dbe;
-    pft->hcal->fc().getErrorCounters(sbe,dbe);
+    pft->hcal.fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
-    std::vector<uint32_t> cnt=pft->hcal->fc().getCmdCounters();
+    std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
       printf("  Bit %d count: %u\n",i,cnt[i]); 
   }
 }
 
 void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::DAQ& daq=pft->hcal->daq();
+  pflib::DAQ& daq=pft->hcal.daq();
 
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
@@ -682,7 +683,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="STANDARD") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
-    pflib::Elinks& elinks=pft->hcal->elinks();
+    pflib::Elinks& elinks=pft->hcal.elinks();
     
     for (int i=0; i<daq.nlinks(); i++) {
       if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
@@ -696,7 +697,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::DAQ& daq=pft->hcal->daq();
+  pflib::DAQ& daq=pft->hcal.daq();
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
   }
@@ -926,7 +927,7 @@ void ldmx_daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
       pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
       // load the bytes
       for (int i=0; i<40; i++)
-  pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
+        pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
     }
   }
 }
@@ -936,12 +937,12 @@ void ldmx_bias( const std::string& cmd, PolarfireTarget* pft ) {
   static int iboard=0;
   if (cmd=="STATUS") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
-    pflib::Bias bias=pft->hcal->bias(iboard);
+    pflib::Bias bias=pft->hcal.bias(iboard);
   }
   
   if (cmd=="INIT") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
-    pflib::Bias bias=pft->hcal->bias(iboard);
+    pflib::Bias bias=pft->hcal.bias(iboard);
     bias.initialize();
   }
   if (cmd=="SET") {

@@ -30,9 +30,9 @@ namespace pflib {
  * the members of this class will also be public.
  */
 struct PolarfireTarget {
-  std::shared_ptr<WishboneInterface> wb;
-  std::shared_ptr<Backend> backend;
-  std::unique_ptr<Hcal> hcal;
+  WishboneInterface* wb;
+  Backend* backend;
+  Hcal hcal;
   static const int N_PAGES;
   static const int N_REGISTERS_PER_PAGE;
   // need to read this eventually
@@ -40,8 +40,17 @@ struct PolarfireTarget {
 
   /**
    * Define where the polarfire we will be talking to is.
+   *
+   * @note This object takes ownership of the input pointers.
+   * If they are the same pointer, then only one is deleted.
    */
   PolarfireTarget(WishboneInterface* wbi, Backend* be);
+
+  /**
+   * Cleanup the wishbone interface and backend
+   * checking if they are the same.
+   */
+  ~PolarfireTarget();
 
   /**
    * deduce firmware major/minor version
@@ -179,7 +188,7 @@ struct PolarfireTarget {
   /** Carries out the standard elink alignment process */
   void elink_relink(int verbosity);
   
-private:
+ private:
   int samples_per_event_;  
 };
 

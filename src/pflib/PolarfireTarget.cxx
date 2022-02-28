@@ -71,29 +71,40 @@ const int PolarfireTarget::N_PAGES    = 300;
 const int PolarfireTarget::N_REGISTERS_PER_PAGE = 16;
 int       PolarfireTarget::NLINKS     = 8 ;
 
-  PolarfireTarget::PolarfireTarget(WishboneInterface* wbi, Backend *be) {
-    wb = std::shared_ptr<WishboneInterface>(wbi);
-    backend = std::shared_ptr<Backend>(be);
-    hcal = std::make_unique<Hcal>(wb.get());
+PolarfireTarget::PolarfireTarget(WishboneInterface* wbi, Backend *be)
+  : wb{wbi}, backend{be}, hcal{wbi} {}
+
+PolarfireTarget::~PolarfireTarget() {
+  // since wb and backend are different types, 
+  // we need to static_cast them to void*
+  if (static_cast<void*>(wb) == static_cast<void*>(backend)) {
+    // same object, only delete one
+    if (wb != nullptr) delete wb;
+  } else {
+    // different objects, delete both
+    if (wb != nullptr) delete wb;
+    if (backend != nullptr) delete backend;
   }
+  // both are nullptr -> do nothing
+}
 
 std::pair<int,int> PolarfireTarget::getFirmwareVersion() {
-  uint32_t w = hcal->getFirmwareVersion();
+  uint32_t w = hcal.getFirmwareVersion();
   return { w >> 8 , w & 0xFF };
 }
 
 std::vector<uint32_t> PolarfireTarget::elinksBigSpy(int ilink, int presamples, bool do_l1a) {
-  hcal->elinks().setupBigspy(do_l1a, ilink, presamples);
+  hcal.elinks().setupBigspy(do_l1a, ilink, presamples);
   if (do_l1a) {
     backend->fc_sendL1A();
   }
-  return hcal->elinks().bigspy();
+  return hcal.elinks().bigspy();
 }
 
 void PolarfireTarget::elinkStatus(std::ostream& os) {
   std::vector<uint32_t> status;
   for (int i=0; i<NLINKS; i++) 
-    status.push_back(hcal->elinks().getStatusRaw(i));
+    status.push_back(hcal.elinks().getStatusRaw(i));
 
   os << std::setw(20) << "LINK";
   for (int i{0}; i < NLINKS; i++) 
@@ -117,7 +128,7 @@ void PolarfireTarget::elinkStatus(std::ostream& os) {
   os << std::setw(20) << "AUTO_LOCKED";
   for (int i{0}; i < NLINKS; i++) {
     os << std::setw(4);
-    if (not hcal->elinks().isBitslipAuto(i)) os << "X";
+    if (not hcal.elinks().isBitslipAuto(i)) os << "X";
     else os << ((status[i]>>5)&0x1);
     os << " ";
   }
@@ -148,7 +159,7 @@ void PolarfireTarget::loadIntegerCSV(const std::string& file_name,
 void PolarfireTarget::loadROCRegisters(int roc, const std::string& file_name) {
   loadIntegerCSV(file_name,[&](const std::vector<int>& cells) {
       if (cells.size() == 3) 
-        hcal->roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
+        hcal.roc(roc).setValue(cells.at(0),cells.at(1),cells.at(2));
       else {
         std::cout << 
           "WARNING: Ignoring ROC CSV settings line"
@@ -163,12 +174,12 @@ void PolarfireTarget::loadROCParameters(int roc, const std::string& file_name, b
     // compile settings with PDF defaults added at bottom,
     // ==> sets ALL parameters on chip
     auto settings = compile(file_name, true);
-    hcal->roc(roc).setRegisters(settings);
+    hcal.roc(roc).setRegisters(settings);
   } else {
     // only change parameters that YAML file contains
     std::map<std::string,std::map<std::string,int>> parameters;
     extract(std::vector<std::string>{file_name}, parameters);
-    hcal->roc(roc).applyParameters(parameters);
+    hcal.roc(roc).applyParameters(parameters);
   }
 }
 
@@ -181,7 +192,7 @@ void PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
     PFEXCEPTION_RAISE("File", "Unable to open file "+filename+" in dump roc settings.");
   }
 
-  auto roc_obj{hcal->roc(roc)};
+  auto roc_obj{hcal.roc(roc)};
 
   if (should_decompile) {
     // read all the pages and store them in memory
@@ -230,13 +241,13 @@ void PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
 }
 
 void PolarfireTarget::prepareNewRun() {
-  auto& daq = hcal->daq();
+  auto& daq = hcal.daq();
   backend->fc_bufferclear();
   backend->daq_reset();
 
   bool enable;
   int extra_samples;
-  hcal->fc().getMultisampleSetup(enable,extra_samples);
+  hcal.fc().getMultisampleSetup(enable,extra_samples);
   samples_per_event_=extra_samples+1;
 
   daq.enable(true);
@@ -312,7 +323,7 @@ void PolarfireTarget::daqSoftReset() {
 
 void PolarfireTarget::daqHardReset() {
   printf("..HARD reset\n");
-  hcal->daq().reset();
+  hcal.daq().reset();
   backend->daq_reset();
 }
 
@@ -386,7 +397,7 @@ std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
 }
 
 void PolarfireTarget::setBiasSetting(int board, bool led, int hdmi, int val) {
-  Bias bias = hcal->bias(board);
+  Bias bias = hcal.bias(board);
   if (led) bias.setLED(hdmi,val);
   else bias.setSiPM(hdmi,val);
 }
@@ -412,7 +423,7 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
 }
 
 void PolarfireTarget::elink_relink(int verbosity) {
-  pflib::Elinks& elinks=hcal->elinks();
+  pflib::Elinks& elinks=hcal.elinks();
 
   if (verbosity>0) 
     printf("...Setting phase delays\n");    
@@ -426,9 +437,6 @@ void PolarfireTarget::elink_relink(int verbosity) {
   }
   elinks.resetHard();
   sleep(1);
-  
-  
-
   
   if (verbosity>0) {
     printf("...Scanning bitslip values\n");
