@@ -71,13 +71,11 @@ const int PolarfireTarget::N_PAGES    = 300;
 const int PolarfireTarget::N_REGISTERS_PER_PAGE = 16;
 int       PolarfireTarget::NLINKS     = 8 ;
 
-PolarfireTarget::PolarfireTarget(WishboneInterface* wbi, Backend *be)
-  : wb{wbi}, backend{be}, hcal{wbi} {}
+PolarfireTarget::PolarfireTarget(WishboneInterface* wbi, Backend *be, bool same)
+  : wb_be_same{same}, wb{wbi}, backend{be}, hcal{wbi} {}
 
 PolarfireTarget::~PolarfireTarget() {
-  // since wb and backend are different types, 
-  // we need to static_cast them to void*
-  if (static_cast<void*>(wb) == static_cast<void*>(backend)) {
+  if (wb_be_same) {
     // same object, only delete one
     if (wb != nullptr) delete wb;
   } else {

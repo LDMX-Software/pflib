@@ -156,15 +156,14 @@ int main(int argc, char* argv[]) {
 #ifdef PFTOOL_ROGUE
         if (isrogue) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          pflib::rogue::RogueWishboneInterface* wbi=new pflib::rogue::RogueWishboneInterface(ipV[mId],5970);
-          p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
+          p_pft=std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(ipV[mId],5970));
         }
 #endif
 #ifdef PFTOOL_UHAL
         if (isuhal) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          pflib::uhal::uhalWishboneInterface* wbi=new pflib::uhal::uhalWishboneInterface(ipV[mId],options.contents().getString("ipbus_map_path"));
-          p_pft=std::make_unique<PolarfireTarget>(wbi,wbi);
+          p_pft=std::make_unique<PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(ipV[mId],
+                options.contents().getString("ipbus_map_path")));
         }
 #endif
       } catch (const pflib::Exception& e) {
