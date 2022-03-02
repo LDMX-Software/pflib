@@ -87,8 +87,9 @@ void ROC::applyParameters(const std::map<std::string,std::map<std::string,int>>&
   //    compile in step 1 checks that all of the page and param
   //    names are correct
   for (auto& page : parameters) {
+    std::string page_name = upper_cp(page.first);
     for (auto& param : page.second) {
-      compile(page.first,param.first,param.second,chip_reg);
+      compile(page_name,upper_cp(param.first),param.second,chip_reg);
     }
   }
   // 4. put these updated values onto the chip
