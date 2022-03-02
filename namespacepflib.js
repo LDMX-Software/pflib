@@ -35,6 +35,7 @@ var namespacepflib =
     [ "extract", "namespacepflib.html#ad837260dd18e63c3888facfc72f0887f", null ],
     [ "getNextLineAndExtractValues", "namespacepflib.html#a5522836e91e81d43d643e53575b23ebc", null ],
     [ "str_to_int", "namespacepflib.html#a9196f35a3741bfc972bd7e7418eeab5c", null ],
+    [ "upper_cp", "namespacepflib.html#afeb8bb21650391af2adcc247a084077e", null ],
     [ "CHANNEL_WISE_LUT", "namespacepflib.html#a0df10c888d529701e613ced124036f4b", null ],
     [ "DIGITAL_HALF_LUT", "namespacepflib.html#a77ab6266e0a4a3dda6a1769771708f32", null ],
     [ "GLOBAL_ANALOG_LUT", "namespacepflib.html#af2e932b0a00d7cf379e8d1d3959bb0e1", null ],
