@@ -30,6 +30,8 @@ namespace pflib {
  * the members of this class will also be public.
  */
 struct PolarfireTarget {
+  /// are the WBI and Backend the same object?
+  bool wb_be_same;
   WishboneInterface* wb;
   Backend* backend;
   Hcal hcal;
@@ -42,9 +44,27 @@ struct PolarfireTarget {
    * Define where the polarfire we will be talking to is.
    *
    * @note This object takes ownership of the input pointers.
-   * If they are the same pointer, then only one is deleted.
+   * If they are the same pointers to the same object (defined by same), 
+   * then only one is deleted in the destructor.
+   *
+   * @param[in] wbi pointer to object to use as wishbone interface
+   * @param[in] be pointer to object to use as backend
+   * @param[in] same true if the object pointed to be wbi and be is a single object
    */
-  PolarfireTarget(WishboneInterface* wbi, Backend* be);
+  PolarfireTarget(WishboneInterface* wbi, Backend* be, bool same = false);
+
+  /**
+   * If only a single pointer is provided, assume that object is BOTH
+   * the WBI and backend.
+   *
+   * This is templated so that this class does not need to change upon
+   * the addition of a new wishbone interface/backend combo object.
+   *
+   * @tparam T class that inherits from both WishboneInterface and Backend
+   * @param[in] t pointer to object that is both a wishbone interface and a backend
+   */
+  template<class T>
+  PolarfireTarget(T* t) : PolarfireTarget(t,t,true) {};
 
   /**
    * Cleanup the wishbone interface and backend
