@@ -32,6 +32,11 @@ namespace pflib {
 int str_to_int(std::string str);
 
 /**
+ * Get a copy of the input string with all caps
+ */
+std::string upper_cp(const std::string& str);
+
+/**
  * Overlay a single parameter onto the input register map.
  *
  * This only overwrites the bits that need to be changed

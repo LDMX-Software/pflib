@@ -397,6 +397,12 @@ int str_to_int(std::string str) {
   return std::stoi(str,nullptr,base);
 }
 
+std::string upper_cp(const std::string& str) {
+  std::string STR{str};
+  for (auto& c : STR) c = toupper(c);
+  return STR;
+}
+
 void compile(const std::string& page_name, const std::string& param_name, const int& val, 
     std::map<int,std::map<int,uint8_t>>& register_values) {
   const auto& page_id {PARAMETER_LUT.at(page_name).first};
@@ -421,9 +427,7 @@ void compile(const std::string& page_name, const std::string& param_name, const 
 
 std::map<int,std::map<int,uint8_t>> 
 compile(const std::string& page_name, const std::string& param_name, const int& val) {
-  std::string PAGE_NAME{page_name}, PARAM_NAME{param_name};
-  for (auto& c : PAGE_NAME) c = toupper(c);
-  for (auto& c : PARAM_NAME) c = toupper(c);
+  std::string PAGE_NAME(upper_cp(page_name)), PARAM_NAME(upper_cp(param_name));
   if (PARAMETER_LUT.find(PAGE_NAME) == PARAMETER_LUT.end()) {
     PFEXCEPTION_RAISE("NotFound", "The page named '"+PAGE_NAME+"' is not found in the look up table.");
   }
@@ -443,8 +447,7 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
   for (const auto& page : settings) {
     // page.first => page name
     // page.second => parameter to value map
-    std::string page_name = page.first;
-    for (auto& c : page_name) c = toupper(c);
+    std::string page_name = upper_cp(page.first);
     if (PARAMETER_LUT.find(page_name) == PARAMETER_LUT.end()) {
       // this exception shouldn't really ever happen because we check if the input
       // page matches any of the pages in the LUT in detail::apply, but
@@ -455,8 +458,7 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
     for (const auto& param : page.second) {
       // param.first => parameter name
       // param.second => value
-      std::string param_name = param.first;
-      for (auto& c : param_name) c = toupper(c);
+      std::string param_name = upper_cp(param.first);
       if (page_lut.find(param_name) == page_lut.end()) {
         PFEXCEPTION_RAISE("NotFound", "The parameter named '"+param.first 
             +"' is not found in the look up table for page "+page.first);
@@ -561,8 +563,7 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
           PFEXCEPTION_RAISE("BadFormat",
               "Non-existent value for parameter "+param.first.as<std::string>());
         }
-        std::string param_name = param.first.as<std::string>();
-        for (auto& c : param_name) c = toupper(c);
+        std::string param_name = upper_cp(param.first.as<std::string>());
         settings[page][param_name] = str_to_int(sval);
       }
     }
