@@ -103,10 +103,18 @@ void RogueWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset)
 }
 
   
+static const int REG_DAQ_SETUP                           = 0;
+static const int MASK_DAQ_DMA_ENABLE                     = 0x10;
+static const int MASK_FPGA_ID                            = 0xFF00;
+static const int SHIFT_FPGA_ID                           = 8;
+static const int MASK_SAMPLES_PER_EVENT                  = 0xF0000;
+static const int SHIFT_SAMPLES_PER_EVENT                  = 16;
+
 static const int REG_DAQ_CTL                             = 1;
 static const int MASK_DAQ_RESET                          = 0x1;
 static const int MASK_DAQ_ADVANCEPTR                     = 0x2;
 static const int REG_DAQ_STATUS                          = 65;
+static const int REG_DAQ_DMA_STATUS                      = 67;
 static const uint32_t MASK_DAQ_STATUS_FULL               = 0x2;
 static const uint32_t MASK_DAQ_STATUS_EMPTY              = 0x1;
 static const uint32_t MASK_DAQ_EVENTS                    = 0x1FF0;
@@ -144,5 +152,33 @@ std::vector<uint32_t> RogueWishboneInterface::daq_read_event() {
 
   return x;
 }
+
+void RogueWishboneInterface::daq_dma_enable(bool enable) {
+  uint32_t ctl=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
+  ctl|= MASK_DAQ_DMA_ENABLE;
+  if (!enable) ctl^=MASK_DAQ_DMA_ENABLE;
+  wb_write(TARGET_DAQ_BACKEND,REG_DAQ_SETUP,ctl);
+}
+void RogueWishboneInterface::daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_event) {
+  uint32_t ctl=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
+  // zero the bits
+  ctl|=(MASK_FPGA_ID|MASK_SAMPLES_PER_EVENT);
+  ctl^=(MASK_FPGA_ID|MASK_SAMPLES_PER_EVENT);
+  //load the values
+  ctl|=(fpga_id<<SHIFT_FPGA_ID)|MASK_FPGA_ID;
+  ctl|=(samples_per_event<<SHIFT_SAMPLES_PER_EVENT)|MASK_SAMPLES_PER_EVENT;
+  wb_write(TARGET_DAQ_BACKEND,REG_DAQ_SETUP,ctl);
+}
+void RogueWishboneInterface::daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled) {
+  uint32_t ctl=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
+  enabled=(ctl&MASK_DAQ_DMA_ENABLE)!=0;
+  samples_per_event=(ctl&MASK_SAMPLES_PER_EVENT)>>SHIFT_SAMPLES_PER_EVENT;
+  fpga_id=(ctl&MASK_FPGA_ID)>>SHIFT_FPGA_ID;
+}
+uint32_t RogueWishboneInterface::daq_dma_status() {
+   return wb_read(TARGET_DAQ_BACKEND,REG_DAQ_DMA_STATUS);
+}
+
+
 }
 }

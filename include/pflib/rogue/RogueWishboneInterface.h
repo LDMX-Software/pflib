@@ -68,6 +68,14 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   virtual void daq_advance_ptr();
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size);
   virtual std::vector<uint32_t> daq_read_event();  
+
+  /// specific items related to DMA which are not part of the general interface
+  void daq_dma_enable(bool enable);
+  void daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_event);
+  void daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled);
+  uint32_t daq_dma_status();
+  
+
  private:
   std::shared_ptr<::rogue::interfaces::memory::TcpClient> client_;
   std::shared_ptr<::rogue::interfaces::memory::Master> intf_;  
