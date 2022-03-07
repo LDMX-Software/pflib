@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.7</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.7-2-g2de8196</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('Elinks_8h_source.html',''); initResiza
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  <a class="code hl_class" href="classpflib_1_1Elinks.html">Elinks</a>(<a class="code hl_class" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a>* wb, <span class="keywordtype">int</span> target = tgt_Elinks);</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <span class="keywordtype">int</span> nlinks()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> n_links; }</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  <span class="keywordtype">void</span> markActive(<span class="keywordtype">int</span> ilink, <span class="keywordtype">bool</span> active) { <span class="keywordflow">if</span> (ilink&lt;n_links &amp;&amp; ilink&gt;0) m_linksActive[ilink]=active; }</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  <span class="keywordtype">void</span> markActive(<span class="keywordtype">int</span> ilink, <span class="keywordtype">bool</span> active) { <span class="keywordflow">if</span> (ilink&lt;n_links &amp;&amp; ilink&gt;=0) m_linksActive[ilink]=active; }</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordtype">bool</span> isActive(<span class="keywordtype">int</span> ilink)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> (ilink&gt;=n_links || ilink&lt;0)?(<span class="keyword">false</span>):(m_linksActive[ilink]); }</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  </div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;uint8_t&gt;</a> spy(<span class="keywordtype">int</span> ilink);</div>
