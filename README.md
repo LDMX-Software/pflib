@@ -2,6 +2,19 @@
 
 The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends.  The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.
 
+## Quickstart
+We assume you have the YAML parser yaml-cpp and at least one of the communication methods below installed.
+```
+git clone https://github.com/LDMX-Software/pflib.git
+cd pflib
+git tag # see tags, pick latest
+git checkout v1.8 # or whatever is latest
+cmake -B build -S . # may need to provide paths to dependencies
+cd build
+make
+./pftool <ip-of-polarfire>
+```
+
 ## YAML->Register "Compilation"
 The more detailed documentation for this compilation can be found in the pflib/Compile.h file.
 The \hgcrocmanual is also a decent reference since that is where most of the parameter names are pulled from.
