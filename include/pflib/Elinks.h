@@ -11,7 +11,7 @@ class Elinks : public WishboneTarget {
   Elinks(WishboneInterface* wb, int target = tgt_Elinks);
 
   int nlinks() const { return n_links; }
-  void markActive(int ilink, bool active) { if (ilink<n_links && ilink>0) m_linksActive[ilink]=active; }
+  void markActive(int ilink, bool active) { if (ilink<n_links && ilink>=0) m_linksActive[ilink]=active; }
   bool isActive(int ilink) const { return (ilink>=n_links || ilink<0)?(false):(m_linksActive[ilink]); }
   
   std::vector<uint8_t> spy(int ilink);
