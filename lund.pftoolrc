@@ -1,2 +1,2 @@
-roclinks : [ true, true, true, true, true, true, false, false ]
-ipbus_map_path : "~/pflib/uhal"
+roclinks : [false, false, true, true, true, true, false, false, false]
+ipbus_map_path : "~/ldmx/pflib/uhal"
