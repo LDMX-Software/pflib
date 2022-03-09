@@ -318,6 +318,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
     pfMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
     pfMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
+    pfMenu::Line("DMA", "Enable/disable DMA readout", &ldmx_daq_setup),
     pfMenu::Line("QUIT","Back to DAQ menu")
   });
   
@@ -680,6 +681,17 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     if (multi)
       nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
     pft->hcal.fc().setupMultisample(multi,nextra);
+    // also, DMA needs to know
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      samples_per_event=nextra+1;
+      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
+    }
+#endif
   }
   if (cmd=="STATUS" || do_status) {
     static const std::vector<std::string> bit_comments = {
@@ -712,6 +724,12 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      printf("DMA : %08x\n",rwbi->daq_dma_status());
+    }
+#endif
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
@@ -731,9 +749,31 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
       pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1,reg1);
     }
   }
+  if (cmd=="DMA") {
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      enabled=BaseMenu::readline_bool("Enable DMA? ",enabled);
+      rwbi->daq_dma_enable(enabled);
+    }
+#endif
+  }
   if (cmd=="STANDARD") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      fpgaid_i=(uint8_t(fpgaid));
+      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
+    }
+#endif
     pflib::Elinks& elinks=pft->hcal.elinks();
     
     for (int i=0; i<daq.nlinks(); i++) {
@@ -744,6 +784,16 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="FPGA") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      fpgaid_i=(uint8_t(fpgaid));
+      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
+    }
+#endif
   }
 }
 
@@ -751,6 +801,12 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal.daq();
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    if (rwbi) {
+      printf("DMA : %08x\n",rwbi->daq_dma_status());
+    }
+#endif
   }
   if (cmd=="RESET") {
     pft->daqSoftReset();

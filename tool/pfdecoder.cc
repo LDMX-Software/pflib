@@ -72,7 +72,9 @@ int main(int argc, char* argv[]) {
   data=std::vector<uint32_t>(words,0);
   read(infile,&(data[0]),finfo.st_size);
 
-  int superpacket_header=-1;
+  int fmt=1;
+  
+  int superpacket_header=-10;
   int packet_header=-1;
   int link_header=-1;
   int samples=-1;
@@ -92,7 +94,12 @@ int main(int argc, char* argv[]) {
       superpacket_header=i;
       word_type=wt_junk;
     }
-    if (superpacket_header<0) continue; // still searching...
+    if (superpacket_header<-1 && data[i]==0xbeef2022) {
+      fmt=2;
+      superpacket_header=i-1;
+      word_type=wt_junk;
+    }
+    if (superpacket_header<-1) continue; // still searching...
     int rel_super=i-superpacket_header;
     int rel_packet=i-packet_header;
     int rel_link=i-link_header;
@@ -104,7 +111,10 @@ int main(int argc, char* argv[]) {
       if (verbosity>0)
 	printf("%04d S%02d %08x  FPGA=%3d  SAMPLES=%d  Total Length=%d (0x%x)\n",i,rel_super,data[i],(data[i]>>20)&0xFF,samples,(data[i])&0xFFFF,(data[i])&0xFFFF);
       packet_pointers.clear();
-      packet_pointers.push_back(i+(samples+1)/2+1);
+      if (fmt==1) 
+        packet_pointers.push_back(i+(samples+1)/2+1);
+      else if (fmt==2) 
+        packet_pointers.push_back(i+8+1);
       isample=-1;
       packet_header=-1;
       link_header=-1;
@@ -128,7 +138,7 @@ int main(int argc, char* argv[]) {
       }
       if (verbosity>0)
 	printf("\n");     
-    } else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
+    }    else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
       packet_header=i;
       isample++;
       word_type=wt_packetheader;
@@ -138,11 +148,11 @@ int main(int argc, char* argv[]) {
       if (verbosity>1)
 	printf("%04d P%02d %08x  FPGA=%3d  LINKS=%d  Length=%d (0x%x)\n",i,0,data[i],(data[i]>>20)&0x3F,links,(data[i])&0xFFF,(data[i])&0xFFF);
       ilink=-1;
-    } else if (isample>0 && i+1==packet_pointers[isample+1]) { // packet trailer
+    } else if (isample>=0 && i+1==packet_pointers[isample+1]) { // packet trailer
       if (verbosity>1)
 	printf("%04d PXX %08x  CRC\n",i,0,data[i]);
       if (isample+1==samples) {
-	superpacket_header=-1;
+	superpacket_header=-10;
 	if (prettyadc) renderADC(link_data);
       }
     } else if (packet_header>=0 && i==packet_header+1) { // second packet header word
