@@ -165,8 +165,8 @@ void RogueWishboneInterface::daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_
   ctl|=(MASK_FPGA_ID|MASK_SAMPLES_PER_EVENT);
   ctl^=(MASK_FPGA_ID|MASK_SAMPLES_PER_EVENT);
   //load the values
-  ctl|=(fpga_id<<SHIFT_FPGA_ID)|MASK_FPGA_ID;
-  ctl|=(samples_per_event<<SHIFT_SAMPLES_PER_EVENT)|MASK_SAMPLES_PER_EVENT;
+  ctl|=(fpga_id<<SHIFT_FPGA_ID)&MASK_FPGA_ID;
+  ctl|=(samples_per_event<<SHIFT_SAMPLES_PER_EVENT)&MASK_SAMPLES_PER_EVENT;
   wb_write(TARGET_DAQ_BACKEND,REG_DAQ_SETUP,ctl);
 }
 void RogueWishboneInterface::daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled) {

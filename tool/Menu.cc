@@ -19,7 +19,7 @@ void BaseMenu::add_to_history(const std::string& cmd) const {
 }
 
 void BaseMenu::add_to_command_queue(const std::string& str) {
-  cmdTextQueue.push_back(str);
+  cmdTextQueue_.push_back(str);
 }
 
 std::string BaseMenu::readline(const std::string& prompt,
