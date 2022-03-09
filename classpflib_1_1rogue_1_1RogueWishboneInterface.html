@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.6</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.7-13-ge3159ca</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -151,6 +151,19 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aacc5df41cf76b03439e4af74666d11a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6d505a96712b012cf05a58dcfb42953"><td class="memItemLeft" align="right" valign="top">virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae6d505a96712b012cf05a58dcfb42953">daq_read_event</a> ()</td></tr>
 <tr class="separator:ae6d505a96712b012cf05a58dcfb42953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac85c778b969c8b091fd191bd1ec93ac1"><td class="memItemLeft" align="right" valign="top"><a id="ac85c778b969c8b091fd191bd1ec93ac1" name="ac85c778b969c8b091fd191bd1ec93ac1"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_enable</b> (bool enable)</td></tr>
+<tr class="memdesc:ac85c778b969c8b091fd191bd1ec93ac1"><td class="mdescLeft">&#160;</td><td class="mdescRight">specific items related to DMA which are not part of the general interface <br /></td></tr>
+<tr class="separator:ac85c778b969c8b091fd191bd1ec93ac1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58700ba274b846efcc2fb8acc5681b3b"><td class="memItemLeft" align="right" valign="top"><a id="a58700ba274b846efcc2fb8acc5681b3b" name="a58700ba274b846efcc2fb8acc5681b3b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_setup</b> (uint8_t fpga_id, uint8_t samples_per_event)</td></tr>
+<tr class="separator:a58700ba274b846efcc2fb8acc5681b3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16f5967915b53c2719d6ddf02355b57e"><td class="memItemLeft" align="right" valign="top"><a id="a16f5967915b53c2719d6ddf02355b57e" name="a16f5967915b53c2719d6ddf02355b57e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_get_dma_setup</b> (uint8_t &amp;fpga_id, uint8_t &amp;samples_per_event, bool &amp;enabled)</td></tr>
+<tr class="separator:a16f5967915b53c2719d6ddf02355b57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af96535d4ccbd14d820c782701b379500"><td class="memItemLeft" align="right" valign="top"><a id="af96535d4ccbd14d820c782701b379500" name="af96535d4ccbd14d820c782701b379500"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_status</b> ()</td></tr>
+<tr class="separator:af96535d4ccbd14d820c782701b379500"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>

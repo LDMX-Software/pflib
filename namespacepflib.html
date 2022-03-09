@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.6</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.7-13-ge3159ca</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -174,6 +174,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a9196f35a3741bfc972bd7e7418eeab5c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#a9196f35a3741bfc972bd7e7418eeab5c">str_to_int</a> (<a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> str)</td></tr>
 <tr class="memdesc:a9196f35a3741bfc972bd7e7418eeab5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an integer from the input string.  <a href="namespacepflib.html#a9196f35a3741bfc972bd7e7418eeab5c">More...</a><br /></td></tr>
 <tr class="separator:a9196f35a3741bfc972bd7e7418eeab5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb8bb21650391af2adcc247a084077e"><td class="memItemLeft" align="right" valign="top"><a id="afeb8bb21650391af2adcc247a084077e" name="afeb8bb21650391af2adcc247a084077e"></a>
+<a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>upper_cp</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;str)</td></tr>
+<tr class="memdesc:afeb8bb21650391af2adcc247a084077e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a copy of the input string with all caps. <br /></td></tr>
+<tr class="separator:afeb8bb21650391af2adcc247a084077e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a294c81fe130d76747b2e87d1ce63944c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#a294c81fe130d76747b2e87d1ce63944c">compile</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;page, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;param, const int &amp;val, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, uint8_t &gt; &gt; &amp;registers)</td></tr>
 <tr class="memdesc:a294c81fe130d76747b2e87d1ce63944c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overlay a single parameter onto the input register map.  <a href="namespacepflib.html#a294c81fe130d76747b2e87d1ce63944c">More...</a><br /></td></tr>
 <tr class="separator:a294c81fe130d76747b2e87d1ce63944c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,9 +187,15 @@ Functions</h2></td></tr>
 <tr class="memitem:a20ad39e2eb2643247c1844d34c372d01"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#a20ad39e2eb2643247c1844d34c372d01">compile</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt; &amp;settings)</td></tr>
 <tr class="memdesc:a20ad39e2eb2643247c1844d34c372d01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compiling which translates parameter values for the HGCROC into register values that can be written to the chip.  <a href="namespacepflib.html#a20ad39e2eb2643247c1844d34c372d01">More...</a><br /></td></tr>
 <tr class="separator:a20ad39e2eb2643247c1844d34c372d01"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d3e294ffdfffb4e608b5bae99e2c76c"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#a3d3e294ffdfffb4e608b5bae99e2c76c">decompile</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, uint8_t &gt; &gt; &amp;compiled_config)</td></tr>
-<tr class="memdesc:a3d3e294ffdfffb4e608b5bae99e2c76c"><td class="mdescLeft">&#160;</td><td class="mdescRight">unpack register values into the page names, parameter names and parameter values mapping  <a href="namespacepflib.html#a3d3e294ffdfffb4e608b5bae99e2c76c">More...</a><br /></td></tr>
-<tr class="separator:a3d3e294ffdfffb4e608b5bae99e2c76c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6e9e68aa0f397b4184a5d90bc2ea380"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#ae6e9e68aa0f397b4184a5d90bc2ea380">decompile</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, uint8_t &gt; &gt; &amp;compiled_config, bool be_careful)</td></tr>
+<tr class="memdesc:ae6e9e68aa0f397b4184a5d90bc2ea380"><td class="mdescLeft">&#160;</td><td class="mdescRight">unpack register values into the page names, parameter names and parameter values mapping  <a href="namespacepflib.html#ae6e9e68aa0f397b4184a5d90bc2ea380">More...</a><br /></td></tr>
+<tr class="separator:ae6e9e68aa0f397b4184a5d90bc2ea380"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcb87f2684c992e8012a95f8c1b9c24c"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#afcb87f2684c992e8012a95f8c1b9c24c">parameters</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;page)</td></tr>
+<tr class="memdesc:afcb87f2684c992e8012a95f8c1b9c24c"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the parameter names for the input page-type  <a href="namespacepflib.html#afcb87f2684c992e8012a95f8c1b9c24c">More...</a><br /></td></tr>
+<tr class="separator:afcb87f2684c992e8012a95f8c1b9c24c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a032ac2bd3c78b711fb5fb3a6da3195d8"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#a032ac2bd3c78b711fb5fb3a6da3195d8">defaults</a> ()</td></tr>
+<tr class="memdesc:a032ac2bd3c78b711fb5fb3a6da3195d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the default parameter values as specified in the manual  <a href="namespacepflib.html#a032ac2bd3c78b711fb5fb3a6da3195d8">More...</a><br /></td></tr>
+<tr class="separator:a032ac2bd3c78b711fb5fb3a6da3195d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad837260dd18e63c3888facfc72f0887f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#ad837260dd18e63c3888facfc72f0887f">extract</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; &amp;setting_files, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt; &amp;settings)</td></tr>
 <tr class="memdesc:ad837260dd18e63c3888facfc72f0887f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract the page name, parameter name, and parameter values from the YAML files into the passed settings map.  <a href="namespacepflib.html#ad837260dd18e63c3888facfc72f0887f">More...</a><br /></td></tr>
 <tr class="separator:ad837260dd18e63c3888facfc72f0887f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -601,9 +611,9 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </ul>
 <p >The pages that a specific parameter and its value are applied to are decided by if key1 is a substring of the full page name. This allows the user to specify a group of pages by just giving a partial page name that is a substring of the pages that you wish to apply the parameter to. For example,</p>
 <ul>
-<li>Channel_ - matches all 71 channels pages</li>
-<li>CALIB - matches both calib channel pages</li>
-<li>Global_Analog - matches both global analog pages</li>
+<li>Channel_* - matches all 71 channels pages</li>
+<li>CALIB* - matches both calib channel pages</li>
+<li>Global_Analog* - matches both global analog pages</li>
 </ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -800,8 +810,8 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 
 </div>
 </div>
-<a id="a3d3e294ffdfffb4e608b5bae99e2c76c" name="a3d3e294ffdfffb4e608b5bae99e2c76c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d3e294ffdfffb4e608b5bae99e2c76c">&#9670;&nbsp;</a></span>decompile()</h2>
+<a id="ae6e9e68aa0f397b4184a5d90bc2ea380" name="ae6e9e68aa0f397b4184a5d90bc2ea380"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6e9e68aa0f397b4184a5d90bc2ea380">&#9670;&nbsp;</a></span>decompile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -810,22 +820,56 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
           <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt; pflib::decompile </td>
           <td>(</td>
           <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; int, uint8_t &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>compiled_config</em></td><td>)</td>
+          <td class="paramname"><em>compiled_config</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>be_careful</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>unpack register values into the page names, parameter names and parameter values mapping </p>
 <p >ret_map[page_name][parameter_name] == parameter_value</p>
-<p >The decompilation simply interates through <b>all</b> parameters and attempts to deduce their values from the input compiled config. If any of the registers required to deduce a parameter is missing, warnings are printed to <a class="elRef" href="http://en.cppreference.com/w/cpp/io/basic_ostream.html">std::cerr</a> and the parameters is skipped.</p>
+<p >The decompilation simply interates through <b>all</b> parameters and attempts to deduce their values from the input compiled config.</p>
+<p >If be_careful is true and any of the registers required to deduce a parameter are missing, warnings are printed to <a class="elRef" href="http://en.cppreference.com/w/cpp/io/basic_ostream.html">std::cerr</a> and the parameter is skipped. Additionally, warnings are printed for entire pages that are skipped.</p>
+<p >If be_careful is false, then no warnings are printed and parameters are only skipped if all of the registers that constitute it are missing.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">compiled_config</td><td>page number, register number, register value settings </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">be_careful</td><td>true if we should print warnings and skip partially-set params </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>page name, parameter name, parameter value of registers provided </dd></dl>
+
+</div>
+</div>
+<a id="a032ac2bd3c78b711fb5fb3a6da3195d8" name="a032ac2bd3c78b711fb5fb3a6da3195d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a032ac2bd3c78b711fb5fb3a6da3195d8">&#9670;&nbsp;</a></span>defaults()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, <a class="elRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>, int &gt; &gt; pflib::defaults </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>get the default parameter values as specified in the manual </p>
+<p >This is a helpful command for simply printing a "template" YAML settings file although it will printout all pages individually.</p>
+<dl class="section return"><dt>Returns</dt><dd>map of page name and parameter names to default values </dd></dl>
 
 </div>
 </div>
@@ -894,6 +938,35 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 <p >std stoi has a auto-detect base feature <a href="https://en.cppreference.com/w/cpp/string/basic_string/stol">https://en.cppreference.com/w/cpp/string/basic_string/stol</a> which we can enable by setting the pre-defined base to 0 (the third parameter) - this auto-detect base feature can handle hexidecial (prefix == 0x or 0X), octal (prefix == 0), and decimal (no prefix).</p>
 <p >The second parameter is an address to put the number of characters processed, which I disregard at this time.</p>
 <p >Do we allow empty cells?</p>
+
+</div>
+</div>
+<a id="afcb87f2684c992e8012a95f8c1b9c24c" name="afcb87f2684c992e8012a95f8c1b9c24c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcb87f2684c992e8012a95f8c1b9c24c">&#9670;&nbsp;</a></span>parameters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; pflib::parameters </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>page</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>get the parameter names for the input page-type </p>
+<p >The page-types are as specified in the HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a> manual without spaces and case insensitive.</p><ul>
+<li>DigitalHalf</li>
+<li>ChannelWise</li>
+<li>Top</li>
+<li>MasterTDC</li>
+<li>ReferenceVoltage</li>
+<li>GlobalAnalog</li>
+</ul>
+<dl class="section return"><dt>Returns</dt><dd>vector of parameter names for that page type </dd></dl>
 
 </div>
 </div>
@@ -984,26 +1057,26 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
       </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= {</div>
-<div class="line">  {<span class="stringliteral">&quot;SelRawData&quot;</span>, <a class="code hl_struct" href="structpflib_1_1Parameter.html">Parameter</a>(0,0,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;SelTC4&quot;</span>    , Parameter(0,1,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;CmdSelEdge&quot;</span>, Parameter(0,2,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Adc_TH&quot;</span>    , Parameter(0,4,4,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;MultFactor&quot;</span>, Parameter(1,0,5,0b11001)},</div>
-<div class="line">  {<span class="stringliteral">&quot;L1Offset&quot;</span>  , Parameter({RegisterLocation(2,0,8),RegisterLocation(1,7,1)},0b000001000)},</div>
-<div class="line">  {<span class="stringliteral">&quot;IdleFrame&quot;</span> , Parameter({RegisterLocation(3,0,8),RegisterLocation(4,0,8),RegisterLocation(5,0,8),RegisterLocation(6,0,4)},0b1100110011001100110011001100)},</div>
-<div class="line">  {<span class="stringliteral">&quot;ByPassCh0&quot;</span> , Parameter(6,4,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;ByPassCh17&quot;</span>, Parameter(6,5,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;ByPassCh35&quot;</span>, Parameter(6,6,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_TH0&quot;</span>   , Parameter(7,0,8,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_TH1&quot;</span>   , Parameter(8,0,8,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_TH2&quot;</span>   , Parameter(9,0,8,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_TH3&quot;</span>   , Parameter(10,0,8,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_P0&quot;</span>    , Parameter(11,0,7,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_P1&quot;</span>    , Parameter(12,0,7,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_P2&quot;</span>    , Parameter(13,0,7,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_P3&quot;</span>    , Parameter(14,0,7,0)}</div>
+<div class="line">  {<span class="stringliteral">&quot;SELRAWDATA&quot;</span>, <a class="code hl_struct" href="structpflib_1_1Parameter.html">Parameter</a>(0,0,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SELTC4&quot;</span>    , Parameter(0,1,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;CMDSELEDGE&quot;</span>, Parameter(0,2,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ADC_TH&quot;</span>    , Parameter(0,4,4,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;MULTFACTOR&quot;</span>, Parameter(1,0,5,0b11001)},</div>
+<div class="line">  {<span class="stringliteral">&quot;L1OFFSET&quot;</span>  , Parameter({RegisterLocation(2,0,8),RegisterLocation(1,7,1)},0b000001000)},</div>
+<div class="line">  {<span class="stringliteral">&quot;IDLEFRAME&quot;</span> , Parameter({RegisterLocation(3,0,8),RegisterLocation(4,0,8),RegisterLocation(5,0,8),RegisterLocation(6,0,4)},0b1100110011001100110011001100)},</div>
+<div class="line">  {<span class="stringliteral">&quot;BYPASSCH0&quot;</span> , Parameter(6,4,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;BYPASSCH17&quot;</span>, Parameter(6,5,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;BYPASSCH35&quot;</span>, Parameter(6,6,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_TH0&quot;</span>   , Parameter(7,0,8,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_TH1&quot;</span>   , Parameter(8,0,8,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_TH2&quot;</span>   , Parameter(9,0,8,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_TH3&quot;</span>   , Parameter(10,0,8,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_P0&quot;</span>    , Parameter(11,0,7,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_P1&quot;</span>    , Parameter(12,0,7,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_P2&quot;</span>    , Parameter(13,0,7,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_P3&quot;</span>    , Parameter(14,0,7,0)}</div>
 <div class="line">}</div>
-<div class="ttc" id="astructpflib_1_1Parameter_html"><div class="ttname"><a href="structpflib_1_1Parameter.html">pflib::Parameter</a></div><div class="ttdoc">A parameter for the HGC ROC includes one or more register locations and a default value defined in th...</div><div class="ttdef"><b>Definition:</b> Compile.cxx:41</div></div>
+<div class="ttc" id="astructpflib_1_1Parameter_html"><div class="ttname"><a href="structpflib_1_1Parameter.html">pflib::Parameter</a></div><div class="ttdoc">A parameter for the HGC ROC includes one or more register locations and a default value defined in th...</div><div class="ttdef"><b>Definition:</b> Compile.cxx:42</div></div>
 </div><!-- fragment -->
 <p>The Look Up Table of for the Digital Half sub-blocks` of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>
 
@@ -1021,19 +1094,19 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
       </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= {</div>
-<div class="line">  {<span class="stringliteral">&quot;Probe_vref_pa&quot;</span>, <a class="code hl_struct" href="structpflib_1_1Parameter.html">Parameter</a>(0,0,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Probe_vref_time&quot;</span>, Parameter(0,1,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Refi&quot;</span>, Parameter(0,2,2,0b11)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Vbg_1v&quot;</span>, Parameter(0,4,3,0b111)},</div>
-<div class="line">  {<span class="stringliteral">&quot;ON_dac&quot;</span>, Parameter(0,7,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Noinv_vref&quot;</span>, Parameter({RegisterLocation(1,0,2),RegisterLocation(5,0,8)},0b0100111100)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Inv_vref&quot;</span>, Parameter({RegisterLocation(1,2,2),RegisterLocation(4,0,8)},0b0110000000)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Toa_vref&quot;</span>, Parameter({RegisterLocation(1,4,2),RegisterLocation(3,0,8)},0b0001110000)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Tot_vref&quot;</span>, Parameter({RegisterLocation(1,6,2),RegisterLocation(2,0,8)},0b0110110000)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Calib_dac&quot;</span>, Parameter({RegisterLocation(6,0,8),RegisterLocation(7,0,4)},0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;IntCtest&quot;</span>, Parameter(7,6,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;ExtCtest&quot;</span>, Parameter(7,7,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Probe_dc&quot;</span>, Parameter(8,0,8,0)}</div>
+<div class="line">  {<span class="stringliteral">&quot;PROBE_VREF_PA&quot;</span>, <a class="code hl_struct" href="structpflib_1_1Parameter.html">Parameter</a>(0,0,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PROBE_VREF_TIME&quot;</span>, Parameter(0,1,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;REFI&quot;</span>, Parameter(0,2,2,0b11)},</div>
+<div class="line">  {<span class="stringliteral">&quot;VBG_1V&quot;</span>, Parameter(0,4,3,0b111)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ON_DAC&quot;</span>, Parameter(0,7,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;NOINV_VREF&quot;</span>, Parameter({RegisterLocation(1,0,2),RegisterLocation(5,0,8)},0b0100111100)},</div>
+<div class="line">  {<span class="stringliteral">&quot;INV_VREF&quot;</span>, Parameter({RegisterLocation(1,2,2),RegisterLocation(4,0,8)},0b0110000000)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOA_VREF&quot;</span>, Parameter({RegisterLocation(1,4,2),RegisterLocation(3,0,8)},0b0001110000)},</div>
+<div class="line">  {<span class="stringliteral">&quot;TOT_VREF&quot;</span>, Parameter({RegisterLocation(1,6,2),RegisterLocation(2,0,8)},0b0110110000)},</div>
+<div class="line">  {<span class="stringliteral">&quot;CALIB_DAC&quot;</span>, Parameter({RegisterLocation(6,0,8),RegisterLocation(7,0,4)},0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;INTCTEST&quot;</span>, Parameter(7,6,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;EXTCTEST&quot;</span>, Parameter(7,7,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PROBE_DC&quot;</span>, Parameter(8,0,8,0)}</div>
 <div class="line">}</div>
 </div><!-- fragment -->
 <p>The Look Up Table of for the Reference Voltage sub-blocks of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>
@@ -1054,9 +1127,9 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 <b>Initial value:</b><div class="fragment"><div class="line">= {</div>
 <div class="line">  {<span class="stringliteral">&quot;EN_LOCK_CONTROL&quot;</span>, <a class="code hl_struct" href="structpflib_1_1Parameter.html">Parameter</a>(0,0,1,1)},</div>
 <div class="line">  {<span class="stringliteral">&quot;ERROR_LIMIT_SC&quot;</span> , Parameter(0,1,3,0b010)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_PLL_Locked&quot;</span> , Parameter(0,4,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;PllLockedSc&quot;</span>    , Parameter(0,5,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;OrbitSync_sc&quot;</span>   , Parameter(0,7,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_PLL_LOCKED&quot;</span> , Parameter(0,4,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PLLLOCKEDSC&quot;</span>    , Parameter(0,5,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ORBITSYNC_SC&quot;</span>   , Parameter(0,7,1,0)},</div>
 <div class="line">  {<span class="stringliteral">&quot;EN_PLL&quot;</span>         , Parameter(1,0,1,1)},</div>
 <div class="line">  {<span class="stringliteral">&quot;DIV_PLL&quot;</span>        , Parameter(1,1,2,0)},</div>
 <div class="line">  {<span class="stringliteral">&quot;EN_HIGH_CAPA&quot;</span>   , Parameter(1,3,1,0)},</div>
@@ -1066,20 +1139,20 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 <div class="line">  {<span class="stringliteral">&quot;VOUT_INIT_EXT_D&quot;</span> , Parameter(2,1,5,0)},</div>
 <div class="line">  {<span class="stringliteral">&quot;FOLLOWER_PLL_EN&quot;</span> , Parameter(3,0,1,1)},</div>
 <div class="line">  {<span class="stringliteral">&quot;BIAS_I_PLL_D&quot;</span>    , Parameter(3,1,6,0b011000)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_40M_ext&quot;</span>     , Parameter(3,7,1,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;PLL_probe_amplitude&quot;</span> , Parameter(4,0,3,0b011)},</div>
-<div class="line">  {<span class="stringliteral">&quot;PLL_probe_pre_scale&quot;</span> , Parameter(4,3,3,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;PLL_probe_pre_phase&quot;</span> , Parameter(4,6,2,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;eT_amplitude&quot;</span>        , Parameter(5,0,3,0b011)},</div>
-<div class="line">  {<span class="stringliteral">&quot;eT_pre_scale&quot;</span>        , Parameter(5,3,3,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;eT_pre_phase&quot;</span>        , Parameter(5,6,2,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_ReSync_fcmd&quot;</span> , Parameter(6,0,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_L1_fcmd&quot;</span>     , Parameter(6,1,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_STROBE_fcmd&quot;</span> , Parameter(6,2,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Sel_OrbitSync_fcmd&quot;</span>, Parameter(6,3,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;En_PhaseShift&quot;</span> , Parameter(7,0,1,1)},</div>
-<div class="line">  {<span class="stringliteral">&quot;Phase&quot;</span>         , Parameter(7,1,4,0)},</div>
-<div class="line">  {<span class="stringliteral">&quot;En_pll_ext&quot;</span>    , Parameter(7,7,1,0)}</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_40M_EXT&quot;</span>     , Parameter(3,7,1,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PLL_PROBE_AMPLITUDE&quot;</span> , Parameter(4,0,3,0b011)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PLL_PROBE_PRE_SCALE&quot;</span> , Parameter(4,3,3,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PLL_PROBE_PRE_PHASE&quot;</span> , Parameter(4,6,2,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ET_AMPLITUDE&quot;</span>        , Parameter(5,0,3,0b011)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ET_PRE_SCALE&quot;</span>        , Parameter(5,3,3,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;ET_PRE_PHASE&quot;</span>        , Parameter(5,6,2,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_RESYNC_FCMD&quot;</span> , Parameter(6,0,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_L1_FCMD&quot;</span>     , Parameter(6,1,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_STROBE_FCMD&quot;</span> , Parameter(6,2,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;SEL_ORBITSYNC_FCMD&quot;</span>, Parameter(6,3,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;EN_PHASESHIFT&quot;</span> , Parameter(7,0,1,1)},</div>
+<div class="line">  {<span class="stringliteral">&quot;PHASE&quot;</span>         , Parameter(7,1,4,0)},</div>
+<div class="line">  {<span class="stringliteral">&quot;EN_PLL_EXT&quot;</span>    , Parameter(7,7,1,0)}</div>
 <div class="line">}</div>
 </div><!-- fragment -->
 <p>The Look Up Table of for the Top sub-block of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>

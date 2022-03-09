@@ -1,6 +1,7 @@
 var structpflib_1_1PolarfireTarget =
 [
-    [ "PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a521e5031d92b42ac0d6b40083a811487", null ],
+    [ "PolarfireTarget", "structpflib_1_1PolarfireTarget.html#af7db2a47b460735a43d669a5615e460c", null ],
+    [ "PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a381c8d5f60387195bb464ee3c5e0d43f", null ],
     [ "~PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a63a53aab81f6f4bb3f61ef5a2a75a667", null ],
     [ "daqHardReset", "structpflib_1_1PolarfireTarget.html#ab7ad7b580e1cc360a1720f329797a100", null ],
     [ "daqReadDirect", "structpflib_1_1PolarfireTarget.html#ab51ecc18a560b4e9dc1ec748d57bd3d0", null ],
@@ -17,5 +18,6 @@ var structpflib_1_1PolarfireTarget =
     [ "loadIntegerCSV", "structpflib_1_1PolarfireTarget.html#a74c9f5aa5933c0f239ae270093779259", null ],
     [ "loadROCParameters", "structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f", null ],
     [ "loadROCRegisters", "structpflib_1_1PolarfireTarget.html#ac902016a69d53058bb2f60c09776ff97", null ],
-    [ "setBiasSetting", "structpflib_1_1PolarfireTarget.html#ac1d8526d8bbba1dcd19814ca82a8ad0c", null ]
+    [ "setBiasSetting", "structpflib_1_1PolarfireTarget.html#ac1d8526d8bbba1dcd19814ca82a8ad0c", null ],
+    [ "wb_be_same", "structpflib_1_1PolarfireTarget.html#ab86af33d3bbbde4de145a3963e17ecbc", null ]
 ];
