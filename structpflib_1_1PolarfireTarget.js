@@ -1,12 +1,14 @@
 var structpflib_1_1PolarfireTarget =
 [
     [ "PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a521e5031d92b42ac0d6b40083a811487", null ],
+    [ "~PolarfireTarget", "structpflib_1_1PolarfireTarget.html#a63a53aab81f6f4bb3f61ef5a2a75a667", null ],
     [ "daqHardReset", "structpflib_1_1PolarfireTarget.html#ab7ad7b580e1cc360a1720f329797a100", null ],
     [ "daqReadDirect", "structpflib_1_1PolarfireTarget.html#ab51ecc18a560b4e9dc1ec748d57bd3d0", null ],
     [ "daqReadEvent", "structpflib_1_1PolarfireTarget.html#a9e5b04664e72942784ba5e556f63d991", null ],
     [ "daqSoftReset", "structpflib_1_1PolarfireTarget.html#a9409b97ec1521248fa6cbeaaf499a925", null ],
     [ "daqStatus", "structpflib_1_1PolarfireTarget.html#a44c1bed54ddd2a7b3b254d1b12c8016f", null ],
     [ "dumpSettings", "structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2", null ],
+    [ "elink_relink", "structpflib_1_1PolarfireTarget.html#a32133d86560109ca34c3576fbe1a5d1e", null ],
     [ "elinksBigSpy", "structpflib_1_1PolarfireTarget.html#a93c240165ee643881c97ea5a8ea0712f", null ],
     [ "elinkStatus", "structpflib_1_1PolarfireTarget.html#a4d8ec46edf7ff7542b372ef08399dded", null ],
     [ "enableZeroSuppression", "structpflib_1_1PolarfireTarget.html#a4ce918ae2698035a8d1b9a84597c04b8", null ],

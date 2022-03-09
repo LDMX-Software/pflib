@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['usec_5fper_5fbyte_5f_0',['usec_per_byte_',['../classpflib_1_1I2C.html#ab12ff47ef228f10b822727839c4d8d72',1,'pflib::I2C']]]
+  ['sipm_5f_0',['sipm_',['../classpflib_1_1Bias.html#aae8ac8c03340c9f758dbd1f768fd6198',1,'pflib::Bias']]],
+  ['sub_5fmenu_5f_1',['sub_menu_',['../classMenu_1_1Line.html#aa8e9e8e9ee487f91f11fdcf91da81702',1,'Menu::Line']]]
 ];

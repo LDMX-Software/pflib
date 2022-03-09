@@ -24,15 +24,13 @@
 */
 var NAVTREE =
 [
-  [ "fire", "index.html", [
-    [ "pflib", "index.html", [
-      [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
-      [ "Communication Method", "index.html#autotoc_md21", [
-        [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
-        [ "uHal", "index.html#autotoc_md23", null ]
-      ] ],
-      [ "Other Dependencies", "index.html#autotoc_md24", null ]
+  [ "pflib", "index.html", [
+    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
+    [ "Communication Method", "index.html#autotoc_md21", [
+      [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
+      [ "uHal", "index.html#autotoc_md23", null ]
     ] ],
+    [ "Other Dependencies", "index.html#autotoc_md24", null ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
       [ "Features", "md_docs_doxygen_awesome_css_README.html#autotoc_md2", null ],
@@ -65,7 +63,12 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ]
+      ] ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -74,7 +77,8 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+        [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -86,9 +90,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1WishboneTarget.html#a664d86046a02474f2faca03410e8e9f8",
-"cpp/io/c/tmpfile.html",
-"cpp/string/multibyte/mbstowcs.html"
+"classpflib_1_1MAX5825.html#ae87b699ff1742e1d3aa3e462fcae9462",
+"cpp/io/c/fsetpos.html",
+"cpp/string/byte/strtoimax.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

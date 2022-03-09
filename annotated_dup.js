@@ -1,6 +1,6 @@
 var annotated_dup =
 [
-    [ "pflib", null, [
+    [ "pflib", "namespacepflib.html", [
       [ "rogue", null, [
         [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", "classpflib_1_1rogue_1_1RogueWishboneInterface" ]
       ] ],
@@ -24,7 +24,7 @@ var annotated_dup =
       [ "WishboneInterface", "classpflib_1_1WishboneInterface.html", "classpflib_1_1WishboneInterface" ],
       [ "WishboneTarget", "classpflib_1_1WishboneTarget.html", "classpflib_1_1WishboneTarget" ]
     ] ],
-    [ "BaseMenu", "classBaseMenu.html", null ],
+    [ "BaseMenu", "classBaseMenu.html", "classBaseMenu" ],
     [ "Menu", "classMenu.html", "classMenu" ],
     [ "Rcfile", "classRcfile.html", "classRcfile" ],
     [ "Rcmap", "classRcmap.html", "classRcmap" ]

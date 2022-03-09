@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>fire: Menu&lt; target_T &gt;::Line Class Reference</title>
+<title>pflib: Menu&lt; TargetType &gt;::Line Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -26,9 +26,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">fire<span id="projectnumber">&#160;v1.5</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.6</span>
    </div>
-   <div id="projectbrief">Framework for sImulation and Reconstruction of Events</div>
+   <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
  </tr>
  </tbody>
@@ -86,61 +86,166 @@ $(document).ready(function(){initNavTree('classMenu_1_1Line.html',''); initResiz
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classMenu_1_1Line-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">Menu&lt; target_T &gt;::Line Class Reference</div></div>
+  <div class="headertitle"><div class="title">Menu&lt; TargetType &gt;::Line Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>A command in the menu.  
+ <a href="classMenu_1_1Line.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="Menu_8h_source.html">Menu.h</a>&gt;</code></p>
 <div class="dynheader">
-Collaboration diagram for Menu&lt; target_T &gt;::Line:</div>
+Collaboration diagram for Menu&lt; TargetType &gt;::Line:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classMenu_1_1Line__coll__graph.svg" width="188" height="203"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMenu_1_1Line__coll__graph.svg" width="342" height="232"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a23a5d7bb8039913c76f59058b5f300fd"><td class="memItemLeft" align="right" valign="top"><a id="a23a5d7bb8039913c76f59058b5f300fd" name="a23a5d7bb8039913c76f59058b5f300fd"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, void(*f)(target_T *p_target))</td></tr>
-<tr class="separator:a23a5d7bb8039913c76f59058b5f300fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93e990f41647526d81967c074e28f6d2"><td class="memItemLeft" align="right" valign="top"><a id="a93e990f41647526d81967c074e28f6d2" name="a93e990f41647526d81967c074e28f6d2"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, void(*f2)(const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, target_T *p_target))</td></tr>
-<tr class="separator:a93e990f41647526d81967c074e28f6d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2bfc4cc38eee333e680fefdc41e0651"><td class="memItemLeft" align="right" valign="top"><a id="ac2bfc4cc38eee333e680fefdc41e0651" name="ac2bfc4cc38eee333e680fefdc41e0651"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, <a class="el" href="classMenu.html">Menu</a> *sb)</td></tr>
-<tr class="separator:ac2bfc4cc38eee333e680fefdc41e0651"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b84c53f4d1233e859b4a41d5e989bbc"><td class="memItemLeft" align="right" valign="top"><a id="a8b84c53f4d1233e859b4a41d5e989bbc" name="a8b84c53f4d1233e859b4a41d5e989bbc"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d)</td></tr>
-<tr class="separator:a8b84c53f4d1233e859b4a41d5e989bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22daba8b2c0a2adbb0617e94102d587b"><td class="memItemLeft" align="right" valign="top"><a id="a22daba8b2c0a2adbb0617e94102d587b" name="a22daba8b2c0a2adbb0617e94102d587b"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>null</b> () const</td></tr>
-<tr class="separator:a22daba8b2c0a2adbb0617e94102d587b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr class="memitem:a8d9d30fd40a4b611cad5d9314a1c9e71"><td class="memItemLeft" align="right" valign="top"><a id="a8d9d30fd40a4b611cad5d9314a1c9e71" name="a8d9d30fd40a4b611cad5d9314a1c9e71"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
-<tr class="separator:a8d9d30fd40a4b611cad5d9314a1c9e71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affd5d8b603c2d8a6aebfbcdea49937f0"><td class="memItemLeft" align="right" valign="top"><a id="affd5d8b603c2d8a6aebfbcdea49937f0" name="affd5d8b603c2d8a6aebfbcdea49937f0"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>desc</b></td></tr>
-<tr class="separator:affd5d8b603c2d8a6aebfbcdea49937f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5051daf2fc92188fe9035576e5d3ba77"><td class="memItemLeft" align="right" valign="top"><a id="a5051daf2fc92188fe9035576e5d3ba77" name="a5051daf2fc92188fe9035576e5d3ba77"></a>
-<a class="el" href="classMenu.html">Menu</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>subMenu</b></td></tr>
-<tr class="separator:a5051daf2fc92188fe9035576e5d3ba77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9b77e56ca51508f47820ed304fdd562"><td class="memItemLeft" align="right" valign="top"><a id="ae9b77e56ca51508f47820ed304fdd562" name="ae9b77e56ca51508f47820ed304fdd562"></a>
-void(*&#160;</td><td class="memItemRight" valign="bottom"><b>func</b> )(target_T *p_target)</td></tr>
-<tr class="separator:ae9b77e56ca51508f47820ed304fdd562"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a58868b8934d96a1347095cf89bdb0cbe"><td class="memItemLeft" align="right" valign="top"><a id="a58868b8934d96a1347095cf89bdb0cbe" name="a58868b8934d96a1347095cf89bdb0cbe"></a>
-void(*&#160;</td><td class="memItemRight" valign="bottom"><b>func2</b> )(const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, target_T *p_target)</td></tr>
-<tr class="separator:a58868b8934d96a1347095cf89bdb0cbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9507ba351da5c75e00b2b59896f21f32"><td class="memItemLeft" align="right" valign="top"><a id="a9507ba351da5c75e00b2b59896f21f32" name="a9507ba351da5c75e00b2b59896f21f32"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, <a class="el" href="classMenu.html#a68070630a2b5da1061a3308eca1eb42e">SingleTargetCommand</a> f)</td></tr>
+<tr class="memdesc:a9507ba351da5c75e00b2b59896f21f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">define a menu line that uses a single target command <br /></td></tr>
+<tr class="separator:a9507ba351da5c75e00b2b59896f21f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8c8d19536dc171f6c3347b4b98f9fda"><td class="memItemLeft" align="right" valign="top"><a id="af8c8d19536dc171f6c3347b4b98f9fda" name="af8c8d19536dc171f6c3347b4b98f9fda"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, <a class="el" href="classMenu.html#aeb7378e6b32be13b43111626c40eb27f">MultipleTargetCommands</a> f)</td></tr>
+<tr class="memdesc:af8c8d19536dc171f6c3347b4b98f9fda"><td class="mdescLeft">&#160;</td><td class="mdescRight">define a menu line that uses a multiple command function <br /></td></tr>
+<tr class="separator:af8c8d19536dc171f6c3347b4b98f9fda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cb2a1aeea76ac7ec4a89d5cbd8151c8"><td class="memItemLeft" align="right" valign="top"><a id="a0cb2a1aeea76ac7ec4a89d5cbd8151c8" name="a0cb2a1aeea76ac7ec4a89d5cbd8151c8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Line</b> (const char *n, const char *d, <a class="el" href="classMenu.html">Menu</a> *m)</td></tr>
+<tr class="memdesc:a0cb2a1aeea76ac7ec4a89d5cbd8151c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">define a menu line that enters a sub menu <br /></td></tr>
+<tr class="separator:a0cb2a1aeea76ac7ec4a89d5cbd8151c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80af06ee35a789727f6f0a6fad3fe085"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMenu_1_1Line.html#a80af06ee35a789727f6f0a6fad3fe085">Line</a> (const char *n, const char *d)</td></tr>
+<tr class="memdesc:a80af06ee35a789727f6f0a6fad3fe085"><td class="mdescLeft">&#160;</td><td class="mdescRight">define an empty menu line with only a name and description  <a href="classMenu_1_1Line.html#a80af06ee35a789727f6f0a6fad3fe085">More...</a><br /></td></tr>
+<tr class="separator:a80af06ee35a789727f6f0a6fad3fe085"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ba080ef58c9bccaf772233278787724"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMenu_1_1Line.html#a9ba080ef58c9bccaf772233278787724">execute</a> (TargetType *p) const</td></tr>
+<tr class="memdesc:a9ba080ef58c9bccaf772233278787724"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute this line.  <a href="classMenu_1_1Line.html#a9ba080ef58c9bccaf772233278787724">More...</a><br /></td></tr>
+<tr class="separator:a9ba080ef58c9bccaf772233278787724"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3d9ee0e880b14b08a485e1c774ac8c2"><td class="memItemLeft" align="right" valign="top"><a id="ab3d9ee0e880b14b08a485e1c774ac8c2" name="ab3d9ee0e880b14b08a485e1c774ac8c2"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>empty</b> () const</td></tr>
+<tr class="memdesc:ab3d9ee0e880b14b08a485e1c774ac8c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if this line is an empty one. <br /></td></tr>
+<tr class="separator:ab3d9ee0e880b14b08a485e1c774ac8c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3e96413767673042019342ae63c8889"><td class="memItemLeft" align="right" valign="top"><a id="ab3e96413767673042019342ae63c8889" name="ab3e96413767673042019342ae63c8889"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>name</b> () const</td></tr>
+<tr class="separator:ab3e96413767673042019342ae63c8889"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa112ac36036a9468285c721604c3de62"><td class="memItemLeft" align="right" valign="top"><a id="aa112ac36036a9468285c721604c3de62" name="aa112ac36036a9468285c721604c3de62"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>desc</b> () const</td></tr>
+<tr class="separator:aa112ac36036a9468285c721604c3de62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:aaebb15e61feeecef23cc207b318f8877"><td class="memItemLeft" align="right" valign="top"><a id="aaebb15e61feeecef23cc207b318f8877" name="aaebb15e61feeecef23cc207b318f8877"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNull</b></td></tr>
-<tr class="separator:aaebb15e61feeecef23cc207b318f8877"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44bd6b57de0b28449646e6c019e71b63"><td class="memItemLeft" align="right" valign="top"><a id="a44bd6b57de0b28449646e6c019e71b63" name="a44bd6b57de0b28449646e6c019e71b63"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>name_</b></td></tr>
+<tr class="memdesc:a44bd6b57de0b28449646e6c019e71b63"><td class="mdescLeft">&#160;</td><td class="mdescRight">the name of this line <br /></td></tr>
+<tr class="separator:a44bd6b57de0b28449646e6c019e71b63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd51e2a5509deb61b50eae59f1267a7e"><td class="memItemLeft" align="right" valign="top"><a id="acd51e2a5509deb61b50eae59f1267a7e" name="acd51e2a5509deb61b50eae59f1267a7e"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>desc_</b></td></tr>
+<tr class="memdesc:acd51e2a5509deb61b50eae59f1267a7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">short description for what this line is <br /></td></tr>
+<tr class="separator:acd51e2a5509deb61b50eae59f1267a7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8e9e8e9ee487f91f11fdcf91da81702"><td class="memItemLeft" align="right" valign="top"><a id="aa8e9e8e9ee487f91f11fdcf91da81702" name="aa8e9e8e9ee487f91f11fdcf91da81702"></a>
+<a class="el" href="classMenu.html">Menu</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>sub_menu_</b></td></tr>
+<tr class="memdesc:aa8e9e8e9ee487f91f11fdcf91da81702"><td class="mdescLeft">&#160;</td><td class="mdescRight">pointer to sub menu (if it exists) <br /></td></tr>
+<tr class="separator:aa8e9e8e9ee487f91f11fdcf91da81702"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b147161ec6b8ff4ac543ba7f82e893b"><td class="memItemLeft" align="right" valign="top"><a id="a2b147161ec6b8ff4ac543ba7f82e893b" name="a2b147161ec6b8ff4ac543ba7f82e893b"></a>
+<a class="el" href="classMenu.html#a68070630a2b5da1061a3308eca1eb42e">SingleTargetCommand</a>&#160;</td><td class="memItemRight" valign="bottom"><b>cmd_</b></td></tr>
+<tr class="memdesc:a2b147161ec6b8ff4ac543ba7f82e893b"><td class="mdescLeft">&#160;</td><td class="mdescRight">function pointer to execute (if exists) <br /></td></tr>
+<tr class="separator:a2b147161ec6b8ff4ac543ba7f82e893b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad006317b2d9c06c8e583300ed8278739"><td class="memItemLeft" align="right" valign="top"><a id="ad006317b2d9c06c8e583300ed8278739" name="ad006317b2d9c06c8e583300ed8278739"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_null</b></td></tr>
+<tr class="memdesc:ad006317b2d9c06c8e583300ed8278739"><td class="mdescLeft">&#160;</td><td class="mdescRight">is this a null line? <br /></td></tr>
+<tr class="separator:ad006317b2d9c06c8e583300ed8278739"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;class TargetType&gt;<br />
+class Menu&lt; TargetType &gt;::Line</div><p >A command in the menu. </p>
+<p >A menu command can do one of two tasks:</p><ol type="1">
+<li>Enter a sub-menu</li>
+<li>Execute a specific command on the target</li>
+</ol>
+<p >There are two ways to execute a command on the target, the user can provide a function that only does one command on the target (the function signature is SingleTargetCommand) or the user can provide a function that can do multiple commands on a target (the function signature is MultipleTargetCommands) where the first argument to that function will be the name of that <a class="el" href="classMenu_1_1Line.html" title="A command in the menu.">Line</a>. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a80af06ee35a789727f6f0a6fad3fe085" name="a80af06ee35a789727f6f0a6fad3fe085"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80af06ee35a789727f6f0a6fad3fe085">&#9670;&nbsp;</a></span>Line()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class TargetType &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classMenu.html">Menu</a>&lt; TargetType &gt;::Line::Line </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>d</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>define an empty menu line with only a name and description </p>
+<p >empty lines are used to exit menus because they will do nothing when execute is called and will leave the do-while loop in <a class="el" href="classMenu.html#a930c63077b267eda8adfeeddf27e0739" title="give control over the target to this menu">Menu::steer</a> </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9ba080ef58c9bccaf772233278787724" name="a9ba080ef58c9bccaf772233278787724"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ba080ef58c9bccaf772233278787724">&#9670;&nbsp;</a></span>execute()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class TargetType &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classMenu.html">Menu</a>&lt; TargetType &gt;::Line::execute </td>
+          <td>(</td>
+          <td class="paramtype">TargetType *&#160;</td>
+          <td class="paramname"><em>p</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Execute this line. </p>
+<p >If this line is a sub-menu, we give the target to that menu's steer function. Otherwise, we execute the function that is available for this line, perferring the single target command.</p>
+<dl class="section note"><dt>Note</dt><dd>Empty menu lines will just do nothing when executed.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">p</td><td>pointer to target </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>tool/<a class="el" href="Menu_8h_source.html">Menu.h</a></li>
 </ul>
