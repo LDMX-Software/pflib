@@ -120,7 +120,7 @@ void uhalWishboneInterface::fc_calibpulse() {
 void uhalWishboneInterface::fc_setup_calib(int pulse_len, int l1a_offset) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.CALIB_PULSE_LEN").write(pulse_len&0xF);
-  m_base.getNode("FAST_CONTROL.CALIB_L1A_OFFSET").write(pulse_len&0xF);
+  m_base.getNode("FAST_CONTROL.CALIB_L1A_OFFSET").write(l1a_offset&0xFF);
   dispatch();  
 }
 void uhalWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset) {
