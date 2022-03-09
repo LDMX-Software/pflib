@@ -242,7 +242,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
   pfMenu menu_ldmx_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &ldmx_roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &ldmx_roc),
-     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs", &ldmx_roc),
+     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs to help maintain link stability", &ldmx_roc),
      pfMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
      pfMenu::Line("CHAN","Dump link status", &ldmx_roc ),
      pfMenu::Line("PAGE","Dump a page", &ldmx_roc ),
@@ -626,6 +626,12 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="CALIB") {
     int len, offset;
     pft->backend->fc_get_setup_calib(len,offset);
+    std::cout <<
+      "NOTE: A known bug in uMNio firmware which has been patched in later versions\n"
+      "      leads to the inability of the firmware to read some parameters.\n"
+      "      If you are seeing 0 as the default even after setting these parameters,\n"
+      "      you have this (slightly) buggy firmware."
+      << std::endl << std::endl;
     len=BaseMenu::readline_int("Calibration pulse length?",len);
     offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
     pft->backend->fc_setup_calib(len,offset);
@@ -640,6 +646,16 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.fc().setupMultisample(multi,nextra);
   }
   if (cmd=="STATUS" || do_status) {
+    static const std::vector<std::string> bit_comments = {
+      "all requests",
+      "read requests",
+      "",
+      "",
+      "",
+      "calib pulse requests",
+      "",
+      ""
+    };
     bool multi;
     int nextra;
     pft->hcal.fc().getMultisampleSetup(multi,nextra);
@@ -651,7 +667,7 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
-      printf("  Bit %d count: %u\n",i,cnt[i]); 
+      printf("  Bit %d count: %u %s\n",i,cnt[i],bit_comments.at(i)); 
   }
 }
 

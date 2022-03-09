@@ -104,3 +104,22 @@ The values should be relatively constant for a given physical chip and firmware 
 
 ### daq.setup.l1aparams
 These parameters should be stable for a given setup. **Across setups**, the readout length should be 40. For UMN, the delay should be 15.
+
+### roc.resyncload
+This can be done after a `roc.hard\_reset` and helps maintain link stability.
+
+### fast\_control.calib
+A known uMNio firmware bug (that has been patched in later versions by Jeremy),
+leads to an inability to read some parameters. This causes the defaults for this
+command to always be `0` even though the actual registers are (probably) updated
+successfully. Users may wish to always set these parameters on every entry into pftool
+just to be safe.
+
+- pulse length should be `1`
+- L1A offset should be `15`
+
+### fast\_control.status
+bit 0 - overall counts of some kind?
+bit 1 - l1a / read request
+bit 5 - calibration trigger request
+
