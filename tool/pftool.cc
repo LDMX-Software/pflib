@@ -861,8 +861,8 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     fclose(f);
   }
   if (cmd=="SCAN"){
-    std::string pagename=BaseMenu::readline("Sub-block name :  ");
-    std::string valuename=BaseMenu::readline("Value name :  ");
+    std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
+    std::string valuename=BaseMenu::readline("Value (aka Parameter) name :  ");
     int iroc=BaseMenu::readline_int("Which ROC :  ");
     int minvalue=BaseMenu::readline_int("Minimum value :  ");
     int maxvalue=BaseMenu::readline_int("Maximum value :  ");
@@ -870,25 +870,18 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
     int nevents=BaseMenu::readline_int("Events per step :  ", 10);
     std::string fname=BaseMenu::readline("Filename :  ");
 
-    FILE* f=fopen(fname.c_str(),"w");
+    // smart pointer lets us close file even if exception is thrown
+    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"w"),&fclose};
     pft->prepareNewRun();
 
     for(int value = minvalue; value <= maxvalue; value += step){
-      //Catch errors from using incorrect page or value names
-      try{
-        pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
-
-        for (int ievt=0; ievt<nevents; ievt++) {
-          pft->backend->fc_sendL1A();
-          std::vector<uint32_t> event = pft->daqReadEvent();
-          fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
-        }
-
-      } catch (const pflib::Exception& e) {
-        std::cerr << "ERROR [" << e.name() << "] " << e.message() << std::endl;
+      pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
+      for (int ievt=0; ievt<nevents; ievt++) {
+        pft->backend->fc_sendL1A();
+        std::vector<uint32_t> event = pft->daqReadEvent();
+        fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
       }
     }
-    fclose(f);
   }
 }
 
