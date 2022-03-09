@@ -203,8 +203,9 @@ void PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
       }
     }
 
+    // decompile while being careful
     std::map<std::string,std::map<std::string,int>>
-      parameter_values = decompile(register_values);
+      parameter_values = decompile(register_values,true);
 
     YAML::Emitter out;
     out << YAML::BeginMap;

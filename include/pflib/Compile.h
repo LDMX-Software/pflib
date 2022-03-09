@@ -121,15 +121,23 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings);
  *
  * The decompilation simply interates through **all** 
  * parameters and attempts to deduce their values from
- * the input compiled config. If any of the registers 
- * required to deduce a parameter is missing, warnings
- * are printed to std::cerr and the parameters is skipped.
+ * the input compiled config. 
+ *
+ * If be_careful is true and any of the registers 
+ * required to deduce a parameter are missing, warnings
+ * are printed to std::cerr and the parameter is skipped.
+ * Additionally, warnings are printed for entire pages that are skipped.
+ *
+ * If be_careful is false, then no warnings are printed
+ * and parameters are only skipped if all of the registers
+ * that constitute it are missing.
  *
  * @param[in] compiled_config page number, register number, register value settings
+ * @param[in] be_careful true if we should print warnings and skip partially-set params
  * @return page name, parameter name, parameter value of registers provided
  */
 std::map<std::string,std::map<std::string,int>>
-decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
+decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_careful);
 
 /**
  * get the parameter names for the input page-type

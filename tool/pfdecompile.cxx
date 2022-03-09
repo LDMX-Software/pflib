@@ -22,6 +22,8 @@ static void usage() {
     "\n"
     " OPTIONS:\n"
     "  -h,--help     : Print this help and exit\n"
+    "  --no-careful  : Don't print warnings and use 0 for missing registers\n"
+    "  --careful     : Print warnings and skip parameters with missing registers (default)\n"
     "  --output, -o  : Define the output file.\n"
     "                  By default, the output file is the file with register values with extension\n"
     "                  changed to 'yaml'\n"
@@ -77,6 +79,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  bool careful{true};
   std::string input_filename;
   std::string output_filename;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -93,6 +96,10 @@ int main(int argc, char *argv[]) {
         }
         i_arg++;
         output_filename = argv[i_arg];
+      } else if (arg == "--no-careful") {
+        careful = false;
+      } else if (arg == "--careful") {
+        careful = true;
       } else {
         std::cerr << "ERROR: " << arg << " not a recognized argument." << std::endl;
         return 1;
@@ -147,7 +154,7 @@ int main(int argc, char *argv[]) {
     parameters;
   try {
     // compilation checks parameter/page names
-    parameters = pflib::decompile(settings);
+    parameters = pflib::decompile(settings,careful);
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

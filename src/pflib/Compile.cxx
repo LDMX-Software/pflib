@@ -471,15 +471,18 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
 }
 
 std::map<std::string,std::map<std::string,int>>
-decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
+decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_careful) {
   std::map<std::string,std::map<std::string,int>> settings;
   for (const auto& page : PARAMETER_LUT) {
     const std::string& page_name{page.first};
     const int& page_id{page.second.first};
     const auto& page_lut{page.second.second};
     if (compiled_config.find(page_id) == compiled_config.end()) {
-      std::cerr << "WARNING: Page " << page_name
-        << " wasn't provided the necessary registers to be deduced." << std::endl;
+      if (be_careful) {
+        std::cerr << "WARNING: Page named " << page_name
+          << " wasn't provided the necessary page " << page_id 
+          << " to be deduced." << std::endl;
+      }
       continue;
     }
     const auto& page_conf{compiled_config.at(page_id)};
@@ -487,22 +490,29 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
       const Parameter& spec{page_lut.at(param.first)};
       std::size_t value_curr_min_bit{0};
       int pval{0};
-      bool skip{false};
+      int n_missing_regs{0};
       for (const RegisterLocation& location : spec.registers) {
+        uint8_t sub_val = 0; // defaults ot zero if not careful and register not found
         if (page_conf.find(location.reg) == page_conf.end()) {
-          std::cerr << "WARNING: Parameter " << param.first << " in page " << page_name
-            << " wasn't provided the necessary registers to be deduced." << std::endl;
-          skip = true;
-          break;
+          n_missing_regs++;
+          if (be_careful) break;
+        } else {
+          // grab sub value of parameter in this register
+          sub_val = ((page_conf.at(location.reg) >> location.min_bit) & location.mask);
         }
-
-        // grab sub value of parameter in this register
-        uint8_t sub_val = ((page_conf.at(location.reg) >> location.min_bit) & location.mask);
         pval += (sub_val << value_curr_min_bit);
         value_curr_min_bit += location.n_bits;
       }
 
-      if (not skip) settings[page_name][param.first] = pval;
+      if (n_missing_regs == spec.registers.size() or (be_careful and n_missing_regs > 0)) {
+        // skip this parameter
+        if (be_careful) {
+          std::cerr << "WARNING: Parameter " << param.first << " in page " << page_name
+            << " wasn't provided the necessary registers to be deduced." << std::endl;
+        }
+      } else {
+        settings[page_name][param.first] = pval;
+      }
     }
   }
 
