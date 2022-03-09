@@ -683,7 +683,7 @@ void ldmx_fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.fc().setupMultisample(multi,nextra);
     // also, DMA needs to know
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       bool enabled;
       uint8_t samples_per_event, fpgaid_i;
@@ -725,7 +725,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       printf("DMA : %08x\n",rwbi->daq_dma_status());
     }
@@ -751,7 +751,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="DMA") {
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       bool enabled;
       uint8_t samples_per_event, fpgaid_i;
@@ -765,7 +765,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       bool enabled;
       uint8_t samples_per_event, fpgaid_i;
@@ -785,7 +785,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       bool enabled;
       uint8_t samples_per_event, fpgaid_i;
@@ -802,7 +802,7 @@ void ldmx_daq( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb.get());
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       printf("DMA : %08x\n",rwbi->daq_dma_status());
     }
