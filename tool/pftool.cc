@@ -122,7 +122,24 @@ int main(int argc, char* argv[]) {
       if ( skip[i] ) continue ;
       if (arg=="-u") isuhal=true;
       else if (arg=="-r") isrogue=true;
-      else ipV.push_back( arg ) ;
+      else if (arg=="-s") {
+        skip[i+1]=true;
+        std::fstream sFile( argv[i+1] );
+        quiet_batch_mode=true;
+        line.clear() ;
+        
+        if (!sFile.is_open()) {
+          printf("\nUnable to open script file '%s'\n",argv[i+1]);
+          return 2;
+        }
+        
+        while ( getline( sFile, line) ) {
+          while (!line.empty() && isspace(line[0])) line.erase(line.begin());
+          if ( !line.empty() && line[0] == '#' ) continue ;
+          BaseMenu::add_to_command_queue(line);
+        }
+        sFile.close() ;
+      } else ipV.push_back( arg ) ;
     }
     int mId;
     bool exitMenu = false ;
