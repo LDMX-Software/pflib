@@ -1,7 +1,6 @@
 var classpflib_1_1rogue_1_1RogueWishboneInterface =
 [
     [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a853d61ec2fb07f865c6a4ff98b9272dc", null ],
-    [ "daq_dma_enable", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac85c778b969c8b091fd191bd1ec93ac1", null ],
     [ "fc_bufferclear", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a29fce73c8607e85a4fc50b17abbfd8bf", null ],
     [ "fc_calibpulse", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a1b4dd10863c08723eafc10513acd96e2", null ],
     [ "fc_get_setup_calib", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a38c64a9d2c29221c081f16a17c4fe7fe", null ],

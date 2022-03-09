@@ -59,10 +59,7 @@ var NAVTREE =
         [ "daq.hard_reset", "md_tool_README.html#autotoc_md34", null ],
         [ "elinks.spy", "md_tool_README.html#autotoc_md35", null ],
         [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md36", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md37", null ],
-        [ "roc.resyncload", "md_tool_README.html#autotoc_md38", null ],
-        [ "fast_control.calib", "md_tool_README.html#autotoc_md39", null ],
-        [ "fast_control.status", "md_tool_README.html#autotoc_md40", null ]
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md37", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
@@ -93,10 +90,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1MAX5825.html#a2cf672230d97a93614b74b433dceced5",
-"cpp/io/c/fprintf.html",
-"cpp/string/byte/strerror.html",
-"structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f"
+"classpflib_1_1MAX5825.html#a44f96659635f6446ddc40f94058deefe",
+"cpp/io/c/fputws.html",
+"cpp/string/byte/strpbrk.html",
+"structpflib_1_1RegisterLocation.html#a710bd65294328824e47636d6cd22ce07"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
