@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">fire<span id="projectnumber">&#160;v1.4</span>
+   <div id="projectname">fire<span id="projectnumber">&#160;v1.5</span>
    </div>
    <div id="projectbrief">Framework for sImulation and Reconstruction of Events</div>
   </td>
@@ -87,31 +87,46 @@ $(document).ready(function(){initNavTree('Compile_8h_source.html',''); initResiz
   <div class="headertitle"><div class="title">Compile.h</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef PFLIB_COMPILE_H</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define PFLIB_COMPILE_H</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;map&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>pflib {</div>
+<a href="Compile_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#ifndef PFLIB_COMPILE_H</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#define PFLIB_COMPILE_H</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>compile(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;std::string,int&gt;</a>&gt;&amp; settings);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;std::string,std::map&lt;std::string,int&gt;</a>&gt;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>decompile(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<span class="keywordtype">int</span>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,uint8_t&gt;</a>&gt;&amp; compiled_config);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>compile(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;std::string&gt;</a>&amp; setting_files, <span class="keywordtype">bool</span> prepend_defaults = <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>compile(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; setting_file, <span class="keywordtype">bool</span> prepend_defaults = <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span>pflib {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">int</span> <a class="code hl_function" href="Compile_8h.html#a9196f35a3741bfc972bd7e7418eeab5c">str_to_int</a>(<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> str);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="keywordtype">void</span> <a class="code hl_function" href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">compile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; page, <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; param, <span class="keyword">const</span> <span class="keywordtype">int</span>&amp; val,</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<span class="keywordtype">int</span>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,uint8_t&gt;</a>&gt;&amp; registers);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><a class="code hl_function" href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">compile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; page_name, <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; param_name, <span class="keyword">const</span> <span class="keywordtype">int</span>&amp; val);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><a class="code hl_function" href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">compile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;std::string,int&gt;</a>&gt;&amp; settings);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;std::string,std::map&lt;std::string,int&gt;</a>&gt;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span><a class="code hl_function" href="Compile_8h.html#a3d3e294ffdfffb4e608b5bae99e2c76c">decompile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<span class="keywordtype">int</span>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,uint8_t&gt;</a>&gt;&amp; compiled_config);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="keywordtype">void</span> <a class="code hl_function" href="Compile_8h.html#ad837260dd18e63c3888facfc72f0887f">extract</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;std::string&gt;</a>&amp; setting_files, </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a>&lt;<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>,<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;std::string,int&gt;</a>&gt;&amp; settings);</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><a class="code hl_function" href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">compile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;std::string&gt;</a>&amp; setting_files, <span class="keywordtype">bool</span> prepend_defaults = <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/map.html">std::map&lt;int,std::map&lt;int,uint8_t&gt;</a>&gt;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><a class="code hl_function" href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">compile</a>(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; setting_file, <span class="keywordtype">bool</span> prepend_defaults = <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aCompile_8h_html_a294c81fe130d76747b2e87d1ce63944c"><div class="ttname"><a href="Compile_8h.html#a294c81fe130d76747b2e87d1ce63944c">pflib::compile</a></div><div class="ttdeci">void compile(const std::string &amp;page, const std::string &amp;param, const int &amp;val, std::map&lt; int, std::map&lt; int, uint8_t &gt; &gt; &amp;registers)</div><div class="ttdoc">Overlay a single parameter onto the input register map.</div><div class="ttdef"><b>Definition:</b> Compile.cxx:364</div></div>
+<div class="ttc" id="aCompile_8h_html_a3d3e294ffdfffb4e608b5bae99e2c76c"><div class="ttname"><a href="Compile_8h.html#a3d3e294ffdfffb4e608b5bae99e2c76c">pflib::decompile</a></div><div class="ttdeci">std::map&lt; std::string, std::map&lt; std::string, int &gt; &gt; decompile(const std::map&lt; int, std::map&lt; int, uint8_t &gt; &gt; &amp;compiled_config)</div><div class="ttdoc">unpack register values into the page names, parameter names and parameter values mapping</div><div class="ttdef"><b>Definition:</b> Compile.cxx:429</div></div>
+<div class="ttc" id="aCompile_8h_html_a9196f35a3741bfc972bd7e7418eeab5c"><div class="ttname"><a href="Compile_8h.html#a9196f35a3741bfc972bd7e7418eeab5c">pflib::str_to_int</a></div><div class="ttdeci">int str_to_int(std::string str)</div><div class="ttdoc">Get an integer from the input string.</div><div class="ttdef"><b>Definition:</b> Compile.cxx:343</div></div>
+<div class="ttc" id="aCompile_8h_html_ad837260dd18e63c3888facfc72f0887f"><div class="ttname"><a href="Compile_8h.html#ad837260dd18e63c3888facfc72f0887f">pflib::extract</a></div><div class="ttdeci">void extract(const std::vector&lt; std::string &gt; &amp;setting_files, std::map&lt; std::string, std::map&lt; std::string, int &gt; &gt; &amp;settings)</div><div class="ttdoc">Extract the page name, parameter name, and parameter values from the YAML files into the passed setti...</div><div class="ttdef"><b>Definition:</b> Compile.cxx:517</div></div>
 <div class="ttc" id="abasic_string_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a></div></div>
 <div class="ttc" id="amap_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/container/map.html">std::map</a></div></div>
 <div class="ttc" id="avector_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a></div></div>
@@ -120,7 +135,7 @@ $(document).ready(function(){initNavTree('Compile_8h_source.html',''); initResiz
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_2f886b4d78384a3a6e89de152eb82abd.html">pflib</a></li><li class="navelem"><b>Compile.h</b></li>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_2f886b4d78384a3a6e89de152eb82abd.html">pflib</a></li><li class="navelem"><a class="el" href="Compile_8h.html">Compile.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.2 </li>
   </ul>
 </div>
