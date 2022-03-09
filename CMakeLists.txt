@@ -1,9 +1,24 @@
 # Set the minimum version of CMake that's required
 cmake_minimum_required(VERSION 3.12)
 
+execute_process(
+  COMMAND git describe --tags
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE git_rc
+  OUTPUT_VARIABLE git_describe)
+if (NOT ${git_rc} EQUAL 0)
+  set(pflib_vers "v0.0")
+  message(WARNING "System cannot deduce git tag, this pflib built is un-versioned.")
+else()
+  string(REGEX REPLACE "^v" "" git_describe ${git_describe})
+  string(REGEX REPLACE "-.*$" "" git_describe ${git_describe})
+  set(pflib_vers ${git_describe})
+endif()
+message(STATUS "Deduced pflib version ${pflib_vers}")
+
 # Set the project name
 project(pflib
-	VERSION 1.7
+	VERSION ${pflib_vers}
 	DESCRIPTION "Polarfire configuration library."
 	LANGUAGES CXX)
 
