@@ -24,13 +24,15 @@
 */
 var NAVTREE =
 [
-  [ "pflib", "index.html", [
-    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
-    [ "Communication Method", "index.html#autotoc_md21", [
-      [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
-      [ "uHal", "index.html#autotoc_md23", null ]
+  [ "fire", "index.html", [
+    [ "pflib", "index.html", [
+      [ "YAML->Register \"Compilation\"", "index.html#autotoc_md23", null ],
+      [ "Communication Method", "index.html#autotoc_md24", [
+        [ "Rogue 5.9.3", "index.html#autotoc_md25", null ],
+        [ "uHal", "index.html#autotoc_md26", null ]
+      ] ],
+      [ "Other Dependencies", "index.html#autotoc_md27", null ]
     ] ],
-    [ "Other Dependencies", "index.html#autotoc_md24", null ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
       [ "Features", "md_docs_doxygen_awesome_css_README.html#autotoc_md2", null ],
@@ -52,23 +54,18 @@ var NAVTREE =
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md26", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md31", [
-        [ "daq.status", "md_tool_README.html#autotoc_md32", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md33", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md34", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md35", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md36", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md37", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md29", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md34", [
+        [ "daq.status", "md_tool_README.html#autotoc_md35", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md36", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md37", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md38", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md39", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md40", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
-      [ "Namespace Members", "namespacemembers.html", [
-        [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ],
-        [ "Variables", "namespacemembers_vars.html", null ]
-      ] ]
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -77,8 +74,7 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Typedefs", "functions_type.html", null ]
+        [ "Variables", "functions_vars.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -90,10 +86,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1MAX5825.html#a44f96659635f6446ddc40f94058deefe",
-"cpp/io/c/fputws.html",
-"cpp/string/byte/strpbrk.html",
-"structpflib_1_1RegisterLocation.html#a710bd65294328824e47636d6cd22ce07"
+"classpflib_1_1rogue_1_1RogueWishboneInterface.html#a32423b147998a09492bc5aa70ebcc884",
+"cpp/io/manip/boolalpha.html",
+"cpp/string/wide/iswupper.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['parameter_5flut_0',['PARAMETER_LUT',['../namespacepflib.html#aee0719ee4cee5343b07c8ba961f58eb4',1,'pflib']]]
+  ['sipm_5f_0',['sipm_',['../classpflib_1_1Bias.html#aae8ac8c03340c9f758dbd1f768fd6198',1,'pflib::Bias']]]
 ];
