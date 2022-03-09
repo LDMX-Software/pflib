@@ -11,6 +11,7 @@
 #include <string>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
+#include "pflib/Compile.h" // for parameter listing
 #ifdef PFTOOL_ROGUE
 #include "pflib/rogue/RogueWishboneInterface.h"
 #endif
@@ -246,6 +247,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("IROC","Change the active ROC number", &ldmx_roc ),
      pfMenu::Line("CHAN","Dump link status", &ldmx_roc ),
      pfMenu::Line("PAGE","Dump a page", &ldmx_roc ),
+     pfMenu::Line("PARAM_NAMES", "Print a list of parameters on a page", &ldmx_roc),
      pfMenu::Line("POKE_REG","Change a single register value", &ldmx_roc ),
      pfMenu::Line("POKE_PARAM","Change a single parameter value", &ldmx_roc ),
      pfMenu::Line("POKE","Alias for POKE_PARAM", &ldmx_roc ),
@@ -553,6 +555,23 @@ void ldmx_roc( const std::string& cmd, PolarfireTarget* pft ) {
     std::vector<uint8_t> v=roc.readPage(page,len);
     for (int i=0; i<int(v.size()); i++)
       printf("%02d : %02x\n",i,v[i]);
+  }
+  if (cmd=="PARAM_NAMES") {
+    std::cout <<
+      "Select a page type from the following list:\n"
+      " - DigitalHalf\n"
+      " - ChannelWise (used for Channel_, CALIB, and CM pages)\n"
+      " - Top\n"
+      " - MasterTDC\n"
+      " - ReferenceVoltage\n"
+      " - GlobalAnalog\n"
+      << std::endl;
+    std::string p = BaseMenu::readline("Page type? ", "Top");
+    std::vector<std::string> param_names = pflib::parameters(p);
+    for (const std::string& pn : param_names) {
+      std::cout << pn << "\n";
+    }
+    std::cout << std::endl;
   }
   if (cmd=="POKE_REG") {
     int page=BaseMenu::readline_int("Which page? ",0);

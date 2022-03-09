@@ -132,6 +132,32 @@ std::map<std::string,std::map<std::string,int>>
 decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config);
 
 /**
+ * get the parameter names for the input page-type
+ *
+ * The page-types are as specified in the HGC ROC manual without spaces
+ * and case insensitive.
+ * - DigitalHalf
+ * - ChannelWise
+ * - Top
+ * - MasterTDC
+ * - ReferenceVoltage
+ * - GlobalAnalog
+ *
+ * @return vector of parameter names for that page type
+ */
+std::vector<std::string> parameters(const std::string& page);
+
+/**
+ * get the default parameter values as specified in the manual
+ *
+ * This is a helpful command for simply printing a "template"
+ * YAML settings file although it will printout all pages individually.
+ *
+ * @return map of page name and parameter names to default values
+ */
+std::map<std::string,std::map<std::string,int>> defaults();
+
+/**
  * Extract the page name, parameter name, and parameter values from
  * the YAML files into the passed settings map
  *

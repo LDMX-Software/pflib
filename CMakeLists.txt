@@ -44,6 +44,9 @@ target_link_libraries(pfcompile pflib)
 add_executable(pfdecompile tool/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
 
+add_executable(pfdefaults tool/pfdefaults.cxx)
+target_link_libraries(pfdefaults pflib)
+
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one
 
@@ -111,7 +114,7 @@ endif()
 
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
 
-install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile
+install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

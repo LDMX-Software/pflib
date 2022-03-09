@@ -509,6 +509,44 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config) {
   return settings;
 }
 
+std::vector<std::string> parameters(const std::string& page) {
+  static auto get_parameter_names = [&](const std::map<std::string,Parameter>& lut) -> std::vector<std::string> {
+    std::vector<std::string> names;
+    for (const auto& param : lut) names.push_back(param.first);
+    return names;
+  };
+
+  std::string PAGE{upper_cp(page)};
+  if (PAGE == "DIGITALHALF") {
+    return get_parameter_names(DIGITAL_HALF_LUT);
+  } else if (PAGE == "CHANNELWISE") {
+    return get_parameter_names(CHANNEL_WISE_LUT);
+  } else if (PAGE == "TOP" ) {
+    return get_parameter_names(TOP_LUT);
+  } else if (PAGE == "MASTERTDC") {
+    return get_parameter_names(MASTER_TDC_LUT);
+  } else if (PAGE == "REFERENCEVOLTAGE") {
+    return get_parameter_names(REFERENCE_VOLTAGE_LUT);
+  } else if (PAGE == "GLOBALANALOG") {
+    return get_parameter_names(GLOBAL_ANALOG_LUT);
+  } else if (PARAMETER_LUT.find(PAGE) != PARAMETER_LUT.end()) {
+    return get_parameter_names(PARAMETER_LUT.at(PAGE).second);
+  } else {
+    PFEXCEPTION_RAISE("BadName", 
+        "Input page name "+page+" does not match a page or type of page.");
+  }
+}
+
+std::map<std::string,std::map<std::string,int>> defaults() {
+  std::map<std::string,std::map<std::string,int>> settings;
+  for(auto& page : PARAMETER_LUT) {
+    for (auto& param : page.second.second) {
+      settings[page.first][param.first] = param.second.def;
+    }
+  }
+  return settings;
+}
+
 /**
  * Hidden functions to avoid users using them
  */
@@ -594,13 +632,7 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
   std::map<std::string,std::map<std::string,int>> settings;
   // if we prepend the defaults, put all settings and their defaults 
   // into the settings map before extraction
-  if (prepend_defaults) {
-    for(auto& page : PARAMETER_LUT) {
-      for (auto& param : page.second.second) {
-        settings[page.first][param.first] = param.second.def;
-      }
-    }
-  }
+  if (prepend_defaults) { settings = defaults(); }
   extract(setting_files,settings);
   return compile(settings);
 }
