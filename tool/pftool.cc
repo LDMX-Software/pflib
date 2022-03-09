@@ -318,7 +318,9 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("FPGA", "Set FPGA id", &ldmx_daq_setup),
     pfMenu::Line("STANDARD","Do the standard setup for HCAL", &ldmx_daq_setup),
     pfMenu::Line("MULTISAMPLE","Setup multisample readout", &ldmx_fc ),
-    pfMenu::Line("DMA", "Enable/disable DMA readout", &ldmx_daq_setup),
+#ifdef PFTOOL_ROGUE
+    pfMenu::Line("DMA", "Enable/disable DMA readout (only available with rogue)", &ldmx_daq_setup),
+#endif
     pfMenu::Line("QUIT","Back to DAQ menu")
   });
   
@@ -728,7 +730,7 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
       printf("DMA : %08x\n",rwbi->daq_dma_status());
-    }
+    } 
 #endif
   }
   if (cmd=="ENABLE") {
@@ -758,6 +760,8 @@ void ldmx_daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
       rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
       enabled=BaseMenu::readline_bool("Enable DMA? ",enabled);
       rwbi->daq_dma_enable(enabled);
+    } else {
+      std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot activate DMA.\n" << std::endl;
     }
 #endif
   }
