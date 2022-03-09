@@ -7,7 +7,7 @@ execute_process(
   RESULT_VARIABLE git_rc
   OUTPUT_VARIABLE git_describe)
 if (NOT ${git_rc} EQUAL 0)
-  set(pflib_vers "v0.0")
+  set(pflib_vers "0.0")
   message(WARNING "System cannot deduce git tag, this pflib built is un-versioned.")
 else()
   string(REGEX REPLACE "^v" "" git_describe ${git_describe})
