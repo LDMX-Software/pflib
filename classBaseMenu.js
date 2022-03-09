@@ -1,5 +1,6 @@
 var classBaseMenu =
 [
+    [ "add_to_command_queue", "classBaseMenu.html#ae18daff9872278722aa3d5e5850614fd", null ],
     [ "add_to_history", "classBaseMenu.html#a0554f046a4ec84044081001e43214c03", null ],
     [ "command_matcher", "classBaseMenu.html#a5bb546485d67361a238ae63915c60f44", null ],
     [ "readline", "classBaseMenu.html#ab3507417c72254885fb915f28aa1093e", null ],
