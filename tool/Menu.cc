@@ -18,6 +18,10 @@ void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
 }
 
+void BaseMenu::add_to_command_queue(const std::string& str) {
+  cmdTextQueue.push_back(str);
+}
+
 std::string BaseMenu::readline(const std::string& prompt,
                                const std::string& defval,
                                bool preserve_last_blank) {

@@ -124,6 +124,13 @@ class BaseMenu {
    */
   static std::string readline_cmd();
 
+  /** 
+   * Add to the queue of commands to execute automatically 
+   *
+   * @param[in] str command to add into the queue
+   */
+  static void add_to_command_queue(const std::string& str);
+  
  protected:
   /**
    * Add a command to the history of commands that have been executed.
