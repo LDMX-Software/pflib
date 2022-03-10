@@ -10,7 +10,7 @@ namespace uhal {
 class HwInterface;
 class Node;
 }
-      
+
 namespace pflib {
 namespace uhal {
 
@@ -66,7 +66,7 @@ class uhalWishboneInterface : public WishboneInterface, public Backend {
   virtual std::vector<uint32_t> daq_read_event();  
  private:
   void dispatch();
-  std::shared_ptr<::uhal::HwInterface> hw_;
+  std::unique_ptr<::uhal::HwInterface> hw_;
 };
 
 }
