@@ -1,2 +1,3 @@
 roclinks : [ true, true, false, false, false, false, false, false ]
-#ipbus_map_path : # not needed at UMN with rogue, used for uHal connection
+# only used at UMN when specifically asking pftool to connect via uHAL
+ipbus_map_path : ~/ldmx/pflib/uhal
