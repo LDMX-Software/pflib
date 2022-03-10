@@ -47,15 +47,19 @@ bool file_exists(const std::string& fname) {
 }
 
 void prepareOpts(Rcfile& rcfile) {
-  rcfile.declareVBool("roclinks","Vector Bool[8] indicating which roc links are active");
-  rcfile.declareString("ipbus_map_path", "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
+  rcfile.declareVBool("roclinks",
+      "Vector Bool[8] indicating which roc links are active");
+  rcfile.declareString("ipbus_map_path", 
+      "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
+  rcfile.declareString("default_hostname",
+      "Hostname of polarfire to connect to if none are given on the command line");
 }
 
 int main(int argc, char* argv[]) {
   prepareOpts(options);
   
-  //if not enough arguments output usage
-  if (argc<2 || !strcmp(argv[1],"-h")) {
+  // print help
+  if (argc == 2 and (!strcmp(argv[1],"-h") or !strcmp(argv[1],"--help"))) {
 #ifdef PFTOOL_ROGUE
 #ifdef PFTOOL_UHAL
     printf("Usage: pftool [hostname] [-u] [-r] [-s script]\n");
@@ -82,8 +86,10 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  /*****************************************************************************
+   * Load RC File
+   ****************************************************************************/
   std::string home=getenv("HOME");
-
   if (getenv("PFTOOLRC")) {
     if (file_exists(getenv("PFTOOLRC"))) {
       options.load(getenv("PFTOOLRC"));
@@ -97,100 +103,117 @@ int main(int argc, char* argv[]) {
   if (file_exists(home+"/.pftoolrc"))
     options.load(home+"/.pftoolrc");
 
+  /*****************************************************************************
+   * Parse Command Line Parameters
+   ****************************************************************************/
   bool isuhal=false;
   bool isrogue=false;
-
+  // rogue is default if it is available
 #ifdef PFTOOL_ROGUE
   isrogue=true; // default
 #else
   isuhal=true; // default
 #endif
-
-  std::vector<std::string> ipV ;
-
-  ipV.clear() ;
-  std::string line;
-
-  try {
-
-    static int sz = argc ;
-    bool skip[sz] ; 
-    for ( int i =0 ; i < argc; i++)  {  skip[i] = false ; }
-    
-    for ( int i = 1 ; i < argc ; i++ ) {
-      std::string arg(argv[i]);
-      if ( skip[i] ) continue ;
-      if (arg=="-u") {
-        isuhal  = true;
-        isrogue = false;
-      } else if (arg=="-r") {
-        isrogue = true;
-        isuhal  = false;
-      } else if (arg=="-s") {
-        skip[i+1]=true;
-        std::fstream sFile( argv[i+1] );
-        quiet_batch_mode=true;
-        line.clear() ;
-        
-        if (!sFile.is_open()) {
-          printf("\nUnable to open script file '%s'\n",argv[i+1]);
-          return 2;
-        }
-        
-        while ( getline( sFile, line) ) {
-          while (!line.empty() && isspace(line[0])) line.erase(line.begin());
-          if ( !line.empty() && line[0] == '#' ) continue ;
-          BaseMenu::add_to_command_queue(line);
-        }
-        sFile.close() ;
-      } else ipV.push_back( arg ) ;
+  std::vector<std::string> hostnames;
+  for (int i = 1 ; i < argc ; i++) {
+    std::string arg(argv[i]);
+#ifdef PFTOOL_UHAL
+#ifdef PFTOOL_ROGUE
+    if (arg=="-u") {
+      isuhal  = true;
+      isrogue = false;
+    } 
+    else if (arg=="-r") {
+      isrogue = true;
+      isuhal  = false;
+    } 
+#endif
+#endif
+    else if (arg=="-s") {
+      if (i+1 == argc or argv[i+1][0] == '-') {
+        std::cerr << "Argument " << arg << " requires a file after it." << std::endl;
+        return 2;
+      }
+      i++;
+      std::fstream sFile(argv[i]);
+      if (!sFile.is_open()) {
+        std::cerr << "Unable to open script file " << argv[i] << std::endl;
+        return 2;
+      }
+      
+      quiet_batch_mode=true;
+      std::string line;
+      while (getline(sFile, line)) {
+        // erase whitespace at beginning of line
+        while (!line.empty() && isspace(line[0])) line.erase(line.begin());
+        // skip empty lines or ones whose first character is #
+        if ( !line.empty() && line[0] == '#' ) continue ;
+        // add to command queue
+        BaseMenu::add_to_command_queue(line);
+      }
+      sFile.close() ;
+    } else {
+      // positional argument -> hostname
+      hostnames.push_back( arg ) ;
     }
-    int mId;
-    bool exitMenu = false ;
-    do {
-      do {
-        if ( ipV.size()==0) {
-          std::cout << "No IP's loaded" << std::endl;
-          mId = -1;
-          break;
-        }
+  }
 
-        if ( ipV.size()==1) {
-          mId = 0;
-        } else {
-          for ( size_t k=0; k< ipV.size(); k++) {  
-            //std::cout<<" ("<<k<<")  IP["<< ipV[k] <<"]  Type:"<< typeV[k] << std::endl ; 
-            printf(" ID[%d] IP[%s]  Type: %s \n", (int)k, ipV[k].c_str(),"PolarfireTarget" ) ;
+  if (hostnames.size() == 0) {
+    std::string hn = options.contents().getString("default_hostname");
+    if (hn.empty()) {
+      std::cerr << "No hostnames to connect to provided on the command line or in RC file" << std::endl;
+      return 3;
+    } else {
+      hostnames.push_back(hn);
+    }
+  }
+
+  /*****************************************************************************
+   * Run tool
+   ****************************************************************************/
+  try {
+    int i_host{-1};
+    bool continue_running = true; // used if multiple hosts
+    do {
+      if (hostnames.size() > 1) {
+        while (true) {
+          std::cout << "ID - Hostname" << std::endl;
+          for (std::size_t k{0}; k < hostnames.size(); k++) {
+            std::cout << std::setw(2) << k << " - " << hostnames.at(k) << std::endl;
           }
-          mId = BaseMenu::readline_int(" ID of pft (-1 for exiting the tool) :: ", mId );
+          i_host = BaseMenu::readline_int(" ID of Polarfire Hostname (-1 to exit) : ", i_host);
+          if (i_host == -1 or (i_host >= 0 and i_host < hostnames.size())) {
+            // valid choice, let's leave
+            break;
+          } else {
+            std::cerr << "\n " << i_host << " is not a valid choice." << std::endl;
+          }
         }
-  
-        if( (mId < int(ipV.size()) && mId >= 0) || mId == -1) break;
-  
-        //mId = BaseMenu::readline_int(" ID of mCTR/pft ( -1 for exiting the tool ) : ", mId );
-        std::cout << "Not a Valid ID\n";
-      } while (true);
+        // if user chooses to leave menu
+        if (i_host == -1) break;
+      } else {
+        i_host = 0;
+      }
       
-      if ( mId == -1 ) break ;
-      
+      // initialize connect with Polarfire
       std::unique_ptr<PolarfireTarget> p_pft;
       try {
 #ifdef PFTOOL_ROGUE
         if (isrogue) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(ipV[mId],5970));
+          p_pft=std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
         }
 #endif
 #ifdef PFTOOL_UHAL
         if (isuhal) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(ipV[mId],
+          p_pft=std::make_unique<PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
                 options.contents().getString("ipbus_map_path")));
         }
 #endif
       } catch (const pflib::Exception& e) {
         std::cerr << "pflib Init Error [" << e.name() << "] : " << e.message() << std::endl;
-        return 1;
+        return 3;
       }
 
       if (p_pft) {
@@ -204,18 +227,21 @@ int main(int argc, char* argv[]) {
         ldmx_status(p_pft.get());
         RunMenu(p_pft.get());
       } else {
-        fprintf(stderr,"No Polarfire Target available\n");
+        std::cerr << "No Polarfire Target available to connect with. Not sure how we got here." << std::endl;
+        return 126;
       }
 
-      if (ipV.size()>1)  {      
-        static std::string RunOrExit = "Exit" ;
-        RunOrExit = BaseMenu::readline(" Choose a new card(new) or Exit(exit) ? ", RunOrExit );
-        if (strncasecmp( RunOrExit.c_str(), "NEW",  1)==0) exitMenu = false ;
-        if (strncasecmp( RunOrExit.c_str(), "EXIT", 1)==0) exitMenu = true ;
-      } else exitMenu=true;
-    } while( !exitMenu ) ;
-  } catch (std::exception& e) {
-    fprintf(stderr, "Exception!  %s\n",e.what());
+      if (hostnames.size() > 1)  {      
+        // menu for that target has been exited, check if user wants to choose another host
+        continue_running = BaseMenu::readline_bool(" Choose a new card/host to connect to ? ", true);
+      } else {
+        // no other hosts, leave
+        continue_running = false;
+      }
+    } while(continue_running);
+  } catch (const std::exception& e) {
+    std::cerr << " Unrecognized Exception : " << e.what() << std::endl;
+    return 127;
   }
   return 0;
 }
