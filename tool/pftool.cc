@@ -120,9 +120,13 @@ int main(int argc, char* argv[]) {
     for ( int i = 1 ; i < argc ; i++ ) {
       std::string arg(argv[i]);
       if ( skip[i] ) continue ;
-      if (arg=="-u") isuhal=true;
-      else if (arg=="-r") isrogue=true;
-      else if (arg=="-s") {
+      if (arg=="-u") {
+        isuhal  = true;
+        isrogue = false;
+      } else if (arg=="-r") {
+        isrogue = true;
+        isuhal  = false;
+      } else if (arg=="-s") {
         skip[i+1]=true;
         std::fstream sFile( argv[i+1] );
         quiet_batch_mode=true;
