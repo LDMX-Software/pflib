@@ -7,7 +7,9 @@ namespace pflib {
 namespace uhal {
 
   /** Construct a TCP bridge*/
-uhalWishboneInterface::uhalWishboneInterface(const std::string& target, const std::string& ipbus_map_path) {
+uhalWishboneInterface::uhalWishboneInterface(
+    const std::string& target, 
+    const std::string& ipbus_map_path) {
   std::string addressTable_uMNio("file://");
   addressTable_uMNio+=ipbus_map_path;
   if (not ipbus_map_path.empty() and ipbus_map_path.back() != '/') addressTable_uMNio += '/';
@@ -16,17 +18,22 @@ uhalWishboneInterface::uhalWishboneInterface(const std::string& target, const st
   std::string location="chtcp-2.0://localhost:10203?target=";
   location+=target;
   location+=":50001";
+
+  // raise logging threshold to errors
+  ::uhal::setLogLevelTo(::uhal::Error());
   
-  hw_=std::shared_ptr<::uhal::HwInterface>(new ::uhal::HwInterface(::uhal::ConnectionManager::getDevice(target, location, addressTable_uMNio)));
+  hw_=std::make_unique<::uhal::HwInterface>(
+      ::uhal::ConnectionManager::getDevice(target, location, addressTable_uMNio));
 }
 
-uhalWishboneInterface::~uhalWishboneInterface() {
-}
-  void uhalWishboneInterface::dispatch() { hw_->dispatch(); }
-  /**
-   * write a 32-bit word to the given target and address
-   * @throws pflib::Exception in the case of a timeout or wishbone error
-   */
+uhalWishboneInterface::~uhalWishboneInterface() {}
+
+void uhalWishboneInterface::dispatch() { hw_->dispatch(); }
+
+/**
+ * write a 32-bit word to the given target and address
+ * @throws pflib::Exception in the case of a timeout or wishbone error
+ */
 void uhalWishboneInterface::wb_write(int target, uint32_t addr, uint32_t data) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   
@@ -48,10 +55,10 @@ void uhalWishboneInterface::wb_write(int target, uint32_t addr, uint32_t data) {
   } while (rv.value()!=1);
 }
   
-  /**
-   * read a 32-bit word from the given target and address
-   * @throws pflib::Exception in the case of a timeout or wishbone error
-   */
+/**
+ * read a 32-bit word from the given target and address
+ * @throws pflib::Exception in the case of a timeout or wishbone error
+ */
 uint32_t uhalWishboneInterface::wb_read(int target, uint32_t addr) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("WISHBONE.WB_ADDR").write(addr);
@@ -74,55 +81,58 @@ uint32_t uhalWishboneInterface::wb_read(int target, uint32_t addr) {
   return rv.value();
 }
   
-  /**
-   * reset the wishbone bus (on/off cycle)
-   */
-void uhalWishboneInterface::wb_reset() {
-}
+/**
+ * reset the wishbone bus (on/off cycle)
+ */
+void uhalWishboneInterface::wb_reset() {}
 
-  /** 
-   * Read the monitoring counters
-   *  crcup_errors -- CRC errors observed on the uplink (wraps)
-   *  crcdn_errors -- CRC errors from the downlink reported on the uplink (wraps)
-   *  wb_errors -- Wishbone errors indicated by the Polarfire
-   */
-void uhalWishboneInterface::wb_errors(uint32_t& crcup_errors, uint32_t& crcdn_errors, uint32_t& wb_errors) {
-}
+/** 
+ * Read the monitoring counters
+ *  crcup_errors -- CRC errors observed on the uplink (wraps)
+ *  crcdn_errors -- CRC errors from the downlink reported on the uplink (wraps)
+ *  wb_errors -- Wishbone errors indicated by the Polarfire
+ */
+void uhalWishboneInterface::wb_errors(uint32_t& crcup_errors, 
+    uint32_t& crcdn_errors, uint32_t& wb_errors) {}
 
-  /**
-   * Clear the monitoring counters
-   */
-void uhalWishboneInterface::wb_clear_counters() {
-}
+/**
+ * Clear the monitoring counters
+ */
+void uhalWishboneInterface::wb_clear_counters() {}
 
 
-  /// Backend implementation
+/// Backend implementation
 void uhalWishboneInterface::fc_sendL1A() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.SEND_L1A").write(1);
   dispatch();
 }
+
 void uhalWishboneInterface::fc_linkreset() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.SEND_LINK_RESET").write(1);
   dispatch();  
 }
+
 void uhalWishboneInterface::fc_bufferclear() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.SEND_BUFFER_CLEAR").write(1);
   dispatch();
 }
+
 void uhalWishboneInterface::fc_calibpulse() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.SEND_CALIB_REQ").write(1);
   dispatch();
 }
+
 void uhalWishboneInterface::fc_setup_calib(int pulse_len, int l1a_offset) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.CALIB_PULSE_LEN").write(pulse_len&0xF);
   m_base.getNode("FAST_CONTROL.CALIB_L1A_OFFSET").write(l1a_offset&0xFF);
   dispatch();  
 }
+
 void uhalWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   ::uhal::ValWord<uint32_t> pl=m_base.getNode("FAST_CONTROL.CALIB_PULSE_LEN").read();
@@ -137,12 +147,12 @@ void uhalWishboneInterface::daq_reset() {
   m_base.getNode("DAQ.DAQ_CLEAR").write(1);
   dispatch();
 }
+
 void uhalWishboneInterface::daq_advance_ptr() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("DAQ.ADVANCE_READ_PTR").write(1);
   dispatch();
 }
-
 
 void uhalWishboneInterface::daq_status(bool& full, bool& empty, int& nevents, int& next_event_size) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
@@ -157,6 +167,7 @@ void uhalWishboneInterface::daq_status(bool& full, bool& empty, int& nevents, in
   nevents=n;
   next_event_size=next_size;
 }
+
 std::vector<uint32_t> uhalWishboneInterface::daq_read_event() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   ::uhal::ValWord<uint32_t> next_size;
