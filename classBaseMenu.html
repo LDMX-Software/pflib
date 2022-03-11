@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.9-1-gfb46bce</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.9-7-g0b9d3e4</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -145,7 +145,7 @@ Protected Member Functions</h2></td></tr>
 Static Protected Attributes</h2></td></tr>
 <tr class="memitem:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="memItemLeft" align="right" valign="top"><a id="a4dc8f822250779b2dc59e4cbd2a96cea" name="a4dc8f822250779b2dc59e4cbd2a96cea"></a>
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/list.html">std::list</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmdTextQueue_</b></td></tr>
-<tr class="memdesc:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">the ordered list of commands that have been executed <br /></td></tr>
+<tr class="memdesc:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">the ordered list of commands to be executed from a script file <br /></td></tr>
 <tr class="separator:a4dc8f822250779b2dc59e4cbd2a96cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0262d2cd0f5f25380772ed54a763de40"><td class="memItemLeft" align="right" valign="top"><a id="a0262d2cd0f5f25380772ed54a763de40" name="a0262d2cd0f5f25380772ed54a763de40"></a>
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmd_options_</b></td></tr>
@@ -357,6 +357,8 @@ Static Private Member Functions</h2></td></tr>
 
 <p>Read in a parameter using the default value if nothing provided. </p>
 <p >Expands '~' into $HOME within strings.</p>
+<p >If the cmdTextQueue is not empty, then it uses the next command in that list rather than keyboard input. This leads to the effect that executables using this menu can provide an "initialization
+script" of commands by registering them in order with the <a class="el" href="classBaseMenu.html#ae18daff9872278722aa3d5e5850614fd" title="Add to the queue of commands to execute automatically.">BaseMenu::add_to_command_queue</a> before launching the menu.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
