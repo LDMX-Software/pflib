@@ -141,7 +141,6 @@ int main(int argc, char* argv[]) {
         return 2;
       }
       
-      quiet_batch_mode=true;
       std::string line;
       while (getline(sFile, line)) {
         // erase whitespace at beginning of line

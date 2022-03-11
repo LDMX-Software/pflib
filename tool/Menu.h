@@ -15,11 +15,6 @@
 #endif
 
 /**
- * Compile-time constant for determining verbosity
- */
-static bool quiet_batch_mode = false;
-
-/**
  * Type-less menu base for common tasks
  *
  * This base menu class handles most of the interaction with
@@ -348,7 +343,8 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
     if (render_func_ != 0) {
       this->render_func_(p_target);
     }
-    if (!quiet_batch_mode)
+    // if cmd text queue is empty, then print menu for interactive user
+    if (this->cmdTextQueue_.empty())
       for (size_t i = 0; i < lines_.size(); i++) {
         printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
       }
