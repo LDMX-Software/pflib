@@ -34,6 +34,12 @@ class BaseMenu {
    *
    * Expands '~' into $HOME within strings.
    *
+   * If the cmdTextQueue is not empty, then it uses the next command
+   * in that list rather than keyboard input. This leads to the
+   * effect that executables using this menu can provide an "initialization
+   * script" of commands by registering them in order with the
+   * BaseMenu::add_to_command_queue before launching the menu.
+   *
    * @param[in] prompt The informing the user what the parameter is
    * @param[in] defval default value if user does not provide anything
    * @param[in] preserve_last_blank keep whitespace at end of input
@@ -141,7 +147,7 @@ class BaseMenu {
    */
   void add_to_history(const std::string& cmd) const;
 
-  /// the ordered list of commands that have been executed
+  /// the ordered list of commands to be executed from a script file
   static std::list<std::string> cmdTextQueue_;
 
   /// the current command options (for interfacing with readline's tab completion)
