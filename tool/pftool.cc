@@ -117,19 +117,7 @@ int main(int argc, char* argv[]) {
   std::vector<std::string> hostnames;
   for (int i = 1 ; i < argc ; i++) {
     std::string arg(argv[i]);
-#ifdef PFTOOL_UHAL
-#ifdef PFTOOL_ROGUE
-    if (arg=="-u") {
-      isuhal  = true;
-      isrogue = false;
-    } 
-    else if (arg=="-r") {
-      isrogue = true;
-      isuhal  = false;
-    } 
-#endif
-#endif
-    else if (arg=="-s") {
+    if (arg=="-s") {
       if (i+1 == argc or argv[i+1][0] == '-') {
         std::cerr << "Argument " << arg << " requires a file after it." << std::endl;
         return 2;
@@ -151,7 +139,20 @@ int main(int argc, char* argv[]) {
         BaseMenu::add_to_command_queue(line);
       }
       sFile.close() ;
-    } else {
+    }
+#ifdef PFTOOL_UHAL
+#ifdef PFTOOL_ROGUE
+    else if (arg=="-u") {
+      isuhal  = true;
+      isrogue = false;
+    } 
+    else if (arg=="-r") {
+      isrogue = true;
+      isuhal  = false;
+    } 
+#endif
+#endif
+    else {
       // positional argument -> hostname
       hostnames.push_back( arg ) ;
     }
