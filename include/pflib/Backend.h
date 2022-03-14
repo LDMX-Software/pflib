@@ -8,8 +8,10 @@
 namespace pflib {
 
 /**
- * @class Backend
- * @brief Abstract interface for various backend manipulations
+ * Abstract interface for various backend manipulations
+ *
+ * All backend communication methods need to implement these
+ * functions.
  */
 class Backend {
 public:
@@ -31,9 +33,16 @@ public:
   /** calib pulse setup */
   virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset) = 0;
 
+  /** reset the daq buffers */
   virtual void daq_reset() = 0;
+
+  /** advance the daq pointer along buffer */
   virtual void daq_advance_ptr() = 0;
+  
+  /** readout the daq status into the passed variables */
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size) = 0;
+  
+  /** read the aquired event and return it */
   virtual std::vector<uint32_t> daq_read_event() = 0;  
 };
 
