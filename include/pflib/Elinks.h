@@ -33,7 +33,7 @@ class Elinks : public WishboneTarget {
   
   void scanAlign(int ilink);
   void setDelay(int ilink, int idelay);
-private:
+ private:
   int n_links;
   std::vector<bool> m_linksActive;
   std::vector<int> phaseDelay;

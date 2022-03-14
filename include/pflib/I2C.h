@@ -12,8 +12,8 @@ namespace pflib {
  */
 class I2C : public WishboneTarget {
  public:
-  I2C(WishboneInterface* wb, int target = tgt_I2C) : WishboneTarget(wb,target) {
-  }
+  I2C(WishboneInterface* wb, int target = tgt_I2C) 
+    : WishboneTarget(wb,target) {}
 
   /**
    * Pick the active bus
