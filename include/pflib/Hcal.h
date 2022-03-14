@@ -10,8 +10,9 @@
 #include "pflib/DAQ.h"
 
 namespace pflib {
+
 /**
- * Class representing a standard HCAL motherboard
+ * representing a standard HCAL motherboard
  */
 class Hcal {
  public:

@@ -7,13 +7,12 @@
 namespace pflib {
 
 /**
- * @class FastControl
- * @brief Class which encapsulates the FastControl controller in the Polarfire
+ * Representation of FastControl controller in the Polarfire
  */
 class FastControl : public WishboneTarget {
  public:
-  FastControl(WishboneInterface* wb, int target = tgt_FastControl) : WishboneTarget(wb,target) {
-  }
+  FastControl(WishboneInterface* wb, int target = tgt_FastControl) 
+    : WishboneTarget(wb,target) {}
 
   /** 
    * Get the counters for all the different fast control commands

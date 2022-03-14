@@ -7,8 +7,7 @@
 namespace pflib {
 
 /**
- * @class GPIO
- * @brief Class which encapsulates the GPIO controller in the Polarfire
+ * Representation of GPIO controller in the Polarfire
  */
 class GPIO : public WishboneTarget {
  public:

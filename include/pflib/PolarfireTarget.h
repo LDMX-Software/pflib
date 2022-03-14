@@ -32,12 +32,21 @@ namespace pflib {
 struct PolarfireTarget {
   /// are the WBI and Backend the same object?
   bool wb_be_same;
+  /// handle to opened wishbone interface
   WishboneInterface* wb;
+  /// handle to opened backend connection
   Backend* backend;
+  /// object representing hcal motherboard
   Hcal hcal;
+  /// number of availabe pages on HGC ROC
   static const int N_PAGES;
+  /// number of registers per page of HGC ROC
   static const int N_REGISTERS_PER_PAGE;
-  // need to read this eventually
+  /**
+   * number of links
+   *
+   * need to read this eventually
+   */
   static int NLINKS;
 
   /**

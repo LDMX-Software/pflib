@@ -106,7 +106,7 @@ class Exception : public std::exception {
  * necessary file, line, and function information.  The user need only
  * supply the exception name and error message
  */
-#define PFEXCEPTION_RAISE(EXCEPTION, MSG)                                     \
+#define PFEXCEPTION_RAISE(EXCEPTION, MSG)                    \
   throw pflib::Exception(EXCEPTION, MSG, __FILE__, __LINE__, \
                                         __FUNCTION__)
 
