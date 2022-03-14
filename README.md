@@ -50,7 +50,7 @@ This software can communicate with the polarfire using two different methods. At
 
 ## Other Dependencies
 Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
-This effectively restricts us to relatively new Linux systems; we haven't tested this library on are large set of potentional options.
+This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.
 
 ### UMN Setup
 Layer | Description
