@@ -73,3 +73,11 @@ yaml-cpp | 0.7.0
 readline | 7.0
 Rogue | NA
 uHAL | 2.8.1
+
+## Directory Structure
+- config : helpful HGC ROC YAML parameter settings to load onto chips
+- docs : documentation generation and helpful PDF manuals
+- include : header files
+- src : implementation files
+- tool : executables and supporting source files
+- uhal : XML files used for configuring uHAL connection
