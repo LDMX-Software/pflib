@@ -39,7 +39,7 @@ make install
 ## Communication Method
 This software can communicate with the polarfire using two different methods. At least one is required to be available in order for the library to be built.
 
-### Rogue 5.9.3
+### Rogue
  - [Documentation](https://slaclab.github.io/rogue/index.html)
  - [Installng Rogue with Anaconda](https://slaclab.github.io/rogue/installing/anaconda.html)
  - [Installing Rogue on Archlinux](https://slaclab.github.io/rogue/installing/build.html#archlinux)
@@ -50,4 +50,26 @@ This software can communicate with the polarfire using two different methods. At
 
 ## Other Dependencies
 Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
-This effectively restricts us to relatively new Linux systems; however, we haven't tested this library on are large set of potentional options.
+This effectively restricts us to relatively new Linux systems; we haven't tested this library on are large set of potentional options.
+
+### UMN Setup
+Layer | Description
+---|---
+OS | CentOS Stream 8
+gcc | 8.5.0
+cmake | 3.20.2
+yaml-cpp | 0.7.0
+readline | 7.0
+Rogue | 5.11.1
+uHAL | 2.8.1
+
+### Lund Setup
+Layer | Description
+---|---
+OS | openSUSE Leap 15.3
+gcc | 7.5.0
+cmake | 3.17.0
+yaml-cpp | 0.7.0
+readline | 7.0
+Rogue | NA
+uHAL | 2.8.1

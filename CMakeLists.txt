@@ -26,6 +26,7 @@ project(pflib
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)
+message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
 
 # Build the polarfire library
 add_library(pflib SHARED 
