@@ -11,11 +11,12 @@
 void usage() {
   fprintf(stderr, "Usage: [-d] [-v verbosity] [-r roclink] [file]\n");
   fprintf(stderr, "  -d  : show data words (default is header only)\n");
-  fprintf(stderr, "  -v [verbosity level] (default is 5)\n");
+  fprintf(stderr, "  -v [verbosity level] (default is 3)\n");
   fprintf(stderr, "     0 : report error conditions only\n");
   fprintf(stderr, "     1 : report superheaders\n");
   fprintf(stderr, "     2 : report superheaders and packet headers\n");
   fprintf(stderr, "     3 : report superheaders, packet, and per-ROClink headers\n");
+  fprintf(stderr, "    10 : report every line\n");
   fprintf(stderr, "  -r [roc link to focus on for data, headers] \n");
   fprintf(stderr, "  -a  : pretty output of ADC data\n");
 }
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
       if (fmt==1) 
         packet_pointers.push_back(i+(samples+1)/2+1);
       else if (fmt==2) 
-        packet_pointers.push_back(i+8+1);
+        packet_pointers.push_back(i+8+4+1); // hardcoded for four tagging words
       isample=-1;
       packet_header=-1;
       link_header=-1;
@@ -127,6 +128,7 @@ int main(int argc, char* argv[]) {
       
       if (verbosity>0)
 	printf("Sample %d length=%d (0x%x)",jsample, len, len);
+      if (fmt>=2 && (len%2==1)) len++; // 64-bit alignment
       packet_pointers.push_back(packet_pointers.back()+len);
       
       if (samples>jsample+1) {
@@ -134,10 +136,13 @@ int main(int argc, char* argv[]) {
 	len=(data[i]>>16)&0xFFF;
 	if (verbosity>0)
 	  printf("  Sample %d length=%d (0x%x)",jsample,len,len);
-	packet_pointers.push_back(packet_pointers.back()+len);
+        if (fmt>=2 && (len%2==1)) len++; // 64-bit alignment
+        packet_pointers.push_back(packet_pointers.back()+len);
       }
       if (verbosity>0)
-	printf("\n");     
+	printf("\n");
+    } else if (rel_super>2+(samples+1)/2 && rel_super<=2+8) {
+      word_type=wt_junk; // empty sample words
     }    else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
       packet_header=i;
       isample++;
@@ -148,6 +153,12 @@ int main(int argc, char* argv[]) {
       if (verbosity>1)
 	printf("%04d P%02d %08x  FPGA=%3d  LINKS=%d  Length=%d (0x%x)\n",i,0,data[i],(data[i]>>20)&0x3F,links,(data[i])&0xFFF,(data[i])&0xFFF);
       ilink=-1;
+    } else if (fmt==2 && rel_super>2+8 && packet_header<0) { // extended superheader
+      int rel_super_tag=rel_super-(2+8+1);
+      if (rel_super_tag==0) printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",i,rel_super,data[i],(data[i]>>12)&0xFFF,data[i]&0xFFF, data[i]&0xFFF);
+      else if (rel_super_tag==1) printf("%04d S%02d %08x    Time since start of spill %.5fs (%d 5 Mhz tics)\n",i,rel_super,data[i],data[i]/5e6,data[i]);
+      else if (rel_super_tag==2) printf("%04d S%02d %08x    Evt Number = %d \n",i,rel_super,data[i],data[i]);
+      else if (rel_super_tag==3) printf("%04d S%02d %08x    Run %d start DD-MM hh:mm : %2d-%d %02d:%02d\n",i,rel_super,data[i],(data[i]&0xFFF),(data[i]>>23)&0x1F,(data[i]>>28)&0xF,(data[i]>>18)&0x1F, (data[i]>>12)&0x3F);      
     } else if (isample>=0 && i+1==packet_pointers[isample+1]) { // packet trailer
       if (verbosity>1)
 	printf("%04d PXX %08x  CRC\n",i,0,data[i]);
@@ -198,7 +209,7 @@ int main(int argc, char* argv[]) {
 	printf("%04d L%02d %08x  \n",i,rel_link,data[i]);
       }
     } else {
-      if (word_type!=wt_junk && (word_type!=wt_data || showdata))
+      if (verbosity>=10 || (word_type!=wt_junk && (word_type!=wt_data || showdata)))
 	printf("%04d %08x\n",i,data[i]);
     }
   }
