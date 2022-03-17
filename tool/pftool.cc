@@ -14,6 +14,7 @@
 #include <map>
 #include <iomanip>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string>
 #include <exception>
 #include "pflib/PolarfireTarget.h"
@@ -456,12 +457,14 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="CALIB") {
     int len, offset;
     pft->backend->fc_get_setup_calib(len,offset);
+#ifdef PFTOOL_UHAL
     std::cout <<
       "NOTE: A known bug in uMNio firmware which has been patched in later versions\n"
       "      leads to the inability of the firmware to read some parameters.\n"
       "      If you are seeing 0 as the default even after setting these parameters,\n"
       "      you have this (slightly) buggy firmware."
       << std::endl << std::endl;
+#endif
     len=BaseMenu::readline_int("Calibration pulse length?",len);
     offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
     pft->backend->fc_setup_calib(len,offset);
@@ -541,7 +544,10 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
-      printf("DMA : %08x\n",rwbi->daq_dma_status());
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     } 
 #endif
   }
@@ -622,12 +628,26 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
  */
 static void daq( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal.daq();
+  bool dma_enabled=false;
+
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
+    }
+#endif
+  
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
-      printf("DMA : %08x\n",rwbi->daq_dma_status());
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     }
 #endif
   }
@@ -659,12 +679,29 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
     char fname_def[64];
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
+
+    struct tm *gmtm = gmtime(&t);
     
+    int run=0;
+    if (dma_enabled) {
+      run=BaseMenu::readline_int("Run number? ",run);
+      pft->backend->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
+    }
+        
     int nevents=BaseMenu::readline_int("How many events? ", 100);
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
-    FILE* f=fopen(fname.c_str(),"w");
+    static int rate=100;
+    rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
+    
+    FILE* f=0;
+    if (!dma_enabled) {
+      std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+      f=fopen(fname.c_str(),"w");
+    }
 
     pft->prepareNewRun();
+    timeval tv0, tvi;
+
+    gettimeofday(&tv0,0);
     
     for (int ievt=0; ievt<nevents; ievt++) {
       // normally, some other controller would send the L1A
@@ -673,11 +710,25 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
         pft->backend->fc_sendL1A();
       if (cmd=="CHARGE")
         pft->backend->fc_calibpulse();
+
+      gettimeofday(&tvi,0);
+      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
+      //      double ratenow=(ievt+1)/runsec;
+      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
+      int usec_ahead=int((targettime-runsec)*1e6);
+      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
+      if (usec_ahead>100) { // if we are running fast...
+        usleep(usec_ahead);
+        //        printf("Sleeping %d\n",usec_ahead);
+      }
       
-      std::vector<uint32_t> event = pft->daqReadEvent();
-      fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);      
+      if (f) {      
+        std::vector<uint32_t> event = pft->daqReadEvent();
+        fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
+      }
+                     
     }
-    fclose(f);
+    if (f) fclose(f);
   }
   if (cmd=="SCAN"){
     std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");

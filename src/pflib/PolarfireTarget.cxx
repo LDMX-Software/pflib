@@ -268,7 +268,7 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
      << std::hex << std::setw(8) << std::setfill('0') << reg1 << std::dec
      << " (BX=" << (reg1&0xfff)
      << ", RREQ=" << ((reg1>>12)&0x3ff)
-     << ", OR=" << ((reg2>>22)&0x3ff)
+     << ", OR=" << ((reg1>>22)&0x3ff)
      << ")  RREQ=" << ((reg2>>22)&0x3ff)
      << "\n";
   os << "-----Per-ROCLINK processing-----\n";

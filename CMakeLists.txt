@@ -30,6 +30,7 @@ message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
 
 # Build the polarfire library
 add_library(pflib SHARED 
+  src/pflib/Backend.cxx
   src/pflib/Bias.cxx
   src/pflib/DAQ.cxx
   src/pflib/Elinks.cxx
