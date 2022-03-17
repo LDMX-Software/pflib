@@ -68,6 +68,7 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   virtual void daq_advance_ptr();
   virtual void daq_status(bool& full, bool& empty, int& nevents, int& next_event_size);
   virtual std::vector<uint32_t> daq_read_event();  
+  virtual void daq_setup_event_tag(int run, int day, int month, int hour, int min);
 
   /// specific items related to DMA which are not part of the general interface
   void daq_dma_enable(bool enable);

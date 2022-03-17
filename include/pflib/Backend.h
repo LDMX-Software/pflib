@@ -44,6 +44,9 @@ public:
   
   /** read the aquired event and return it */
   virtual std::vector<uint32_t> daq_read_event() = 0;  
+
+  /** Set the event tagging information */
+  virtual void daq_setup_event_tag(int run, int day, int month, int hour, int min);
 };
 
 }

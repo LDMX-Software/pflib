@@ -113,6 +113,8 @@ static const int SHIFT_SAMPLES_PER_EVENT                  = 16;
 static const int REG_DAQ_CTL                             = 1;
 static const int MASK_DAQ_RESET                          = 0x1;
 static const int MASK_DAQ_ADVANCEPTR                     = 0x2;
+static const int MASK_DAQ_ADVANCETAG                     = 0x4;
+static const int REG_RUN_TAG                             = 3;
 static const int REG_DAQ_STATUS                          = 65;
 static const int REG_DAQ_DMA_STATUS                      = 67;
 static const uint32_t MASK_DAQ_STATUS_FULL               = 0x2;
@@ -179,6 +181,10 @@ uint32_t RogueWishboneInterface::daq_dma_status() {
    return wb_read(TARGET_DAQ_BACKEND,REG_DAQ_DMA_STATUS);
 }
 
+void RogueWishboneInterface::daq_setup_event_tag(int run, int day, int month, int hour, int min) {
+  uint32_t tag=(run&0xFFF)|((min&0x3F)<<12)|((hour&0x1F)<<18)|((day&0x1F)<<23) |((month&0xF)<<28);
+  wb_write(TARGET_DAQ_BACKEND,REG_RUN_TAG,tag);
+}
 
 }
 }
