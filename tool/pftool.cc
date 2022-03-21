@@ -362,6 +362,7 @@ void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &ldmx_daq),
     pfMenu::Line("PEDESTAL","Take a simple random pedestal run", &ldmx_daq),
     pfMenu::Line("CHARGE","Take a charge-injection run", &ldmx_daq),
+    pfMenu::Line("SCAN","Take several runs while changing a single parameter", &ldmx_daq),
     pfMenu::Line("QUIT","Back to top menu")
   });
   
