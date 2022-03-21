@@ -201,20 +201,24 @@ void RogueWishboneInterface::daq_status(bool& full, bool& empty, int& nevents, i
   next_event_size=(status&MASK_DAQ_NEXT_SIZE)>>SHIFT_DAQ_NEXT_SIZE;
 }
 std::vector<uint32_t> RogueWishboneInterface::daq_read_event() {
-  uint32_t status=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_STATUS);
-  int next_event_size=(status&MASK_DAQ_NEXT_SIZE)>>SHIFT_DAQ_NEXT_SIZE;
-  std::vector<uint32_t> x(next_event_size,0);
-
-  uint64_t fullAddr=(((uint64_t)(TARGET_DAQ_BACKEND))<<32) | (BASE_DAQ_BUFFER);
-
-  intf_->clearError();
-  uint32_t id=intf_->reqTransaction(fullAddr,next_event_size*4,&(x[0]),::rogue::interfaces::memory::Read);
-  intf_->waitTransaction(id);
-  if (intf_->getError()!="") {
-    PFEXCEPTION_RAISE("RogueWishboneInterface",intf_->getError().c_str());
+  uint32_t ctl = wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
+  if ((ctl&MAKS_DAQ_DMA_ENABLE)!=0) {
+    // dma readout enabled
+  } else {
+    // non-dma readout 
+    uint32_t status=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_STATUS);
+    int next_event_size=(status&MASK_DAQ_NEXT_SIZE)>>SHIFT_DAQ_NEXT_SIZE;
+    std::vector<uint32_t> x(next_event_size,0);
+    uint64_t fullAddr=(((uint64_t)(TARGET_DAQ_BACKEND))<<32) | (BASE_DAQ_BUFFER);
+  
+    intf_->clearError();
+    uint32_t id=intf_->reqTransaction(fullAddr,next_event_size*4,&(x[0]),::rogue::interfaces::memory::Read);
+    intf_->waitTransaction(id);
+    if (intf_->getError()!="") {
+      PFEXCEPTION_RAISE("RogueWishboneInterface",intf_->getError().c_str());
+    }
+    return x;
   }
-
-  return x;
 }
 
 void RogueWishboneInterface::daq_dma_enable(bool enable) {
