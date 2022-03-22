@@ -12,7 +12,7 @@ git checkout v1.11 # or whatever is latest
 cmake -B build -S . # may need to provide paths to dependencies
 cd build
 make
-./pftool <ip-of-polarfire>
+./pftool -h # print help
 ```
 
 ## YAML->Register "Compilation"
