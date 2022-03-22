@@ -8,7 +8,7 @@ We assume you have the YAML parser yaml-cpp and at least one of the communicatio
 git clone https://github.com/LDMX-Software/pflib.git
 cd pflib
 git tag # see tags, pick latest
-git checkout v1.8 # or whatever is latest
+git checkout v1.11 # or whatever is latest
 cmake -B build -S . # may need to provide paths to dependencies
 cd build
 make
@@ -19,7 +19,8 @@ make
 The more detailed documentation for this compilation can be found in the pflib/Compile.h file.
 The \hgcrocmanual is also a decent reference since that is where most of the parameter names are pulled from.
 
-Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use [yaml-cpp](https://github.com/jbeder/yaml-cpp) which is very light and easy to install.
+Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. 
+I have chosen to use [yaml-cpp](https://github.com/jbeder/yaml-cpp) which is very light and easy to install.
 
 **Note**: Make sure to build yaml-cpp with the `YAML_BUILD_SHARED_LIBS=ON` cmake option so that we can link it properly to our code.
 
@@ -74,6 +75,9 @@ readline | 7.0
 Rogue | NA
 uHAL | 2.8.1
 
+### CERN Setup
+TBD
+
 ## Directory Structure
 - config : helpful HGC ROC YAML parameter settings to load onto chips
 - docs : documentation generation and helpful PDF manuals
@@ -81,3 +85,4 @@ uHAL | 2.8.1
 - src : implementation files
 - tool : executables and supporting source files
 - uhal : XML files used for configuring uHAL connection
+
