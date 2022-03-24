@@ -8,7 +8,8 @@ for configuring the chips and aquiring data.
 
 This document is meant to give an overview of its design and provide some
 manual documentation on its properties. We assume that `pftool` is already
-successfully built.
+successfully built. More detail about the menu commands within pftool is given
+in the documentation of pftool.cc.
 
 ## General Notes
 
@@ -119,7 +120,7 @@ just to be safe.
 - L1A offset should be `15`
 
 ### fast\_control.status
-bit 0 - overall counts of some kind?
-bit 1 - l1a / read request
-bit 5 - calibration trigger request
+- bit 0 - overall counts of some kind?
+- bit 1 - l1a / read request
+- bit 5 - calibration trigger request
 
