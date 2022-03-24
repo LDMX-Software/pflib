@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -88,7 +88,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><a class="anchor" id="md_README"></a> The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends. The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Quickstart</h1>
 <p >We assume you have the YAML parser yaml-cpp and at least one of the communication methods below installed. </p><div class="fragment"><div class="line">git clone https://github.com/LDMX-Software/pflib.git</div>
 <div class="line">cd pflib</div>
@@ -98,7 +98,7 @@ Quickstart</h1>
 <div class="line">cd build</div>
 <div class="line">make</div>
 <div class="line">./pftool -h # print help</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md22"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md23"></a>
 YAML-&gt;Register "Compilation"</h1>
 <p >The more detailed documentation for this compilation can be found in the <a class="el" href="Compile_8h.html" title="Definition of compiling and decompiling functions between page numbers, register numbers,...">pflib/Compile.h</a> file. The <a href="ASIC_parameters_HGCROC_for_SiPM.pdf">HGCROC Manual</a> is also a decent reference since that is where most of the parameter names are pulled from.</p>
 <p >Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> which is very light and easy to install.</p>
@@ -112,26 +112,26 @@ YAML-&gt;Register "Compilation"</h1>
 <div class="line">cmake -B build -S . -DYAML_BUILD_SHARED_LIBS=ON</div>
 <div class="line">cd build</div>
 <div class="line">make install</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md23"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md24"></a>
 Communication Method</h1>
 <p >This software can communicate with the polarfire using two different methods. At least one is required to be available in order for the library to be built.</p>
-<h2><a class="anchor" id="autotoc_md24"></a>
+<h2><a class="anchor" id="autotoc_md25"></a>
 Rogue</h2>
 <ul>
 <li><a href="https://slaclab.github.io/rogue/index.html">Documentation</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/anaconda.html">Installng Rogue with Anaconda</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/build.html#archlinux">Installing Rogue on Archlinux</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md25"></a>
+<h2><a class="anchor" id="autotoc_md26"></a>
 uHal</h2>
 <ul>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/installation.html">Installation Docs</a></li>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/index.html">General uHAL Docs</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md26"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 Other Dependencies</h1>
 <p >Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the <code>pftool</code>. This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.</p>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 UMN Setup</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -151,7 +151,7 @@ UMN Setup</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">uHAL   </td><td class="markdownTableBodyNone">2.8.1   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md28"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 Lund Setup</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -171,10 +171,10 @@ Lund Setup</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">uHAL   </td><td class="markdownTableBodyNone">2.8.1   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 CERN Setup</h2>
 <p >TBD</p>
-<h1><a class="anchor" id="autotoc_md30"></a>
+<h1><a class="anchor" id="autotoc_md31"></a>
 Directory Structure</h1>
 <ul>
 <li>config : helpful HGC ROC YAML parameter settings to load onto chips</li>

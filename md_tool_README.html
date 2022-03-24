@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -89,9 +89,9 @@ $(document).ready(function(){initNavTree('md_tool_README.html',''); initResizabl
 <div class="contents">
 <div class="textblock"><p >The main executable product of pflib is the <code>pftool</code>. This executable is designed to offer low-level through high-level interactions with the polarfire connected to HGC ROC(s). This tool opens up a rudimentary terminal with various menus and submenus with commands for configuring the chips and aquiring data.</p>
 <p >This document is meant to give an overview of its design and provide some manual documentation on its properties. We assume that <code>pftool</code> is already successfully built. More detail about the menu commands within pftool is given in the documentation of <a class="el" href="pftool_8cc.html" title="File defining the pftool menus and their commands.">pftool.cc</a>.</p>
-<h1><a class="anchor" id="autotoc_md40"></a>
+<h1><a class="anchor" id="autotoc_md41"></a>
 General Notes</h1>
-<h3><a class="anchor" id="autotoc_md41"></a>
+<h3><a class="anchor" id="autotoc_md42"></a>
 Running</h3>
 <p >A successful open of the tool looks like </p><div class="fragment"><div class="line">Polarfire firmware :    1.33</div>
 <div class="line"> Active DAQ links: 0 1 </div>
@@ -101,7 +101,7 @@ Running</h3>
 <div class="line">&gt;</div>
 </div><!-- fragment --><p> Notice that the firmware version is printed. This shows a successful connection to the polarfire. The indices of the active DAQ links are also printed which can help the user double-check that their <code>pftoolrc</code> was loaded successfully.</p>
 <p >The listing of commands in your current menu is always printed after you execute a command. I will omit these menu printouts in this document. The commands are listed in all-caps, but the tool is case-insensitive, so I will often list the commands in all lower-case.</p>
-<h3><a class="anchor" id="autotoc_md42"></a>
+<h3><a class="anchor" id="autotoc_md43"></a>
 pftoolrc Files</h3>
 <p >The <code>pftool</code> looks at the following locations for a RC file to load configuration options.</p><ol type="1">
 <li>File at the environment variable <code>PFTOOLRC</code></li>
@@ -110,16 +110,16 @@ pftoolrc Files</h3>
 </ol>
 <p ><b>Tip</b> A potentially helpful alias is to prepend <code>pftool</code> with the environment variable so that <code>pftool</code> always loads the RC file in this repository. </p><div class="fragment"><div class="line">alias pftool=&#39;PFTOOLRC=/full/path/to/pflib/pftoolrc pftool&#39;</div>
 </div><!-- fragment --><p> This specific alias assumes that <code>pftool</code> is installed to a directory in the <code>PATH</code> environment variable.</p>
-<h3><a class="anchor" id="autotoc_md43"></a>
+<h3><a class="anchor" id="autotoc_md44"></a>
 uHal Config Files</h3>
 <p >uHal needs to load a set of XML files defining the IP-bus mapping. You can support this by either running pftool from within the uhal directory or by providing the full path to that directory using the <code>ipbus_map_path</code> parameter in the RC file.</p>
-<h3><a class="anchor" id="autotoc_md44"></a>
+<h3><a class="anchor" id="autotoc_md45"></a>
 Exiting</h3>
 <p >You can leave the tool at anytime by pressing ctrl+C.</p>
-<h1><a class="anchor" id="autotoc_md45"></a>
+<h1><a class="anchor" id="autotoc_md46"></a>
 Comments on Specific Commands</h1>
 <p >Below I list example printouts of specific commands along with follow-up comments. The tool cannot currently handle directly entering a command from a sub-menu. You will need to enter the submenu before entring the command. For example, <code>DAQ.STATUS</code> should be interpreted (in keystrokes) as <code>DAQ&lt;Enter&gt;STATUS</code>.</p>
-<h2><a class="anchor" id="autotoc_md46"></a>
+<h2><a class="anchor" id="autotoc_md47"></a>
 daq.status</h2>
 <div class="fragment"><div class="line">-----Front-end FIFO-----</div>
 <div class="line"> Header occupancy : 0  Maximum occupancy : 1</div>
@@ -138,32 +138,32 @@ daq.status</h2>
 <div class="line"> NOT-FULL 0000EMPTY Events ready: 000 Next event size: 101</div>
 </div><!-- fragment --><p> At UMN, we only have one HGC ROC and therefore only two active links. This means all of the links except for the first two are fully zero suppressed (ZS == 1).</p>
 <p >The ID number is defined during the execution of <code>daq.standard</code> and is <code>(&lt;fpga-id&gt; &lt;&lt; 8) + &lt;link&gt;</code>. This is the status for a "standard" setup. You can get back to the "standard" setup by running the <code>daq</code> commands <code>hard_reset</code>, <code>standard</code>, <code>enable</code> (in that order).</p>
-<h2><a class="anchor" id="autotoc_md47"></a>
+<h2><a class="anchor" id="autotoc_md48"></a>
 roc.hard_reset</h2>
 <p >This sets the HGC ROC back to its power-on default state, including resetting all of its parameters. If this command is issued, any ROC parameters that were loaded (via <code>roc.load</code> need to be re-loaded).</p>
-<h2><a class="anchor" id="autotoc_md48"></a>
+<h2><a class="anchor" id="autotoc_md49"></a>
 daq.hard_reset</h2>
 <p >This forcefully clears the event buffers as if a run wasn't started <em>and</em> resets any DAQ parameters.</p>
-<h2><a class="anchor" id="autotoc_md49"></a>
+<h2><a class="anchor" id="autotoc_md50"></a>
 elinks.spy</h2>
 <p >This should show the "idle" pattern (ac cc cc cc repeated) when the link is behaving correctly.</p>
-<h2><a class="anchor" id="autotoc_md50"></a>
+<h2><a class="anchor" id="autotoc_md51"></a>
 elinks.bitsplit and elinks.delay</h2>
 <p >Theses parameters help "align" the links so that they correctly show the "idle" pattern when you <code>elinks.spy</code>. The values should be relatively constant for a given physical chip and firmware version even if they need to be reset when the chip is restarted.</p>
-<h2><a class="anchor" id="autotoc_md51"></a>
+<h2><a class="anchor" id="autotoc_md52"></a>
 daq.setup.l1aparams</h2>
 <p >These parameters should be stable for a given setup. <b>Across setups</b>, the readout length should be 40. For UMN, the delay should be 15.</p>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md53"></a>
 roc.resyncload</h2>
 <p >This can be done after a <code>roc.hard\_reset</code> and helps maintain link stability.</p>
-<h2><a class="anchor" id="autotoc_md53"></a>
+<h2><a class="anchor" id="autotoc_md54"></a>
 fast_control.calib</h2>
 <p >A known uMNio firmware bug (that has been patched in later versions by Jeremy), leads to an inability to read some parameters. This causes the defaults for this command to always be <code>0</code> even though the actual registers are (probably) updated successfully. Users may wish to always set these parameters on every entry into pftool just to be safe.</p>
 <ul>
 <li>pulse length should be <code>1</code></li>
 <li>L1A offset should be <code>15</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md54"></a>
+<h2><a class="anchor" id="autotoc_md55"></a>
 fast_control.status</h2>
 <ul>
 <li>bit 0 - overall counts of some kind?</li>

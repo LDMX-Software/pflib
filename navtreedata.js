@@ -25,18 +25,18 @@
 var NAVTREE =
 [
   [ "pflib", "index.html", [
-    [ "Quickstart", "index.html#autotoc_md21", null ],
-    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md22", null ],
-    [ "Communication Method", "index.html#autotoc_md23", [
-      [ "Rogue", "index.html#autotoc_md24", null ],
-      [ "uHal", "index.html#autotoc_md25", null ]
+    [ "Quickstart", "index.html#autotoc_md22", null ],
+    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md23", null ],
+    [ "Communication Method", "index.html#autotoc_md24", [
+      [ "Rogue", "index.html#autotoc_md25", null ],
+      [ "uHal", "index.html#autotoc_md26", null ]
     ] ],
-    [ "Other Dependencies", "index.html#autotoc_md26", [
-      [ "UMN Setup", "index.html#autotoc_md27", null ],
-      [ "Lund Setup", "index.html#autotoc_md28", null ],
-      [ "CERN Setup", "index.html#autotoc_md29", null ]
+    [ "Other Dependencies", "index.html#autotoc_md27", [
+      [ "UMN Setup", "index.html#autotoc_md28", null ],
+      [ "Lund Setup", "index.html#autotoc_md29", null ],
+      [ "CERN Setup", "index.html#autotoc_md30", null ]
     ] ],
-    [ "Directory Structure", "index.html#autotoc_md30", null ],
+    [ "Directory Structure", "index.html#autotoc_md31", null ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
       [ "Features", "md_docs_doxygen_awesome_css_README.html#autotoc_md2", null ],
@@ -58,17 +58,17 @@ var NAVTREE =
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md40", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md45", [
-        [ "daq.status", "md_tool_README.html#autotoc_md46", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md47", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md48", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md49", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md50", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md51", null ],
-        [ "roc.resyncload", "md_tool_README.html#autotoc_md52", null ],
-        [ "fast_control.calib", "md_tool_README.html#autotoc_md53", null ],
-        [ "fast_control.status", "md_tool_README.html#autotoc_md54", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md41", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md46", [
+        [ "daq.status", "md_tool_README.html#autotoc_md47", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md48", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md49", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md50", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md51", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md52", null ],
+        [ "roc.resyncload", "md_tool_README.html#autotoc_md53", null ],
+        [ "fast_control.calib", "md_tool_README.html#autotoc_md54", null ],
+        [ "fast_control.status", "md_tool_README.html#autotoc_md55", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [

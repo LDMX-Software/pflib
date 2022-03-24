@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -764,6 +764,7 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </div><div class="memdoc">
 
 <p>short hand for a single setting file </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="namespacepflib.html#ad837260dd18e63c3888facfc72f0887f" title="Extract the page name, parameter name, and parameter values from the YAML files into the passed setti...">extract</a> for how the YAML files are parsed</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">setting_file</td><td>YAML file to extract and compile </td></tr>
@@ -802,6 +803,7 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </div><div class="memdoc">
 
 <p>compile a series of yaml files </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="namespacepflib.html#ad837260dd18e63c3888facfc72f0887f" title="Extract the page name, parameter name, and parameter values from the YAML files into the passed setti...">extract</a> for how the YAML files are parsed</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">setting_files</td><td>list of YAML files to extract in order and compile </td></tr>
@@ -903,6 +905,19 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </div><div class="memdoc">
 
 <p>Extract the page name, parameter name, and parameter values from the YAML files into the passed settings map. </p>
+<p >Page names are allowed to be "globbed" so that multiple pages with the same parameters can be set in one chunk of YAML. The globbing is just checking for a prefix and <b>you must</b> end a globbing page with the <code>*</code> character in order to signal that this chunk of YAML is to be used for all pages whose name start with the input prefix.</p>
+<p >All matching is done case insensitively.</p>
+<h3><a class="anchor" id="autotoc_md16"></a>
+Globbing Examples</h3>
+<div class="fragment"><div class="line">channel_* :</div>
+<div class="line">  channel_off : 1</div>
+</div><!-- fragment --><p> will match <em>all</em> channel pages and turn them off. </p><div class="fragment"><div class="line">channel_ :</div>
+<div class="line">  channel_off : 1</div>
+</div><!-- fragment --><p> will throw an exception because no page is named 'channel_'. </p><div class="fragment"><div class="line">channel_1 :</div>
+<div class="line">  channel_off : 1</div>
+</div><!-- fragment --><p> will turn off channel_1 (and <em>only</em> channel 1) </p><div class="fragment"><div class="line">channel_1* :</div>
+<div class="line">  channel_off : 1</div>
+</div><!-- fragment --><p> will turn off all channels beginning with 1 (1, 10, 11, 12, etc...)</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">setting_files</td><td>list of YAML files to extract in order </td></tr>
