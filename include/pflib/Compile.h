@@ -169,6 +169,36 @@ std::map<std::string,std::map<std::string,int>> defaults();
  * Extract the page name, parameter name, and parameter values from
  * the YAML files into the passed settings map
  *
+ * Page names are allowed to be "globbed" so that multiple pages with the
+ * same parameters can be set in one chunk of YAML. The globbing is just
+ * checking for a prefix and **you must** end a globbing page with the `*`
+ * character in order to signal that this chunk of YAML is to be used for
+ * all pages whose name start with the input prefix.
+ *
+ * All matching is done case insensitively.
+ *
+ * ### Globbing Examples
+ * ```yaml
+ * channel_* :
+ *   channel_off : 1
+ * ```
+ * will match _all_ channel pages and turn them off.
+ * ```yaml
+ * channel_ :
+ *   channel_off : 1
+ * ```
+ * will throw an exception because no page is named 'channel_'.
+ * ```yaml
+ * channel_1 :
+ *   channel_off : 1
+ * ```
+ * will turn off channel_1 (and _only_ channel 1)
+ * ```yaml
+ * channel_1* :
+ *   channel_off : 1
+ * ```
+ * will turn off all channels beginning with 1 (1, 10, 11, 12, etc...)
+ *
  * @param[in] setting_files list of YAML files to extract in order
  * @param[in,out] settings page name, parameter name, parameter value settings
  *  extracted from YAML file(s)
@@ -178,6 +208,8 @@ void extract(const std::vector<std::string>& setting_files,
  
 /**
  * compile a series of yaml files
+ *
+ * @see extract for how the YAML files are parsed
  *
  * @param[in] setting_files list of YAML files to extract in order and compile
  * @param[in] prepend_defaults start construction of settings map by including
@@ -189,6 +221,8 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults = t
 
 /**
  * short hand for a single setting file
+ *
+ * @see extract for how the YAML files are parsed
  *
  * @param[in] setting_file YAML file to extract and compile
  * @param[in] prepend_defaults start construction of settings map by including
