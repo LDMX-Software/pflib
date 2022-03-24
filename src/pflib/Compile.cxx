@@ -590,14 +590,24 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
     if (not page_settings.IsMap()) {
       PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page "+page_name+" is not a map.");
     }
-    page_name = page_name.substr(0,page_name.find('*'));
 
     // apply these settings only to pages the input name
     std::vector<std::string> matching_pages;
-    std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
-        [&](const std::string& page) { 
-          return strncasecmp(page.c_str(), page_name.c_str(), page_name.size()) == 0; 
-        });
+    // determine matching function depending on format of input page
+    //  if input page contains glob character '*', then match prefix,
+    //  otherwise match entire word
+    if (page_name.find('*') == std::string::npos) {
+      std::string PAGE_NAME = upper_cp(page_name);
+      std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
+          [&](const std::string& page) { return PAGE_NAME == page; });
+    } else {
+      page_name = page_name.substr(0,page_name.find('*'));
+      std::copy_if(page_names.begin(), page_names.end(), std::back_inserter(matching_pages),
+          [&](const std::string& page) { 
+          return strncasecmp(page.c_str(), page_name.c_str(), page_name.size()) == 0;
+          });
+    }
+
 
     if (matching_pages.empty()) {
       PFEXCEPTION_RAISE("NotFound", 
