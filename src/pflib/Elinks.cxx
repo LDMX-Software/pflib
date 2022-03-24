@@ -51,14 +51,14 @@ static const int SPY_WINDOW                = 0xC0;
 static const int BIGSPY_WINDOW             = 0x400;
 static const int REG_NLINKS                = 9;
 
-  Elinks::Elinks(WishboneInterface* wb, int target) : WishboneTarget(wb,target) {
-    if (firmware_version()<0x11) { // read n-links from DAQ
-      n_links=(wb_->wb_read(tgt_DAQ_Control,1)>>8)&0xFF;
-    } else { // read it here
-      n_links=wb_read(REG_NLINKS);
-    }
-    m_linksActive=std::vector<bool>(n_links,true);
+Elinks::Elinks(WishboneInterface* wb, int target) : WishboneTarget(wb,target) {
+  if (firmware_version()<0x11) { // read n-links from DAQ
+    n_links=(wb_->wb_read(tgt_DAQ_Control,1)>>8)&0xFF;
+  } else { // read it here
+    n_links=wb_read(REG_NLINKS);
   }
+  m_linksActive=std::vector<bool>(n_links,true);
+}
   
 std::vector<uint8_t> Elinks::spy(int ilink) {
   wb_rmw(REG_CONTROL,CTL_SPYSTART,CTL_SPYSTART); // do the spy now...
@@ -74,20 +74,22 @@ void Elinks::setBitslip(int ilink, int bitslip) {
   wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_AUTO_ENABLE);
 }
 
-  void Elinks::setBitslipAuto(int ilink,bool enable) {
-    if (enable)
-      wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_AUTO_ENABLE,LINK_CTL_AUTO_ENABLE);
-    else
-      wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_AUTO_ENABLE);
-  }
+void Elinks::setBitslipAuto(int ilink,bool enable) {
+  if (enable)
+    wb_rmw(LINK_CTL_BASE+ilink,LINK_CTL_AUTO_ENABLE,LINK_CTL_AUTO_ENABLE);
+  else
+    wb_rmw(LINK_CTL_BASE+ilink,0,LINK_CTL_AUTO_ENABLE);
+}
 
 bool Elinks::isBitslipAuto(int ilink) {
   return wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_AUTO_ENABLE;
 }
 
 int Elinks::getBitslip(int ilink) {
-  if (isBitslipAuto(ilink)) return (wb_read(LINK_STATUS_BASE+ilink)&LINK_STATUS_AUTOPHASE_MASK)>>LINK_STATUS_AUTOPHASE_SHIFT;
-  else return (wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
+  if (isBitslipAuto(ilink)) 
+    return (wb_read(LINK_STATUS_BASE+ilink)&LINK_STATUS_AUTOPHASE_MASK)>>LINK_STATUS_AUTOPHASE_SHIFT;
+  else 
+    return (wb_read(LINK_CTL_BASE+ilink)&LINK_CTL_BITSLIP_MASK)>>LINK_CTL_BITSLIP_SHIFT;
 }
 
 uint32_t Elinks::getStatusRaw(int ilink) {
