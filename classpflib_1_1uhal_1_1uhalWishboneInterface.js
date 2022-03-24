@@ -1,6 +1,10 @@
 var classpflib_1_1uhal_1_1uhalWishboneInterface =
 [
     [ "uhalWishboneInterface", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#a575926cdaef2c70d84a3375ab793a151", null ],
+    [ "daq_advance_ptr", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#a39e5aceababcdea7e1c49d26a6102e55", null ],
+    [ "daq_read_event", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#ad9edca31c690e6a0927dd2d8e5854d46", null ],
+    [ "daq_reset", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#a472b84e1a2ad2fdfcde56225181933ed", null ],
+    [ "daq_status", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#a82aefd160879866b95ed2b00b2214ce9", null ],
     [ "fc_bufferclear", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#af1fe2a2aca2398a321a6bb769a526cdc", null ],
     [ "fc_calibpulse", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#aab68be78191d68302c6d02bb5a29d19f", null ],
     [ "fc_get_setup_calib", "classpflib_1_1uhal_1_1uhalWishboneInterface.html#ad4f46dfc863a1532373ad941c72ecf8b", null ],

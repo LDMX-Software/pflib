@@ -19,5 +19,11 @@ var structpflib_1_1PolarfireTarget =
     [ "loadROCParameters", "structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f", null ],
     [ "loadROCRegisters", "structpflib_1_1PolarfireTarget.html#ac902016a69d53058bb2f60c09776ff97", null ],
     [ "setBiasSetting", "structpflib_1_1PolarfireTarget.html#ac1d8526d8bbba1dcd19814ca82a8ad0c", null ],
+    [ "backend", "structpflib_1_1PolarfireTarget.html#a338a759cbddd8830c23cb6bfcd76a3f8", null ],
+    [ "hcal", "structpflib_1_1PolarfireTarget.html#ab25281cfd21c7584ba988e3fa70d1651", null ],
+    [ "N_PAGES", "structpflib_1_1PolarfireTarget.html#add803063b340a74302be078a72fff1d0", null ],
+    [ "N_REGISTERS_PER_PAGE", "structpflib_1_1PolarfireTarget.html#a65c2bffd5abed086a4689193990b0f64", null ],
+    [ "NLINKS", "structpflib_1_1PolarfireTarget.html#a8938d3a18fbe9c6fb54e59acfb8c1ce1", null ],
+    [ "wb", "structpflib_1_1PolarfireTarget.html#a63aa5868d2685cd2b7ec911de530c75d", null ],
     [ "wb_be_same", "structpflib_1_1PolarfireTarget.html#ab86af33d3bbbde4de145a3963e17ecbc", null ]
 ];

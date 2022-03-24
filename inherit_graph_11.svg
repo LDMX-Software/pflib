@@ -20,7 +20,7 @@
 <!-- Node1 -->
 <g id="node2" class="node">
 <title>Node1</title>
-<g id="a_node2"><a xlink:href="classpflib_1_1Elinks.html" target="_top" xlink:title=" ">
+<g id="a_node2"><a xlink:href="classpflib_1_1Elinks.html" target="_top" xlink:title="WishboneTarget for configuring the elinks.">
 <polygon fill="none" stroke="black" points="170.5,-114.5 170.5,-133.5 243.5,-133.5 243.5,-114.5 170.5,-114.5"/>
 <text text-anchor="middle" x="207" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::Elinks</text>
 </a>
@@ -35,7 +35,7 @@
 <!-- Node2 -->
 <g id="node3" class="node">
 <title>Node2</title>
-<g id="a_node3"><a xlink:href="classpflib_1_1FastControl.html" target="_top" xlink:title="Class which encapsulates the FastControl controller in the Polarfire.">
+<g id="a_node3"><a xlink:href="classpflib_1_1FastControl.html" target="_top" xlink:title="Representation of FastControl controller in the Polarfire.">
 <polygon fill="none" stroke="black" points="158,-76.5 158,-95.5 256,-95.5 256,-76.5 158,-76.5"/>
 <text text-anchor="middle" x="207" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::FastControl</text>
 </a>
@@ -50,7 +50,7 @@
 <!-- Node3 -->
 <g id="node4" class="node">
 <title>Node3</title>
-<g id="a_node4"><a xlink:href="classpflib_1_1GPIO.html" target="_top" xlink:title="Class which encapsulates the GPIO controller in the Polarfire.">
+<g id="a_node4"><a xlink:href="classpflib_1_1GPIO.html" target="_top" xlink:title="Representation of GPIO controller in the Polarfire.">
 <polygon fill="none" stroke="black" points="173,-38.5 173,-57.5 241,-57.5 241,-38.5 173,-38.5"/>
 <text text-anchor="middle" x="207" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::GPIO</text>
 </a>

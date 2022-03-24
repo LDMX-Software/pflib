@@ -1,4 +1,25 @@
 var classpflib_1_1Elinks =
 [
-    [ "setupBigspy", "classpflib_1_1Elinks.html#a1639de74827430a000d66c272a7693d2", null ]
+    [ "Elinks", "classpflib_1_1Elinks.html#a41151239576dac28d5a3e01f2106b67d", null ],
+    [ "bigspy", "classpflib_1_1Elinks.html#aa23cd431b8b9d7b775d249d719665804", null ],
+    [ "bigspyDone", "classpflib_1_1Elinks.html#a0bd8d0af4353e35d84ca3489fa35e11d", null ],
+    [ "clearErrorCounters", "classpflib_1_1Elinks.html#a99390c36ecea734aa6668a9eec2a70cf", null ],
+    [ "getBigspySetup", "classpflib_1_1Elinks.html#a483c1d02d983a48d37e3b185771c0356", null ],
+    [ "getBitslip", "classpflib_1_1Elinks.html#a3e019d9b3b58d45f8ff9dfa7e719e6cb", null ],
+    [ "getStatusRaw", "classpflib_1_1Elinks.html#ab6cc0785c60a141d3ce1c84c0efb5fe8", null ],
+    [ "isActive", "classpflib_1_1Elinks.html#af8049db306a9cb73a61d8687a6643256", null ],
+    [ "isBitslipAuto", "classpflib_1_1Elinks.html#afea4545d308027e1fcba75649d72601c", null ],
+    [ "markActive", "classpflib_1_1Elinks.html#aef93d145b2c250b900d2c357111571cc", null ],
+    [ "nlinks", "classpflib_1_1Elinks.html#a48478b4b37717f22446acc15e206b16c", null ],
+    [ "readCounters", "classpflib_1_1Elinks.html#a81f8025eee99a30128e26f19803ed154", null ],
+    [ "resetHard", "classpflib_1_1Elinks.html#aa078ee94e8df805a96b961998a84edaa", null ],
+    [ "scanAlign", "classpflib_1_1Elinks.html#a402f0ad7cd77c48934f7a64302cf0a1d", null ],
+    [ "setBitslip", "classpflib_1_1Elinks.html#acb97cb6e657c85979245d2fa53637f49", null ],
+    [ "setBitslipAuto", "classpflib_1_1Elinks.html#ad6f2c8397a84ba7f3c4424666fe3c604", null ],
+    [ "setDelay", "classpflib_1_1Elinks.html#ac31e7a2d965ce88cca8bf6c592c9365a", null ],
+    [ "setupBigspy", "classpflib_1_1Elinks.html#a1639de74827430a000d66c272a7693d2", null ],
+    [ "spy", "classpflib_1_1Elinks.html#a8f6eb6f1006d0254afc01672df2dd989", null ],
+    [ "m_linksActive", "classpflib_1_1Elinks.html#ae823751cf2c3bfa7f90b11965d6ecc0b", null ],
+    [ "n_links", "classpflib_1_1Elinks.html#a34553f44027a5f4fcbff176d9d728d63", null ],
+    [ "phaseDelay", "classpflib_1_1Elinks.html#ad85df0ede0ed6d56afd66df811994a47", null ]
 ];

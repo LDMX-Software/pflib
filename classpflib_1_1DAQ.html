@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -91,6 +91,11 @@ $(document).ready(function(){initNavTree('classpflib_1_1DAQ.html',''); initResiz
   <div class="headertitle"><div class="title">pflib::DAQ Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Interface with <a class="el" href="classpflib_1_1DAQ.html" title="Interface with DAQ via a WishboneInterface.">DAQ</a> via a <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a>.  
+ <a href="classpflib_1_1DAQ.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="DAQ_8h_source.html">DAQ.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for pflib::DAQ:</div>
 <div class="dyncontent">
@@ -101,7 +106,8 @@ Collaboration diagram for pflib::DAQ:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a36ced748517545fb866e20e3d48d601f"><td class="memItemLeft" align="right" valign="top"><a id="a36ced748517545fb866e20e3d48d601f" name="a36ced748517545fb866e20e3d48d601f"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>DAQ</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>DAQ</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>)</td></tr>
+<tr class="memdesc:a36ced748517545fb866e20e3d48d601f"><td class="mdescLeft">&#160;</td><td class="mdescRight">attach to our active <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a> <br /></td></tr>
 <tr class="separator:a36ced748517545fb866e20e3d48d601f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6239e3aaf9e9be4c876e751ca14ff96c"><td class="memItemLeft" align="right" valign="top"><a id="a6239e3aaf9e9be4c876e751ca14ff96c" name="a6239e3aaf9e9be4c876e751ca14ff96c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>reset</b> ()</td></tr>
@@ -111,39 +117,52 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>getHeaderOccupancy</b
 <tr class="separator:a5551b82c6ce7be9622d54cc6b46d6797"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfdcb0f2aad936fabb84a3ada4fda284"><td class="memItemLeft" align="right" valign="top"><a id="acfdcb0f2aad936fabb84a3ada4fda284" name="acfdcb0f2aad936fabb84a3ada4fda284"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setIds</b> (int fpga_id)</td></tr>
+<tr class="memdesc:acfdcb0f2aad936fabb84a3ada4fda284"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the FPGA id and the link ids based on the FPGA id. <br /></td></tr>
 <tr class="separator:acfdcb0f2aad936fabb84a3ada4fda284"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbaf321a338a496ab3f425662e1655b0"><td class="memItemLeft" align="right" valign="top"><a id="abbaf321a338a496ab3f425662e1655b0" name="abbaf321a338a496ab3f425662e1655b0"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>getFPGAid</b> ()</td></tr>
+<tr class="memdesc:abbaf321a338a496ab3f425662e1655b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the FPGA id. <br /></td></tr>
 <tr class="separator:abbaf321a338a496ab3f425662e1655b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aada7b27e263721ef6bb80019ed811480"><td class="memItemLeft" align="right" valign="top"><a id="aada7b27e263721ef6bb80019ed811480" name="aada7b27e263721ef6bb80019ed811480"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setupLink</b> (int ilink, bool zs, bool zs_all, int l1a_delay, int l1a_capture_width)</td></tr>
+<tr class="memdesc:aada7b27e263721ef6bb80019ed811480"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup a link. <br /></td></tr>
 <tr class="separator:aada7b27e263721ef6bb80019ed811480"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7222126c74b31a3ecbedd85d50d15e8"><td class="memItemLeft" align="right" valign="top"><a id="ab7222126c74b31a3ecbedd85d50d15e8" name="ab7222126c74b31a3ecbedd85d50d15e8"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>getLinkSetup</b> (int ilink, bool &amp;zs, bool &amp;zs_all, int &amp;l1a_delay, int &amp;l1a_capture_width)</td></tr>
+<tr class="memdesc:ab7222126c74b31a3ecbedd85d50d15e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">read link parameters into the passed variables <br /></td></tr>
 <tr class="separator:ab7222126c74b31a3ecbedd85d50d15e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14160e77aa811688d247b72d07caa4a6"><td class="memItemLeft" align="right" valign="top"><a id="a14160e77aa811688d247b72d07caa4a6" name="a14160e77aa811688d247b72d07caa4a6"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>bufferStatus</b> (int ilink, bool postfmt, bool &amp;empty, bool &amp;full)</td></tr>
+<tr class="memdesc:a14160e77aa811688d247b72d07caa4a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">get empty/full status for the given link and stage <br /></td></tr>
 <tr class="separator:a14160e77aa811688d247b72d07caa4a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a115d6f437b39e574a093744280a07013"><td class="memItemLeft" align="right" valign="top"><a id="a115d6f437b39e574a093744280a07013" name="a115d6f437b39e574a093744280a07013"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>enable</b> (bool enable=true)</td></tr>
+<tr class="memdesc:a115d6f437b39e574a093744280a07013"><td class="mdescLeft">&#160;</td><td class="mdescRight">enable/disable the readout <br /></td></tr>
 <tr class="separator:a115d6f437b39e574a093744280a07013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad23eba0c957f4a5e08d1508cea1625d4"><td class="memItemLeft" align="right" valign="top"><a id="ad23eba0c957f4a5e08d1508cea1625d4" name="ad23eba0c957f4a5e08d1508cea1625d4"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>enabled</b> ()</td></tr>
+<tr class="memdesc:ad23eba0c957f4a5e08d1508cea1625d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">is the readout enabled? <br /></td></tr>
 <tr class="separator:ad23eba0c957f4a5e08d1508cea1625d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb7a54d6b0eb1178f4d0443a04fb8e12"><td class="memItemLeft" align="right" valign="top"><a id="abb7a54d6b0eb1178f4d0443a04fb8e12" name="abb7a54d6b0eb1178f4d0443a04fb8e12"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>nlinks</b> () const</td></tr>
+<tr class="memdesc:abb7a54d6b0eb1178f4d0443a04fb8e12"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of elinks <br /></td></tr>
 <tr class="separator:abb7a54d6b0eb1178f4d0443a04fb8e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a685ba705e4a1b9f3ae5f00aab43fc810"><td class="memItemLeft" align="right" valign="top"><a id="a685ba705e4a1b9f3ae5f00aab43fc810" name="a685ba705e4a1b9f3ae5f00aab43fc810"></a>
 <a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>wb_</b></td></tr>
+<tr class="memdesc:a685ba705e4a1b9f3ae5f00aab43fc810"><td class="mdescLeft">&#160;</td><td class="mdescRight">pointer to active wbi <br /></td></tr>
 <tr class="separator:a685ba705e4a1b9f3ae5f00aab43fc810"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30a78595c445e44c65f81c4a548cbe2a"><td class="memItemLeft" align="right" valign="top"><a id="a30a78595c445e44c65f81c4a548cbe2a" name="a30a78595c445e44c65f81c4a548cbe2a"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>n_links</b></td></tr>
+<tr class="memdesc:a30a78595c445e44c65f81c4a548cbe2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of links <br /></td></tr>
 <tr class="separator:a30a78595c445e44c65f81c4a548cbe2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p >Interface with <a class="el" href="classpflib_1_1DAQ.html" title="Interface with DAQ via a WishboneInterface.">DAQ</a> via a <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a>. </p>
+<p >This is a very light class focused on just providing helpful functionality. Constructing/deconstructing these objects is very\ light so it can be done often. </p>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pflib/<a class="el" href="DAQ_8h_source.html">DAQ.h</a></li>
 <li>src/pflib/DAQ.cxx</li>
 </ul>

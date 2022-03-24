@@ -9,7 +9,7 @@ var annotated_dup =
       ] ],
       [ "Backend", "classpflib_1_1Backend.html", "classpflib_1_1Backend" ],
       [ "Bias", "classpflib_1_1Bias.html", "classpflib_1_1Bias" ],
-      [ "DAQ", "classpflib_1_1DAQ.html", null ],
+      [ "DAQ", "classpflib_1_1DAQ.html", "classpflib_1_1DAQ" ],
       [ "Elinks", "classpflib_1_1Elinks.html", "classpflib_1_1Elinks" ],
       [ "Exception", "classpflib_1_1Exception.html", "classpflib_1_1Exception" ],
       [ "FastControl", "classpflib_1_1FastControl.html", "classpflib_1_1FastControl" ],

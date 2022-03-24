@@ -1,12 +1,12 @@
 <map id="pflib::PolarfireTarget" name="pflib::PolarfireTarget">
 <area shape="rect" id="node1" title="Interface to a single polarfire." alt="" coords="183,375,335,401"/>
 <area shape="rect" id="node2" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="73,5,253,32"/>
-<area shape="rect" id="node4" href="$classpflib_1_1Hcal.html" title="Class representing a standard HCAL motherboard." alt="" coords="215,285,302,312"/>
+<area shape="rect" id="node4" href="$classpflib_1_1Hcal.html" title="representing a standard HCAL motherboard" alt="" coords="215,285,302,312"/>
 <area shape="rect" id="node6" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="177,95,340,121"/>
-<area shape="rect" id="node10" href="$classpflib_1_1DAQ.html" title=" " alt="" coords="518,145,605,172"/>
+<area shape="rect" id="node10" href="$classpflib_1_1DAQ.html" title="Interface with DAQ via a WishboneInterface." alt="" coords="518,145,605,172"/>
 <area shape="rect" id="node3" href="$classpflib_1_1Backend.html" title="Abstract interface for various backend manipulations." alt="" coords="326,285,439,312"/>
-<area shape="rect" id="node5" href="$classpflib_1_1GPIO.html" title="Class which encapsulates the GPIO controller in the Polarfire." alt="" coords="104,196,195,223"/>
+<area shape="rect" id="node5" href="$classpflib_1_1GPIO.html" title="Representation of GPIO controller in the Polarfire." alt="" coords="104,196,195,223"/>
 <area shape="rect" id="node7" href="$classpflib_1_1I2C.html" title="Class which encapsulates the I2C controller in the Polarfire." alt="" coords="219,196,298,223"/>
-<area shape="rect" id="node8" href="$classpflib_1_1Elinks.html" title=" " alt="" coords="322,196,419,223"/>
-<area shape="rect" id="node9" href="$classpflib_1_1FastControl.html" title="Class which encapsulates the FastControl controller in the Polarfire." alt="" coords="444,196,575,223"/>
+<area shape="rect" id="node8" href="$classpflib_1_1Elinks.html" title="WishboneTarget for configuring the elinks." alt="" coords="322,196,419,223"/>
+<area shape="rect" id="node9" href="$classpflib_1_1FastControl.html" title="Representation of FastControl controller in the Polarfire." alt="" coords="444,196,575,223"/>
 </map>

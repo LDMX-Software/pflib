@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -144,12 +144,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a38c64a9d2c29221c081f16a17c4fe7fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">calib pulse setup  <a href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a38c64a9d2c29221c081f16a17c4fe7fe">More...</a><br /></td></tr>
 <tr class="separator:a38c64a9d2c29221c081f16a17c4fe7fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1416b373a8a83fb16f5bf54eff1f99f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac1416b373a8a83fb16f5bf54eff1f99f">daq_reset</a> ()</td></tr>
+<tr class="memdesc:ac1416b373a8a83fb16f5bf54eff1f99f"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the daq buffers  <a href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac1416b373a8a83fb16f5bf54eff1f99f">More...</a><br /></td></tr>
 <tr class="separator:ac1416b373a8a83fb16f5bf54eff1f99f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05ee09a07285b6a2c163b05ee3bff151"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a05ee09a07285b6a2c163b05ee3bff151">daq_advance_ptr</a> ()</td></tr>
+<tr class="memdesc:a05ee09a07285b6a2c163b05ee3bff151"><td class="mdescLeft">&#160;</td><td class="mdescRight">advance the daq pointer along buffer  <a href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a05ee09a07285b6a2c163b05ee3bff151">More...</a><br /></td></tr>
 <tr class="separator:a05ee09a07285b6a2c163b05ee3bff151"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacc5df41cf76b03439e4af74666d11a9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aacc5df41cf76b03439e4af74666d11a9">daq_status</a> (bool &amp;full, bool &amp;empty, int &amp;nevents, int &amp;next_event_size)</td></tr>
+<tr class="memdesc:aacc5df41cf76b03439e4af74666d11a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">readout the daq status into the passed variables  <a href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aacc5df41cf76b03439e4af74666d11a9">More...</a><br /></td></tr>
 <tr class="separator:aacc5df41cf76b03439e4af74666d11a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6d505a96712b012cf05a58dcfb42953"><td class="memItemLeft" align="right" valign="top">virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae6d505a96712b012cf05a58dcfb42953">daq_read_event</a> ()</td></tr>
+<tr class="memdesc:ae6d505a96712b012cf05a58dcfb42953"><td class="mdescLeft">&#160;</td><td class="mdescRight">read the aquired event and return it  <a href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae6d505a96712b012cf05a58dcfb42953">More...</a><br /></td></tr>
 <tr class="separator:ae6d505a96712b012cf05a58dcfb42953"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac85c778b969c8b091fd191bd1ec93ac1"><td class="memItemLeft" align="right" valign="top"><a id="ac85c778b969c8b091fd191bd1ec93ac1" name="ac85c778b969c8b091fd191bd1ec93ac1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_enable</b> (bool enable)</td></tr>
@@ -198,7 +202,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classpflib_1_1Backend.html">pflib::Backend</a>.</p>
+<p>advance the daq pointer along buffer </p>
+
+<p>Implements <a class="el" href="classpflib_1_1Backend.html#a465eb037e5e923bcc5b3768ab3941a45">pflib::Backend</a>.</p>
 
 </div>
 </div>
@@ -225,7 +231,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classpflib_1_1Backend.html">pflib::Backend</a>.</p>
+<p>read the aquired event and return it </p>
+
+<p>Implements <a class="el" href="classpflib_1_1Backend.html#a014bda682c81f80878ab1c60a019dee6">pflib::Backend</a>.</p>
 
 </div>
 </div>
@@ -252,7 +260,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classpflib_1_1Backend.html">pflib::Backend</a>.</p>
+<p>reset the daq buffers </p>
+
+<p>Implements <a class="el" href="classpflib_1_1Backend.html#aa68181ae889f6fa15a437884ac4d1cb8">pflib::Backend</a>.</p>
 
 </div>
 </div>
@@ -302,7 +312,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classpflib_1_1Backend.html">pflib::Backend</a>.</p>
+<p>readout the daq status into the passed variables </p>
+
+<p>Implements <a class="el" href="classpflib_1_1Backend.html#a05aa527454f6b988b259aa39bcb851a1">pflib::Backend</a>.</p>
 
 </div>
 </div>
@@ -527,7 +539,7 @@ Private Attributes</h2></td></tr>
 
 <p>Clear the monitoring counters. </p>
 
-<p>Reimplemented from <a class="el" href="classpflib_1_1WishboneInterface.html#a4331194670dc8c6558df5bfe4e3d4584">pflib::WishboneInterface</a>.</p>
+<p>Implements <a class="el" href="classpflib_1_1WishboneInterface.html#a7f10b1f676207d88b0011c89d98ee79f">pflib::WishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -573,7 +585,7 @@ Private Attributes</h2></td></tr>
 
 <p>Read the monitoring counters crcup_errors &ndash; CRC errors observed on the uplink (wraps) crcdn_errors &ndash; CRC errors from the downlink reported on the uplink (wraps) wb_errors &ndash; Wishbone errors indicated by the Polarfire. </p>
 
-<p>Reimplemented from <a class="el" href="classpflib_1_1WishboneInterface.html#a86e38992f56f4eb3e8f55e4a0269b4e4">pflib::WishboneInterface</a>.</p>
+<p>Implements <a class="el" href="classpflib_1_1WishboneInterface.html#ad99b00d65ce1daa85e65b9dc70ce16be">pflib::WishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -619,7 +631,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Reimplemented from <a class="el" href="classpflib_1_1WishboneInterface.html#a64600b920191acdd8c45531ecd1c1065">pflib::WishboneInterface</a>.</p>
+<p>Implements <a class="el" href="classpflib_1_1WishboneInterface.html#a4c3d1c072f361d87ffa208fc27742164">pflib::WishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -648,7 +660,7 @@ Private Attributes</h2></td></tr>
 
 <p>reset the wishbone bus (on/off cycle) </p>
 
-<p>Reimplemented from <a class="el" href="classpflib_1_1WishboneInterface.html#a308aaa61c46615886e9f79b93db43ac4">pflib::WishboneInterface</a>.</p>
+<p>Implements <a class="el" href="classpflib_1_1WishboneInterface.html#ae01c2a5b3433cbb576e22bc9c75f3686">pflib::WishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -700,7 +712,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Reimplemented from <a class="el" href="classpflib_1_1WishboneInterface.html#af1df03def7fc301641368dd62d62ea00">pflib::WishboneInterface</a>.</p>
+<p>Implements <a class="el" href="classpflib_1_1WishboneInterface.html#a0f6a2bba304929fffde062a33168c387">pflib::WishboneInterface</a>.</p>
 
 </div>
 </div>

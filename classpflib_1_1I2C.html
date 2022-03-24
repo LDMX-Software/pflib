@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -113,7 +113,7 @@ Collaboration diagram for pflib::I2C:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a201e4b78174a788f75c8264e5753d4af"><td class="memItemLeft" align="right" valign="top"><a id="a201e4b78174a788f75c8264e5753d4af" name="a201e4b78174a788f75c8264e5753d4af"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>I2C</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb, int target=tgt_I2C)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>I2C</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>, int target=tgt_I2C)</td></tr>
 <tr class="separator:a201e4b78174a788f75c8264e5753d4af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80ef2ae860599b137a9c7d1c23affa01"><td class="memItemLeft" align="right" valign="top"><a id="a80ef2ae860599b137a9c7d1c23affa01" name="a80ef2ae860599b137a9c7d1c23affa01"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_active_bus</b> (int ibus)</td></tr>
@@ -150,7 +150,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>backplane_hack</b> (b
 <tr class="separator:a868a39af5f77f8896d1e5d6f41f88032"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
 <tr class="memitem:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a1920b9176298e20707113e18879f4a9d" name="a1920b9176298e20707113e18879f4a9d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb, int target)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>, int target)</td></tr>
+<tr class="memdesc:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">simply store pointer to interface and target we will interact with <br /></td></tr>
 <tr class="separator:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7054c9d470efedcf527da83740cd2712 inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a7054c9d470efedcf527da83740cd2712" name="a7054c9d470efedcf527da83740cd2712"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>target_type</b> ()</td></tr>
@@ -182,14 +183,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>usec_per_byte_</b></td
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
-<tr class="memitem:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a160125584dbfbfd2b199d282528adb73" name="a160125584dbfbfd2b199d282528adb73"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_write</b> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memitem:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">wb_write</a> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memdesc:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to an address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">More...</a><br /></td></tr>
 <tr class="separator:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a47916e3fd8eab488b36bf8258c67b3b5" name="a47916e3fd8eab488b36bf8258c67b3b5"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>wb_read</b> (uint32_t addr)</td></tr>
+<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">wb_read</a> (uint32_t addr)</td></tr>
+<tr class="memdesc:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">More...</a><br /></td></tr>
 <tr class="separator:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a9f17a8e1461c2d58a855186a2f9d23e4" name="a9f17a8e1461c2d58a855186a2f9d23e4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_rmw</b> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">wb_rmw</a> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memdesc:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the word at the address and then put our data bits into that address using the provided mask.  <a href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">More...</a><br /></td></tr>
 <tr class="separator:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
 <tr class="memitem:acbfa6f17bd7c1bc190b0f266d5d8fa43 inherit pro_attribs_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="acbfa6f17bd7c1bc190b0f266d5d8fa43" name="acbfa6f17bd7c1bc190b0f266d5d8fa43"></a>

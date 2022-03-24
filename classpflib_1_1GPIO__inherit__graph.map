@@ -1,4 +1,4 @@
 <map id="pflib::GPIO" name="pflib::GPIO">
-<area shape="rect" id="node1" title="Class which encapsulates the GPIO controller in the Polarfire." alt="" coords="41,80,132,107"/>
+<area shape="rect" id="node1" title="Representation of GPIO controller in the Polarfire." alt="" coords="41,80,132,107"/>
 <area shape="rect" id="node2" href="$classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities." alt="" coords="5,5,168,32"/>
 </map>

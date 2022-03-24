@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -91,6 +91,11 @@ $(document).ready(function(){initNavTree('classpflib_1_1Elinks.html',''); initRe
   <div class="headertitle"><div class="title">pflib::Elinks Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><a class="el" href="classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities.">WishboneTarget</a> for configuring the elinks.  
+ <a href="classpflib_1_1Elinks.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="Elinks_8h_source.html">Elinks.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for pflib::Elinks:</div>
 <div class="dyncontent">
@@ -107,66 +112,68 @@ Collaboration diagram for pflib::Elinks:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a41151239576dac28d5a3e01f2106b67d"><td class="memItemLeft" align="right" valign="top"><a id="a41151239576dac28d5a3e01f2106b67d" name="a41151239576dac28d5a3e01f2106b67d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Elinks</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb, int target=tgt_Elinks)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Elinks</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>, int target=tgt_Elinks)</td></tr>
+<tr class="memdesc:a41151239576dac28d5a3e01f2106b67d"><td class="mdescLeft">&#160;</td><td class="mdescRight">wrap the wishbone interface and use the tgt_Elinks target <br /></td></tr>
 <tr class="separator:a41151239576dac28d5a3e01f2106b67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48478b4b37717f22446acc15e206b16c"><td class="memItemLeft" align="right" valign="top"><a id="a48478b4b37717f22446acc15e206b16c" name="a48478b4b37717f22446acc15e206b16c"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>nlinks</b> () const</td></tr>
+<tr class="memitem:a48478b4b37717f22446acc15e206b16c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a48478b4b37717f22446acc15e206b16c">nlinks</a> () const</td></tr>
+<tr class="memdesc:a48478b4b37717f22446acc15e206b16c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of links stored in this class.  <a href="classpflib_1_1Elinks.html#a48478b4b37717f22446acc15e206b16c">More...</a><br /></td></tr>
 <tr class="separator:a48478b4b37717f22446acc15e206b16c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef93d145b2c250b900d2c357111571cc"><td class="memItemLeft" align="right" valign="top"><a id="aef93d145b2c250b900d2c357111571cc" name="aef93d145b2c250b900d2c357111571cc"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>markActive</b> (int ilink, bool active)</td></tr>
+<tr class="memitem:aef93d145b2c250b900d2c357111571cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#aef93d145b2c250b900d2c357111571cc">markActive</a> (int ilink, bool active)</td></tr>
+<tr class="memdesc:aef93d145b2c250b900d2c357111571cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark a specific link as active (or inactive) depending on input.  <a href="classpflib_1_1Elinks.html#aef93d145b2c250b900d2c357111571cc">More...</a><br /></td></tr>
 <tr class="separator:aef93d145b2c250b900d2c357111571cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8049db306a9cb73a61d8687a6643256"><td class="memItemLeft" align="right" valign="top"><a id="af8049db306a9cb73a61d8687a6643256" name="af8049db306a9cb73a61d8687a6643256"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> (int ilink) const</td></tr>
+<tr class="memitem:af8049db306a9cb73a61d8687a6643256"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#af8049db306a9cb73a61d8687a6643256">isActive</a> (int ilink) const</td></tr>
+<tr class="memdesc:af8049db306a9cb73a61d8687a6643256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a link is active.  <a href="classpflib_1_1Elinks.html#af8049db306a9cb73a61d8687a6643256">More...</a><br /></td></tr>
 <tr class="separator:af8049db306a9cb73a61d8687a6643256"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f6eb6f1006d0254afc01672df2dd989"><td class="memItemLeft" align="right" valign="top"><a id="a8f6eb6f1006d0254afc01672df2dd989" name="a8f6eb6f1006d0254afc01672df2dd989"></a>
-<a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>spy</b> (int ilink)</td></tr>
+<tr class="memitem:a8f6eb6f1006d0254afc01672df2dd989"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a8f6eb6f1006d0254afc01672df2dd989">spy</a> (int ilink)</td></tr>
+<tr class="memdesc:a8f6eb6f1006d0254afc01672df2dd989"><td class="mdescLeft">&#160;</td><td class="mdescRight">spy into the passed link  <a href="classpflib_1_1Elinks.html#a8f6eb6f1006d0254afc01672df2dd989">More...</a><br /></td></tr>
 <tr class="separator:a8f6eb6f1006d0254afc01672df2dd989"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb97cb6e657c85979245d2fa53637f49"><td class="memItemLeft" align="right" valign="top"><a id="acb97cb6e657c85979245d2fa53637f49" name="acb97cb6e657c85979245d2fa53637f49"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setBitslip</b> (int ilink, int bitslip)</td></tr>
+<tr class="memitem:acb97cb6e657c85979245d2fa53637f49"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#acb97cb6e657c85979245d2fa53637f49">setBitslip</a> (int ilink, int bitslip)</td></tr>
+<tr class="memdesc:acb97cb6e657c85979245d2fa53637f49"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the bitslip value for the link  <a href="classpflib_1_1Elinks.html#acb97cb6e657c85979245d2fa53637f49">More...</a><br /></td></tr>
 <tr class="separator:acb97cb6e657c85979245d2fa53637f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6f2c8397a84ba7f3c4424666fe3c604"><td class="memItemLeft" align="right" valign="top"><a id="ad6f2c8397a84ba7f3c4424666fe3c604" name="ad6f2c8397a84ba7f3c4424666fe3c604"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setBitslipAuto</b> (int ilink, bool enable)</td></tr>
+<tr class="memitem:ad6f2c8397a84ba7f3c4424666fe3c604"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#ad6f2c8397a84ba7f3c4424666fe3c604">setBitslipAuto</a> (int ilink, bool enable)</td></tr>
+<tr class="memdesc:ad6f2c8397a84ba7f3c4424666fe3c604"><td class="mdescLeft">&#160;</td><td class="mdescRight">enable auto-setting of bitslip value  <a href="classpflib_1_1Elinks.html#ad6f2c8397a84ba7f3c4424666fe3c604">More...</a><br /></td></tr>
 <tr class="separator:ad6f2c8397a84ba7f3c4424666fe3c604"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afea4545d308027e1fcba75649d72601c"><td class="memItemLeft" align="right" valign="top"><a id="afea4545d308027e1fcba75649d72601c" name="afea4545d308027e1fcba75649d72601c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isBitslipAuto</b> (int ilink)</td></tr>
+<tr class="memitem:afea4545d308027e1fcba75649d72601c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#afea4545d308027e1fcba75649d72601c">isBitslipAuto</a> (int ilink)</td></tr>
+<tr class="memdesc:afea4545d308027e1fcba75649d72601c"><td class="mdescLeft">&#160;</td><td class="mdescRight">check if a link is auto-setting the bitslip  <a href="classpflib_1_1Elinks.html#afea4545d308027e1fcba75649d72601c">More...</a><br /></td></tr>
 <tr class="separator:afea4545d308027e1fcba75649d72601c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e019d9b3b58d45f8ff9dfa7e719e6cb"><td class="memItemLeft" align="right" valign="top"><a id="a3e019d9b3b58d45f8ff9dfa7e719e6cb" name="a3e019d9b3b58d45f8ff9dfa7e719e6cb"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>getBitslip</b> (int ilink)</td></tr>
+<tr class="memitem:a3e019d9b3b58d45f8ff9dfa7e719e6cb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a3e019d9b3b58d45f8ff9dfa7e719e6cb">getBitslip</a> (int ilink)</td></tr>
+<tr class="memdesc:a3e019d9b3b58d45f8ff9dfa7e719e6cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the bitslip value for a given link.  <a href="classpflib_1_1Elinks.html#a3e019d9b3b58d45f8ff9dfa7e719e6cb">More...</a><br /></td></tr>
 <tr class="separator:a3e019d9b3b58d45f8ff9dfa7e719e6cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6cc0785c60a141d3ce1c84c0efb5fe8"><td class="memItemLeft" align="right" valign="top"><a id="ab6cc0785c60a141d3ce1c84c0efb5fe8" name="ab6cc0785c60a141d3ce1c84c0efb5fe8"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>getStatusRaw</b> (int ilink)</td></tr>
+<tr class="memitem:ab6cc0785c60a141d3ce1c84c0efb5fe8"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#ab6cc0785c60a141d3ce1c84c0efb5fe8">getStatusRaw</a> (int ilink)</td></tr>
+<tr class="memdesc:ab6cc0785c60a141d3ce1c84c0efb5fe8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the status of the input link.  <a href="classpflib_1_1Elinks.html#ab6cc0785c60a141d3ce1c84c0efb5fe8">More...</a><br /></td></tr>
 <tr class="separator:ab6cc0785c60a141d3ce1c84c0efb5fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99390c36ecea734aa6668a9eec2a70cf"><td class="memItemLeft" align="right" valign="top"><a id="a99390c36ecea734aa6668a9eec2a70cf" name="a99390c36ecea734aa6668a9eec2a70cf"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>clearErrorCounters</b> (int ilink)</td></tr>
+<tr class="memitem:a99390c36ecea734aa6668a9eec2a70cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a99390c36ecea734aa6668a9eec2a70cf">clearErrorCounters</a> (int ilink)</td></tr>
+<tr class="memdesc:a99390c36ecea734aa6668a9eec2a70cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear the error counters for the input link.  <a href="classpflib_1_1Elinks.html#a99390c36ecea734aa6668a9eec2a70cf">More...</a><br /></td></tr>
 <tr class="separator:a99390c36ecea734aa6668a9eec2a70cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81f8025eee99a30128e26f19803ed154"><td class="memItemLeft" align="right" valign="top"><a id="a81f8025eee99a30128e26f19803ed154" name="a81f8025eee99a30128e26f19803ed154"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>readCounters</b> (int link, uint32_t &amp;nonidles, uint32_t &amp;resyncs)</td></tr>
+<tr class="memitem:a81f8025eee99a30128e26f19803ed154"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a81f8025eee99a30128e26f19803ed154">readCounters</a> (int <a class="el" href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a>, uint32_t &amp;nonidles, uint32_t &amp;resyncs)</td></tr>
+<tr class="memdesc:a81f8025eee99a30128e26f19803ed154"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode the counters for non-idles and resyncs from the status bytes for the input link.  <a href="classpflib_1_1Elinks.html#a81f8025eee99a30128e26f19803ed154">More...</a><br /></td></tr>
 <tr class="separator:a81f8025eee99a30128e26f19803ed154"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1639de74827430a000d66c272a7693d2"><td class="memItemLeft" align="right" valign="top"><a id="a1639de74827430a000d66c272a7693d2" name="a1639de74827430a000d66c272a7693d2"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setupBigspy</b> (int mode, int ilink, int presamples)</td></tr>
-<tr class="memdesc:a1639de74827430a000d66c272a7693d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mode 0 -&gt; software, Mode 1 -&gt; L1A, Mode 2 -&gt; Non-idle. <br /></td></tr>
-<tr class="separator:a1639de74827430a000d66c272a7693d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a483c1d02d983a48d37e3b185771c0356"><td class="memItemLeft" align="right" valign="top"><a id="a483c1d02d983a48d37e3b185771c0356" name="a483c1d02d983a48d37e3b185771c0356"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>getBigspySetup</b> (int &amp;mode, int &amp;ilink, int &amp;presamples)</td></tr>
-<tr class="separator:a483c1d02d983a48d37e3b185771c0356"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0bd8d0af4353e35d84ca3489fa35e11d"><td class="memItemLeft" align="right" valign="top"><a id="a0bd8d0af4353e35d84ca3489fa35e11d" name="a0bd8d0af4353e35d84ca3489fa35e11d"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>bigspyDone</b> ()</td></tr>
-<tr class="separator:a0bd8d0af4353e35d84ca3489fa35e11d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa23cd431b8b9d7b775d249d719665804"><td class="memItemLeft" align="right" valign="top"><a id="aa23cd431b8b9d7b775d249d719665804" name="aa23cd431b8b9d7b775d249d719665804"></a>
-<a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bigspy</b> ()</td></tr>
-<tr class="separator:aa23cd431b8b9d7b775d249d719665804"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa078ee94e8df805a96b961998a84edaa"><td class="memItemLeft" align="right" valign="top"><a id="aa078ee94e8df805a96b961998a84edaa" name="aa078ee94e8df805a96b961998a84edaa"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>resetHard</b> ()</td></tr>
+<tr class="memdesc:aa078ee94e8df805a96b961998a84edaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hard reset the links. <br /></td></tr>
 <tr class="separator:aa078ee94e8df805a96b961998a84edaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a402f0ad7cd77c48934f7a64302cf0a1d"><td class="memItemLeft" align="right" valign="top"><a id="a402f0ad7cd77c48934f7a64302cf0a1d" name="a402f0ad7cd77c48934f7a64302cf0a1d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>scanAlign</b> (int ilink)</td></tr>
+<tr class="memitem:a1639de74827430a000d66c272a7693d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a1639de74827430a000d66c272a7693d2">setupBigspy</a> (int mode, int ilink, int presamples)</td></tr>
+<tr class="memdesc:a1639de74827430a000d66c272a7693d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepare for a big spy of the link.  <a href="classpflib_1_1Elinks.html#a1639de74827430a000d66c272a7693d2">More...</a><br /></td></tr>
+<tr class="separator:a1639de74827430a000d66c272a7693d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a483c1d02d983a48d37e3b185771c0356"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a483c1d02d983a48d37e3b185771c0356">getBigspySetup</a> (int &amp;mode, int &amp;ilink, int &amp;presamples)</td></tr>
+<tr class="memdesc:a483c1d02d983a48d37e3b185771c0356"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the current setup for a bigspy.  <a href="classpflib_1_1Elinks.html#a483c1d02d983a48d37e3b185771c0356">More...</a><br /></td></tr>
+<tr class="separator:a483c1d02d983a48d37e3b185771c0356"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bd8d0af4353e35d84ca3489fa35e11d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a0bd8d0af4353e35d84ca3489fa35e11d">bigspyDone</a> ()</td></tr>
+<tr class="memdesc:a0bd8d0af4353e35d84ca3489fa35e11d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the current bigspy is done.  <a href="classpflib_1_1Elinks.html#a0bd8d0af4353e35d84ca3489fa35e11d">More...</a><br /></td></tr>
+<tr class="separator:a0bd8d0af4353e35d84ca3489fa35e11d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa23cd431b8b9d7b775d249d719665804"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#aa23cd431b8b9d7b775d249d719665804">bigspy</a> ()</td></tr>
+<tr class="memdesc:aa23cd431b8b9d7b775d249d719665804"><td class="mdescLeft">&#160;</td><td class="mdescRight">Readout the bigspy and return the data.  <a href="classpflib_1_1Elinks.html#aa23cd431b8b9d7b775d249d719665804">More...</a><br /></td></tr>
+<tr class="separator:aa23cd431b8b9d7b775d249d719665804"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a402f0ad7cd77c48934f7a64302cf0a1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#a402f0ad7cd77c48934f7a64302cf0a1d">scanAlign</a> (int ilink)</td></tr>
+<tr class="memdesc:a402f0ad7cd77c48934f7a64302cf0a1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">scan the input link attempting to align it  <a href="classpflib_1_1Elinks.html#a402f0ad7cd77c48934f7a64302cf0a1d">More...</a><br /></td></tr>
 <tr class="separator:a402f0ad7cd77c48934f7a64302cf0a1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac31e7a2d965ce88cca8bf6c592c9365a"><td class="memItemLeft" align="right" valign="top"><a id="ac31e7a2d965ce88cca8bf6c592c9365a" name="ac31e7a2d965ce88cca8bf6c592c9365a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setDelay</b> (int ilink, int idelay)</td></tr>
+<tr class="memitem:ac31e7a2d965ce88cca8bf6c592c9365a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html#ac31e7a2d965ce88cca8bf6c592c9365a">setDelay</a> (int ilink, int idelay)</td></tr>
+<tr class="memdesc:ac31e7a2d965ce88cca8bf6c592c9365a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the delay for the input link.  <a href="classpflib_1_1Elinks.html#ac31e7a2d965ce88cca8bf6c592c9365a">More...</a><br /></td></tr>
 <tr class="separator:ac31e7a2d965ce88cca8bf6c592c9365a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
 <tr class="memitem:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a1920b9176298e20707113e18879f4a9d" name="a1920b9176298e20707113e18879f4a9d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb, int target)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>, int target)</td></tr>
+<tr class="memdesc:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">simply store pointer to interface and target we will interact with <br /></td></tr>
 <tr class="separator:a1920b9176298e20707113e18879f4a9d inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7054c9d470efedcf527da83740cd2712 inherit pub_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a7054c9d470efedcf527da83740cd2712" name="a7054c9d470efedcf527da83740cd2712"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>target_type</b> ()</td></tr>
@@ -185,25 +192,28 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>firmware_version</b> (
 Private Attributes</h2></td></tr>
 <tr class="memitem:a34553f44027a5f4fcbff176d9d728d63"><td class="memItemLeft" align="right" valign="top"><a id="a34553f44027a5f4fcbff176d9d728d63" name="a34553f44027a5f4fcbff176d9d728d63"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>n_links</b></td></tr>
+<tr class="memdesc:a34553f44027a5f4fcbff176d9d728d63"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of links available, read from chip <br /></td></tr>
 <tr class="separator:a34553f44027a5f4fcbff176d9d728d63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae823751cf2c3bfa7f90b11965d6ecc0b"><td class="memItemLeft" align="right" valign="top"><a id="ae823751cf2c3bfa7f90b11965d6ecc0b" name="ae823751cf2c3bfa7f90b11965d6ecc0b"></a>
 <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_linksActive</b></td></tr>
+<tr class="memdesc:ae823751cf2c3bfa7f90b11965d6ecc0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">which links are "active", set by user <br /></td></tr>
 <tr class="separator:ae823751cf2c3bfa7f90b11965d6ecc0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad85df0ede0ed6d56afd66df811994a47"><td class="memItemLeft" align="right" valign="top"><a id="ad85df0ede0ed6d56afd66df811994a47" name="ad85df0ede0ed6d56afd66df811994a47"></a>
 <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>phaseDelay</b></td></tr>
+<tr class="memdesc:ad85df0ede0ed6d56afd66df811994a47"><td class="mdescLeft">&#160;</td><td class="mdescRight">UNUSED. <br /></td></tr>
 <tr class="separator:ad85df0ede0ed6d56afd66df811994a47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
-<tr class="memitem:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a160125584dbfbfd2b199d282528adb73" name="a160125584dbfbfd2b199d282528adb73"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_write</b> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memitem:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">wb_write</a> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memdesc:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to an address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">More...</a><br /></td></tr>
 <tr class="separator:a160125584dbfbfd2b199d282528adb73 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a47916e3fd8eab488b36bf8258c67b3b5" name="a47916e3fd8eab488b36bf8258c67b3b5"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>wb_read</b> (uint32_t addr)</td></tr>
+<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">wb_read</a> (uint32_t addr)</td></tr>
+<tr class="memdesc:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">More...</a><br /></td></tr>
 <tr class="separator:a47916e3fd8eab488b36bf8258c67b3b5 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="a9f17a8e1461c2d58a855186a2f9d23e4" name="a9f17a8e1461c2d58a855186a2f9d23e4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_rmw</b> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">wb_rmw</a> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memdesc:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the word at the address and then put our data bits into that address using the provided mask.  <a href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">More...</a><br /></td></tr>
 <tr class="separator:a9f17a8e1461c2d58a855186a2f9d23e4 inherit pro_methods_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classpflib_1_1WishboneTarget"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classpflib_1_1WishboneTarget')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classpflib_1_1WishboneTarget.html">pflib::WishboneTarget</a></td></tr>
 <tr class="memitem:acbfa6f17bd7c1bc190b0f266d5d8fa43 inherit pro_attribs_classpflib_1_1WishboneTarget"><td class="memItemLeft" align="right" valign="top"><a id="acbfa6f17bd7c1bc190b0f266d5d8fa43" name="acbfa6f17bd7c1bc190b0f266d5d8fa43"></a>
@@ -215,6 +225,570 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>target_</b></td></tr>
 <tr class="memdesc:a664d86046a02474f2faca03410e8e9f8 inherit pro_attribs_classpflib_1_1WishboneTarget"><td class="mdescLeft">&#160;</td><td class="mdescRight">Target id. <br /></td></tr>
 <tr class="separator:a664d86046a02474f2faca03410e8e9f8 inherit pro_attribs_classpflib_1_1WishboneTarget"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p ><a class="el" href="classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities.">WishboneTarget</a> for configuring the elinks. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa23cd431b8b9d7b775d249d719665804" name="aa23cd431b8b9d7b775d249d719665804"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa23cd431b8b9d7b775d249d719665804">&#9670;&nbsp;</a></span>bigspy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt; pflib::Elinks::bigspy </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Readout the bigspy and return the data. </p>
+<dl class="section return"><dt>Returns</dt><dd>vector of 4-byte words readout from bigspy </dd></dl>
+
+</div>
+</div>
+<a id="a0bd8d0af4353e35d84ca3489fa35e11d" name="a0bd8d0af4353e35d84ca3489fa35e11d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bd8d0af4353e35d84ca3489fa35e11d">&#9670;&nbsp;</a></span>bigspyDone()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool pflib::Elinks::bigspyDone </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check if the current bigspy is done. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if we are done with the bigspy </dd></dl>
+
+</div>
+</div>
+<a id="a99390c36ecea734aa6668a9eec2a70cf" name="a99390c36ecea734aa6668a9eec2a70cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99390c36ecea734aa6668a9eec2a70cf">&#9670;&nbsp;</a></span>clearErrorCounters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::clearErrorCounters </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clear the error counters for the input link. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a483c1d02d983a48d37e3b185771c0356" name="a483c1d02d983a48d37e3b185771c0356"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a483c1d02d983a48d37e3b185771c0356">&#9670;&nbsp;</a></span>getBigspySetup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::getBigspySetup </td>
+          <td>(</td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>presamples</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read the current setup for a bigspy. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">mode</td><td>type of bigspy to setup </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">presamples</td><td>number of presamples </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3e019d9b3b58d45f8ff9dfa7e719e6cb" name="a3e019d9b3b58d45f8ff9dfa7e719e6cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e019d9b3b58d45f8ff9dfa7e719e6cb">&#9670;&nbsp;</a></span>getBitslip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::Elinks::getBitslip </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the bitslip value for a given link. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value of bitslip </dd></dl>
+
+</div>
+</div>
+<a id="ab6cc0785c60a141d3ce1c84c0efb5fe8" name="ab6cc0785c60a141d3ce1c84c0efb5fe8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6cc0785c60a141d3ce1c84c0efb5fe8">&#9670;&nbsp;</a></span>getStatusRaw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t pflib::Elinks::getStatusRaw </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the status of the input link. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>encoded 4-bytes of link status </dd></dl>
+
+</div>
+</div>
+<a id="af8049db306a9cb73a61d8687a6643256" name="af8049db306a9cb73a61d8687a6643256"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8049db306a9cb73a61d8687a6643256">&#9670;&nbsp;</a></span>isActive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool pflib::Elinks::isActive </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Check if a link is active. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if link is active, false if invalid index or link is inactive </dd></dl>
+
+</div>
+</div>
+<a id="afea4545d308027e1fcba75649d72601c" name="afea4545d308027e1fcba75649d72601c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afea4545d308027e1fcba75649d72601c">&#9670;&nbsp;</a></span>isBitslipAuto()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool pflib::Elinks::isBitslipAuto </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>check if a link is auto-setting the bitslip </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if auto-setting is enabled </dd></dl>
+
+</div>
+</div>
+<a id="aef93d145b2c250b900d2c357111571cc" name="aef93d145b2c250b900d2c357111571cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef93d145b2c250b900d2c357111571cc">&#9670;&nbsp;</a></span>markActive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::markActive </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>active</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mark a specific link as active (or inactive) depending on input. </p>
+<p >If the passed link index is outside the range of valid links, then this does nothing.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">active</td><td>true if link is active </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a48478b4b37717f22446acc15e206b16c" name="a48478b4b37717f22446acc15e206b16c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48478b4b37717f22446acc15e206b16c">&#9670;&nbsp;</a></span>nlinks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::Elinks::nlinks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the number of links stored in this class. </p>
+<p >This value is read at construction time using the passed <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a> </p>
+
+</div>
+</div>
+<a id="a81f8025eee99a30128e26f19803ed154" name="a81f8025eee99a30128e26f19803ed154"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81f8025eee99a30128e26f19803ed154">&#9670;&nbsp;</a></span>readCounters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::readCounters </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>link</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t &amp;&#160;</td>
+          <td class="paramname"><em>nonidles</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t &amp;&#160;</td>
+          <td class="paramname"><em>resyncs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decode the counters for non-idles and resyncs from the status bytes for the input link. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">link</td><td>link index </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">nonidles</td><td>set to the number of non-idles </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">resyncs</td><td>set to the number or resyncs </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a402f0ad7cd77c48934f7a64302cf0a1d" name="a402f0ad7cd77c48934f7a64302cf0a1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a402f0ad7cd77c48934f7a64302cf0a1d">&#9670;&nbsp;</a></span>scanAlign()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::scanAlign </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>scan the input link attempting to align it </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="acb97cb6e657c85979245d2fa53637f49" name="acb97cb6e657c85979245d2fa53637f49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb97cb6e657c85979245d2fa53637f49">&#9670;&nbsp;</a></span>setBitslip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::setBitslip </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>bitslip</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>set the bitslip value for the link </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bitslip</td><td>value for bitslip </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad6f2c8397a84ba7f3c4424666fe3c604" name="ad6f2c8397a84ba7f3c4424666fe3c604"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6f2c8397a84ba7f3c4424666fe3c604">&#9670;&nbsp;</a></span>setBitslipAuto()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::setBitslipAuto </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>enable auto-setting of bitslip value </p>
+<dl class="section note"><dt>Note</dt><dd>Auto-setting the bitslip value for a link is a firmware-level task which is not well implemented at this time.</dd></dl>
+<p>This overrides any manual setting of the bitslip value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">enable</td><td>true if you want the auto-setting enabled </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac31e7a2d965ce88cca8bf6c592c9365a" name="ac31e7a2d965ce88cca8bf6c592c9365a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac31e7a2d965ce88cca8bf6c592c9365a">&#9670;&nbsp;</a></span>setDelay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::setDelay </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>idelay</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set the delay for the input link. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idelay</td><td>delay to use </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a1639de74827430a000d66c272a7693d2" name="a1639de74827430a000d66c272a7693d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1639de74827430a000d66c272a7693d2">&#9670;&nbsp;</a></span>setupBigspy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::Elinks::setupBigspy </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>presamples</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Prepare for a big spy of the link. </p>
+<h3><a class="anchor" id="autotoc_md16"></a>
+Modes</h3>
+<ul>
+<li>0 -&gt; software</li>
+<li>1 -&gt; L1A</li>
+<li>2 -&gt; Non-idle</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">mode</td><td>type of bigspy to setup </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">presamples</td><td>number of presamples </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8f6eb6f1006d0254afc01672df2dd989" name="a8f6eb6f1006d0254afc01672df2dd989"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f6eb6f1006d0254afc01672df2dd989">&#9670;&nbsp;</a></span>spy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint8_t &gt; pflib::Elinks::spy </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>spy into the passed link </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the bytes retreived from the spy </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pflib/<a class="el" href="Elinks_8h_source.html">Elinks.h</a></li>
 <li>src/pflib/Elinks.cxx</li>

@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -122,22 +122,162 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a3485ccf910a69fbe3a797e7f19d4f7d2">fc_get_setup_calib</a> (int &amp;pulse_len, int &amp;l1a_offset)=0</td></tr>
 <tr class="memdesc:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">calib pulse setup  <a href="classpflib_1_1Backend.html#a3485ccf910a69fbe3a797e7f19d4f7d2">More...</a><br /></td></tr>
 <tr class="separator:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa68181ae889f6fa15a437884ac4d1cb8"><td class="memItemLeft" align="right" valign="top"><a id="aa68181ae889f6fa15a437884ac4d1cb8" name="aa68181ae889f6fa15a437884ac4d1cb8"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_reset</b> ()=0</td></tr>
+<tr class="memitem:aa68181ae889f6fa15a437884ac4d1cb8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#aa68181ae889f6fa15a437884ac4d1cb8">daq_reset</a> ()=0</td></tr>
+<tr class="memdesc:aa68181ae889f6fa15a437884ac4d1cb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the daq buffers  <a href="classpflib_1_1Backend.html#aa68181ae889f6fa15a437884ac4d1cb8">More...</a><br /></td></tr>
 <tr class="separator:aa68181ae889f6fa15a437884ac4d1cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a465eb037e5e923bcc5b3768ab3941a45"><td class="memItemLeft" align="right" valign="top"><a id="a465eb037e5e923bcc5b3768ab3941a45" name="a465eb037e5e923bcc5b3768ab3941a45"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_advance_ptr</b> ()=0</td></tr>
+<tr class="memitem:a465eb037e5e923bcc5b3768ab3941a45"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a465eb037e5e923bcc5b3768ab3941a45">daq_advance_ptr</a> ()=0</td></tr>
+<tr class="memdesc:a465eb037e5e923bcc5b3768ab3941a45"><td class="mdescLeft">&#160;</td><td class="mdescRight">advance the daq pointer along buffer  <a href="classpflib_1_1Backend.html#a465eb037e5e923bcc5b3768ab3941a45">More...</a><br /></td></tr>
 <tr class="separator:a465eb037e5e923bcc5b3768ab3941a45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05aa527454f6b988b259aa39bcb851a1"><td class="memItemLeft" align="right" valign="top"><a id="a05aa527454f6b988b259aa39bcb851a1" name="a05aa527454f6b988b259aa39bcb851a1"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_status</b> (bool &amp;full, bool &amp;empty, int &amp;nevents, int &amp;next_event_size)=0</td></tr>
+<tr class="memitem:a05aa527454f6b988b259aa39bcb851a1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a05aa527454f6b988b259aa39bcb851a1">daq_status</a> (bool &amp;full, bool &amp;empty, int &amp;nevents, int &amp;next_event_size)=0</td></tr>
+<tr class="memdesc:a05aa527454f6b988b259aa39bcb851a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">readout the daq status into the passed variables  <a href="classpflib_1_1Backend.html#a05aa527454f6b988b259aa39bcb851a1">More...</a><br /></td></tr>
 <tr class="separator:a05aa527454f6b988b259aa39bcb851a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a014bda682c81f80878ab1c60a019dee6"><td class="memItemLeft" align="right" valign="top"><a id="a014bda682c81f80878ab1c60a019dee6" name="a014bda682c81f80878ab1c60a019dee6"></a>
-virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>daq_read_event</b> ()=0</td></tr>
+<tr class="memitem:a014bda682c81f80878ab1c60a019dee6"><td class="memItemLeft" align="right" valign="top">virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a014bda682c81f80878ab1c60a019dee6">daq_read_event</a> ()=0</td></tr>
+<tr class="memdesc:a014bda682c81f80878ab1c60a019dee6"><td class="mdescLeft">&#160;</td><td class="mdescRight">read the aquired event and return it  <a href="classpflib_1_1Backend.html#a014bda682c81f80878ab1c60a019dee6">More...</a><br /></td></tr>
 <tr class="separator:a014bda682c81f80878ab1c60a019dee6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Abstract interface for various backend manipulations. </p>
+<p >All backend communication methods need to implement these functions. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a465eb037e5e923bcc5b3768ab3941a45" name="a465eb037e5e923bcc5b3768ab3941a45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a465eb037e5e923bcc5b3768ab3941a45">&#9670;&nbsp;</a></span>daq_advance_ptr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::daq_advance_ptr </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>advance the daq pointer along buffer </p>
+
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a05ee09a07285b6a2c163b05ee3bff151">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a39e5aceababcdea7e1c49d26a6102e55">pflib::uhal::uhalWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="a014bda682c81f80878ab1c60a019dee6" name="a014bda682c81f80878ab1c60a019dee6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a014bda682c81f80878ab1c60a019dee6">&#9670;&nbsp;</a></span>daq_read_event()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt; pflib::Backend::daq_read_event </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>read the aquired event and return it </p>
+
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae6d505a96712b012cf05a58dcfb42953">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#ad9edca31c690e6a0927dd2d8e5854d46">pflib::uhal::uhalWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="aa68181ae889f6fa15a437884ac4d1cb8" name="aa68181ae889f6fa15a437884ac4d1cb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa68181ae889f6fa15a437884ac4d1cb8">&#9670;&nbsp;</a></span>daq_reset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::daq_reset </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>reset the daq buffers </p>
+
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac1416b373a8a83fb16f5bf54eff1f99f">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a472b84e1a2ad2fdfcde56225181933ed">pflib::uhal::uhalWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="a05aa527454f6b988b259aa39bcb851a1" name="a05aa527454f6b988b259aa39bcb851a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05aa527454f6b988b259aa39bcb851a1">&#9670;&nbsp;</a></span>daq_status()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::daq_status </td>
+          <td>(</td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>full</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>empty</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>nevents</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>next_event_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>readout the daq status into the passed variables </p>
+
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aacc5df41cf76b03439e4af74666d11a9">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a82aefd160879866b95ed2b00b2214ce9">pflib::uhal::uhalWishboneInterface</a>.</p>
+
+</div>
+</div>
 <a id="a7a9ae981be4295656bae46191d98ba12" name="a7a9ae981be4295656bae46191d98ba12"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a9ae981be4295656bae46191d98ba12">&#9670;&nbsp;</a></span>fc_bufferclear()</h2>
 

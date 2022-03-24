@@ -1,7 +1,11 @@
 var classpflib_1_1rogue_1_1RogueWishboneInterface =
 [
     [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a853d61ec2fb07f865c6a4ff98b9272dc", null ],
+    [ "daq_advance_ptr", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a05ee09a07285b6a2c163b05ee3bff151", null ],
     [ "daq_dma_enable", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac85c778b969c8b091fd191bd1ec93ac1", null ],
+    [ "daq_read_event", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae6d505a96712b012cf05a58dcfb42953", null ],
+    [ "daq_reset", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac1416b373a8a83fb16f5bf54eff1f99f", null ],
+    [ "daq_status", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#aacc5df41cf76b03439e4af74666d11a9", null ],
     [ "fc_bufferclear", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a29fce73c8607e85a4fc50b17abbfd8bf", null ],
     [ "fc_calibpulse", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a1b4dd10863c08723eafc10513acd96e2", null ],
     [ "fc_get_setup_calib", "classpflib_1_1rogue_1_1RogueWishboneInterface.html#a38c64a9d2c29221c081f16a17c4fe7fe", null ],

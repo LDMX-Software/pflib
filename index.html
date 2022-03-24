@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -88,7 +88,17 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><a class="anchor" id="md_README"></a> The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends. The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.</p>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md21"></a>
+Quickstart</h1>
+<p >We assume you have the YAML parser yaml-cpp and at least one of the communication methods below installed. </p><div class="fragment"><div class="line">git clone https://github.com/LDMX-Software/pflib.git</div>
+<div class="line">cd pflib</div>
+<div class="line">git tag # see tags, pick latest</div>
+<div class="line">git checkout v1.11 # or whatever is latest</div>
+<div class="line">cmake -B build -S . # may need to provide paths to dependencies</div>
+<div class="line">cd build</div>
+<div class="line">make</div>
+<div class="line">./pftool -h # print help</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md22"></a>
 YAML-&gt;Register "Compilation"</h1>
 <p >The more detailed documentation for this compilation can be found in the <a class="el" href="Compile_8h.html" title="Definition of compiling and decompiling functions between page numbers, register numbers,...">pflib/Compile.h</a> file. The <a href="ASIC_parameters_HGCROC_for_SiPM.pdf">HGCROC Manual</a> is also a decent reference since that is where most of the parameter names are pulled from.</p>
 <p >Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> which is very light and easy to install.</p>
@@ -102,25 +112,78 @@ YAML-&gt;Register "Compilation"</h1>
 <div class="line">cmake -B build -S . -DYAML_BUILD_SHARED_LIBS=ON</div>
 <div class="line">cd build</div>
 <div class="line">make install</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md21"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md23"></a>
 Communication Method</h1>
 <p >This software can communicate with the polarfire using two different methods. At least one is required to be available in order for the library to be built.</p>
-<h2><a class="anchor" id="autotoc_md22"></a>
-Rogue 5.9.3</h2>
+<h2><a class="anchor" id="autotoc_md24"></a>
+Rogue</h2>
 <ul>
 <li><a href="https://slaclab.github.io/rogue/index.html">Documentation</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/anaconda.html">Installng Rogue with Anaconda</a></li>
 <li><a href="https://slaclab.github.io/rogue/installing/build.html#archlinux">Installing Rogue on Archlinux</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md25"></a>
 uHal</h2>
 <ul>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/installation.html">Installation Docs</a></li>
 <li><a href="https://ipbus.web.cern.ch/doc/user/html/software/index.html">General uHAL Docs</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 Other Dependencies</h1>
-<p >Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the <code>pftool</code>. This effectively restricts us to relatively new Linux systems; however, we haven't tested this library on are large set of potentional options. </p>
+<p >Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the <code>pftool</code>. This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.</p>
+<h2><a class="anchor" id="autotoc_md27"></a>
+UMN Setup</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Layer   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">OS   </td><td class="markdownTableBodyNone">CentOS Stream 8    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">gcc   </td><td class="markdownTableBodyNone">8.5.0    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">cmake   </td><td class="markdownTableBodyNone">3.20.2    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">yaml-cpp   </td><td class="markdownTableBodyNone">0.7.0    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">readline   </td><td class="markdownTableBodyNone">7.0    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Rogue   </td><td class="markdownTableBodyNone">5.11.1    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">uHAL   </td><td class="markdownTableBodyNone">2.8.1   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md28"></a>
+Lund Setup</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Layer   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">OS   </td><td class="markdownTableBodyNone">openSUSE Leap 15.3    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">gcc   </td><td class="markdownTableBodyNone">7.5.0    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">cmake   </td><td class="markdownTableBodyNone">3.17.0    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">yaml-cpp   </td><td class="markdownTableBodyNone">0.7.0    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">readline   </td><td class="markdownTableBodyNone">7.0    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Rogue   </td><td class="markdownTableBodyNone">NA    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">uHAL   </td><td class="markdownTableBodyNone">2.8.1   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md29"></a>
+CERN Setup</h2>
+<p >TBD</p>
+<h1><a class="anchor" id="autotoc_md30"></a>
+Directory Structure</h1>
+<ul>
+<li>config : helpful HGC ROC YAML parameter settings to load onto chips</li>
+<li>docs : documentation generation and helpful PDF manuals</li>
+<li>include : header files</li>
+<li>src : implementation files</li>
+<li>tool : executables and supporting source files</li>
+<li>uhal : XML files used for configuring uHAL connection </li>
+</ul>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->

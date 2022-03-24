@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['sipm_5f_0',['sipm_',['../classpflib_1_1Bias.html#aae8ac8c03340c9f758dbd1f768fd6198',1,'pflib::Bias']]],
-  ['sub_5fmenu_5f_1',['sub_menu_',['../classMenu_1_1Line.html#aa8e9e8e9ee487f91f11fdcf91da81702',1,'Menu::Line']]]
+  ['reference_5fvoltage_5flut_0',['REFERENCE_VOLTAGE_LUT',['../namespacepflib.html#a0822b2d2201fcedc9e125fcf3e3a69d3',1,'pflib']]],
+  ['reg_1',['reg',['../structpflib_1_1RegisterLocation.html#a4200a3a0147ae36a997297b371ab1048',1,'pflib::RegisterLocation']]],
+  ['registers_2',['registers',['../structpflib_1_1Parameter.html#a357592f1da9a40f91dabda7a2ef73b51',1,'pflib::Parameter']]],
+  ['render_5ffunc_5f_3',['render_func_',['../classMenu.html#a7e732734c8a16031eae04b4003700514',1,'Menu']]]
 ];

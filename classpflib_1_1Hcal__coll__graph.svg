@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
-<g id="a_node1"><a xlink:title="Class representing a standard HCAL motherboard.">
+<g id="a_node1"><a xlink:title="representing a standard HCAL motherboard">
 <polygon fill="#bfbfbf" stroke="black" points="589,-92.5 589,-111.5 654,-111.5 654,-92.5 589,-92.5"/>
 <text text-anchor="middle" x="621.5" y="-99.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::Hcal</text>
 </a>
@@ -52,7 +52,7 @@
 <!-- Node8 -->
 <g id="node8" class="node">
 <title>Node8</title>
-<g id="a_node8"><a xlink:href="classpflib_1_1DAQ.html" target="_top" xlink:title=" ">
+<g id="a_node8"><a xlink:href="classpflib_1_1DAQ.html" target="_top" xlink:title="Interface with DAQ via a WishboneInterface.">
 <polygon fill="none" stroke="black" points="334,-0.5 334,-19.5 399,-19.5 399,-0.5 334,-0.5"/>
 <text text-anchor="middle" x="366.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::DAQ</text>
 </a>
@@ -68,7 +68,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="classpflib_1_1GPIO.html" target="_top" xlink:title="Class which encapsulates the GPIO controller in the Polarfire.">
+<g id="a_node3"><a xlink:href="classpflib_1_1GPIO.html" target="_top" xlink:title="Representation of GPIO controller in the Polarfire.">
 <polygon fill="none" stroke="black" points="432,-150.5 432,-169.5 500,-169.5 500,-150.5 432,-150.5"/>
 <text text-anchor="middle" x="466" y="-157.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::GPIO</text>
 </a>
@@ -105,7 +105,7 @@
 <!-- Node6 -->
 <g id="node6" class="node">
 <title>Node6</title>
-<g id="a_node6"><a xlink:href="classpflib_1_1Elinks.html" target="_top" xlink:title=" ">
+<g id="a_node6"><a xlink:href="classpflib_1_1Elinks.html" target="_top" xlink:title="WishboneTarget for configuring the elinks.">
 <polygon fill="none" stroke="black" points="429.5,-74.5 429.5,-93.5 502.5,-93.5 502.5,-74.5 429.5,-74.5"/>
 <text text-anchor="middle" x="466" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::Elinks</text>
 </a>
@@ -120,7 +120,7 @@
 <!-- Node7 -->
 <g id="node7" class="node">
 <title>Node7</title>
-<g id="a_node7"><a xlink:href="classpflib_1_1FastControl.html" target="_top" xlink:title="Class which encapsulates the FastControl controller in the Polarfire.">
+<g id="a_node7"><a xlink:href="classpflib_1_1FastControl.html" target="_top" xlink:title="Representation of FastControl controller in the Polarfire.">
 <polygon fill="none" stroke="black" points="417,-36.5 417,-55.5 515,-55.5 515,-36.5 417,-36.5"/>
 <text text-anchor="middle" x="466" y="-43.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::FastControl</text>
 </a>

@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -113,7 +113,8 @@ Collaboration diagram for pflib::WishboneTarget:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1920b9176298e20707113e18879f4a9d"><td class="memItemLeft" align="right" valign="top"><a id="a1920b9176298e20707113e18879f4a9d" name="a1920b9176298e20707113e18879f4a9d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *wb, int target)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WishboneTarget</b> (<a class="el" href="classpflib_1_1WishboneInterface.html">WishboneInterface</a> *<a class="el" href="pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274">wb</a>, int target)</td></tr>
+<tr class="memdesc:a1920b9176298e20707113e18879f4a9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">simply store pointer to interface and target we will interact with <br /></td></tr>
 <tr class="separator:a1920b9176298e20707113e18879f4a9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7054c9d470efedcf527da83740cd2712"><td class="memItemLeft" align="right" valign="top"><a id="a7054c9d470efedcf527da83740cd2712" name="a7054c9d470efedcf527da83740cd2712"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>target_type</b> ()</td></tr>
@@ -130,14 +131,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>firmware_version</b> (
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a160125584dbfbfd2b199d282528adb73"><td class="memItemLeft" align="right" valign="top"><a id="a160125584dbfbfd2b199d282528adb73" name="a160125584dbfbfd2b199d282528adb73"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_write</b> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memitem:a160125584dbfbfd2b199d282528adb73"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">wb_write</a> (uint32_t addr, uint32_t data)</td></tr>
+<tr class="memdesc:a160125584dbfbfd2b199d282528adb73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to an address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a160125584dbfbfd2b199d282528adb73">More...</a><br /></td></tr>
 <tr class="separator:a160125584dbfbfd2b199d282528adb73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5"><td class="memItemLeft" align="right" valign="top"><a id="a47916e3fd8eab488b36bf8258c67b3b5" name="a47916e3fd8eab488b36bf8258c67b3b5"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>wb_read</b> (uint32_t addr)</td></tr>
+<tr class="memitem:a47916e3fd8eab488b36bf8258c67b3b5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">wb_read</a> (uint32_t addr)</td></tr>
+<tr class="memdesc:a47916e3fd8eab488b36bf8258c67b3b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from address on the target stored within us.  <a href="classpflib_1_1WishboneTarget.html#a47916e3fd8eab488b36bf8258c67b3b5">More...</a><br /></td></tr>
 <tr class="separator:a47916e3fd8eab488b36bf8258c67b3b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4"><td class="memItemLeft" align="right" valign="top"><a id="a9f17a8e1461c2d58a855186a2f9d23e4" name="a9f17a8e1461c2d58a855186a2f9d23e4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>wb_rmw</b> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memitem:a9f17a8e1461c2d58a855186a2f9d23e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">wb_rmw</a> (uint32_t addr, uint32_t data, uint32_t mask)</td></tr>
+<tr class="memdesc:a9f17a8e1461c2d58a855186a2f9d23e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the word at the address and then put our data bits into that address using the provided mask.  <a href="classpflib_1_1WishboneTarget.html#a9f17a8e1461c2d58a855186a2f9d23e4">More...</a><br /></td></tr>
 <tr class="separator:a9f17a8e1461c2d58a855186a2f9d23e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
@@ -153,7 +154,143 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>target_</b></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Parent class for standard wishbone targets providing some utilities. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+<p >Simply wrap the wishbone target integer so that we can call addr/data read/writes without having to always provide the target. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a47916e3fd8eab488b36bf8258c67b3b5" name="a47916e3fd8eab488b36bf8258c67b3b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47916e3fd8eab488b36bf8258c67b3b5">&#9670;&nbsp;</a></span>wb_read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t pflib::WishboneTarget::wb_read </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>addr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read data from address on the target stored within us. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classpflib_1_1WishboneInterface.html#a4c3d1c072f361d87ffa208fc27742164" title="read a 32-bit word from the given target and address">WishboneInterface::wb_read</a> for reading via interface</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">addr</td><td>address of data to read </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>data word at that address </dd></dl>
+
+</div>
+</div>
+<a id="a9f17a8e1461c2d58a855186a2f9d23e4" name="a9f17a8e1461c2d58a855186a2f9d23e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f17a8e1461c2d58a855186a2f9d23e4">&#9670;&nbsp;</a></span>wb_rmw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::WishboneTarget::wb_rmw </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>addr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>mask</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read the word at the address and then put our data bits into that address using the provided mask. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">addr</td><td>address to insert data into </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>data we want to put </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mask</td><td>mask for data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a160125584dbfbfd2b199d282528adb73" name="a160125584dbfbfd2b199d282528adb73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a160125584dbfbfd2b199d282528adb73">&#9670;&nbsp;</a></span>wb_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::WishboneTarget::wb_write </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>addr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write data to an address on the target stored within us. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classpflib_1_1WishboneInterface.html#a0f6a2bba304929fffde062a33168c387" title="write a 32-bit word to the given target and address">WishboneInterface::wb_write</a> for writing data via interface</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">addr</td><td>address of data to write </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>data to write </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pflib/<a class="el" href="WishboneTarget_8h_source.html">WishboneTarget.h</a></li>
 <li>src/pflib/WishboneTarget.cxx</li>
 </ul>

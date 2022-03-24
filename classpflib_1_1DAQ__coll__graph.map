@@ -1,4 +1,4 @@
 <map id="pflib::DAQ" name="pflib::DAQ">
-<area shape="rect" id="node1" title=" " alt="" coords="52,95,139,121"/>
+<area shape="rect" id="node1" title="Interface with DAQ via a WishboneInterface." alt="" coords="52,95,139,121"/>
 <area shape="rect" id="node2" href="$classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib." alt="" coords="5,5,185,32"/>
 </map>

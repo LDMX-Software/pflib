@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.11-11-g2b21423</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -87,7 +87,7 @@ $(document).ready(function(){initNavTree('classpflib_1_1WishboneInterface.html',
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classpflib_1_1WishboneInterface-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">pflib::WishboneInterface Class Reference</div></div>
+  <div class="headertitle"><div class="title">pflib::WishboneInterface Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -104,28 +104,28 @@ Inheritance diagram for pflib::WishboneInterface:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af1df03def7fc301641368dd62d62ea00"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#af1df03def7fc301641368dd62d62ea00">wb_write</a> (int target, uint32_t addr, uint32_t data)</td></tr>
-<tr class="memdesc:af1df03def7fc301641368dd62d62ea00"><td class="mdescLeft">&#160;</td><td class="mdescRight">write a 32-bit word to the given target and address  <a href="classpflib_1_1WishboneInterface.html#af1df03def7fc301641368dd62d62ea00">More...</a><br /></td></tr>
-<tr class="separator:af1df03def7fc301641368dd62d62ea00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64600b920191acdd8c45531ecd1c1065"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a64600b920191acdd8c45531ecd1c1065">wb_read</a> (int target, uint32_t addr)</td></tr>
-<tr class="memdesc:a64600b920191acdd8c45531ecd1c1065"><td class="mdescLeft">&#160;</td><td class="mdescRight">read a 32-bit word from the given target and address  <a href="classpflib_1_1WishboneInterface.html#a64600b920191acdd8c45531ecd1c1065">More...</a><br /></td></tr>
-<tr class="separator:a64600b920191acdd8c45531ecd1c1065"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a308aaa61c46615886e9f79b93db43ac4"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a308aaa61c46615886e9f79b93db43ac4">wb_reset</a> ()</td></tr>
-<tr class="memdesc:a308aaa61c46615886e9f79b93db43ac4"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the wishbone bus (on/off cycle)  <a href="classpflib_1_1WishboneInterface.html#a308aaa61c46615886e9f79b93db43ac4">More...</a><br /></td></tr>
-<tr class="separator:a308aaa61c46615886e9f79b93db43ac4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86e38992f56f4eb3e8f55e4a0269b4e4"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a86e38992f56f4eb3e8f55e4a0269b4e4">wb_errors</a> (uint32_t &amp;crcup_errors, uint32_t &amp;crcdn_errors, uint32_t &amp;wb_errors)</td></tr>
-<tr class="memdesc:a86e38992f56f4eb3e8f55e4a0269b4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the monitoring counters crcup_errors &ndash; CRC errors observed on the uplink (wraps) crcdn_errors &ndash; CRC errors from the downlink reported on the uplink (wraps) wb_errors &ndash; Wishbone errors indicated by the Polarfire.  <a href="classpflib_1_1WishboneInterface.html#a86e38992f56f4eb3e8f55e4a0269b4e4">More...</a><br /></td></tr>
-<tr class="separator:a86e38992f56f4eb3e8f55e4a0269b4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4331194670dc8c6558df5bfe4e3d4584"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a4331194670dc8c6558df5bfe4e3d4584">wb_clear_counters</a> ()</td></tr>
-<tr class="memdesc:a4331194670dc8c6558df5bfe4e3d4584"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear the monitoring counters.  <a href="classpflib_1_1WishboneInterface.html#a4331194670dc8c6558df5bfe4e3d4584">More...</a><br /></td></tr>
-<tr class="separator:a4331194670dc8c6558df5bfe4e3d4584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f6a2bba304929fffde062a33168c387"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a0f6a2bba304929fffde062a33168c387">wb_write</a> (int target, uint32_t addr, uint32_t data)=0</td></tr>
+<tr class="memdesc:a0f6a2bba304929fffde062a33168c387"><td class="mdescLeft">&#160;</td><td class="mdescRight">write a 32-bit word to the given target and address  <a href="classpflib_1_1WishboneInterface.html#a0f6a2bba304929fffde062a33168c387">More...</a><br /></td></tr>
+<tr class="separator:a0f6a2bba304929fffde062a33168c387"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c3d1c072f361d87ffa208fc27742164"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a4c3d1c072f361d87ffa208fc27742164">wb_read</a> (int target, uint32_t addr)=0</td></tr>
+<tr class="memdesc:a4c3d1c072f361d87ffa208fc27742164"><td class="mdescLeft">&#160;</td><td class="mdescRight">read a 32-bit word from the given target and address  <a href="classpflib_1_1WishboneInterface.html#a4c3d1c072f361d87ffa208fc27742164">More...</a><br /></td></tr>
+<tr class="separator:a4c3d1c072f361d87ffa208fc27742164"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae01c2a5b3433cbb576e22bc9c75f3686"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#ae01c2a5b3433cbb576e22bc9c75f3686">wb_reset</a> ()=0</td></tr>
+<tr class="memdesc:ae01c2a5b3433cbb576e22bc9c75f3686"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the wishbone bus (on/off cycle)  <a href="classpflib_1_1WishboneInterface.html#ae01c2a5b3433cbb576e22bc9c75f3686">More...</a><br /></td></tr>
+<tr class="separator:ae01c2a5b3433cbb576e22bc9c75f3686"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad99b00d65ce1daa85e65b9dc70ce16be"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#ad99b00d65ce1daa85e65b9dc70ce16be">wb_errors</a> (uint32_t &amp;crcup_errors, uint32_t &amp;crcdn_errors, uint32_t &amp;wb_errors)=0</td></tr>
+<tr class="memdesc:ad99b00d65ce1daa85e65b9dc70ce16be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the monitoring counters crcup_errors &ndash; CRC errors observed on the uplink (wraps) crcdn_errors &ndash; CRC errors from the downlink reported on the uplink (wraps) wb_errors &ndash; Wishbone errors indicated by the Polarfire.  <a href="classpflib_1_1WishboneInterface.html#ad99b00d65ce1daa85e65b9dc70ce16be">More...</a><br /></td></tr>
+<tr class="separator:ad99b00d65ce1daa85e65b9dc70ce16be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f10b1f676207d88b0011c89d98ee79f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1WishboneInterface.html#a7f10b1f676207d88b0011c89d98ee79f">wb_clear_counters</a> ()=0</td></tr>
+<tr class="memdesc:a7f10b1f676207d88b0011c89d98ee79f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear the monitoring counters.  <a href="classpflib_1_1WishboneInterface.html#a7f10b1f676207d88b0011c89d98ee79f">More...</a><br /></td></tr>
+<tr class="separator:a7f10b1f676207d88b0011c89d98ee79f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Abstract interface for wishbone transactions, used by ~all classes in pflib. </p>
-<p >Perfectly C++ abstract base classes are very difficult to bind to python, so we simply define the base class to have nothing happen in all of these functions. </p>
+<p >This defines the necessary functions that communications methods need to implement. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a4331194670dc8c6558df5bfe4e3d4584" name="a4331194670dc8c6558df5bfe4e3d4584"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4331194670dc8c6558df5bfe4e3d4584">&#9670;&nbsp;</a></span>wb_clear_counters()</h2>
+<a id="a7f10b1f676207d88b0011c89d98ee79f" name="a7f10b1f676207d88b0011c89d98ee79f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f10b1f676207d88b0011c89d98ee79f">&#9670;&nbsp;</a></span>wb_clear_counters()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -142,19 +142,19 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p>Clear the monitoring counters. </p>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a83e05d585fcf22cda4a02e13e56d833d">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#adcaa8ab5c2a865b9a3b17c326a05df0b">pflib::uhal::uhalWishboneInterface</a>.</p>
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a83e05d585fcf22cda4a02e13e56d833d">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#adcaa8ab5c2a865b9a3b17c326a05df0b">pflib::uhal::uhalWishboneInterface</a>.</p>
 
 </div>
 </div>
-<a id="a86e38992f56f4eb3e8f55e4a0269b4e4" name="a86e38992f56f4eb3e8f55e4a0269b4e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a86e38992f56f4eb3e8f55e4a0269b4e4">&#9670;&nbsp;</a></span>wb_errors()</h2>
+<a id="ad99b00d65ce1daa85e65b9dc70ce16be" name="ad99b00d65ce1daa85e65b9dc70ce16be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad99b00d65ce1daa85e65b9dc70ce16be">&#9670;&nbsp;</a></span>wb_errors()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,19 +188,19 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p>Read the monitoring counters crcup_errors &ndash; CRC errors observed on the uplink (wraps) crcdn_errors &ndash; CRC errors from the downlink reported on the uplink (wraps) wb_errors &ndash; Wishbone errors indicated by the Polarfire. </p>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a448d5c52bbca7a2e5a728cae8edc2046">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#aaaeacc96bba71433be417de276959049">pflib::uhal::uhalWishboneInterface</a>.</p>
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a448d5c52bbca7a2e5a728cae8edc2046">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#aaaeacc96bba71433be417de276959049">pflib::uhal::uhalWishboneInterface</a>.</p>
 
 </div>
 </div>
-<a id="a64600b920191acdd8c45531ecd1c1065" name="a64600b920191acdd8c45531ecd1c1065"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64600b920191acdd8c45531ecd1c1065">&#9670;&nbsp;</a></span>wb_read()</h2>
+<a id="a4c3d1c072f361d87ffa208fc27742164" name="a4c3d1c072f361d87ffa208fc27742164"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c3d1c072f361d87ffa208fc27742164">&#9670;&nbsp;</a></span>wb_read()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -228,7 +228,7 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -241,12 +241,12 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a9e4ed52d9da705568d9ee6c70c1a0182">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a5edff040f6744d872fd7eece2c322414">pflib::uhal::uhalWishboneInterface</a>.</p>
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a9e4ed52d9da705568d9ee6c70c1a0182">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a5edff040f6744d872fd7eece2c322414">pflib::uhal::uhalWishboneInterface</a>.</p>
 
 </div>
 </div>
-<a id="a308aaa61c46615886e9f79b93db43ac4" name="a308aaa61c46615886e9f79b93db43ac4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a308aaa61c46615886e9f79b93db43ac4">&#9670;&nbsp;</a></span>wb_reset()</h2>
+<a id="ae01c2a5b3433cbb576e22bc9c75f3686" name="ae01c2a5b3433cbb576e22bc9c75f3686"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae01c2a5b3433cbb576e22bc9c75f3686">&#9670;&nbsp;</a></span>wb_reset()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -263,19 +263,19 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 <p>reset the wishbone bus (on/off cycle) </p>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a248091c9a9dfb143b607aabe56287127">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a92fa08988ee6b11cb77e2f9c16e0a73f">pflib::uhal::uhalWishboneInterface</a>.</p>
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#a248091c9a9dfb143b607aabe56287127">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a92fa08988ee6b11cb77e2f9c16e0a73f">pflib::uhal::uhalWishboneInterface</a>.</p>
 
 </div>
 </div>
-<a id="af1df03def7fc301641368dd62d62ea00" name="af1df03def7fc301641368dd62d62ea00"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1df03def7fc301641368dd62d62ea00">&#9670;&nbsp;</a></span>wb_write()</h2>
+<a id="a0f6a2bba304929fffde062a33168c387" name="a0f6a2bba304929fffde062a33168c387"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f6a2bba304929fffde062a33168c387">&#9670;&nbsp;</a></span>wb_write()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -309,7 +309,7 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -322,7 +322,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#abfee0fdd06b2e525d1b4a738eea29a20">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#aabb4c4f1318b40fec67e5e76a7fae3e2">pflib::uhal::uhalWishboneInterface</a>.</p>
+<p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#abfee0fdd06b2e525d1b4a738eea29a20">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#aabb4c4f1318b40fec67e5e76a7fae3e2">pflib::uhal::uhalWishboneInterface</a>.</p>
 
 </div>
 </div>

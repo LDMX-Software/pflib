@@ -25,12 +25,18 @@
 var NAVTREE =
 [
   [ "pflib", "index.html", [
-    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md20", null ],
-    [ "Communication Method", "index.html#autotoc_md21", [
-      [ "Rogue 5.9.3", "index.html#autotoc_md22", null ],
-      [ "uHal", "index.html#autotoc_md23", null ]
+    [ "Quickstart", "index.html#autotoc_md21", null ],
+    [ "YAML->Register \"Compilation\"", "index.html#autotoc_md22", null ],
+    [ "Communication Method", "index.html#autotoc_md23", [
+      [ "Rogue", "index.html#autotoc_md24", null ],
+      [ "uHal", "index.html#autotoc_md25", null ]
     ] ],
-    [ "Other Dependencies", "index.html#autotoc_md24", null ],
+    [ "Other Dependencies", "index.html#autotoc_md26", [
+      [ "UMN Setup", "index.html#autotoc_md27", null ],
+      [ "Lund Setup", "index.html#autotoc_md28", null ],
+      [ "CERN Setup", "index.html#autotoc_md29", null ]
+    ] ],
+    [ "Directory Structure", "index.html#autotoc_md30", null ],
     [ "Doxygen Awesome", "md_docs_doxygen_awesome_css_README.html", [
       [ "Motivation", "md_docs_doxygen_awesome_css_README.html#autotoc_md1", null ],
       [ "Features", "md_docs_doxygen_awesome_css_README.html#autotoc_md2", null ],
@@ -52,17 +58,17 @@ var NAVTREE =
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md26", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md31", [
-        [ "daq.status", "md_tool_README.html#autotoc_md32", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md33", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md34", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md35", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md36", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md37", null ],
-        [ "roc.resyncload", "md_tool_README.html#autotoc_md38", null ],
-        [ "fast_control.calib", "md_tool_README.html#autotoc_md39", null ],
-        [ "fast_control.status", "md_tool_README.html#autotoc_md40", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md40", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md45", [
+        [ "daq.status", "md_tool_README.html#autotoc_md46", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md47", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md48", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md49", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md50", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md51", null ],
+        [ "roc.resyncload", "md_tool_README.html#autotoc_md52", null ],
+        [ "fast_control.calib", "md_tool_README.html#autotoc_md53", null ],
+        [ "fast_control.status", "md_tool_README.html#autotoc_md54", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
@@ -70,7 +76,8 @@ var NAVTREE =
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", null ],
         [ "Functions", "namespacemembers_func.html", null ],
-        [ "Variables", "namespacemembers_vars.html", null ]
+        [ "Variables", "namespacemembers_vars.html", null ],
+        [ "Enumerations", "namespacemembers_enum.html", null ]
       ] ]
     ] ],
     [ "Classes", "annotated.html", [
@@ -78,14 +85,19 @@ var NAVTREE =
       [ "Class Index", "classes.html", null ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", null ],
+        [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ],
         [ "Typedefs", "functions_type.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ]
+      [ "File List", "files.html", "files_dup" ],
+      [ "File Members", "globals.html", [
+        [ "All", "globals.html", null ],
+        [ "Functions", "globals_func.html", null ],
+        [ "Variables", "globals_vars.html", null ]
+      ] ]
     ] ]
   ] ]
 ];
@@ -93,10 +105,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1MAX5825.html#a2cf672230d97a93614b74b433dceced5",
-"cpp/io/c/fprintf.html",
-"cpp/string/byte/strerror.html",
-"structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f"
+"classpflib_1_1GPIO.html#abe0be45db723f549db9cb1fe2a4e4673",
+"cpp/algorithm/random_shuffle.html",
+"cpp/numeric/math/erfc.html",
+"functions_w.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
