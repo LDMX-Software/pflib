@@ -1,6 +1,7 @@
 /**
- * @file pftool.cc
- * File defining the pftool menus and their commands.
+ * @file pftool.cc File defining the pftool menus and their commands.
+ *
+ * The commands are written into functions corresponding to the menu's name.
  */
 
 #include <stdio.h>
@@ -1100,8 +1101,6 @@ void prepareOpts(Rcfile& rcfile) {
 }
 
 /**
- * @executable pftool
- *
  * This is the main executable for the pftool.
  *
  * The options are prepared first so their help information
