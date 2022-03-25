@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12-1-g3c268a3</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12-2-g37a906e</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -100,7 +100,7 @@ Quickstart</h1>
 <div class="line">./pftool -h # print help</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md23"></a>
 YAML-&gt;Register "Compilation"</h1>
-<p >The more detailed documentation for this compilation can be found in the <a class="el" href="Compile_8h.html" title="Definition of compiling and decompiling functions between page numbers, register numbers,...">pflib/Compile.h</a> file. The <a href="ASIC_parameters_HGCROC_for_SiPM.pdf">HGCROC Manual</a> is also a decent reference since that is where most of the parameter names are pulled from.</p>
+<p >The more detailed documentation for this compilation can be found in the <a class="el" href="Compile_8h.html" title="Definition of compiling and decompiling functions between page numbers, register numbers,...">pflib/Compile.h</a> file. The <a href="ASIC_parameters_HGCROC_for_SiPM.pdf">HGCROC Manual</a> is also a decent reference since that is where most of the parameter names are pulled from. The documentation of <a href="hgcroc_dataformats.pdf">HGCROC Data Formats</a> is helpful for learning how to decode the raw files.</p>
 <p >Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. I have chosen to use <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> which is very light and easy to install.</p>
 <p ><b>Note</b>: Make sure to build yaml-cpp with the <code>YAML_BUILD_SHARED_LIBS=ON</code> cmake option so that we can link it properly to our code.</p>
 <p >An outline of the terminal commands necessary to install yaml-cpp is given below.</p>
