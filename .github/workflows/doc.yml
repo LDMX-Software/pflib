@@ -3,8 +3,6 @@ name: docs
 
 on:
   push:
-    tags:
-      - '**'
     branches:
       - 'main'
 
@@ -37,7 +35,7 @@ jobs:
         run: ./doxygen docs/doxyfile
       - 
         name: publish generated content
-        uses: tsunematsu21/actions-publish-gh-pages@v1.0.1
+        uses: tsunematsu21/actions-publish-gh-pages@v1.0.2
         with:
           dir: docs/html
           branch: gh-pages
