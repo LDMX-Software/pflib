@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12-2-g37a906e</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.12-5-gea7aed8</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -156,6 +156,28 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad9edca31c690e6a0927dd2d8e5854d46"><td class="memItemLeft" align="right" valign="top">virtual <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#ad9edca31c690e6a0927dd2d8e5854d46">daq_read_event</a> ()</td></tr>
 <tr class="memdesc:ad9edca31c690e6a0927dd2d8e5854d46"><td class="mdescLeft">&#160;</td><td class="mdescRight">read the aquired event and return it  <a href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#ad9edca31c690e6a0927dd2d8e5854d46">More...</a><br /></td></tr>
 <tr class="separator:ad9edca31c690e6a0927dd2d8e5854d46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classpflib_1_1Backend"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpflib_1_1Backend')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpflib_1_1Backend.html">pflib::Backend</a></td></tr>
+<tr class="memitem:a702f1b6ce5f146c7e3c67a2610c8b5b0 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a702f1b6ce5f146c7e3c67a2610c8b5b0">fc_clear_run</a> ()</td></tr>
+<tr class="memdesc:a702f1b6ce5f146c7e3c67a2610c8b5b0 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset counters for a new run  <a href="classpflib_1_1Backend.html#a702f1b6ce5f146c7e3c67a2610c8b5b0">More...</a><br /></td></tr>
+<tr class="separator:a702f1b6ce5f146c7e3c67a2610c8b5b0 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d5d514ae41f300916c28588a5469620 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a4d5d514ae41f300916c28588a5469620">fc_read_counters</a> (int &amp;spill_count, int &amp;header_occ, int &amp;event_count, int &amp;vetoed_counter)</td></tr>
+<tr class="memdesc:a4d5d514ae41f300916c28588a5469620 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">read counters from the FC side  <a href="classpflib_1_1Backend.html#a4d5d514ae41f300916c28588a5469620">More...</a><br /></td></tr>
+<tr class="separator:a4d5d514ae41f300916c28588a5469620 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2192c290f8624622532e1f31e0b4a9f6 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a2192c290f8624622532e1f31e0b4a9f6">fc_enables_read</a> (bool &amp;ext_l1a, bool &amp;ext_spill, bool &amp;timer_l1a)</td></tr>
+<tr class="memdesc:a2192c290f8624622532e1f31e0b4a9f6 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">check the enables for various trigger/spill sources  <a href="classpflib_1_1Backend.html#a2192c290f8624622532e1f31e0b4a9f6">More...</a><br /></td></tr>
+<tr class="separator:a2192c290f8624622532e1f31e0b4a9f6 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a871e6d6582830489256d1b6be14f817a inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a871e6d6582830489256d1b6be14f817a">fc_enables</a> (bool ext_l1a, bool ext_spill, bool timer_l1a)</td></tr>
+<tr class="memdesc:a871e6d6582830489256d1b6be14f817a inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the enables for various trigger/spill sources  <a href="classpflib_1_1Backend.html#a871e6d6582830489256d1b6be14f817a">More...</a><br /></td></tr>
+<tr class="separator:a871e6d6582830489256d1b6be14f817a inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49584d6f2e5e8e5265c559ded554a763 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a49584d6f2e5e8e5265c559ded554a763">fc_timer_setup_read</a> ()</td></tr>
+<tr class="memdesc:a49584d6f2e5e8e5265c559ded554a763 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the period in us for the timer trigger  <a href="classpflib_1_1Backend.html#a49584d6f2e5e8e5265c559ded554a763">More...</a><br /></td></tr>
+<tr class="separator:a49584d6f2e5e8e5265c559ded554a763 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47f46b85b6437051bb5f801e48c62c06 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a47f46b85b6437051bb5f801e48c62c06">fc_timer_setup</a> (int usdelay)</td></tr>
+<tr class="memdesc:a47f46b85b6437051bb5f801e48c62c06 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the period in us for the timer trigger  <a href="classpflib_1_1Backend.html#a47f46b85b6437051bb5f801e48c62c06">More...</a><br /></td></tr>
+<tr class="separator:a47f46b85b6437051bb5f801e48c62c06 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba8e90872f83f48a4f0bd3147e40ab01 inherit pub_methods_classpflib_1_1Backend"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#aba8e90872f83f48a4f0bd3147e40ab01">daq_setup_event_tag</a> (int run, int day, int month, int hour, int min)</td></tr>
+<tr class="memdesc:aba8e90872f83f48a4f0bd3147e40ab01 inherit pub_methods_classpflib_1_1Backend"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the event tagging information.  <a href="classpflib_1_1Backend.html#aba8e90872f83f48a4f0bd3147e40ab01">More...</a><br /></td></tr>
+<tr class="separator:aba8e90872f83f48a4f0bd3147e40ab01 inherit pub_methods_classpflib_1_1Backend"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
