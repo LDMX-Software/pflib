@@ -443,6 +443,10 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->backend->fc_linkreset();
     printf("Sent LINK RESET\n");
   }
+  if (cmd=="RUN_CLEAR") {
+    pft->backend->fc_clear_run();
+    std::cout << "Cleared run counters" << std::endl;
+  }
   if (cmd=="BUFFER_CLEAR") {
     pft->backend->fc_bufferclear();
     printf("Sent BUFFER CLEAR\n");
@@ -491,8 +495,8 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="STATUS" || do_status) {
     static const std::vector<std::string> bit_comments = {
-      "all requests",
-      "read requests",
+      "orbit requests",
+      "l1a/read requests",
       "",
       "",
       "",
@@ -511,7 +515,18 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
-      printf("  Bit %d count: %u %s\n",i,cnt[i],bit_comments.at(i)); 
+      printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i)); 
+    int spill_count, header_occ, event_count,vetoed_counter;
+    pft->backend->fc_read_counters(spill_count, header_occ, event_count, vetoed_counter);
+    printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",spill_count,event_count,header_occ,vetoed_counter);
+  }
+  if (cmd=="ENABLES") {
+    bool ext_l1a, ext_spill, timer_l1a;
+    pft->backend->fc_enables_read(ext_l1a, ext_spill, timer_l1a);
+    ext_l1a=BaseMenu::readline_bool("Enable external L1A? ",ext_l1a);
+    ext_spill=BaseMenu::readline_bool("Enable external spill? ",ext_spill);
+    timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
+    pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
   }
 }
 
@@ -1007,9 +1022,11 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     });
   
   pfMenu menu_link({
+      /*
     pfMenu::Line("STATUS","Dump link status", &link ),
     pfMenu::Line("CONFIG","Setup link", &link ),
     pfMenu::Line("SPY", "Spy on the uplink",  &link ),
+    */
     pfMenu::Line("QUIT","Back to top menu")
     });
   
@@ -1056,10 +1073,12 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("SW_L1A","Send a software L1A", &fc ),
     pfMenu::Line("LINK_RESET","Send a link reset", &fc ),
     pfMenu::Line("BUFFER_CLEAR","Send a buffer clear", &fc ),
+    pfMenu::Line("RUN_CLEAR","Send a run clear", &fc ),
     pfMenu::Line("COUNTER_RESET","Reset counters", &fc ),
     pfMenu::Line("FC_RESET","Reset the fast control", &fc ),
     pfMenu::Line("MULTISAMPLE","Setup multisample readout", &fc ),
     pfMenu::Line("CALIB","Setup calibration pulse", &fc ),
+    pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
     pfMenu::Line("QUIT","Back to top menu")
   });
   
