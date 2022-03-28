@@ -61,8 +61,14 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   virtual void fc_linkreset();
   virtual void fc_bufferclear();
   virtual void fc_calibpulse();
+  virtual void fc_clear_run();
   virtual void fc_setup_calib(int pulse_len, int l1a_offset);
   virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset);
+  virtual void fc_read_counters(int& spill_count, int& header_occ, int& event_count, int& vetoed);
+  virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a);
+  virtual void fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a);
+  virtual int fc_timer_setup_read();
+  virtual void fc_timer_setup(int usdelay);
   
   virtual void daq_reset();
   virtual void daq_advance_ptr();
