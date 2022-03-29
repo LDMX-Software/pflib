@@ -622,6 +622,9 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
 }
 
+
+static std::string last_run_file=".last_run_file";
+
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
  *
@@ -684,6 +687,68 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       fwrite(&(buffer[0]),sizeof(uint32_t),buffer.size(),f);
       fclose(f);
     }
+  }
+  if (cmd=="EXTERNAL") {
+    int run=0;
+
+    FILE* run_no_file=fopen(last_run_file.c_str(),"r");
+    if (run_no_file) {
+      fscanf(run_no_file,"%d",&run);
+      fclose(run_no_file);
+      run=run+1;
+    }
+    
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    struct tm *gmtm = gmtime(&t);
+    
+    run=BaseMenu::readline_int("Run number? ",run);
+
+    char fname_def_format[1024];
+    sprintf(fname_def_format,"run%06d_%%Y%%m%%d_%%H%%M%%S.raw",run);
+    char fname_def[1024];
+    strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
+    
+    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    FILE* f=fopen(fname.c_str(),"w");
+
+    int event_target=BaseMenu::readline_int("Target events? ",1000);
+    pft->backend->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
+
+    // reset various counters
+    pft->prepareNewRun();
+
+    // enable external triggers
+    pft->backend->fc_enables(true,true,false);
+
+    int ievent=0;
+    while (ievent<event_target) {
+
+      bool full, empty;
+      int samples, esize;
+      do {
+        pft->backend->daq_status(full, empty, samples, esize);
+      } while (empty);
+      printf("%d: %d samples waiting for readout...\n",ievent,samples);
+
+      if (f) {
+        std::vector<uint32_t> event = pft->daqReadEvent();
+        fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
+      }
+
+      ievent++;
+    }
+    
+    // disable external triggers
+    pft->backend->fc_enables(false,true,false);
+
+    fclose(f);
+    
+    run_no_file=fopen(last_run_file.c_str(),"w");
+    if (run_no_file) {
+      fprintf(run_no_file,"%d\n",run);
+      fclose(run_no_file);
+    }    
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
@@ -1168,6 +1233,8 @@ void prepareOpts(Rcfile& rcfile) {
       "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
   rcfile.declareString("default_hostname",
       "Hostname of polarfire to connect to if none are given on the command line");
+  rcfile.declareString("runnumber_file",
+                       "Full path to a file which contains the last run number");
 }
 
 /**
@@ -1239,6 +1306,7 @@ int main(int argc, char* argv[]) {
     options.load("pftoolrc");
   if (file_exists(home+"/.pftoolrc"))
     options.load(home+"/.pftoolrc");
+ 
 
   /*****************************************************************************
    * Parse Command Line Parameters
@@ -1353,6 +1421,9 @@ int main(int argc, char* argv[]) {
         return 3;
       }
 
+      if (options.contents().has_key("runnumber_file"))
+        last_run_file=options.contents().getString("runnumber_file");
+      
       if (p_pft) {
       	// prepare the links
       	if (options.contents().is_vector("roclinks")) {	  

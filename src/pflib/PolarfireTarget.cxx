@@ -243,12 +243,14 @@ void PolarfireTarget::prepareNewRun() {
   auto& daq = hcal.daq();
   backend->fc_bufferclear();
   backend->daq_reset();
+  backend->fc_clear_run();
 
   bool enable;
   int extra_samples;
   hcal.fc().getMultisampleSetup(enable,extra_samples);
   samples_per_event_=extra_samples+1;
 
+  
   daq.enable(true);
 }
 
@@ -288,7 +290,7 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
   
   os << "-----Off-detector FIFO-----\n";
   backend->daq_status(full, empty, events,asize);
-  os << " " << std::setw(8) << (full ? "FULL" : "NOT-FULL")
+  os << " " << std::setfill(' ') << std::setw(8) << (full ? "FULL" : "NOT-FULL")
      << " " << std::setw(9) << (empty ? "EMPTY" : "NOT_EMPTY")
      << " Events ready: " << std::setw(3) << events
      << " Next event size: " << asize
