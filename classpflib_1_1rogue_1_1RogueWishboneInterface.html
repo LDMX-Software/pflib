@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v1.13-2-gbaeafc0</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v1.13-16-g274f764</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -189,6 +189,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_get_dma_setup</b>
 <tr class="memitem:af96535d4ccbd14d820c782701b379500"><td class="memItemLeft" align="right" valign="top"><a id="af96535d4ccbd14d820c782701b379500" name="af96535d4ccbd14d820c782701b379500"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_status</b> ()</td></tr>
 <tr class="separator:af96535d4ccbd14d820c782701b379500"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a407f3e4147902be1d64643b1bed3e081"><td class="memItemLeft" align="right" valign="top"><a id="a407f3e4147902be1d64643b1bed3e081" name="a407f3e4147902be1d64643b1bed3e081"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>daq_dma_run</b> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, int run, int nevents, int rate, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;fname)</td></tr>
+<tr class="separator:a407f3e4147902be1d64643b1bed3e081"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -198,6 +201,12 @@ Private Attributes</h2></td></tr>
 <tr class="memitem:a14bc5a167477101c93c131affc4d97f4"><td class="memItemLeft" align="right" valign="top"><a id="a14bc5a167477101c93c131affc4d97f4" name="a14bc5a167477101c93c131affc4d97f4"></a>
 <a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt;::rogue::interfaces::memory::Master &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>intf_</b></td></tr>
 <tr class="separator:a14bc5a167477101c93c131affc4d97f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a464acc0e8f7acc1999cc9806f74c7bc1"><td class="memItemLeft" align="right" valign="top"><a id="a464acc0e8f7acc1999cc9806f74c7bc1" name="a464acc0e8f7acc1999cc9806f74c7bc1"></a>
+<a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt;::rogue::interfaces::stream::TcpClient &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dma_client_</b></td></tr>
+<tr class="separator:a464acc0e8f7acc1999cc9806f74c7bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7469ceb0a76a0bddcd66e152dcd4d19f"><td class="memItemLeft" align="right" valign="top"><a id="a7469ceb0a76a0bddcd66e152dcd4d19f" name="a7469ceb0a76a0bddcd66e152dcd4d19f"></a>
+<a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt;::rogue::utilities::fileio::StreamWriter &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dma_dest_</b></td></tr>
+<tr class="separator:a7469ceb0a76a0bddcd66e152dcd4d19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a05ee09a07285b6a2c163b05ee3bff151" name="a05ee09a07285b6a2c163b05ee3bff151"></a>
