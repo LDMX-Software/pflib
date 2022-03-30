@@ -2,6 +2,9 @@
 #include <rogue/interfaces/memory/Constants.h>
 #include <rogue/interfaces/memory/Master.h>
 #include <rogue/interfaces/memory/TcpClient.h>
+#include <rogue/interfaces/stream/TcpClient.h>
+#include <rogue/utilities/fileio/StreamWriter.h>
+#include <rogue/utilities/fileio/StreamWriterChannel.h>
 
 namespace pflib {
 namespace rogue {
@@ -11,6 +14,11 @@ RogueWishboneInterface::RogueWishboneInterface(const std::string& host, int port
   intf_=::rogue::interfaces::memory::Master::create();
   client_=::rogue::interfaces::memory::TcpClient::create(host,port);
   intf_->setSlave(client_);
+
+  dma_client_ = ::rogue::interfaces::stream::TcpClient::create(host,port+2);
+  dma_dest_ = ::rogue::utilities::fileio::StreamWriter::create();
+  dma_dest_->setBufferSize(10000);
+  dma_client_->addSlave(dma_dest_->getChannel(0));
 
   // initial pump..  why this is needed, I don't understand...
   try {
@@ -23,6 +31,8 @@ RogueWishboneInterface::RogueWishboneInterface(const std::string& host, int port
 RogueWishboneInterface::~RogueWishboneInterface() {
   client_->stop();
   intf_->stop();
+  dma_dest_->close();
+  dma_client_->stop();
 }
 
 void RogueWishboneInterface::wb_write(int target, uint32_t addr, uint32_t data) {
@@ -202,8 +212,10 @@ void RogueWishboneInterface::daq_status(bool& full, bool& empty, int& nevents, i
 }
 std::vector<uint32_t> RogueWishboneInterface::daq_read_event() {
   uint32_t ctl = wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
-  if ((ctl&MAKS_DAQ_DMA_ENABLE)!=0) {
+  if ((ctl&MASK_DAQ_DMA_ENABLE)!=0) {
     // dma readout enabled
+    PFEXCEPTION_RAISE("RogueWishboneInterface",
+        "DMA Readout is enabled, use daq_dma_run rather than daq_read_event directly.");
   } else {
     // non-dma readout 
     uint32_t status=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_STATUS);
@@ -252,5 +264,37 @@ void RogueWishboneInterface::daq_setup_event_tag(int run, int day, int month, in
   wb_write(TARGET_DAQ_BACKEND,REG_RUN_TAG,tag);
 }
 
+void RogueWishboneInterface::daq_dma_run(const std::string& cmd, 
+    int run, int nevents, int rate, const std::string& fname) {
+  time_t t = time(NULL);
+  struct tm *gmtm = gmtime(&t);
+  this->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
+  
+  dma_dest_->open(fname);
+
+  timeval tv0, tvi;
+
+  gettimeofday(&tv0,0);
+
+  for (int i{0}; i < nevents; i++) {
+    if (cmd=="PEDESTAL")
+      fc_sendL1A();
+    if (cmd=="CHARGE")
+      fc_calibpulse();
+
+    gettimeofday(&tvi,0);
+    double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
+    //      double ratenow=(ievt+1)/runsec;
+    double targettime=(i+1.0)/rate; // what I'd like the rate to be
+    int usec_ahead=int((targettime-runsec)*1e6);
+    //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
+    if (usec_ahead>100) { // if we are running fast...
+      usleep(usec_ahead);
+      //        printf("Sleeping %d\n",usec_ahead);
+    }
+  }
+
+  dma_dest_->close();
+}
 }
 }
