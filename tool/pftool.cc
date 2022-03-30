@@ -735,9 +735,12 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     
     pft->prepareNewRun();
 
+#ifdef PFTOOL_ROGUE
     if (dma_enabled) {
       rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
-    } else {
+    } else 
+#endif
+    {
       daq_run(cmd,run,nevents,rate,fname);
     }
   }
@@ -759,9 +762,12 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
     for(int value = minvalue; value <= maxvalue; value += step){
       pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
+#ifdef PFTOOL_ROGUE
       if (dma_enabled) {
         rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
-      } else {
+      } else 
+#endif
+      {
         daq_run(cmd,run,nevents,rate,fname);
       }
     }
