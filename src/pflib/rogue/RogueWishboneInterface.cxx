@@ -284,15 +284,15 @@ void RogueWishboneInterface::daq_dma_run(const std::string& cmd,
 
     gettimeofday(&tvi,0);
     double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
-    //      double ratenow=(ievt+1)/runsec;
     double targettime=(i+1.0)/rate; // what I'd like the rate to be
     int usec_ahead=int((targettime-runsec)*1e6);
-    //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
     if (usec_ahead>100) { // if we are running fast...
       usleep(usec_ahead);
-      //        printf("Sleeping %d\n",usec_ahead);
     }
   }
+
+  // let last packet get to file
+  usleep(100);
 
   dma_dest_->close();
 }
