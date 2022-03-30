@@ -32,10 +32,13 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <argp.h>
+#include <iostream>
 #include <rogue/hardware/drivers/AxisDriver.h>
 #include <rogue/interfaces/stream/Master.h>
 #include <rogue/interfaces/stream/Frame.h>
 #include <rogue/interfaces/stream/FrameIterator.h>
+#include <rogue/utilities/fileio/StreamWriter.h>
+#include <rogue/utilities/fileio/StreamWriterChannel.h>
 
 using namespace std;
 
@@ -98,7 +101,7 @@ class DMASource : public rogue::interfaces::stream::Master {
     return ptr;
   }
   */
-  DMASource(char* dma_device_path, bool use_index = false) 
+  DMASource(const char* dma_device_path, bool use_index = false) 
     : use_index_{use_index},
       rogue::interfaces::stream::Master() {
     if ( (dma_device_handle_ = open(dma_device_path, O_RDWR)) <= 0 ) {
@@ -186,10 +189,25 @@ class DMASource : public rogue::interfaces::stream::Master {
 };
 
 int main (int argc, char **argv) {
-   struct PrgArgs args;
+  struct PrgArgs args;
 
-   memcpy(&args,&DefArgs,sizeof(struct PrgArgs));
-   argp_parse(&argp,argc,argv,0,0,&args);
+  memcpy(&args,&DefArgs,sizeof(struct PrgArgs));
+  argp_parse(&argp,argc,argv,0,0,&args);
 
-   return(0);
+  try {
+    DMASource src(args.path, args.idxEn);
+    if (args.dest) {
+      rogue::utilities::fileio::StreamWriterPtr writer{
+        rogue::utilities::fileio::StreamWriter::create()};
+      writer->setBufferSize(10000);
+      writer->open(args.dest);
+      src.addSlave(writer->getChannel(0));
+    }
+    // enter watching loop
+    src.watch();
+  } catch (const std::exception& e) {
+    std::cerr << "ERROR: " << e.what() << std::endl;
+    return 1;
+  }
+  return 0;
 }
