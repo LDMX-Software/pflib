@@ -713,6 +713,13 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
     
     std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+
+    run_no_file=fopen(last_run_file.c_str(),"w");
+    if (run_no_file) {
+      fprintf(run_no_file,"%d\n",run);
+      fclose(run_no_file);
+    }    
+
     FILE* f=0;
     if (!dma_enabled) f=fopen(fname.c_str(),"w");
 
@@ -772,11 +779,6 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       system(cmd.c_str());
     }
     
-    run_no_file=fopen(last_run_file.c_str(),"w");
-    if (run_no_file) {
-      fprintf(run_no_file,"%d\n",run);
-      fclose(run_no_file);
-    }    
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
