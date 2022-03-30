@@ -50,7 +50,7 @@ struct PrgArgs {
    uint32_t     debug;
 };
 
-static struct PrgArgs DefArgs = { "/dev/axi_stream_dma_0", NULL, -1, 0, 0 };
+static struct PrgArgs DefArgs = { "/dev/axi_stream_dma_0", NULL, 5972, 0, 0 };
 
 static char   args_doc[] = "";
 static char   doc[]      = "";
@@ -58,7 +58,7 @@ static char   doc[]      = "";
 static struct argp_option options[] = {
    { "path",    'p', "PATH",   OPTION_ARG_OPTIONAL, "Path of pgpcard device to use. Default=/dev/axi_stream_dma_0.",0},
    { "dest",    'd', "PATH",   OPTION_ARG_OPTIONAL, "Output file",0},
-   { "port",    'o', "PORT",   OPTION_ARG_OPTIONAL, "Port to send frames to (in stead of output file)",0},
+   { "port",    'o', "PORT",   OPTION_ARG_OPTIONAL, "Port to send frames to (instead of output file, -1 to disable, default 5972)",0},
    { "indexen", 'i', 0,        OPTION_ARG_OPTIONAL, "Use index based receive buffers.",0},
    { "debug", 'v', 0, OPTION_ARG_OPTIONAL, "Print status messages to terminal while DMAReader is up.", 0},
    {0}

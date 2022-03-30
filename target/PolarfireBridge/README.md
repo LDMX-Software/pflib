@@ -8,5 +8,6 @@ cmake -B build -S .
 cd build
 make
 ./polarfire_wb_server -A <baseaddress> -D -F &
-./dma-read --port 5972 &
+./dma-read &
 ```
+At UMN, `<baseaddress>` is `0xA0144000`.
