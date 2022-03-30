@@ -12,6 +12,14 @@ namespace memory {
 class TcpClient;
 class Master;
 }
+namespace stream {
+class TcpClient;
+}
+}
+namespace utilities {
+namespace fileio {
+class StreamWriter;
+}
 }
 }
       
@@ -81,11 +89,15 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   void daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_event);
   void daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled);
   uint32_t daq_dma_status();
-  
+  void daq_dma_run(const std::string& cmd, int run, int nevents, int rate, const std::string& fname);
 
  private:
   std::shared_ptr<::rogue::interfaces::memory::TcpClient> client_;
   std::shared_ptr<::rogue::interfaces::memory::Master> intf_;  
+
+  // for dma readout, these will just sit silently while dma is disabled
+  std::shared_ptr<::rogue::interfaces::stream::TcpClient> dma_client_;
+  std::shared_ptr<::rogue::utilities::fileio::StreamWriter> dma_dest_;
 };
 
 }
