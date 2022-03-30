@@ -2,6 +2,8 @@
 #define DMAREADER_H
 
 #include <rogue/interfaces/stream/Master.h>
+#include <rogue/interfaces/stream/Frame.h>
+#include <rogue/interfaces/stream/FrameIterator.h>
 
 /**
  * The actual data source (or "master") that we use to watch the DMA device
@@ -17,13 +19,11 @@ class DMAReader : public rogue::interfaces::stream::Master {
   uint32_t ret; // dummy return value to check status
   int32_t dma_device_handle_; // handle to dma device
  public:
-   /*
-  static std::shared_ptr<DMAReader> create() {
-    static auto ptr = std::make_shared<DMAReader>();
+  static std::shared_ptr<DMAReader> create(const char* path, bool use_index) {
+    static auto ptr = std::make_shared<DMAReader>(path,use_index);
     return ptr;
   }
-  */
-  DMAReader(const char* dma_device_path, bool use_index = false);
+  DMAReader(const char* dma_device_path, bool use_index);
   ~DMAReader();
   /**
    * Watch and send events when shit happens

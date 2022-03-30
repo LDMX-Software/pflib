@@ -337,8 +337,6 @@ std::vector<uint32_t> PolarfireTarget::daqReadDirect() {
 }
 
 std::vector<uint32_t> PolarfireTarget::daqReadEvent() {
-
-
   // listen until we actually get data
   bool full, empty;
   int events, esize;
