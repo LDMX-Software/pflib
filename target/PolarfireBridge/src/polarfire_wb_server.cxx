@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  PolarfireWBPtr bus=PolarfireWB::create(addr);
+  auto bus = std::make_shared<PolarfireWB>(addr);
   if (do_daq) bus->map_daq((addr&0xFFF00000u)|0x80000);
   if (do_fc) bus->map_fc((addr&0xFFF00000u));
   
@@ -57,7 +57,6 @@ int main(int argc, char* argv[]) {
   // Start a TCP Bridge Server, Listen on ports 8000 & 8001 on all interfaces
   // Pass an address of 192.168.1.1 to listen on only that specific interface
   rogue::interfaces::memory::TcpServerPtr tcp = rogue::interfaces::memory::TcpServer::create("*",port);
-
 
   // Connect the bus
   tcp->setSlave(bus);
