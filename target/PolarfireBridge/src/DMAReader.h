@@ -11,6 +11,7 @@
  */
 class DMAReader : public rogue::interfaces::stream::Master {
   bool use_index_; // should we use dma index? or raw memory?
+  bool debug_; // print status messages while watching?
   uint32_t max_size_; // maximum size of raw memory
   uint32_t dma_size_; // dma size
   uint32_t dma_count_; // number of dma slots?
@@ -19,11 +20,11 @@ class DMAReader : public rogue::interfaces::stream::Master {
   uint32_t ret; // dummy return value to check status
   int32_t dma_device_handle_; // handle to dma device
  public:
-  static std::shared_ptr<DMAReader> create(const char* path, bool use_index) {
-    static auto ptr = std::make_shared<DMAReader>(path,use_index);
+  static std::shared_ptr<DMAReader> create(const char* path, bool use_index, bool debug) {
+    static auto ptr = std::make_shared<DMAReader>(path,use_index, debug);
     return ptr;
   }
-  DMAReader(const char* dma_device_path, bool use_index);
+  DMAReader(const char* dma_device_path, bool use_index, bool debug);
   ~DMAReader();
   /**
    * Watch and send events when shit happens

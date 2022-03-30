@@ -1,8 +1,8 @@
 #include "DMAReader.h"
 #include <rogue/hardware/drivers/AxisDriver.h>
 
-DMAReader::DMAReader(const char* dma_device_path, bool use_index) 
-  : use_index_{use_index},
+DMAReader::DMAReader(const char* dma_device_path, bool use_index, bool debug) 
+  : use_index_{use_index}, debug_{debug},
     rogue::interfaces::stream::Master() {
   if ( (dma_device_handle_ = open(dma_device_path, O_RDWR)) <= 0 ) {
     throw std::runtime_error("Error opening dma device "+std::string(dma_device_path));
@@ -49,7 +49,7 @@ void DMAReader::watch() {
     // Wait for Socket data ready
     ret = select(dma_device_handle_+1,&fds,NULL,NULL,&timeout);
     if (ret <= 0) {
-      printf("Read timeout\n");
+      if (debug_) printf("Read timeout\n");
     } else {
       timeval tv;
       gettimeofday(&tv,0);
@@ -67,8 +67,10 @@ void DMAReader::watch() {
       if ( ret > 0 ) {
         if (use_index_) dmaRetIndex(dma_device_handle_,dmaIndex);
         count++;
-        printf("Read ret=%i, Dest=%i, Fuser=0x%.2x, Luser=0x%.2x, prbs=%i, count=%i, t=%d.%d\n",
+        if (debug_) {
+          printf("Read ret=%i, Dest=%i, Fuser=0x%.2x, Luser=0x%.2x, prbs=%i, count=%i, t=%d.%d\n",
             ret,rxDest,rxFuser,rxLuser,prbRes,count,tv.tv_sec,tv.tv_usec);
+        }
         //rx_data_ is what we want to send here
         //ret has the number of bytes pointed to in contiquous array rx_data_
         // allocate a frame with ret bytes
