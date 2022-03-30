@@ -515,7 +515,7 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
-      printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i)); 
+      printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i).c_str()); 
     int spill_count, header_occ, event_count,vetoed_counter;
     pft->backend->fc_read_counters(spill_count, header_occ, event_count, vetoed_counter);
     printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",spill_count,event_count,header_occ,vetoed_counter);
@@ -624,6 +624,9 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 
 
 static std::string last_run_file=".last_run_file";
+static std::string start_dma_cmd="";
+static std::string stop_dma_cmd="";
+
 
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
@@ -710,7 +713,8 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
     
     std::string fname=BaseMenu::readline("Filename :  ", fname_def);
-    FILE* f=fopen(fname.c_str(),"w");
+    FILE* f=0;
+    if (!dma_enabled) f=fopen(fname.c_str(),"w");
 
     int event_target=BaseMenu::readline_int("Target events? ",1000);
     pft->backend->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
@@ -718,31 +722,55 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     // reset various counters
     pft->prepareNewRun();
 
+    // start DMA, if that's what we're doing...
+    if (dma_enabled && !start_dma_cmd.empty()) {
+      printf("Launching DMA...\n");
+      std::string cmd=start_dma_cmd+" "+fname;
+      system(cmd.c_str());
+    }
+    
     // enable external triggers
     pft->backend->fc_enables(true,true,false);
 
-    int ievent=0;
+    int ievent=0, wasievent=0;
     while (ievent<event_target) {
 
-      bool full, empty;
-      int samples, esize;
-      do {
-        pft->backend->daq_status(full, empty, samples, esize);
-      } while (empty);
-      printf("%d: %d samples waiting for readout...\n",ievent,samples);
-
-      if (f) {
-        std::vector<uint32_t> event = pft->daqReadEvent();
-        fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
+      if (dma_enabled) {
+        int spill,occ,vetoed;
+        pft->backend->fc_read_counters(spill,occ,ievent,vetoed);
+        if (ievent>wasievent) {
+          printf("...Now read %d events\n",ievent);
+          wasievent=ievent;
+        } else {
+          sleep(1);
+        }
+      } else {
+        bool full, empty;
+        int samples, esize;
+        do {
+          pft->backend->daq_status(full, empty, samples, esize);
+        } while (empty);
+        printf("%d: %d samples waiting for readout...\n",ievent,samples);
+        
+        if (f) {
+          std::vector<uint32_t> event = pft->daqReadEvent();
+          fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
+        }
+        
+        ievent++;
       }
-
-      ievent++;
     }
     
     // disable external triggers
     pft->backend->fc_enables(false,true,false);
 
-    fclose(f);
+    if (f) fclose(f);
+
+    if (dma_enabled && !stop_dma_cmd.empty()) {
+      printf("Stopping DMA...\n");
+      std::string cmd=stop_dma_cmd;
+      system(cmd.c_str());
+    }
     
     run_no_file=fopen(last_run_file.c_str(),"w");
     if (run_no_file) {
@@ -1424,6 +1452,10 @@ int main(int argc, char* argv[]) {
 
       if (options.contents().has_key("runnumber_file"))
         last_run_file=options.contents().getString("runnumber_file");
+      if (options.contents().has_key("start_dma_command"))
+        start_dma_cmd=options.contents().getString("start_dma_command");
+      if (options.contents().has_key("stop_dma_command"))
+        stop_dma_cmd=options.contents().getString("stop_dma_command");
       
       if (p_pft) {
       	// prepare the links
