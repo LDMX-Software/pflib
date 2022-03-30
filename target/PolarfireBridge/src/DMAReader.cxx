@@ -1,7 +1,5 @@
 #include "DMAReader.h"
 #include <rogue/hardware/drivers/AxisDriver.h>
-#include <rogue/interfaces/stream/Frame.h>
-#include <rogue/interfaces/stream/FrameIterator.h>
 
 DMAReader::DMAReader(const char* dma_device_path, bool use_index) 
   : use_index_{use_index},
