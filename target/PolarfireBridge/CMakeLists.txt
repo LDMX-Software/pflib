@@ -19,6 +19,6 @@ add_executable(polarfire_wb_server src/PolarfireWB.cxx src/polarfire_wb_server.c
 target_include_directories(polarfire_wb_server PRIVATE ${ROGUE_INCLUDE_DIRS})
 target_link_libraries(polarfire_wb_server PUBLIC pthread ${ROGUE_LIBRARIES})
 
-add_executable(dma-read src/dma_read.cpp)
+add_executable(dma-read src/dma_read.cpp src/DMAReader.cxx)
 target_include_directories(dma-read PRIVATE ${ROGUE_INCLUDE_DIRS})
 target_link_libraries(dma-read PUBLIC pthread ${ROGUE_LIBRARIES})
