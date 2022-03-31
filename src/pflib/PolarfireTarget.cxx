@@ -299,7 +299,7 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
 
 void PolarfireTarget::enableZeroSuppression(int link, bool full_suppress) {
   for (int i{0}; i < NLINKS; i++) {
-    if (i != link and link > 0) continue;
+    if (i != link and link >= 0) continue;
     uint32_t reg = wb->wb_read(tgt_DAQ_LinkFmt,(i<<7)|1);
     bool wasZS = (reg & 0x2)!=0;
     if (link >= 0 and not wasZS) {
@@ -411,13 +411,17 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
             std::cout << 
               "WARNING: Ignoring Bias CSV settings line"
               "without exactly four columns." 
+
               << std::endl;
           }
         });
+    return true;
   } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
     std::cerr << "Loading settings from YAML not implemented here yet." << std::endl;
+    return false;
   } else {
     std::cerr << file_name << " has no recognized extension (.csv, .yaml, .yml)" << std::endl;
+    return false;
   }
 }
 

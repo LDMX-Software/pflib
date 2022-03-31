@@ -571,7 +571,7 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="ZS") {
     int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);    
-	  bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
+    bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
     pft->enableZeroSuppression(jlink,fullSuppress);
   }
   if (cmd=="L1APARAMS") {
