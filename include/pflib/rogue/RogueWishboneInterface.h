@@ -14,6 +14,7 @@ class Master;
 }
 namespace stream {
 class TcpClient;
+class Slave;
 }
 }
 namespace utilities {
@@ -89,7 +90,10 @@ class RogueWishboneInterface : public WishboneInterface, public Backend {
   void daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_event);
   void daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled);
   uint32_t daq_dma_status();
-  void daq_dma_run(const std::string& cmd, int run, int nevents, int rate, const std::string& fname);
+  void daq_dma_dest(const std::string& fname);
+  void daq_dma_dest(std::shared_ptr<::rogue::interfaces::stream::Slave> sl);
+  void daq_dma_run(const std::string& cmd, int run, int nevents, int rate);
+  void daq_dma_close();
 
  private:
   std::shared_ptr<::rogue::interfaces::memory::TcpClient> client_;

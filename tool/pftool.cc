@@ -737,7 +737,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
 #ifdef PFTOOL_ROGUE
     if (dma_enabled) {
-      rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
+      rwbi->daq_dma_dest(fname);
+      rwbi->daq_dma_run(cmd,run,nevents,rate);
+      rwbi->daq_dma_close();
     } else 
 #endif
     {
@@ -766,7 +768,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
 #ifdef PFTOOL_ROGUE
       if (dma_enabled) {
-        rwbi->daq_dma_run(trigtype,run,nevents,rate,fname);
+        rwbi->daq_dma_dest(fname);
+        rwbi->daq_dma_run(trigtype,run,nevents,rate);
+        rwbi->daq_dma_close();
       } else 
 #endif
       {
