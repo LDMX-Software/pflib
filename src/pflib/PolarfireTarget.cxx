@@ -298,6 +298,10 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
 }
 
 void PolarfireTarget::enableZeroSuppression(int link, bool full_suppress) {
+  auto& daq = hcal.daq();
+  bool enabled=daq.enabled();
+  
+  if (enabled) daq.enable(false);
   for (int i{0}; i < NLINKS; i++) {
     if (i != link and link >= 0) continue;
     uint32_t reg = wb->wb_read(tgt_DAQ_LinkFmt,(i<<7)|1);
@@ -306,8 +310,10 @@ void PolarfireTarget::enableZeroSuppression(int link, bool full_suppress) {
       reg |= 0x4;
       if (not full_suppress) reg ^= 0x4;
     }
+    
     wb->wb_write(tgt_DAQ_LinkFmt,(i<<7)|1,reg^0x2);
   }
+  if (enabled) daq.enable(true);
 }
 
 void PolarfireTarget::daqSoftReset() {
