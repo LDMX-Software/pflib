@@ -649,15 +649,50 @@ static std::string stop_dma_cmd="";
  */
 static void daq( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal.daq();
+
+  // default is non-DMA readout
   bool dma_enabled=false;
+  auto daq_run = [&](const std::string& cmd // PEDESTAL, CHARGE, or no trigger
+      , int run // not used in this implementation of daq
+      , int nevents // number of events to collect
+      , int rate // not used in this implementation of daq
+      , const std::string& fname // file to write to (appended)
+  ) {
+    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
+    timeval tv0, tvi;
+  
+    gettimeofday(&tv0,0);
+    
+    for (int ievt=0; ievt<nevents; ievt++) {
+      // normally, some other controller would send the L1A
+      //  we are sending it so we get data during no signal
+      if (cmd=="PEDESTAL")
+        pft->backend->fc_sendL1A();
+      if (cmd=="CHARGE")
+        pft->backend->fc_calibpulse();
+  
+      gettimeofday(&tvi,0);
+      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
+      //      double ratenow=(ievt+1)/runsec;
+      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
+      int usec_ahead=int((targettime-runsec)*1e6);
+      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
+      if (usec_ahead>100) { // if we are running fast...
+        usleep(usec_ahead);
+        //        printf("Sleeping %d\n",usec_ahead);
+      }
+      
+      std::vector<uint32_t> event = pft->daqReadEvent();
+      fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
+    }
+  };
 
 #ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
-    }
+  auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+  if (rwbi) {
+    uint8_t samples_per_event, fpgaid_i;
+    rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
+  }
 #endif
   
   if (cmd=="STATUS") {
@@ -665,10 +700,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
-      printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
+      printf("DMA : %s Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     }
 #endif
   }
@@ -789,56 +821,23 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
     char fname_def[64];
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
-
-    struct tm *gmtm = gmtime(&t);
     
-    int run=0;
-    if (dma_enabled) {
-      run=BaseMenu::readline_int("Run number? ",run);
-      pft->backend->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
-    }
-        
+    int run=BaseMenu::readline_int("Run number? ",run);
     int nevents=BaseMenu::readline_int("How many events? ", 100);
     static int rate=100;
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
+    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
     
-    FILE* f=0;
-    if (!dma_enabled) {
-      std::string fname=BaseMenu::readline("Filename :  ", fname_def);
-      f=fopen(fname.c_str(),"w");
-    }
-
     pft->prepareNewRun();
-    timeval tv0, tvi;
 
-    gettimeofday(&tv0,0);
-    
-    for (int ievt=0; ievt<nevents; ievt++) {
-      // normally, some other controller would send the L1A
-      //  we are sending it so we get data during no signal
-      if (cmd=="PEDESTAL")
-        pft->backend->fc_sendL1A();
-      if (cmd=="CHARGE")
-        pft->backend->fc_calibpulse();
-
-      gettimeofday(&tvi,0);
-      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
-      //      double ratenow=(ievt+1)/runsec;
-      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
-      int usec_ahead=int((targettime-runsec)*1e6);
-      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-      if (usec_ahead>100) { // if we are running fast...
-        usleep(usec_ahead);
-        //        printf("Sleeping %d\n",usec_ahead);
-      }
-      
-      if (f) {      
-        std::vector<uint32_t> event = pft->daqReadEvent();
-        fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
-      }
-                     
+#ifdef PFTOOL_ROGUE
+    if (dma_enabled) {
+      rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
+    } else 
+#endif
+    {
+      daq_run(cmd,run,nevents,rate,fname);
     }
-    if (f) fclose(f);
   }
   if (cmd=="SCAN"){
     std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
@@ -848,22 +847,25 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     int maxvalue=BaseMenu::readline_int("Maximum value :  ");
     int step=BaseMenu::readline_int("Step :  ");
     int nevents=BaseMenu::readline_int("Events per step :  ", 10);
+    int run=BaseMenu::readline_int("Run number? ",run);
+    static int rate=100;
+    rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
     std::string fname=BaseMenu::readline("Filename :  ");
     bool charge = BaseMenu::readline_bool("Do a charge injection for each event rather than simple L1A?",false);
+    std::string trigtype = "PEDESTAL";
+    if (charge) trigtype = "CHARGE";
 
-    // smart pointer lets us close file even if exception is thrown
-    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"w"),&fclose};
     pft->prepareNewRun();
 
     for(int value = minvalue; value <= maxvalue; value += step){
       pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
-      for (int ievt=0; ievt<nevents; ievt++) {
-        if (charge)
-          pft->backend->fc_calibpulse();
-        else
-          pft->backend->fc_sendL1A();
-        std::vector<uint32_t> event = pft->daqReadEvent();
-        fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
+#ifdef PFTOOL_ROGUE
+      if (dma_enabled) {
+        rwbi->daq_dma_run(trigtype,run,nevents,rate,fname);
+      } else 
+#endif
+      {
+        daq_run(trigtype,run,nevents,rate,fname);
       }
     }
   }
