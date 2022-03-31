@@ -757,6 +757,8 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
     std::string fname=BaseMenu::readline("Filename :  ");
     bool charge = BaseMenu::readline_bool("Do a charge injection for each event rather than simple L1A?",false);
+    std::string trigtype = "PEDESTAL";
+    if (charge) trigtype = "CHARGE";
 
     pft->prepareNewRun();
 
@@ -764,11 +766,11 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
 #ifdef PFTOOL_ROGUE
       if (dma_enabled) {
-        rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
+        rwbi->daq_dma_run(trigtype,run,nevents,rate,fname);
       } else 
 #endif
       {
-        daq_run(cmd,run,nevents,rate,fname);
+        daq_run(trigtype,run,nevents,rate,fname);
       }
     }
   }
