@@ -254,6 +254,7 @@ void PolarfireTarget::prepareNewRun() {
   auto& daq = hcal.daq();
   backend->fc_bufferclear();
   backend->daq_reset();
+  backend->fc_clear_run();
 
   bool enable;
   int extra_samples;
