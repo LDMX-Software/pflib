@@ -14,6 +14,18 @@
 
 #include <yaml-cpp/yaml.h>
 
+template<int W = 8>
+struct hex {
+  static const int width_ = W;
+  const uint32_t& w_;
+  hex(const uint32_t& w) : w_{w} {}
+  friend inline std::ostream& operator<<(std::ostream& s, const hex& h) {
+    s << "0x" << std::hex << std::setw(h.width_) << std::setfill('0')
+      << h.w_ << std::dec << std::setfill(' ');
+    return s;
+  }
+};
+
 namespace pflib {
 
 /**
@@ -229,8 +241,7 @@ void PolarfireTarget::dumpSettings(int roc, const std::string& filename, bool sh
       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
         f << page << "," 
           << reg << ","
-          << std::hex << std::setfill('0') << std::setw(2)
-          << static_cast<int>(v.at(reg)) << std::dec
+          << hex<2>(v.at(reg))
           << '\n';
       }
     }
@@ -264,25 +275,24 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
     <<" \n";
   reg1 = wb->wb_read(tgt_DAQ_Control,5);
   reg2 = wb->wb_read(tgt_DAQ_Control,2);
-  os << " Next event info: 0x"
-     << std::hex << std::setw(8) << std::setfill('0') << reg1 << std::dec
+  os << " Next event info: " << hex<8>(reg1)
      << " (BX=" << (reg1&0xfff)
      << ", RREQ=" << ((reg1>>12)&0x3ff)
      << ", OR=" << ((reg1>>22)&0x3ff)
      << ")  RREQ=" << ((reg2>>22)&0x3ff)
      << "\n";
   os << "-----Per-ROCLINK processing-----\n";
-  os << " Link  ID  EN ZS FL EM\n";
+  os << " Link    ID  EN ZS FL EM\n";
   for (int ilink=0; ilink < NLINKS; ilink++) {
     reg1=wb->wb_read(tgt_DAQ_LinkFmt,(ilink<<7)|1);
     reg2=wb->wb_read(tgt_DAQ_LinkFmt,(ilink<<7)|2);
     os << " " << std::setw(4) << ilink
-       << " " << std::hex << std::setw(4) << std::setfill('0') << reg2 << std::dec
+       << " " << hex<4>(reg2)
        << " " << std::setw(2) << ((reg1>>0)&1)
        << " " << std::setw(2) << ((reg1>>1)&1)
        << " " << std::setw(2) << ((reg1>>22)&1)
        << " " << std::setw(2) << ((reg1>>23)&1)
-       << " " << std::setw(8) << std::setfill('0') << reg1 << std::dec
+       << " " << hex<8>(reg1)
        << "\n";
   }
   

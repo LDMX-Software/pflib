@@ -515,7 +515,7 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
-      printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i)); 
+      printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i).c_str()); 
     int spill_count, header_occ, event_count,vetoed_counter;
     pft->backend->fc_read_counters(spill_count, header_occ, event_count, vetoed_counter);
     printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",spill_count,event_count,header_occ,vetoed_counter);
