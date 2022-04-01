@@ -13,4 +13,4 @@ make
 ./polarfire_wb_server -A <baseaddress> -D -F &
 ./dma-read &
 ```
-At UMN, `<baseaddress>` is `0xA0144000`.
+With the firmware Jeremy has been developing, `<baseaddress>` is `0xA0144000`.
