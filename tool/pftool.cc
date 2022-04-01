@@ -982,6 +982,12 @@ static void bias( const std::string& cmd, PolarfireTarget* pft ) {
     if (ichan>=0) {
       pft->setBiasSetting(iboard,led_sipm==1,ichan,dac);
     }
+    if (ichan==-1) {
+      printf("\n Setting bias on all 16 connectors. \n");
+      for(int k = 0; k < 16; k++){
+        pft->setBiasSetting(iboard,led_sipm==1,k,dac);
+      }
+    }
   }
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with four columns [0=SiPM/1=LED,board,hdmi#,value].\n");
