@@ -14,6 +14,7 @@ var hierarchy =
     ] ],
     [ "pflib::Hcal", "classpflib_1_1Hcal.html", null ],
     [ "Rcfile::HelpInfo", "structRcfile_1_1HelpInfo.html", null ],
+    [ "hex< W >", "structhex.html", null ],
     [ "Menu< TargetType >::Line", "classMenu_1_1Line.html", null ],
     [ "pflib::MAX5825", "classpflib_1_1MAX5825.html", null ],
     [ "pflib::Parameter", "structpflib_1_1Parameter.html", null ],

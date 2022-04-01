@@ -25,6 +25,7 @@ var annotated_dup =
       [ "WishboneTarget", "classpflib_1_1WishboneTarget.html", "classpflib_1_1WishboneTarget" ]
     ] ],
     [ "BaseMenu", "classBaseMenu.html", "classBaseMenu" ],
+    [ "hex", "structhex.html", null ],
     [ "Menu", "classMenu.html", "classMenu" ],
     [ "Rcfile", "classRcfile.html", "classRcfile" ],
     [ "Rcmap", "classRcmap.html", "classRcmap" ]

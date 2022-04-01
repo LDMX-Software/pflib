@@ -12,7 +12,7 @@ var searchData=
   ['hcal_9',['Hcal',['../classpflib_1_1Hcal.html',1,'pflib']]],
   ['hecto_10',['hecto',['http://en.cppreference.com/w/cpp/numeric/ratio/ratio.html',1,'std']]],
   ['helpinfo_11',['HelpInfo',['../structRcfile_1_1HelpInfo.html',1,'Rcfile']]],
-  ['hex_12',['hex',['http://en.cppreference.com/w/cpp/io/manip/hex.html',1,'std']]],
+  ['hex_12',['hex',['../structhex.html',1,'hex&lt; W &gt;'],['http://en.cppreference.com/w/cpp/io/manip/hex.html',1,'std::hex(T... args)']]],
   ['hexfloat_13',['hexfloat',['http://en.cppreference.com/w/cpp/io/manip/fixed.html',1,'std']]],
   ['high_5fresolution_5fclock_14',['high_resolution_clock',['http://en.cppreference.com/w/cpp/chrono/high_resolution_clock.html',1,'std::chrono']]],
   ['hours_15',['hours',['http://en.cppreference.com/w/cpp/chrono/duration/duration.html',1,'std::chrono::hours::hours()'],['http://en.cppreference.com/w/cpp/chrono/duration.html',1,'std::chrono::hours']]],
