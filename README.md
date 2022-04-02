@@ -77,7 +77,16 @@ Rogue | NA
 uHAL | 2.8.1
 
 ### CERN Setup
-TBD
+Layer | Description
+---|---
+OS | CentOS Stream 8
+gcc | 8.5.0
+cmake | 3.20.2
+yaml-cpp | 0.7.0
+readline | 7.0
+Rogue | 5.11.0-2-g38ba1728
+uHAL | 2.8.1
+
 
 ## Directory Structure
 - config : helpful HGC ROC YAML parameter settings to load onto chips

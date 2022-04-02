@@ -832,7 +832,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
 #ifdef PFTOOL_ROGUE
     if (dma_enabled) {
-      rwbi->daq_dma_run(cmd,run,nevents,rate,fname);
+      rwbi->daq_dma_dest(fname);
+      rwbi->daq_dma_run(cmd,run,nevents,rate);
+      rwbi->daq_dma_close();
     } else 
 #endif
     {
@@ -861,7 +863,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
 #ifdef PFTOOL_ROGUE
       if (dma_enabled) {
-        rwbi->daq_dma_run(trigtype,run,nevents,rate,fname);
+        rwbi->daq_dma_dest(fname);
+        rwbi->daq_dma_run(trigtype,run,nevents,rate);
+        rwbi->daq_dma_close();
       } else 
 #endif
       {
@@ -1072,6 +1076,12 @@ static void bias( const std::string& cmd, PolarfireTarget* pft ) {
     int dac=BaseMenu::readline_int(" What DAC value? ",0);
     if (ichan>=0) {
       pft->setBiasSetting(iboard,led_sipm==1,ichan,dac);
+    }
+    if (ichan==-1) {
+      printf("\n Setting bias on all 16 connectors. \n");
+      for(int k = 0; k < 16; k++){
+        pft->setBiasSetting(iboard,led_sipm==1,k,dac);
+      }
     }
   }
   if (cmd=="LOAD") {

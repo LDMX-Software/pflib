@@ -3,6 +3,7 @@
 #include <rogue/interfaces/memory/Master.h>
 #include <rogue/interfaces/memory/TcpClient.h>
 #include <rogue/interfaces/stream/TcpClient.h>
+#include <rogue/interfaces/stream/Slave.h>
 #include <rogue/utilities/fileio/StreamWriter.h>
 #include <rogue/utilities/fileio/StreamWriterChannel.h>
 
@@ -264,13 +265,19 @@ void RogueWishboneInterface::daq_setup_event_tag(int run, int day, int month, in
   wb_write(TARGET_DAQ_BACKEND,REG_RUN_TAG,tag);
 }
 
+void RogueWishboneInterface::daq_dma_dest(const std::string& fname) {
+  dma_dest_->open(fname);
+}
+
+void RogueWishboneInterface::daq_dma_dest(std::shared_ptr<::rogue::interfaces::stream::Slave> sl) {
+  dma_client_->addSlave(sl);
+}
+
 void RogueWishboneInterface::daq_dma_run(const std::string& cmd, 
-    int run, int nevents, int rate, const std::string& fname) {
+    int run, int nevents, int rate) {
   time_t t = time(NULL);
   struct tm *gmtm = gmtime(&t);
   this->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
-  
-  dma_dest_->open(fname);
 
   timeval tv0, tvi;
 
@@ -293,8 +300,11 @@ void RogueWishboneInterface::daq_dma_run(const std::string& cmd,
 
   // let last packet get to file
   usleep(100);
+}
 
+void RogueWishboneInterface::daq_dma_close() {
   dma_dest_->close();
 }
+
 }
 }
