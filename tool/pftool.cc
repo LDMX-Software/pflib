@@ -401,8 +401,8 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="DUMP") {
     std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
 
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
+    time_t t = time(NULL)
+;    struct tm *tm = localtime(&t);
 
     char fname_def[64];
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
@@ -893,16 +893,42 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   static int events_per_step=100;
   std::string pagetemplate;
   std::string valuename;
+
+  int nsamples=1;
+  {
+    bool multi;
+    int nextra;
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    if (multi) nsamples=nextra+1;
+  }
   
   if (cmd=="SCANCHARGE") {
     valuename="CALIB_DAC";
     pagetemplate="REFERENCE_VOLTAGE_%d";
     low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
-    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
+    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);    
+  }
+  /// common stuff for all scans
+  if (cmd=="SCANCHARGE") {
+
     steps=BaseMenu::readline_int("Number of steps?",steps);
     events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
-  }
-  if (cmd=="SCANCHARGE") {
+
+    time_t t=time(NULL);
+    struct tm *tm = localtime(&t);
+    char fname_def_format[1024];
+    sprintf(fname_def_format,"scan_%s_%%Y%%m%%d_%%H%%M%%S.raw",valuename.c_str());
+    char fname_def[1024];
+    strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
+    
+    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    std::ofstream csv_out=std::ofstream(fname);
+
+    // csv header
+    csv_out <<valuename << "ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",S" << i;
+    csv_out<<std::endl;
+    
     static const int MAX_ELINK_CHAN=35;
     
     for (int step=0; step<steps; step++) {
@@ -936,7 +962,15 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
           std::vector<uint32_t> event = pft->daqReadEvent();
 
           // here we decode the event and store the relevant information only...
-          
+
+          for (int ilink=0; iroc<pft->hcal.elinks().nlinks(); ilink++) {
+            if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+            csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
+            for (int i=0; i<nsamples; i++) csv_out << ',' << i;
+            csv_out<<std::endl;            
+            
+          }
         }
 
         //////////////////////////////////////////////////////////
