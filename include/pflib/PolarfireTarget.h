@@ -216,6 +216,8 @@ struct PolarfireTarget {
 
   /** Carries out the standard elink alignment process */
   void elink_relink(int verbosity);
+
+  void bitslip();
   
  private:
   int samples_per_event_;  
