@@ -23,11 +23,11 @@ class RocPacket {
 
   bool has_chan(int ichan) const { if (length_<2) return -1; if (ichan < 32) return (data_[1]>>ichan)&0x1; return (data_[0]>>(ichan-32))&0x1;}
  
-  int get_tot(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>34)&0x1FFFF;} 
+  int get_tot(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>20)&0x2FF;} 
 
-  int get_toa(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>17)&0x1FFFF;} 
+  int get_toa(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>10)&0x2FF;} 
   
-  int get_adc(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return data_[offset]&0x1FFFF;} 
+  int get_adc(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return data_[offset]&0x2FF;} 
   
  private:
   int offset_to_chan(int ichan) const;
