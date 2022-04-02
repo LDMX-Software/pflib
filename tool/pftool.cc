@@ -992,6 +992,8 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
           std::vector<uint32_t> event = pft->daqReadEvent();
 
           // here we decode the event and store the relevant information only...
+          pflib::decoding::SuperPacket data(&(event[0]),event.size());
+          
 
           for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
             if (!pft->hcal.elinks().isActive(ilink)) continue;
