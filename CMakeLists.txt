@@ -44,6 +44,7 @@ add_library(pflib SHARED
   src/pflib/PolarfireTarget.cxx
   src/pflib/decoding/RocPacket.cxx
   src/pflib/decoding/PolarfirePacket.cxx
+  src/pflib/decoding/SuperPacket.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
