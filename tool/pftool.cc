@@ -219,6 +219,11 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", &tasks),
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
+    pfMenu::Line("SHAPER", "Adjust inv_vref and noinv_vref", &tasks),
+    pfMenu::Line("READ_PEDESTAL", "See pedestal values", &tasks),
+    pfMenu::Line("PREAMP_ALIGNMENT", "Adjust ref_dac_inv channelwise", &tasks),
+    pfMenu::Line("CONV_ALIGNMENT", "Adjust dacb and sign_dacb channelwise", &tasks),
+    pfMenu::Line("DYNAMIC_RANGE", "Check dynamic range with charge injection", &tasks),
     pfMenu::Line("QUIT","Back to top menu")
   });
 

@@ -193,4 +193,97 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
       ////////////////////////////////////////////////////////////
   }
+  if(cmd == "READ_PEDESTAL"){
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+
+    int iroc=0;
+    iroc=BaseMenu::readline_int("Which ROC:",iroc);
+    
+    for(int ilink = iroc*2; ilink <= iroc*2+1; ilink++){
+      if (pft->hcal.elinks().isActive(ilink)) {
+        for (int k=0; k < 36; k++){
+          std::cout << "Ch " << k + (ilink % 2)*36<< ":  ";
+          for (int i=0; i<nsamples; i++){
+            std::cout << ' ' << data.sample(i).roc(ilink).get_adc(k);
+          }
+          std::cout << std::endl;
+        }
+      }
+      else{
+        std::cout << "Link not active" << std::endl;
+      }
+    }
+  }
+
+  if(cmd == "PREAMP_ALIGNMENT"){
+    std::cout << "The pre-amp pedestal alignment is best done when gain_conv = 0" << std::endl;
+
+    static const int NUM_ELINK_CHAN=36;
+
+    int iroc=0;
+    iroc=BaseMenu::readline_int("Which ROC:",iroc);
+    
+    std::cout << "Setting channel-wise ref_dac_inv to 0" << std::endl;
+ 
+    for (int ilink=iroc*2; ilink <= iroc*2+1; ilink++) {
+      if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+      for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
+        char pagename[32];
+        snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
+        pft->hcal.roc(iroc).applyParameter(pagename, "REF_DAC_INV", 0);
+      }
+    }
+
+    //Choose goal for pedestal
+    std::cout << "The channel-wise pre-amplifier voltage ref_dac_inv can only raise pedestals" << std::endl;
+    int goal=0;
+    goal=BaseMenu::readline_int("Raise pedestals to:",goal);
+
+    int previous[72];
+    int stop[72];
+
+    //Try values 0 - 31 of ref_dac_inv
+    for(int ref_dac_inv = 0; ref_dac_inv < 32; ref_dac_inv++){
+      std::cout << ref_dac_inv << std::endl;
+
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event = pft->daqReadEvent();
+      pflib::decoding::SuperPacket data(&(event[0]),event.size());
+
+      //Go through both chip halfs
+      for(int ilink = iroc*2; ilink <= iroc*2+1; ilink++){
+        if (pft->hcal.elinks().isActive(ilink)) {
+          for (int k=0; k < 36; k++){
+            if(ref_dac_inv == 0){
+              previous[k+(ilink % 2)*36] = 0;
+              stop[k+(ilink % 2)*36] = 0;
+            }
+
+            float avg = 0;
+            for (int i=0; i<nsamples; i++){
+              avg += data.sample(i).roc(ilink).get_adc(k);
+            }
+            avg /= nsamples;
+
+            if((avg < (goal-10)) && stop[k+(ilink % 2)*36] == 0){
+              char pagename[32];
+              snprintf(pagename,32,"CHANNEL_%d",k+(ilink % 2)*36);
+              pft->hcal.roc(iroc).applyParameter(pagename, "REF_DAC_INV", ref_dac_inv);
+              previous[k+(ilink % 2)*36] = ref_dac_inv;
+            }
+            if((avg > goal+10) && stop[k+(ilink % 2)*36] == 0){
+              char pagename[32];
+              snprintf(pagename,32,"CHANNEL_%d",k+(ilink % 2)*36);
+              pft->hcal.roc(iroc).applyParameter(pagename, "REF_DAC_INV", previous[k+(ilink % 2)*36]);
+              stop[k+(ilink % 2)*36] = 1;
+            } 
+          }
+        }
+      }
+    }
+  }
 }
