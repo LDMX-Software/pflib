@@ -41,7 +41,9 @@ add_library(pflib SHARED
   src/pflib/ROC.cxx
   src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
-  src/pflib/PolarfireTarget.cxx)
+  src/pflib/PolarfireTarget.cxx
+  src/pflib/decoding/RocPacket.cxx
+)
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
