@@ -18,9 +18,11 @@ class PolarfirePacket {
   int fpgaid() const { if (length_<1) return -1; return (data_[0]>>20)&0xFF; }
   int formatversion() const { if (length_<1) return -1; return (data_[0]>>28)&0xF; }
 
+  int length_for_elink(int ilink) const { if (ilink>=nlinks) return 0; return (data_[2+(ilink/4)]>>(8*(ilink%4)))&0x3F; }
+    
   RocPacket roc(int iroc) const;
 private:
-  int offset_to_roc(int iroc) const;
+  int offset_to_elink(int iroc) const;
   
   const uint32_t* data_;
   int length_;
