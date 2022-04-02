@@ -20,6 +20,18 @@ class PolarfirePacket {
 
   int length_for_elink(int ilink) const { if (ilink>=nlinks()) return 0; return (data_[2+(ilink/4)]>>(8*(ilink%4)))&0x3F; }
     
+  int bxid() const { if (length_<2) return -1; return (data_[1]>>20)&0xFFF;}
+
+  int rreq() const { if (length_<2) return -1; return (data_[1]>>10)&0x3FF;}
+
+  int orbit() const { if (length_<2) return -1; return data_[1]&0x3FF;}
+
+  int linklen(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8))&0x3F;}
+  
+  int linkcrc(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+6))&0x1;}
+  
+  int linkrid(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+7))&0x1;}
+
   RocPacket roc(int iroc) const;
 private:
   int offset_to_elink(int iroc) const;
