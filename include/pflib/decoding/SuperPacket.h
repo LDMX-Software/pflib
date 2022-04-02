@@ -17,7 +17,7 @@ class SuperPacket {
   int fpgaid() const;
   int nsamples() const;
   int formatversion() const;
-  int length_for_sample(int isample);
+  int length32_for_sample(int isample);
     
   PolarfirePacket sample(int isample) const;
 private:
