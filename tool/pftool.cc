@@ -950,12 +950,12 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     
     for (int step=0; step<steps; step++) {
 
-      printf(" Scan %s=%d...\n",valuename.c_str(),value);
-            
       ////////////////////////////////////////////////////////////
       /// set values
       int value=low_value+step*(high_value-low_value)/steps;
 
+      printf(" Scan %s=%d...\n",valuename.c_str(),value);
+      
       for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
         if (!pft->hcal.elinks().isActive(ilink)) continue;
 
