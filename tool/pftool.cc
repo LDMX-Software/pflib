@@ -27,6 +27,7 @@
 #endif
 #include "Menu.h"
 #include "Rcfile.h"
+#include "pflib/decoding/SuperPacket.h"
 
 /**
  * pull the target of our menu into this source file to reduce code
@@ -993,7 +994,27 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
           // here we decode the event and store the relevant information only...
           pflib::decoding::SuperPacket data(&(event[0]),event.size());
-          
+
+          /// debugging
+          if (ievt==0) {
+            FILE* f1=fopen("debug1.txt","w");
+            for (int i=0; i<int(event.size()); i++) {
+              fprintf(f1,"%03d %08x",i,event[i]);
+            }
+            fclose(f1);
+            
+            FILE* f2=fopen("debug2.txt","w");
+            for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+              if (!pft->hcal.elinks().isActive(ilink)) continue;
+              for (int ic=0; ic<36; ic++) {
+                fprintf(f2,"%d %d ",ilink,ic);
+                for (int is=0; is<data.nsamples(); is++) {                
+                  fprintf(f2,"%3d",data.sample(is).roc(ilink).get_adc(ic));
+                }
+                fprintf(f2,"\n");                
+            }
+            fclose(f2);            
+          }
 
           for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
             if (!pft->hcal.elinks().isActive(ilink)) continue;
