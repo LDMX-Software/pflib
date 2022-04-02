@@ -240,7 +240,7 @@ static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   static int ilink=0;
   if (cmd=="RELINK"){
-    ilink=BaseMenu::readline_int("Which elink? ",ilink);
+    ilink=BaseMenu::readline_int("Which elink? (-1 for all) ",ilink);
     pft->elink_relink(ilink,2);
   }
   if (cmd=="SPY") {

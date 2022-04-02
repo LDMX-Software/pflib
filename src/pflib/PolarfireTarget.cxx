@@ -443,19 +443,25 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
 void PolarfireTarget::elink_relink(int ilink ,int verbosity) {
   pflib::Elinks& elinks=hcal.elinks();
 
-  delay_loop(ilink);
+  if (ilink == -1){
+    for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
+      delay_loop(ilink);
+    }
+  } else delay_loop(ilink);
 
 }
 
 void PolarfireTarget::delay_loop(int ilink){
-  pflib::Elinks& elinks=hcal.elinks();
+  pflib::Elinks& elinks = hcal.elinks();
+  bool passedBitslipLoop = false;
   if (elinks.isActive(ilink)){
     for (int delay=20; delay<26; delay++){
       elinks.setDelay(ilink,delay);
-       if (bitslip_loop(ilink)) break;
+      passedBitslipLoop = bitslip_loop(ilink);
+       if (passedBitslipLoop) break;
     }
-  }
-
+    if (!passedBitslipLoop) printf("Delay scan exceeded 25, you should do an elinks hardreset\n");
+  } else printf("    Elink %d is not active.\n",ilink);
 }
 
 bool PolarfireTarget::bitslip_loop(int ilink){
