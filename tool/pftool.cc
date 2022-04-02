@@ -928,10 +928,14 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
     // csv header
     csv_out <<valuename << ",ILINK,CHAN,EVENT";
-    for (int i=0; i<nsamples; i++) csv_out << ",S" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     csv_out<<std::endl;
-    
 
+    if (cmd=="SCANCHARGE") {
+      
+    }
+    
     printf(" Clearing charge injection on all channels (ground-state)...\n");
     
     /// first, disable charge injection on all channels
@@ -947,13 +951,31 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
         pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
       }
     }
+
+    printf(" Enabling IntCTest...\n");
+    
+    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+      if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+      int iroc=ilink/2;        
+      char pagename[32];
+      snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
+      // set the value
+      pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 1);
+      if (cmd=="SCANCHARGE") {
+        snprintf(pagename,32,"DIGITAL_HALF_%d",(ilink%2));
+        // set the value
+        pft->hcal.roc(iroc).applyParameter(pagename, "L1OFFSET", 8);
+      }
+    }
+    
     ////////////////////////////////////////////////////////////
     
     for (int step=0; step<steps; step++) {
 
       ////////////////////////////////////////////////////////////
       /// set values
-      int value=low_value+step*(high_value-low_value)/steps;
+      int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
 
       printf(" Scan %s=%d...\n",valuename.c_str(),value);
       
@@ -981,53 +1003,38 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
           char pagename[32];
           snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
           // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
-          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+          //          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
+          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 1);
         }
                 
         //////////////////////////////////////////////////////////
         /// Take the expected number of events and save the events
         for (int ievt=0; ievt<events_per_step; ievt++) {
 
-          pft->backend->fc_sendL1A();
+          pft->backend->fc_calibpulse();
           std::vector<uint32_t> event = pft->daqReadEvent();
 
           // here we decode the event and store the relevant information only...
           pflib::decoding::SuperPacket data(&(event[0]),event.size());
 
-          /// debugging
-          if (ievt==0) {
-            FILE* f1=fopen("debug1.txt","w");
-            for (int i=0; i<int(event.size()); i++) {
-              fprintf(f1,"%03d %08x",i,event[i]);
-            }
-            fclose(f1);
-            
-            FILE* f2=fopen("debug2.txt","w");
-            for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-              if (!pft->hcal.elinks().isActive(ilink)) continue;
-              for (int ic=0; ic<36; ic++) {
-                fprintf(f2,"%d %d ",ilink,ic);
-                for (int is=0; is<data.nsamples(); is++) {                
-                  fprintf(f2,"%3d",data.sample(is).roc(ilink).get_adc(ic));
-                }
-                fprintf(f2,"\n");                
-            }
-            fclose(f2);            
-          }
-
           for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
             if (!pft->hcal.elinks().isActive(ilink)) continue;
 
             csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
-            for (int i=0; i<nsamples; i++) csv_out << ',' << i;
-            csv_out<<std::endl;            
-            
+            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
+            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
+
+            csv_out<<std::endl;
+            /*
+            if (ilink==0) {
+              data.sample(1).roc(ilink).dump();
+            }
+            */
           }
         }
 
         ////////////////////////////////////////////////////////////
-        /// Disable charge injection channel by channel -- per elink
+        /// Disable charge injection channel by channel -- per elink        
         for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
           if (!pft->hcal.elinks().isActive(ilink)) continue;
           
@@ -1040,10 +1047,21 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
         }
 
         //////////////////////////////////////////////////////////
-
       }
-      ////////////////////////////////////////////////////////////
     }
+  
+    printf(" Diabling IntCTest...\n");
+    
+    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+      if (!pft->hcal.elinks().isActive(ilink)) continue;
+      
+      int iroc=ilink/2;        
+      char pagename[32];
+      snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
+      // set the value
+      pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 0);
+    }
+      ////////////////////////////////////////////////////////////
   }
 }
 

@@ -11,7 +11,7 @@ namespace decoding {
 */
 class RocPacket {
  public:
-  RocPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len} { }
+  RocPacket(const uint32_t* header_ptr, int len);
 
   int rocid() const { if (length_==0) return -1; return (data_[0]>>16)&0xFFFF;}
 
@@ -21,13 +21,15 @@ class RocPacket {
 
   int wadd() const { if (length_<3) return -1; return (data_[2]>>3)&0xFF;}
 
-  bool has_chan(int ichan) const { if (length_<2) return -1; if (ichan < 32) return (data_[1]>>ichan)&0x1; return (data_[0]>>(ichan-32))&0x1;}
+  bool has_chan(int ichan) const { return offset_to_chan(ichan)>=0; }
  
-  int get_tot(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>20)&0x2FF;} 
+  int get_tot(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>20)&0xFFF;} 
 
-  int get_toa(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>10)&0x2FF;} 
+  int get_toa(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return (data_[offset]>>10)&0x3FF;} 
   
-  int get_adc(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return data_[offset]&0x2FF;} 
+  int get_adc(int ichan) const { int offset = offset_to_chan(ichan); if (offset == -1) return -1; return data_[offset]&0x3FF;} 
+
+  void dump() const;
   
  private:
   int offset_to_chan(int ichan) const;

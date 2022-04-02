@@ -1,15 +1,16 @@
 #include "pflib/decoding/SuperPacket.h"
+#include <stdio.h>
 
 namespace pflib {
 namespace decoding {
 
 SuperPacket::SuperPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len}{
   bool found_header=false;
-  while (len>0 && !found_header) {
-    if (*header_ptr==0xBEEF2021u) found_header=true;      
-    len--;
-    header_ptr++;
-  }          
+  while (length_>0 && !found_header) {
+    if (*data_==0xBEEF2021u) found_header=true;      
+    length_--;
+    data_++;
+  }
 }
   
 int SuperPacket::length64() const { return -1;}
