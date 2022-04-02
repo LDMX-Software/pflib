@@ -918,7 +918,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
     char fname_def_format[1024];
-    sprintf(fname_def_format,"scan_%s_%%Y%%m%%d_%%H%%M%%S.raw",valuename.c_str());
+    sprintf(fname_def_format,"scan_%s_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str());
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
     
@@ -926,11 +926,13 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     std::ofstream csv_out=std::ofstream(fname);
 
     // csv header
-    csv_out <<valuename << "ILINK,CHAN,EVENT";
+    csv_out <<valuename << ",ILINK,CHAN,EVENT";
     for (int i=0; i<nsamples; i++) csv_out << ",S" << i;
     csv_out<<std::endl;
     
 
+    printf(" Clearing charge injection on all channels (ground-state)...\n");
+    
     /// first, disable charge injection on all channels
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
@@ -947,7 +949,9 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     ////////////////////////////////////////////////////////////
     
     for (int step=0; step<steps; step++) {
-      
+
+      printf(" Scan %s=%d...\n",valuename.c_str(),value);
+            
       ////////////////////////////////////////////////////////////
       /// set values
       int value=low_value+step*(high_value-low_value)/steps;
@@ -963,8 +967,6 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
       }
       ////////////////////////////////////////////////////////////
 
-      printf(" Scan %s=%d...\n",valuename.c_str(),value);
-      
       pft->prepareNewRun();
       
       for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
@@ -991,7 +993,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
           // here we decode the event and store the relevant information only...
 
-          for (int ilink=0; iroc<pft->hcal.elinks().nlinks(); ilink++) {
+          for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
             if (!pft->hcal.elinks().isActive(ilink)) continue;
 
             csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
