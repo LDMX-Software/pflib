@@ -876,6 +876,56 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 /**
+ * TASK menu commands
+ *
+ * ## Commands
+ * - SCANCHARGE : loop over channels and scan a range of a CALIBDAC values, recording only relevant channel points in CSV file
+ *
+ * @param[in] cmd command selected from menu
+ * @param[in] pft active target
+ */
+static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
+  pflib::DAQ& daq=pft->hcal.daq();
+
+  int low_value=0;
+  int high_value=0;
+  int steps=-1;
+  
+  if (cmd=="SCANCHARGE") {
+    
+  }
+  if (cmd=="SCANCHARGE") {
+    static const int MAX_ELINK_CHAN=35;
+    
+    for (int step=0; step<steps; step++) {
+
+      ////////////////////////////////////////////////////////////
+      /// set values -- a per-ROC step
+      int value=low_value+step*(high_value-low_value)/steps;
+
+      for (int iroc=0; iroc<pft->hcal.elinks().nlinks()/2; iroc++) {
+        if (!pft->hcal.elinks().isActive(iroc*2)) continue;
+
+        // set the value
+      }
+      ////////////////////////////////////////////////////////////
+
+      ////////////////////////////////////////////////////////////
+      /// Enable charge injection channel by channel -- per elink
+      for (int ichan=0; ichan<=MAX_ELINK_CHAN; ichan++) {
+
+        //////////////////////////////////////////////////////////
+        /// Take the expected number of events and save the events
+
+        //////////////////////////////////////////////////////////
+
+      }
+      ////////////////////////////////////////////////////////////
+    }
+  }
+}
+
+/**
  * Print data words from raw binary file and return them
  * @return vector of 32-bit data words in file
  */
@@ -1227,7 +1277,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("PEDESTAL","Take a simple random pedestal run", &daq),
     pfMenu::Line("CHARGE","Take a charge-injection run", &daq),
     pfMenu::Line("EXTERNAL","Take an externally-triggered run", &daq),
-    pfMenu::Line("SCAN","Take many charge or pedestal runs while changing a single parameter", &daq),
+    //    pfMenu::Line("SCAN","Take many charge or pedestal runs while changing a single parameter", &daq),
     pfMenu::Line("QUIT","Back to top menu")
   });
   
@@ -1237,9 +1287,18 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("I2C","Access the I2C Core", &menu_i2c ),
     pfMenu::Line("QUIT","Back to top menu")
   });
+
+  pfMenu menu_tasks({ 
+    pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
+    pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
+    pfMenu::Line("QUIT","Back to top menu")
+  });
+
+
   
   pfMenu menu_utop({ 
     pfMenu::Line("STATUS","Status summary", &status),
+    pfMenu::Line("TASKS","Various high-level tasks like scans", &menu_tasks ),
     pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
     pfMenu::Line("ROC","ROC Configuration", &menu_roc ),
     pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),

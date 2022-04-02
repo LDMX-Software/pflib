@@ -127,7 +127,7 @@ else()
 endif()
 
 if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
-  message(FATAL_ERROR "Neither Rogue or Uhal were found. At least one is necessary for polarfire interaction library.")
+  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
 endif()
 
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
