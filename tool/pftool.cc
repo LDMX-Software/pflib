@@ -910,6 +910,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
+    static const int NUM_ELINK_CHAN=36;
 
     steps=BaseMenu::readline_int("Number of steps?",steps);
     events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
@@ -929,7 +930,21 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     for (int i=0; i<nsamples; i++) csv_out << ",S" << i;
     csv_out<<std::endl;
     
-    static const int MAX_ELINK_CHAN=35;
+
+    /// first, disable charge injection on all channels
+    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+      if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+      int iroc=ilink/2;        
+      for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
+        char pagename[32];
+        snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
+        // set the value
+        pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
+        pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+      }
+    }
+    ////////////////////////////////////////////////////////////
     
     for (int step=0; step<steps; step++) {
       
@@ -937,7 +952,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
       /// set values
       int value=low_value+step*(high_value-low_value)/steps;
 
-      for (int ilink=0; iroc<pft->hcal.elinks().nlinks(); ilink++) {
+      for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
         if (!pft->hcal.elinks().isActive(ilink)) continue;
 
         int iroc=ilink/2;
@@ -948,12 +963,25 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
       }
       ////////////////////////////////////////////////////////////
 
+      printf(" Scan %s=%d...\n",valuename.c_str(),value);
+      
       pft->prepareNewRun();
       
-      ////////////////////////////////////////////////////////////
-      /// Enable charge injection channel by channel -- per elink
-      for (int ichan=0; ichan<=MAX_ELINK_CHAN; ichan++) {
+      for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
 
+        ////////////////////////////////////////////////////////////
+        /// Enable charge injection channel by channel -- per elink
+        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+          if (!pft->hcal.elinks().isActive(ilink)) continue;
+          
+          int iroc=ilink/2;        
+          char pagename[32];
+          snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
+          // set the value
+          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
+          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+        }
+                
         //////////////////////////////////////////////////////////
         /// Take the expected number of events and save the events
         for (int ievt=0; ievt<events_per_step; ievt++) {
@@ -971,6 +999,19 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
             csv_out<<std::endl;            
             
           }
+        }
+
+        ////////////////////////////////////////////////////////////
+        /// Disable charge injection channel by channel -- per elink
+        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+          if (!pft->hcal.elinks().isActive(ilink)) continue;
+          
+          int iroc=ilink/2;        
+          char pagename[32];
+          snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
+          // set the value
+          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
+          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
         }
 
         //////////////////////////////////////////////////////////
