@@ -11,7 +11,7 @@ namespace decoding {
 */
 class RocPacket {
  public:
-  RocPacket(const uint32_t* header_ptr, int len);
+  RocPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len} { }
 
   int rocid() const { if (length_==0) return -1; return (data_[0]>>16)&0xFFFF;}
 
