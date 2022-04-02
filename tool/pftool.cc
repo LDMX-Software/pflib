@@ -887,35 +887,57 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal.daq();
 
-  int low_value=0;
-  int high_value=0;
-  int steps=-1;
+  static int low_value=10;
+  static int high_value=500;
+  static int steps=10;
+  static int events_per_step=100;
+  std::string pagetemplate;
+  std::string valuename;
   
   if (cmd=="SCANCHARGE") {
-    
+    valuename="CALIB_DAC";
+    pagetemplate="REFERENCE_VOLTAGE_%d";
+    low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
+    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
+    steps=BaseMenu::readline_int("Number of steps?",steps);
+    events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
   }
   if (cmd=="SCANCHARGE") {
     static const int MAX_ELINK_CHAN=35;
     
     for (int step=0; step<steps; step++) {
-
+      
       ////////////////////////////////////////////////////////////
-      /// set values -- a per-ROC step
+      /// set values
       int value=low_value+step*(high_value-low_value)/steps;
 
-      for (int iroc=0; iroc<pft->hcal.elinks().nlinks()/2; iroc++) {
-        if (!pft->hcal.elinks().isActive(iroc*2)) continue;
+      for (int ilink=0; iroc<pft->hcal.elinks().nlinks(); ilink++) {
+        if (!pft->hcal.elinks().isActive(ilink)) continue;
 
+        int iroc=ilink/2;
+        char pagename[32];
+        snprintf(pagename,32,pagetemplate.c_str(),ilink%2);
         // set the value
+        pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
       }
       ////////////////////////////////////////////////////////////
 
+      pft->prepareNewRun();
+      
       ////////////////////////////////////////////////////////////
       /// Enable charge injection channel by channel -- per elink
       for (int ichan=0; ichan<=MAX_ELINK_CHAN; ichan++) {
 
         //////////////////////////////////////////////////////////
         /// Take the expected number of events and save the events
+        for (int ievt=0; ievt<events_per_step; ievt++) {
+
+          pft->backend->fc_sendL1A();
+          std::vector<uint32_t> event = pft->daqReadEvent();
+
+          // here we decode the event and store the relevant information only...
+          
+        }
 
         //////////////////////////////////////////////////////////
 
