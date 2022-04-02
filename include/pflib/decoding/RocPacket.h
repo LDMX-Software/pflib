@@ -15,13 +15,13 @@ class RocPacket {
 
   int rocid() const { if (length_==0) return -1; return (data_[0]>>16)&0xFFFF;}
 
-  int crc() const {if (length_==0) return -1; return (data_[0]>>15)&0x1};
+  int crc() const {if (length_==0) return -1; return (data_[0]>>15)&0x1;}
 
   int bxid() const { if (length_<3) return -1; return (data_[2]>>11)&0x7FF;}
 
-  int wadd() const { if (length_<3) return -1; return (data_[2]>>3(&0xFF)};
+  int wadd() const { if (length_<3) return -1; return (data_[2]>>3)&0xFF;}
 
-  bool has_chan(int ichan) const { if (length_<2) return -1; if (ichan < 32) return (data_[1]>>ichan)&0x1; return (data_[0]>>(ichan-32))&0x1};
+  bool has_chan(int ichan) const { if (length_<2) return -1; if (ichan < 32) return (data_[1]>>ichan)&0x1; return (data_[0]>>(ichan-32))&0x1;}
    
  private:
   int offset_to_chan(int ichan) const;
