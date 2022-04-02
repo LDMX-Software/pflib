@@ -454,13 +454,19 @@ void PolarfireTarget::elink_relink(int verbosity) {
   if (verbosity>0) {
     printf("...Hard reset\n");
   }
-  elinks.resetHard();
-  sleep(1);
+  //elinks.resetHard();
+  //sleep(1);
   
   if (verbosity>0) {
     printf("...Scanning bitslip values\n");
   }
 
+  bitslip();
+
+}
+
+void PolarfireTarget::bitslip(){
+  pflib::Elinks& elinks=hcal.elinks();
   for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
     if (!elinks.isActive(ilink)) continue;
     
