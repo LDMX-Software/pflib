@@ -12,13 +12,9 @@ SuperPacket::SuperPacket(const uint32_t* header_ptr, int len) : data_{header_ptr
   }          
 }
   
-int SuperPacket::length64() const;
-int SuperPacket::length32() const;
-int SuperPacket::fpgaid() const;
-int SuperPacket::nsamples() const;
-int SuperPacket::formatversion() const;
-
-int SuperPacket::length32_for_sample(int isample) {
+int SuperPacket::length64() const { return -1;}
+int SuperPacket::length32() const { return -1;}
+int SuperPacket::length32_for_sample(int isample) const {
   if (isample<0 || isample>=nsamples()) return 0;
   return (data_[1+(isample/2)]>>(16*(isample%2)))&0xFFF;
 }

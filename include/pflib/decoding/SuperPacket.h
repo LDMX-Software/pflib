@@ -17,7 +17,7 @@ class SuperPacket {
   int fpgaid() const {if (length_ == 0) return -1; return (data_[0]>>20)&0xFF;}
   int nsamples() const {if (length_ == 0) return -1; return (data_[0]>>16)&0xF;}
   int formatversion() const {if (length_ == 0) return -1; return (data_[0]>>28)&0xF;}
-  int length_for_sample(int isample);
+  int length32_for_sample(int isample) const;
     
   PolarfirePacket sample(int isample) const;
 private:
