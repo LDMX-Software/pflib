@@ -11,7 +11,7 @@ RocPacket PolarfirePacket::roc(int ilink) const {
 
 int PolarfirePacket::offset_to_elink(int ilink) const {
   if (ilink<0 || ilink>=nlinks()) return -1;
-  offset=2+((nlinks()+3)/4); // header words
+  int offset=2+((nlinks()+3)/4); // header words
   for (int i=0; i<ilink; i++)
     offset+=length_for_elink(i);
   return offset;
