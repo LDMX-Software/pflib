@@ -880,6 +880,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
  * TASK menu commands
  *
  * ## Commands
+ * - RESET_POWERUP: execute a series of commands after chip has been power cycled or firmware re-loaded
  * - SCANCHARGE : loop over channels and scan a range of a CALIBDAC values, recording only relevant channel points in CSV file
  *
  * @param[in] cmd command selected from menu
@@ -901,6 +902,14 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     int nextra;
     pft->hcal.fc().getMultisampleSetup(multi,nextra);
     if (multi) nsamples=nextra+1;
+  }
+  
+  if (cmd=="RESET_POWERUP") {
+    pft->hcal.fc().resetTransmitter();
+    pft->hcal.resyncLoadROC();
+    pft->daqHardReset();
+    pflib::Elinks& elinks=pft->hcal.elinks();
+    elinks.resetHard();
   }
   
   if (cmd=="SCANCHARGE") {
@@ -1428,7 +1437,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
   });
 
-  pfMenu menu_tasks({ 
+  pfMenu menu_tasks({
+    pfMenu::Line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", &tasks),
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("QUIT","Back to top menu")
