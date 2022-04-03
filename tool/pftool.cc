@@ -844,6 +844,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       daq_run(cmd,run,nevents,rate,fname);
     }
   }
+  /** Deprecated by new TASK menu */
   if (cmd=="SCAN"){
     std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
     std::string valuename=BaseMenu::readline("Value (aka Parameter) name :  ");
@@ -897,6 +898,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   static int events_per_step=100;
   std::string pagetemplate;
   std::string valuename;
+  std::string modeinfo;
 
   int nsamples=1;
   {
@@ -917,8 +919,12 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="SCANCHARGE") {
     valuename="CALIB_DAC";
     pagetemplate="REFERENCE_VOLTAGE_%d";
+    printf("CALIB_DAC valid range is 0...4095\n");
     low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
-    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);    
+    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
+    bool is_high_range=BaseMenu::readline_bool("Use HighRange? ",false);
+    if (is_high_range) modeinfo="HIGHRANGE";
+    else modeinfo="LOWRANGE";
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
@@ -1014,8 +1020,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
           char pagename[32];
           snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
           // set the value
-          //          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
-          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 1);
+          pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 1);
         }
                 
         //////////////////////////////////////////////////////////
@@ -1053,8 +1058,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
           char pagename[32];
           snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
           // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
-          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+          pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 0);
         }
 
         //////////////////////////////////////////////////////////
