@@ -765,11 +765,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     pft->prepareNewRun();
 
     // start DMA, if that's what we're doing...
-    if (dma_enabled && !start_dma_cmd.empty()) {
-      printf("Launching DMA...\n");
-      std::string cmd=start_dma_cmd+" "+fname;
-      system(cmd.c_str());
-    }
+    if (dma_enabled) rwbi->daq_dma_dest(fname);
     
     // enable external triggers
     pft->backend->fc_enables(true,true,false);
@@ -808,11 +804,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
     if (f) fclose(f);
 
-    if (dma_enabled && !stop_dma_cmd.empty()) {
-      printf("Stopping DMA...\n");
-      std::string cmd=stop_dma_cmd;
-      system(cmd.c_str());
-    }
+    if (dma_enabled) rwbi->daq_dma_close();
     
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
