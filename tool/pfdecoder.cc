@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
       }
       if (verbosity>0)
 	printf("\n");
-    } else if (rel_super>2+(samples+1)/2 && rel_super<=2+8) {
+    } else if (rel_super>2+(samples+1)/2 && rel_super<=2+8 && fmt==2) {
       word_type=wt_junk; // empty sample words
     }    else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
       packet_header=i;
