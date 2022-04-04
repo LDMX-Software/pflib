@@ -80,8 +80,6 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
           }
         }
       }
-    } else if (strcasecmp("roclinks", setting.c_str()) == 0) {
-      roclinks_ = setting_pair.second.as<std::vector<bool>>();
     } else {
       // throws exception if setting not found
       settings_[setting] = detail::PolarfireSetting::Factory::get().make(setting);
@@ -95,13 +93,10 @@ void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& hos
   //    no good reason, just in a rush
   auto pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
 
-  std::cout << "marking active links..." << std::endl;
-  for (int ilink{0}; ilink < pft->hcal.elinks().nlinks() and ilink < roclinks_.size(); ilink++) {
-    pft->hcal.elinks().markActive(ilink,roclinks_.at(ilink));
-  }
-
   for (auto& setting : settings_) {
-    std::cout << "  applying " << setting.first << std::endl;
+    std::cout << "  applying " << setting.first << " ";
+    setting.second->stream(std::cout);
+    std::cout << std::endl;
     setting.second->execute(pft.get());
   }
 
