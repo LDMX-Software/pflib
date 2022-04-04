@@ -261,6 +261,7 @@ void PolarfireTarget::prepareNewRun() {
   hcal.fc().getMultisampleSetup(enable,extra_samples);
   samples_per_event_=extra_samples+1;
 
+  
   daq.enable(true);
 }
 
@@ -299,7 +300,7 @@ void PolarfireTarget::daqStatus(std::ostream& os) {
   
   os << "-----Off-detector FIFO-----\n";
   backend->daq_status(full, empty, events,asize);
-  os << " " << std::setw(8) << (full ? "FULL" : "NOT-FULL")
+  os << " " << std::setfill(' ') << std::setw(8) << (full ? "FULL" : "NOT-FULL")
      << " " << std::setw(9) << (empty ? "EMPTY" : "NOT_EMPTY")
      << " Events ready: " << std::setw(3) << events
      << " Next event size: " << asize
@@ -440,55 +441,65 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
   }
 }
 
-void PolarfireTarget::elink_relink(int verbosity) {
+void PolarfireTarget::elink_relink(int ilink ,int verbosity) {
   pflib::Elinks& elinks=hcal.elinks();
 
-  if (verbosity>0) 
-    printf("...Setting phase delays\n");    
-  for (int ilink=0; ilink<elinks.nlinks(); ilink++) 
-    if (elinks.isActive(ilink)) 
-      elinks.setDelay(ilink,20);
-
-  
-  if (verbosity>0) {
-    printf("...Hard reset\n");
-  }
-  elinks.resetHard();
-  sleep(1);
-  
-  if (verbosity>0) {
-    printf("...Scanning bitslip values\n");
-  }
-
-  for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
-    if (!elinks.isActive(ilink)) continue;
-    
-    elinks.setBitslipAuto(ilink,false);
-    
-    int okcount[8];
-    
-    for (int slip=0; slip<8; slip++) {
-      elinks.setBitslip(ilink,slip);
-      okcount[slip]=0;
-      for (int cycles=0; cycles<5; cycles++) {
-        std::vector<uint8_t> spy=elinks.spy(ilink);
-        for (size_t i=0; i+4<spy.size(); ) {
-          if (spy[i]==0x9c || spy[i]==0xac) {
-            if (spy[i+1]==0xcc && spy[i+2]==0xcc && spy[i+3]==0xcc) okcount[slip]++;
-            i+=4;
-          } else i++;
-        } 
-      }
+  if (ilink == -1){
+    for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
+      delay_loop(ilink);
     }
-    int imax=-1;
-    for (int slip=0; slip<8; slip++) {
-      if (imax<0 || okcount[slip]>okcount[imax]) imax=slip;
-    }
-    elinks.setBitslip(ilink,imax);
-    printf("    Link %d bitslip %d  (ok count=%d)\n",ilink,imax,okcount[imax]);
-  }
-  
+  } else delay_loop(ilink);
+
 }
+
+void PolarfireTarget::delay_loop(int ilink){
+  pflib::Elinks& elinks = hcal.elinks();
+  bool passedBitslipLoop = false;
+  if (elinks.isActive(ilink)){
+    for (int delay=20; delay<26; delay++){
+      elinks.setDelay(ilink,delay);
+      passedBitslipLoop = bitslip_loop(ilink);
+       if (passedBitslipLoop) break;
+    }
+    if (!passedBitslipLoop) printf("Delay scan exceeded 25, you should do an elinks hardreset\n");
+  } else printf("    Elink %d is not active.\n",ilink);
+}
+
+bool PolarfireTarget::bitslip_loop(int ilink){
+  pflib::Elinks& elinks=hcal.elinks();
+    
+  elinks.setBitslipAuto(ilink,false);
+    
+  int okcount[8];
+    
+  for (int slip=0; slip<8; slip++) {
+    elinks.setBitslip(ilink,slip);
+    okcount[slip]=0;
+    for (int cycles=0; cycles<5; cycles++) {
+      std::vector<uint8_t> spy=elinks.spy(ilink);
+      for (size_t i=0; i+4<spy.size(); ) {
+        if (spy[i]==0x9c || spy[i]==0xac) {
+          if (spy[i+1]==0xcc && spy[i+2]==0xcc && spy[i+3]==0xcc) okcount[slip]++;
+          i+=4;
+        } else i++;
+      } 
+    }
+  }
+  int imax=-1;
+  for (int slip=0; slip<8; slip++) {
+    if (imax<0 || okcount[slip]>okcount[imax]) imax=slip;
+  }
+  elinks.setBitslip(ilink,imax);
+  printf("    Link %d bitslip %d  (ok count=%d)\n",ilink,imax,okcount[imax]);
+
+  if (okcount[imax] == 75){
+    return true;
+  }
+  else return false;
+
+}
+  
+//}
 
   
 
