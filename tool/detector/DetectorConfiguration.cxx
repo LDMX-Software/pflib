@@ -98,7 +98,7 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
       for (const auto& sub_pair : setting_pair.second) {
         std::string roc = sub_pair.first.as<std::string>();
         // skip undefined target node (just being listed for inherit)
-        if (not sub_pair.second) continue;
+        if (not sub_pair.second or sub_pair.second.IsNull()) continue;
         YAML::Node roc_params{sub_pair.second};
         if (not sub_pair.second.IsMap()) {
           auto roc_filename = sub_pair.second.as<std::string>();
