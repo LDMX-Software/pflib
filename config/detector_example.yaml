@@ -1,3 +1,5 @@
+# example detector-wide configuration using the host names
+# for the CERN testbeam setup
 inherit:
   calib_offset: 15
   sipm_bias: 
