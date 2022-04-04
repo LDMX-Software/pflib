@@ -12,7 +12,7 @@
  * Definition of settings
  *****************************************************************************/
 /// set the calib offset to the value
-class CalibOffset : public pflib::detail::PolarfireSetting {
+class calib_offset : public pflib::detail::PolarfireSetting {
   int val_;
  public: 
   virtual void import(YAML::Node val) final override {
@@ -31,7 +31,7 @@ class CalibOffset : public pflib::detail::PolarfireSetting {
 };
 
 /// sets the sipm bias adc value for all connectors on the input rocs
-class SipmBias : public pflib::detail::PolarfireSetting {
+class sipm_bias : public pflib::detail::PolarfireSetting {
   int val_;
   std::vector<int> rocs_;
  public:
@@ -67,8 +67,9 @@ class SipmBias : public pflib::detail::PolarfireSetting {
  *    taken as reserved names for other purposes below.
  *****************************************************************************/
 namespace {
-  auto v0 = pflib::detail::PolarfireSetting::Factory::get().declare<CalibOffset>("calib_offset");
-  auto v1 = pflib::detail::PolarfireSetting::Factory::get().declare<SipmBias>("sipm_bias");
+  auto& factory{pflib::detail::PolarfireSetting::Factory::get()};
+  auto v0 = factory.declare<calib_offset>("calib_offset");
+  auto v1 = factory.declare<sipm_bias>("sipm_bias");
 }
 
 /******************************************************************************
