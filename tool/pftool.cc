@@ -1322,9 +1322,6 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  //if (options.contents().is_vector("roclinks")) {
-  //        std::vector<bool> actives=options.contents().getVBool("roclinks");
-
   /*****************************************************************************
    * Run tool
    ****************************************************************************/
