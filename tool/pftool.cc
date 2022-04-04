@@ -398,6 +398,9 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
     bool prepend_defaults = BaseMenu::readline_bool("Update all parameter values on the chip using the defaults in the manual for any values not provided? ", false);
     pft->loadROCParameters(iroc,fname,prepend_defaults);
   }
+  if (cmd=="DEFAULT_PARAMS") {
+    pft->loadDefaultROCParameters();
+  }
   if (cmd=="DUMP") {
     std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
 
@@ -1069,6 +1072,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &roc ),
      pfMenu::Line("LOAD","Alias for LOAD_PARAM", &roc ),
      pfMenu::Line("DUMP","Dump hgcroc settings to a file", &roc ),
+     pfMenu::Line("DEFAULT_PARAMS", "Load default YAML files", &roc),
      pfMenu::Line("QUIT","Back to top menu")
     }, roc_render);
   
@@ -1180,6 +1184,7 @@ void prepareOpts(Rcfile& rcfile) {
       "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
   rcfile.declareString("default_hostname",
       "Hostname of polarfire to connect to if none are given on the command line");
+  rcfile.declareVString("roc_configs", "Vector String[4] pointing to default .yaml configs for each roc");
 }
 
 /**
@@ -1317,6 +1322,9 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  //if (options.contents().is_vector("roclinks")) {
+  //        std::vector<bool> actives=options.contents().getVBool("roclinks");
+
   /*****************************************************************************
    * Run tool
    ****************************************************************************/
@@ -1373,6 +1381,11 @@ int main(int argc, char* argv[]) {
               ilink<p_pft->hcal.elinks().nlinks() and ilink<int(actives.size()); 
               ilink++) p_pft->hcal.elinks().markActive(ilink,actives[ilink]);
       	}
+
+        if (options.contents().is_vector("roc_configs")) {
+          p_pft->findDefaultROCParameters(options.contents().getVString("roc_configs"));
+        }
+
         status(p_pft.get());
         RunMenu(p_pft.get());
       } else {
