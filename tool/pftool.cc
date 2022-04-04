@@ -695,8 +695,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
 
 #ifdef PFTOOL_ROGUE
   auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+  uint8_t fpgaid_i;
   if (rwbi) {
-    uint8_t samples_per_event, fpgaid_i;
+    uint8_t samples_per_event;
     rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
   }
 #endif
@@ -746,7 +747,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     run=BaseMenu::readline_int("Run number? ",run);
 
     char fname_def_format[1024];
-    sprintf(fname_def_format,"run%06d_%%Y%%m%%d_%%H%%M%%S.raw",run);
+    sprintf(fname_def_format,"fpga%d_run%06d_%%Y%%m%%d_%%H%%M%%S.raw",fpgaid_i,run);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
     
