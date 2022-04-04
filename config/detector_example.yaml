@@ -1,0 +1,35 @@
+inherit:
+  calib_offset: 15
+  sipm_bias: 3784
+  hgcrocs:
+    inherit: 
+      Top:
+        Phase: 9
+cob1-dpm0:
+  calib_offset: 16
+  # sipm_bias is 3784
+  hgcrocs:
+    inherit:
+      Top: 
+        Phase: 8
+    0 :
+      Top :
+        Phase : 7
+    2 :
+      Top :
+        Phase : 6
+    3 :
+      # will have top.phase = 8
+cob1-dpm1:
+  # calib_offset is 15
+  sipm_bias: 3780
+  hgcrocs:
+    0 :
+      Top :
+        Phase : 8
+    1 :
+      # will have top.phase = 9
+    2 :
+      # will have top.phase = 9
+    3 :
+      # will have top.phase = 9

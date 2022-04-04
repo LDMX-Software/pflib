@@ -42,6 +42,7 @@ add_library(pflib SHARED
   src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
   src/pflib/PolarfireTarget.cxx
+  src/pflib/DetectorConfiguration.cxx
   src/pflib/decoding/RocPacket.cxx
   src/pflib/decoding/PolarfirePacket.cxx
   src/pflib/decoding/SuperPacket.cxx
@@ -68,6 +69,9 @@ target_link_libraries(pfdecompile pflib)
 
 add_executable(pfdefaults tool/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
+
+add_executable(pfconfigure tool/pfconfigure.cxx)
+target_link_libraries(pfconfigure pflib)
 
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one

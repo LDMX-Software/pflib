@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 
+namespace YAML {
+class Node;
+}
+
 namespace pflib {
 
 /**
@@ -232,6 +236,24 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults = t
 std::map<int,std::map<int,uint8_t>>
 compile(const std::string& setting_file, bool prepend_defaults = true);
 
-}
+/**
+ * Hidden functions to avoid misuse
+ */
+namespace detail {
+
+/**
+ * Extract a map of page_name, param_name to their values by crawling the YAML tree.
+ *
+ * @throw pflib::Exception if YAML file has a bad format (root node is not a map,
+ * page nodes are not maps, page name doesn't match any pages, or parameter's value
+ * does not exist).
+ *
+ * @param[in] params a YAML::Node to start extraction from
+ * @param[in,out] settings map of names to values for extract parameters
+ */
+void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings);
+
+}  // namespace detail
+}  // namespace pflib
 
 #endif

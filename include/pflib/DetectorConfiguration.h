@@ -1,0 +1,53 @@
+#ifndef PFLIB_DETECTORCONFIGURATION_H
+#define PFLIB_DETECTORCONFIGURATION_H
+
+#include <string>
+#include <map>
+
+namespace YAML {
+class Node;
+}
+
+namespace pflib {
+
+/**
+ * object for parsing a detector configuration file and
+ * (potentially) executing it
+ */
+class DetectorConfiguration {
+  struct PolarfireConfiguration {
+    int calib_offset; // FC.CALIB
+    int sipm_bias; 
+    std::map<int, // roc index on this polarfire
+      std::map<
+        std::string, // page
+        std::map<
+          std::string, // parameter
+          int // value
+      >>> hgcrocs;
+    void import(YAML::Node conf);
+  };
+  std::map<std::string, PolarfireConfiguration> polarfires;
+ public:
+  /**
+   * Parse the input file loading into us
+   */
+  DetectorConfiguration(const std::string& config);
+
+  /**
+   * apply the configuration to the detector,
+   * we need access to all the WB, so make sure no other instances of pftool (for example) are up!
+   */
+  void apply();
+
+  /**
+   * Print out the detector configuration for debugging purposes
+   */
+  void stream(std::ostream& s) const;
+
+};
+}
+
+std::ostream& operator<<(std::ostream& s, const pflib::DetectorConfiguration& dc);
+
+#endif
