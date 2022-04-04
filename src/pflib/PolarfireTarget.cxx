@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <unistd.h>
+#include <string>
 
 #include <yaml-cpp/yaml.h>
 
@@ -190,6 +191,22 @@ void PolarfireTarget::loadROCParameters(int roc, const std::string& file_name, b
     std::map<std::string,std::map<std::string,int>> parameters;
     extract(std::vector<std::string>{file_name}, parameters);
     hcal.roc(roc).applyParameters(parameters);
+  }
+}
+
+void PolarfireTarget::findDefaultROCParameters(std::vector<std::string> paths) {
+  default_configs_ = paths;
+}
+
+void PolarfireTarget::loadDefaultROCParameters() {
+  for(int i = 0; i < default_configs_.size(); i++){
+    if(default_configs_.at(i) == ""){
+      std::cout << "Skipping board " << i << std::endl;
+    }
+    else{
+      std::cout << "Loading config " << default_configs_.at(i) << " on ROC " << i << std::endl;
+      loadROCParameters(i, default_configs_.at(i), false);
+    }
   }
 }
 

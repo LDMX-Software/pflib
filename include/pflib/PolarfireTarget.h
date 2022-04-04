@@ -4,6 +4,7 @@
 #include <ostream>
 #include <memory>
 #include <functional>
+#include <string>
 
 #include "pflib/WishboneInterface.h"
 #include "pflib/Backend.h"
@@ -144,6 +145,16 @@ struct PolarfireTarget {
   void loadROCParameters(int roc, const std::string& file_name, bool prepend_defaults);
 
   /**
+   * Stores paths of default ROC config files, as given by the pftoolrc
+   */
+  void findDefaultROCParameters(std::vector<std::string> paths);
+
+  /**
+   * Loads the default ROC config on boards where it is specified
+   */
+  void loadDefaultROCParameters();
+
+  /**
    * Request all of the ROC setting register values
    *
    * The input lets you choose if you want the output
@@ -222,7 +233,8 @@ struct PolarfireTarget {
   bool bitslip_loop(int ilink);
   
  private:
-  int samples_per_event_;  
+  int samples_per_event_;
+  std::vector<std::string> default_configs_;
 };
 
 }
