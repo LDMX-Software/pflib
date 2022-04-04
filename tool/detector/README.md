@@ -101,11 +101,19 @@ via a pointer to `PolarfireTarget` (same limitation as pftool commands).
 
 ### calib\_offset
 This setting is a single integer that is the same as `FC.CALIB` in pftool.
+```yaml
+  calib_offset: 16
+```
 
 ### sipm\_bias
 This setting takes a YAML map with two keys. 
 `value` sets the SiPM bias ADC value and `rocs` lists the roc indices to apply this to.
 This is similar to `ROC.BIAS` in pftool.
+```yaml
+  sipm_bias:
+    value: 3784
+    rocs: [0,2,3]
+```
 
 ### Implementing a New Setting
 Making a setting available to be applied by this executable is done with a library/factory model.
