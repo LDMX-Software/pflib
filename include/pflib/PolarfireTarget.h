@@ -226,7 +226,11 @@ struct PolarfireTarget {
   bool loadBiasSettings(const std::string& file_name);
 
   /** Carries out the standard elink alignment process */
-  void elink_relink(int verbosity);
+  void elink_relink(int ilink,int verbosity);
+
+  void delay_loop(int ilink);
+
+  bool bitslip_loop(int ilink);
   
  private:
   int samples_per_event_;

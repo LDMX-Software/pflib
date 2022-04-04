@@ -31,7 +31,8 @@ std::string BaseMenu::readline(const std::string& prompt,
 
   if (!cmdTextQueue_.empty()) {
     retval = cmdTextQueue_.front();
-    printf("%s %s\n", trueprompt.c_str(), retval.c_str());
+    if (retval.empty()) retval=defval;
+    printf("%s %s\n", trueprompt.c_str(), retval.c_str());    
 
     if (!retval.empty() && retval[0] == '~') {
       retval.erase(0, 1);

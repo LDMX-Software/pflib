@@ -41,7 +41,11 @@ add_library(pflib SHARED
   src/pflib/ROC.cxx
   src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
-  src/pflib/PolarfireTarget.cxx)
+  src/pflib/PolarfireTarget.cxx
+  src/pflib/decoding/RocPacket.cxx
+  src/pflib/decoding/PolarfirePacket.cxx
+  src/pflib/decoding/SuperPacket.cxx
+)
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -127,7 +131,7 @@ else()
 endif()
 
 if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
-  message(FATAL_ERROR "Neither Rogue or Uhal were found. At least one is necessary for polarfire interaction library.")
+  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
 endif()
 
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
