@@ -95,8 +95,10 @@ if (Rogue_FOUND)
   target_link_libraries(pftool PRIVATE rogue)
   list(APPEND comm_libs rogue)
 
-  add_executable(pfconfigure src/pflib/DetectorConfiguration.cxx tool/pfconfigure.cxx)
-  target_link_libraries(pfconfigure pflib rogue)
+  add_executable(configure-detector 
+    tool/detector/DetectorConfiguration.cxx 
+    tool/detector/configure-detector.cxx)
+  target_link_libraries(configure-detector pflib rogue)
 else()
   message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
 endif()

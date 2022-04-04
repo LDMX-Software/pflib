@@ -6,19 +6,19 @@
 #include <iomanip>
 #include <fstream>
 
+#include "DetectorConfiguration.h"
 #include "pflib/Exception.h"
-#include "pflib/DetectorConfiguration.h"
 
 static void usage() {
   std::cout <<
     "\n"
     " USAGE:\n"
-    "  pfconfigure [options] config.yaml\n"
+    "  configure-detector [options] config.yaml\n"
     "\n"
     " OPTIONS:\n"
-    "  -h,--help  : Print this help and exit\n"
-    "  --test     : Print final settings without actually applying them to the chips\n"
-    "\n"
+    "  -h,--help    : Print this help and exit\n"
+    "  --test       : Print final settings without actually applying them to the chips\n"
+    "  --no-confirm : Just apply the settings, don't check with user\n"
     << std::endl;
 }
 
@@ -28,17 +28,17 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  bool prepend_defaults = false;
+  bool confirm = true;
   bool test  = false;
   std::string config;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
     if (arg[0] == '-') {
       // option
-      if (arg == "--defaults") {
-        prepend_defaults = true;
-      } else if (arg == "--test") {
+      if (arg == "--test") {
         test = true;
+      } else if (arg == "--no-confirm") {
+        confirm = false;
       } else if (arg == "--help" or arg == "-h") {
         usage();
         return 0;
@@ -63,8 +63,18 @@ int main(int argc, char *argv[]) {
 
   try {
     pflib::DetectorConfiguration dc(config);   
-    if (test) std::cout << dc << std::endl;
-    else dc.apply();
+    if (test) {
+      std::cout << dc << std::endl;
+    } else {
+      if (confirm) {
+        std::cout << dc << std::endl;
+        char a;
+        std::cout << "Apply these settings to the detector? [Y/N] " << std::flush;
+        std::cin >> a;
+        if (a != 'y' and a != 'Y') return 0;
+      }
+      dc.apply();
+    }
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

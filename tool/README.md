@@ -6,6 +6,8 @@ with the polarfire connected to HGC ROC(s).
 This tool opens up a rudimentary terminal with various menus and submenus with commands
 for configuring the chips and aquiring data.
 
+Look at the [detector](detector) subdirectory for the detector-wide (multiple polarfire) configuration executable.
+
 This document is meant to give an overview of its design and provide some
 manual documentation on its properties. We assume that `pftool` is already
 successfully built. More detail about the menu commands within pftool is given

@@ -1,4 +1,5 @@
-#include "pflib/DetectorConfiguration.h"
+#include "DetectorConfiguration.h"
+
 #include "pflib/Compile.h"
 #include "pflib/PolarfireTarget.h"
 #include "pflib/rogue/RogueWishboneInterface.h"
@@ -6,7 +7,6 @@
 #include <yaml-cpp/yaml.h>
 #include <string.h>
 #include <iostream>
-
 
 /******************************************************************************
  * Definition of settings
