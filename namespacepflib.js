@@ -5,9 +5,7 @@ var namespacepflib =
       [ "RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
       [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ]
     ] ],
-    [ "detail", "namespacepflib_1_1detail.html", [
-      [ "extract", "namespacepflib_1_1detail.html#af3ae28614c9691de0853aee9f4d8b797", null ]
-    ] ],
+    [ "detail", "namespacepflib_1_1detail.html", "namespacepflib_1_1detail" ],
     [ "rogue", null, [
       [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", "classpflib_1_1rogue_1_1RogueWishboneInterface" ]
     ] ],
@@ -17,6 +15,7 @@ var namespacepflib =
     [ "Backend", "classpflib_1_1Backend.html", "classpflib_1_1Backend" ],
     [ "Bias", "classpflib_1_1Bias.html", "classpflib_1_1Bias" ],
     [ "DAQ", "classpflib_1_1DAQ.html", "classpflib_1_1DAQ" ],
+    [ "DetectorConfiguration", "classpflib_1_1DetectorConfiguration.html", "classpflib_1_1DetectorConfiguration" ],
     [ "Elinks", "classpflib_1_1Elinks.html", "classpflib_1_1Elinks" ],
     [ "Exception", "classpflib_1_1Exception.html", "classpflib_1_1Exception" ],
     [ "FastControl", "classpflib_1_1FastControl.html", "classpflib_1_1FastControl" ],

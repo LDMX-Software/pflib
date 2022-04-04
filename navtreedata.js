@@ -57,18 +57,29 @@ var NAVTREE =
       [ "Credits", "md_docs_doxygen_awesome_css_README.html#autotoc_md14", null ]
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
+    [ "Configure the Detector", "md_tool_detector_README.html", [
+      [ "YAML Format", "md_tool_detector_README.html#autotoc_md33", [
+        [ "<tt>inherit</tt> keyword", "md_tool_detector_README.html#autotoc_md34", null ],
+        [ "HGC ROC Parameters", "md_tool_detector_README.html#autotoc_md35", null ]
+      ] ],
+      [ "Other Polarfire Settings", "md_tool_detector_README.html#autotoc_md36", [
+        [ "calib_offset", "md_tool_detector_README.html#autotoc_md37", null ],
+        [ "sipm_bias", "md_tool_detector_README.html#autotoc_md38", null ],
+        [ "Implementing a New Setting", "md_tool_detector_README.html#autotoc_md39", null ]
+      ] ]
+    ] ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md42", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md47", [
-        [ "daq.status", "md_tool_README.html#autotoc_md48", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md49", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md50", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md51", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md52", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md53", null ],
-        [ "roc.resyncload", "md_tool_README.html#autotoc_md54", null ],
-        [ "fast_control.calib", "md_tool_README.html#autotoc_md55", null ],
-        [ "fast_control.status", "md_tool_README.html#autotoc_md56", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md50", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md55", [
+        [ "daq.status", "md_tool_README.html#autotoc_md56", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md57", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md58", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md59", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md60", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md61", null ],
+        [ "roc.resyncload", "md_tool_README.html#autotoc_md62", null ],
+        [ "fast_control.calib", "md_tool_README.html#autotoc_md63", null ],
+        [ "fast_control.status", "md_tool_README.html#autotoc_md64", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
@@ -105,11 +116,11 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1FastControl.html#aabe5ceba1290c109d9968ccbd4b90e28",
-"cpp/algorithm/generate.html",
-"cpp/memory/shared_ptr/allocate_shared.html",
-"cpp/utility/program/signal.html",
-""
+"classpflib_1_1Exception.html#ab45b2db412ab8036390388a8d81d8841",
+"classsipm__bias.html",
+"cpp/iterator/back_inserter.html",
+"cpp/thread/future/future_category.html",
+"structpflib_1_1PolarfireTarget.html#ab25281cfd21c7584ba988e3fa70d1651"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

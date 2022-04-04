@@ -9,16 +9,23 @@ var hierarchy =
     ] ],
     [ "pflib::Bias", "classpflib_1_1Bias.html", null ],
     [ "pflib::DAQ", "classpflib_1_1DAQ.html", null ],
+    [ "pflib::DetectorConfiguration", "classpflib_1_1DetectorConfiguration.html", null ],
     [ "std::exception", "http://en.cppreference.com/w/cpp/error/exception.html", [
       [ "pflib::Exception", "classpflib_1_1Exception.html", null ]
     ] ],
+    [ "pflib::detail::PolarfireSetting::Factory", "classpflib_1_1detail_1_1PolarfireSetting_1_1Factory.html", null ],
     [ "pflib::Hcal", "classpflib_1_1Hcal.html", null ],
     [ "Rcfile::HelpInfo", "structRcfile_1_1HelpInfo.html", null ],
     [ "hex< W >", "structhex.html", null ],
     [ "Menu< TargetType >::Line", "classMenu_1_1Line.html", null ],
     [ "pflib::MAX5825", "classpflib_1_1MAX5825.html", null ],
     [ "pflib::Parameter", "structpflib_1_1Parameter.html", null ],
+    [ "pflib::DetectorConfiguration::PolarfireConfiguration", "structpflib_1_1DetectorConfiguration_1_1PolarfireConfiguration.html", null ],
     [ "pflib::decoding::PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", null ],
+    [ "pflib::detail::PolarfireSetting", "classpflib_1_1detail_1_1PolarfireSetting.html", [
+      [ "calib_offset", "classcalib__offset.html", null ],
+      [ "sipm_bias", "classsipm__bias.html", null ]
+    ] ],
     [ "pflib::PolarfireTarget", "structpflib_1_1PolarfireTarget.html", null ],
     [ "Rcfile", "classRcfile.html", null ],
     [ "Rcmap", "classRcmap.html", null ],

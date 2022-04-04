@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['doxygen_20awesome_0',['Doxygen Awesome',['../md_docs_doxygen_awesome_css_README.html',1,'']]]
+  ['configure_20the_20detector_0',['Configure the Detector',['../md_tool_detector_README.html',1,'']]]
 ];

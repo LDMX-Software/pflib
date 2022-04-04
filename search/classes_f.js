@@ -14,9 +14,11 @@ var searchData=
   ['pointer_5fsafety_11',['pointer_safety',['http://en.cppreference.com/w/cpp/memory/gc/pointer_safety.html',1,'std']]],
   ['pointer_5ftraits_12',['pointer_traits',['http://en.cppreference.com/w/cpp/memory/pointer_traits.html',1,'std']]],
   ['poisson_5fdistribution_13',['poisson_distribution',['http://en.cppreference.com/w/cpp/numeric/random/poisson_distribution.html',1,'std']]],
-  ['polarfirepacket_14',['PolarfirePacket',['../classpflib_1_1decoding_1_1PolarfirePacket.html',1,'pflib::decoding']]],
-  ['polarfiretarget_15',['PolarfireTarget',['../structpflib_1_1PolarfireTarget.html',1,'pflib']]],
-  ['priority_5fqueue_16',['priority_queue',['http://en.cppreference.com/w/cpp/container/priority_queue.html',1,'std']]],
-  ['promise_17',['promise',['http://en.cppreference.com/w/cpp/thread/promise.html',1,'std']]],
-  ['ptrdiff_5ft_18',['ptrdiff_t',['http://en.cppreference.com/w/cpp/types/ptrdiff_t.html',1,'std']]]
+  ['polarfireconfiguration_14',['PolarfireConfiguration',['../structpflib_1_1DetectorConfiguration_1_1PolarfireConfiguration.html',1,'pflib::DetectorConfiguration']]],
+  ['polarfirepacket_15',['PolarfirePacket',['../classpflib_1_1decoding_1_1PolarfirePacket.html',1,'pflib::decoding']]],
+  ['polarfiresetting_16',['PolarfireSetting',['../classpflib_1_1detail_1_1PolarfireSetting.html',1,'pflib::detail']]],
+  ['polarfiretarget_17',['PolarfireTarget',['../structpflib_1_1PolarfireTarget.html',1,'pflib']]],
+  ['priority_5fqueue_18',['priority_queue',['http://en.cppreference.com/w/cpp/container/priority_queue.html',1,'std']]],
+  ['promise_19',['promise',['http://en.cppreference.com/w/cpp/thread/promise.html',1,'std']]],
+  ['ptrdiff_5ft_20',['ptrdiff_t',['http://en.cppreference.com/w/cpp/types/ptrdiff_t.html',1,'std']]]
 ];

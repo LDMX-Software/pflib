@@ -1,0 +1,5 @@
+<map id="pflib::detail::PolarfireSetting" name="pflib::detail::PolarfireSetting">
+<area shape="rect" id="node1" title="Object that can change a setting on a polarfire target." alt="" coords="34,5,191,47"/>
+<area shape="rect" id="node2" href="$classcalib__offset.html" title="Definition of settings." alt="" coords="5,95,103,121"/>
+<area shape="rect" id="node3" href="$classsipm__bias.html" title="sets the sipm bias adc value for all connectors on the input rocs" alt="" coords="127,95,215,121"/>
+</map>

@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.2</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.2-16-g140b722</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -230,7 +230,7 @@ static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_stri
 
 <p>BIAS menu commands. </p>
 <dl class="section note"><dt>Note</dt><dd><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> menu has not been explored thoroughly so some of these commands are not fully developed.</dd></dl>
-<h2><a class="anchor" id="autotoc_md40"></a>
+<h2><a class="anchor" id="autotoc_md48"></a>
 Commands</h2>
 <ul>
 <li>STATUS : <em>does nothing</em> after selecting a board.</li>
@@ -283,7 +283,7 @@ Commands</h2>
 </div><div class="memdoc">
 
 <p>DAQ menu commands, DOES NOT include sub-menu commands. </p>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h2><a class="anchor" id="autotoc_md46"></a>
 Commands</h2>
 <ul>
 <li>STATUS : <a class="el" href="structpflib_1_1PolarfireTarget.html#a44c1bed54ddd2a7b3b254d1b12c8016f" title="Print a decoded daq status to the input ostream MOVE TO DAQ.">pflib::PolarfireTarget::daqStatus</a> and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in that manner</li>
@@ -388,7 +388,7 @@ Commands</h2>
 
 <p>DAQ-&gt;SETUP menu commands. </p>
 <p >Before doing any of the commands, we retrieve a reference to the daq object via <a class="el" href="classpflib_1_1Hcal.html#abfcb2e17b02f3d6a03cd95436ecba121" title="get the DAQ object">pflib::Hcal::daq</a>.</p>
-<h2><a class="anchor" id="autotoc_md37"></a>
+<h2><a class="anchor" id="autotoc_md45"></a>
 Commands</h2>
 <ul>
 <li>STATUS : <a class="el" href="structpflib_1_1PolarfireTarget.html#a44c1bed54ddd2a7b3b254d1b12c8016f" title="Print a decoded daq status to the input ostream MOVE TO DAQ.">pflib::PolarfireTarget::daqStatus</a> and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in that manner</li>
@@ -445,7 +445,7 @@ Commands</h2>
 
 <p>ELINKS menu commands. </p>
 <p >We retrieve a reference to the current elinks object via <a class="el" href="classpflib_1_1Hcal.html#a53b52d9fd761d356ba1699c47b2c0486" title="get the Elinks object">pflib::Hcal::elinks</a> and then procede to the commands.</p>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md42"></a>
 Commands</h2>
 <ul>
 <li>RELINK : <a class="el" href="structpflib_1_1PolarfireTarget.html#a2aeadd2194cd17cbdbd3d33f642d4926" title="Carries out the standard elink alignment process.">pflib::PolarfireTarget::elink_relink</a> with verbosity 2</li>
@@ -502,7 +502,7 @@ Commands</h2>
 </div><div class="memdoc">
 
 <p>Fast Control (FC) menu commands. </p>
-<h2><a class="anchor" id="autotoc_md36"></a>
+<h2><a class="anchor" id="autotoc_md44"></a>
 Commands</h2>
 <ul>
 <li>SW_L1A : <a class="el" href="classpflib_1_1Backend.html#aac7479ecfa0e7ca84bccedb3789c71d3" title="send a single L1A">pflib::Backend::fc_sendL1A</a></li>
@@ -587,7 +587,7 @@ Commands</h2>
 
 <p>Direct I2C commands. </p>
 <p >We construct a raw I2C interface by passing the wishbone from the target into the <a class="el" href="classpflib_1_1I2C.html" title="Class which encapsulates the I2C controller in the Polarfire.">pflib::I2C</a> class.</p>
-<h2><a class="anchor" id="autotoc_md33"></a>
+<h2><a class="anchor" id="autotoc_md41"></a>
 Commands</h2>
 <ul>
 <li>BUS : <a class="el" href="classpflib_1_1I2C.html#a80ef2ae860599b137a9c7d1c23affa01" title="Pick the active bus Set the value -1 to determ.">pflib::I2C::set_active_bus</a>, default retrieved by <a class="el" href="classpflib_1_1I2C.html#a352b884cc44256cced0b5846e4c95264" title="Get the currently active bus.">pflib::I2C::get_active_bus</a></li>
@@ -772,7 +772,7 @@ Commands</h2>
 
 <p>ROC menu commands. </p>
 <p >When necessary, the ROC interaction object <a class="el" href="classpflib_1_1ROC.html">pflib::ROC</a> is created via <a class="el" href="classpflib_1_1Hcal.html#adc2e2ccfb0abfc4386b105d77ed14a5e" title="Get a ROC interface for the given HGCROC board.">pflib::Hcal::roc</a> with the currently active roc.</p>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md43"></a>
 Commands</h2>
 <ul>
 <li>HARDRESET : <a class="el" href="classpflib_1_1Hcal.html#af6b61022b74abe152f6c0c631470d654" title="Generate a hard reset to all the HGCROC boards.">pflib::Hcal::hardResetROCs</a></li>
@@ -938,7 +938,7 @@ Commands</h2>
 </div><div class="memdoc">
 
 <p>TASK menu commands. </p>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md47"></a>
 Commands</h2>
 <ul>
 <li>RESET_POWERUP: execute a series of commands after chip has been power cycled or firmware re-loaded</li>
@@ -997,7 +997,7 @@ Commands</h2>
 
 <p>Low-level Wishbone Interactions. </p>
 <p >We acces the active wishbone connection via PolarfireTarget. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87" title="Read an integer parameter without a default.">BaseMenu::readline_int</a> for how integers can be passed in (in short, decimal, <a class="el" href="structhex.html">hex</a>, octal, and binary are supported)</dd></dl>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md40"></a>
 Commands</h2>
 <ul>
 <li>RESET : WishboneInterface::wb_reset</li>

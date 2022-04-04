@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.2</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.2-16-g140b722</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('namespacepflib.html',''); initResizabl
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacepflib_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib_1_1detail.html">detail</a></td></tr>
-<tr class="memdesc:namespacepflib_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hidden functions to avoid users using them. <br /></td></tr>
+<tr class="memdesc:namespacepflib_1_1detail"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hidden functions to avoid misuse. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -113,6 +113,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1DAQ.html">DAQ</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface with <a class="el" href="classpflib_1_1DAQ.html" title="Interface with DAQ via a WishboneInterface.">DAQ</a> via a <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a>.  <a href="classpflib_1_1DAQ.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1DetectorConfiguration.html">DetectorConfiguration</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">object for parsing a detector configuration file and (potentially) executing it  <a href="classpflib_1_1DetectorConfiguration.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Elinks.html">Elinks</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classpflib_1_1WishboneTarget.html" title="Parent class for standard wishbone targets providing some utilities.">WishboneTarget</a> for configuring the elinks.  <a href="classpflib_1_1Elinks.html#details">More...</a><br /></td></tr>
@@ -584,9 +587,16 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 <tr class="separator:a14c54e0a04e1410af4b8e2d68efc2923"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2af312111f7f7173e95371b47c2e770"><td class="memItemLeft" align="right" valign="top">static const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacepflib.html#aa2af312111f7f7173e95371b47c2e770">block_for_chan</a> []</td></tr>
 <tr class="separator:aa2af312111f7f7173e95371b47c2e770"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac26b4f4d60642b5b362741f347ed1572"><td class="memItemLeft" align="right" valign="top"><a id="ac26b4f4d60642b5b362741f347ed1572" name="ac26b4f4d60642b5b362741f347ed1572"></a>
+static const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>INHERIT</b> = &quot;INHERIT&quot;</td></tr>
+<tr class="separator:ac26b4f4d60642b5b362741f347ed1572"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eecb7c035332d79088f176429f2277a"><td class="memItemLeft" align="right" valign="top"><a id="a3eecb7c035332d79088f176429f2277a" name="a3eecb7c035332d79088f176429f2277a"></a>
+static const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>HGCROCS</b> = &quot;HGCROCS&quot;</td></tr>
+<tr class="separator:a3eecb7c035332d79088f176429f2277a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Polarfire Interaction Library. </p>
+<p >Implementation Layer Below, change carefully!</p>
 <p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> library is designed to ease the burden of configuring HGC ROCs connected to a Polarfire FPGA as well as define some helpful debugging functionalities for determining the optimal configuration of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="a20ad39e2eb2643247c1844d34c372d01" name="a20ad39e2eb2643247c1844d34c372d01"></a>

@@ -1,0 +1,4 @@
+<map id="sipm_bias" name="sipm_bias">
+<area shape="rect" id="node1" title="sets the sipm bias adc value for all connectors on the input rocs" alt="" coords="40,95,128,121"/>
+<area shape="rect" id="node2" href="$classpflib_1_1detail_1_1PolarfireSetting.html" title="Object that can change a setting on a polarfire target." alt="" coords="5,5,163,47"/>
+</map>

@@ -8,11 +8,12 @@ var searchData=
   ['default_5frandom_5fengine_5',['default_random_engine',['http://en.cppreference.com/w/cpp/numeric/random.html',1,'std']]],
   ['defer_5flock_5ft_6',['defer_lock_t',['http://en.cppreference.com/w/cpp/thread/lock_tag_t.html',1,'std']]],
   ['deque_7',['deque',['http://en.cppreference.com/w/cpp/container/deque.html',1,'std']]],
-  ['discard_5fblock_5fengine_8',['discard_block_engine',['http://en.cppreference.com/w/cpp/numeric/random/discard_block_engine.html',1,'std']]],
-  ['discrete_5fdistribution_9',['discrete_distribution',['http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution.html',1,'std']]],
-  ['divides_10',['divides',['http://en.cppreference.com/w/cpp/utility/functional/divides.html',1,'std']]],
-  ['domain_5ferror_11',['domain_error',['http://en.cppreference.com/w/cpp/error/domain_error.html',1,'std']]],
-  ['duration_12',['duration',['http://en.cppreference.com/w/cpp/chrono/duration.html',1,'std::chrono']]],
-  ['duration_5fvalues_13',['duration_values',['http://en.cppreference.com/w/cpp/chrono/duration_values.html',1,'std::chrono']]],
-  ['dynarray_14',['dynarray',['http://en.cppreference.com/w/cpp/container/dynarray.html',1,'std']]]
+  ['detectorconfiguration_8',['DetectorConfiguration',['../classpflib_1_1DetectorConfiguration.html',1,'pflib']]],
+  ['discard_5fblock_5fengine_9',['discard_block_engine',['http://en.cppreference.com/w/cpp/numeric/random/discard_block_engine.html',1,'std']]],
+  ['discrete_5fdistribution_10',['discrete_distribution',['http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution.html',1,'std']]],
+  ['divides_11',['divides',['http://en.cppreference.com/w/cpp/utility/functional/divides.html',1,'std']]],
+  ['domain_5ferror_12',['domain_error',['http://en.cppreference.com/w/cpp/error/domain_error.html',1,'std']]],
+  ['duration_13',['duration',['http://en.cppreference.com/w/cpp/chrono/duration.html',1,'std::chrono']]],
+  ['duration_5fvalues_14',['duration_values',['http://en.cppreference.com/w/cpp/chrono/duration_values.html',1,'std::chrono']]],
+  ['dynarray_15',['dynarray',['http://en.cppreference.com/w/cpp/container/dynarray.html',1,'std']]]
 ];
