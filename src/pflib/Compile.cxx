@@ -234,27 +234,52 @@ std::map<std::string,std::map<std::string,int>> defaults() {
   return settings;
 }
 
-/**
- * Hidden functions to avoid users using them
- */
+
+void extract(const std::vector<std::string>& setting_files,
+    std::map<std::string,std::map<std::string,int>>& settings) {
+  for (auto& setting_file : setting_files) {
+    YAML::Node setting_yaml;
+    try {
+       setting_yaml = YAML::LoadFile(setting_file);
+    } catch (const YAML::BadFile& e) {
+      PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
+    }
+    if (setting_yaml.IsSequence()) {
+      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::extract(setting_yaml[i],settings);
+    } else {
+      detail::extract(setting_yaml, settings);
+    }
+  }
+}
+
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
+  std::map<std::string,std::map<std::string,int>> settings;
+  // if we prepend the defaults, put all settings and their defaults 
+  // into the settings map before extraction
+  if (prepend_defaults) { settings = defaults(); }
+  extract(setting_files,settings);
+  return compile(settings);
+}
+
+std::map<int,std::map<int,uint8_t>> 
+compile(const std::string& setting_file, bool prepend_defaults) {
+  return compile(std::vector<std::string>{setting_file}, prepend_defaults);
+}
+
 namespace detail {
 
-/**
- * Extract a map of page_name, param_name to their values by crawling the YAML tree.
- *
- * @throw pflib::Exception if YAML file has a bad format (root node is not a map,
- * page nodes are not maps, page name doesn't match any pages, or parameter's value
- * does not exist).
- *
- * @param[in] params a YAML::Node to start extraction from
- * @param[in,out] settings map of names to values for extract parameters
- */
 void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run
   static std::vector<std::string> page_names;
   if (page_names.empty()) {
     for (auto& page : PARAMETER_LUT) page_names.push_back(page.first);
+  }
+
+  if (params.IsNull()) {
+    // skip null nodes (probably comments)
+    return;
   }
 
   if (not params.IsMap()) {
@@ -306,36 +331,4 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
 }
 
 } // namespace detail
-
-void extract(const std::vector<std::string>& setting_files,
-    std::map<std::string,std::map<std::string,int>>& settings) {
-  for (auto& setting_file : setting_files) {
-    YAML::Node setting_yaml;
-    try {
-       setting_yaml = YAML::LoadFile(setting_file);
-    } catch (const YAML::BadFile& e) {
-      PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
-    }
-    if (setting_yaml.IsSequence()) {
-      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::extract(setting_yaml[i],settings);
-    } else {
-      detail::extract(setting_yaml, settings);
-    }
-  }
-}
-
-std::map<int,std::map<int,uint8_t>> 
-compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
-  std::map<std::string,std::map<std::string,int>> settings;
-  // if we prepend the defaults, put all settings and their defaults 
-  // into the settings map before extraction
-  if (prepend_defaults) { settings = defaults(); }
-  extract(setting_files,settings);
-  return compile(settings);
-}
-
-std::map<int,std::map<int,uint8_t>> 
-compile(const std::string& setting_file, bool prepend_defaults) {
-  return compile(std::vector<std::string>{setting_file}, prepend_defaults);
-}
-}
+} // namespace pflib
