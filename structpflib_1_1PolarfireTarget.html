@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.0</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.1.0-4-g141de23</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -137,6 +137,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>elinkStatus</b> (<a c
 <tr class="memitem:aec36fb4b595baf1ef1e9827ab7aed51f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f">loadROCParameters</a> (int <a class="el" href="pftool_8cc.html#a9ca5b713edfacb93f13d68b18da79525">roc</a>, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;file_name, bool prepend_defaults)</td></tr>
 <tr class="memdesc:aec36fb4b595baf1ef1e9827ab7aed51f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compile the input YAML file including the defaults if prepend_defaults is true, otherwise using current <a class="el" href="classpflib_1_1ROC.html">ROC</a> settings as "base" settings, then writes register values onto chip.  <a href="structpflib_1_1PolarfireTarget.html#aec36fb4b595baf1ef1e9827ab7aed51f">More...</a><br /></td></tr>
 <tr class="separator:aec36fb4b595baf1ef1e9827ab7aed51f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0fc751e6b208e731cec1041e768d960"><td class="memItemLeft" align="right" valign="top"><a id="ac0fc751e6b208e731cec1041e768d960" name="ac0fc751e6b208e731cec1041e768d960"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>findDefaultROCParameters</b> (<a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; paths)</td></tr>
+<tr class="memdesc:ac0fc751e6b208e731cec1041e768d960"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores paths of default <a class="el" href="classpflib_1_1ROC.html">ROC</a> config files, as given by the pftoolrc. <br /></td></tr>
+<tr class="separator:ac0fc751e6b208e731cec1041e768d960"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ab1cbe0f006df086007d67cf04fcf3a"><td class="memItemLeft" align="right" valign="top"><a id="a3ab1cbe0f006df086007d67cf04fcf3a" name="a3ab1cbe0f006df086007d67cf04fcf3a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>loadDefaultROCParameters</b> ()</td></tr>
+<tr class="memdesc:a3ab1cbe0f006df086007d67cf04fcf3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the default <a class="el" href="classpflib_1_1ROC.html">ROC</a> config on boards where it is specified. <br /></td></tr>
+<tr class="separator:a3ab1cbe0f006df086007d67cf04fcf3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dd0a281ef5ec7121f1ab1d13cbbdfa2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2">dumpSettings</a> (int <a class="el" href="pftool_8cc.html#a9ca5b713edfacb93f13d68b18da79525">roc</a>, const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;file_name, bool <a class="el" href="namespacepflib.html#ae6e9e68aa0f397b4184a5d90bc2ea380">decompile</a>)</td></tr>
 <tr class="memdesc:a6dd0a281ef5ec7121f1ab1d13cbbdfa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Request all of the <a class="el" href="classpflib_1_1ROC.html">ROC</a> setting register values.  <a href="structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2">More...</a><br /></td></tr>
 <tr class="separator:a6dd0a281ef5ec7121f1ab1d13cbbdfa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -221,6 +229,9 @@ Private Attributes</h2></td></tr>
 <tr class="memitem:a988fe6743af6b3d9cd771450bcc16c49"><td class="memItemLeft" align="right" valign="top"><a id="a988fe6743af6b3d9cd771450bcc16c49" name="a988fe6743af6b3d9cd771450bcc16c49"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>samples_per_event_</b></td></tr>
 <tr class="separator:a988fe6743af6b3d9cd771450bcc16c49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac719850adff2276f73519392c9e171e6"><td class="memItemLeft" align="right" valign="top"><a id="ac719850adff2276f73519392c9e171e6" name="ac719850adff2276f73519392c9e171e6"></a>
+<a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>default_configs_</b></td></tr>
+<tr class="separator:ac719850adff2276f73519392c9e171e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Interface to a single polarfire. </p>

@@ -108,7 +108,8 @@ var NAVTREEINDEX =
 "classpflib_1_1FastControl.html#aabe5ceba1290c109d9968ccbd4b90e28",
 "cpp/algorithm/generate.html",
 "cpp/memory/shared_ptr/allocate_shared.html",
-"cpp/utility/program/signal.html"
+"cpp/utility/program/signal.html",
+""
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
