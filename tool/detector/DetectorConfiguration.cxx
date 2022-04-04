@@ -125,8 +125,6 @@ void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& hos
 
 
   for (auto& setting : settings_) {
-    setting.second->stream(std::cout);
-    std::cout << std::endl;
     setting.second->execute(pft.get());
   }
 
