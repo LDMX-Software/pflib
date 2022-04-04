@@ -3,12 +3,63 @@
 
 #include <string>
 #include <map>
+#include <vector>
+#include <memory>
+#include <functional>
+
+#include "pflib/Exception.h"
 
 namespace YAML {
 class Node;
 }
 
 namespace pflib {
+class PolarfireTarget;
+namespace detail {
+
+class PolarfireSetting {
+ public:
+  PolarfireSetting() = default;
+  virtual ~PolarfireSetting() = default;
+  virtual void import(YAML::Node val) = 0;
+  virtual void execute(PolarfireTarget* pft) = 0;
+  virtual void stream(std::ostream& s) = 0;
+  class Factory {
+   public:
+    static Factory& get() {
+      static Factory the_factory;
+      return the_factory;
+    }
+    template<typename DerivedType>
+    uint64_t declare(const std::string& name) {
+      library_[name] = &maker<DerivedType>;
+      return reinterpret_cast<std::uintptr_t>(&library_);
+    }
+    std::unique_ptr<PolarfireSetting> make(const std::string& full_name) {
+      auto lib_it{library_.find(full_name)};
+      if (lib_it == library_.end()) {
+        PFEXCEPTION_RAISE("BadFormat", "Unrecognized setting "+full_name);
+      }
+      return lib_it->second();
+    }
+  
+    Factory(Factory const&) = delete;
+    void operator=(Factory const&) = delete;
+                                                  
+   private:
+    template <typename DerivedType>
+    static std::unique_ptr<PolarfireSetting> maker() {
+      return std::make_unique<DerivedType>();
+    }
+  
+    /// private constructor to prevent creation
+    Factory() = default;
+  
+    /// library of possible objects to create
+    std::map<std::string, std::function<std::unique_ptr<PolarfireSetting>()>> library_;
+  };  // Factory
+};  // PolarfireSetting
+}  // namespace detail
 
 /**
  * object for parsing a detector configuration file and
@@ -16,8 +67,8 @@ namespace pflib {
  */
 class DetectorConfiguration {
   struct PolarfireConfiguration {
-    int calib_offset_; // FC.CALIB
-    int sipm_bias_; 
+    std::map<std::string,
+      std::unique_ptr<detail::PolarfireSetting>> settings_;
     std::map<int, // roc index on this polarfire
       std::map<
         std::string, // page

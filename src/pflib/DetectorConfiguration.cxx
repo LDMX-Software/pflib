@@ -8,7 +8,58 @@
 namespace pflib {
 
 static const std::string INHERIT = "INHERIT";
+
 static const std::string HGCROCS = "HGCROCS";
+
+class CalibOffset : public detail::PolarfireSetting {
+  int val_;
+ public: 
+  CalibOffset() : detail::PolarfireSetting() {}
+  virtual void import(YAML::Node val) final override {
+    val_ = val.as<int>();
+  }
+  virtual void execute(PolarfireTarget* pft) final override {
+    // set calib offset
+    int len, offset;
+    pft->backend->fc_get_setup_calib(len,offset);
+    offset = val_;
+    pft->backend->fc_setup_calib(len,offset);
+  }
+  virtual void stream(std::ostream& s) final override {
+    s << val_;
+  }
+};
+
+class SipmBias : public detail::PolarfireSetting {
+  int val_;
+  std::vector<int> rocs_;
+ public:
+  SipmBias() : detail::PolarfireSetting() {}
+  virtual void import(YAML::Node val) final override {
+    if (not val.IsMap()) {
+      PFEXCEPTION_RAISE("BadFormat","SipmBias expects a map value.");
+    }
+    if (val["value"]) val_ = val["value"].as<int>();
+    if (val["rocs"]) rocs_ = val["rocs"].as<std::vector<int>>();
+  }
+  virtual void execute(PolarfireTarget* pft) final override {
+    for (auto& roc : rocs_) {
+      for (int connector{0}; connector < 16; connector++) {
+        pft->setBiasSetting(roc, 0, connector, val_);
+      }
+    }
+  }
+  virtual void stream(std::ostream& s) final override {
+    s << val_ << " on rocs ";
+    for (auto& r : rocs_) s << r << " ";
+  }
+};
+
+namespace {
+  auto v0 = pflib::detail::PolarfireSetting::Factory::get().declare<CalibOffset>("calib_offset");
+  auto v1 = pflib::detail::PolarfireSetting::Factory::get().declare<SipmBias>("sipm_bias");
+}
+
 static const std::string CALIB_OFFSET = "CALIB_OFFSET";
 static const std::string SIPM_BIAS = "SIPM_BIAS";
 
@@ -19,11 +70,7 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
 
   for (const auto& setting_pair : conf) {
     std::string setting = setting_pair.first.as<std::string>();
-    if (strcasecmp(CALIB_OFFSET.c_str(), setting.c_str()) == 0) {
-      calib_offset_ = setting_pair.second.as<int>();
-    } else if (strcasecmp(SIPM_BIAS.c_str(), setting.c_str()) == 0) {
-      sipm_bias_ = setting_pair.second.as<int>();
-    } else if (strcasecmp(HGCROCS.c_str(), setting.c_str()) == 0) {
+    if (strcasecmp(HGCROCS.c_str(), setting.c_str()) == 0) {
       for (const auto& sub_pair : setting_pair.second) {
         std::string roc = sub_pair.first.as<std::string>();
         if (not sub_pair.second.IsMap()) continue;
@@ -36,7 +83,9 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
         }
       }
     } else {
-      PFEXCEPTION_RAISE("BadFormat", "Unrecognized polarfire setting "+setting);
+      // throws exception if setting not found
+      settings_[setting] = detail::PolarfireSetting::Factory::get().make(setting);
+      settings_[setting]->import(setting_pair.second);
     }
   }
 }
@@ -50,31 +99,22 @@ void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& hos
   PFEXCEPTION_RAISE("NoImpl","Unable to do entire detector configuration with uHAL.");
 #endif
 
-  // set calib offset
-  int len, offset;
-  pft->backend->fc_get_setup_calib(len,offset);
-  offset = calib_offset_;
-  pft->backend->fc_setup_calib(len,offset);
+  for (auto& setting : settings_) {
+    setting.second->execute(pft.get());
+  }
 
   for (auto& hgcroc : hgcrocs_) {
-    // sipm bias
-    for (int connector{0}; connector < 16; connector++) {
-      pft->setBiasSetting(hgcroc.first, 0, connector, sipm_bias_);
-    }
-
     // general HGC ROC parameters
     pft->hcal.roc(hgcroc.first).applyParameters(hgcroc.second);
   }
 }
 
-DetectorConfiguration::DetectorConfiguration(const std::string& config) {
+DetectorConfiguration::DetectorConfiguration(const std::string& config) try {
   YAML::Node config_yaml;
   try {
     config_yaml = YAML::LoadFile(config);
   } catch (const YAML::BadFile& e) {
     PFEXCEPTION_RAISE("BadFile", "Unable to load file "+config);
-  } catch (const YAML::ParserException& e) {
-    PFEXCEPTION_RAISE("BadFormat", e.what());
   }
   
   if (not config_yaml.IsMap()) {
@@ -127,6 +167,8 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) {
       polarfires_[hostname].import(polarfire_settings);
     }
   }
+} catch (const YAML::ParserException& e) {
+  PFEXCEPTION_RAISE("BadFormat", e.what());
 }
 
 void DetectorConfiguration::apply() {
@@ -138,8 +180,6 @@ void DetectorConfiguration::apply() {
 void DetectorConfiguration::stream(std::ostream& s) const {
   for (const auto& polarfire_pair : polarfires_) {
     s << polarfire_pair.first << "\n";
-    s << "  " << CALIB_OFFSET << ": " << polarfire_pair.second.calib_offset_ << "\n";
-    s << "  " << SIPM_BIAS << ": " << polarfire_pair.second.sipm_bias_ << "\n";
     for (const auto& roc_pair : polarfire_pair.second.hgcrocs_) {
       s << "  ROC " << roc_pair.first << "\n";
       for (const auto& page_pair : roc_pair.second) {
@@ -148,6 +188,11 @@ void DetectorConfiguration::stream(std::ostream& s) const {
           s << "      " << param_pair.first << " : " << param_pair.second << "\n";
         }
       }
+    }
+    for (const auto& setting : polarfire_pair.second.settings_) {
+      s << "  " << setting.first << " : ";
+      setting.second->stream(s);
+      s << "\n";
     }
   }
   s << std::flush;
