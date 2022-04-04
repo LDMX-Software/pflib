@@ -69,6 +69,10 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults tool/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
+add_executable(configure-detector 
+  tool/detector/DetectorConfiguration.cxx 
+  tool/detector/configure-detector.cxx)
+target_link_libraries(configure-detector PRIVATE pflib)
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one
 
@@ -89,10 +93,12 @@ if (Rogue_FOUND)
   # attach rogue as a dependency
   target_link_libraries(rogue PUBLIC pflib ${ROGUE_LIBRARIES})
   target_include_directories(rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
-  # let pftool know that rogue is available
+  # let executables that need it know that rogue is available
   target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
-  # link submodule lib to pftool
+  target_compile_definitions(configure-detector PRIVATE PFTOOL_ROGUE=1)
+  # link submodule lib to executables that need it
   target_link_libraries(pftool PRIVATE rogue)
+  target_link_libraries(configure-detector PRIVATE rogue)
   list(APPEND comm_libs rogue)
 else()
   message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
@@ -120,10 +126,12 @@ if(EXISTS ${Uhal_DIR}/include/uhal/version.hpp)
   # attach uHal as a dependency
   target_link_libraries(uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
   target_include_directories(uhal PUBLIC "${Uhal_DIR}/include")
-  # let pftool know that uHal is available
+  # let executables that need it know that uHal is available
   target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
-  # link submodule lib to pftool
+  target_compile_definitions(configure-detector PRIVATE PFTOOL_UHAL=1)
+  # link submodule lib to executables that need it
   target_link_libraries(pftool PRIVATE uhal)
+  target_link_libraries(configure-detector PRIVATE uhal)
   list(APPEND comm_libs uhal)
 else()
   set(Uhal_FOUND NO)
@@ -136,7 +144,8 @@ endif()
 
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
 
-install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib ${comm_libs} 
+  pftool pfdecoder pfdecompile pfcompile pfdefaults configure-detector
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
