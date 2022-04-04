@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-2-g19fae31</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-45-g13e1bf1</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -172,10 +172,16 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setBiasSetting</b> (i
 <tr class="separator:ac1d8526d8bbba1dcd19814ca82a8ad0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18bcef88dd2e05b8e43c188ea70ffc15"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#a18bcef88dd2e05b8e43c188ea70ffc15">loadBiasSettings</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;file_name)</td></tr>
 <tr class="separator:a18bcef88dd2e05b8e43c188ea70ffc15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32133d86560109ca34c3576fbe1a5d1e"><td class="memItemLeft" align="right" valign="top"><a id="a32133d86560109ca34c3576fbe1a5d1e" name="a32133d86560109ca34c3576fbe1a5d1e"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>elink_relink</b> (int verbosity)</td></tr>
-<tr class="memdesc:a32133d86560109ca34c3576fbe1a5d1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Carries out the standard elink alignment process. <br /></td></tr>
-<tr class="separator:a32133d86560109ca34c3576fbe1a5d1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="memItemLeft" align="right" valign="top"><a id="a2aeadd2194cd17cbdbd3d33f642d4926" name="a2aeadd2194cd17cbdbd3d33f642d4926"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>elink_relink</b> (int ilink, int verbosity)</td></tr>
+<tr class="memdesc:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="mdescLeft">&#160;</td><td class="mdescRight">Carries out the standard elink alignment process. <br /></td></tr>
+<tr class="separator:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34f4a3dfac7190a260e929bedbeab38f"><td class="memItemLeft" align="right" valign="top"><a id="a34f4a3dfac7190a260e929bedbeab38f" name="a34f4a3dfac7190a260e929bedbeab38f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>delay_loop</b> (int ilink)</td></tr>
+<tr class="separator:a34f4a3dfac7190a260e929bedbeab38f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5284a0e3bcdc9b4308360ca5b6b4338"><td class="memItemLeft" align="right" valign="top"><a id="ab5284a0e3bcdc9b4308360ca5b6b4338" name="ab5284a0e3bcdc9b4308360ca5b6b4338"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>bitslip_loop</b> (int ilink)</td></tr>
+<tr class="separator:ab5284a0e3bcdc9b4308360ca5b6b4338"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -218,7 +224,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>samples_per_event_</b>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Interface to a single polarfire. </p>
-<p >This class holds the objects that talk with the polarfire and defines higher-level functionality allowing for automatic initialization, configuration, and running.</p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> class holds the objects that talk with the polarfire and defines higher-level functionality allowing for automatic initialization, configuration, and running.</p>
 <p >In order to assist in developing the helpful debugging tool 'pftool', the members of this class will also be public. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="af7db2a47b460735a43d669a5615e460c" name="af7db2a47b460735a43d669a5615e460c"></a>
@@ -254,7 +260,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>samples_per_event_</b>
 </div><div class="memdoc">
 
 <p>Define where the polarfire we will be talking to is. </p>
-<dl class="section note"><dt>Note</dt><dd>This object takes ownership of the input pointers. If they are the same pointers to the same object (defined by same), then only one is deleted in the destructor.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> object takes ownership of the input pointers. If they are the same pointers to the same object (defined by same), then only one is deleted in the destructor.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">wbi</td><td>pointer to object to use as wishbone interface </td></tr>
@@ -293,7 +299,7 @@ template&lt;class T &gt; </div>
 </div><div class="memdoc">
 
 <p>If only a single pointer is provided, assume that object is BOTH the WBI and backend. </p>
-<p >This is templated so that this class does not need to change upon the addition of a new wishbone interface/backend combo object.</p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is templated so that this class does not need to change upon the addition of a new wishbone interface/backend combo object.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>class that inherits from both <a class="el" href="classpflib_1_1WishboneInterface.html" title="Abstract interface for wishbone transactions, used by ~all classes in pflib.">WishboneInterface</a> and <a class="el" href="classpflib_1_1Backend.html" title="Abstract interface for various backend manipulations.">Backend</a> </td></tr>

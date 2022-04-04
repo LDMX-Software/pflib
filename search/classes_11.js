@@ -42,6 +42,7 @@ var searchData=
   ['result_5fof_39',['result_of',['http://en.cppreference.com/w/cpp/types/result_of.html',1,'std']]],
   ['reverse_5fiterator_40',['reverse_iterator',['http://en.cppreference.com/w/cpp/iterator/reverse_iterator.html',1,'std']]],
   ['roc_41',['ROC',['../classpflib_1_1ROC.html',1,'pflib']]],
-  ['roguewishboneinterface_42',['RogueWishboneInterface',['../classpflib_1_1rogue_1_1RogueWishboneInterface.html',1,'pflib::rogue']]],
-  ['runtime_5ferror_43',['runtime_error',['http://en.cppreference.com/w/cpp/error/runtime_error.html',1,'std']]]
+  ['rocpacket_42',['RocPacket',['../classpflib_1_1decoding_1_1RocPacket.html',1,'pflib::decoding']]],
+  ['roguewishboneinterface_43',['RogueWishboneInterface',['../classpflib_1_1rogue_1_1RogueWishboneInterface.html',1,'pflib::rogue']]],
+  ['runtime_5ferror_44',['runtime_error',['http://en.cppreference.com/w/cpp/error/runtime_error.html',1,'std']]]
 ];

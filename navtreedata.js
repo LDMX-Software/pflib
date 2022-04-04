@@ -58,17 +58,17 @@ var NAVTREE =
     ] ],
     [ "Generating docs", "md_docs_README.html", null ],
     [ "pftool", "md_tool_README.html", [
-      [ "General Notes", "md_tool_README.html#autotoc_md41", null ],
-      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md46", [
-        [ "daq.status", "md_tool_README.html#autotoc_md47", null ],
-        [ "roc.hard_reset", "md_tool_README.html#autotoc_md48", null ],
-        [ "daq.hard_reset", "md_tool_README.html#autotoc_md49", null ],
-        [ "elinks.spy", "md_tool_README.html#autotoc_md50", null ],
-        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md51", null ],
-        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md52", null ],
-        [ "roc.resyncload", "md_tool_README.html#autotoc_md53", null ],
-        [ "fast_control.calib", "md_tool_README.html#autotoc_md54", null ],
-        [ "fast_control.status", "md_tool_README.html#autotoc_md55", null ]
+      [ "General Notes", "md_tool_README.html#autotoc_md42", null ],
+      [ "Comments on Specific Commands", "md_tool_README.html#autotoc_md47", [
+        [ "daq.status", "md_tool_README.html#autotoc_md48", null ],
+        [ "roc.hard_reset", "md_tool_README.html#autotoc_md49", null ],
+        [ "daq.hard_reset", "md_tool_README.html#autotoc_md50", null ],
+        [ "elinks.spy", "md_tool_README.html#autotoc_md51", null ],
+        [ "elinks.bitsplit and elinks.delay", "md_tool_README.html#autotoc_md52", null ],
+        [ "daq.setup.l1aparams", "md_tool_README.html#autotoc_md53", null ],
+        [ "roc.resyncload", "md_tool_README.html#autotoc_md54", null ],
+        [ "fast_control.calib", "md_tool_README.html#autotoc_md55", null ],
+        [ "fast_control.status", "md_tool_README.html#autotoc_md56", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
@@ -105,10 +105,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Backend_8h_source.html",
-"classpflib_1_1FastControl.html#ac0e4f5be3082dff47805850338a4dca5",
-"cpp/algorithm/is_sorted.html",
-"cpp/numeric/fenv/feenv.html",
-"dir_1bf900cebca489d2291aa2f400ed306f.html"
+"classpflib_1_1FastControl.html#aabe5ceba1290c109d9968ccbd4b90e28",
+"cpp/algorithm/generate.html",
+"cpp/memory/shared_ptr/allocate_shared.html",
+"cpp/utility/program/signal.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

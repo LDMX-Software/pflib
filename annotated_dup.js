@@ -1,6 +1,11 @@
 var annotated_dup =
 [
     [ "pflib", "namespacepflib.html", [
+      [ "decoding", null, [
+        [ "PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", null ],
+        [ "RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
+        [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ]
+      ] ],
       [ "rogue", null, [
         [ "RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", "classpflib_1_1rogue_1_1RogueWishboneInterface" ]
       ] ],
@@ -28,5 +33,6 @@ var annotated_dup =
     [ "hex", "structhex.html", null ],
     [ "Menu", "classMenu.html", "classMenu" ],
     [ "Rcfile", "classRcfile.html", "classRcfile" ],
-    [ "Rcmap", "classRcmap.html", "classRcmap" ]
+    [ "Rcmap", "classRcmap.html", "classRcmap" ],
+    [ "This", "classThis.html", null ]
 ];

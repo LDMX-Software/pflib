@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-2-g19fae31</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-45-g13e1bf1</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -109,10 +109,11 @@ $(document).ready(function(){initNavTree('pftool_8cc.html',''); initResizable();
 <code>#include &quot;<a class="el" href="Compile_8h_source.html">pflib/Compile.h</a>&quot;</code><br />
 <code>#include &quot;Menu.h&quot;</code><br />
 <code>#include &quot;Rcfile.h&quot;</code><br />
+<code>#include &quot;pflib/decoding/SuperPacket.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for pftool.cc:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="pftool_8cc__incl.svg" width="1482" height="635"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="pftool_8cc__incl.svg" width="2151" height="650"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 </div><table class="memberdecls">
@@ -148,6 +149,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a6cbfaa3284fc099418e6a7cd8da14f4d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#a6cbfaa3284fc099418e6a7cd8da14f4d">daq</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, <a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft)</td></tr>
 <tr class="memdesc:a6cbfaa3284fc099418e6a7cd8da14f4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">DAQ menu commands, DOES NOT include sub-menu commands.  <a href="pftool_8cc.html#a6cbfaa3284fc099418e6a7cd8da14f4d">More...</a><br /></td></tr>
 <tr class="separator:a6cbfaa3284fc099418e6a7cd8da14f4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac051bc7f83bb184f68c6b60f70bbe699"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#ac051bc7f83bb184f68c6b60f70bbe699">tasks</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, <a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft)</td></tr>
+<tr class="memdesc:ac051bc7f83bb184f68c6b60f70bbe699"><td class="mdescLeft">&#160;</td><td class="mdescRight">TASK menu commands.  <a href="pftool_8cc.html#ac051bc7f83bb184f68c6b60f70bbe699">More...</a><br /></td></tr>
+<tr class="separator:ac051bc7f83bb184f68c6b60f70bbe699"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cb4bd2695b8d670008c5c2fb783db7a"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#a8cb4bd2695b8d670008c5c2fb783db7a">read_words_from_file</a> ()</td></tr>
 <tr class="memdesc:a8cb4bd2695b8d670008c5c2fb783db7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print data words from raw binary file and return them.  <a href="pftool_8cc.html#a8cb4bd2695b8d670008c5c2fb783db7a">More...</a><br /></td></tr>
 <tr class="separator:a8cb4bd2695b8d670008c5c2fb783db7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,7 +171,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:abeb0d98d5eb3ed0b660109c3f98de2b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">List the options that could be provided within the RC file.  <a href="pftool_8cc.html#abeb0d98d5eb3ed0b660109c3f98de2b7">More...</a><br /></td></tr>
 <tr class="separator:abeb0d98d5eb3ed0b660109c3f98de2b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
-<tr class="memdesc:a0ddf1224851353fc92bfbff6f499fa97"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is the main executable for the pftool.  <a href="pftool_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">More...</a><br /></td></tr>
+<tr class="memdesc:a0ddf1224851353fc92bfbff6f499fa97"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is the main executable for the pftool.  <a href="pftool_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">More...</a><br /></td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -176,6 +180,15 @@ Variables</h2></td></tr>
 static int&#160;</td><td class="memItemRight" valign="bottom"><b>iroc</b> = 0</td></tr>
 <tr class="memdesc:a37446115b7d33d8d98b1fdd813542fd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROC currently being interacted with by user. <br /></td></tr>
 <tr class="separator:a37446115b7d33d8d98b1fdd813542fd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a343f0f58f243494c87de4b3c32cb44bb"><td class="memItemLeft" align="right" valign="top"><a id="a343f0f58f243494c87de4b3c32cb44bb" name="a343f0f58f243494c87de4b3c32cb44bb"></a>
+static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>last_run_file</b> =&quot;.last_run_file&quot;</td></tr>
+<tr class="separator:a343f0f58f243494c87de4b3c32cb44bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33f1854f054b6183a7eac07fd23b5f30"><td class="memItemLeft" align="right" valign="top"><a id="a33f1854f054b6183a7eac07fd23b5f30" name="a33f1854f054b6183a7eac07fd23b5f30"></a>
+static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>start_dma_cmd</b> =&quot;&quot;</td></tr>
+<tr class="separator:a33f1854f054b6183a7eac07fd23b5f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5da36aae1d798080ee2e41bcca6209f"><td class="memItemLeft" align="right" valign="top"><a id="ab5da36aae1d798080ee2e41bcca6209f" name="ab5da36aae1d798080ee2e41bcca6209f"></a>
+static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><b>stop_dma_cmd</b> =&quot;&quot;</td></tr>
+<tr class="separator:ab5da36aae1d798080ee2e41bcca6209f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >File defining the pftool menus and their commands. </p>
@@ -216,8 +229,8 @@ static int&#160;</td><td class="memItemRight" valign="bottom"><b>iroc</b> = 0</t
 </div><div class="memdoc">
 
 <p>BIAS menu commands. </p>
-<dl class="section note"><dt>Note</dt><dd>This menu has not been explored thoroughly so some of these commands are not fully developed.</dd></dl>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<dl class="section note"><dt>Note</dt><dd><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> menu has not been explored thoroughly so some of these commands are not fully developed.</dd></dl>
+<h2><a class="anchor" id="autotoc_md40"></a>
 Commands</h2>
 <ul>
 <li>STATUS : <em>does nothing</em> after selecting a board.</li>
@@ -288,6 +301,7 @@ Commands</h2>
   </table>
   </dd>
 </dl>
+<p >Deprecated by new TASK menu</p>
 
 </div>
 </div>
@@ -434,7 +448,7 @@ Commands</h2>
 <h2><a class="anchor" id="autotoc_md34"></a>
 Commands</h2>
 <ul>
-<li>RELINK : <a class="el" href="structpflib_1_1PolarfireTarget.html#a32133d86560109ca34c3576fbe1a5d1e" title="Carries out the standard elink alignment process.">pflib::PolarfireTarget::elink_relink</a> with verbosity 2</li>
+<li>RELINK : <a class="el" href="structpflib_1_1PolarfireTarget.html#a2aeadd2194cd17cbdbd3d33f642d4926" title="Carries out the standard elink alignment process.">pflib::PolarfireTarget::elink_relink</a> with verbosity 2</li>
 <li>SPY : <a class="el" href="classpflib_1_1Elinks.html#a8f6eb6f1006d0254afc01672df2dd989" title="spy into the passed link">pflib::Elinks::spy</a></li>
 <li>BITSLIP : <a class="el" href="classpflib_1_1Elinks.html#acb97cb6e657c85979245d2fa53637f49" title="set the bitslip value for the link">pflib::Elinks::setBitslip</a> and <a class="el" href="classpflib_1_1Elinks.html#ad6f2c8397a84ba7f3c4424666fe3c604" title="enable auto-setting of bitslip value">pflib::Elinks::setBitslipAuto</a></li>
 <li>BIGSPY : PolarfireTarget::elinksBigSpy</li>
@@ -664,7 +678,7 @@ Commands</h2>
       </table>
 </div><div class="memdoc">
 
-<p>This is the main executable for the pftool. </p>
+<p><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is the main executable for the pftool. </p>
 <p >The options are prepared first so their help information is available for the usage information.</p>
 <p >If '-h' or '&ndash;help' is the only parameter provided, the usage information is printed and we exit; otherwise, we continue.</p>
 <p >The RC files are read from ${PFTOOLRC}, pftoolrc, and ~/.pftoolrc with priority in that order. Then the command line parameters are parsed; if not hostname(s) is(are) provided on the command line, then the 'default_hostname' RC file option is necessary.</p>
@@ -843,7 +857,7 @@ Commands</h2>
 </div><div class="memdoc">
 
 <p><a class="el" href="classMenu.html" title="A menu to execute commands with a specific target.">Menu</a> construction for pftool. </p>
-<p >Currently, we must manually list all of the menus and their commands and sub-menus somewhere. This function is just helpful for keeping the listing isolated.</p>
+<p >Currently, we must manually list all of the menus and their commands and sub-menus somewhere. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> function is just helpful for keeping the listing isolated.</p>
 <dl class="section note"><dt>Note</dt><dd>Again, this listing is <em>manual</em>. It is very easy to implement a new command within one of the menu functions but forget to repeat its listing here.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -886,6 +900,64 @@ Commands</h2>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ac051bc7f83bb184f68c6b60f70bbe699" name="ac051bc7f83bb184f68c6b60f70bbe699"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac051bc7f83bb184f68c6b60f70bbe699">&#9670;&nbsp;</a></span>tasks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void tasks </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>cmd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *&#160;</td>
+          <td class="paramname"><em>pft</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>TASK menu commands. </p>
+<h2><a class="anchor" id="autotoc_md39"></a>
+Commands</h2>
+<ul>
+<li>RESET_POWERUP: execute a series of commands after chip has been power cycled or firmware re-loaded</li>
+<li>SCANCHARGE : loop over channels and scan a range of a CALIBDAC values, recording only relevant channel points in CSV file</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">cmd</td><td>command selected from menu </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pft</td><td>active target </td></tr>
+  </table>
+  </dd>
+</dl>
+<p >common stuff for all scans</p>
+<p >first, disable charge injection on all channels</p>
+<p >set values</p>
+<p >Enable charge injection channel by channel &ndash; per elink</p>
+<p >Take the expected number of events and save the events</p>
+<p >Disable charge injection channel by channel &ndash; per elink <br  />
+</p>
 
 </div>
 </div>

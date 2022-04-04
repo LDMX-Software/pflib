@@ -32,6 +32,7 @@ var searchData=
   ['student_5ft_5fdistribution_29',['student_t_distribution',['http://en.cppreference.com/w/cpp/numeric/random/student_t_distribution.html',1,'std']]],
   ['sub_5fmatch_30',['sub_match',['http://en.cppreference.com/w/cpp/regex/sub_match.html',1,'std']]],
   ['subtract_5fwith_5fcarry_5fengine_31',['subtract_with_carry_engine',['http://en.cppreference.com/w/cpp/numeric/random/subtract_with_carry_engine.html',1,'std']]],
-  ['system_5fclock_32',['system_clock',['http://en.cppreference.com/w/cpp/chrono/system_clock.html',1,'std::chrono']]],
-  ['system_5ferror_33',['system_error',['http://en.cppreference.com/w/cpp/error/system_error.html',1,'std']]]
+  ['superpacket_32',['SuperPacket',['../classpflib_1_1decoding_1_1SuperPacket.html',1,'pflib::decoding']]],
+  ['system_5fclock_33',['system_clock',['http://en.cppreference.com/w/cpp/chrono/system_clock.html',1,'std::chrono']]],
+  ['system_5ferror_34',['system_error',['http://en.cppreference.com/w/cpp/error/system_error.html',1,'std']]]
 ];

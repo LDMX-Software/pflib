@@ -18,11 +18,15 @@ var hierarchy =
     [ "Menu< TargetType >::Line", "classMenu_1_1Line.html", null ],
     [ "pflib::MAX5825", "classpflib_1_1MAX5825.html", null ],
     [ "pflib::Parameter", "structpflib_1_1Parameter.html", null ],
+    [ "pflib::decoding::PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", null ],
     [ "pflib::PolarfireTarget", "structpflib_1_1PolarfireTarget.html", null ],
     [ "Rcfile", "classRcfile.html", null ],
     [ "Rcmap", "classRcmap.html", null ],
     [ "pflib::RegisterLocation", "structpflib_1_1RegisterLocation.html", null ],
     [ "pflib::ROC", "classpflib_1_1ROC.html", null ],
+    [ "pflib::decoding::RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
+    [ "pflib::decoding::SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ],
+    [ "This", "classThis.html", null ],
     [ "pflib::WishboneInterface", "classpflib_1_1WishboneInterface.html", [
       [ "pflib::rogue::RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", null ],
       [ "pflib::uhal::uhalWishboneInterface", "classpflib_1_1uhal_1_1uhalWishboneInterface.html", null ]

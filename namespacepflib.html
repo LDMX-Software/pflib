@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-2-g19fae31</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.0.6-45-g13e1bf1</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -587,7 +587,7 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Polarfire Interaction Library. </p>
-<p >This library is designed to ease the burden of configuring HGC ROCs connected to a Polarfire FPGA as well as define some helpful debugging functionalities for determining the optimal configuration of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> library is designed to ease the burden of configuring HGC ROCs connected to a Polarfire FPGA as well as define some helpful debugging functionalities for determining the optimal configuration of an HGC <a class="el" href="classpflib_1_1ROC.html">ROC</a>. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="a20ad39e2eb2643247c1844d34c372d01" name="a20ad39e2eb2643247c1844d34c372d01"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a20ad39e2eb2643247c1844d34c372d01">&#9670;&nbsp;</a></span>compile() <span class="overload">[1/5]</span></h2>
@@ -612,7 +612,7 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 <li>key2: name of parameter (e.g. Inputdac)</li>
 <li>val: value of parameter</li>
 </ul>
-<p >The pages that a specific parameter and its value are applied to are decided by if key1 is a substring of the full page name. This allows the user to specify a group of pages by just giving a partial page name that is a substring of the pages that you wish to apply the parameter to. For example,</p>
+<p >The pages that a specific parameter and its value are applied to are decided by if key1 is a substring of the full page name. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> allows the user to specify a group of pages by just giving a partial page name that is a substring of the pages that you wish to apply the parameter to. For example,</p>
 <ul>
 <li>Channel_* - matches all 71 channels pages</li>
 <li>CALIB* - matches both calib channel pages</li>
@@ -667,9 +667,9 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </div><div class="memdoc">
 
 <p>Overlay a single parameter onto the input register map. </p>
-<p >This only overwrites the bits that need to be changed for the input parameter. Any registers that don't exist will be set to 0 before being written to.</p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> only overwrites the bits that need to be changed for the input parameter. Any registers that don't exist will be set to 0 before being written to.</p>
 <p >implementation of compiling a single value for the input parameter specification into the list of registers.</p>
-<p >This accesses the PARAMETER_LUT map, its submaps, and the register_values map without any checks so it may throw a <a class="elRef" href="http://en.cppreference.com/w/cpp/error/out_of_range.html">std::out_of_range</a> error. Do checking of names before calling this one.</p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> accesses the PARAMETER_LUT map, its submaps, and the register_values map without any checks so it may throw a <a class="elRef" href="http://en.cppreference.com/w/cpp/error/out_of_range.html">std::out_of_range</a> error. Do checking of names before calling this one.</p>
 <p ><b>Most</b> of the parameters have the same names as the ones in the <a href="ASIC_parameters_HGCROC_for_SiPM.pdf">HGCROC Manual</a>; however, a few parameters on the Top sub-block (page) different in format and so we have changed them here. The translations from the manual to what is used here are listed below.</p><ul>
 <li>DIV_PLL_{A,B} -&gt; DIV_PLL (two bit field)</li>
 <li>EN{1,2,3}_probe_pll -&gt; PLL_probe_amplitude (three bit field)</li>
@@ -873,7 +873,7 @@ static const int&#160;</td><td class="memItemRight" valign="bottom"><b>I2C_IACK<
 </div><div class="memdoc">
 
 <p>get the default parameter values as specified in the manual </p>
-<p >This is a helpful command for simply printing a "template" YAML settings file although it will printout all pages individually.</p>
+<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is a helpful command for simply printing a "template" YAML settings file although it will printout all pages individually.</p>
 <dl class="section return"><dt>Returns</dt><dd>map of page name and parameter names to default values </dd></dl>
 
 </div>

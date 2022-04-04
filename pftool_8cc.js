@@ -16,6 +16,7 @@ var pftool_8cc =
     [ "roc_render", "pftool_8cc.html#a832ef7b5689447a125f38508328c4517", null ],
     [ "RunMenu", "pftool_8cc.html#a5c4a609522efe5fea10a5bcfce4d9dd9", null ],
     [ "status", "pftool_8cc.html#ad9591d27a709a7c68f359245b4124fc5", null ],
+    [ "tasks", "pftool_8cc.html#ac051bc7f83bb184f68c6b60f70bbe699", null ],
     [ "wb", "pftool_8cc.html#af531e96403c9b4b7e7eac9940a555274", null ],
     [ "iroc", "pftool_8cc.html#a37446115b7d33d8d98b1fdd813542fd9", null ]
 ];
