@@ -7,19 +7,18 @@
 #include <string.h>
 #include <iostream>
 
-namespace pflib {
 
-static const std::string INHERIT = "INHERIT";
-static const std::string HGCROCS = "HGCROCS";
-
-class CalibOffset : public detail::PolarfireSetting {
+/******************************************************************************
+ * Definition of settings
+ *****************************************************************************/
+/// set the calib offset to the value
+class CalibOffset : public pflib::detail::PolarfireSetting {
   int val_;
  public: 
-  CalibOffset() : detail::PolarfireSetting() {}
   virtual void import(YAML::Node val) final override {
     val_ = val.as<int>();
   }
-  virtual void execute(PolarfireTarget* pft) final override {
+  virtual void execute(pflib::PolarfireTarget* pft) final override {
     // set calib offset
     int len, offset;
     pft->backend->fc_get_setup_calib(len,offset);
@@ -31,19 +30,22 @@ class CalibOffset : public detail::PolarfireSetting {
   }
 };
 
-class SipmBias : public detail::PolarfireSetting {
+/// sets the sipm bias adc value for all connectors on the input rocs
+class SipmBias : public pflib::detail::PolarfireSetting {
   int val_;
   std::vector<int> rocs_;
  public:
-  SipmBias() : detail::PolarfireSetting() {}
   virtual void import(YAML::Node val) final override {
     if (not val.IsMap()) {
       PFEXCEPTION_RAISE("BadFormat","SipmBias expects a map value.");
     }
+    /// notice we do nothing if an argument is not given,
+    //    this is so the value can be "inherited" from parent
+    //    'inherit' yaml nodes and then only modified below
     if (val["value"]) val_ = val["value"].as<int>();
     if (val["rocs"]) rocs_ = val["rocs"].as<std::vector<int>>();
   }
-  virtual void execute(PolarfireTarget* pft) final override {
+  virtual void execute(pflib::PolarfireTarget* pft) final override {
     for (auto& roc : rocs_) {
       for (int connector{0}; connector < 16; connector++) {
         pft->setBiasSetting(roc, 0, connector, val_);
@@ -56,10 +58,26 @@ class SipmBias : public detail::PolarfireSetting {
   }
 };
 
+/******************************************************************************
+ * Registration of available settings
+ *    the string passed as an argument to declare is the name of the setting
+ *    as read from the YAML file
+ *
+ *    In addition to the names listed here, 'inherit' and 'hgcrocs' are also
+ *    taken as reserved names for other purposes below.
+ *****************************************************************************/
 namespace {
   auto v0 = pflib::detail::PolarfireSetting::Factory::get().declare<CalibOffset>("calib_offset");
   auto v1 = pflib::detail::PolarfireSetting::Factory::get().declare<SipmBias>("sipm_bias");
 }
+
+/******************************************************************************
+ * Implementation Layer Below, change carefully!
+ *****************************************************************************/
+namespace pflib {
+
+static const std::string INHERIT = "INHERIT";
+static const std::string HGCROCS = "HGCROCS";
 
 void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
   if (not conf.IsMap()) {
@@ -165,7 +183,7 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) try {
       polarfires_[hostname].import(polarfire_settings);
     }
   }
-} catch (const YAML::ParserException& e) {
+} catch (const YAML::Exception& e) {
   PFEXCEPTION_RAISE("BadFormat", e.what());
 }
 

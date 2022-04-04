@@ -17,13 +17,27 @@ namespace pflib {
 class PolarfireTarget;
 namespace detail {
 
+/**
+ * Object that can change a setting on a polarfire target
+ *
+ * This is a "prototype" that is used as the base pointer for
+ * derived classes which can do arbitrary tasks to the passed
+ * PolarfireTarget
+ */
 class PolarfireSetting {
  public:
   PolarfireSetting() = default;
   virtual ~PolarfireSetting() = default;
+  /// import the setting from the passes yaml node
   virtual void import(YAML::Node val) = 0;
+  /// apply the setting to the passed polarfire target
   virtual void execute(PolarfireTarget* pft) = 0;
+  /// print the setting
   virtual void stream(std::ostream& s) = 0;
+  /**
+   * The object that can construct new polarfire settings given
+   * the name of the setting
+   */
   class Factory {
    public:
     static Factory& get() {
@@ -42,20 +56,14 @@ class PolarfireSetting {
       }
       return lib_it->second();
     }
-  
     Factory(Factory const&) = delete;
     void operator=(Factory const&) = delete;
-                                                  
    private:
     template <typename DerivedType>
     static std::unique_ptr<PolarfireSetting> maker() {
       return std::make_unique<DerivedType>();
     }
-  
-    /// private constructor to prevent creation
     Factory() = default;
-  
-    /// library of possible objects to create
     std::map<std::string, std::function<std::unique_ptr<PolarfireSetting>()>> library_;
   };  // Factory
 };  // PolarfireSetting
@@ -88,7 +96,8 @@ class DetectorConfiguration {
 
   /**
    * apply the configuration to the detector,
-   * we need access to all the WB, so make sure no other instances of pftool (for example) are up!
+   * we need access to all the wishbones, 
+   * so make sure no other instances of pftool (for example) are up!
    */
   void apply();
 
@@ -96,7 +105,6 @@ class DetectorConfiguration {
    * Print out the detector configuration for debugging purposes
    */
   void stream(std::ostream& s) const;
-
 };
 }
 
