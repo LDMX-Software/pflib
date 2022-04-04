@@ -26,6 +26,7 @@ class DetectorConfiguration {
           int // value
       >>> hgcrocs_;
     void import(YAML::Node conf);
+    void apply(const std::string& host);
   };
   std::map<std::string, PolarfireConfiguration> polarfires_;
  public:

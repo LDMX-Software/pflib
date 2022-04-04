@@ -41,6 +41,32 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
   }
 }
 
+void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& host) {
+  std::unique_ptr<PolarfireTarget> pft;
+#ifdef PFTOOL_ROGUE
+  pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
+#else
+  // no good reason, just in a rush
+  PFEXCEPTION_RAISE("NoImpl","Unable to do entire detector configuration with uHAL.");
+#endif
+
+  // set calib offset
+  int len, offset;
+  pft->backend->fc_get_setup_calib(len,offset);
+  offset = calib_offset_;
+  pft->backend->fc_setup_calib(len,offset);
+
+  for (auto& hgcroc : hgcrocs_) {
+    // sipm bias
+    for (int connector{0}; connector < 16; connector++) {
+      pft->setBiasSetting(hgcroc.first, 0, connector, sipm_bias_);
+    }
+
+    // general HGC ROC parameters
+    pft->hcal.roc(hgcroc.first).applyParameters(hgcroc.second);
+  }
+}
+
 DetectorConfiguration::DetectorConfiguration(const std::string& config) {
   YAML::Node config_yaml;
   try {
@@ -104,7 +130,8 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) {
 }
 
 void DetectorConfiguration::apply() {
-  for (const auto& polarfire : polarfires_) {
+  for (auto& polarfire : polarfires_) {
+    polarfire.second.apply(polarfire.first);
   }
 }
 
