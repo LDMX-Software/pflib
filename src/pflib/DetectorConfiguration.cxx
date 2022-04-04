@@ -1,14 +1,15 @@
 #include "pflib/DetectorConfiguration.h"
 #include "pflib/Compile.h"
 #include "pflib/PolarfireTarget.h"
+#include "pflib/rogue/RogueWishboneInterface.h"
 
 #include <yaml-cpp/yaml.h>
 #include <string.h>
+#include <iostream>
 
 namespace pflib {
 
 static const std::string INHERIT = "INHERIT";
-
 static const std::string HGCROCS = "HGCROCS";
 
 class CalibOffset : public detail::PolarfireSetting {
@@ -60,9 +61,6 @@ namespace {
   auto v1 = pflib::detail::PolarfireSetting::Factory::get().declare<SipmBias>("sipm_bias");
 }
 
-static const std::string CALIB_OFFSET = "CALIB_OFFSET";
-static const std::string SIPM_BIAS = "SIPM_BIAS";
-
 void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
   if (not conf.IsMap()) {
     PFEXCEPTION_RAISE("BadFormat","YAML node for polarfire not a map.");
@@ -82,6 +80,8 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
           }
         }
       }
+    } else if (strcasecmp("roclinks", setting.c_str()) == 0) {
+      roclinks_ = setting_pair.second.as<std::vector<bool>>();
     } else {
       // throws exception if setting not found
       settings_[setting] = detail::PolarfireSetting::Factory::get().make(setting);
@@ -91,20 +91,23 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
 }
 
 void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& host) {
-  std::unique_ptr<PolarfireTarget> pft;
-#ifdef PFTOOL_ROGUE
-  pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
-#else
-  // no good reason, just in a rush
-  PFEXCEPTION_RAISE("NoImpl","Unable to do entire detector configuration with uHAL.");
-#endif
+  // WILL FAIL TO COMPILE ON UHAL ONLY SYSTEMS
+  //    no good reason, just in a rush
+  auto pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
+
+  std::cout << "marking active links..." << std::endl;
+  for (int ilink{0}; ilink < pft->hcal.elinks().nlinks() and ilink < roclinks_.size(); ilink++) {
+    pft->hcal.elinks().markActive(ilink,roclinks_.at(ilink));
+  }
 
   for (auto& setting : settings_) {
+    std::cout << "  applying " << setting.first << std::endl;
     setting.second->execute(pft.get());
   }
 
   for (auto& hgcroc : hgcrocs_) {
     // general HGC ROC parameters
+    std::cout << "  applying parameters of roc " << hgcroc.first << std::endl;
     pft->hcal.roc(hgcroc.first).applyParameters(hgcroc.second);
   }
 }

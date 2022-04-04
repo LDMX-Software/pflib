@@ -76,6 +76,7 @@ class DetectorConfiguration {
           std::string, // parameter
           int // value
       >>> hgcrocs_;
+    std::vector<bool> roclinks_;
     void import(YAML::Node conf);
     void apply(const std::string& host);
   };
