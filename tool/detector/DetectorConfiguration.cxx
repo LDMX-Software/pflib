@@ -2,7 +2,14 @@
 
 #include "pflib/Compile.h"
 #include "pflib/PolarfireTarget.h"
+
+#ifdef PFTOOL_ROGUE
 #include "pflib/rogue/RogueWishboneInterface.h"
+#endif
+
+#ifdef PFTOOL_UHAL
+#include "pflib/uhal/uhalWishboneInterface.h"
+#endif
 
 #include <yaml-cpp/yaml.h>
 #include <string.h>
@@ -108,12 +115,16 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
 }
 
 void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& host) {
-  // WILL FAIL TO COMPILE ON UHAL ONLY SYSTEMS
-  //    no good reason, just in a rush
+#ifdef PFTOOL_ROGUE
   auto pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
+#else
+  // no good reason just rushing
+  PFEXCEPTION_RAISE("NoImpl",
+      "DetectorConfiguratin::apply has not been implemented for uHAL systems.");
+#endif
+
 
   for (auto& setting : settings_) {
-    std::cout << "  applying " << setting.first << " ";
     setting.second->stream(std::cout);
     std::cout << std::endl;
     setting.second->execute(pft.get());
@@ -121,7 +132,6 @@ void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& hos
 
   for (auto& hgcroc : hgcrocs_) {
     // general HGC ROC parameters
-    std::cout << "  applying parameters of roc " << hgcroc.first << std::endl;
     pft->hcal.roc(hgcroc.first).applyParameters(hgcroc.second);
   }
 }
