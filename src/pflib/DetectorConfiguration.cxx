@@ -20,18 +20,17 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
   for (const auto& setting_pair : conf) {
     std::string setting = setting_pair.first.as<std::string>();
     if (strcasecmp(CALIB_OFFSET.c_str(), setting.c_str()) == 0) {
-      calib_offset = setting_pair.second.as<int>();
+      calib_offset_ = setting_pair.second.as<int>();
     } else if (strcasecmp(SIPM_BIAS.c_str(), setting.c_str()) == 0) {
-      sipm_bias = setting_pair.second.as<int>();
+      sipm_bias_ = setting_pair.second.as<int>();
     } else if (strcasecmp(HGCROCS.c_str(), setting.c_str()) == 0) {
       for (const auto& sub_pair : setting_pair.second) {
         std::string roc = sub_pair.first.as<std::string>();
-        std::cout << " " << roc << std::endl;
         if (not sub_pair.second.IsMap()) continue;
         if (strcasecmp(INHERIT.c_str(), roc.c_str()) != 0) {
-          detail::extract(sub_pair.second, hgcrocs[sub_pair.first.as<int>()]);
+          detail::extract(sub_pair.second, hgcrocs_[sub_pair.first.as<int>()]);
         } else {
-          for (auto& roc_pair : hgcrocs) {
+          for (auto& roc_pair : hgcrocs_) {
             detail::extract(sub_pair.second, roc_pair.second);
           }
         }
@@ -63,7 +62,7 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) {
   for (const auto& polarfire_pair : config_yaml) {
     std::string hostname = polarfire_pair.first.as<std::string>();
     if (strcasecmp(INHERIT.c_str(), hostname.c_str()) != 0) {
-      polarfires[hostname];
+      polarfires_[hostname];
       if (not polarfire_pair.second.IsMap()) {
         PFEXCEPTION_RAISE("BadFormat","The YAML node for polarfire "+hostname+" is not a map.");
       }
@@ -72,7 +71,7 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) {
           for (const auto& sub_pair : setting_pair.second) {
             std::string roc = sub_pair.first.as<std::string>();
             if (strcasecmp(INHERIT.c_str(), roc.c_str()) != 0) {
-              polarfires[hostname].hgcrocs[sub_pair.first.as<int>()];
+              polarfires_[hostname].hgcrocs_[sub_pair.first.as<int>()];
             }
           }
         }
@@ -94,25 +93,27 @@ DetectorConfiguration::DetectorConfiguration(const std::string& config) {
 
     if (strcasecmp(INHERIT.c_str(), hostname.c_str()) == 0) {
       // apply to all polarfires
-      for (auto& pf_pair : polarfires) {
+      for (auto& pf_pair : polarfires_) {
         pf_pair.second.import(polarfire_settings);
       }
     } else {
       // specific polarfire
-      polarfires[hostname].import(polarfire_settings);
+      polarfires_[hostname].import(polarfire_settings);
     }
   }
 }
 
 void DetectorConfiguration::apply() {
+  for (const auto& polarfire : polarfires_) {
+  }
 }
 
 void DetectorConfiguration::stream(std::ostream& s) const {
-  for (const auto& polarfire_pair : polarfires) {
+  for (const auto& polarfire_pair : polarfires_) {
     s << polarfire_pair.first << "\n";
-    s << "  " << CALIB_OFFSET << ": " << polarfire_pair.second.calib_offset << "\n";
-    s << "  " << SIPM_BIAS << ": " << polarfire_pair.second.sipm_bias << "\n";
-    for (const auto& roc_pair : polarfire_pair.second.hgcrocs) {
+    s << "  " << CALIB_OFFSET << ": " << polarfire_pair.second.calib_offset_ << "\n";
+    s << "  " << SIPM_BIAS << ": " << polarfire_pair.second.sipm_bias_ << "\n";
+    for (const auto& roc_pair : polarfire_pair.second.hgcrocs_) {
       s << "  ROC " << roc_pair.first << "\n";
       for (const auto& page_pair : roc_pair.second) {
         s << "    " << page_pair.first << "\n";

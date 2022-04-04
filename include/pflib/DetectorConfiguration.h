@@ -16,18 +16,18 @@ namespace pflib {
  */
 class DetectorConfiguration {
   struct PolarfireConfiguration {
-    int calib_offset; // FC.CALIB
-    int sipm_bias; 
+    int calib_offset_; // FC.CALIB
+    int sipm_bias_; 
     std::map<int, // roc index on this polarfire
       std::map<
         std::string, // page
         std::map<
           std::string, // parameter
           int // value
-      >>> hgcrocs;
+      >>> hgcrocs_;
     void import(YAML::Node conf);
   };
-  std::map<std::string, PolarfireConfiguration> polarfires;
+  std::map<std::string, PolarfireConfiguration> polarfires_;
  public:
   /**
    * Parse the input file loading into us
