@@ -97,7 +97,13 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
     if (strcasecmp(HGCROCS.c_str(), setting.c_str()) == 0) {
       for (const auto& sub_pair : setting_pair.second) {
         std::string roc = sub_pair.first.as<std::string>();
-        if (not sub_pair.second.IsMap()) continue;
+        // skip undefined target node (just being listed for inherit)
+        if (not sub_pair.second) continue;
+        YAML::Node roc_params{sub_pair.second};
+        if (not sub_pair.second.IsMap()) {
+          auto roc_filename = sub_pair.second.as<std::string>();
+          roc_params = YAML::LoadFile(roc_filename);
+        }
         if (strcasecmp(INHERIT.c_str(), roc.c_str()) != 0) {
           detail::extract(sub_pair.second, hgcrocs_[sub_pair.first.as<int>()]);
         } else {

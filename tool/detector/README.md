@@ -85,13 +85,16 @@ under the `ROC.LOAD` settings have the same structure here except moved over
 three indentations in order to accomodate the selection of a specific Polarfire
 and a specific ROC on that polarfire. They are housed under the `hgcrocs` setting.
 ```yaml
-polarfire-hostname:
   hgcrocs:
     roc_index :
       page_name :
         param_name : param_val
 ```
-
+Alternatively, the value can also be a path to another YAML file to be used.
+```yaml
+  hgcrocs:
+    roc_index: '/full/path/to/hgcroc_parameters.yaml'
+```
 
 ## Other Polarfire Settings
 As mentioned above, the YAML format is extremely flexible and allows for arbitrary 
