@@ -1679,10 +1679,6 @@ int main(int argc, char* argv[]) {
 
       if (options.contents().has_key("runnumber_file"))
         last_run_file=options.contents().getString("runnumber_file");
-      if (options.contents().has_key("start_dma_command"))
-        start_dma_cmd=options.contents().getString("start_dma_command");
-      if (options.contents().has_key("stop_dma_command"))
-        stop_dma_cmd=options.contents().getString("stop_dma_command");
       
       if (p_pft) {
       	// prepare the links
