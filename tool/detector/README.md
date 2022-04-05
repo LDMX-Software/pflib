@@ -26,7 +26,7 @@ polarfire-hostname:
     <setting_node>
 ```
 
-### `inherit` keyword
+### inherit keyword
 This format also has a special keyword *inherit* if a top-level key takes on this
 value, then that setting will be applied to all other polarfires in the config.
 ```yaml
@@ -130,4 +130,5 @@ Each setting to be applied has multiple requirements.
    readable way.
 5. Register the setting in the anonymous namespace.
 
-The examples given in [DetectorConfiguration.cxx](DetectorConfiguration.cxx) is a good place to start.
+The examples given in [DetectorConfiguration.cxx](src/pflib/detector/DetectorConfiguration.cxx) 
+is a good place to start.
