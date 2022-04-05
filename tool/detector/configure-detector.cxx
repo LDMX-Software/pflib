@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "DetectorConfiguration.h"
+#include "pflib/detector/DetectorConfiguration.h"
 #include "pflib/Exception.h"
 
 static void usage() {
@@ -71,9 +71,14 @@ int main(int argc, char *argv[]) {
         char a;
         std::cout << "Apply these settings to the detector? [Y/N] " << std::flush;
         std::cin >> a;
-        if (a != 'y' and a != 'Y') return 0;
+        if (a != 'y' and a != 'Y') {
+          std::cout << "  Not applying settings. Exiting..." << std::endl;
+          return 0;
+        }
       }
+      std::cout << "  Applying settings..." << std::endl;
       dc.apply();
+      std::cout << "  done" << std::endl;
     }
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "

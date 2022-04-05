@@ -1,4 +1,4 @@
-#include "DetectorConfiguration.h"
+#include "pflib/detector/DetectorConfiguration.h"
 
 #include "pflib/Compile.h"
 #include "pflib/PolarfireTarget.h"
