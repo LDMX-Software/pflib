@@ -11,6 +11,7 @@
 void usage() {
   fprintf(stderr, "Usage: [-d] [-v verbosity] [-r roclink] [file]\n");
   fprintf(stderr, "  -d  : show data words (default is header only)\n");
+  fprintf(stderr, "  -l  : print link alignment counters at end\n");
   fprintf(stderr, "  -v [verbosity level] (default is 3)\n");
   fprintf(stderr, "     0 : report error conditions only\n");
   fprintf(stderr, "     1 : report superheaders\n");
@@ -31,12 +32,15 @@ int main(int argc, char* argv[]) {
   std::vector<uint32_t> data;
   bool showdata=false;
   bool prettyadc=false;
-
+  bool printlink=false;
   
-  while ((opt = getopt(argc, argv, "dv:r:a")) != -1) {
+  while ((opt = getopt(argc, argv, "dlv:r:a")) != -1) {
     switch (opt) {
     case 'd':
       showdata=true;
+      break;
+    case 'l':
+      printlink=true;
       break;
     case 'a':
       prettyadc=true;
@@ -74,7 +78,6 @@ int main(int argc, char* argv[]) {
   read(infile,&(data[0]),finfo.st_size);
 
   int fmt=1;
-  
   int superpacket_header=-10;
   int packet_header=-1;
   int link_header=-1;
@@ -83,6 +86,12 @@ int main(int argc, char* argv[]) {
   int links=-1;
   int ilink=-1;
   int packet_bx=0;
+
+  // these are for within the link packet
+  //  helpful for debugging link connections
+  int num_correct_idles = 0;
+  int num_correct_bxheaders = 0;
+
   enum WordType { wt_unknown, wt_superheader, wt_packetheader, wt_linkheader, wt_data, wt_junk } word_type;
   std::vector<int> packet_pointers;
   std::vector<int> link_pointers;
@@ -143,7 +152,7 @@ int main(int argc, char* argv[]) {
 	printf("\n");
     } else if (rel_super>2+(samples+1)/2 && rel_super<=2+8 && fmt==2) {
       word_type=wt_junk; // empty sample words
-    }    else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
+    } else if (int(packet_pointers.size())>isample+1 && i==packet_pointers[isample+1]) {
       packet_header=i;
       isample++;
       word_type=wt_packetheader;
@@ -155,10 +164,12 @@ int main(int argc, char* argv[]) {
       ilink=-1;
     } else if (fmt==2 && rel_super>2+8 && packet_header<0) { // extended superheader
       int rel_super_tag=rel_super-(2+8+1);
+      if (verbosity>1) {
       if (rel_super_tag==0) printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",i,rel_super,data[i],(data[i]>>12)&0xFFF,data[i]&0xFFF, data[i]&0xFFF);
       else if (rel_super_tag==1) printf("%04d S%02d %08x    Time since start of spill %.5fs (%d 5 Mhz tics)\n",i,rel_super,data[i],data[i]/5e6,data[i]);
       else if (rel_super_tag==2) printf("%04d S%02d %08x    Evt Number = %d \n",i,rel_super,data[i],data[i]);
       else if (rel_super_tag==3) printf("%04d S%02d %08x    Run %d start DD-MM hh:mm : %2d-%d %02d:%02d\n",i,rel_super,data[i],(data[i]&0xFFF),(data[i]>>23)&0x1F,(data[i]>>28)&0xF,(data[i]>>18)&0x1F, (data[i]>>12)&0x3F);      
+      }
     } else if (isample>=0 && i+1==packet_pointers[isample+1]) { // packet trailer
       if (verbosity>1)
 	printf("%04d PXX %08x  CRC\n",i,0,data[i]);
@@ -196,14 +207,20 @@ int main(int argc, char* argv[]) {
 	printf("%04d L%02d %08x  \n",i,rel_link,data[i]);         
     } else if (rel_link==2) {
       word_type=wt_linkheader;
-      if (verbosity>2)
-	printf("%04d L%02d %08x  ",i,rel_link,data[i]);     
-      if ((data[i]&0xFF000000)!=0xAA000000 && verbosity>2) printf("BAD HEADER! ");
+      bool bad=false;
+      if ((data[i]&0xFF000000)!=0xAA000000) bad=true;
+      else num_correct_bxheaders++;
+      if (verbosity>2) printf("%04d L%02d %08x  %s",i,rel_link,data[i],bad?"BAD HEADER!":"");     
       int linkbx=(data[i]>>12)&0xFFF;
-      if (verbosity>2)
-	printf("BX=%3d (delta=%d) \n",linkbx,packet_bx-linkbx);
-    } else if (link_header>0 && rel_link<42) {
-      if (rel_link<41 && rel_link!=21 && ilink==rocfocus) link_data.push_back(data[i]);
+      if (verbosity>2) printf(" BX=%3d (delta=%d) \n",linkbx,packet_bx-linkbx);
+    } else if (rel_link==41) {
+      // should be idle packet in hgcroc v2
+      bool bad=false;
+      if (data[i]!=0xACCCCCCC) bad=true;
+      else num_correct_idles++;
+      if (verbosity>2) printf("%04d L%02d %08x  %s\n",i,rel_link,data[i],bad?"BAD IDLE!":"");     
+    } else if (link_header>0 && rel_link<41) {
+      if (rel_link!=21 && ilink==rocfocus) link_data.push_back(data[i]);
       word_type=wt_data;
       if (showdata) {
 	printf("%04d L%02d %08x  \n",i,rel_link,data[i]);
@@ -215,6 +232,12 @@ int main(int argc, char* argv[]) {
   }
 
   close(infile);
+
+  if (printlink) {
+    printf("\nLink Alignment Checks\n");
+    printf(" Num Correct BX Headers %d\n", num_correct_bxheaders);
+    printf(" Num Correct Idles      %d\n", num_correct_idles);
+  }
 
   return 0;
 }
