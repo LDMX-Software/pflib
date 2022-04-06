@@ -277,7 +277,6 @@ void PolarfireTarget::prepareNewRun() {
   int extra_samples;
   hcal.fc().getMultisampleSetup(enable,extra_samples);
   samples_per_event_=extra_samples+1;
-
   
   daq.enable(true);
 }

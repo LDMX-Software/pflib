@@ -628,11 +628,7 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
 }
 
-
 static std::string last_run_file=".last_run_file";
-static std::string start_dma_cmd="";
-static std::string stop_dma_cmd="";
-
 
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
