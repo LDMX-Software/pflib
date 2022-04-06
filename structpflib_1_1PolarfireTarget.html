@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.2.3-2-gd53be00</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.2.3-4-g3a2d070</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -180,16 +180,16 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setBiasSetting</b> (i
 <tr class="separator:ac1d8526d8bbba1dcd19814ca82a8ad0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18bcef88dd2e05b8e43c188ea70ffc15"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#a18bcef88dd2e05b8e43c188ea70ffc15">loadBiasSettings</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;file_name)</td></tr>
 <tr class="separator:a18bcef88dd2e05b8e43c188ea70ffc15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="memItemLeft" align="right" valign="top"><a id="a2aeadd2194cd17cbdbd3d33f642d4926" name="a2aeadd2194cd17cbdbd3d33f642d4926"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>elink_relink</b> (int ilink, int verbosity)</td></tr>
-<tr class="memdesc:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="mdescLeft">&#160;</td><td class="mdescRight">Carries out the standard elink alignment process. <br /></td></tr>
-<tr class="separator:a2aeadd2194cd17cbdbd3d33f642d4926"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34f4a3dfac7190a260e929bedbeab38f"><td class="memItemLeft" align="right" valign="top"><a id="a34f4a3dfac7190a260e929bedbeab38f" name="a34f4a3dfac7190a260e929bedbeab38f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>delay_loop</b> (int ilink)</td></tr>
-<tr class="separator:a34f4a3dfac7190a260e929bedbeab38f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5284a0e3bcdc9b4308360ca5b6b4338"><td class="memItemLeft" align="right" valign="top"><a id="ab5284a0e3bcdc9b4308360ca5b6b4338" name="ab5284a0e3bcdc9b4308360ca5b6b4338"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>bitslip_loop</b> (int ilink)</td></tr>
-<tr class="separator:ab5284a0e3bcdc9b4308360ca5b6b4338"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9d8aef0ad38926b7b59d09b30144dde"><td class="memItemLeft" align="right" valign="top"><a id="aa9d8aef0ad38926b7b59d09b30144dde" name="aa9d8aef0ad38926b7b59d09b30144dde"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>elink_relink</b> (int ilink, int min_delay=0, int max_delay=128)</td></tr>
+<tr class="memdesc:aa9d8aef0ad38926b7b59d09b30144dde"><td class="mdescLeft">&#160;</td><td class="mdescRight">Carries out the standard elink alignment process. <br /></td></tr>
+<tr class="separator:aa9d8aef0ad38926b7b59d09b30144dde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bcfca3df51d44cc14b2891a4cf13471"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#a8bcfca3df51d44cc14b2891a4cf13471">delay_loop</a> (int ilink, int min_delay, int max_delay)</td></tr>
+<tr class="memdesc:a8bcfca3df51d44cc14b2891a4cf13471"><td class="mdescLeft">&#160;</td><td class="mdescRight">Go from min_delay up to max_delay stopping only if alignment is achieved.  <a href="structpflib_1_1PolarfireTarget.html#a8bcfca3df51d44cc14b2891a4cf13471">More...</a><br /></td></tr>
+<tr class="separator:a8bcfca3df51d44cc14b2891a4cf13471"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f3b249d98354b0e02c1e67fe3a10831"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpflib_1_1PolarfireTarget.html#a7f3b249d98354b0e02c1e67fe3a10831">bitslip_loop</a> (int ilink, int &amp;best_slip, int &amp;best_count)</td></tr>
+<tr class="memdesc:a7f3b249d98354b0e02c1e67fe3a10831"><td class="mdescLeft">&#160;</td><td class="mdescRight">check all bitslip values and find the one with the most correct idle patterns  <a href="structpflib_1_1PolarfireTarget.html#a7f3b249d98354b0e02c1e67fe3a10831">More...</a><br /></td></tr>
+<tr class="separator:a7f3b249d98354b0e02c1e67fe3a10831"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -327,6 +327,97 @@ template&lt;class T &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a7f3b249d98354b0e02c1e67fe3a10831" name="a7f3b249d98354b0e02c1e67fe3a10831"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f3b249d98354b0e02c1e67fe3a10831">&#9670;&nbsp;</a></span>bitslip_loop()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool pflib::PolarfireTarget::bitslip_loop </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>best_slip</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>best_count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>check all bitslip values and find the one with the most correct idle patterns </p>
+<p >each spy returns 60 bytes (or 15 4-byte words), the idle pattern is 0x9c or 0xac followed by three 0xcc.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index to loop over </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">best_slip</td><td>set to best bitslip value </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">best_count</td><td>set to number of idles that were correct for the best slip </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if best slip value is perfect (i.e. link is aligned) (all possible words were corect pattern) </dd></dl>
+
+</div>
+</div>
+<a id="a8bcfca3df51d44cc14b2891a4cf13471" name="a8bcfca3df51d44cc14b2891a4cf13471"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bcfca3df51d44cc14b2891a4cf13471">&#9670;&nbsp;</a></span>delay_loop()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pflib::PolarfireTarget::delay_loop </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>min_delay</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_delay</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Go from min_delay up to max_delay stopping only if alignment is achieved. </p>
+<p >Using bitslip_loop to test each delay value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index to test </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">min_delay</td><td>minimum value of delay parameter </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_delay</td><td>maximum value of delay parameter </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a6dd0a281ef5ec7121f1ab1d13cbbdfa2" name="a6dd0a281ef5ec7121f1ab1d13cbbdfa2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6dd0a281ef5ec7121f1ab1d13cbbdfa2">&#9670;&nbsp;</a></span>dumpSettings()</h2>
 
