@@ -236,12 +236,20 @@ int main(int argc, char* argv[]) {
     if (verbosity>0) printf("\n");
     printf("Link Alignment Checks\n");
 
-    printf("     %21s | %21s\n","BX Headers","Idls");
-    printf("Link %10s %10s | %10s %10s\n","Good","Bad","Good","Bad");
+    printf("     %26s | %26s\n","BX Headers","Idles");
+    printf("Link %10s %10s %4s | %10s %10s %4s\n","Good","Bad","B/T","Good","Bad","B/T");
     for (int ilink{0}; ilink < 8; ilink++) {
-      printf("%4d %10d %10d | %10d %10d\n", ilink, 
-          num_good_bxheaders[ilink], num_bad_bxheaders[ilink],
-          num_good_idles[ilink], num_bad_idles[ilink]);
+      float bg_bxheaders = 0.;
+      if (num_good_bxheaders[ilink]+num_bad_bxheaders[ilink]>0) 
+        bg_bxheaders = float(num_bad_bxheaders[ilink])/
+          (num_good_bxheaders[ilink]+num_bad_bxheaders[ilink]);
+      float bg_idles = 0.;
+      if (num_good_idles[ilink]+num_bad_idles[ilink]>0) 
+        bg_idles = float(num_bad_idles[ilink])/
+          (num_good_idles[ilink]+num_bad_idles[ilink]);
+      printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", ilink, 
+          num_good_bxheaders[ilink], num_bad_bxheaders[ilink], bg_bxheaders,
+          num_good_idles[ilink], num_bad_idles[ilink], bg_idles);
     }
   }
 
