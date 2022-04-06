@@ -135,6 +135,10 @@ void PolarfireTarget::elinkStatus(std::ostream& os) {
   print_row("IS_IDLE"  , 3, 0x1);
   print_row("IS_ALIGNED", 4, 0x1);
 
+  os << std::setw(20) << "BITSLIP";
+  for (int i{0}; i < NLINKS; i++) os << std::setw(4) << hcal.elinks().getBitslip(i) << " ";
+  os << "\n";
+
   /*
   os << std::setw(20) << "AUTO_LOCKED";
   for (int i{0}; i < NLINKS; i++) {
