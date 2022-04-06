@@ -462,41 +462,41 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
   }
 }
 
-void PolarfireTarget::elink_relink(int ilink ,int verbosity) {
+void PolarfireTarget::elink_relink(int ilink, int min_delay, int max_delay) {
   pflib::Elinks& elinks=hcal.elinks();
-
   if (ilink == -1){
     for (int ilink=0; ilink<elinks.nlinks(); ilink++) {
-      delay_loop(ilink);
+      delay_loop(ilink, min_delay, max_delay);
     }
-  } else delay_loop(ilink);
-
+  } else delay_loop(ilink, min_delay, max_delay);
 }
 
-void PolarfireTarget::delay_loop(int ilink){
+void PolarfireTarget::delay_loop(int ilink, int min_delay, int max_delay){
   pflib::Elinks& elinks = hcal.elinks();
-  bool passedBitslipLoop = false;
+  bool aligned = false;
   if (elinks.isActive(ilink)){
-    for (int delay=20; delay<26; delay++){
+    int bitslip, count;
+    for (int delay=min_delay; delay<max_delay; delay++) {
       elinks.setDelay(ilink,delay);
-      passedBitslipLoop = bitslip_loop(ilink);
-       if (passedBitslipLoop) break;
+      aligned = bitslip_loop(ilink,bitslip,count);
+      printf("    Elink %d delay %d bitslip %d  (ok count=%d) %s\n",
+          ilink,delay,bitslip,count,aligned?"alignment achieved":"");
+      if (aligned) break;
     }
-    if (!passedBitslipLoop) printf("Delay scan exceeded 25, you should do an elinks hardreset\n");
+    if (!aligned) printf("Delay scan from %d to %d was unable to align link %d.\n",
+        min_delay,max_delay,ilink);
   } else printf("    Elink %d is not active.\n",ilink);
 }
 
-bool PolarfireTarget::bitslip_loop(int ilink){
+bool PolarfireTarget::bitslip_loop(int ilink, int& best_slip, int& count) {
+  static int total_cycles = 5; // number of spies per bitslip value
   pflib::Elinks& elinks=hcal.elinks();
-    
   elinks.setBitslipAuto(ilink,false);
-    
   int okcount[8];
-    
   for (int slip=0; slip<8; slip++) {
     elinks.setBitslip(ilink,slip);
     okcount[slip]=0;
-    for (int cycles=0; cycles<5; cycles++) {
+    for (int cycles=0; cycles < total_cycles; cycles++) {
       std::vector<uint8_t> spy=elinks.spy(ilink);
       for (size_t i=0; i+4<spy.size(); ) {
         if (spy[i]==0x9c || spy[i]==0xac) {
@@ -506,23 +506,14 @@ bool PolarfireTarget::bitslip_loop(int ilink){
       } 
     }
   }
-  int imax=-1;
+  best_slip = -1;
   for (int slip=0; slip<8; slip++) {
-    if (imax<0 || okcount[slip]>okcount[imax]) imax=slip;
+    if (best_slip<0 || okcount[slip]>okcount[best_slip]) best_slip=slip;
   }
-  elinks.setBitslip(ilink,imax);
-  printf("    Link %d bitslip %d  (ok count=%d)\n",ilink,imax,okcount[imax]);
-
-  if (okcount[imax] == 75){
-    return true;
-  }
-  else return false;
-
+  elinks.setBitslip(ilink,best_slip);
+  count = okcount[best_slip];
+  return (count == 15*total_cycles);
 }
-  
-//}
-
-  
 
 }  // namespace pflib
 

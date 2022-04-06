@@ -225,7 +225,7 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
  * pflib::Hcal::elinks and then procede to the commands.
  *
  * ## Commands
- * - RELINK : pflib::PolarfireTarget::elink_relink with verbosity 2
+ * - RELINK : pflib::PolarfireTarget::elink_relink
  * - SPY : pflib::Elinks::spy
  * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
  * - BIGSPY : PolarfireTarget::elinksBigSpy
@@ -240,9 +240,12 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
 static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   static int ilink=0;
+  static int min_delay{0}, max_delay{128};
   if (cmd=="RELINK"){
     ilink=BaseMenu::readline_int("Which elink? (-1 for all) ",ilink);
-    pft->elink_relink(ilink,2);
+    min_delay=BaseMenu::readline_int("Min delay? ",min_delay);
+    max_delay=BaseMenu::readline_int("Max delay? ",max_delay);
+    pft->elink_relink(ilink,min_delay,max_delay);
   }
   if (cmd=="SPY") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);

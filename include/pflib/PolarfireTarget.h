@@ -226,11 +226,33 @@ struct PolarfireTarget {
   bool loadBiasSettings(const std::string& file_name);
 
   /** Carries out the standard elink alignment process */
-  void elink_relink(int ilink,int verbosity);
+  void elink_relink(int ilink,int min_delay = 0, int max_delay = 128);
 
-  void delay_loop(int ilink);
+  /**
+   * Go from min_delay up to max_delay stopping only if alignment is achieved
+   *
+   * Using bitslip_loop to test each delay value.
+   *
+   * @param[in] ilink link index to test
+   * @param[in] min_delay minimum value of delay parameter
+   * @param[in] max_delay maximum value of delay parameter
+   */
+  void delay_loop(int ilink, int min_delay, int max_delay);
 
-  bool bitslip_loop(int ilink);
+  /**
+   * check all bitslip values and find the one with
+   * the most correct idle patterns
+   *
+   * each spy returns 60 bytes (or 15 4-byte words),
+   * the idle pattern is 0x9c or 0xac followed by three 0xcc.
+   *
+   * @param[in] ilink link index to loop over
+   * @param[out] best_slip set to best bitslip value
+   * @param[out] best_count set to number of idles that were correct for the best slip
+   * @return true if best slip value is perfect (i.e. link is aligned) 
+   * (all possible words were corect pattern)
+   */
+  bool bitslip_loop(int ilink, int& best_slip, int& best_count);
   
  private:
   int samples_per_event_;
