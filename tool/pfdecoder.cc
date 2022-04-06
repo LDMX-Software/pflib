@@ -91,6 +91,8 @@ int main(int argc, char* argv[]) {
   //  helpful for debugging link connections
   int num_correct_idles = 0;
   int num_correct_bxheaders = 0;
+  int num_bad_idles = 0;
+  int num_bad_bxheaders = 0;
 
   enum WordType { wt_unknown, wt_superheader, wt_packetheader, wt_linkheader, wt_data, wt_junk } word_type;
   std::vector<int> packet_pointers;
@@ -208,7 +210,7 @@ int main(int argc, char* argv[]) {
     } else if (rel_link==2) {
       word_type=wt_linkheader;
       bool bad=false;
-      if ((data[i]&0xFF000000)!=0xAA000000) bad=true;
+      if ((data[i]&0xFF000000)!=0xAA000000) { bad=true; num_bad_bxheaders++; }
       else num_correct_bxheaders++;
       if (verbosity>2) printf("%04d L%02d %08x  %s",i,rel_link,data[i],bad?"BAD HEADER!":"");     
       int linkbx=(data[i]>>12)&0xFFF;
@@ -216,7 +218,7 @@ int main(int argc, char* argv[]) {
     } else if (rel_link==41) {
       // should be idle packet in hgcroc v2
       bool bad=false;
-      if (data[i]!=0xACCCCCCC) bad=true;
+      if (data[i]!=0xACCCCCCC) { bad=true; num_bad_idles++; }
       else num_correct_idles++;
       if (verbosity>2) printf("%04d L%02d %08x  %s\n",i,rel_link,data[i],bad?"BAD IDLE!":"");     
     } else if (link_header>0 && rel_link<41) {
@@ -234,9 +236,11 @@ int main(int argc, char* argv[]) {
   close(infile);
 
   if (printlink) {
-    printf("\nLink Alignment Checks\n");
-    printf(" Num Correct BX Headers %d\n", num_correct_bxheaders);
-    printf(" Num Correct Idles      %d\n", num_correct_idles);
+    if (verbosity>0) printf("\n");
+    printf("Link Alignment Checks\n");
+    printf("            %10s %10s\n","Good","Bad");
+    printf(" BX Headers %10d %10d\n", num_correct_bxheaders, num_bad_bxheaders);
+    printf(" Idles      %10d %10d\n", num_correct_idles, num_bad_idles);
   }
 
   return 0;
