@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
       ilink++;
       link_header=i;
       if (verbosity>2) printf("%04d L%02d %08x  Link %d ID=0x%03x\n",i,0,data[i],ilink,data[i]>>16);
-    } else if (rel_link >= link_len[ilink]) {
+    } else if (ilink > 0 and ilink < links and rel_link >= link_len[ilink]) {
       word_type=wt_junk;
     } else if (rel_link==1) {
       word_type=wt_linkheader;
