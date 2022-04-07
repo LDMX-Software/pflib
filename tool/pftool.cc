@@ -334,10 +334,12 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    pft->hcal.softResetROC();
+    iroc=BaseMenu::readline_int("Which ROC to reset [-1 for all]: ",iroc);
+    pft->hcal.softResetROC(iroc);
   }
   if (cmd=="RESYNCLOAD") {
-    pft->hcal.resyncLoadROC();
+    iroc=BaseMenu::readline_int("Which ROC to reset [-1 for all]: ",iroc);
+    pft->hcal.resyncLoadROC(iroc);
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
