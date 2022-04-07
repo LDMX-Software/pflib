@@ -1,29 +1,30 @@
 #include "Menu.h"
 
-/**
- * Just print the command that is provided
- */
-static void print_cmd(const std::string& cmd, int* p) {
-  std::cout << " Ran command " << cmd << std::endl;
+namespace {
+
+void print_cmd(const std::string& cmd, int* p) {
+  std::cout << std::hex << p << std::endl;
+  std::cout << " Ran command " << cmd << " with " << *p << std::endl;
 }
 
-/**
- * Define the menu options
- */
-static void RunMenu(int* p) {
-  using Menu = Menu<int>;
-  Menu sb({
-      Menu::Line("THREE", "third command", &print_cmd),
-      Menu::Line("TWOTWO", "second two", &print_cmd),
-      Menu::Line("BACK", "go back")
-      });
-  Menu menu({
-      Menu::Line("ONE", "One command", &print_cmd),
-      Menu::Line("TWO", "Second command", &print_cmd),
-      Menu::Line("SB", "Submenu", &sb),
-      Menu::Line("EXIT", "Leave")
-      });
-  menu.steer(p);
+void increment(int* p) {
+  std::cout << std::hex << p << std::endl;
+  std::cout << " " << *p << " -> ";
+  (*p)++;
+  std::cout << *p << std::endl;
+}
+
+Menu<int> sb;
+
+auto s0 = sb.declare("THREE", "third command", &print_cmd);
+auto s1 = sb.declare("INC", "increment the target", &increment);
+auto s2 = sb.exit();
+
+auto v0 = Menu<int>::root().declare("INC", "increment the target", &increment);
+auto v1 = Menu<int>::root().declare("ONE", "one command", &print_cmd);
+auto v2 = Menu<int>::root().declare("SB", "submenu", &sb);
+auto v3 = Menu<int>::root().exit();
+
 }
 
 /**
@@ -40,7 +41,7 @@ static void RunMenu(int* p) {
 int main(int argc, char* argv[]) {
   try {
     int i = 3;
-    RunMenu(&i);
+    Menu<int>::root().steer(&i);
   } catch (std::exception& e) {
     fprintf(stderr, "Exception!  %s\n",e.what());
     return 1;

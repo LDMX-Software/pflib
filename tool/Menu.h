@@ -210,14 +210,13 @@ class Menu : public BaseMenu {
    public:
     /// define a menu line that uses a single target command
     Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(f) {}
+        : name_(n), desc_(d), sub_menu_(0), cmd_(f), mult_cmds_{0} {}
     /// define a menu line that uses a multiple command function
     Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_(0), 
-          cmd_([&](TargetType* p) { f(this->name_, p); }) {}
+        : name_(n), desc_(d), sub_menu_(0), mult_cmds_{f} {}
     /// define a menu line that enters a sub menu
     Line(const char* n, const char* d, Menu* m)
-        : name_(n), desc_(d), sub_menu_(m), cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -225,7 +224,7 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(0) {}
+        : name_(n), desc_(d), sub_menu_(0), cmd_(0), mult_cmds_{0} {}
     
     /**
      * Execute this line
@@ -244,9 +243,10 @@ class Menu : public BaseMenu {
       if (sub_menu_) {
         sub_menu_->steer(p);
         return true;
-      } else if (cmd_) {
+      } else if (cmd_ or mult_cmds_) {
         try {
-          cmd_(p);
+          if (cmd_) cmd_(p);
+          else mult_cmds_(name_,p);
 #ifndef PFLIB_TEST_MENU
         } catch(const pflib::Exception& e) {
           std::cerr << " pflib ERR [" << e.name()
@@ -265,7 +265,7 @@ class Menu : public BaseMenu {
      * Check if this line is an empty one
      */
     bool empty() const {
-      return sub_menu_ == 0 and cmd_ == 0;
+      return sub_menu_ == 0 and cmd_ == 0 and mult_cmds_ == 0;
     }
 
     /// name of this line to select it
@@ -281,9 +281,33 @@ class Menu : public BaseMenu {
     Menu* sub_menu_;
     /// function pointer to execute (if exists)
     SingleTargetCommand cmd_;
+    /// function handling multiple commands to execute (if exists)
+    MultipleTargetCommands mult_cmds_;
     /// is this a null line?
     bool is_null;
   };
+
+  uint64_t declare(const char* name, const char* desc, SingleTargetCommand ex) {
+    lines_.emplace_back(name,desc,ex);
+    return lines_.size();
+  }
+  uint64_t declare(const char* name, const char* desc, MultipleTargetCommands ex) {
+    lines_.emplace_back(name,desc,ex);
+    return lines_.size();
+  }
+  uint64_t declare(const char* name, const char* desc, Menu* ex) {
+    lines_.emplace_back(name,desc,ex);
+    return lines_.size();
+  }
+  uint64_t exit() {
+    lines_.emplace_back("EXIT","leave this menu");
+    return lines_.size();
+  }
+
+  static Menu& root() {
+    static Menu root;
+    return root;
+  }
 
   /**
    * The type of function used to "render" a menu
@@ -300,6 +324,9 @@ class Menu : public BaseMenu {
    */
   Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
       : lines_{lines}, render_func_{f} {}
+
+  Menu(RenderFuncType f = 0)
+      : render_func_{f} {}
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
