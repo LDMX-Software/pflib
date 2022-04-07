@@ -150,8 +150,8 @@ void RogueWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_
   veto_daq_busy=(reg&MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ)!=0;
   veto_l1_occ=(reg&MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC)!=0;
   reg=wb_read(TARGET_FC_BACKEND,REG_FC_OCCVETO);
-  l1_occ_busy=(reg>>SHIFT_FC_OCCBUSY)|MASK_FC_OCCBUSY;
-  l1_occ_ok=(reg>>SHIFT_FC_OCC_OK)|MASK_FC_OCC_OK;
+  l1_occ_busy=(reg>>SHIFT_FC_OCCBUSY)&MASK_FC_OCCBUSY;
+  l1_occ_ok=(reg>>SHIFT_FC_OCC_OK)&MASK_FC_OCC_OK;
 }
 void RogueWishboneInterface::fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) {
   uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_CONTROL);

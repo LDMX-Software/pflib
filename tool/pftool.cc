@@ -1452,6 +1452,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("RUN_CLEAR","Send a run clear", &fc ),
     pfMenu::Line("COUNTER_RESET","Reset counters", &fc ),
     pfMenu::Line("FC_RESET","Reset the fast control", &fc ),
+    pfMenu::Line("VETO_SETUP","Setup the L1 Vetos", &fc ),
     pfMenu::Line("MULTISAMPLE","Setup multisample readout", &fc ),
     pfMenu::Line("CALIB","Setup calibration pulse", &fc ),
     pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
