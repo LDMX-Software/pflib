@@ -78,6 +78,8 @@ static const int REG_FC_CONTROL                        = 0;
 static const int MASK_FC_CONTROL_ENABLE_EXT_SPILL      = 0x01;
 static const int MASK_FC_CONTROL_ENABLE_EXT_L1A        = 0x02;
 static const int MASK_FC_CONTROL_ENABLE_TIMER_L1A      = 0x04;
+static const int MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ  = 0x08;
+static const int MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC = 0x10;
 
 static const int REG_FC_SINGLES                        = 1;
 static const int MASK_FC_SINGLE_L1A                    = 0x01;
@@ -85,6 +87,7 @@ static const int MASK_FC_SINGLE_LINKRESET              = 0x02;
 static const int MASK_FC_SINGLE_BUFFERRESET            = 0x04;
 static const int MASK_FC_SINGLE_CALIBPULSE             = 0x08;
 static const int MASK_FC_CLEAR_FIFO                    = 0x10;
+static const int MASK_FC_ADVANCE_L1AFIFO               = 0x20;
 static const int MASK_FC_SINGLE_NEWSPILL               = 0x100;
 
 static const int REG_FC_SETUP                          = 2;
@@ -98,6 +101,12 @@ static const int SHIFT_FC_PERIODIC                     = 12;
 static const int MASK_FC_PERIODIC                      = 0xFFFFF;
 static const int SHIFT_FC_VETO                         = 0;
 static const int MASK_FC_VETO                          = 0xFFF;
+
+static const int REG_FC_OCCVETO                        = 4;
+static const int SHIFT_FC_OCCBUSY                      = 0;
+static const int MASK_FC_OCCBUSY                       = 0xFF;
+static const int SHIFT_FC_OCC_OK                       = 12;
+static const int MASK_FC_OCC_OK                        = 0xFF;
 
 static const int REG_FC_STATUS_HEADER_SPILL            = 0x44;
 static const int REG_FC_STATUS_EVENT_COUNT             = 0x45;
@@ -118,6 +127,9 @@ void RogueWishboneInterface::fc_clear_run() {
 void RogueWishboneInterface::fc_calibpulse() {
   wb_write(TARGET_FC_BACKEND,REG_FC_SINGLES,MASK_FC_SINGLE_CALIBPULSE);
 }
+void RogueWishboneInterface::fc_advance_l1_fifo() {
+  wb_write(TARGET_FC_BACKEND,REG_FC_SINGLES,MASK_FC_ADVANCE_L1AFIFO);
+}
 void RogueWishboneInterface::fc_setup_calib(int pulse_len, int l1a_offset) {
   uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_SETUP);
   // remove old values
@@ -133,16 +145,38 @@ void RogueWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset)
   pulse_len=(reg>>SHIFT_FC_SETUP_CALIB_PULSELEN)&MASK_FC_SETUP_CALIB_PULSELEN;
   l1a_offset=(reg>>SHIFT_FC_SETUP_CALIB_L1AOFFSET)&MASK_FC_SETUP_CALIB_L1AOFFSET;
 }
-void RogueWishboneInterface::fc_read_counters(int& spill_count, int& header_occ, int& event_count, int& vetoed) {
+void RogueWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l1_occ, int& l1_occ_busy, int& l1_occ_ok) {
+  uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_CONTROL);
+  veto_daq_busy=(reg&MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ)!=0;
+  veto_l1_occ=(reg&MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC)!=0;
+  reg=wb_read(TARGET_FC_BACKEND,REG_FC_OCCVETO);
+  l1_occ_busy=(reg>>SHIFT_FC_OCCBUSY)|MASK_FC_OCCBUSY;
+  l1_occ_ok=(reg>>SHIFT_FC_OCC_OK)|MASK_FC_OCC_OK;
+}
+void RogueWishboneInterface::fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) {
+  uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_CONTROL);
+  reg|=(MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ|MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC);
+  if (!veto_daq_busy) reg^=MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ;
+  if (!veto_l1_occ) reg^=MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC;
+  wb_write(TARGET_FC_BACKEND,REG_FC_CONTROL,reg);
+  reg=((l1_occ_busy&MASK_FC_OCCBUSY)<<SHIFT_FC_OCCBUSY)|((l1_occ_ok&MASK_FC_OCC_OK)<<SHIFT_FC_OCC_OK);
+  wb_write(TARGET_FC_BACKEND,REG_FC_OCCVETO,reg);
+}
+
+
+void RogueWishboneInterface::fc_read_counters(int& spill_count, int& header_occ, int& header_occ_max, int& event_count, int& vetoed) {
   uint32_t reg=wb_read(TARGET_FC_BACKEND,REG_FC_STATUS_HEADER_SPILL);
   static const int OCC_SHIFT = 0;
   static const int OCC_MASK = 0xFF;
+  static const int OCC_MAX_SHIFT = 8;
+  static const int OCC_MAX_MASK = 0xFF;
   static const int SPILL_SHIFT = 16;
   static const int SPILL_MASK = 0xFFF;
   static const int VETO_SHIFT = 0;
   static const int VETO_MASK = 0xFFF;
   spill_count=(reg>>SPILL_SHIFT)&SPILL_MASK;
   header_occ=(reg>>OCC_SHIFT)&OCC_MASK;
+  header_occ_max=(reg>>OCC_MAX_SHIFT)&OCC_MAX_MASK;
   event_count=wb_read(TARGET_FC_BACKEND,REG_FC_STATUS_EVENT_COUNT);
   vetoed=(wb_read(TARGET_FC_BACKEND,REG_FC_STATUS_VETOED)>>VETO_SHIFT)&VETO_MASK;
 }
@@ -249,6 +283,13 @@ void RogueWishboneInterface::daq_dma_setup(uint8_t fpga_id, uint8_t samples_per_
   ctl|=(fpga_id<<SHIFT_FPGA_ID)&MASK_FPGA_ID;
   ctl|=(samples_per_event<<SHIFT_SAMPLES_PER_EVENT)&MASK_SAMPLES_PER_EVENT;
   wb_write(TARGET_DAQ_BACKEND,REG_DAQ_SETUP,ctl);
+  // also, need to adjust the busy levels for the fast control
+  bool veto_daq_busy, veto_l1_occ;
+  int level_busy, level_ok;
+  fc_veto_setup_read(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
+  level_busy=64/samples_per_event-1;
+  level_ok=32/samples_per_event-1;
+  fc_veto_setup(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
 }
 void RogueWishboneInterface::daq_get_dma_setup(uint8_t& fpga_id, uint8_t& samples_per_event, bool& enabled) {
   uint32_t ctl=wb_read(TARGET_DAQ_BACKEND,REG_DAQ_SETUP);
