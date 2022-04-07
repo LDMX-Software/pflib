@@ -334,10 +334,12 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    pft->hcal.softResetROC();
+    int whichroc=BaseMenu::readline_int("Which ROC?",-1);
+    pft->hcal.softResetROC(whichroc);
   }
   if (cmd=="RESYNCLOAD") {
-    pft->hcal.resyncLoadROC();
+    int whichroc=BaseMenu::readline_int("Which ROC?",-1);
+    pft->hcal.resyncLoadROC(whichroc);
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
@@ -1356,7 +1358,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   pfMenu menu_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &roc),
-     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs to help maintain link stability", &roc),
+     pfMenu::Line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", &roc),
      pfMenu::Line("IROC","Change the active ROC number", &roc ),
      pfMenu::Line("CHAN","Dump link status", &roc ),
      pfMenu::Line("PAGE","Dump a page", &roc ),
