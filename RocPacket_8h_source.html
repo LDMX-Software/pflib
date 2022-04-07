@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.3.0-1-g055d136</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.3.0-2-gfe39f59</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -107,29 +107,35 @@ $(document).ready(function(){initNavTree('RocPacket_8h_source.html',''); initRes
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordtype">int</span> wadd()<span class="keyword"> const </span>{ <span class="keywordflow">if</span> (length_&lt;3) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[2]&gt;&gt;3)&amp;0xFF;}</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordtype">bool</span> has_chan(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> offset_to_chan(ichan)&gt;=0; }</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordtype">int</span> length()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> length_; }</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keywordtype">int</span> get_tot(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[offset]&gt;&gt;20)&amp;0xFFF;} </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keywordtype">bool</span> good_bxheader()<span class="keyword"> const </span>{ <span class="keywordflow">if</span> (length_&lt;3) <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="keywordflow">return</span> (data_[2]&amp;0xff000000)==0xaa000000; }</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordtype">int</span> get_toa(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[offset]&gt;&gt;10)&amp;0x3FF;} </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordtype">int</span> get_adc(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> data_[offset]&amp;0x3FF;} </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordtype">bool</span> good_idle()<span class="keyword"> const </span>{ <span class="keywordflow">if</span> (length_&lt;42) <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="keywordflow">return</span> data_[41]==0xaccccccc; }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordtype">bool</span> has_chan(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> offset_to_chan(ichan)&gt;=0; }</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordtype">void</span> dump() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordtype">int</span> offset_to_chan(<span class="keywordtype">int</span> ichan) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keyword">const</span> uint32_t* data_;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="keywordtype">int</span> length_;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordtype">int</span> get_tot(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[offset]&gt;&gt;20)&amp;0xFFF;} </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordtype">int</span> get_toa(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[offset]&gt;&gt;10)&amp;0x3FF;} </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordtype">int</span> get_adc(<span class="keywordtype">int</span> ichan)<span class="keyword"> const </span>{ <span class="keywordtype">int</span> offset = offset_to_chan(ichan); <span class="keywordflow">if</span> (offset == -1) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> data_[offset]&amp;0x3FF;} </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="keywordtype">void</span> dump() <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>};</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>}</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif</span><span class="comment">// pflib_decoding_RocPacket_h</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordtype">int</span> offset_to_chan(<span class="keywordtype">int</span> ichan) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keyword">const</span> uint32_t* data_;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordtype">int</span> length_;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>};</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#endif</span><span class="comment">// pflib_decoding_RocPacket_h</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  </div>
 <div class="ttc" id="aclasspflib_1_1decoding_1_1RocPacket_html"><div class="ttname"><a href="classpflib_1_1decoding_1_1RocPacket.html">pflib::decoding::RocPacket</a></div><div class="ttdef"><b>Definition:</b> RocPacket.h:12</div></div>
 <div class="ttc" id="anamespacepflib_html"><div class="ttname"><a href="namespacepflib.html">pflib</a></div><div class="ttdoc">Polarfire Interaction Library.</div><div class="ttdef"><b>Definition:</b> Backend.h:8</div></div>
 </div><!-- fragment --></div><!-- contents -->
