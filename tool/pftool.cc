@@ -227,6 +227,7 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
  * ## Commands
  * - RELINK : pflib::PolarfireTarget::elink_relink
  * - SPY : pflib::Elinks::spy
+ * - HEADER_CHECK : do a pedestal run and count good/bad headers in it
  * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
  * - BIGSPY : PolarfireTarget::elinksBigSpy
  * - DELAY : pflib::Elinks::setDelay
@@ -239,7 +240,7 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
  */
 static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::Elinks& elinks=pft->hcal.elinks();
-  static int ilink=0;
+  static int ilink=0,nevents{100};
   static int min_delay{0}, max_delay{128};
   if (cmd=="RELINK"){
     ilink=BaseMenu::readline_int("Which elink? (-1 for all) ",ilink);
@@ -252,6 +253,56 @@ static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
     std::vector<uint8_t> spy=elinks.spy(ilink);
     for (size_t i=0; i<spy.size(); i++)
       printf("%02d %05x\n",int(i),spy[i]);
+  }
+  if (cmd=="HEADER_CHECK") {
+    nevents=BaseMenu::readline_int("Num events? ",nevents);
+
+    int nsamples=1;
+    {
+      bool multi;
+      int nextra;
+      pft->hcal.fc().getMultisampleSetup(multi,nextra);
+      if (multi) nsamples=nextra+1;
+    }
+  
+    pft->prepareNewRun();
+  
+    int n_good_bxheaders[8] = {0,0,0,0,0,0,0,0};
+    int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
+    int n_good_idles[8] = {0,0,0,0,0,0,0,0};
+    int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
+    for (int ievt{0}; ievt < nevents; ievt++) {
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event_raw = pft->daqReadEvent();
+      pflib::decoding::SuperPacket event{&(event_raw[0]), event_raw.size()};
+      for (int s{0}; s < nsamples; s++) {
+        for (int l{0}; l < 8; l++) {
+          auto packet = event.sample(s).roc(l);
+          if (packet.length() > 2) {
+            if (event.sample(s).roc(l).good_bxheader()) n_good_bxheaders[l]++;
+            else n_bad_bxheaders[l]++;
+            if (event.sample(s).roc(l).good_idle()) n_good_idles[l]++;
+            else n_bad_idles[l]++;
+          }
+        }
+      }
+    }
+
+    printf("     %26s | %26s\n","BX Headers","Idles");
+    printf("Link %10s %10s %4s | %10s %10s %4s\n","Good","Bad","B/T","Good","Bad","B/T");
+    for (int ilink{0}; ilink < 8; ilink++) {
+      float bg_bxheaders = 0.;
+      if (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]>0) 
+        bg_bxheaders = float(n_bad_bxheaders[ilink])/
+          (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]);
+      float bg_idles = 0.;
+      if (n_good_idles[ilink]+n_bad_idles[ilink]>0) 
+        bg_idles = float(n_bad_idles[ilink])/
+          (n_good_idles[ilink]+n_bad_idles[ilink]);
+      printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", ilink, 
+          n_good_bxheaders[ilink], n_bad_bxheaders[ilink], bg_bxheaders,
+          n_good_idles[ilink], n_bad_idles[ilink], bg_idles);
+    }
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
@@ -334,12 +385,12 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    int whichroc=BaseMenu::readline_int("Which ROC?",-1);
-    pft->hcal.softResetROC(whichroc);
+    iroc=BaseMenu::readline_int("Which ROC to reset [-1 for all]: ",iroc);
+    pft->hcal.softResetROC(iroc);
   }
   if (cmd=="RESYNCLOAD") {
-    int whichroc=BaseMenu::readline_int("Which ROC?",-1);
-    pft->hcal.resyncLoadROC(whichroc);
+    iroc=BaseMenu::readline_int("Which ROC to reset [-1 for all]: ",iroc);
+    pft->hcal.resyncLoadROC(iroc);
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
@@ -1348,6 +1399,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),    
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
+    pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),
     pfMenu::Line("SCAN", "Scan on an elink",  &elinks ),
     pfMenu::Line("DELAY", "Set the delay on an elink", &elinks),
