@@ -100,7 +100,10 @@ if (Rogue_FOUND)
   # the libraries parameter includes the PUBLIC keyword annoyingly
   list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
   # define source files this submodule uses
-  add_library(rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
+  add_library(rogue SHARED 
+    src/pflib/rogue/RogueWishboneInterface.cxx
+    src/pflib/rogue/DMAReadoutReceiver.cxx
+    )
   # attach rogue as a dependency
   target_link_libraries(rogue PUBLIC pflib ${ROGUE_LIBRARIES})
   target_include_directories(rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
