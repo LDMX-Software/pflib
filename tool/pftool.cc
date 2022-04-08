@@ -754,6 +754,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       }
       
       std::vector<uint32_t> event = pft->daqReadEvent();
+      pft->backend->fc_advance_l1_fifo();
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
     }
   };
@@ -1091,6 +1092,8 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
           pft->backend->fc_calibpulse();
           std::vector<uint32_t> event = pft->daqReadEvent();
+          pft->backend->fc_advance_l1_fifo();
+
 
           // here we decode the event and store the relevant information only...
           pflib::decoding::SuperPacket data(&(event[0]),event.size());
