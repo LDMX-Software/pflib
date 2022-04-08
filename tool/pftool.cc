@@ -274,7 +274,7 @@ static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
     for (int ievt{0}; ievt < nevents; ievt++) {
       pft->backend->fc_sendL1A();
       std::vector<uint32_t> event_raw = pft->daqReadEvent();
-      pflib::decoding::SuperPacket event{&(event_raw[0]), event_raw.size()};
+      pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
       for (int s{0}; s < nsamples; s++) {
         for (int l{0}; l < 8; l++) {
           auto packet = event.sample(s).roc(l);
@@ -513,6 +513,15 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->backend->fc_bufferclear();
     printf("Sent BUFFER CLEAR\n");
   }
+  if (cmd=="VETO_SETUP") {
+    bool veto_daq_busy, veto_l1_occ;
+    int level_busy, level_ok;
+    pft->backend->fc_veto_setup_read(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
+    veto_daq_busy=BaseMenu::readline_bool("Veto L1A on DAQ busy? ",veto_daq_busy);
+    veto_l1_occ=BaseMenu::readline_bool("Veto L1A on L1 occupancy? ",veto_l1_occ);    
+    pft->backend->fc_veto_setup(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
+    if (veto_l1_occ) printf("\n  Occupancy Veto Thresholds -- OK->BUSY at %d, BUSY->OK at %d\n",level_busy,level_ok);
+  }
   if (cmd=="COUNTER_RESET") {
     pft->hcal.fc().resetCounters();
     do_status=true;
@@ -578,9 +587,9 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
     for (int i=0; i<8; i++) 
       printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i).c_str()); 
-    int spill_count, header_occ, event_count,vetoed_counter;
-    pft->backend->fc_read_counters(spill_count, header_occ, event_count, vetoed_counter);
-    printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",spill_count,event_count,header_occ,vetoed_counter);
+    int spill_count, header_occ, header_occ_max, event_count,vetoed_counter;
+    pft->backend->fc_read_counters(spill_count, header_occ, header_occ_max, event_count, vetoed_counter);
+    printf(" Spills: %d  Events: %d  Header occupancy: %d (max %d)  Vetoed L1A: %d\n",spill_count,event_count,header_occ,header_occ_max,vetoed_counter);
   }
   if (cmd=="ENABLES") {
     bool ext_l1a, ext_spill, timer_l1a;
@@ -745,6 +754,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
       }
       
       std::vector<uint32_t> event = pft->daqReadEvent();
+      pft->backend->fc_advance_l1_fifo();
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
     }
   };
@@ -834,8 +844,8 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     while (ievent<event_target) {
 
       if (dma_enabled) {
-        int spill,occ,vetoed;
-        pft->backend->fc_read_counters(spill,occ,ievent,vetoed);
+        int spill,occ,occ_max,vetoed;
+        pft->backend->fc_read_counters(spill,occ,occ_max,ievent,vetoed);
         if (ievent>wasievent) {
           printf("...Now read %d events\n",ievent);
           wasievent=ievent;
@@ -854,6 +864,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
           std::vector<uint32_t> event = pft->daqReadEvent();
           fwrite(&(event[0]),sizeof(uint32_t),event.size(),f);
         }
+        pft->backend->fc_advance_l1_fifo();
         
         ievent++;
       }
@@ -1081,6 +1092,8 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
           pft->backend->fc_calibpulse();
           std::vector<uint32_t> event = pft->daqReadEvent();
+          pft->backend->fc_advance_l1_fifo();
+
 
           // here we decode the event and store the relevant information only...
           pflib::decoding::SuperPacket data(&(event[0]),event.size());
@@ -1442,6 +1455,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("RUN_CLEAR","Send a run clear", &fc ),
     pfMenu::Line("COUNTER_RESET","Reset counters", &fc ),
     pfMenu::Line("FC_RESET","Reset the fast control", &fc ),
+    pfMenu::Line("VETO_SETUP","Setup the L1 Vetos", &fc ),
     pfMenu::Line("MULTISAMPLE","Setup multisample readout", &fc ),
     pfMenu::Line("CALIB","Setup calibration pulse", &fc ),
     pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
@@ -1503,8 +1517,6 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-
-
   
   pfMenu menu_utop({ 
     pfMenu::Line("STATUS","Status summary", &status),

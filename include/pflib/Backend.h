@@ -37,12 +37,21 @@ public:
   virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset) = 0;
 
   /** read counters from the FC side */
-  virtual void fc_read_counters(int&  spill_count, int& header_occ, int& event_count, int& vetoed_counter) { }
+  virtual void fc_read_counters(int&  spill_count, int& header_occ, int& header_occ_max, int& event_count, int& vetoed_counter) { }
 
+  /** advance the FC fifo */
+  virtual void fc_advance_l1_fifo() { }
+  
   /** check the enables for various trigger/spill sources */
   virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a) { }
   /** set the enables for various trigger/spill sources */
   virtual void fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a) { }
+
+  /** check the setup for various busy/veto */
+  virtual void fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l1_occ, int& l1_occ_busy, int& l1_occ_ok) { }
+  /** set the enables for various trigger/spill sources */
+  virtual void fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) { }
+
   /** get the period in us for the timer trigger */
   virtual int fc_timer_setup_read() { return -1; }
   /** set the period in us for the timer trigger */
