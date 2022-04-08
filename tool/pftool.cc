@@ -1423,7 +1423,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   pfMenu menu_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &roc),
-     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs to help maintain link stability", &roc),
+     pfMenu::Line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", &roc),
      pfMenu::Line("IROC","Change the active ROC number", &roc ),
      pfMenu::Line("CHAN","Dump link status", &roc ),
      pfMenu::Line("PAGE","Dump a page", &roc ),
