@@ -22,3 +22,8 @@ target_link_libraries(polarfire_wb_server PUBLIC pthread ${ROGUE_LIBRARIES})
 add_executable(dma-read src/DMAReader.cxx src/dma_read.cpp)
 target_include_directories(dma-read PRIVATE ${ROGUE_INCLUDE_DIRS})
 target_link_libraries(dma-read PUBLIC pthread ${ROGUE_LIBRARIES})
+
+install(TARGETS polarfire_wb_server dma-read DESTINATION sbin)
+
+#TODO could have the service files configured to align with install path?
+install(FILES ldmx-polarfire.service ldmx-dma-read.service DESTINATION /usr/lib/systemd/system)

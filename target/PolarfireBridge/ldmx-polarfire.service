@@ -1,0 +1,8 @@
+[Unit]
+Description=ldmx-polarfire
+
+[Service]
+ExecStart=/usr/local/sbin/polarfire_wb_server -A 0xA0144000 -D -F
+
+[Install]
+WantedBy=multi-user.target
