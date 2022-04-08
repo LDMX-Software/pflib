@@ -1,5 +1,17 @@
 var NAVTREEINDEX4 =
 {
+"cpp/string/wide/wcstoul.html":[9,0,1,511],
+"cpp/string/wide/wcstoul.html":[9,0,1,512],
+"cpp/string/wide/wcsxfrm.html":[9,0,1,514],
+"cpp/string/wide/wctrans.html":[9,0,1,517],
+"cpp/string/wide/wctype.html":[9,0,1,518],
+"cpp/string/wide/wmemchr.html":[9,0,1,519],
+"cpp/string/wide/wmemcmp.html":[9,0,1,520],
+"cpp/string/wide/wmemcpy.html":[9,0,1,521],
+"cpp/string/wide/wmemmove.html":[9,0,1,522],
+"cpp/string/wide/wmemset.html":[9,0,1,523],
+"cpp/thread/async.html":[9,0,1,22],
+"cpp/thread/call_once.html":[9,0,1,65],
 "cpp/thread/future/future_category.html":[9,0,1,159],
 "cpp/thread/get_id.html":[9,0,1,3,0],
 "cpp/thread/lock.html":[9,0,1,240],
@@ -237,17 +249,5 @@ var NAVTREEINDEX4 =
 "structpflib_1_1PolarfireTarget.html#a65c2bffd5abed086a4689193990b0f64":[9,0,0,16,26],
 "structpflib_1_1PolarfireTarget.html#a65c2bffd5abed086a4689193990b0f64":[10,0,0,16,26],
 "structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2":[9,0,0,16,10],
-"structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2":[10,0,0,16,10],
-"structpflib_1_1PolarfireTarget.html#a74c9f5aa5933c0f239ae270093779259":[10,0,0,16,19],
-"structpflib_1_1PolarfireTarget.html#a74c9f5aa5933c0f239ae270093779259":[9,0,0,16,19],
-"structpflib_1_1PolarfireTarget.html#a7f3b249d98354b0e02c1e67fe3a10831":[9,0,0,16,3],
-"structpflib_1_1PolarfireTarget.html#a7f3b249d98354b0e02c1e67fe3a10831":[10,0,0,16,3],
-"structpflib_1_1PolarfireTarget.html#a8938d3a18fbe9c6fb54e59acfb8c1ce1":[10,0,0,16,27],
-"structpflib_1_1PolarfireTarget.html#a8938d3a18fbe9c6fb54e59acfb8c1ce1":[9,0,0,16,27],
-"structpflib_1_1PolarfireTarget.html#a8bcfca3df51d44cc14b2891a4cf13471":[9,0,0,16,9],
-"structpflib_1_1PolarfireTarget.html#a8bcfca3df51d44cc14b2891a4cf13471":[10,0,0,16,9],
-"structpflib_1_1PolarfireTarget.html#a93c240165ee643881c97ea5a8ea0712f":[10,0,0,16,12],
-"structpflib_1_1PolarfireTarget.html#a93c240165ee643881c97ea5a8ea0712f":[9,0,0,16,12],
-"structpflib_1_1PolarfireTarget.html#a9409b97ec1521248fa6cbeaaf499a925":[10,0,0,16,7],
-"structpflib_1_1PolarfireTarget.html#a9409b97ec1521248fa6cbeaaf499a925":[9,0,0,16,7]
+"structpflib_1_1PolarfireTarget.html#a6dd0a281ef5ec7121f1ab1d13cbbdfa2":[10,0,0,16,10]
 };

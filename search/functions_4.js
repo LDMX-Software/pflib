@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['daq_0',['DAQ',['../classpflib_1_1DAQ.html#a36ced748517545fb866e20e3d48d601f',1,'pflib::DAQ']]],
-  ['daq_1',['daq',['../pftool_8cc.html#a6cbfaa3284fc099418e6a7cd8da14f4d',1,'daq():&#160;pftool.cc'],['../classpflib_1_1Hcal.html#abfcb2e17b02f3d6a03cd95436ecba121',1,'pflib::Hcal::daq()']]],
+  ['daq_0',['daq',['../classpflib_1_1Hcal.html#abfcb2e17b02f3d6a03cd95436ecba121',1,'pflib::Hcal::daq()'],['../pftool_8cc.html#a6cbfaa3284fc099418e6a7cd8da14f4d',1,'daq():&#160;pftool.cc']]],
+  ['daq_1',['DAQ',['../classpflib_1_1DAQ.html#a36ced748517545fb866e20e3d48d601f',1,'pflib::DAQ']]],
   ['daq_5fadvance_5fptr_2',['daq_advance_ptr',['../classpflib_1_1uhal_1_1uhalWishboneInterface.html#a39e5aceababcdea7e1c49d26a6102e55',1,'pflib::uhal::uhalWishboneInterface::daq_advance_ptr()'],['../classpflib_1_1rogue_1_1RogueWishboneInterface.html#a05ee09a07285b6a2c163b05ee3bff151',1,'pflib::rogue::RogueWishboneInterface::daq_advance_ptr()'],['../classpflib_1_1Backend.html#a465eb037e5e923bcc5b3768ab3941a45',1,'pflib::Backend::daq_advance_ptr()']]],
   ['daq_5fdebug_3',['daq_debug',['../pftool_8cc.html#a78d37ff3c95bad9aec67eeb32cc89895',1,'pftool.cc']]],
   ['daq_5fdma_5fenable_4',['daq_dma_enable',['../classpflib_1_1rogue_1_1RogueWishboneInterface.html#ac85c778b969c8b091fd191bd1ec93ac1',1,'pflib::rogue::RogueWishboneInterface']]],

@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.3.1-3-ge45df0d</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.3.1-8-gcf15cf3</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -125,15 +125,24 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a3485ccf910a69fbe3a797e7f19d4f7d2">fc_get_setup_calib</a> (int &amp;pulse_len, int &amp;l1a_offset)=0</td></tr>
 <tr class="memdesc:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">calib pulse setup  <a href="classpflib_1_1Backend.html#a3485ccf910a69fbe3a797e7f19d4f7d2">More...</a><br /></td></tr>
 <tr class="separator:a3485ccf910a69fbe3a797e7f19d4f7d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4d5d514ae41f300916c28588a5469620"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a4d5d514ae41f300916c28588a5469620">fc_read_counters</a> (int &amp;spill_count, int &amp;header_occ, int &amp;event_count, int &amp;vetoed_counter)</td></tr>
-<tr class="memdesc:a4d5d514ae41f300916c28588a5469620"><td class="mdescLeft">&#160;</td><td class="mdescRight">read counters from the FC side  <a href="classpflib_1_1Backend.html#a4d5d514ae41f300916c28588a5469620">More...</a><br /></td></tr>
-<tr class="separator:a4d5d514ae41f300916c28588a5469620"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbfe9b6f649210d9dd9cc32f7059e59d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#adbfe9b6f649210d9dd9cc32f7059e59d">fc_read_counters</a> (int &amp;spill_count, int &amp;header_occ, int &amp;header_occ_max, int &amp;event_count, int &amp;vetoed_counter)</td></tr>
+<tr class="memdesc:adbfe9b6f649210d9dd9cc32f7059e59d"><td class="mdescLeft">&#160;</td><td class="mdescRight">read counters from the FC side  <a href="classpflib_1_1Backend.html#adbfe9b6f649210d9dd9cc32f7059e59d">More...</a><br /></td></tr>
+<tr class="separator:adbfe9b6f649210d9dd9cc32f7059e59d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ef1111a9fb435c46fcda71ff8514cc5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a7ef1111a9fb435c46fcda71ff8514cc5">fc_advance_l1_fifo</a> ()</td></tr>
+<tr class="memdesc:a7ef1111a9fb435c46fcda71ff8514cc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">advance the FC fifo  <a href="classpflib_1_1Backend.html#a7ef1111a9fb435c46fcda71ff8514cc5">More...</a><br /></td></tr>
+<tr class="separator:a7ef1111a9fb435c46fcda71ff8514cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2192c290f8624622532e1f31e0b4a9f6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a2192c290f8624622532e1f31e0b4a9f6">fc_enables_read</a> (bool &amp;ext_l1a, bool &amp;ext_spill, bool &amp;timer_l1a)</td></tr>
 <tr class="memdesc:a2192c290f8624622532e1f31e0b4a9f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">check the enables for various trigger/spill sources  <a href="classpflib_1_1Backend.html#a2192c290f8624622532e1f31e0b4a9f6">More...</a><br /></td></tr>
 <tr class="separator:a2192c290f8624622532e1f31e0b4a9f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a871e6d6582830489256d1b6be14f817a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a871e6d6582830489256d1b6be14f817a">fc_enables</a> (bool ext_l1a, bool ext_spill, bool timer_l1a)</td></tr>
 <tr class="memdesc:a871e6d6582830489256d1b6be14f817a"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the enables for various trigger/spill sources  <a href="classpflib_1_1Backend.html#a871e6d6582830489256d1b6be14f817a">More...</a><br /></td></tr>
 <tr class="separator:a871e6d6582830489256d1b6be14f817a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98c31ba875f75e4e2807acfcd9a83b59"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a98c31ba875f75e4e2807acfcd9a83b59">fc_veto_setup_read</a> (bool &amp;veto_daq_busy, bool &amp;veto_l1_occ, int &amp;l1_occ_busy, int &amp;l1_occ_ok)</td></tr>
+<tr class="memdesc:a98c31ba875f75e4e2807acfcd9a83b59"><td class="mdescLeft">&#160;</td><td class="mdescRight">check the setup for various busy/veto  <a href="classpflib_1_1Backend.html#a98c31ba875f75e4e2807acfcd9a83b59">More...</a><br /></td></tr>
+<tr class="separator:a98c31ba875f75e4e2807acfcd9a83b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a259a74eb8100544c2313f9650ba1d819"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a259a74eb8100544c2313f9650ba1d819">fc_veto_setup</a> (bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok)</td></tr>
+<tr class="memdesc:a259a74eb8100544c2313f9650ba1d819"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the enables for various trigger/spill sources  <a href="classpflib_1_1Backend.html#a259a74eb8100544c2313f9650ba1d819">More...</a><br /></td></tr>
+<tr class="separator:a259a74eb8100544c2313f9650ba1d819"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49584d6f2e5e8e5265c559ded554a763"><td class="memItemLeft" align="right" valign="top">virtual int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1Backend.html#a49584d6f2e5e8e5265c559ded554a763">fc_timer_setup_read</a> ()</td></tr>
 <tr class="memdesc:a49584d6f2e5e8e5265c559ded554a763"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the period in us for the timer trigger  <a href="classpflib_1_1Backend.html#a49584d6f2e5e8e5265c559ded554a763">More...</a><br /></td></tr>
 <tr class="separator:a49584d6f2e5e8e5265c559ded554a763"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -354,6 +363,35 @@ Public Member Functions</h2></td></tr>
 <p>readout the daq status into the passed variables </p>
 
 <p>Implemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aacc5df41cf76b03439e4af74666d11a9">pflib::rogue::RogueWishboneInterface</a>, and <a class="el" href="classpflib_1_1uhal_1_1uhalWishboneInterface.html#a82aefd160879866b95ed2b00b2214ce9">pflib::uhal::uhalWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="a7ef1111a9fb435c46fcda71ff8514cc5" name="a7ef1111a9fb435c46fcda71ff8514cc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ef1111a9fb435c46fcda71ff8514cc5">&#9670;&nbsp;</a></span>fc_advance_l1_fifo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::fc_advance_l1_fifo </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>advance the FC fifo </p>
+
+<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aac6c50c9f6ae99ff92b58d1b7ff8175b">pflib::rogue::RogueWishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -605,8 +643,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4d5d514ae41f300916c28588a5469620" name="a4d5d514ae41f300916c28588a5469620"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4d5d514ae41f300916c28588a5469620">&#9670;&nbsp;</a></span>fc_read_counters()</h2>
+<a id="adbfe9b6f649210d9dd9cc32f7059e59d" name="adbfe9b6f649210d9dd9cc32f7059e59d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbfe9b6f649210d9dd9cc32f7059e59d">&#9670;&nbsp;</a></span>fc_read_counters()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -625,6 +663,12 @@ Public Member Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">int &amp;&#160;</td>
           <td class="paramname"><em>header_occ</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>header_occ_max</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -653,7 +697,7 @@ Public Member Functions</h2></td></tr>
 
 <p>read counters from the FC side </p>
 
-<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ae68f24ecb01e70e6d04f09649f62a576">pflib::rogue::RogueWishboneInterface</a>.</p>
+<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#ace93740af6f207aabf74f27ab6d2240c">pflib::rogue::RogueWishboneInterface</a>.</p>
 
 </div>
 </div>
@@ -782,6 +826,110 @@ Public Member Functions</h2></td></tr>
 <p>get the period in us for the timer trigger </p>
 
 <p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aec0ca9e81c372c62544b71c3dee5e8c0">pflib::rogue::RogueWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="a259a74eb8100544c2313f9650ba1d819" name="a259a74eb8100544c2313f9650ba1d819"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a259a74eb8100544c2313f9650ba1d819">&#9670;&nbsp;</a></span>fc_veto_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::fc_veto_setup </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>veto_daq_busy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>veto_l1_occ</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l1_occ_busy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l1_occ_ok</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>set the enables for various trigger/spill sources </p>
+
+<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#aee59480035be67c4d07f8bfcb84e030d">pflib::rogue::RogueWishboneInterface</a>.</p>
+
+</div>
+</div>
+<a id="a98c31ba875f75e4e2807acfcd9a83b59" name="a98c31ba875f75e4e2807acfcd9a83b59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98c31ba875f75e4e2807acfcd9a83b59">&#9670;&nbsp;</a></span>fc_veto_setup_read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void pflib::Backend::fc_veto_setup_read </td>
+          <td>(</td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>veto_daq_busy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>veto_l1_occ</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>l1_occ_busy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>l1_occ_ok</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>check the setup for various busy/veto </p>
+
+<p>Reimplemented in <a class="el" href="classpflib_1_1rogue_1_1RogueWishboneInterface.html#af31e34ab3fa88c7ae169d74314c415e6">pflib::rogue::RogueWishboneInterface</a>.</p>
 
 </div>
 </div>
