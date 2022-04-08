@@ -1,0 +1,8 @@
+[Unit]
+Description=ldmx-dma-read
+
+[Service]
+ExecStart=/usr/local/sbin/dma-read
+
+[Install]
+WantedBy=multi-user.target

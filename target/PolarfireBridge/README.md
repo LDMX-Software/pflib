@@ -10,7 +10,13 @@ cd pflib/target/PolarfireBridge
 cmake -B build -S .
 cd build
 make
-./polarfire_wb_server -A <baseaddress> -D -F &
-./dma-read &
+make install
+systemctl enable --now ldmx-polarfire
+systemctl enable --now ldmx-dma-read
 ```
-With the firmware Jeremy has been developing, `<baseaddress>` is `0xA0144000`.
+
+## Development
+Developing software on the DPM is somewhat tricky, one possible solution (if you are booting the DPM via NFS) 
+is to hardlink this directory to some place on the DPM (e.g. a home directory) so that your developments are
+propagated and tracked by git. Compiling will still need to be done on the DPM, but then editing can be done
+on a more powerful remote machine.

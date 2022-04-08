@@ -80,6 +80,8 @@ void DMAReader::watch() {
         std::memcpy(frame->begin().ptr(), rx_data_, ret);
         // SEND IT
         this->sendFrame(frame);
+        // pause to prevent copying of frame
+        usleep(500);
       }
     }
   }
