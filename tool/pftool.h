@@ -1,7 +1,7 @@
 #ifndef PFTOOL_H
 #define PFTOOL_H
 
-
+#include "pftool_i2c.h"
 #include "pftool_tasks.h"
 #include "pftool_roc.h"
 #include "pftool_daq.h"
