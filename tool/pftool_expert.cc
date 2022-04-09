@@ -1,4 +1,4 @@
-#include "pftool_i2c.h"
+#include "pftool_expert.h"
 
 void i2c( const std::string& cmd, PolarfireTarget* pft )
 {
@@ -59,5 +59,41 @@ void i2c( const std::string& cmd, PolarfireTarget* pft )
       wdata.push_back(uint8_t(id));
     }
     i2c.general_write_read(i2caddr,wdata);
+  }
+}
+
+void wb( const std::string& cmd, PolarfireTarget* pft )
+{
+  static uint32_t target=0;
+  static uint32_t addr=0;
+  if (cmd=="RESET") {
+    pft->wb->wb_reset();
+  }
+  if (cmd=="WRITE") {
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Address",addr);
+    uint32_t val=BaseMenu::readline_int("Value",0);
+    pft->wb->wb_write(target,addr,val);
+  }
+  if (cmd=="READ") {
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Address",addr);
+    uint32_t val=pft->wb->wb_read(target,addr);
+    printf(" Read: 0x%08x\n",val);
+  }
+  if (cmd=="BLOCKREAD") {
+    target=BaseMenu::readline_int("Target",target);
+    addr=BaseMenu::readline_int("Starting address",addr);
+    int len=BaseMenu::readline_int("Number of words",8);
+    for (int i=0; i<len; i++) {
+      uint32_t val=pft->wb->wb_read(target,addr+i);
+      printf(" %2d/0x%04x : 0x%08x\n",target,addr+i,val);
+    }
+  }
+  if (cmd=="STATUS") {
+    uint32_t crcd, crcu, wbe;
+    pft->wb->wb_errors(crcu,crcd,wbe);
+    printf("CRC errors: Up -- %d   Down --%d \n",crcu,crcd);
+    printf("Wishbone errors: %d\n",wbe);
   }
 }

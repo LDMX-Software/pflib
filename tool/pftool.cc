@@ -21,57 +21,6 @@ static void status( PolarfireTarget* pft ) {
   printf("\n");
 }
 
-/**
- * Low-level Wishbone Interactions
- *
- * We acces the active wishbone connection via PolarfireTarget.
- * @see BaseMenu::readline_int for how integers can be passed in
- * (in short, decimal, hex, octal, and binary are supported)
- *
- * ## Commands
- * - RESET : WishboneInterface::wb_reset
- * - WRITE : WishboneInterface::wb_write
- * - READ : WishboneInterface::wb_read
- * - BLOCKREAD : Loop over READ for input number of words
- * - STATUS : Print results form WishboneInterface::wb_errors
- *
- * @param[in] cmd Wishbone Command
- * @param[in] pft active target
- */
-static void wb( const std::string& cmd, PolarfireTarget* pft ) {
-  static uint32_t target=0;
-  static uint32_t addr=0;
-  if (cmd=="RESET") {
-    pft->wb->wb_reset();
-  }
-  if (cmd=="WRITE") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Address",addr);
-    uint32_t val=BaseMenu::readline_int("Value",0);
-    pft->wb->wb_write(target,addr,val);
-  }
-  if (cmd=="READ") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Address",addr);
-    uint32_t val=pft->wb->wb_read(target,addr);
-    printf(" Read: 0x%08x\n",val);
-  }
-  if (cmd=="BLOCKREAD") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Starting address",addr);
-    int len=BaseMenu::readline_int("Number of words",8);
-    for (int i=0; i<len; i++) {
-      uint32_t val=pft->wb->wb_read(target,addr+i);
-      printf(" %2d/0x%04x : 0x%08x\n",target,addr+i,val);
-    }
-  }
-  if (cmd=="STATUS") {
-    uint32_t crcd, crcu, wbe;
-    pft->wb->wb_errors(crcu,crcd,wbe);
-    printf("CRC errors: Up -- %d   Down --%d \n",crcu,crcd);
-    printf("Wishbone errors: %d\n",wbe);
-  }
-}
 
 
 /**
