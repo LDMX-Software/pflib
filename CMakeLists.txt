@@ -55,7 +55,8 @@ add_executable(pftool
   tool/pftool.cc
   tool/Menu.cc
   tool/Rcfile.cc
-  tool/pftool_tasks.cc)
+  tool/pftool_tasks.cc
+  tool/pftool_roc.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
