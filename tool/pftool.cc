@@ -3,7 +3,7 @@
  *
  * The commands are written into functions corresponding to the menu's name.
  */
-
+#include "pftool_tasks.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -1208,7 +1208,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
     reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
     printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event : %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
-  } 
+  }
   if (cmd=="FULL_DEBUG") {
     uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     reg2=reg2^0x2;// invert
@@ -1240,9 +1240,9 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     else reg2=reg2&0xFFFFFFFEu;
     pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
 
-    for (size_t i=0; i<data.size(); i++) 
+    for (size_t i=0; i<data.size(); i++)
       pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,0x1000+i,data[i]);
-          
+
     /// set the length
     reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
     reg2=reg2&0xFFFF;// remove the upper bits
@@ -1260,7 +1260,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     for (int i=0; i<40; i++) {
       uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|0x40|i);
       printf("%2d %08x\n",i,val);
-    }      
+    }
   }
   if (cmd=="EFSPY") {
     static int input=0;
@@ -1274,7 +1274,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
       uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
       printf("%2d %08x\n",i,val);
     }
-    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);    
+    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
   }
   if (cmd=="SPY") {
     // set the spy page to match the read page
@@ -1290,7 +1290,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
       printf("%04d %08x\n",int(i),val);
     }
   }
-    
+
   if (cmd=="ROC_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
     if (int(data.size())!=PolarfireTarget::NLINKS*40) {
@@ -1306,7 +1306,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
       pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
       // load the bytes
       for (int i=0; i<40; i++)
-        pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
+        pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);
     }
   }
 }
@@ -1332,14 +1332,14 @@ static void bias( const std::string& cmd, PolarfireTarget* pft ) {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal.bias(iboard);
   }
-  
+
   if (cmd=="INIT") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal.bias(iboard);
     bias.initialize();
   }
   if (cmd=="SET") {
-    iboard=BaseMenu::readline_int("Which board? ",iboard);    
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
     static int led_sipm=0;
     led_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ",led_sipm);
     int ichan=BaseMenu::readline_int(" Which HDMI connector? ",-1);
@@ -1388,7 +1388,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("STATUS", "Wishbone errors counters",  &wb ),
     pfMenu::Line("QUIT","Back to top menu")
     });
-  
+
   pfMenu menu_i2c({
     pfMenu::Line("BUS","Pick the I2C bus to use", &i2c ),
     pfMenu::Line("READ", "Read from an address",  &i2c ),
@@ -1397,7 +1397,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("MULTIWRITE", "Write to an address",  &i2c ),
     pfMenu::Line("QUIT","Back to top menu")
     });
-  
+
   pfMenu menu_link({
       /*
     pfMenu::Line("STATUS","Dump link status", &link ),
@@ -1406,10 +1406,10 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     */
     pfMenu::Line("QUIT","Back to top menu")
     });
-  
+
   pfMenu menu_elinks({
     pfMenu::Line("RELINK","Follow standard procedure to establish links", &elinks),
-    pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),    
+    pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
     pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
@@ -1419,7 +1419,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &elinks),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+
   pfMenu menu_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &roc),
@@ -1438,7 +1438,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("DEFAULT_PARAMS", "Load default YAML files", &roc),
      pfMenu::Line("QUIT","Back to top menu")
     }, roc_render);
-  
+
   pfMenu menu_bias({
   //  pfMenu::Line("STATUS","Read the bias line settings", &bias ),
     pfMenu::Line("INIT","Initialize a board", &bias ),
@@ -1446,7 +1446,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("LOAD","Load bias values from file", &bias ),
     pfMenu::Line("QUIT","Back to top menu"),
   });
-  
+
   pfMenu menu_fc({
     pfMenu::Line("STATUS","Check status and counters", &fc ),
     pfMenu::Line("SW_L1A","Send a software L1A", &fc ),
@@ -1461,7 +1461,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+
   pfMenu menu_daq_debug({
     pfMenu::Line("STATUS","Provide the status", &daq_debug ),
     pfMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &daq_debug ),
@@ -1476,7 +1476,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("EFSPY","Spy on an event formatter buffer",  &daq_debug ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+
   pfMenu menu_daq_setup({
     pfMenu::Line("STATUS", "Status of the DAQ", &daq_setup),
     pfMenu::Line("ENABLE", "Toggle enable status", &daq_setup),
@@ -1490,7 +1490,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
 #endif
     pfMenu::Line("QUIT","Back to DAQ menu")
   });
-  
+
   pfMenu menu_daq({
     pfMenu::Line("DEBUG", "Debugging menu",  &menu_daq_debug ),
     pfMenu::Line("STATUS", "Status of the DAQ", &daq),
@@ -1503,8 +1503,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     //    pfMenu::Line("SCAN","Take many charge or pedestal runs while changing a single parameter", &daq),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
-  pfMenu menu_expert({ 
+
+  pfMenu menu_expert({
     pfMenu::Line("OLINK","Optical link functions", &menu_link),
     pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
     pfMenu::Line("I2C","Access the I2C Core", &menu_i2c ),
@@ -1517,8 +1517,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
-  pfMenu menu_utop({ 
+
+  pfMenu menu_utop({
     pfMenu::Line("STATUS","Status summary", &status),
     pfMenu::Line("TASKS","Various high-level tasks like scans", &menu_tasks ),
     pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
@@ -1553,7 +1553,7 @@ bool file_exists(const std::string& fname) {
 void prepareOpts(Rcfile& rcfile) {
   rcfile.declareVBool("roclinks",
       "Vector Bool[8] indicating which roc links are active");
-  rcfile.declareString("ipbus_map_path", 
+  rcfile.declareString("ipbus_map_path",
       "Full path to directory containgin IP-bus mapping. Only required for uHal comm.");
   rcfile.declareString("default_hostname",
       "Hostname of polarfire to connect to if none are given on the command line");
@@ -1572,7 +1572,7 @@ void prepareOpts(Rcfile& rcfile) {
  * the usage information is printed and we exit; otherwise,
  * we continue.
  *
- * The RC files  are read from ${PFTOOLRC}, pftoolrc, and ~/.pftoolrc 
+ * The RC files  are read from ${PFTOOLRC}, pftoolrc, and ~/.pftoolrc
  * with priority in that order.
  * Then the command line parameters are parsed; if not hostname(s) is(are)
  * provided on the command line, then the 'default_hostname' RC file option
@@ -1586,7 +1586,7 @@ void prepareOpts(Rcfile& rcfile) {
 int main(int argc, char* argv[]) {
   Rcfile options;
   prepareOpts(options);
-  
+
   // print help
   if (argc == 2 and (!strcmp(argv[1],"-h") or !strcmp(argv[1],"--help"))) {
 #ifdef PFTOOL_ROGUE
@@ -1610,7 +1610,7 @@ int main(int argc, char* argv[]) {
 #endif
     printf("Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, ${HOME}/.pftoolrc with priority in this order\n");
     options.help();
-    
+
     printf("\n");
     return 1;
   }
@@ -1623,7 +1623,7 @@ int main(int argc, char* argv[]) {
     if (file_exists(getenv("PFTOOLRC"))) {
       options.load(getenv("PFTOOLRC"));
     } else {
-      std::cerr << "WARNING: PFTOOLRC=" << getenv("PFTOOLRC") 
+      std::cerr << "WARNING: PFTOOLRC=" << getenv("PFTOOLRC")
         << " is not loaded because it doesn't exist." << std::endl;
     }
   }
@@ -1658,7 +1658,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Unable to open script file " << argv[i] << std::endl;
         return 2;
       }
-      
+
       std::string line;
       while (getline(sFile, line)) {
         // erase whitespace at beginning of line
@@ -1675,11 +1675,11 @@ int main(int argc, char* argv[]) {
     else if (arg=="-u") {
       isuhal  = true;
       isrogue = false;
-    } 
+    }
     else if (arg=="-r") {
       isrogue = true;
       isuhal  = false;
-    } 
+    }
 #endif
 #endif
     else {
@@ -1724,7 +1724,7 @@ int main(int argc, char* argv[]) {
       } else {
         i_host = 0;
       }
-      
+
       // initialize connect with Polarfire
       std::unique_ptr<PolarfireTarget> p_pft;
       try {
@@ -1748,13 +1748,13 @@ int main(int argc, char* argv[]) {
 
       if (options.contents().has_key("runnumber_file"))
         last_run_file=options.contents().getString("runnumber_file");
-      
+
       if (p_pft) {
       	// prepare the links
-      	if (options.contents().is_vector("roclinks")) {	  
+      	if (options.contents().is_vector("roclinks")) {
       	  std::vector<bool> actives=options.contents().getVBool("roclinks");
-      	  for (int ilink=0; 
-              ilink<p_pft->hcal.elinks().nlinks() and ilink<int(actives.size()); 
+      	  for (int ilink=0;
+              ilink<p_pft->hcal.elinks().nlinks() and ilink<int(actives.size());
               ilink++) p_pft->hcal.elinks().markActive(ilink,actives[ilink]);
       	}
 
@@ -1769,7 +1769,7 @@ int main(int argc, char* argv[]) {
         return 126;
       }
 
-      if (hostnames.size() > 1)  {      
+      if (hostnames.size() > 1)  {
         // menu for that target has been exited, check if user wants to choose another host
         continue_running = BaseMenu::readline_bool(" Choose a new card/host to connect to ? ", true);
       } else {
@@ -1783,5 +1783,3 @@ int main(int argc, char* argv[]) {
   }
   return 0;
 }
-
-
