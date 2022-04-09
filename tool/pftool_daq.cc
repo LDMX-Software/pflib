@@ -1,10 +1,35 @@
 #include "pftool_daq.h"
 
-
+using pflib::PolarfireTarget;
 
 std::string last_run_file=".last_run_file";
 std::string start_dma_cmd="";
 std::string stop_dma_cmd="";
+
+std::vector<uint32_t> read_words_from_file()
+{
+  std::vector<uint32_t> data;
+  /// load from file
+  std::string fname=BaseMenu::readline("Read from text file (line by line hex 32-bit words)");
+  char buffer[512];
+  FILE* f=fopen(fname.c_str(),"r");
+  if (f==0) {
+    printf("Unable to open '%s'\n",fname.c_str());
+    return data;
+  }
+  while (!feof(f)) {
+    buffer[0]=0;
+    fgets(buffer,511,f);
+    if (strlen(buffer)<8 || strchr(buffer,'#')!=0) continue;
+    uint32_t val;
+    val=strtoul(buffer,0,16);
+    data.push_back(val);
+    printf("%08x\n",val);
+  }
+  fclose(f);
+  return data;
+}
+
 void daq( const std::string& cmd, PolarfireTarget* pft )
 {
   pflib::DAQ& daq=pft->hcal.daq();
@@ -227,5 +252,204 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
         daq_run(trigtype,run,nevents,rate,fname);
       }
     }
+  }
+}
+void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft )
+{
+  if (cmd=="STATUS") {
+    // get the general status
+    daq("STATUS", pft);
+    uint32_t reg1,reg2;
+    printf("-----Per-ROC Controls-----\n");
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
+    printf(" Disable ROC links: %s\n",(reg1&0x80000000u)?("TRUE"):("FALSE"));
+
+    printf(" Link  F E RP WP \n");
+    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
+      uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|3);
+      printf("   %2d  %d %d %2d %2d       %08x\n",ilink,(reg>>26)&1,(reg>>27)&1,(reg>>16)&0xf,(reg>>12)&0xf,reg);
+    }
+    printf("-----Event builder    -----\n");
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,6);
+    printf(" EVB Debug word: %08x\n",reg1);
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,4);
+    printf(" Event buffer Debug word: %08x %08x\n",reg1,reg2);
+
+    printf("-----Full event buffer-----\n");
+    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
+    printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event : %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
+  }
+  if (cmd=="FULL_DEBUG") {
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
+    reg2=reg2^0x2;// invert
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+  }
+  if (cmd=="DISABLE_ROCLINKS") {
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
+    reg=reg^0x80000000u;// invert
+    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg);
+  }
+  if (cmd=="FULL_SEND") {
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
+    reg2=reg2|0x1000;// set the send bit
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+  }
+  if (cmd=="ROC_SEND") {
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
+    reg2=reg2|0x40000000;// set the send bit
+    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg2);
+  }
+  if (cmd=="FULL_LOAD") {
+    std::vector<uint32_t> data=read_words_from_file();
+
+    // set the spy page to match the read page
+    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
+    int rpage=(reg1>>12)&0x1;
+    if (rpage) reg2=reg2|0x1;
+    else reg2=reg2&0xFFFFFFFEu;
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+
+    for (size_t i=0; i<data.size(); i++)
+      pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,0x1000+i,data[i]);
+
+    /// set the length
+    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
+    reg2=reg2&0xFFFF;// remove the upper bits
+    reg2=reg2|(data.size()<<16);
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+  }
+  if (cmd=="IBSPY") {
+    static int input=0;
+    input=BaseMenu::readline_int("Which input?",input);
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|3);
+    int rp=BaseMenu::readline_int("Read page?",(reg>>16)&0xF);
+    reg=reg&0xFFFFFFF0u;
+    reg=reg|(rp&0xF);
+    pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,((input<<7)|3),reg);
+    for (int i=0; i<40; i++) {
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|0x40|i);
+      printf("%2d %08x\n",i,val);
+    }
+  }
+  if (cmd=="EFSPY") {
+    static int input=0;
+    input=BaseMenu::readline_int("Which input?",input);
+    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
+    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
+    printf("PTRs now: 0x%08x\n",reg);
+    int rp=BaseMenu::readline_int("Read page?",reg&0xF);
+    for (int i=0; i<40; i++) {
+      pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0x400|(rp<<6)|i);
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
+      printf("%2d %08x\n",i,val);
+    }
+    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
+  }
+  if (cmd=="SPY") {
+    // set the spy page to match the read page
+    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
+    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
+    int rpage=(reg1>>12)&0x1;
+    if (rpage) reg2=reg2|0x1;
+    else reg2=reg2&0xFFFFFFFEu;
+    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+
+    for (size_t i=0; i<32; i++) {
+      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,0x1000|i);
+      printf("%04d %08x\n",int(i),val);
+    }
+  }
+
+  if (cmd=="ROC_LOAD") {
+    std::vector<uint32_t> data=read_words_from_file();
+    if (int(data.size())!=PolarfireTarget::NLINKS*40) {
+      printf("Expected %d words, got only %d\n",PolarfireTarget::NLINKS*40,int(data.size()));
+      return;
+    }
+    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
+      uint32_t reg;
+      // set the wishbone page to match the read page, and set the length
+      reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3);
+      int rpage=(reg>>16)&0xF;
+      reg=(reg&0xFFFFF000u)|rpage|(40<<4);
+      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
+      // load the bytes
+      for (int i=0; i<40; i++)
+        pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);
+    }
+  }
+}
+
+void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
+{
+  pflib::DAQ& daq=pft->hcal.daq();
+  if (cmd=="STATUS") {
+    pft->daqStatus(std::cout);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
+    }
+#endif
+  }
+  if (cmd=="ENABLE") {
+    daq.enable(!daq.enabled());
+  }
+  if (cmd=="ZS") {
+    int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);
+    bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
+    pft->enableZeroSuppression(jlink,fullSuppress);
+  }
+  if (cmd=="L1APARAMS") {
+    int ilink=BaseMenu::readline_int("Which link? ",-1);
+    if (ilink>=0) {
+      uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1);
+      int delay=BaseMenu::readline_int("L1A delay? ",(reg1>>8)&0xFF);
+      int capture=BaseMenu::readline_int("L1A capture length? ",(reg1>>16)&0xFF);
+      reg1=(reg1&0xFF)|((delay&0xFF)<<8)|((capture&0xFF)<<16);
+      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1,reg1);
+    }
+  }
+  if (cmd=="DMA") {
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      enabled=BaseMenu::readline_bool("Enable DMA? ",enabled);
+      rwbi->daq_dma_enable(enabled);
+    } else {
+      std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot activate DMA.\n" << std::endl;
+    }
+#endif
+  }
+  if (cmd=="STANDARD") {
+    daq_setup("FPGA",pft);
+    pflib::Elinks& elinks=pft->hcal.elinks();
+    for (int i=0; i<daq.nlinks(); i++) {
+      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
+      else daq.setupLink(i,true,true,15,40);
+    }
+  }
+  if (cmd=="FPGA") {
+    int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
+    daq.setIds(fpgaid);
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      fpgaid_i=(uint8_t(fpgaid));
+      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
+    }
+#endif
   }
 }

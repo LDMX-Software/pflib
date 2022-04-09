@@ -11,12 +11,16 @@
 #ifdef PFTOOL_UHAL
 #include "pflib/uhal/uhalWishboneInterface.h"
 #endif
-using pflib::PolarfireTarget;
 
 extern std::string last_run_file;
 extern std::string start_dma_cmd;
 extern std::string stop_dma_cmd;
 
+/**
+ * Print data words from raw binary file and return them
+ * @return vector of 32-bit data words in file
+ */
+std::vector<uint32_t> read_words_from_file();
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
  *
@@ -36,7 +40,44 @@ extern std::string stop_dma_cmd;
  * @param[in] cmd command selected from menu
  * @param[in] pft active target
  */
-void daq( const std::string& cmd, PolarfireTarget* pft );
+void daq( const std::string& cmd, pflib::PolarfireTarget* pft );
+
+/**
+ * DAQ->SETUP menu commands
+ *
+ * Before doing any of the commands, we retrieve a reference to the daq
+ * object via pflib::Hcal::daq.
+ *
+ * ## Commands
+ * - STATUS : pflib::PolarfireTarget::daqStatus
+ *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in that manner
+ * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and pflib::DAQ::enabled
+ * - ZS : pflib::PolarfireTarget::enableZeroSuppression
+ * - L1APARAMS : Use target's wishbone interface to set the L1A delay and capture length
+ *   Uses pflib::tgt_DAQ_Inbuffer
+ * - DMA : enable DMA readout pflib::rogue::RogueWishboneInterface::daq_dma_enable
+ * - FPGA : Set the polarfire FPGA ID number (pflib::DAQ::setIds) and pass this
+ *   to DMA setup if it is enabled
+ * - STANDARD : Do FPGA command and setup links that are 
+ *   labeled as active (pflib::DAQ::setupLink)
+ *
+ * @param[in] cmd selected command from DAQ->SETUP menu
+ * @param[in] pft active target
+ */
+void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft );
+
+/**
+ * DAQ->DEBUG menu commands
+ *
+ * @note These commands have been archived since further development of pflib
+ * has progressed. They are still available in this submenu; however,
+ * they should only be used by an expert who is familiar with the chip
+ * and has looked at what the commands do in the code.
+ *
+ * @param[in] cmd selected command from menu
+ * @param[in] pft active target
+ */
+void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft );
 
 
 #endif /* PFTOOL_DAQ_H */
