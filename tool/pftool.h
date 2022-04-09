@@ -4,6 +4,7 @@
 
 #include "pftool_tasks.h"
 #include "pftool_roc.h"
+#include "pftool_daq.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
