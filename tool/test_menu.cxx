@@ -14,14 +14,16 @@ void increment(int* p) {
   std::cout << *p << std::endl;
 }
 
-Menu<int> sb;
+auto sb = Menu<int>()
+  .line("THREE", "third command", print_cmd)
+  .line("INC", "increment the target", increment)
+  ;
 
-auto s0 = sb.declare("THREE", "third command", print_cmd);
-auto s1 = sb.declare("INC", "increment the target", increment);
-
-auto v0 = Menu<int>::root().declare("INC", "increment the target", increment);
-auto v1 = Menu<int>::root().declare("ONE", "one command", print_cmd);
-auto v2 = Menu<int>::root().declare("SB", "submenu", sb);
+auto r = Menu<int>::root()
+  .line("INC", "increment the target", increment)
+  .line("ONE", "one command", print_cmd)
+  .line("SB" , "example submenu", sb)
+  ;
 
 }
 

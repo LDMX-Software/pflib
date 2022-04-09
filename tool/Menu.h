@@ -275,6 +275,9 @@ class Menu : public BaseMenu {
      * add an exit line if this is a menu, otherwise do nothing
      */
     void render() {
+#ifdef DEBUG
+      std::cout << "rendering " << name_ << std::endl;
+#endif
       if (sub_menu_) sub_menu_->render();
     }
 
@@ -301,25 +304,40 @@ class Menu : public BaseMenu {
     bool is_null;
   };
 
-  uint64_t declare(const char* name, const char* desc, SingleTargetCommand ex) {
+  Menu& line(const char* name, const char* desc, SingleTargetCommand ex) {
+#ifdef DEBUG
+    std::cout << "adding " << name << std::endl;
+#endif
     lines_.emplace_back(name,desc,ex);
-    return lines_.size();
+    return *this;
   }
 
-  uint64_t declare(const char* name, const char* desc, MultipleTargetCommands ex) {
+  Menu& line(const char* name, const char* desc, MultipleTargetCommands ex) {
+#ifdef DEBUG
+    std::cout << "adding " << name << std::endl;
+#endif
     lines_.emplace_back(name,desc,ex);
-    return lines_.size();
+    return *this;
   }
 
-  uint64_t declare(const char* name, const char* desc, Menu& ex) {
+  Menu& line(const char* name, const char* desc, Menu& ex) {
+#ifdef DEBUG
+    std::cout << "adding " << name << " menu at " << std::hex << &ex << std::endl;
+#endif
     lines_.emplace_back(name,desc,ex);
-    return lines_.size();
+    return *this;
   }
 
   static Menu& root() {
     static Menu root;
     return root;
   }
+
+#ifdef DEBUG
+  ~Menu() {
+    std::cout << "closing menu" << std::endl;
+  }
+#endif
 
   void render() {
     // go through menu options and add exit
@@ -328,7 +346,13 @@ class Menu : public BaseMenu {
   }
 
   static void run(TargetHandle tgt) {
+#ifdef DEBUG
+    std::cout << "attempting to render..." << std::endl;
+#endif
     root().render();
+#ifdef DEBUG
+    std::cout << "attempting to steer..." << std::endl;
+#endif
     root().steer(tgt);
   }
 
@@ -347,6 +371,16 @@ class Menu : public BaseMenu {
    */
   Menu(std::initializer_list<Line> lines = {}, RenderFuncType f = 0)
       : lines_{lines}, render_func_{f} {}
+
+  /* destructing after registration...
+  Menu(Menu& parent, const char *name, const char *desc, RenderFuncType f = 0)
+    : render_func_{f} {
+#ifdef DEBUG
+      std::cout << std::hex << this << std::endl;
+#endif
+      parent.line(name,desc,*this);
+    }
+    */
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
