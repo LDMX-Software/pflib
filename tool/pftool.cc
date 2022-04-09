@@ -1,10 +1,15 @@
 #include "pftool.h"
+
 /**
  * @file pftool.cc File defining the pftool menus and their commands.
  *
  * The commands are written into functions corresponding to the menu's name.
  */
 
+/**
+ * pull the target of our menu into this source file to reduce code
+ */
+using pflib::PolarfireTarget;
 /**
  * Main status of menu
  *

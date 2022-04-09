@@ -1,6 +1,6 @@
 #ifndef PFTOOL_H
 #define PFTOOL_H
-
+#include "pftool_fastcontrol.h"
 #include "pftool_expert.h"
 #include "pftool_tasks.h"
 #include "pftool_roc.h"
@@ -30,9 +30,5 @@
 #include "Rcfile.h"
 #include "pflib/decoding/SuperPacket.h"
 
-/**
- * pull the target of our menu into this source file to reduce code
- */
-using pflib::PolarfireTarget;
 
 #endif /* PFTOOL_H */
