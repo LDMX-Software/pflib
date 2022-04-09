@@ -16,14 +16,12 @@ void increment(int* p) {
 
 Menu<int> sb;
 
-auto s0 = sb.declare("THREE", "third command", &print_cmd);
-auto s1 = sb.declare("INC", "increment the target", &increment);
-auto s2 = sb.exit();
+auto s0 = sb.declare("THREE", "third command", print_cmd);
+auto s1 = sb.declare("INC", "increment the target", increment);
 
-auto v0 = Menu<int>::root().declare("INC", "increment the target", &increment);
-auto v1 = Menu<int>::root().declare("ONE", "one command", &print_cmd);
-auto v2 = Menu<int>::root().declare("SB", "submenu", &sb);
-auto v3 = Menu<int>::root().exit();
+auto v0 = Menu<int>::root().declare("INC", "increment the target", increment);
+auto v1 = Menu<int>::root().declare("ONE", "one command", print_cmd);
+auto v2 = Menu<int>::root().declare("SB", "submenu", sb);
 
 }
 
@@ -41,7 +39,7 @@ auto v3 = Menu<int>::root().exit();
 int main(int argc, char* argv[]) {
   try {
     int i = 3;
-    Menu<int>::root().steer(&i);
+    Menu<int>::run(&i);
   } catch (std::exception& e) {
     fprintf(stderr, "Exception!  %s\n",e.what());
     return 1;

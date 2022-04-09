@@ -9,6 +9,7 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+#include <iomanip>
 
 #ifndef PFLIB_TEST_MENU
 #include "pflib/Exception.h"
@@ -186,10 +187,12 @@ class BaseMenu {
 template <class TargetType>
 class Menu : public BaseMenu {
  public:
+  /// the type of handle we use to access the target
+  using TargetHandle = TargetType*;
   /// type of function which does something with the target
-  using SingleTargetCommand = std::function<void(TargetType*)>;
+  using SingleTargetCommand = std::function<void(TargetHandle)>;
   /// type of function which does one of several commands with target
-  using MultipleTargetCommands = std::function<void(const std::string&, TargetType*)>;
+  using MultipleTargetCommands = std::function<void(const std::string&, TargetHandle)>;
 
   /**
    * A command in the menu
@@ -215,8 +218,8 @@ class Menu : public BaseMenu {
     Line(const char* n, const char* d, MultipleTargetCommands f)
         : name_(n), desc_(d), sub_menu_(0), mult_cmds_{f} {}
     /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, Menu* m)
-        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
+    Line(const char* n, const char* d, Menu& m)
+        : name_(n), desc_(d), sub_menu_(&m), cmd_(0), mult_cmds_{0} {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -239,7 +242,7 @@ class Menu : public BaseMenu {
      * @return true if we were a sub-menu and the command options
      *  need to be reset to the parent menu options
      */
-    bool execute(TargetType* p) const {
+    bool execute(TargetHandle p) const {
       if (sub_menu_) {
         sub_menu_->steer(p);
         return true;
@@ -268,10 +271,21 @@ class Menu : public BaseMenu {
       return sub_menu_ == 0 and cmd_ == 0 and mult_cmds_ == 0;
     }
 
+    /**
+     * add an exit line if this is a menu, otherwise do nothing
+     */
+    void render() {
+      if (sub_menu_) sub_menu_->render();
+    }
+
     /// name of this line to select it
     const char* name() const { return name_; }
     /// short description to print with menu
     const char* desc() const { return desc_; }
+    friend std::ostream& operator<<(std::ostream& s, const Line& l) {
+      return (s << "  " << std::left << std::setw(12) << l.name() 
+                << " " << l.desc());
+    }
    private:
     /// the name of this line
     const char* name_;
@@ -291,22 +305,31 @@ class Menu : public BaseMenu {
     lines_.emplace_back(name,desc,ex);
     return lines_.size();
   }
+
   uint64_t declare(const char* name, const char* desc, MultipleTargetCommands ex) {
     lines_.emplace_back(name,desc,ex);
     return lines_.size();
   }
-  uint64_t declare(const char* name, const char* desc, Menu* ex) {
+
+  uint64_t declare(const char* name, const char* desc, Menu& ex) {
     lines_.emplace_back(name,desc,ex);
-    return lines_.size();
-  }
-  uint64_t exit() {
-    lines_.emplace_back("EXIT","leave this menu");
     return lines_.size();
   }
 
   static Menu& root() {
     static Menu root;
     return root;
+  }
+
+  void render() {
+    // go through menu options and add exit
+    for (auto& l : lines_) l.render();
+    lines_.emplace_back("EXIT","leave this menu");
+  }
+
+  static void run(TargetHandle tgt) {
+    root().render();
+    root().steer(tgt);
   }
 
   /**
@@ -317,16 +340,13 @@ class Menu : public BaseMenu {
    * this can include necessary initiliazation procedures
    * if need be.
    */
-  using RenderFuncType = void (*)(TargetType*);
+  using RenderFuncType = void (*)(TargetHandle);
 
   /**
    * Construct a menu with a rendering function and the input lines
    */
-  Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
+  Menu(std::initializer_list<Line> lines = {}, RenderFuncType f = 0)
       : lines_{lines}, render_func_{f} {}
-
-  Menu(RenderFuncType f = 0)
-      : render_func_{f} {}
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
@@ -351,7 +371,7 @@ class Menu : public BaseMenu {
    *
    * @param[in] p_target pointer to the target
    */
-  void steer(TargetType* p_target) const;
+  void steer(TargetHandle p_target) const;
 
  private:
   /**
@@ -374,19 +394,19 @@ class Menu : public BaseMenu {
 };
 
 template <class TargetType>
-void Menu<TargetType>::steer(TargetType* p_target) const {
+void Menu<TargetType>::steer(Menu<TargetType>::TargetHandle p_target) const {
   this->cmd_options_ = this->command_options(); // we are the captain now
   const Line* theMatch = 0;
   do {
-    printf("\n");
     if (render_func_ != 0) {
       this->render_func_(p_target);
     }
     // if cmd text queue is empty, then print menu for interactive user
-    if (this->cmdTextQueue_.empty())
-      for (size_t i = 0; i < lines_.size(); i++) {
-        printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
-      }
+    if (this->cmdTextQueue_.empty()) {
+      printf("\n");
+      for (const auto& l : lines_) 
+        std::cout << l << std::endl;
+    }
     std::string request = readline_cmd();
     theMatch = 0;
     // check for a unique match...
