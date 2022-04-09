@@ -30,7 +30,6 @@
 #endif
 #include "Menu.h"
 #include "Rcfile.h"
-#include "pflib/decoding/SuperPacket.h"
 
 
 #endif /* PFTOOL_H */
