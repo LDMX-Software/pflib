@@ -193,6 +193,15 @@ class Menu : public BaseMenu {
   using SingleTargetCommand = std::function<void(TargetHandle)>;
   /// type of function which does one of several commands with target
   using MultipleTargetCommands = std::function<void(const std::string&, TargetHandle)>;
+  /**
+   * The type of function used to "render" a menu
+   *
+   * "rendering" allows the user to have a handle for when the 
+   * menu will be printed to the terminal prompt. Moreover,
+   * this can include necessary initiliazation procedures
+   * if need be.
+   */
+  using RenderFuncType = std::function<void(TargetHandle)>;
 
   /**
    * A command in the menu
@@ -213,13 +222,13 @@ class Menu : public BaseMenu {
    public:
     /// define a menu line that uses a single target command
     Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(f), mult_cmds_{0} {}
+        : name_(n), desc_(d), sub_menu_{0}, cmd_(f), mult_cmds_{0} {}
     /// define a menu line that uses a multiple command function
     Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_(0), mult_cmds_{f} {}
+        : name_(n), desc_(d), sub_menu_{0}, mult_cmds_{f} {}
     /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, Menu& m)
-        : name_(n), desc_(d), sub_menu_(&m), cmd_(0), mult_cmds_{0} {}
+    Line(const char* n, const char* d, Menu* m)
+        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -227,8 +236,27 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(0), mult_cmds_{0} {}
-    
+        : name_(n), desc_(d), sub_menu_{0}, cmd_(0), mult_cmds_{0} {}
+
+    /**
+     * noexcept move constructor allows std::vector to use it when expanding capacity
+     */
+    Line(Line&& l) noexcept 
+      : name_{l.name_},
+        desc_{l.desc_},
+        sub_menu_{l.sub_menu_},
+        cmd_{l.cmd_},
+        mult_cmds_{l.mult_cmds_}
+    {
+      l.sub_menu_ = 0;
+    }
+
+    Line(const Line& l) = default;
+
+    ~Line() {
+      if (sub_menu_) delete sub_menu_;
+    }
+
     /**
      * Execute this line
      *
@@ -268,16 +296,13 @@ class Menu : public BaseMenu {
      * Check if this line is an empty one
      */
     bool empty() const {
-      return sub_menu_ == 0 and cmd_ == 0 and mult_cmds_ == 0;
+      return !sub_menu_ and cmd_ == 0 and mult_cmds_ == 0;
     }
 
     /**
      * add an exit line if this is a menu, otherwise do nothing
      */
     void render() {
-#ifdef DEBUG
-      std::cout << "rendering " << name_ << std::endl;
-#endif
       if (sub_menu_) sub_menu_->render();
     }
 
@@ -300,87 +325,50 @@ class Menu : public BaseMenu {
     SingleTargetCommand cmd_;
     /// function handling multiple commands to execute (if exists)
     MultipleTargetCommands mult_cmds_;
-    /// is this a null line?
-    bool is_null;
   };
 
-  Menu& line(const char* name, const char* desc, SingleTargetCommand ex) {
-#ifdef DEBUG
-    std::cout << "adding " << name << std::endl;
-#endif
+  Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
     lines_.emplace_back(name,desc,ex);
-    return *this;
+    return this;
   }
 
-  Menu& line(const char* name, const char* desc, MultipleTargetCommands ex) {
-#ifdef DEBUG
-    std::cout << "adding " << name << std::endl;
-#endif
+  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
     lines_.emplace_back(name,desc,ex);
-    return *this;
+    return this;
   }
 
-  Menu& line(const char* name, const char* desc, Menu& ex) {
-#ifdef DEBUG
-    std::cout << "adding " << name << " menu at " << std::hex << &ex << std::endl;
-#endif
+  Menu* submenu(const char* name, const char* desc, Menu* ex) {
     lines_.emplace_back(name,desc,ex);
-    return *this;
+    return this;
   }
 
-  static Menu& root() {
+  static Menu* root() {
     static Menu root;
-    return root;
+    return &root;
   }
-
-#ifdef DEBUG
-  ~Menu() {
-    std::cout << "closing menu" << std::endl;
-  }
-#endif
 
   void render() {
     // go through menu options and add exit
-    for (auto& l : lines_) l.render();
+    for (Line& l : lines_) l.render();
     lines_.emplace_back("EXIT","leave this menu");
   }
 
   static void run(TargetHandle tgt) {
-#ifdef DEBUG
-    std::cout << "attempting to render..." << std::endl;
-#endif
-    root().render();
-#ifdef DEBUG
-    std::cout << "attempting to steer..." << std::endl;
-#endif
-    root().steer(tgt);
+    root()->render();
+    root()->steer(tgt);
   }
-
-  /**
-   * The type of function used to "render" a menu
-   *
-   * "rendering" allows the user to have a handle for when the 
-   * menu will be printed to the terminal prompt. Moreover,
-   * this can include necessary initiliazation procedures
-   * if need be.
-   */
-  using RenderFuncType = void (*)(TargetHandle);
+  
+  /// no copying
+  Menu(const Menu&) = delete;
+  void operator=(const Menu&) = delete;
 
   /**
    * Construct a menu with a rendering function and the input lines
    */
-  Menu(std::initializer_list<Line> lines = {}, RenderFuncType f = 0)
+  Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
       : lines_{lines}, render_func_{f} {}
-
-  /* destructing after registration...
-  Menu(Menu& parent, const char *name, const char *desc, RenderFuncType f = 0)
-    : render_func_{f} {
-#ifdef DEBUG
-      std::cout << std::hex << this << std::endl;
-#endif
-      parent.line(name,desc,*this);
-    }
-    */
+  Menu(RenderFuncType f = 0)
+      : render_func_{f} {}
 
   /// add a new line to this menu
   void addLine(const Line& line) { lines_.push_back(line); }
@@ -462,6 +450,28 @@ void Menu<TargetType>::steer(Menu<TargetType>::TargetHandle p_target) const {
       }
     }
   } while (theMatch == 0 or not theMatch->empty());
+}
+
+template<class TargetType>
+Menu<TargetType>* root() {
+  return Menu<TargetType>::root();
+}
+
+template<class TargetType>
+Menu<TargetType>* menu(const char* name, const char* desc, 
+    Menu<TargetType>* parent,
+    std::function<void(TargetType*)> render_func = 0
+    ) {
+  auto sb = new Menu<TargetType>(render_func);
+  parent->submenu(name,desc,sb); // Line takes ownership
+  return sb;
+}
+
+template<class TargetType>
+Menu<TargetType>* menu(const char* name, const char* desc, 
+    std::function<void(TargetType*)> render_func = 0
+    ) {
+  return menu<TargetType>(name,desc,root<TargetType>(),render_func);
 }
 
 #endif  // PFLIB_TOOL_MENU_H
