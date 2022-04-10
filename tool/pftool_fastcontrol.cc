@@ -21,13 +21,7 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd=="VETO_SETUP") {
-    bool veto_daq_busy, veto_l1_occ;
-    int level_busy, level_ok;
-    pft->backend->fc_veto_setup_read(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
-    veto_daq_busy=BaseMenu::readline_bool("Veto L1A on DAQ busy? ",veto_daq_busy);
-    veto_l1_occ=BaseMenu::readline_bool("Veto L1A on L1 occupancy? ",veto_l1_occ);
-    pft->backend->fc_veto_setup(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
-    if (veto_l1_occ) printf("\n  Occupancy Veto Thresholds -- OK->BUSY at %d, BUSY->OK at %d\n",level_busy,level_ok);
+      veto_setup(pft);
   }
   if (cmd=="COUNTER_RESET") {
     pft->hcal.fc().resetCounters();
@@ -106,4 +100,17 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
     pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
   }
+}
+
+void veto_setup(pflib::PolarfireTarget* pft)
+{
+    bool veto_daq_busy, veto_l1_occ;
+    int level_busy, level_ok;
+    pft->backend->fc_veto_setup_read(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
+    veto_daq_busy=BaseMenu::readline_bool("Veto L1A on DAQ busy? ",veto_daq_busy);
+    veto_l1_occ=BaseMenu::readline_bool("Veto L1A on L1 occupancy? ",veto_l1_occ);
+    pft->backend->fc_veto_setup(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
+    if (veto_l1_occ) {
+        printf("\n  Occupancy Veto Thresholds -- OK->BUSY at %d, BUSY->OK at %d\n",level_busy,level_ok);
+    }
 }

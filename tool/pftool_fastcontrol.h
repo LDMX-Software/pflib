@@ -30,4 +30,5 @@
  */
 void fc( const std::string& cmd, pflib::PolarfireTarget* pft);
 
+void veto_setup(pflib::PolarfireTarget* pft);
 #endif /* PFTOOL_FASTCONTROL_H */
