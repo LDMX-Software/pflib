@@ -4,6 +4,24 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
+void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
+                       const int value) {
+  const std::string page_template {"CHANNEL_"};
+  const int default_num_rocs {3};
+  const int default_num_channels{72};
+  const int num_channels {BaseMenu::readline_int("How many channels per ROC?",
+                                                 default_num_channels)};
+  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
+                                             default_num_rocs)};
+
+  for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
+    pflib::ROC roc {pft->hcal.roc(roc_number)};
+    for (int channel{0}; channel < num_channels; ++channel) {
+      roc.applyParameter(page_template + std::to_string(channel), parameter, value);
+    }
+  }
+}
+
 void poke_all_rochalves(PolarfireTarget* pft,
                         const std::string& page_template,
                         const std::string& parameter,

@@ -9,7 +9,6 @@ using pflib::PolarfireTarget;
  */
 extern int iroc;
 
-
 /**
  * Simply print the currently selective ROC so that user is aware
  * which ROC they are interacting with by default.
@@ -17,6 +16,9 @@ extern int iroc;
  * @param[in] pft active target (not used)
  */
 void roc_render( PolarfireTarget* pft );
+
+void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
+                       const int value);
 
 void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
                         const std::string& parameter, const int value);
