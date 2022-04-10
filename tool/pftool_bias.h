@@ -21,4 +21,6 @@
  */
 void bias( const std::string& cmd, pflib::PolarfireTarget* pft );
 
+void set_bias_on_all_connectors(pflib::PolarfireTarget* pft);
+
 #endif /* PFTOOL_BIAS_H */

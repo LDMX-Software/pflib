@@ -1,5 +1,27 @@
 #include "pftool_bias.h"
 using pflib::PolarfireTarget;
+
+void set_bias_on_all_connectors(PolarfireTarget* pft) {
+    static int num_boards{3};
+    static int dac_value {0};
+    static int led_or_sipm {0};
+    const int num_connections{16};
+    num_boards = BaseMenu::readline_int("How many boards are connected to this DPM?",
+                                        num_boards);
+    led_or_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ",led_or_sipm);
+    dac_value = BaseMenu::readline_int("What DAC value?", dac_value);
+    if (led_or_sipm < 0 || led_or_sipm > 1) {
+        std::cout << "Invalid value for SiPM/LED\n";
+        return;
+    }
+    bool set_led {led_or_sipm == 1};
+    for (int board{0}; board < num_boards; ++board) {
+        for (int connection{0}; connection< num_connections; ++connection) {
+            pft->setBiasSetting(board, set_led, connection, dac_value);
+        }
+    }
+}
+
 void bias( const std::string& cmd, PolarfireTarget* pft )
 {
   static int iboard=0;
