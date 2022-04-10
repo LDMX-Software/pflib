@@ -15,7 +15,16 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
       "Update all parameter values on the chip using the defaults in the "
       "manual for any values not provided? ",
       false);
+  if (iroc == -1) {
+    const int default_num_rocs{3};
+    const int num_rocs{BaseMenu::readline_int(
+        "How many ROCs are connected to this DPM?", default_num_rocs)};
+    for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
+      pft->loadROCParameters(roc_number, fname, prepend_defaults);
+    }
+  } else {
     pft->loadROCParameters(iroc, fname, prepend_defaults);
+  }
 }
 void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
                        const int value) {
