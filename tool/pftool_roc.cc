@@ -4,6 +4,18 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
+void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
+                     const bool prepend_defaults, const int num_rocs) {
+  if (iroc == -1) {
+    for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
+      pft->loadROCParameters(roc_number, fname, prepend_defaults);
+    }
+  } else {
+    pft->loadROCParameters(iroc, fname, prepend_defaults);
+  }
+
+}
+
 void load_parameters(PolarfireTarget* pft, const int iroc) {
   std::cout << "\n"
                " --- This command expects a YAML file with page names, "
@@ -15,16 +27,15 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
       "Update all parameter values on the chip using the defaults in the "
       "manual for any values not provided? ",
       false);
-  if (iroc == -1) {
     const int default_num_rocs{3};
+    if (iroc == -1) {
     const int num_rocs{BaseMenu::readline_int(
         "How many ROCs are connected to this DPM?", default_num_rocs)};
-    for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
-      pft->loadROCParameters(roc_number, fname, prepend_defaults);
+    load_parameters(pft, iroc, fname, prepend_defaults, num_rocs);
+    } else {
+      // num_rocs is unused here
+    load_parameters(pft, iroc, fname, prepend_defaults, default_num_rocs);
     }
-  } else {
-    pft->loadROCParameters(iroc, fname, prepend_defaults);
-  }
 }
 void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
                        const int value) {
