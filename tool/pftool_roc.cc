@@ -4,6 +4,19 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
+void load_parameters(PolarfireTarget* pft, const int iroc) {
+  std::cout << "\n"
+               " --- This command expects a YAML file with page names, "
+               "parameter names and their values.\n"
+            << std::flush;
+  const std::string default_yaml{"baseConfig.yaml"};
+  std::string fname = BaseMenu::readline("Filename: ", default_yaml);
+  bool prepend_defaults = BaseMenu::readline_bool(
+      "Update all parameter values on the chip using the defaults in the "
+      "manual for any values not provided? ",
+      false);
+    pft->loadROCParameters(iroc, fname, prepend_defaults);
+}
 void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
                        const int value) {
   const std::string page_template {"CHANNEL_"};
@@ -124,13 +137,7 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     pft->loadROCRegisters(iroc,fname);
   }
   if (cmd=="LOAD"||cmd=="LOAD_PARAM") {
-    std::cout <<
-      "\n"
-      " --- This command expects a YAML file with page names, parameter names and their values.\n"
-      << std::flush;
-    std::string fname = BaseMenu::readline("Filename: ");
-    bool prepend_defaults = BaseMenu::readline_bool("Update all parameter values on the chip using the defaults in the manual for any values not provided? ", false);
-    pft->loadROCParameters(iroc,fname,prepend_defaults);
+    load_parameters(pft, iroc);
   }
   if (cmd=="DEFAULT_PARAMS") {
     pft->loadDefaultROCParameters();
