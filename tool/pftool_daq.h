@@ -79,5 +79,5 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft );
  */
 void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft );
 
-
+void setup_dma(pflib::PolarfireTarget* pft);
 #endif /* PFTOOL_DAQ_H */

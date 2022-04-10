@@ -417,18 +417,7 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
   }
   if (cmd=="DMA") {
-#ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
-      enabled=BaseMenu::readline_bool("Enable DMA? ",enabled);
-      rwbi->daq_dma_enable(enabled);
-    } else {
-      std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot activate DMA.\n" << std::endl;
-    }
-#endif
+    setup_dma(pft);
   }
   if (cmd=="STANDARD") {
     daq_setup("FPGA",pft);
@@ -452,4 +441,22 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
 #endif
   }
+}
+
+void setup_dma(PolarfireTarget* pft)
+{
+#ifdef PFTOOL_ROGUE
+  auto rwbi = dynamic_cast<pflib::rogue::RogueWishboneInterface *>(pft->wb);
+  if (rwbi) {
+    bool enabled;
+    uint8_t samples_per_event, fpgaid_i;
+    rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
+    enabled = BaseMenu::readline_bool("Enable DMA? ", enabled);
+    rwbi->daq_dma_enable(enabled);
+  } else {
+    std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot "
+                 "activate DMA.\n"
+              << std::endl;
+  }
+#endif
 }
