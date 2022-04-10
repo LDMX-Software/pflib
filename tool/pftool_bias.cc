@@ -35,6 +35,9 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
     pflib::Bias bias=pft->hcal.bias(iboard);
     bias.initialize();
   }
+  if (cmd=="SET_ALL") {
+      set_bias_on_all_connectors(pft);
+  }
   if (cmd=="SET") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     static int led_sipm=0;

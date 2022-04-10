@@ -148,6 +148,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   //  pfMenu::Line("STATUS","Read the bias line settings", &bias ),
     pfMenu::Line("INIT","Initialize a board", &bias ),
     pfMenu::Line("SET","Set a specific bias line setting", &bias ),
+    pfMenu::Line("SET_ALL", "Set a specific bias line setting to every connector", &bias),
     pfMenu::Line("LOAD","Load bias values from file", &bias ),
     pfMenu::Line("QUIT","Back to top menu"),
   });
