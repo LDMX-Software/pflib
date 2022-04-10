@@ -136,6 +136,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("POKE_REG","Change a single register value", &roc ),
      pfMenu::Line("POKE_PARAM","Change a single parameter value", &roc ),
      pfMenu::Line("POKE","Alias for POKE_PARAM", &roc ),
+     pfMenu::Line("POKE_ALL_ROCHALVES", "Like POKE_PARAM, but applies parameter to both halves of all ROCs", &roc),
+     pfMenu::Line("POKE_ALL_CHANNELS", "Like POKE_PARAM, but applies parameter to all channels of the all ROCs", &roc),
      pfMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &roc ),
      pfMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &roc ),
      pfMenu::Line("LOAD","Alias for LOAD_PARAM", &roc ),

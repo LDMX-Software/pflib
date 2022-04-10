@@ -100,6 +100,21 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     roc.applyParameter(page, parameter, val);
     return;
   }
+  if (cmd == "POKE_ALL_CHANNELS") {
+    parameter = BaseMenu::readline("Parameter: ", parameter);
+    const int value {BaseMenu::readline_int("New value: ")};
+    poke_all_channels(pft, parameter, value);
+    return;
+  }
+  if (cmd == "POKE_ALL_ROCHALVES") {
+    const std::string page_template = BaseMenu::readline(
+      "Page template: (No 0/1 after last \"_\")", "Global_Analog_");
+    parameter = BaseMenu::readline("Parameter: ", parameter);
+    const int value {BaseMenu::readline_int("New value: ")};
+    poke_all_rochalves(pft, page_template, parameter, value);
+    return;
+  }
+
   if (cmd=="LOAD_REG") {
     std::cout <<
       "\n"
