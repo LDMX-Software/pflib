@@ -59,6 +59,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     csv_out <<valuename << ",ILINK,CHAN,EVENT";
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
     csv_out<<std::endl;
 
     if (cmd=="SCANCHARGE") {
@@ -153,6 +154,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
             csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
             for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
             for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
+            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
 
             csv_out<<std::endl;
             /*
