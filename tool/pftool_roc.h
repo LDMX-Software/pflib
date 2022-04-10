@@ -18,6 +18,9 @@ extern int iroc;
  */
 void roc_render( PolarfireTarget* pft );
 
+void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
+                        const std::string& parameter, const int value);
+
 /**
  * ROC menu commands
  *

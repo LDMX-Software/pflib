@@ -4,6 +4,21 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
+void poke_all_rochalves(PolarfireTarget* pft,
+                        const std::string& page_template,
+                        const std::string& parameter,
+                        const int value) {
+
+  const int default_num_rocs {3};
+  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
+                                             default_num_rocs)};
+  // Avoid shadowing iroc
+  for (int roc_number {0}; roc_number < num_rocs; ++roc_number) {
+    pflib::ROC roc {pft->hcal.roc(roc_number)};
+    roc.applyParameter(page_template + std::to_string(0), parameter, value);
+    roc.applyParameter(page_template + std::to_string(1), parameter, value);
+  }
+}
 
 void roc( const std::string& cmd, PolarfireTarget* pft )
 {
@@ -63,8 +78,8 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
     std::string param = BaseMenu::readline("Parameter: ");
     int val = BaseMenu::readline_int("New value: ");
-
     roc.applyParameter(page, param, val);
+    return;
   }
   if (cmd=="LOAD_REG") {
     std::cout <<
