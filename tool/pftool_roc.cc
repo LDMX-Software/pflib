@@ -40,6 +40,7 @@ void poke_all_rochalves(PolarfireTarget* pft,
 
 void roc( const std::string& cmd, PolarfireTarget* pft )
 {
+  static std::string parameter;
   if (cmd=="HARDRESET") {
     pft->hcal.hardResetROCs();
   }
@@ -94,9 +95,9 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd=="POKE"||cmd=="POKE_PARAM") {
     std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
-    std::string param = BaseMenu::readline("Parameter: ");
+    parameter = BaseMenu::readline("Parameter: ", parameter);
     int val = BaseMenu::readline_int("New value: ");
-    roc.applyParameter(page, param, val);
+    roc.applyParameter(page, parameter, val);
     return;
   }
   if (cmd=="LOAD_REG") {
