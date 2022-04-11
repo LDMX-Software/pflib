@@ -44,6 +44,9 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
+    int len{};
+    int offset{};
+    pft->backend->fc_get_setup_calib(len,offset);
     static const int NUM_ELINK_CHAN=36;
 
     steps=BaseMenu::readline_int("Number of steps?",steps);
@@ -52,7 +55,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
     char fname_def_format[1024];
-    sprintf(fname_def_format,"scan_%s_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str());
+    sprintf(fname_def_format,"scan_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str(), offset);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
     
