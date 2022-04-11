@@ -2,12 +2,12 @@
 
 namespace {
 
-void print_cmd(const std::string& cmd, int* p) {
+void print_cmd(const std::string& cmd, Menu<int>::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
   std::cout << " Ran command " << cmd << " with " << *p << std::endl;
 }
 
-void increment(int* p) {
+void increment(Menu<int>::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
   std::cout << " " << *p << " -> ";
   (*p)++;
