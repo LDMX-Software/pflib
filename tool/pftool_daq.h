@@ -16,6 +16,13 @@ extern std::string last_run_file;
 extern std::string start_dma_cmd;
 extern std::string stop_dma_cmd;
 
+void daq_run(pflib::PolarfireTarget* pft,
+             const std::string& cmd // PEDESTAL, CHARGE, or no trigger
+      , int run // not used in this implementation of daq
+      , int nevents // number of events to collect
+      , int rate // not used in this implementation of daq
+      , const std::string& fname // file to write to (appended)
+);
 /**
  * Print data words from raw binary file and return them
  * @return vector of 32-bit data words in file
