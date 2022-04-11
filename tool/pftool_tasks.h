@@ -5,6 +5,10 @@
 #include <fstream>
 #include "Menu.h"
 #include "pflib/decoding/SuperPacket.h"
+#include "pftool_bias.h"
+#include "pftool_roc.h"
+#include "pftool_fastcontrol.h"
+#include "pftool_daq.h"
 /**
  * TASK menu commands
  *
@@ -17,4 +21,7 @@
  */
 
 void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
+
+void beamprep(pflib::PolarfireTarget* pft);
+
 #endif /* PFTOOL_TASKS_H */

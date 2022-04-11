@@ -19,7 +19,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     pft->hcal.fc().getMultisampleSetup(multi,nextra);
     if (multi) nsamples=nextra+1;
   }
-  
+
+  if (cmd == "BEAMPREP") {
+    beamprep(pft);
+    return;
+  }
   if (cmd=="RESET_POWERUP") {
     pft->hcal.fc().resetTransmitter();
     pft->hcal.resyncLoadROC();
@@ -193,5 +197,54 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
       pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 0);
     }
       ////////////////////////////////////////////////////////////
+  }
+}
+
+void beamprep(pflib::PolarfireTarget *pft) {
+  if (BaseMenu::readline_bool("Load the default beam config? (Recommended)",
+                              true)) {
+    // -1 to load parameters on all ROCs
+    load_parameters(pft, -1);
+  }
+  static int num_boards{3};
+  num_boards = BaseMenu::readline_int(
+      "How many boards are connected to this DPM?", num_boards);
+  if (!BaseMenu::readline_bool("Skip customizing? (Recommended)", true)) {
+    static int SiPM_bias{3784};
+    SiPM_bias = BaseMenu::readline_int("SiPM Bias", SiPM_bias);
+    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+
+    static int gain_conv{4};
+    gain_conv = BaseMenu::readline_int("Gain conv", gain_conv);
+    poke_all_rochalves(pft, "Global_Analog_", "gain_conv", gain_conv, num_boards);
+
+    static int l1offset{85};
+    l1offset = BaseMenu::readline_int("L1OFFSET", l1offset);
+    poke_all_rochalves(pft, "Digital_Half_", "L1OFFSET", l1offset, num_boards);
+  }
+  if (BaseMenu::readline_bool("Disable LED bias? (Recommended)", true)) {
+    set_bias_on_all_connectors(pft, num_boards, true, 0);
+  }
+  std::cout << "Fastcontrol settings\n";
+  veto_setup(pft);
+  std::cout << "DAQ settings\n";
+  setup_dma(pft);
+
+  if (BaseMenu::readline_bool("Setup board specific parameters manually?",
+                              true)) {
+    std::cout << "Setting board specific parameters...\n"
+              << " this should probably be removed or at least not used once "
+                 "we have board specific yaml files\n";
+    static int tot_vref_value{432};
+    tot_vref_value = BaseMenu::readline_int("TOT_VREF: ", tot_vref_value);
+    poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_vref_value, num_boards);
+    static int toa_vref_value{112};
+    toa_vref_value = BaseMenu::readline_int("TOA_VREF: ", toa_vref_value);
+    poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOA_VREF", toa_vref_value, num_boards);
+  }
+  if (BaseMenu::readline_bool("Dump current config?", false)) {
+    for (int roc_number {0}; roc_number < num_boards; ++roc_number) {
+      dump_rocconfig(pft, roc_number);
+    }
   }
 }

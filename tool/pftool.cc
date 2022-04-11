@@ -223,6 +223,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", &tasks),
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
+    pfMenu::Line("BEAMPREP", "Run settings and optional configuration for taking beamdata", &tasks),
     pfMenu::Line("QUIT","Back to top menu")
   });
 
