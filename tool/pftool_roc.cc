@@ -13,7 +13,6 @@ void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fn
   } else {
     pft->loadROCParameters(iroc, fname, prepend_defaults);
   }
-
 }
 
 void load_parameters(PolarfireTarget* pft, const int iroc) {
@@ -170,16 +169,21 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     pft->loadDefaultROCParameters();
   }
   if (cmd=="DUMP") {
-    std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
-
-    time_t t = time(NULL)
-;    struct tm *tm = localtime(&t);
-
-    char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
-
-    std::string fname = BaseMenu::readline("Filename: ", fname_def);
-	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
-    pft->dumpSettings(iroc,fname,decompile);
+    dump_rocconfig(pft, iroc);
   }
+}
+
+void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
+  std::string fname_def_format =
+      "hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
+
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+
+  char fname_def[64];
+  strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+
+  std::string fname = BaseMenu::readline("Filename: ", fname_def);
+  bool decompile = BaseMenu::readline_bool("Decompile register values? ", true);
+  pft->dumpSettings(iroc, fname, decompile);
 }

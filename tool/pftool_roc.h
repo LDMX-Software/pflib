@@ -23,6 +23,8 @@ void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
 void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
                         const std::string& parameter, const int value, int num_rocs = -1);
 
+
+void dump_rocconfig(PolarfireTarget* pft, const int iroc);
 void load_parameters(PolarfireTarget* pft, const int iroc);
 
 void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
