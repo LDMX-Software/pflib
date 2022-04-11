@@ -52,36 +52,36 @@ target_include_directories(pflib PUBLIC
 target_link_libraries(pflib PUBLIC yaml-cpp)
 
 add_executable(pftool
-  tool/pftool.cc
-  tool/Menu.cc
-  tool/Rcfile.cc
-  tool/pftool_tasks.cc
-  tool/pftool_roc.cc
-  tool/pftool_daq.cc
-  tool/pftool_expert.cc
-  tool/pftool_elinks.cc
-  tool/pftool_fastcontrol.cc
-  tool/pftool_bias.cc)
+  app/tool/pftool.cc
+  app/tool/Menu.cc
+  app/tool/Rcfile.cc
+  app/tool/pftool_tasks.cc
+  app/tool/pftool_roc.cc
+  app/tool/pftool_daq.cc
+  app/tool/pftool_expert.cc
+  app/tool/pftool_elinks.cc
+  app/tool/pftool_fastcontrol.cc
+  app/tool/pftool_bias.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu tool/test_menu.cxx tool/Menu.cc)
+add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
-add_executable(pfdecoder tool/pfdecoder.cc)
+add_executable(pfdecoder app/pfdecoder.cc)
 
-add_executable(pfcompile tool/pfcompile.cxx)
+add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
-add_executable(pfdecompile tool/pfdecompile.cxx)
+add_executable(pfdecompile app/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
 
-add_executable(pfdefaults tool/pfdefaults.cxx)
+add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 add_executable(configure-detector 
-  tool/detector/DetectorConfiguration.cxx 
-  tool/detector/configure-detector.cxx)
+  app/detector/DetectorConfiguration.cxx 
+  app/detector/configure-detector.cxx)
 target_link_libraries(configure-detector PRIVATE pflib)
 # Now determine which method of interaction to use for communicating with the polarfire
 #   - if neither are available, fatal cmake error - this library is useless without one

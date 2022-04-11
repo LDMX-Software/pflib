@@ -93,6 +93,7 @@ uHAL | 2.8.1
 - docs : documentation generation and helpful PDF manuals
 - include : header files
 - src : implementation files
-- tool : executables and supporting source files
+- app : executables and supporting source files
+- target : code that should be present and running on the polarfire target host
 - uhal : XML files used for configuring uHAL connection
 
