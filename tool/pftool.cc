@@ -304,6 +304,100 @@ static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
           n_good_idles[ilink], n_bad_idles[ilink], bg_idles);
     }
   }
+  if (cmd=="ALIGN") {
+    nevents=10;
+
+    int delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+
+    int nsamples=1;
+    {
+      bool multi;
+      int nextra;
+      pft->hcal.fc().getMultisampleSetup(multi,nextra);
+      if (multi) nsamples=nextra+1;
+    }
+ 
+    int bitslip_candidate[8] = {0,0,0,0,0,0,0,0}; 
+    int delay_candidate[8] = {0,0,0,0,0,0,0,0}; 
+    int record_bx[8] = {0,0,0,0,0,0,0,0}; 
+    int record_idle[8] = {0,0,0,0,0,0,0,0}; 
+ 
+    pft->prepareNewRun();
+
+    for(int bitslip = 0; bitslip <= 7; bitslip += 1){
+      std::cout << "Scanning bitslip: " << bitslip << std::endl;
+      for(int delay = 0; delay <= 128; delay += delay_step){
+        for(int jlink = 0; jlink < 8; jlink++){
+          elinks.setDelay(jlink,delay);
+          elinks.setBitslipAuto(jlink,false);
+          elinks.setBitslip(jlink,bitslip);
+        }
+        int n_good_bxheaders[8] = {0,0,0,0,0,0,0,0};
+        int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
+        int n_good_idles[8] = {0,0,0,0,0,0,0,0};
+        int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
+        for (int ievt{0}; ievt < nevents; ievt++) {
+          pft->backend->fc_sendL1A();
+          std::vector<uint32_t> event_raw = pft->daqReadEvent();
+          pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
+          for (int s{0}; s < nsamples; s++) {
+            for(int jlink = 0; jlink < 8; jlink++){
+              auto packet = event.sample(s).roc(jlink);
+              if (packet.length() > 2) {
+                if (event.sample(s).roc(jlink).good_bxheader()) n_good_bxheaders[jlink]++;
+                else n_bad_bxheaders[jlink]++;
+                if (event.sample(s).roc(jlink).good_idle()) n_good_idles[jlink]++;
+                else n_bad_idles[jlink]++;
+              }
+            }
+          }
+        }
+        for(int i = 0; i < 8; i++){
+          if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
+            record_bx[i] = n_good_bxheaders[i];
+            record_idle[i] = n_good_idles[i];
+            bitslip_candidate[i] = bitslip;
+            delay_candidate[i] = delay;
+          }
+        }
+        
+        /*
+        for(int jlink = 0; jlink < 8; jlink++){
+          std::cout << n_good_bxheaders[jlink] << ":" << n_good_idles[jlink] << "  ";
+        }
+        std::cout << std::endl;
+        */
+      }
+    }
+    std::cout << "Candidates" << std::endl;
+    for(int i = 0; i < 8; i++){
+      std::cout << "Link " << i << std::endl;
+      std::cout << "Bitslip: " << bitslip_candidate[i] << "   Delay: " << delay_candidate[i] << std::endl;
+
+      elinks.setDelay(i,delay_candidate[i]);
+      elinks.setBitslipAuto(i,false);
+      elinks.setBitslip(i,bitslip_candidate[i]);
+
+      float bg_bxheaders = 1.;
+      int bad_bxheaders = nsamples*nevents-record_bx[i];
+      if (record_bx[i]>0)
+        bg_bxheaders = float(bad_bxheaders)/
+          (record_bx[i]+bad_bxheaders);
+      std::cout << "Percentage of bad BX headers: " << bg_bxheaders*100. << std::endl;
+      if(bg_bxheaders > 0.1){
+        std::cout << "Consider a PLL hard_reset" << std::endl;
+      }
+      float bg_idles = 1.;
+      int bad_idles = nsamples*nevents-record_idle[i];
+      if (record_idle[i]>0)
+        bg_idles = float(bad_idles)/
+          (record_idle[i]+bad_idles);
+      std::cout << "Percentage of bad idles: " << bg_idles*100. << std::endl;
+      if(bg_idles > 0.1){
+        std::cout << "Consider a PLL hard_reset" << std::endl;
+      }
+    } 
+  }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
     int bitslip=BaseMenu::readline_int("Bitslip value (-1 for auto): ",elinks.getBitslip(ilink));
@@ -1413,6 +1507,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
     pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
+    pfMenu::Line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", &elinks),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),
     pfMenu::Line("SCAN", "Scan on an elink",  &elinks ),
     pfMenu::Line("DELAY", "Set the delay on an elink", &elinks),
