@@ -374,11 +374,12 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this line to use when running
    * @param[in] desc short description to print with menu
    * @param[in] ex pointer to menu that we should append
-   * @return pointer to us
+   * @return pointer to the newly created submenu
    */
-  Menu* submenu(const char* name, const char* desc, Menu* ex) {
-    lines_.emplace_back(name,desc,ex);
-    return this;
+  Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
+    auto sb = new Menu(f);
+    lines_.emplace_back(name,desc,sb); // Line takes ownership
+    return sb;
   }
 
   /**
@@ -532,9 +533,7 @@ class Menu : public BaseMenu {
    */
   static Menu* menu(const char* name, const char* desc, 
       Menu* parent, RenderFuncType render_func = 0) {
-    auto sb = new Menu<T,H>(render_func);
-    parent->submenu(name,desc,sb); // Line takes ownership
-    return sb;
+    return parent->submenu(name,desc,render_func);
   }
   
   /**
