@@ -5,8 +5,22 @@ void roc_render( PolarfireTarget* pft ) {
 }
 
 
-void roc( const std::string& cmd, PolarfireTarget* pft )
-{
+void roc( const std::string& cmd, PolarfireTarget* pft ) {
+  // generate lists of page names and param names for those pages
+  // for tab completion
+  static std::vector<std::string> page_names;
+  static std::map<std::string,std::vector<std::string>> param_names;
+  if (page_names.empty()) {
+    // only need to do this once 
+    auto defs = pflib::defaults();
+    for (const auto& page : defs) {
+      page_names.push_back(page.first);
+      for (const auto& param : page.second) {
+        param_names[page.first].push_back(param.first);
+      }
+    }
+  }
+
   if (cmd=="HARDRESET") {
     pft->hcal.hardResetROCs();
   }
@@ -60,8 +74,11 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     roc.setValue(page,entry,value);
   }
   if (cmd=="POKE"||cmd=="POKE_PARAM") {
-    std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
-    std::string param = BaseMenu::readline("Parameter: ");
+    std::string page = BaseMenu::readline("Page: ", page_names);
+    if (param_names.find(page) == param_names.end()) {
+      PFEXCEPTION_RAISE("BadPage","Page name "+page+" not recognized.");
+    }
+    std::string param = BaseMenu::readline("Parameter: ", param_names.at(page));
     int val = BaseMenu::readline_int("New value: ");
 
     roc.applyParameter(page, param, val);
