@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.0-5-gef160e7</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.0-30-g68ca43d</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -111,7 +111,7 @@ $(document).ready(function(){initNavTree('Bias_8h_source.html',''); initResizabl
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="keyword">static</span> <span class="keyword">const</span> uint8_t REFn;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">static</span> <span class="keyword">const</span> uint8_t POWERn;</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <a class="code hl_function" href="classpflib_1_1MAX5825.html#a44f96659635f6446ddc40f94058deefe">MAX5825</a>(<a class="code hl_class" href="classpflib_1_1I2C.html">I2C</a>&amp; <a class="code hl_function" href="pftool_8cc.html#a7a2251db848f7df7d28c30f01e77476b">i2c</a>, uint8_t max_addr, <span class="keywordtype">int</span> bus = 4);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <a class="code hl_function" href="classpflib_1_1MAX5825.html#a44f96659635f6446ddc40f94058deefe">MAX5825</a>(<a class="code hl_class" href="classpflib_1_1I2C.html">I2C</a>&amp; i2c, uint8_t max_addr, <span class="keywordtype">int</span> bus = 4);</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;uint8_t&gt;</a> <a class="code hl_function" href="classpflib_1_1MAX5825.html#a1a7377bfa6af1bca1e760de4f9f02acf">get</a>(uint8_t cmd, <span class="keywordtype">int</span> n_return_bytes = 2);</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
@@ -137,7 +137,7 @@ $(document).ready(function(){initNavTree('Bias_8h_source.html',''); initResizabl
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keyword">static</span> <span class="keyword">const</span> uint8_t ADDR_SIPM_0;</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keyword">static</span> <span class="keyword">const</span> uint8_t ADDR_SIPM_1;</div>
 <div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <a class="code hl_function" href="classpflib_1_1Bias.html#a3ad6e137e8192c4987fa68aaaa890100">Bias</a>(<a class="code hl_class" href="classpflib_1_1I2C.html">I2C</a>&amp; <a class="code hl_function" href="pftool_8cc.html#a7a2251db848f7df7d28c30f01e77476b">i2c</a>, <span class="keywordtype">int</span> bus = 4);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <a class="code hl_function" href="classpflib_1_1Bias.html#a3ad6e137e8192c4987fa68aaaa890100">Bias</a>(<a class="code hl_class" href="classpflib_1_1I2C.html">I2C</a>&amp; i2c, <span class="keywordtype">int</span> bus = 4);</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpflib_1_1Bias.html#ab3becd4e4b79818221c74a04467cbc12">initialize</a>();</div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  </div>
@@ -179,7 +179,6 @@ $(document).ready(function(){initNavTree('Bias_8h_source.html',''); initResizabl
 <div class="ttc" id="aclasspflib_1_1MAX5825_html_ab7f6c2239d6ced130f33bfcb3bcf4cd8"><div class="ttname"><a href="classpflib_1_1MAX5825.html#ab7f6c2239d6ced130f33bfcb3bcf4cd8">pflib::MAX5825::bus_</a></div><div class="ttdeci">int bus_</div><div class="ttdoc">our bus</div><div class="ttdef"><b>Definition:</b> Bias.h:118</div></div>
 <div class="ttc" id="aclasspflib_1_1MAX5825_html_ae87b699ff1742e1d3aa3e462fcae9462"><div class="ttname"><a href="classpflib_1_1MAX5825.html#ae87b699ff1742e1d3aa3e462fcae9462">pflib::MAX5825::getByDAC</a></div><div class="ttdeci">std::vector&lt; uint16_t &gt; getByDAC(uint8_t i_dac, uint8_t cmd)</div><div class="ttdoc">get by DAC index</div><div class="ttdef"><b>Definition:</b> Bias.cxx:66</div></div>
 <div class="ttc" id="anamespacepflib_html"><div class="ttname"><a href="namespacepflib.html">pflib</a></div><div class="ttdoc">Polarfire Interaction Library.</div><div class="ttdef"><b>Definition:</b> Backend.h:8</div></div>
-<div class="ttc" id="apftool_8cc_html_a7a2251db848f7df7d28c30f01e77476b"><div class="ttname"><a href="pftool_8cc.html#a7a2251db848f7df7d28c30f01e77476b">i2c</a></div><div class="ttdeci">static void i2c(const std::string &amp;cmd, PolarfireTarget *pft)</div><div class="ttdoc">Direct I2C commands.</div><div class="ttdef"><b>Definition:</b> pftool.cc:121</div></div>
 <div class="ttc" id="avector_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

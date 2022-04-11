@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.0-5-gef160e7</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.0-30-g68ca43d</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -118,9 +118,9 @@ $(document).ready(function(){initNavTree('PolarfirePacket_8h_source.html',''); i
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  </div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordtype">int</span> linkrid(<span class="keywordtype">int</span> <a class="code hl_function" href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a>)<span class="keyword"> const </span>{ <span class="keywordflow">if</span> (length_&lt;3) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[2]&gt;&gt;(<a class="code hl_function" href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a>*8+7))&amp;0x1;}</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <a class="code hl_class" href="classpflib_1_1decoding_1_1RocPacket.html">RocPacket</a> roc(<span class="keywordtype">int</span> <a class="code hl_variable" href="pftool_8cc.html#a37446115b7d33d8d98b1fdd813542fd9">iroc</a>) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <a class="code hl_class" href="classpflib_1_1decoding_1_1RocPacket.html">RocPacket</a> roc(<span class="keywordtype">int</span> iroc) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">int</span> offset_to_elink(<span class="keywordtype">int</span> <a class="code hl_variable" href="pftool_8cc.html#a37446115b7d33d8d98b1fdd813542fd9">iroc</a>) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">int</span> offset_to_elink(<span class="keywordtype">int</span> iroc) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  </div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="keyword">const</span> uint32_t* data_;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keywordtype">int</span> length_;</div>
@@ -134,8 +134,7 @@ $(document).ready(function(){initNavTree('PolarfirePacket_8h_source.html',''); i
 <div class="ttc" id="aclasspflib_1_1decoding_1_1PolarfirePacket_html"><div class="ttname"><a href="classpflib_1_1decoding_1_1PolarfirePacket.html">pflib::decoding::PolarfirePacket</a></div><div class="ttdef"><b>Definition:</b> PolarfirePacket.h:12</div></div>
 <div class="ttc" id="aclasspflib_1_1decoding_1_1RocPacket_html"><div class="ttname"><a href="classpflib_1_1decoding_1_1RocPacket.html">pflib::decoding::RocPacket</a></div><div class="ttdef"><b>Definition:</b> RocPacket.h:12</div></div>
 <div class="ttc" id="anamespacepflib_html"><div class="ttname"><a href="namespacepflib.html">pflib</a></div><div class="ttdoc">Polarfire Interaction Library.</div><div class="ttdef"><b>Definition:</b> Backend.h:8</div></div>
-<div class="ttc" id="apftool_8cc_html_a37446115b7d33d8d98b1fdd813542fd9"><div class="ttname"><a href="pftool_8cc.html#a37446115b7d33d8d98b1fdd813542fd9">iroc</a></div><div class="ttdeci">static int iroc</div><div class="ttdoc">ROC currently being interacted with by user.</div><div class="ttdef"><b>Definition:</b> pftool.cc:442</div></div>
-<div class="ttc" id="apftool_8cc_html_aff7e805ef88f957e253a1221f3b06b63"><div class="ttname"><a href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a></div><div class="ttdeci">static void link(const std::string &amp;cmd, PolarfireTarget *pft)</div><div class="ttdoc">LINK menu commands.</div><div class="ttdef"><b>Definition:</b> pftool.cc:191</div></div>
+<div class="ttc" id="apftool_8cc_html_aff7e805ef88f957e253a1221f3b06b63"><div class="ttname"><a href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a></div><div class="ttdeci">static void link(const std::string &amp;cmd, PolarfireTarget *pft)</div><div class="ttdoc">LINK menu commands.</div><div class="ttdef"><b>Definition:</b> pftool.cc:40</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

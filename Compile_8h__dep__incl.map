@@ -1,4 +1,6 @@
 <map id="include/pflib/Compile.h" name="include/pflib/Compile.h">
 <area shape="rect" id="node1" title="Definition of compiling and decompiling functions between page numbers, register numbers,..." alt="" coords="5,5,176,32"/>
-<area shape="rect" id="node2" href="$pftool_8cc.html" title="File defining the pftool menus and their commands." alt="" coords="37,80,144,107"/>
+<area shape="rect" id="node2" href="$pftool_8h_source.html" title=" " alt="" coords="41,155,141,181"/>
+<area shape="rect" id="node4" href="$pftool__roc_8h_source.html" title=" " alt="" coords="78,80,205,107"/>
+<area shape="rect" id="node3" href="$pftool_8cc.html" title="File defining the pftool menus and their commands." alt="" coords="37,229,144,256"/>
 </map>

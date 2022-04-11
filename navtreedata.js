@@ -106,8 +106,7 @@ var NAVTREE =
       [ "File List", "files.html", "files_dup" ],
       [ "File Members", "globals.html", [
         [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ],
-        [ "Variables", "globals_vars.html", null ]
+        [ "Functions", "globals_func.html", null ]
       ] ]
     ] ]
   ] ]
@@ -120,7 +119,7 @@ var NAVTREEINDEX =
 "classpflib_1_1uhal_1_1uhalWishboneInterface.html#abda9b9a6f47a2e584aa8b245bb62c9b2",
 "cpp/io/manip/showpoint.html",
 "cpp/string/wide/wcstoul.html",
-"structpflib_1_1PolarfireTarget.html#a74c9f5aa5933c0f239ae270093779259"
+"structpflib_1_1PolarfireTarget.html#a8bcfca3df51d44cc14b2891a4cf13471"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
