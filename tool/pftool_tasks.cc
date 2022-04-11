@@ -35,7 +35,8 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   if (cmd=="SCANCHARGE") {
     valuename="CALIB_DAC";
     pagetemplate="REFERENCE_VOLTAGE_%d";
-    printf("CALIB_DAC valid range is 0...4095\n");
+    /// HGCROCv2 only has 11 bit dac
+    printf("CALIB_DAC valid range is 0...2047\n");
     low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
     high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
     bool is_high_range=BaseMenu::readline_bool("Use HighRange? ",false);
