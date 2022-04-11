@@ -1,5 +1,7 @@
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
+/**
+ * @file pftool_expert.cc
+ */
+#include "pftool.h"
 using pflib::PolarfireTarget;
 
 /**
@@ -174,9 +176,9 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
 
 namespace {
 
-auto expert = menu<PolarfireTarget>::("EXPERT","expert functions");
+auto expert = pftool::menu("EXPERT","expert functions");
 
-auto olink = menu<PolarfireTarget>::("OLINK","Optical link functions",expert)
+auto olink = pftool::menu("OLINK","Optical link functions",expert)
   /*
   ->line("STATUS","dump link status",link)
   ->line("CONFIG","setup link",link)
@@ -184,7 +186,7 @@ auto olink = menu<PolarfireTarget>::("OLINK","Optical link functions",expert)
   */
 ;
 
-auto wb = menu<PolarfireTarget>::("WB","Raw wishbone interactions",expert)
+auto mwb = pftool::menu("WB","Raw wishbone interactions",expert)
   ->line("RESET","enable/disable (toggle)", wb)
   ->line("READ", "read from an address", wb)
   ->line("BLOCKREAD", "read several words starting from an address", wb)
@@ -192,7 +194,7 @@ auto wb = menu<PolarfireTarget>::("WB","Raw wishbone interactions",expert)
   ->line("STATUS", "wishbone error counters", wb)
 ;
 
-auto i2c = menu<PolarfireTarget>::("I2C", "Access to I2C core",expert)
+auto mi2c = pftool::menu("I2C", "Access to I2C core",expert)
   ->line("BUS","pick the I2C bus to use", i2c)
   ->line("READ", "read from an address", i2c)
   ->line("WRITE", "write to an address", i2c)

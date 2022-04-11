@@ -1,32 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <iomanip>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string>
-#include <exception>
-#include "pflib/PolarfireTarget.h"
-#include "pflib/Compile.h" // for parameter listing
-#ifdef PFTOOL_ROGUE
-#include "pflib/rogue/RogueWishboneInterface.h"
-#endif
-#ifdef PFTOOL_UHAL
-#include "pflib/uhal/uhalWishboneInterface.h"
-#endif
-#include "Menu.h"
-#include "Rcfile.h"
-
 /**
  * @file pftool.cc File defining the pftool menus and their commands.
  *
  * The commands are written into functions corresponding to the menu's name.
  */
+#include "pftool.h"
 
 /**
  * pull the target of our menu into this source file to reduce code
@@ -50,7 +27,7 @@ static void status( PolarfireTarget* pft ) {
 }
 
 namespace {
-auto r = root<PolarfireTarget>()
+auto r = pftool::root()
   ->line("STATUS","print status of polarfire",status)
 ;
 }

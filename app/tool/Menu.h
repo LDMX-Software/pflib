@@ -493,6 +493,63 @@ class Menu : public BaseMenu {
     } while (theMatch == 0 or not theMatch->empty());
   }
 
+  /**
+   * Construct a new menu with the input parent and rendering
+   * 
+   * After using submenu to attach ourselves to the input parent,
+   * we return a pointer to the newly constructed menu.
+   * This is to allow chaining during the declaration of a menu,
+   * so that the declaration of a menu has a form similar to what
+   * the menu looks like at run time.
+   *
+   * A simple example (actually using the shorter alias) is below.
+   * `one_func` and `two_func` are both functions accessible by this
+   * piece of code (either via a header or in this translation unit)
+   * and are `void` functions with take a handle to the target type.
+   * `color_func` is similarly accessible but it takes a string and 
+   * the target handle. The string will be the command that is selected
+   * at runtime (e.g. "RED" if it is typed by the user)
+   * ```cpp
+   * namespace {
+   * auto sb = menu<T>("SB","example submenu")
+   *   .line("ONE", "one command in this menu", one_func)
+   *   .line("TWO", "two command in this menu", two_func)
+   *   .line("RED", "can have multiple lines directed to the same func", color_func)
+   *   .line("BLUE", "see?" , color_func)
+   * ;
+   * }
+   * ```
+   * The anonymous namespace is used to force the variable within it to
+   * be static and therefore created at library linking time. 
+   * The dummy variable is (unfortunately) necessary so that the sub
+   * menu can maintain existence throughout the runtime of the program.
+   *
+   * @param[in] name Name of this sub menu for selection
+   * @param[in] desc description of this sub menu
+   * @param[in] parent pointer to parent menu
+   * @param[in] render_func function to use to render this sub menu
+   * @return pointer to newly created menu
+   */
+  static Menu* menu(const char* name, const char* desc, 
+      Menu* parent, RenderFuncType render_func = 0) {
+    auto sb = new Menu<T,H>(render_func);
+    parent->submenu(name,desc,sb); // Line takes ownership
+    return sb;
+  }
+  
+  /**
+   * Construct a new menu with the root menu as its parent
+   * @see menu for a more full description of how to use this
+   * @param[in] name Name of this sub menu for selection
+   * @param[in] desc description of this sub menu
+   * @param[in] render_func function to use to render this sub menu
+   * @return pointer to newly created menu
+   */
+  static Menu* menu(const char* name, const char* desc, 
+      RenderFuncType render_func = 0) {
+    return menu(name,desc,root(),render_func);
+  }
+
  private:
   /**
    * Provide the list of command options
@@ -512,77 +569,5 @@ class Menu : public BaseMenu {
   /// function pointer to render the menu prompt
   RenderFuncType render_func_;
 };
-
-/**
- * Retrieve the root menu for the input target type
- * @see Menu::root for how the root menu is constructed
- * @return pointer to menu
- */
-template<typename T, typename H = T*>
-Menu<T,H>* root() {
-  return Menu<T,H>::root();
-}
-
-/**
- * Construct a new menu with the input parent and rendering
- * 
- * After using submenu to attach ourselves to the input parent,
- * we return a pointer to the newly constructed menu.
- * This is to allow chaining during the declaration of a menu,
- * so that the declaration of a menu has a form similar to what
- * the menu looks like at run time.
- *
- * A simple example (actually using the shorter alias) is below.
- * `one_func` and `two_func` are both functions accessible by this
- * piece of code (either via a header or in this translation unit)
- * and are `void` functions with take a handle to the target type.
- * `color_func` is similarly accessible but it takes a string and 
- * the target handle. The string will be the command that is selected
- * at runtime (e.g. "RED" if it is typed by the user)
- * ```cpp
- * namespace {
- * auto sb = menu<T>("SB","example submenu")
- *   .line("ONE", "one command in this menu", one_func)
- *   .line("TWO", "two command in this menu", two_func)
- *   .line("RED", "can have multiple lines directed to the same func", color_func)
- *   .line("BLUE", "see?" , color_func)
- * ;
- * }
- * ```
- * The anonymous namespace is used to force the variable within it to
- * be static and therefore created at library linking time. 
- * The dummy variable is (unfortunately) necessary so that the sub
- * menu can maintain existence throughout the runtime of the program.
- *
- * @param[in] name Name of this sub menu for selection
- * @param[in] desc description of this sub menu
- * @param[in] parent pointer to parent menu
- * @param[in] render_func function to use to render this sub menu
- * @return pointer to newly created menu
- */
-template<typename T, typename H = T*>
-Menu<T,H>* menu(const char* name, const char* desc, 
-    Menu<T,H>* parent,
-    typename Menu<T,H>::RenderFuncType render_func = 0
-    ) {
-  auto sb = new Menu<T,H>(render_func);
-  parent->submenu(name,desc,sb); // Line takes ownership
-  return sb;
-}
-
-/**
- * Construct a new menu with the root menu as its parent
- * @see menu for a more full description of how to use this
- * @param[in] name Name of this sub menu for selection
- * @param[in] desc description of this sub menu
- * @param[in] render_func function to use to render this sub menu
- * @return pointer to newly created menu
- */
-template<typename T, typename H = T*>
-Menu<T,H>* menu(const char* name, const char* desc, 
-    typename Menu<T,H>::RenderFuncType render_func = 0
-    ) {
-  return menu<T,H>(name,desc,root<T,H>(),render_func);
-}
 
 #endif  // PFLIB_TOOL_MENU_H

@@ -1,10 +1,7 @@
 /**
  * @file pftool_roc.cc
  */
-
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
-#include "pflib/Compile.h"
+#include "pftool.h"
 using pflib::PolarfireTarget;
 
 /**
@@ -159,7 +156,7 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 namespace {
-auto roc = menu<PolarfireTarget>("ROC","configuration of chip itself", roc_render)
+auto mroc = pftool::menu("ROC","configuration of chip itself", roc_render)
    ->line("HARDRESET","Hard reset to all rocs", roc)
    ->line("SOFTRESET","Soft reset to all rocs", roc)
    ->line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", roc)

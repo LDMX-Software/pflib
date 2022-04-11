@@ -1,6 +1,7 @@
-#include "pflib/PolarfireTarget.h"
-#include <fstream>
-#include "Menu.h"
+/**
+ * @file pftool_tasks.cc
+ */
+#include "pftool.h"
 #include "pflib/decoding/SuperPacket.h"
 
 /**
@@ -208,7 +209,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft ) {
 }
 
 namespace {
-auto tasks = menu<PolarfireTarget>("TASKS","various high-level tasks like scans")
+auto mtasks = pftool::menu("TASKS","various high-level tasks like scans")
   ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
   ->line("SCANCHARGE","Charge scan over all active channels", tasks)
   ->line("DELAYSCAN","Charge injection delay scan", tasks )

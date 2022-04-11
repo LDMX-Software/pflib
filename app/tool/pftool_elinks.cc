@@ -1,8 +1,7 @@
 /**
  * @file pftool_elinks.cc
  */
-#include "pflib/PolarfireTarget.h"
-#include "Menu.h"
+#include "pftool.h"
 #include "pflib/decoding/SuperPacket.h"
 
 using pflib::PolarfireTarget;
@@ -235,7 +234,7 @@ void elinks( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 namespace {
-auto elinks = menu<PolarfireTarget>("ELINKS","manage the elinks")
+auto m = pftool::menu("ELINKS","manage the elinks")
   ->line("RELINK","Follow standard procedure to establish links", elinks)
   ->line("HARD_RESET","Hard reset of the PLL", elinks) 
   ->line("STATUS", "Elink status summary",  elinks )

@@ -1,18 +1,6 @@
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdio.h>
-#ifdef PFTOOL_ROGUE
-#include "pflib/rogue/RogueWishboneInterface.h"
-#endif
-#ifdef PFTOOL_UHAL
-#include "pflib/uhal/uhalWishboneInterface.h"
-#endif
+#include "pftool.h"
 
 using pflib::PolarfireTarget;
-
-std::string last_run_file=".last_run_file";
 
 /**
  * Print data words from raw binary file and return them
@@ -518,7 +506,7 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
 
 namespace {
 
-auto daq = menu<PolarfireTarget>("DAQ","Data AcQuisition")
+auto mdaq = pftool::menu("DAQ","Data AcQuisition")
   ->line("STATUS","print status of the DAQ", daq)
   ->line("RESET" , "reset the DAQ", daq)
   ->line("HARD_RESET", "reset the DAQ, including all parameters", daq)
@@ -527,7 +515,7 @@ auto daq = menu<PolarfireTarget>("DAQ","Data AcQuisition")
   ->line("EXTERNAL", "take an externally-triggered run", daq)
 ;
 
-auto setup = menu<PolarfireTarget>("SETUP", "setup the DAQ", daq)
+auto msetup = pftool::menu("SETUP", "setup the DAQ", mdaq)
   ->line("STATUS","print the status of the DAQ", daq)
   ->line("ENABLE","toggle the enable status", daq_setup)
   ->line("ZS", "toggle zero suppression status", daq_setup)
@@ -539,7 +527,7 @@ auto setup = menu<PolarfireTarget>("SETUP", "setup the DAQ", daq)
 #endif
 ;
 
-auto debug = menu<PolarfireTarget>("DEBUG", "debugging the DAQ menu", daq)
+auto mdebug = pftool::menu("DEBUG", "debugging the DAQ menu", mdaq)
   ->line("STATUS","print the status of the DAQ", daq)
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )

@@ -1,9 +1,8 @@
 /**
  * @file pftool_bias.cc
  */
+#include "pftool.h"
 
-#include "pflib/PolarfireTarget.h"
-#include "Menu.h"
 using pflib::PolarfireTarget;
 
 /**
@@ -60,7 +59,7 @@ void bias( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 namespace {
-auto bias = menu<PolarfireTarget>("BIAS","bias voltage settings")
+auto m = pftool::menu("BIAS","bias voltage settings")
   ->line("INIT","Initialize a board", bias )
   ->line("SET","Set a specific bias line setting", bias )
   ->line("LOAD","Load bias values from file", bias )

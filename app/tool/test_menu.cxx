@@ -1,7 +1,5 @@
 #include "Menu.h"
 
-namespace {
-
 void print_cmd(const std::string& cmd, Menu<int>::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
   std::cout << " Ran command " << cmd << " with " << *p << std::endl;
@@ -14,12 +12,16 @@ void increment(Menu<int>::TargetHandle p) {
   std::cout << *p << std::endl;
 }
 
-auto sb = menu<int>("SB","example submenu")
+using test_menu = Menu<int>;
+
+namespace {
+
+auto sb = test_menu::menu("SB","example submenu")
   ->line("THREE", "third command", print_cmd)
   ->line("INCSB", "increment the target", increment)
   ;
 
-auto r = root<int>()
+auto r = test_menu::root()
   ->line("INC", "increment the target", increment)
   ->line("ONE", "one command", print_cmd)
   ;

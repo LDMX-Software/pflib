@@ -1,16 +1,7 @@
 /**
  * @file pftool_fastcontrol.cc
  */
-#include "pflib/PolarfireTarget.h"
-#include "Menu.h"
-
-#ifdef PFTOOL_ROGUE
-#include "pflib/rogue/RogueWishboneInterface.h"
-#endif
-#ifdef PFTOOL_UHAL
-#include "pflib/uhal/uhalWishboneInterface.h"
-#endif
-
+#include "pftool.h"
 using pflib::PolarfireTarget;
 
 /**
@@ -140,7 +131,7 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
 }
 
 namespace {
-auto fc = menu<PolarfireTarget>("FAST_CONTROL", "fast control test and configuration")
+auto mfc = pftool::menu("FAST_CONTROL", "fast control test and configuration")
   ->line("STATUS","Check status and counters", fc )
   ->line("SW_L1A","Send a software L1A", fc )
   ->line("LINK_RESET","Send a link reset", fc )
