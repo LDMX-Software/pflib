@@ -365,7 +365,7 @@ void Menu<TargetType>::steer(TargetType* p_target) const {
     // check for a unique match...
     int nmatch = 0;
     for (size_t i = 0; i < lines_.size(); i++)
-      if (strncasecmp(request.c_str(), lines_[i].name(), request.length()) == 0) {
+      if (strcasecmp(request.c_str(), lines_[i].name()) == 0) {
         theMatch = &(lines_[i]);
         nmatch++;
       }
