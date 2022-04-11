@@ -37,16 +37,10 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
     load_parameters(pft, iroc, fname, prepend_defaults, default_num_rocs);
     }
 }
-void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
-                       const int value) {
+void poke_all_channels(PolarfireTarget *pft, const std::string &parameter,
+                       const int value, const int num_rocs,
+                       const int num_channels) {
   const std::string page_template {"CHANNEL_"};
-  const int default_num_rocs {3};
-  const int default_num_channels{72};
-  const int num_channels {BaseMenu::readline_int("How many channels per ROC?",
-                                                 default_num_channels)};
-  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
-                                             default_num_rocs)};
-
   for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
     pflib::ROC roc {pft->hcal.roc(roc_number)};
     for (int channel{0}; channel < num_channels; ++channel) {
@@ -54,15 +48,28 @@ void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
     }
   }
 }
+void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
+                       const int value) {
+  const int default_num_rocs {3};
+  const int default_num_channels{72};
+  const int num_channels {BaseMenu::readline_int("How many channels per ROC?",
+                                                 default_num_channels)};
+  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
+                                             default_num_rocs)};
+  poke_all_channels(pft, parameter, value, num_rocs, num_channels);
+}
 
 void poke_all_rochalves(PolarfireTarget* pft,
                         const std::string& page_template,
                         const std::string& parameter,
-                        const int value) {
+                        const int value,
+                        int num_rocs)
+{
 
-  const int default_num_rocs {3};
-  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
-                                             default_num_rocs)};
+  if (num_rocs < 0) {
+    const int default_num_rocs {3};
+    num_rocs = BaseMenu::readline_int("How many ROCs are connected to this DPM?", default_num_rocs);
+  }
   // Avoid shadowing iroc
   for (int roc_number {0}; roc_number < num_rocs; ++roc_number) {
     pflib::ROC roc {pft->hcal.roc(roc_number)};
