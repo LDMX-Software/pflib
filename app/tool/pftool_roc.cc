@@ -1,10 +1,50 @@
-#include "pftool_roc.h"
-int iroc = 0;
+/**
+ * @file pftool_roc.cc
+ */
+
+#include "Menu.h"
+#include "pflib/PolarfireTarget.h"
+#include "pflib/Compile.h"
+using pflib::PolarfireTarget;
+
+/**
+ * ROC currently being interacted with by user
+ */
+static int iroc = 0;
+
+/**
+ * Simply print the currently selective ROC so that user is aware
+ * which ROC they are interacting with by default.
+ *
+ * @param[in] pft active target (not used)
+ */
 void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
-
+/**
+ * ROC menu commands
+ *
+ * When necessary, the ROC interaction object pflib::ROC is created
+ * via pflib::Hcal::roc with the currently active roc.
+ *
+ * ## Commands
+ * - HARDRESET : pflib::Hcal::hardResetROCs
+ * - SOFTRESET : pflib::Hcal::softResetROC
+ * - RESYNCLOAD : pflib::Hcal::resyncLoadROC
+ * - IROC : Change which ROC to focus on
+ * - CHAN : pflib::ROC::getChannelParameters
+ * - PAGE : pflib::ROC::readPage
+ * - PARAM_NAMES : Use pflib::parameters to get list ROC parameter names
+ * - POKE_REG : pflib::ROC::setValue
+ * - POKE_PARAM : pflib::ROC::applyParameter
+ * - LOAD_REG : pflib::PolarfireTarget::loadROCRegisters
+ * - LOAD_PARAM : pflib::PolarfireTarget::loadROCParameters
+ * - DUMP : pflib::PolarfireTarget::dumpSettings
+ *
+ * @param[in] cmd ROC command
+ * @param[in] pft active target
+ */
 void roc( const std::string& cmd, PolarfireTarget* pft ) {
   // generate lists of page names and param names for those pages
   // for tab completion
@@ -116,4 +156,24 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
 	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
     pft->dumpSettings(iroc,fname,decompile);
   }
+}
+
+namespace {
+auto roc = menu<PolarfireTarget>("ROC","configuration of chip itself", roc_render)
+   ->line("HARDRESET","Hard reset to all rocs", roc)
+   ->line("SOFTRESET","Soft reset to all rocs", roc)
+   ->line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", roc)
+   ->line("IROC","Change the active ROC number", roc )
+   ->line("CHAN","Dump link status", roc )
+   ->line("PAGE","Dump a page", roc )
+   ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
+   ->line("POKE_REG","Change a single register value", roc )
+   ->line("POKE_PARAM","Change a single parameter value", roc )
+   ->line("POKE","Alias for POKE_PARAM", roc )
+   ->line("LOAD_REG","Load register values onto the chip from a CSV file", roc )
+   ->line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", roc )
+   ->line("LOAD","Alias for LOAD_PARAM", roc )
+   ->line("DUMP","Dump hgcroc settings to a file", roc )
+   ->line("DEFAULT_PARAMS", "Load default YAML files", roc)
+;
 }

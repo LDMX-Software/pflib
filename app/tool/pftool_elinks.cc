@@ -1,6 +1,16 @@
-#include "pftool_elinks.h"
+/**
+ * @file pftool_elinks.cc
+ */
+#include "pflib/PolarfireTarget.h"
+#include "Menu.h"
+#include "pflib/decoding/SuperPacket.h"
+
 using pflib::PolarfireTarget;
 
+/**
+ * align the elinks using the headers from a basic pedestal
+ * run as the metric
+ */
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
   const int nevents=10;
 
@@ -96,8 +106,27 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
   }
 }
 
-void elinks( const std::string& cmd, PolarfireTarget* pft )
-{
+/**
+ * ELINKS menu commands
+ *
+ * We retrieve a reference to the current elinks object via
+ * pflib::Hcal::elinks and then procede to the commands.
+ *
+ * ## Commands
+ * - RELINK : pflib::PolarfireTarget::elink_relink
+ * - SPY : pflib::Elinks::spy
+ * - HEADER_CHECK : do a pedestal run and count good/bad headers in it
+ * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
+ * - BIGSPY : PolarfireTarget::elinksBigSpy
+ * - DELAY : pflib::Elinks::setDelay
+ * - HARD_RESET : pflib::Elinks::resetHard
+ * - SCAN : pflib::Elinks::scanAlign
+ * - STATUS : pflib::PolarfireTarget::elinkStatus with std::cout input
+ *
+ * @param[in] cmd ELINKS command
+ * @param[in] pft active target
+ */
+void elinks( const std::string& cmd, PolarfireTarget* pft ) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   static int ilink=0,nevents{100};
   static int min_delay{0}, max_delay{128};
@@ -203,4 +232,19 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   if (cmd=="STATUS") {
     pft->elinkStatus(std::cout);
   }
+}
+
+namespace {
+auto elinks = menu<PolarfireTarget>("ELINKS","manage the elinks")
+  ->line("RELINK","Follow standard procedure to establish links", elinks)
+  ->line("HARD_RESET","Hard reset of the PLL", elinks) 
+  ->line("STATUS", "Elink status summary",  elinks )
+  ->line("SPY", "Spy on an elink",  elinks )
+  ->line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", elinks)
+  ->line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", elinks)
+  ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
+  ->line("SCAN", "Scan on an elink",  elinks )
+  ->line("DELAY", "Set the delay on an elink", elinks)
+  ->line("BIGSPY", "Take a spy of a specific channel at 32-bits", elinks)
+;
 }

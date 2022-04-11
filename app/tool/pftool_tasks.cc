@@ -1,7 +1,19 @@
-#include "pftool_tasks.h"
+#include "pflib/PolarfireTarget.h"
+#include <fstream>
+#include "Menu.h"
+#include "pflib/decoding/SuperPacket.h"
 
-void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
-{
+/**
+ * TASK menu commands
+ *
+ * ## Commands
+ * - RESET_POWERUP: execute a series of commands after chip has been power cycled or firmware re-loaded
+ * - SCANCHARGE : loop over channels and scan a range of a CALIBDAC values, recording only relevant channel points in CSV file
+ *
+ * @param[in] cmd command selected from menu
+ * @param[in] pft active target
+ */
+void tasks( const std::string& cmd, pflib::PolarfireTarget* pft ) {
   pflib::DAQ& daq=pft->hcal.daq();
 
   static int low_value=10;
@@ -193,4 +205,12 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
       ////////////////////////////////////////////////////////////
   }
+}
+
+namespace {
+auto tasks = menu<PolarfireTarget>("TASKS","various high-level tasks like scans")
+  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
+  ->line("SCANCHARGE","Charge scan over all active channels", tasks)
+  ->line("DELAYSCAN","Charge injection delay scan", tasks )
+;
 }

@@ -1,7 +1,27 @@
-#include "pftool_bias.h"
+/**
+ * @file pftool_bias.cc
+ */
+
+#include "pflib/PolarfireTarget.h"
+#include "Menu.h"
 using pflib::PolarfireTarget;
-void bias( const std::string& cmd, PolarfireTarget* pft )
-{
+
+/**
+ * BIAS menu commands
+ *
+ * @note This menu has not been explored thoroughly so some of these commands
+ * are not fully developed.
+ *
+ * ## Commands
+ * - STATUS : _does nothing_ after selecting a board.
+ * - INIT : pflib::Bias::initialize the selected board
+ * - SET : pflib::PolarfireTarget::setBiasSetting
+ * - LOAD : pflib::PolarfireTarget::loadBiasSettings
+ *
+ * @param[in] cmd selected menu command
+ * @param[in] pft active target
+ */
+void bias( const std::string& cmd, PolarfireTarget* pft ) {
   static int iboard=0;
   if (cmd=="STATUS") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
@@ -37,4 +57,12 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
       std::cerr << "\n\n  ERROR: Unable to access " << fname << std::endl;
     }
   }
+}
+
+namespace {
+auto bias = menu<PolarfireTarget>("BIAS","bias voltage settings")
+  ->line("INIT","Initialize a board", bias )
+  ->line("SET","Set a specific bias line setting", bias )
+  ->line("LOAD","Load bias values from file", bias )
+;
 }

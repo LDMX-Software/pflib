@@ -1,6 +1,37 @@
+/**
+ * @file pftool_fastcontrol.cc
+ */
+#include "pflib/PolarfireTarget.h"
+#include "Menu.h"
 
-#include "pftool_fastcontrol.h"
+#ifdef PFTOOL_ROGUE
+#include "pflib/rogue/RogueWishboneInterface.h"
+#endif
+#ifdef PFTOOL_UHAL
+#include "pflib/uhal/uhalWishboneInterface.h"
+#endif
+
 using pflib::PolarfireTarget;
+
+/**
+ * Fast Control (FC) menu commands
+ *
+ * ## Commands
+ * - SW_L1A : pflib::Backend::fc_sendL1A
+ * - LINK_RESET : pflib::Backend::fc_linkreset
+ * - BUFFER_CLEAR : pflib::Backend::fc_bufferclear
+ * - COUNTER_RESET : pflib::FastControl::resetCounters
+ * - FC_RESET : pflib::FastControl::resetTransmitter
+ * - CALIB : pflib::Backend::fc_setup_calib
+ * - MULTISAMPLE : pflib::FastControl::setupMultisample
+ *   and pflib::rouge::RogueWishboneInterface::daq_dma_setup if that is how the user is connected
+ * - STATUS : print mutlisample status and Error and Command counters
+ *   pflib::FastControl::getErrorCounters, pflib::FastControl::getCmdCounters,
+ *   pflib::FastControl::getMultisampleSetup
+ *
+ * @param[in] cmd FC menu command
+ * @param[in] pft active target
+ */
 void fc( const std::string& cmd, PolarfireTarget* pft ) {
   bool do_status=false;
 
@@ -106,4 +137,20 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
     pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
   }
+}
+
+namespace {
+auto fc = menu<PolarfireTarget>("FAST_CONTROL", "fast control test and configuration")
+  ->line("STATUS","Check status and counters", fc )
+  ->line("SW_L1A","Send a software L1A", fc )
+  ->line("LINK_RESET","Send a link reset", fc )
+  ->line("BUFFER_CLEAR","Send a buffer clear", fc )
+  ->line("RUN_CLEAR","Send a run clear", fc )
+  ->line("COUNTER_RESET","Reset counters", fc )
+  ->line("FC_RESET","Reset the fast control", fc )
+  ->line("VETO_SETUP","Setup the L1 Vetos", fc )
+  ->line("MULTISAMPLE","Setup multisample readout", fc )
+  ->line("CALIB","Setup calibration pulse", fc )
+  ->line("ENABLES","Enable various sources of signal", fc )
+;
 }
