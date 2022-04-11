@@ -28,4 +28,6 @@
  */
 void elinks( const std::string& cmd, pflib::PolarfireTarget* pft);
 
+void align_elinks(pflib::PolarfireTarget* pft);
+
 #endif /* PFTOOL_ELINKS_H */
