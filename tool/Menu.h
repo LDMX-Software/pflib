@@ -63,7 +63,16 @@ class BaseMenu {
    * @return value input by user
    */
   static std::string readline(const std::string& prompt);
-  
+
+  /**
+   * Read a string parameter without a default but with the input
+   * list of options for tab-completion (and validation)
+   *
+   * @param[in] prompt The informing the user what the parameter is
+   * @return value input by user
+   */
+  static std::string readline(const std::string& prompt, const std::vector<std::string>& opts);
+
   /**
    * Read an integer parameter without a default
    *
@@ -147,12 +156,15 @@ class BaseMenu {
 
   /// the current command options (for interfacing with readline's tab completion)
   static std::vector<std::string> cmd_options_;
+
+  /// a pointer to the list of options when attempting readline completion
+  static const std::vector<std::string>* rl_comp_opts_;
  
  private:
   /**
    * matcher function following readline's function signature
    *
-   * We get the command options from the BaseMenu::cmd_options_
+   * We get the command options from the BaseMenu::rl_comp_opts_
    * which is determined by the Menu::command_options function
    * at the beginning of Menu::steer or after leaving a sub-menu.
    *
@@ -163,7 +175,7 @@ class BaseMenu {
    * @param[in] state 0 if first call, incrementing otherwise
    * @return matching string until all out, NULL at end
    */
-  static char* command_matcher(const char* text, int state);
+  static char* matcher(const char* text, int state);
 };  // BaseMenu
 
 /**
