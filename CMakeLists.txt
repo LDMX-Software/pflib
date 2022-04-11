@@ -51,7 +51,17 @@ target_include_directories(pflib PUBLIC
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp)
 
-add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
+add_executable(pftool
+  tool/pftool.cc
+  tool/Menu.cc
+  tool/Rcfile.cc
+  tool/pftool_tasks.cc
+  tool/pftool_roc.cc
+  tool/pftool_daq.cc
+  tool/pftool_expert.cc
+  tool/pftool_elinks.cc
+  tool/pftool_fastcontrol.cc
+  tool/pftool_bias.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
