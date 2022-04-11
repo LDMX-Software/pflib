@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.1</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.1-4-g8fdb7a1</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -175,6 +175,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ab3507417c72254885fb915f28aa1093e inherit pub_static_methods_classBaseMenu"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
 <tr class="memdesc:ab3507417c72254885fb915f28aa1093e inherit pub_static_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a string parameter without a default.  <a href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">More...</a><br /></td></tr>
 <tr class="separator:ab3507417c72254885fb915f28aa1093e inherit pub_static_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a057ce5f82bffe5c5b8da0bdae4082a4d inherit pub_static_methods_classBaseMenu"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a057ce5f82bffe5c5b8da0bdae4082a4d">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; &amp;opts)</td></tr>
+<tr class="memdesc:a057ce5f82bffe5c5b8da0bdae4082a4d inherit pub_static_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a string parameter without a default but with the input list of options for tab-completion (and validation)  <a href="classBaseMenu.html#a057ce5f82bffe5c5b8da0bdae4082a4d">More...</a><br /></td></tr>
+<tr class="separator:a057ce5f82bffe5c5b8da0bdae4082a4d inherit pub_static_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdbc8e5d011304ef933c03f084cceb87 inherit pub_static_methods_classBaseMenu"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">readline_int</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
 <tr class="memdesc:acdbc8e5d011304ef933c03f084cceb87 inherit pub_static_methods_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read an integer parameter without a default.  <a href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">More...</a><br /></td></tr>
 <tr class="separator:acdbc8e5d011304ef933c03f084cceb87 inherit pub_static_methods_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -206,6 +209,10 @@ static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/list.ht
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmd_options_</b></td></tr>
 <tr class="memdesc:a0262d2cd0f5f25380772ed54a763de40 inherit pro_static_attribs_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">the current command options (for interfacing with readline's tab completion) <br /></td></tr>
 <tr class="separator:a0262d2cd0f5f25380772ed54a763de40 inherit pro_static_attribs_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82c811ac64931765c8f3f87ff260fb22 inherit pro_static_attribs_classBaseMenu"><td class="memItemLeft" align="right" valign="top"><a id="a82c811ac64931765c8f3f87ff260fb22" name="a82c811ac64931765c8f3f87ff260fb22"></a>
+static const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>rl_comp_opts_</b> = &amp;<a class="el" href="classBaseMenu.html#a0262d2cd0f5f25380772ed54a763de40">BaseMenu::cmd_options_</a></td></tr>
+<tr class="memdesc:a82c811ac64931765c8f3f87ff260fb22 inherit pro_static_attribs_classBaseMenu"><td class="mdescLeft">&#160;</td><td class="mdescRight">a pointer to the list of options when attempting readline completion <br /></td></tr>
+<tr class="separator:a82c811ac64931765c8f3f87ff260fb22 inherit pro_static_attribs_classBaseMenu"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;class TargetType&gt;<br />
@@ -291,7 +298,7 @@ template&lt;class TargetType &gt; </div>
 <li>If we have a render function set, we give the target to it.</li>
 <li>If we aren't in batch mode, we print all of our lines and their descriptions.</li>
 <li>Use the readline function to get the requested command from the user<ul>
-<li>We use the <a class="el" href="classBaseMenu.html#a5bb546485d67361a238ae63915c60f44" title="matcher function following readline&#39;s function signature">BaseMenu::command_matcher</a> function to provide options given the user attempting &lt;TAB&gt; completion.</li>
+<li>We use the BaseMenu::command_matcher function to provide options given the user attempting &lt;TAB&gt; completion.</li>
 </ul>
 </li>
 <li>Loop through our lines to find all available matches.</li>

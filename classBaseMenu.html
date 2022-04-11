@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.1</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.4.1-4-g8fdb7a1</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -116,6 +116,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ab3507417c72254885fb915f28aa1093e"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
 <tr class="memdesc:ab3507417c72254885fb915f28aa1093e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a string parameter without a default.  <a href="classBaseMenu.html#ab3507417c72254885fb915f28aa1093e">More...</a><br /></td></tr>
 <tr class="separator:ab3507417c72254885fb915f28aa1093e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a057ce5f82bffe5c5b8da0bdae4082a4d"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a057ce5f82bffe5c5b8da0bdae4082a4d">readline</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt, const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; &amp;opts)</td></tr>
+<tr class="memdesc:a057ce5f82bffe5c5b8da0bdae4082a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a string parameter without a default but with the input list of options for tab-completion (and validation)  <a href="classBaseMenu.html#a057ce5f82bffe5c5b8da0bdae4082a4d">More...</a><br /></td></tr>
+<tr class="separator:a057ce5f82bffe5c5b8da0bdae4082a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdbc8e5d011304ef933c03f084cceb87"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">readline_int</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;prompt)</td></tr>
 <tr class="memdesc:acdbc8e5d011304ef933c03f084cceb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read an integer parameter without a default.  <a href="classBaseMenu.html#acdbc8e5d011304ef933c03f084cceb87">More...</a><br /></td></tr>
 <tr class="separator:acdbc8e5d011304ef933c03f084cceb87"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,12 +154,16 @@ static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/list.ht
 static <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cmd_options_</b></td></tr>
 <tr class="memdesc:a0262d2cd0f5f25380772ed54a763de40"><td class="mdescLeft">&#160;</td><td class="mdescRight">the current command options (for interfacing with readline's tab completion) <br /></td></tr>
 <tr class="separator:a0262d2cd0f5f25380772ed54a763de40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82c811ac64931765c8f3f87ff260fb22"><td class="memItemLeft" align="right" valign="top"><a id="a82c811ac64931765c8f3f87ff260fb22" name="a82c811ac64931765c8f3f87ff260fb22"></a>
+static const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>rl_comp_opts_</b> = &amp;<a class="el" href="classBaseMenu.html#a0262d2cd0f5f25380772ed54a763de40">BaseMenu::cmd_options_</a></td></tr>
+<tr class="memdesc:a82c811ac64931765c8f3f87ff260fb22"><td class="mdescLeft">&#160;</td><td class="mdescRight">a pointer to the list of options when attempting readline completion <br /></td></tr>
+<tr class="separator:a82c811ac64931765c8f3f87ff260fb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-methods" name="pri-static-methods"></a>
 Static Private Member Functions</h2></td></tr>
-<tr class="memitem:a5bb546485d67361a238ae63915c60f44"><td class="memItemLeft" align="right" valign="top">static char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a5bb546485d67361a238ae63915c60f44">command_matcher</a> (const char *text, int state)</td></tr>
-<tr class="memdesc:a5bb546485d67361a238ae63915c60f44"><td class="mdescLeft">&#160;</td><td class="mdescRight">matcher function following readline's function signature  <a href="classBaseMenu.html#a5bb546485d67361a238ae63915c60f44">More...</a><br /></td></tr>
-<tr class="separator:a5bb546485d67361a238ae63915c60f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e6c9466ca8dbbf36704900929694c20"><td class="memItemLeft" align="right" valign="top">static char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classBaseMenu.html#a4e6c9466ca8dbbf36704900929694c20">matcher</a> (const char *text, int state)</td></tr>
+<tr class="memdesc:a4e6c9466ca8dbbf36704900929694c20"><td class="mdescLeft">&#160;</td><td class="mdescRight">matcher function following readline's function signature  <a href="classBaseMenu.html#a4e6c9466ca8dbbf36704900929694c20">More...</a><br /></td></tr>
+<tr class="separator:a4e6c9466ca8dbbf36704900929694c20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Type-less menu base for common tasks. </p>
@@ -231,8 +238,8 @@ Static Private Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a5bb546485d67361a238ae63915c60f44" name="a5bb546485d67361a238ae63915c60f44"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bb546485d67361a238ae63915c60f44">&#9670;&nbsp;</a></span>command_matcher()</h2>
+<a id="a4e6c9466ca8dbbf36704900929694c20" name="a4e6c9466ca8dbbf36704900929694c20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e6c9466ca8dbbf36704900929694c20">&#9670;&nbsp;</a></span>matcher()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +248,7 @@ Static Private Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">char * BaseMenu::command_matcher </td>
+          <td class="memname">char * BaseMenu::matcher </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>text</em>, </td>
@@ -266,7 +273,7 @@ Static Private Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>matcher function following readline's function signature </p>
-<p >We get the command options from the <a class="el" href="classBaseMenu.html#a0262d2cd0f5f25380772ed54a763de40" title="the current command options (for interfacing with readline&#39;s tab completion)">BaseMenu::cmd_options_</a> which is determined by the <a class="el" href="classMenu.html#a73881729e691ed64e681411ada41c147" title="Provide the list of command options.">Menu::command_options</a> function at the beginning of <a class="el" href="classMenu.html#a930c63077b267eda8adfeeddf27e0739" title="give control over the target to this menu">Menu::steer</a> or after leaving a sub-menu.</p>
+<p >We get the command options from the <a class="el" href="classBaseMenu.html#a82c811ac64931765c8f3f87ff260fb22" title="a pointer to the list of options when attempting readline completion">BaseMenu::rl_comp_opts_</a> which is determined by the <a class="el" href="classMenu.html#a73881729e691ed64e681411ada41c147" title="Provide the list of command options.">Menu::command_options</a> function at the beginning of <a class="el" href="classMenu.html#a930c63077b267eda8adfeeddf27e0739" title="give control over the target to this menu">Menu::steer</a> or after leaving a sub-menu.</p>
 <p >We check for matching with strncasecmp so that the tab completion is also case-insensitive (same as the menu selection itself).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -280,7 +287,7 @@ Static Private Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab3507417c72254885fb915f28aa1093e" name="ab3507417c72254885fb915f28aa1093e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab3507417c72254885fb915f28aa1093e">&#9670;&nbsp;</a></span>readline() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3507417c72254885fb915f28aa1093e">&#9670;&nbsp;</a></span>readline() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -316,7 +323,7 @@ Static Private Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a89e4d320254632d2ae9181f9baf31850" name="a89e4d320254632d2ae9181f9baf31850"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89e4d320254632d2ae9181f9baf31850">&#9670;&nbsp;</a></span>readline() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a89e4d320254632d2ae9181f9baf31850">&#9670;&nbsp;</a></span>readline() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -368,6 +375,51 @@ script" of commands by registering them in order with the <a class="el" href="cl
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>value input by user or default value </dd></dl>
+
+</div>
+</div>
+<a id="a057ce5f82bffe5c5b8da0bdae4082a4d" name="a057ce5f82bffe5c5b8da0bdae4082a4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a057ce5f82bffe5c5b8da0bdae4082a4d">&#9670;&nbsp;</a></span>readline() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> BaseMenu::readline </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>opts</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a string parameter without a default but with the input list of options for tab-completion (and validation) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">prompt</td><td>The informing the user what the parameter is </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>value input by user </dd></dl>
 
 </div>
 </div>
