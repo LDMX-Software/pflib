@@ -13,6 +13,7 @@
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 std::vector<std::string> BaseMenu::cmd_options_;
+const std::vector<std::string>* BaseMenu::rl_comp_opts_ = &BaseMenu::cmd_options_;
 
 void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
@@ -98,6 +99,16 @@ std::string BaseMenu::readline(const std::string& prompt) {
   return BaseMenu::readline(prompt, "", false);
 }
 
+std::string BaseMenu::readline(const std::string& prompt, const std::vector<std::string>& opts) {
+  auto old_opts = BaseMenu::rl_comp_opts_;
+  BaseMenu::rl_comp_opts_ = &opts;
+  rl_completion_entry_function = &BaseMenu::matcher;
+  auto ret = readline(prompt);
+  rl_completion_entry_function = NULL;
+  BaseMenu::rl_comp_opts_ = old_opts;
+  return ret;
+}
+
 int BaseMenu::readline_int(const std::string& prompt) {
 #ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt),0,0);
@@ -131,13 +142,10 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
 }
 
 std::string BaseMenu::readline_cmd() {
-  rl_completion_entry_function = &BaseMenu::command_matcher;
-  std::string cmd = readline(" > ");
-  rl_completion_entry_function = NULL;
-  return cmd;
+  return readline(" > ", cmd_options_);
 }
 
-char *BaseMenu::command_matcher(const char* prefix, int state) {
+char *BaseMenu::matcher(const char* prefix, int state) {
   static int list_index, len;
   char *name; 
 
@@ -147,8 +155,8 @@ char *BaseMenu::command_matcher(const char* prefix, int state) {
     len = strlen(prefix);
   }
 
-  while (list_index < cmd_options_.size()) {
-    const char* curr_opt{cmd_options_.at(list_index++).c_str()};
+  while (list_index < rl_comp_opts_->size()) {
+    const char* curr_opt{rl_comp_opts_->at(list_index++).c_str()};
     if (strncasecmp(curr_opt, prefix, len) == 0) {
       return strdup(curr_opt);
     }
