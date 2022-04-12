@@ -24,7 +24,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     beamprep(pft);
     return;
   }
-  if (cmd=="RESET_POWERUP") {
+  if (cmd=="RESETPOWERUP") {
     pft->hcal.fc().resetTransmitter();
     pft->hcal.resyncLoadROC();
     pft->daqHardReset();
@@ -41,6 +41,14 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     bool is_high_range=BaseMenu::readline_bool("Use HighRange? ",false);
     if (is_high_range) modeinfo="HIGHRANGE";
     else modeinfo="LOWRANGE";
+  }
+  if (cmd == "SCANTOAVREF") {
+    low_value = 0;
+    high_value = 1000;
+    steps = 50;
+    valuename = "TOA_VREF";
+    pagetemplate = "REFERENCE_VOLTAGE_%d";
+    
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
@@ -69,10 +77,6 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
     csv_out<<std::endl;
 
-    if (cmd=="SCANCHARGE") {
-      
-    }
-    
     printf(" Clearing charge injection on all channels (ground-state)...\n");
     
     /// first, disable charge injection on all channels
@@ -103,6 +107,13 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
         snprintf(pagename,32,"DIGITAL_HALF_%d",(ilink%2));
         // set the value
         pft->hcal.roc(iroc).applyParameter(pagename, "L1OFFSET", 8);
+      }
+      if (cmd=="SCANTOAVREF") {
+	// Choose a fixed CALIB DAC for charge injection
+	snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
+	pft->hcal.roc(iroc).applyParameter(pagename, "CALIB_DAC", 400);
+	// Choose a fixed TOT_VREF? based on configv0
+	pft->hcal.roc(iroc).applyParameter(pagename, "TOT_VREF", 475);
       }
     }
     
@@ -142,7 +153,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
           // set the value
           pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 1);
         }
-                
+
         //////////////////////////////////////////////////////////
         /// Take the expected number of events and save the events
         for (int ievt=0; ievt<events_per_step; ievt++) {
