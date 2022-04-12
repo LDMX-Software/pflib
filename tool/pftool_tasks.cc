@@ -111,7 +111,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
       if (cmd=="SCANTOAVREF") {
 	// Choose a fixed CALIB DAC for charge injection
 	snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
-	pft->hcal.roc(iroc).applyParameter(pagename, "CALIB_DAC", 400);
+	pft->hcal.roc(iroc).applyParameter(pagename, "CALIB_DAC", 188);
 	// Choose a fixed TOT_VREF? based on configv0
 	pft->hcal.roc(iroc).applyParameter(pagename, "TOT_VREF", 475);
       }
