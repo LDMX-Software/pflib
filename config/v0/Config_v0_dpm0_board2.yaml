@@ -107,7 +107,7 @@ Top:
   VOUT_INIT_EXT_EN: 0
 
 Digital_Half_*:
-  L1Offset: 85 #Change this?
+  L1Offset: 83 #Change this?
 
 #Reset channel-wise pedestal adjustment
 Channel_*:
