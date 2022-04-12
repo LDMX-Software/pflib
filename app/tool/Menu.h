@@ -182,7 +182,29 @@ class BaseMenu {
 /**
  * A menu to execute commands with a specific target
  *
- * @tparam TargetType class to be passed to execution commands
+ * Generally, it is a good idea to have a header defining 
+ * the type of menu you wish to operate for your program.
+ * In it, you would have a line like
+ * ```cpp
+ * using pftool = Menu<PolarfireTarget>;
+ * ```
+ * so that in the files where you are implementing menu
+ * commands the registration is less likely to be messed up.
+ * ```cpp
+ * // example registration using above alias
+ * namespace {
+ * auto sb = pftool::menu("SB","example empty submenu");
+ * }
+ * ```
+ * and running the menu takes on a more appealing form.
+ * ```cpp
+ * // tgt is a handle to the target of the menu
+ * // i.e. it is of type pftool::TargetHandle
+ * pftool::run(tgt);
+ * ```
+ *
+ * @tparam T class to be passed to execution commands
+ * @tparam H a handle for T (defaults to T*)
  */
 template <typename T, typename H = T*>
 class Menu : public BaseMenu {
@@ -195,6 +217,7 @@ class Menu : public BaseMenu {
   using SingleTargetCommand = std::function<void(TargetHandle)>;
   /// type of function which does one of several commands with target
   using MultipleTargetCommands = std::function<void(const std::string&, TargetHandle)>;
+
   /**
    * The type of function used to "render" a menu
    *
@@ -205,6 +228,226 @@ class Menu : public BaseMenu {
    */
   using RenderFuncType = std::function<void(TargetHandle)>;
 
+  /**
+   * declare a single target command with thei nput name and desc
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex function to execute when name is called
+   * @return pointer to us
+   */
+  Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
+    lines_.emplace_back(name,desc,ex);
+    return this;
+  }
+
+  /**
+   * declare a single target command with the input name and desc
+   *
+   * MultipleTargetCommands functions have a string parameter which
+   * is given name when run.
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex function to execute when name is called
+   * @return pointer to us
+   */
+  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
+    lines_.emplace_back(name,desc,ex);
+    return this;
+  }
+
+  /**
+   * declare a sub menu of us with input name and desc
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @note Line takes ownership of Menus that are provided to it,
+   * so Menus should be dynamically created and not deleted.
+   * It is suggested to use the menu function to avoid complication.
+   *
+   * This can be used if you already have a menu and you wish to add
+   * another submenu to it.
+   * ```cpp
+   * namespace {
+   * auto mymain = Menu<T>::menu("MAIN","will be on the root menu");
+   * auto sb = mymain->submenu("SB","A line in the MAIN menu");
+   * }
+   * ```
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex pointer to menu that we should append
+   * @return pointer to the newly created submenu
+   */
+  Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
+    auto sb = new Menu(f);
+    lines_.emplace_back(name,desc,sb); // Line takes ownership
+    return sb;
+  }
+
+  /**
+   * Retreve a pointer to the root menu
+   */
+  static Menu* root() {
+    static Menu root;
+    return &root;
+  }
+
+  /**
+   * Go through and render each of the lines in this menu
+   *
+   * @note No need to add EXIT/QUIT lines!
+   *
+   * Afterwards, we append the "EXIT" line to us.
+   */
+  void render() {
+    // go through menu options and add exit
+    for (Line& l : lines_) l.render();
+    lines_.emplace_back("EXIT","leave this menu");
+  }
+
+  /**
+   * Call this function when ready to run
+   *
+   * Provide a TargetHandle to run over.
+   *
+   * After rendering the menu, we give tgt to
+   * steer to start off.
+   *
+   * @param[in] tgt TargetHandle to run with
+   */
+  static void run(TargetHandle tgt) {
+    root()->render();
+    root()->steer(tgt);
+  }
+  
+  /// no copying
+  Menu(const Menu&) = delete;
+  /// no copying
+  void operator=(const Menu&) = delete;
+
+  /**
+   * Construct a menu with a rendering function
+   */
+  Menu(RenderFuncType f = 0) : render_func_{f} {}
+
+  /**
+   * give control over the target to this menu
+   *
+   * We enter a do-while loop that continues until the user selects
+   * an empty line to execute. The contents of the do-while loop
+   * follow the procedure below.
+   *
+   * 1. If we have a render function set, we give the target to it.
+   * 2. If we aren't in batch mode, we print all of our lines and 
+   *    their descriptions.
+   * 3. Use the readline function to get the requested command from
+   *    the user
+   *    - We use the BaseMenu::command_matcher function to provide
+   *      options given the user attempting <TAB> completion.
+   * 4. Loop through our lines to find all available matches.
+   * 5. Execute the line if there is a unique match; otherwise,
+   *    print an error message.
+   *
+   * @param[in] p_target pointer to the target
+   */
+  void steer(TargetHandle p_target) const {
+    this->cmd_options_ = this->command_options(); // we are the captain now
+    const Line* theMatch = 0;
+    do {
+      if (render_func_ != 0) {
+        this->render_func_(p_target);
+      }
+      // if cmd text queue is empty, then print menu for interactive user
+      if (this->cmdTextQueue_.empty()) {
+        printf("\n");
+        for (const auto& l : lines_) 
+          std::cout << l << std::endl;
+      }
+      std::string request = readline_cmd();
+      theMatch = 0;
+      // check for a unique match...
+      int nmatch = 0;
+      for (size_t i = 0; i < lines_.size(); i++)
+        if (strcasecmp(request.c_str(), lines_[i].name()) == 0) {
+          theMatch = &(lines_[i]);
+          nmatch++;
+        }
+      if (nmatch > 1) theMatch = 0;
+      // ok
+      if (theMatch == 0)
+        printf("  Command '%s' not understood.\n\n", request.c_str());
+      else {
+        add_to_history(theMatch->name());
+        if (theMatch->execute(p_target)) {
+          // resume control when the chosen line was a submenu
+          this->cmd_options_ = this->command_options();
+        }
+      }
+    } while (theMatch == 0 or not theMatch->empty());
+  }
+
+  /**
+   * Construct a new menu with the root as parent and optional rendering
+   * 
+   * After using submenu to attach ourselves to the input parent,
+   * we return a pointer to the newly constructed menu.
+   * This is to allow chaining during the declaration of a menu,
+   * so that the declaration of a menu has a form similar to what
+   * the menu looks like at run time.
+   *
+   * A simple example (actually using the shorter alias) is below.
+   * `one_func` and `two_func` are both functions accessible by this
+   * piece of code (either via a header or in this translation unit)
+   * and are `void` functions with take a handle to the target type.
+   * `color_func` is similarly accessible but it takes a string and 
+   * the target handle. The string will be the command that is selected
+   * at runtime (e.g. "RED" if it is typed by the user)
+   * ```cpp
+   * namespace {
+   * auto sb = Menu<T>::menu("SB","example submenu")
+   *   ->line("ONE", "one command in this menu", one_func)
+   *   ->line("TWO", "two command in this menu", two_func)
+   *   ->line("RED", "can have multiple lines directed to the same func", color_func)
+   *   ->line("BLUE", "see?" , color_func)
+   * ;
+   * }
+   * ```
+   * The anonymous namespace is used to force the variable within it to
+   * be static and therefore created at library linking time. 
+   * The dummy variable is (unfortunately) necessary so that the sub
+   * menu can maintain existence throughout the runtime of the program.
+   *
+   * @see submenu for attaching to another menu directly
+   * @param[in] name Name of this sub menu for selection
+   * @param[in] desc description of this sub menu
+   * @param[in] render_func function to use to render this sub menu
+   * @return pointer to newly created menu
+   */
+  static Menu* menu(const char* name, const char* desc, 
+      RenderFuncType render_func = 0) {
+    return root()->submenu(name,desc,render_func);
+  }
+
+ private:
+  /**
+   * Provide the list of command options
+   *
+   * @return list of commands that could be run from this menu
+   */
+  virtual std::vector<std::string> command_options() const {
+    std::vector<std::string> v;
+    v.reserve(lines_.size());
+    for (const auto& l : lines_) v.push_back(l.name());
+    return v;
+  }
+
+ private:
   /**
    * A command in the menu
    *
@@ -327,246 +570,13 @@ class Menu : public BaseMenu {
     SingleTargetCommand cmd_;
     /// function handling multiple commands to execute (if exists)
     MultipleTargetCommands mult_cmds_;
-  };
-
-  /**
-   * declare a single target command with thei nput name and desc
-   *
-   * appends this menu line to us and then returns a pointer to us
-   *
-   * @param[in] name Name of this line to use when running
-   * @param[in] desc short description to print with menu
-   * @param[in] ex function to execute when name is called
-   * @return pointer to us
-   */
-  Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
-    lines_.emplace_back(name,desc,ex);
-    return this;
-  }
-
-  /**
-   * declare a single target command with the input name and desc
-   *
-   * MultipleTargetCommands functions have a string parameter which
-   * is given name when run.
-   *
-   * appends this menu line to us and then returns a pointer to us
-   *
-   * @param[in] name Name of this line to use when running
-   * @param[in] desc short description to print with menu
-   * @param[in] ex function to execute when name is called
-   * @return pointer to us
-   */
-  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
-    lines_.emplace_back(name,desc,ex);
-    return this;
-  }
-
-  /**
-   * declare a sub menu of us with input name and desc
-   *
-   * appends this menu line to us and then returns a pointer to us
-   *
-   * @note Line takes ownership of Menus that are provided to it,
-   * so Menus should be dynamically created and not deleted.
-   * It is suggested to use the menu function to avoid complication.
-   *
-   * @param[in] name Name of this line to use when running
-   * @param[in] desc short description to print with menu
-   * @param[in] ex pointer to menu that we should append
-   * @return pointer to the newly created submenu
-   */
-  Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
-    auto sb = new Menu(f);
-    lines_.emplace_back(name,desc,sb); // Line takes ownership
-    return sb;
-  }
-
-  /**
-   * Retreve a pointer to the root menu
-   */
-  static Menu* root() {
-    static Menu root;
-    return &root;
-  }
-
-  /**
-   * Go through and render each of the lines in this menu
-   *
-   * @note No need to add EXIT/QUIT lines!
-   *
-   * Afterwards, we append the "EXIT" line to us.
-   */
-  void render() {
-    // go through menu options and add exit
-    for (Line& l : lines_) l.render();
-    lines_.emplace_back("EXIT","leave this menu");
-  }
-
-  /**
-   * Call this function when ready to run
-   *
-   * Provide a TargetHandle to run over.
-   *
-   * After rendering the menu, we give tgt to
-   * steer to start off.
-   *
-   * @param[in] tgt TargetHandle to run with
-   */
-  static void run(TargetHandle tgt) {
-    root()->render();
-    root()->steer(tgt);
-  }
-  
-  /// no copying
-  Menu(const Menu&) = delete;
-  /// no copying
-  void operator=(const Menu&) = delete;
-
-  /**
-   * Construct a menu with a rendering function and the input lines
-   */
-  Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
-      : lines_{lines}, render_func_{f} {}
-
-  /**
-   * Construct a menu with a rendering function
-   */
-  Menu(RenderFuncType f = 0)
-      : render_func_{f} {}
-
-  /// add a new line to this menu
-  void addLine(const Line& line) { lines_.push_back(line); }
-
-  /**
-   * give control over the target to this menu
-   *
-   * We enter a do-while loop that continues until the user selects
-   * an empty line to execute. The contents of the do-while loop
-   * follow the procedure below.
-   *
-   * 1. If we have a render function set, we give the target to it.
-   * 2. If we aren't in batch mode, we print all of our lines and 
-   *    their descriptions.
-   * 3. Use the readline function to get the requested command from
-   *    the user
-   *    - We use the BaseMenu::command_matcher function to provide
-   *      options given the user attempting <TAB> completion.
-   * 4. Loop through our lines to find all available matches.
-   * 5. Execute the line if there is a unique match; otherwise,
-   *    print an error message.
-   *
-   * @param[in] p_target pointer to the target
-   */
-  void steer(TargetHandle p_target) const {
-    this->cmd_options_ = this->command_options(); // we are the captain now
-    const Line* theMatch = 0;
-    do {
-      if (render_func_ != 0) {
-        this->render_func_(p_target);
-      }
-      // if cmd text queue is empty, then print menu for interactive user
-      if (this->cmdTextQueue_.empty()) {
-        printf("\n");
-        for (const auto& l : lines_) 
-          std::cout << l << std::endl;
-      }
-      std::string request = readline_cmd();
-      theMatch = 0;
-      // check for a unique match...
-      int nmatch = 0;
-      for (size_t i = 0; i < lines_.size(); i++)
-        if (strcasecmp(request.c_str(), lines_[i].name()) == 0) {
-          theMatch = &(lines_[i]);
-          nmatch++;
-        }
-      if (nmatch > 1) theMatch = 0;
-      // ok
-      if (theMatch == 0)
-        printf("  Command '%s' not understood.\n\n", request.c_str());
-      else {
-        add_to_history(theMatch->name());
-        if (theMatch->execute(p_target)) {
-          // resume control when the chosen line was a submenu
-          this->cmd_options_ = this->command_options();
-        }
-      }
-    } while (theMatch == 0 or not theMatch->empty());
-  }
-
-  /**
-   * Construct a new menu with the input parent and rendering
-   * 
-   * After using submenu to attach ourselves to the input parent,
-   * we return a pointer to the newly constructed menu.
-   * This is to allow chaining during the declaration of a menu,
-   * so that the declaration of a menu has a form similar to what
-   * the menu looks like at run time.
-   *
-   * A simple example (actually using the shorter alias) is below.
-   * `one_func` and `two_func` are both functions accessible by this
-   * piece of code (either via a header or in this translation unit)
-   * and are `void` functions with take a handle to the target type.
-   * `color_func` is similarly accessible but it takes a string and 
-   * the target handle. The string will be the command that is selected
-   * at runtime (e.g. "RED" if it is typed by the user)
-   * ```cpp
-   * namespace {
-   * auto sb = menu<T>("SB","example submenu")
-   *   .line("ONE", "one command in this menu", one_func)
-   *   .line("TWO", "two command in this menu", two_func)
-   *   .line("RED", "can have multiple lines directed to the same func", color_func)
-   *   .line("BLUE", "see?" , color_func)
-   * ;
-   * }
-   * ```
-   * The anonymous namespace is used to force the variable within it to
-   * be static and therefore created at library linking time. 
-   * The dummy variable is (unfortunately) necessary so that the sub
-   * menu can maintain existence throughout the runtime of the program.
-   *
-   * @param[in] name Name of this sub menu for selection
-   * @param[in] desc description of this sub menu
-   * @param[in] parent pointer to parent menu
-   * @param[in] render_func function to use to render this sub menu
-   * @return pointer to newly created menu
-   */
-  static Menu* menu(const char* name, const char* desc, 
-      Menu* parent, RenderFuncType render_func = 0) {
-    return parent->submenu(name,desc,render_func);
-  }
-  
-  /**
-   * Construct a new menu with the root menu as its parent
-   * @see menu for a more full description of how to use this
-   * @param[in] name Name of this sub menu for selection
-   * @param[in] desc description of this sub menu
-   * @param[in] render_func function to use to render this sub menu
-   * @return pointer to newly created menu
-   */
-  static Menu* menu(const char* name, const char* desc, 
-      RenderFuncType render_func = 0) {
-    return menu(name,desc,root(),render_func);
-  }
-
- private:
-  /**
-   * Provide the list of command options
-   *
-   * @return list of commands that could be run from this menu
-   */
-  virtual std::vector<std::string> command_options() const {
-    std::vector<std::string> v;
-    v.reserve(lines_.size());
-    for (const auto& l : lines_) v.push_back(l.name());
-    return v;
-  }
+  };  // Line
 
  private:
   /// lines in this menu
   std::vector<Line> lines_;
   /// function pointer to render the menu prompt
   RenderFuncType render_func_;
-};
+};  // Menu
 
 #endif  // PFLIB_TOOL_MENU_H

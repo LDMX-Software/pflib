@@ -178,7 +178,7 @@ namespace {
 
 auto expert = pftool::menu("EXPERT","expert functions");
 
-auto olink = pftool::menu("OLINK","Optical link functions",expert)
+auto olink = expert->submenu("OLINK","Optical link functions")
   /*
   ->line("STATUS","dump link status",link)
   ->line("CONFIG","setup link",link)
@@ -186,7 +186,7 @@ auto olink = pftool::menu("OLINK","Optical link functions",expert)
   */
 ;
 
-auto mwb = pftool::menu("WB","Raw wishbone interactions",expert)
+auto mwb = expert->submenu("WB","Raw wishbone interactions")
   ->line("RESET","enable/disable (toggle)", wb)
   ->line("READ", "read from an address", wb)
   ->line("BLOCKREAD", "read several words starting from an address", wb)
@@ -194,7 +194,7 @@ auto mwb = pftool::menu("WB","Raw wishbone interactions",expert)
   ->line("STATUS", "wishbone error counters", wb)
 ;
 
-auto mi2c = pftool::menu("I2C", "Access to I2C core",expert)
+auto mi2c = expert->submenu("I2C", "Access to I2C core")
   ->line("BUS","pick the I2C bus to use", i2c)
   ->line("READ", "read from an address", i2c)
   ->line("WRITE", "write to an address", i2c)

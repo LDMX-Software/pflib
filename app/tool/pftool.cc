@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
         }
 
         status(p_pft.get());
-        Menu<PolarfireTarget>::run(p_pft.get());
+        pftool::run(p_pft.get());
       } else {
         std::cerr << "No Polarfire Target available to connect with. Not sure how we got here." << std::endl;
         return 126;

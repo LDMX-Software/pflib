@@ -515,7 +515,7 @@ auto mdaq = pftool::menu("DAQ","Data AcQuisition")
   ->line("EXTERNAL", "take an externally-triggered run", daq)
 ;
 
-auto msetup = pftool::menu("SETUP", "setup the DAQ", mdaq)
+auto msetup = mdaq->submenu("SETUP", "setup the DAQ")
   ->line("STATUS","print the status of the DAQ", daq)
   ->line("ENABLE","toggle the enable status", daq_setup)
   ->line("ZS", "toggle zero suppression status", daq_setup)
@@ -527,7 +527,7 @@ auto msetup = pftool::menu("SETUP", "setup the DAQ", mdaq)
 #endif
 ;
 
-auto mdebug = pftool::menu("DEBUG", "debugging the DAQ menu", mdaq)
+auto mdebug = mdaq->submenu("DEBUG", "debugging the DAQ menu")
   ->line("STATUS","print the status of the DAQ", daq)
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
