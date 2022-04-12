@@ -11,14 +11,14 @@ Global_Analog_*:
 Reference_Voltage_0:
   Tot_vref: 475 #Board specific
   Toa_vref: 0b0001110000 #Board specific
-  Inv_vref: 350
+  Inv_vref: 400
   Calib_dac: 0
   IntCtest: 0
   ExtCtest: 0
 Reference_Voltage_1:
   Tot_vref: 475 #Board specific
   Toa_vref: 0b0001110000 #Board specific
-  Inv_vref: 395
+  Inv_vref: 425
   Calib_dac: 0
   IntCtest: 0
   ExtCtest: 0
@@ -116,7 +116,7 @@ Digital_Half_*:
 
 #Reset channel-wise pedestal adjustment
 Channel_*:
-  Dacb: 45
+  Dacb: 55
   Sign_dac: 0
   Ref_dac_inv: 0
 
