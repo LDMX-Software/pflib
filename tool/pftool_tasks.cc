@@ -51,7 +51,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     
   }
   /// common stuff for all scans
-  if (cmd=="SCANCHARGE") {
+  if (cmd=="SCANCHARGE" || cmd=="SCANTOAVREF") {
     int len{};
     int offset{};
     pft->backend->fc_get_setup_calib(len,offset);
