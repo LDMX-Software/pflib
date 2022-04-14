@@ -212,7 +212,6 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     pflib::Elinks& elinks=pft->hcal.elinks();
     elinks.resetHard();
   }
-  
 
   if (cmd == "CALIBRUN") {
     const std::string pedestal_command{"PEDESTAL"};
@@ -387,6 +386,9 @@ void calibrun(pflib::PolarfireTarget* pft,
              const std::string& chargescan_filename,
              const std::vector<std::string>& led_filenames)
 {
+
+  header_check(pft, 100);
+  const calibrun_hardcoded_values hc{};
   return;
 
 
