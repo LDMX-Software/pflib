@@ -397,8 +397,12 @@ void calibrun(pflib::PolarfireTarget* pft,
   fc_calib(pft, hc.calib_length, hc.calib_offset);
 
 
+
   std::cout << "Disabling external L1A, external spill, and timer L1A\n";
   fc_enables(pft, false, false, false);
+
+  std::cout << "Disabling DMA\n";
+  setup_dma(pft, false);
   return;
 
 
