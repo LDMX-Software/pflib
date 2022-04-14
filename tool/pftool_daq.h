@@ -87,7 +87,7 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft );
  */
 void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft );
 
-void daq_softreset(pflib::PolarfireTarget*);
+void daq_softreset(pflib::PolarfireTarget* pft);
 void daq_standard(pflib::PolarfireTarget* pft);
 void daq_status(pflib::PolarfireTarget* pft);
 void setup_dma(pflib::PolarfireTarget* pft);

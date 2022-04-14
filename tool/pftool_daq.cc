@@ -110,7 +110,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 #endif
   }
   if (cmd=="RESET") {
-    daq_softreset();
+    daq_softreset(pft);
   }
   if (cmd=="HARD_RESET") {
     pft->daqHardReset();
@@ -409,7 +409,7 @@ void daq_status(pflib::PolarfireTarget* pft) {
 
 }
 
-void daq_softreset(pflib::PolarfireTarget*)
+void daq_softreset(pflib::PolarfireTarget* pft)
 {
     pft->daqSoftReset();
 }
