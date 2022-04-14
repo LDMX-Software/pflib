@@ -395,10 +395,7 @@ void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
 }
 
-void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
-{
-  pflib::DAQ& daq=pft->hcal.daq();
-  if (cmd=="STATUS") {
+void daq_status(pflib::PolarfireTarget* pft) {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
