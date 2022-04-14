@@ -21,6 +21,7 @@ void set_bias_on_all_connectors(PolarfireTarget* pft,
                                 const int num_boards,
                                 const bool set_led,
                                 const int dac_value) {
+  initialize_bias_on_all_boards(pft, num_boards);
     const int num_connections{16};
     for (int board{0}; board < num_boards; ++board) {
         for (int connection{0}; connection< num_connections; ++connection) {
@@ -30,11 +31,9 @@ void set_bias_on_all_connectors(PolarfireTarget* pft,
 }
 
 void set_bias_on_all_connectors(PolarfireTarget* pft) {
-    static int num_boards{3};
     static int dac_value {0};
     static int led_or_sipm {0};
-    num_boards = BaseMenu::readline_int("How many boards are connected to this DPM?",
-                                        num_boards);
+    const int num_boards {get_num_rocs()};
     led_or_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ",led_or_sipm);
     dac_value = BaseMenu::readline_int("What DAC value?", dac_value);
     if (led_or_sipm < 0 || led_or_sipm > 1) {
@@ -55,8 +54,7 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
 
   if (cmd=="INIT") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
-    pflib::Bias bias=pft->hcal.bias(iboard);
-    bias.initialize();
+    initialize_bias(pft, iboard);
   }
   if (cmd=="SET_ALL") {
       set_bias_on_all_connectors(pft);
