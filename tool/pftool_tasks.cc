@@ -391,6 +391,10 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
             << hc.led_calib_offset
             <<'\n';
   fc_calib(pft, hc.led_calib_length, hc.led_calib_offset);
+  const int num_boards{get_num_rocs()};
+  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs\n";
+  set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
+
 }
 
 void calibrun(pflib::PolarfireTarget* pft,
