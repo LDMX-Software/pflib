@@ -55,4 +55,8 @@ void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fn
 void roc( const std::string& cmd, PolarfireTarget* pft );
 
 
+int get_num_rocs();
+int get_dpm_number();
+int get_num_channels_per_elink();
+int get_num_channels_per_roc();
 #endif /* PFTOOL_ROC_H */

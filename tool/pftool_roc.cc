@@ -4,9 +4,32 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
-void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
-                     const bool prepend_defaults, const int num_rocs) {
-  if (iroc == -1) {
+int get_num_channels_per_elink()
+{
+  const int default_num_channels{36};
+  static int num_channels {BaseMenu::readline_int("How many channels per ELINK? (Half of number of channels per ROC)",
+                                                 default_num_channels)};
+  return num_channels;
+
+}
+int get_num_channels_per_roc()
+{
+  return get_num_channels_per_elink() * 2;
+}
+
+int get_num_rocs()
+{
+    static int num_rocs = BaseMenu::readline_int("How many ROCs are connected to this DPM?", 3);
+    return num_rocs;
+}
+
+int get_dpm_number() {
+  static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
+  return dpm;
+}
+void load_parameters(PolarfireTarget* pft, const int config_version,
+                     const std::vector<std::string> filenames,
+                     const bool prepend_defaults) {
     for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
       pft->loadROCParameters(roc_number, fname, prepend_defaults);
     }
