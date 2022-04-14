@@ -6,6 +6,20 @@ std::string last_run_file=".last_run_file";
 std::string start_dma_cmd="";
 std::string stop_dma_cmd="";
 
+
+std::string make_default_daq_run_filename(const std::string& cmd) {
+  std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
+  if (cmd == "CHARGE") {
+    fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
+  }
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char fname_def[64];
+  strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+  return fname_def;
+}
+
+
 void daq_run(
   PolarfireTarget* pft,
   const std::string& cmd // PEDESTAL, CHARGE, or no trigger
@@ -42,6 +56,7 @@ void daq_run(
     fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
   }
 }
+
 std::vector<uint32_t> read_words_from_file()
 {
   std::vector<uint32_t> data;
