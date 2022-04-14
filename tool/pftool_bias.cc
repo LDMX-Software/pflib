@@ -1,6 +1,22 @@
 #include "pftool_bias.h"
 using pflib::PolarfireTarget;
 
+void initialize_bias_on_all_boards(PolarfireTarget* pft, const int num_boards) {
+    std::cout <<"Initializing bias on all "
+              << num_boards
+              <<" boards\n";
+    for (int board {0}; board < num_boards; ++board) {
+      initialize_bias(pft, board);
+    }
+}
+void initialize_bias(PolarfireTarget* pft,
+                     const int iboard)
+{
+
+    pflib::Bias bias=pft->hcal.bias(iboard);
+    bias.initialize();
+}
+
 void set_bias_on_all_connectors(PolarfireTarget* pft,
                                 const int num_boards,
                                 const bool set_led,
