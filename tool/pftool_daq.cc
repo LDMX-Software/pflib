@@ -87,41 +87,6 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 
   // default is non-DMA readout
   bool dma_enabled=false;
-  auto daq_run = [&](const std::string& cmd // PEDESTAL, CHARGE, or no trigger
-      , int run // not used in this implementation of daq
-      , int nevents // number of events to collect
-      , int rate // not used in this implementation of daq
-      , const std::string& fname // file to write to (appended)
-  ) {
-    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
-    timeval tv0, tvi;
-
-    gettimeofday(&tv0,0);
-
-    for (int ievt=0; ievt<nevents; ievt++) {
-      // normally, some other controller would send the L1A
-      //  we are sending it so we get data during no signal
-      if (cmd=="PEDESTAL")
-        pft->backend->fc_sendL1A();
-      if (cmd=="CHARGE")
-        pft->backend->fc_calibpulse();
-
-      gettimeofday(&tvi,0);
-      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
-      //      double ratenow=(ievt+1)/runsec;
-      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
-      int usec_ahead=int((targettime-runsec)*1e6);
-      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-      if (usec_ahead>100) { // if we are running fast...
-        usleep(usec_ahead);
-        //        printf("Sleeping %d\n",usec_ahead);
-      }
-
-      std::vector<uint32_t> event = pft->daqReadEvent();
-      pft->backend->fc_advance_l1_fifo();
-      fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
-    }
-  };
 
 #ifdef PFTOOL_ROGUE
   auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -129,7 +94,10 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
   if (rwbi) {
     uint8_t samples_per_event;
     rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
+  } else {
+    std::cout << "Unable to get RWBI\n";
   }
+
 #endif
 
   if (cmd=="STATUS") {
@@ -261,7 +229,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
     } else
 #endif
     {
-      daq_run(cmd,run,nevents,rate,fname);
+      daq_run(pft, cmd,run,nevents,rate,fname);
     }
   }
   /** Deprecated by new TASK menu */
@@ -293,7 +261,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
       } else
 #endif
       {
-        daq_run(trigtype,run,nevents,rate,fname);
+        daq_run(pft, trigtype,run,nevents,rate,fname);
       }
     }
   }
