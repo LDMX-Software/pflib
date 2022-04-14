@@ -1,6 +1,60 @@
 #include "pftool_elinks.h"
 using pflib::PolarfireTarget;
 
+void header_check(PolarfireTarget* pft, const int nevents)
+{
+
+    std::cout << "Disabling DMA...\n";
+    setup_dma(pft, false);
+
+    int nsamples=1;
+    {
+      bool multi;
+      int nextra;
+      pft->hcal.fc().getMultisampleSetup(multi,nextra);
+      if (multi) nsamples=nextra+1;
+    }
+
+    pft->prepareNewRun();
+
+    int n_good_bxheaders[8] = {0,0,0,0,0,0,0,0};
+    int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
+    int n_good_idles[8] = {0,0,0,0,0,0,0,0};
+    int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
+    for (int ievt{0}; ievt < nevents; ievt++) {
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event_raw = pft->daqReadEvent();
+      pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
+      for (int s{0}; s < nsamples; s++) {
+        for (int l{0}; l < 8; l++) {
+          auto packet = event.sample(s).roc(l);
+          if (packet.length() > 2) {
+            if (event.sample(s).roc(l).good_bxheader()) n_good_bxheaders[l]++;
+            else n_bad_bxheaders[l]++;
+            if (event.sample(s).roc(l).good_idle()) n_good_idles[l]++;
+            else n_bad_idles[l]++;
+          }
+        }
+      }
+    }
+
+    printf("     %26s | %26s\n","BX Headers","Idles");
+    printf("Link %10s %10s %4s | %10s %10s %4s\n","Good","Bad","B/T","Good","Bad","B/T");
+    for (int ilink{0}; ilink < 8; ilink++) {
+      float bg_bxheaders = 0.;
+      if (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]>0)
+        bg_bxheaders = float(n_bad_bxheaders[ilink])/
+          (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]);
+      float bg_idles = 0.;
+      if (n_good_idles[ilink]+n_bad_idles[ilink]>0)
+        bg_idles = float(n_bad_idles[ilink])/
+          (n_good_idles[ilink]+n_bad_idles[ilink]);
+      printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", ilink,
+          n_good_bxheaders[ilink], n_bad_bxheaders[ilink], bg_bxheaders,
+          n_good_idles[ilink], n_bad_idles[ilink], bg_idles);
+    }
+}
+
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
   const int nevents=10;
 
@@ -119,53 +173,7 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd=="HEADER_CHECK") {
     nevents=BaseMenu::readline_int("Num events? ",nevents);
-
-    int nsamples=1;
-    {
-      bool multi;
-      int nextra;
-      pft->hcal.fc().getMultisampleSetup(multi,nextra);
-      if (multi) nsamples=nextra+1;
-    }
-
-    pft->prepareNewRun();
-
-    int n_good_bxheaders[8] = {0,0,0,0,0,0,0,0};
-    int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
-    int n_good_idles[8] = {0,0,0,0,0,0,0,0};
-    int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
-    for (int ievt{0}; ievt < nevents; ievt++) {
-      pft->backend->fc_sendL1A();
-      std::vector<uint32_t> event_raw = pft->daqReadEvent();
-      pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
-      for (int s{0}; s < nsamples; s++) {
-        for (int l{0}; l < 8; l++) {
-          auto packet = event.sample(s).roc(l);
-          if (packet.length() > 2) {
-            if (event.sample(s).roc(l).good_bxheader()) n_good_bxheaders[l]++;
-            else n_bad_bxheaders[l]++;
-            if (event.sample(s).roc(l).good_idle()) n_good_idles[l]++;
-            else n_bad_idles[l]++;
-          }
-        }
-      }
-    }
-
-    printf("     %26s | %26s\n","BX Headers","Idles");
-    printf("Link %10s %10s %4s | %10s %10s %4s\n","Good","Bad","B/T","Good","Bad","B/T");
-    for (int ilink{0}; ilink < 8; ilink++) {
-      float bg_bxheaders = 0.;
-      if (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]>0)
-        bg_bxheaders = float(n_bad_bxheaders[ilink])/
-          (n_good_bxheaders[ilink]+n_bad_bxheaders[ilink]);
-      float bg_idles = 0.;
-      if (n_good_idles[ilink]+n_bad_idles[ilink]>0)
-        bg_idles = float(n_bad_idles[ilink])/
-          (n_good_idles[ilink]+n_bad_idles[ilink]);
-      printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", ilink,
-          n_good_bxheaders[ilink], n_bad_bxheaders[ilink], bg_bxheaders,
-          n_good_idles[ilink], n_bad_idles[ilink], bg_idles);
-    }
+    header_check(pft, nevents);
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
