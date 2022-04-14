@@ -1,5 +1,39 @@
 #include "pftool_tasks.h"
 
+void set_one_channel_per_elink(PolarfireTarget* pft,
+                               const std::string& parameter,
+                               const int channels_per_elink,
+                               const int ichan,
+                               const int value)
+{
+
+  ////////////////////////////////////////////////////////////
+  /// Enable charge injection channel by channel -- per elink
+  for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+    if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+    int iroc=ilink/2;
+    const int roc_half = ilink % 2;
+    const int channel_number = roc_half * channels_per_elink + ichan;
+    // char pagename[32];
+    // snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(channels_per_elink)+ichan);
+    // set the value
+    const std::string pagename = "CHANNEL_" + std::to_string(channel_number);
+    pft->hcal.roc(iroc).applyParameter(pagename, parameter, value);
+  }
+}
+
+void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                  const int channels_per_elink,
+                                  const int ichan) {
+  set_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan, 1);
+}
+
+void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                   const int channels_per_elink,
+                                  const int ichan) {
+  set_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan, 0);
+}
 void teardown_charge_injection(PolarfireTarget* pft)
 {
   const int num_rocs {get_num_rocs()};

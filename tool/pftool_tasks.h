@@ -26,6 +26,19 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 
 void beamprep(pflib::PolarfireTarget* pft);
 
+
+void set_one_channel_per_elink(PolarfireTarget* pft,
+                               const std::string& parameter,
+                               const int channels_per_elink,
+                               const int ichan,
+                               const int value);
+
+void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                  const int channels_per_elink,
+                                  const int ichan);
+void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                   const int channels_per_elink,
+                                   const int ichan);
 // This screams for RAII...
 void teardown_charge_injection(PolarfireTarget* pft);
 void prepare_charge_injection(PolarfireTarget* pft);
