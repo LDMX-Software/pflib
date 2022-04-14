@@ -27,6 +27,9 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 void beamprep(pflib::PolarfireTarget* pft);
 
 
+void make_scan_csv_header(std::ofstream& csv_out,
+                          const std::string& valuename,
+                          const int nsamples = 8);
 
 void set_one_channel_per_elink(PolarfireTarget* pft,
                                const std::string& parameter,

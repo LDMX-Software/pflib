@@ -1,5 +1,18 @@
 #include "pftool_tasks.h"
 
+
+void make_scan_csv_header(std::ofstream& csv_out,
+                          const std::string& valuename,
+                          const int nsamples) {
+  // csv header
+  csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
+  for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+  for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+  for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+  csv_out << ",CAPACITOR_TYPE";
+  csv_out<<std::endl;
+
+}
 void set_one_channel_per_elink(PolarfireTarget* pft,
                                const std::string& parameter,
                                const int channels_per_elink,
