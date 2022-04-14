@@ -419,6 +419,9 @@ void calibrun(pflib::PolarfireTarget* pft,
   }
 
   std::cout << "... Done\n";
+
+  std::cout << "DAQ status:\n";
+  daq_status(pft);
   return;
 
 
