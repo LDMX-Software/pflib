@@ -1,5 +1,47 @@
 #include "pftool_tasks.h"
 
+void teardown_charge_injection(PolarfireTarget* pft)
+{
+  const int num_rocs {get_num_rocs()};
+  printf(" Diabling IntCTest...\n");
+
+
+  std::string intctest_page = "REFERENCE_VOLTAGE_";
+  std::string intctest_parameter = "INTCTEST";
+  const int intctest = 0;
+  std::cout << "Setting " << intctest_parameter << " on page "
+            << intctest_page << " to "
+            << intctest << '\n';
+  poke_all_rochalves(pft, intctest_page, intctest_parameter, intctest);
+  std::cout << "Note: L1OFFSET is not reset automatically by charge injection scans\n";
+
+}
+void prepare_charge_injection(PolarfireTarget* pft)
+{
+  const calibrun_hardcoded_values hc{};
+  const int num_rocs {get_num_rocs()};
+  const int off_value{0};
+    printf(" Clearing charge injection on all channels (ground-state)...\n");
+    poke_all_channels(pft, "HIGHRANGE", off_value);
+    printf("Highrange cleared\n");
+    poke_all_channels(pft, "LOWRANGE", off_value);
+    printf("Lowrange cleared\n");
+
+    printf(" Enabling IntCTest...\n");
+
+    const int intctest = 1;
+    std::cout << "Setting " << hc.intctest_parameter << " on page "
+              << hc.intctest_page << " to "
+              << intctest << '\n';
+    poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
+
+
+    std::cout << "Setting " <<hc.l1offset_parameter << " on page "
+              << hc.l1offset_page << " to "
+              << hc.charge_l1offset << '\n';
+    poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
+}
+
 void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 {
   pflib::DAQ& daq=pft->hcal.daq();
