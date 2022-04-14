@@ -327,4 +327,48 @@ void beamprep(pflib::PolarfireTarget *pft) {
       dump_rocconfig(pft, roc_number);
     }
   }
+std::string make_default_led_template() {
+
+    time_t t=time(NULL);
+    struct tm *tm = localtime(&t);
+    char fname_def_format[1024];
+    const int dpm{get_dpm_number()};
+    sprintf(fname_def_format,"led_DPM%d_%%Y%%m%%d_%%H%%M%%S_dac_", dpm);
+    char fname_def[1024];
+    strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
+    return fname_def;
+}
+
+std::string make_default_chargescan_filename(PolarfireTarget* pft,
+                                             const std::string& valuename)
+{
+    int len{};
+    int offset{};
+    pft->backend->fc_get_setup_calib(len,offset);
+    time_t t=time(NULL);
+    struct tm *tm = localtime(&t);
+    char fname_def_format[1024];
+    sprintf(fname_def_format,"scan_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str(), offset);
+    char fname_def[1024];
+    strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
+    return fname_def;
+}
+
+
+std::vector<std::string> make_led_filenames() {
+  const calibrun_hardcoded_values hc{};
+    std::string led_filename_template = BaseMenu::readline(
+      "Filename template for LED runs (dac value is appended to this):",
+      make_default_led_template());
+    std::cout << "Performing LED runs with DAC values: \n";
+    std::vector<std::string> led_filenames{};
+
+    for (auto dac_value : hc.led_dac_values) {
+      std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
+      std::cout << dac_value << ": " << filename <<'\n';
+      led_filenames.push_back(filename);
+    }
+    return led_filenames;
+}
+
 }
