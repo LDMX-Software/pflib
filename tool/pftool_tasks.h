@@ -33,6 +33,7 @@ void make_scan_csv_header(PolarfireTarget* pft,
 
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
+                                     const int SiPM_bias,
                                      const int capacitor_type,
                                      const int events_per_step,
                                      const int ichan,
@@ -54,6 +55,7 @@ void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& mode
 
 void scan_N_steps(PolarfireTarget* pft,
                   std::ofstream& csv_out,
+                  const int SiPM_bias,
                   const int events_per_step,
                   const int steps,
                   const int low_value,

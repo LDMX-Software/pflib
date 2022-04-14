@@ -476,53 +476,61 @@ void calibrun(pflib::PolarfireTarget* pft,
   prepare_charge_injection(pft);
 
 
-  std::cout << "Running charge injection with lowrange from "  <<
-    hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << "\n";
+  const std::vector<int> SiPM_biases {0, hc.SiPM_bias};
 
-  const std::string dac_page = "REFERENCE_VOLTAGE_";
-  const std::string dac_parameter_name = "CALIB_DAC";
-  std::cout << "Scanning " <<  hc.coarse_steps
-            << " steps of " << dac_parameter_name << " with "
-            << hc.events_per_step << " events per step\n";
-  scan_N_steps(pft,
-               csv_out,
-               hc.events_per_step,
-               hc.coarse_steps,
-               hc.lowrange_dac_min,
-               hc.lowrange_dac_max,
-               hc.nsamples,
-               dac_parameter_name,
-               dac_page,
-               "LOWRANGE");
+  for (auto SiPM_bias : SiPM_biases) {
+    std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << '\n';
+    std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards\n";
+    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
 
-  std::cout << "Running charge injection with highrange from "  <<
-    hc.highrange_fine_dac_min << " to " << hc.highrange_fine_dac_max << "\n";
+    std::cout << "Running charge injection with lowrange from "  <<
+      hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << "\n";
 
-  scan_N_steps(pft,
-               csv_out,
-               hc.events_per_step,
-               hc.fine_steps,
-               hc.highrange_fine_dac_min,
-               hc.highrange_fine_dac_max,
-               hc.nsamples,
-               dac_parameter_name,
-               dac_page,
-               "HIGHRANGE"
-  );
-  std::cout << "Running charge injection with highrange from "  <<
-    hc.highrange_coarse_dac_min << " to " << hc.highrange_coarse_dac_max << "\n";
+    const std::string dac_page = "REFERENCE_VOLTAGE_";
+    const std::string dac_parameter_name = "CALIB_DAC";
+    std::cout << "Scanning " <<  hc.coarse_steps
+              << " steps of " << dac_parameter_name << " with "
+              << hc.events_per_step << " events per step\n";
+    scan_N_steps(pft,
+                 csv_out,
+                 SiPM_bias,
+                 hc.events_per_step,
+                 hc.coarse_steps,
+                 hc.lowrange_dac_min,
+                 hc.lowrange_dac_max,
+                 dac_parameter_name,
+                 dac_page,
+                 "LOWRANGE");
 
-  scan_N_steps(pft,
-               csv_out,
-               hc.events_per_step,
-               hc.coarse_steps,
-               hc.highrange_coarse_dac_min,
-               hc.highrange_coarse_dac_max,
-               hc.nsamples,
-               dac_parameter_name,
-               dac_page,
-               "HIGHRANGE"
-  );
+    std::cout << "Running charge injection with highrange from "  <<
+      hc.highrange_fine_dac_min << " to " << hc.highrange_fine_dac_max << "\n";
+
+    scan_N_steps(pft,
+                 csv_out,
+                 SiPM_bias,
+                 hc.events_per_step,
+                 hc.fine_steps,
+                 hc.highrange_fine_dac_min,
+                 hc.highrange_fine_dac_max,
+                 dac_parameter_name,
+                 dac_page,
+                 "HIGHRANGE"
+    );
+    std::cout << "Running charge injection with highrange from "  <<
+      hc.highrange_coarse_dac_min << " to " << hc.highrange_coarse_dac_max << "\n";
+
+    scan_N_steps(pft,
+                 csv_out,
+                 SiPM_bias,
+                 hc.events_per_step,
+                 hc.coarse_steps,
+                 hc.highrange_coarse_dac_min,
+                 hc.highrange_coarse_dac_max,
+                 dac_parameter_name,
+                 dac_page,
+                 "HIGHRANGE"
+    );
+  }
 
   std::cout << "Running teardown for charge injection\n";
   teardown_charge_injection(pft);
