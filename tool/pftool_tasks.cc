@@ -13,6 +13,48 @@ void make_scan_csv_header(std::ofstream& csv_out,
   csv_out<<std::endl;
 
 }
+
+void take_N_calibevents_with_channel(PolarfireTarget* pft,
+                                     std::ofstream& csv_out,
+                                     const int capacitor_type,
+                                     const int nsamples,
+                                     const int events_per_step,
+                                     const int ichan,
+                                     const int value)
+{
+  //////////////////////////////////////////////////////////
+  /// Take the expected number of events and save the events
+  for (int ievt=0; ievt<events_per_step; ievt++) {
+
+    pft->backend->fc_calibpulse();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pft->backend->fc_advance_l1_fifo();
+
+
+    // here we decode the event and store the relevant information only...
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+    const auto dpm {get_dpm_number()};
+
+    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
+      if (!pft->hcal.elinks().isActive(ilink)) continue;
+
+      csv_out << value << ',' << dpm << ',' << ilink << ',' << ichan << ',' << ievt;
+      for (int i=0; i<nsamples; i++) {
+        csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
+      }
+      for (int i=0; i<nsamples; i++) {
+        csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
+      }
+      for (int i=0; i<nsamples; i++) {
+       csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
+      }
+      csv_out << ',' << capacitor_type;
+
+      csv_out<< '\n';
+    }
+  }
+}
+
 void set_one_channel_per_elink(PolarfireTarget* pft,
                                const std::string& parameter,
                                const int channels_per_elink,
