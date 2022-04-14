@@ -41,7 +41,10 @@ int get_dpm_number() {
 std::string make_roc_config_filename(const int config_version, const int roc)
 {
   const int dpm {get_dpm_number()};
-  return "Config_v" + std::to_string(config_version)
+  const std::string config_version_string = std::to_string(config_version);
+
+  return "config/v" + config_version_string
+    + "/Config_v" +  config_version_string
     +"_dpm" + std::to_string(dpm)
     + "_board" + std::to_string(roc) + ".yaml";
 }
