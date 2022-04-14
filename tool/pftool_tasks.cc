@@ -283,6 +283,8 @@ void beamprep(pflib::PolarfireTarget *pft) {
   daq_softreset(pft);
   std::cout << "Running DAQ standard setup\n";
   daq_standard(pft);
+  std::cout << "Running DAQ enable\n";
+  daq_enable(pft);
 
   const calibrun_hardcoded_values hc{};
   std::cout << "Setting number of additional samples to: "
@@ -442,6 +444,8 @@ void calibrun(pflib::PolarfireTarget* pft,
   daq_softreset(pft);
   std::cout << "Running DAQ standard setup\n";
   daq_standard(pft);
+  std::cout << "Running DAQ enable\n";
+  daq_enable(pft);
 
   std::cout << "Setting number of additional samples to: "
             << hc.num_extra_samples << '\n';

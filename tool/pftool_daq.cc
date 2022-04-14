@@ -426,6 +426,12 @@ void daq_standard(pflib::PolarfireTarget* pft)
     }
 }
 
+void daq_enable(pflib::PolarfireTarget* pft)
+{
+
+    pflib::DAQ& daq=pft->hcal.daq();
+    daq.enable(!daq.enabled());
+}
 void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
 {
   pflib::DAQ& daq=pft->hcal.daq();
@@ -433,7 +439,7 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     daq_status(pft);
   }
   if (cmd=="ENABLE") {
-    daq.enable(!daq.enabled());
+    daq_enable(pft);
   }
   if (cmd=="ZS") {
     int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);
