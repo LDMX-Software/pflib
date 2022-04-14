@@ -46,5 +46,9 @@ void fc_enables(pflib::PolarfireTarget* pft,
                 const bool timer_l1a);
 void fc_enables(pflib::PolarfireTarget* pft);
 
+void multisample_setup(pflib::PolarfireTarget* pft);
+void multisample_setup(pflib::PolarfireTarget* pft,
+                       const bool enable,
+                       const int nextra);
 
 #endif /* PFTOOL_FASTCONTROL_H */

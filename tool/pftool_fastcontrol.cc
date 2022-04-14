@@ -21,6 +21,42 @@ void fc_calib(PolarfireTarget* pft) {
     offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
     fc_calib(pft, len, offset);
 }
+
+
+void multisample_setup(pflib::PolarfireTarget* pft,
+                       const bool enable,
+                       const int nextra)
+{
+
+    pft->hcal.fc().setupMultisample(enable,nextra);
+    // also, DMA needs to know
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      // Note: We read more information than we actually need here which is why
+      // we have all of these extra variables. We only actually need the FPGA_ID.
+      bool enabled;
+      uint8_t samples_per_event, fpgaid_i;
+      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
+      samples_per_event=nextra+1;
+      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
+    }
+#endif
+}
+
+void multisample_setup(pflib::PolarfireTarget* pft)
+{
+    bool multi;
+    int nextra;
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
+    if (multi) {
+      nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
+    }
+    multisample_setup(pft, multi, nextra);
+
+}
+
 void fc( const std::string& cmd, PolarfireTarget* pft ) {
   bool do_status=false;
 
@@ -54,24 +90,7 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     fc_calib(pft);
   }
   if (cmd=="MULTISAMPLE") {
-    bool multi;
-    int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
-    multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
-    if (multi)
-      nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
-    pft->hcal.fc().setupMultisample(multi,nextra);
-    // also, DMA needs to know
-#ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
-      samples_per_event=nextra+1;
-      rwbi->daq_dma_setup(fpgaid_i,samples_per_event);
-    }
-#endif
+    multisample_setup(pft);
   }
   if (cmd=="STATUS" || do_status) {
     static const std::vector<std::string> bit_comments = {
