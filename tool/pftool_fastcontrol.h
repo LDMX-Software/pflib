@@ -30,7 +30,12 @@
  */
 void fc( const std::string& cmd, pflib::PolarfireTarget* pft);
 
-void veto_setup(pflib::PolarfireTarget* pft);
+
+
+void veto_setup(pflib::PolarfireTarget* pft,
+                bool veto_daq_busy = true,
+                bool veto_l1_occ = false,
+                bool ask = true);
 void fc_calib(pflib::PolarfireTarget* pft,
               const int len, const int offset) ;
 void fc_calib(pflib::PolarfireTarget* pft);

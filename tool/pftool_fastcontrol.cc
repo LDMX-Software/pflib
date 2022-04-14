@@ -113,10 +113,21 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
 void veto_setup(pflib::PolarfireTarget* pft)
 {
     bool veto_daq_busy, veto_l1_occ;
+
+  const bool veto_daq_busy_before_read{veto_daq_busy};
+  const bool veto_l1_occ_before_read{veto_l1_occ};
     int level_busy, level_ok;
     pft->backend->fc_veto_setup_read(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
-    veto_daq_busy=BaseMenu::readline_bool("Veto L1A on DAQ busy? ",veto_daq_busy);
-    veto_l1_occ=BaseMenu::readline_bool("Veto L1A on L1 occupancy? ",veto_l1_occ);
+    std::cout << "Veto setup before: " << std::boolalpha << veto_daq_busy << ", " << veto_l1_occ << "\n";
+    if (ask) {
+      veto_daq_busy=BaseMenu::readline_bool("Veto L1A on DAQ busy? ",veto_daq_busy);
+      veto_l1_occ=BaseMenu::readline_bool("Veto L1A on L1 occupancy? ",veto_l1_occ);
+    } else {
+      veto_daq_busy = veto_daq_busy_before_read;
+      veto_l1_occ = veto_l1_occ_before_read;
+    }
+    std::cout << "Veto setup after: " << std::boolalpha << veto_daq_busy << ", " << veto_l1_occ << "\n";
+    std::cout << "Levels: " << level_busy << " " << level_ok << "\n";
     pft->backend->fc_veto_setup(veto_daq_busy, veto_l1_occ,level_busy, level_ok);
     if (veto_l1_occ) {
         printf("\n  Occupancy Veto Thresholds -- OK->BUSY at %d, BUSY->OK at %d\n",level_busy,level_ok);
