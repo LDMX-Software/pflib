@@ -25,6 +25,8 @@ struct calibrun_hardcoded_values {
     int fine_steps = 20;
     int events_per_step = 3;
 
+    // Number of samples - 1
+    int num_extra_samples = 7;
 
     std::string l1offset_page = "DIGITAL_HALF_";
     std::string l1offset_parameter = "L1OFFSET";

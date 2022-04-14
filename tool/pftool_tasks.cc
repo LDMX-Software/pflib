@@ -278,10 +278,18 @@ void beamprep(pflib::PolarfireTarget *pft) {
   }
   const int num_boards{ get_num_rocs()};
 
+
   std::cout << "Running DAQ softreset\n";
   daq_softreset(pft);
   std::cout << "Running DAQ standard setup\n";
   daq_standard(pft);
+
+  const calibrun_hardcoded_values hc{};
+  std::cout << "Setting number of additional samples to: "
+            << hc.num_extra_samples << '\n';
+  const bool enable_multisample = true;
+  multisample_setup(pft, enable_multisample, hc.num_extra_samples);
+
   std::cout << "There are some options that people might want to test changing"
             << "when developing the beam setup that can be customized here.\n "
             << "However, unless you know what you are doing OR you skipped "
@@ -434,6 +442,12 @@ void calibrun(pflib::PolarfireTarget* pft,
   daq_softreset(pft);
   std::cout << "Running DAQ standard setup\n";
   daq_standard(pft);
+
+  std::cout << "Setting number of additional samples to: "
+            << hc.num_extra_samples << '\n';
+  const bool enable_multisample = true;
+  multisample_setup(pft, enable_multisample, hc.num_extra_samples);
+
   header_check(pft, 100);
   std::cout << "Setting up fc->calib_pulse with length "
             << hc.calib_length
