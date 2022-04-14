@@ -30,7 +30,11 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
     std::vector<uint32_t> event = pft->daqReadEvent();
     pft->backend->fc_advance_l1_fifo();
 
-
+    std::cout << "Capacitor type: " << capacitor_type
+              << ", Nsamples: " << nsamples
+              << ", Events per step:" << events_per_step
+              << ", Value: " << value
+              << ", Channel: " << ichan << '\n';
     // here we decode the event and store the relevant information only...
     pflib::decoding::SuperPacket data(&(event[0]),event.size());
     const auto dpm {get_dpm_number()};
