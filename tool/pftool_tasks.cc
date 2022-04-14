@@ -227,30 +227,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
-    int len{};
-    int offset{};
-    pft->backend->fc_get_setup_calib(len,offset);
-    static const int NUM_ELINK_CHAN=36;
 
     steps=BaseMenu::readline_int("Number of steps?",steps);
     events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
 
-    time_t t=time(NULL);
-    struct tm *tm = localtime(&t);
-    char fname_def_format[1024];
-    sprintf(fname_def_format,"scan_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str(), offset);
-    char fname_def[1024];
-    strftime(fname_def, sizeof(fname_def), fname_def_format, tm); 
-    
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
-    std::ofstream csv_out=std::ofstream(fname);
-
-    // csv header
-    csv_out <<valuename << ",ILINK,CHAN,EVENT";
-    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
-    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
-    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-    csv_out<<std::endl;
 
     if (cmd=="SCANCHARGE") {
       
@@ -261,6 +241,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     /// first, disable charge injection on all channels
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
+    std::string fname=BaseMenu::readline("Filename :  ",
+                                         make_default_chargescan_filename(pft, valuename));
+    std::ofstream csv_out=std::ofstream(fname);
+    make_scan_csv_header(csv_out, valuename, nsamples);
 
       int iroc=ilink/2;        
       for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
