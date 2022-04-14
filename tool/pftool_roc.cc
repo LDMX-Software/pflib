@@ -38,12 +38,15 @@ std::string make_roc_config_filename(const int config_version, const int roc)
 void load_parameters(PolarfireTarget* pft, const int config_version,
                      const std::vector<std::string> filenames,
                      const bool prepend_defaults) {
+  const int dpm {get_dpm_number()};
+  const int num_rocs{get_num_rocs()};
     for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
-      pft->loadROCParameters(roc_number, fname, prepend_defaults);
+      load_parameters(pft, roc_number, filenames[roc_number], prepend_defaults);
     }
-  } else {
+}
+void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
+                     const bool prepend_defaults) {
     pft->loadROCParameters(iroc, fname, prepend_defaults);
-  }
 }
 
 void load_parameters(PolarfireTarget* pft, const int iroc) {
@@ -51,26 +54,34 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
                " --- This command expects a YAML file with page names, "
                "parameter names and their values.\n"
             << std::flush;
-  const std::string default_yaml{"baseConfig.yaml"};
-  std::string fname = BaseMenu::readline("Filename: ", default_yaml);
+
+  int config_version {BaseMenu::readline_int("Config version: ", 0)};
+  const int dpm {get_dpm_number()};
   bool prepend_defaults = BaseMenu::readline_bool(
       "Update all parameter values on the chip using the defaults in the "
       "manual for any values not provided? ",
       false);
-    const int default_num_rocs{3};
     if (iroc == -1) {
-    const int num_rocs{BaseMenu::readline_int(
-        "How many ROCs are connected to this DPM?", default_num_rocs)};
-    load_parameters(pft, iroc, fname, prepend_defaults, num_rocs);
+      const int num_rocs{get_num_rocs()};
+      std::vector<std::string> roc_filenames{};
+      for (int roc{0}; roc < num_rocs; ++roc) {
+      std::string filename = BaseMenu::readline("Configuration filename for roc: " + std::to_string(roc),
+                                           make_roc_config_filename(config_version, roc));
+      roc_filenames.push_back(filename);
+
+      }
+      load_parameters(pft, config_version,  roc_filenames, prepend_defaults);
     } else {
-      // num_rocs is unused here
-    load_parameters(pft, iroc, fname, prepend_defaults, default_num_rocs);
+    auto fname = BaseMenu::readline("Filename: ", make_roc_config_filename(config_version, iroc));
+    load_parameters(pft, iroc, fname, prepend_defaults);
     }
 }
 void poke_all_channels(PolarfireTarget *pft, const std::string &parameter,
-                       const int value, const int num_rocs,
-                       const int num_channels) {
+                       const int value)
+{
   const std::string page_template {"CHANNEL_"};
+  const int num_channels = get_num_channels_per_roc();
+  const int num_rocs{get_num_rocs()};
   for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
     pflib::ROC roc {pft->hcal.roc(roc_number)};
     for (int channel{0}; channel < num_channels; ++channel) {
@@ -78,28 +89,13 @@ void poke_all_channels(PolarfireTarget *pft, const std::string &parameter,
     }
   }
 }
-void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
-                       const int value) {
-  const int default_num_rocs {3};
-  const int default_num_channels{72};
-  const int num_channels {BaseMenu::readline_int("How many channels per ROC?",
-                                                 default_num_channels)};
-  const int num_rocs {BaseMenu::readline_int("How many ROCs are connected to this DPM?",
-                                             default_num_rocs)};
-  poke_all_channels(pft, parameter, value, num_rocs, num_channels);
-}
 
 void poke_all_rochalves(PolarfireTarget* pft,
                         const std::string& page_template,
                         const std::string& parameter,
-                        const int value,
-                        int num_rocs)
+                        const int value)
 {
-
-  if (num_rocs < 0) {
-    const int default_num_rocs {3};
-    num_rocs = BaseMenu::readline_int("How many ROCs are connected to this DPM?", default_num_rocs);
-  }
+  const int num_rocs {get_num_rocs()};
   // Avoid shadowing iroc
   for (int roc_number {0}; roc_number < num_rocs; ++roc_number) {
     pflib::ROC roc {pft->hcal.roc(roc_number)};
