@@ -340,7 +340,7 @@ void beamprep(pflib::PolarfireTarget *pft) {
   // }
   std::cout << "DAQ status:\n";
   daq_status(pft);
-  if (BaseMenu::readline_bool("Dump current config?", false)) {
+  if (BaseMenu::readline_bool("Dump current config?", true)) {
     for (int roc_number {0}; roc_number < num_boards; ++roc_number) {
       dump_rocconfig(pft, roc_number);
     }
