@@ -213,9 +213,26 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     elinks.resetHard();
   }
   
+
+  if (cmd == "CALIBRUN") {
+    const std::string pedestal_command{"PEDESTAL"};
+    // auto output_directory = BaseMenu::readline("Output directory for data: (Must end with / and exist)",
+    //                                            "/home/ldmx/pflib/temporary_until_we_decide_where_to_put_stuff/");
+    auto pedestal_filename=BaseMenu::readline("Filename for pedestal run:  ",
+                                make_default_daq_run_filename(pedestal_command));
+    std::string chargescan_filename=BaseMenu::readline(
+      "Filename for charge scan:  ",
+      make_default_chargescan_filename(pft, "CALIBRUN"));
+    const auto led_filenames {make_led_filenames()};
+
+    calibrun(pft, pedestal_filename, chargescan_filename, led_filenames);
+
+
+    return;
+  }
   if (cmd=="SCANCHARGE") {
     valuename="CALIB_DAC";
-    pagetemplate="REFERENCE_VOLTAGE_%d";
+    pagetemplate="REFERENCE_VOLTAGE_";
     /// HGCROCv2 only has 11 bit dac
     printf("CALIB_DAC valid range is 0...2047\n");
     low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
@@ -364,5 +381,13 @@ std::vector<std::string> make_led_filenames() {
     }
     return led_filenames;
 }
+
+void calibrun(pflib::PolarfireTarget* pft,
+             const std::string& pedestal_filename,
+             const std::string& chargescan_filename,
+             const std::vector<std::string>& led_filenames)
+{
+  return;
+
 
 }

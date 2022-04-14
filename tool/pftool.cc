@@ -223,6 +223,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("BEAMPREP", "Run settings and optional configuration for taking beamdata", &tasks),
+    pfMenu::Line("CALIBRUN", "Produce the calibration scans", &tasks),
     pfMenu::Line("QUIT","Back to top menu")
   });
 
