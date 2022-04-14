@@ -50,7 +50,7 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
       }
       csv_out << ',' << capacitor_type;
 
-      csv_out<< '\n';
+      csv_out<< std::endl;
     }
   }
 }
@@ -113,7 +113,6 @@ void scan_N_steps(PolarfireTarget* pft,
       ////////////////////////////////////////////////////////////
       /// set values
       int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
-
       printf(" Scan %s=%d...\n",valuename.c_str(),value);
 
       poke_all_rochalves(pft, pagetemplate, valuename, value);
@@ -273,41 +272,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
           pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 1);
         }
                 
-        //////////////////////////////////////////////////////////
-        /// Take the expected number of events and save the events
-        for (int ievt=0; ievt<events_per_step; ievt++) {
-
-          pft->backend->fc_calibpulse();
-          std::vector<uint32_t> event = pft->daqReadEvent();
-          pft->backend->fc_advance_l1_fifo();
-
-
-          // here we decode the event and store the relevant information only...
-          pflib::decoding::SuperPacket data(&(event[0]),event.size());
-
-          for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-            if (!pft->hcal.elinks().isActive(ilink)) continue;
-
-            csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
-            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
-            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
-            for (int i=0; i<nsamples; i++) csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
-
-            csv_out<<std::endl;
-            /*
-            if (ilink==0) {
-              data.sample(1).roc(ilink).dump();
-            }
-            */
-          }
-        }
 
     prepare_charge_injection(pft);
 
     teardown_charge_injection(pft);
     }
-      ////////////////////////////////////////////////////////////
-  }
 }
 
 void beamprep(pflib::PolarfireTarget *pft) {
