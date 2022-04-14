@@ -121,7 +121,7 @@ void scan_N_steps(PolarfireTarget* pft,
 
       pft->prepareNewRun();
 
-      const int channels_per_elink = 36;
+      const int channels_per_elink = get_num_channels_per_elink();
       for (int ichan=0; ichan<channels_per_elink; ichan++) {
 
         enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
@@ -302,33 +302,9 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
           }
         }
 
-        ////////////////////////////////////////////////////////////
-        /// Disable charge injection channel by channel -- per elink        
-        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-          if (!pft->hcal.elinks().isActive(ilink)) continue;
-          
-          int iroc=ilink/2;        
-          char pagename[32];
-          snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
-          // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 0);
-        }
-
-        //////////////////////////////////////////////////////////
-      }
-    }
-  
-    printf(" Diabling IntCTest...\n");
-    
-    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-      if (!pft->hcal.elinks().isActive(ilink)) continue;
-      
-      int iroc=ilink/2;        
-      char pagename[32];
-      snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
-      // set the value
-      pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 0);
     prepare_charge_injection(pft);
+
+    teardown_charge_injection(pft);
     }
       ////////////////////////////////////////////////////////////
   }
