@@ -101,18 +101,16 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf(" Spills: %d  Events: %d  Header occupancy: %d (max %d)  Vetoed L1A: %d\n",spill_count,event_count,header_occ,header_occ_max,vetoed_counter);
   }
   if (cmd=="ENABLES") {
-    bool ext_l1a, ext_spill, timer_l1a;
-    pft->backend->fc_enables_read(ext_l1a, ext_spill, timer_l1a);
-    ext_l1a=BaseMenu::readline_bool("Enable external L1A? ",ext_l1a);
-    ext_spill=BaseMenu::readline_bool("Enable external spill? ",ext_spill);
-    timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
-    pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
+    fc_enables(pft);
   }
 }
 
-void veto_setup(pflib::PolarfireTarget* pft)
+
+void veto_setup(pflib::PolarfireTarget* pft,
+                bool veto_daq_busy,
+                bool veto_l1_occ,
+                bool ask)
 {
-    bool veto_daq_busy, veto_l1_occ;
 
   const bool veto_daq_busy_before_read{veto_daq_busy};
   const bool veto_l1_occ_before_read{veto_l1_occ};
@@ -132,4 +130,26 @@ void veto_setup(pflib::PolarfireTarget* pft)
     if (veto_l1_occ) {
         printf("\n  Occupancy Veto Thresholds -- OK->BUSY at %d, BUSY->OK at %d\n",level_busy,level_ok);
     }
+}
+
+
+void fc_enables(pflib::PolarfireTarget* pft)
+{
+    bool ext_l1a, ext_spill, timer_l1a;
+
+    pft->backend->fc_enables_read(ext_l1a, ext_spill, timer_l1a);
+    std::cout << std::boolalpha << "Enables before: " << ext_l1a << ", " << ext_spill << ", " << timer_l1a << "\n";
+    ext_l1a=BaseMenu::readline_bool("Enable external L1A? ",ext_l1a);
+    ext_spill=BaseMenu::readline_bool("Enable external spill? ",ext_spill);
+    timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
+    std::cout << std::boolalpha << "Enables after: " << ext_l1a << ", " << ext_spill << ", " << timer_l1a << "\n";
+    fc_enables(pft, ext_l1a, ext_spill, timer_l1a);
+}
+void fc_enables(pflib::PolarfireTarget* pft,
+                const bool external_l1a,
+                const bool external_spill,
+                const bool timer_l1a)
+{
+  std::cout << "Setting fc_enables: " << std::boolalpha << external_l1a << ", " << external_spill << ", " << timer_l1a <<'\n';
+    pft->backend->fc_enables(external_l1a, external_spill, timer_l1a);
 }

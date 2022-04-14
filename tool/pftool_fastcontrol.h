@@ -40,4 +40,11 @@ void fc_calib(pflib::PolarfireTarget* pft,
               const int len, const int offset) ;
 void fc_calib(pflib::PolarfireTarget* pft);
 
+void fc_enables(pflib::PolarfireTarget* pft,
+                const bool external_l1a,
+                const bool external_spill,
+                const bool timer_l1a);
+void fc_enables(pflib::PolarfireTarget* pft);
+
+
 #endif /* PFTOOL_FASTCONTROL_H */
