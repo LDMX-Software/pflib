@@ -236,96 +236,91 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     std::ofstream csv_out=std::ofstream(fname);
     make_scan_csv_header(csv_out, valuename, nsamples);
 
-    
-    for (int step=0; step<steps; step++) {
-
-      ////////////////////////////////////////////////////////////
-      /// set values
-      int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
-
-      printf(" Scan %s=%d...\n",valuename.c_str(),value);
-      
-      for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-        if (!pft->hcal.elinks().isActive(ilink)) continue;
-
-        int iroc=ilink/2;
-        char pagename[32];
-        snprintf(pagename,32,pagetemplate.c_str(),ilink%2);
-        // set the value
-        pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
-      }
-      ////////////////////////////////////////////////////////////
-
-      pft->prepareNewRun();
-      
-      for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
-
-        ////////////////////////////////////////////////////////////
-        /// Enable charge injection channel by channel -- per elink
-        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-          if (!pft->hcal.elinks().isActive(ilink)) continue;
-          
-          int iroc=ilink/2;        
-          char pagename[32];
-          snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
-          // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, modeinfo, 1);
-        }
-                
-
     prepare_charge_injection(pft);
+
+    scan_N_steps(pft,
+                 csv_out,
+                 events_per_step,
+                 steps,
+                 low_value,
+                 high_value,
+                 nsamples,
+                 valuename,
+                 pagetemplate,
+                 modeinfo
+                 );
 
     teardown_charge_injection(pft);
     }
 }
 
 void beamprep(pflib::PolarfireTarget *pft) {
-  if (BaseMenu::readline_bool("Load the default beam config? (Recommended)",
+  if (BaseMenu::readline_bool("Load the default beam configs? (Recommended)",
                               true)) {
     // -1 to load parameters on all ROCs
     load_parameters(pft, -1);
   }
-  static int num_boards{3};
-  num_boards = BaseMenu::readline_int(
-      "How many boards are connected to this DPM?", num_boards);
+  const int num_boards{ get_num_rocs()};
+
+  std::cout << "There are some options that people might want to test changing"
+            << "when developing the beam setup that can be customized here.\n "
+            << "However, unless you know what you are doing OR you skipped "
+            << "configuration files, you, should probably skip customizing these.\n"
+            << "The default values should correspond to the values we want, but record them if you do run this\n";
+
+
+
+  static int SiPM_bias{3784};
+  SiPM_bias = BaseMenu::readline_int("SiPM Bias", SiPM_bias);
+  set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
   if (!BaseMenu::readline_bool("Skip customizing? (Recommended)", true)) {
-    static int SiPM_bias{3784};
-    SiPM_bias = BaseMenu::readline_int("SiPM Bias", SiPM_bias);
-    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
 
     static int gain_conv{4};
     gain_conv = BaseMenu::readline_int("Gain conv", gain_conv);
-    poke_all_rochalves(pft, "Global_Analog_", "gain_conv", gain_conv, num_boards);
+    poke_all_rochalves(pft, "Global_Analog_", "gain_conv", gain_conv);
 
-    static int l1offset{85};
+    static int l1offset{83};
     l1offset = BaseMenu::readline_int("L1OFFSET", l1offset);
-    poke_all_rochalves(pft, "Digital_Half_", "L1OFFSET", l1offset, num_boards);
+    poke_all_rochalves(pft, "Digital_Half_", "L1OFFSET", l1offset);
   }
   if (BaseMenu::readline_bool("Disable LED bias? (Recommended)", true)) {
     set_bias_on_all_connectors(pft, num_boards, true, 0);
   }
   std::cout << "Fastcontrol settings\n";
-  veto_setup(pft);
-  std::cout << "DAQ settings\n";
-  setup_dma(pft);
-
-  if (BaseMenu::readline_bool("Setup board specific parameters manually?",
-                              true)) {
-    std::cout << "Setting board specific parameters...\n"
-              << " this should probably be removed or at least not used once "
-                 "we have board specific yaml files\n";
-    static int tot_vref_value{432};
-    tot_vref_value = BaseMenu::readline_int("TOT_VREF: ", tot_vref_value);
-    poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_vref_value, num_boards);
-    static int toa_vref_value{112};
-    toa_vref_value = BaseMenu::readline_int("TOA_VREF: ", toa_vref_value);
-    poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOA_VREF", toa_vref_value, num_boards);
+  // BUSY, OCC, Dont ask the user
+  veto_setup(pft, true, false,
+             BaseMenu::readline_bool("Customize veto setup (Not recommended)", false));
+  if(BaseMenu::readline_bool("Customize triger enables? (Not recommended)", false)) {
+    fc_enables(pft);
+  } else {
+    fc_enables(pft, true, true, true);
   }
+  std::cout << "DAQ/DMA settings\n";
+  setup_dma(pft, true);
+
+  // if (BaseMenu::readline_bool("Setup board specific parameters manually?",
+  //                             true)) {
+  //   std::cout << "Setting board specific parameters...\n"
+  //             << " this should probably be removed or at least not used once "
+  //                "we have board specific yaml files\n";
+  //   static int tot_vref_value{432};
+  //   tot_vref_value = BaseMenu::readline_int("TOT_VREF: ", tot_vref_value);
+  //   poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_vref_value, num_boards);
+  //   static int toa_vref_value{112};
+  //   toa_vref_value = BaseMenu::readline_int("TOA_VREF: ", toa_vref_value);
+  //   poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOA_VREF", toa_vref_value, num_boards);
+  // }
+  std::cout << "DAQ status:\n";
+  daq_status(pft);
   if (BaseMenu::readline_bool("Dump current config?", false)) {
     for (int roc_number {0}; roc_number < num_boards; ++roc_number) {
       dump_rocconfig(pft, roc_number);
     }
   }
+  daq_status(pft);
+}
+
+
 std::string make_default_led_template() {
 
     time_t t=time(NULL);
