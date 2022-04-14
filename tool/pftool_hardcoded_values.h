@@ -5,7 +5,6 @@
 
 struct calibrun_hardcoded_values {
     std::vector<int> led_dac_values{1550, 1570, 1590, 1610, 1630, 1650};
-    /* std::vector<int> led_dac_values{1650}; */
 
     int num_led_events = 10000;
     int led_calib_length = 2;
@@ -15,7 +14,6 @@ struct calibrun_hardcoded_values {
     int calib_length = 2;
     int calib_offset = 14;
     int SiPM_bias = 3784;
-    int nsamples = 8;
     int lowrange_dac_min = 0;
     int lowrange_dac_max = 2047;
     int highrange_fine_dac_min = 0;
