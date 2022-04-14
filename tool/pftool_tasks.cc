@@ -422,6 +422,16 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   std::cout << "DAQ status:\n";
   daq_status(pft);
+
+  std::cout << "Staring pedestal run\n";
+  const int rate = 100;
+  const int run = 0;
+  const int number_of_events = 1000;
+  std::cout << number_of_events << " events with rate " << rate << " Hz\n";
+  const std::string pedestal_command{"PEDESTAL"};
+  pft->prepareNewRun();
+  daq_run(pft, pedestal_command, run, number_of_events, rate, pedestal_filename);
+
   return;
 
 
