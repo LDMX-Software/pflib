@@ -228,20 +228,13 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
-    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
-    if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
 
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-
-    char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
-
+    std::string fname = make_default_daq_run_filename(cmd);
     int run=BaseMenu::readline_int("Run number? ",run);
     int nevents=BaseMenu::readline_int("How many events? ", 100);
     static int rate=100;
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    fname=BaseMenu::readline("Filename :  ", fname);
 
     pft->prepareNewRun();
 

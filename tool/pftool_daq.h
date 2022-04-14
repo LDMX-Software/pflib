@@ -16,6 +16,7 @@ extern std::string last_run_file;
 extern std::string start_dma_cmd;
 extern std::string stop_dma_cmd;
 
+std::string make_default_daq_run_filename(const std::string& cmd);
 void daq_run(pflib::PolarfireTarget* pft,
              const std::string& cmd // PEDESTAL, CHARGE, or no trigger
       , int run // not used in this implementation of daq
