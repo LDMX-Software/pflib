@@ -442,6 +442,25 @@ void calibrun(pflib::PolarfireTarget* pft,
   std::cout << "Prepare for charge injection\n";
   prepare_charge_injection(pft);
 
+
+  std::cout << "Running charge injection with lowrange from "  <<
+    hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << "\n";
+
+  const std::string dac_page = "REFERENCE_VOLTAGE_";
+  const std::string dac_parameter_name = "CALIB_DAC";
+  std::cout << "Scanning " <<  hc.coarse_steps
+            << " steps of " << dac_parameter_name << " with "
+            << hc.events_per_step << " events per step\n";
+  scan_N_steps(pft,
+               csv_out,
+               hc.events_per_step,
+               hc.coarse_steps,
+               hc.lowrange_dac_min,
+               hc.lowrange_dac_max,
+               hc.nsamples,
+               dac_parameter_name,
+               dac_page,
+               "LOWRANGE");
   return;
 
 
