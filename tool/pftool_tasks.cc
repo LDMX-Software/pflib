@@ -232,48 +232,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
 
 
-    if (cmd=="SCANCHARGE") {
-      
-    }
-    
-    printf(" Clearing charge injection on all channels (ground-state)...\n");
-    
-    /// first, disable charge injection on all channels
-    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-      if (!pft->hcal.elinks().isActive(ilink)) continue;
     std::string fname=BaseMenu::readline("Filename :  ",
                                          make_default_chargescan_filename(pft, valuename));
     std::ofstream csv_out=std::ofstream(fname);
     make_scan_csv_header(csv_out, valuename, nsamples);
 
-      int iroc=ilink/2;        
-      for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
-        char pagename[32];
-        snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
-        // set the value
-        pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
-        pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
-      }
-    }
-
-    printf(" Enabling IntCTest...\n");
-    
-    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-      if (!pft->hcal.elinks().isActive(ilink)) continue;
-
-      int iroc=ilink/2;        
-      char pagename[32];
-      snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
-      // set the value
-      pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 1);
-      if (cmd=="SCANCHARGE") {
-        snprintf(pagename,32,"DIGITAL_HALF_%d",(ilink%2));
-        // set the value
-        pft->hcal.roc(iroc).applyParameter(pagename, "L1OFFSET", 8);
-      }
-    }
-    
-    ////////////////////////////////////////////////////////////
     
     for (int step=0; step<steps; step++) {
 
@@ -365,6 +328,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
       snprintf(pagename,32,"REFERENCE_VOLTAGE_%d",(ilink%2));
       // set the value
       pft->hcal.roc(iroc).applyParameter(pagename, "INTCTEST", 0);
+    prepare_charge_injection(pft);
     }
       ////////////////////////////////////////////////////////////
   }
