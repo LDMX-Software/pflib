@@ -104,9 +104,22 @@ void poke_all_rochalves(PolarfireTarget* pft,
   }
 }
 
-void roc( const std::string& cmd, PolarfireTarget* pft )
-{
-  static std::string parameter;
+void roc( const std::string& cmd, PolarfireTarget* pft ) {
+  // generate lists of page names and param names for those pages
+  // for tab completion
+  static std::vector<std::string> page_names;
+  static std::map<std::string,std::vector<std::string>> param_names;
+  if (page_names.empty()) {
+    // only need to do this once 
+    auto defs = pflib::defaults();
+    for (const auto& page : defs) {
+      page_names.push_back(page.first);
+      for (const auto& param : page.second) {
+        param_names[page.first].push_back(param.first);
+      }
+    }
+  }
+
   if (cmd=="HARDRESET") {
     pft->hcal.hardResetROCs();
   }
@@ -160,14 +173,17 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
     roc.setValue(page,entry,value);
   }
   if (cmd=="POKE"||cmd=="POKE_PARAM") {
-    std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
-    parameter = BaseMenu::readline("Parameter: ", parameter);
+    std::string page = BaseMenu::readline("Page: ", page_names);
+    if (param_names.find(page) == param_names.end()) {
+      PFEXCEPTION_RAISE("BadPage","Page name "+page+" not recognized.");
+    }
+    const std::string parameter = BaseMenu::readline("Parameter: ", param_names.at(page));
     int val = BaseMenu::readline_int("New value: ");
     roc.applyParameter(page, parameter, val);
     return;
   }
   if (cmd == "POKE_ALL_CHANNELS") {
-    parameter = BaseMenu::readline("Parameter: ", parameter);
+    const std::string parameter = BaseMenu::readline("Parameter: ", parameter);
     const int value {BaseMenu::readline_int("New value: ")};
     poke_all_channels(pft, parameter, value);
     return;
@@ -175,7 +191,7 @@ void roc( const std::string& cmd, PolarfireTarget* pft )
   if (cmd == "POKE_ALL_ROCHALVES") {
     const std::string page_template = BaseMenu::readline(
       "Page template: (No 0/1 after last \"_\")", "Global_Analog_");
-    parameter = BaseMenu::readline("Parameter: ", parameter);
+    const std::string parameter = BaseMenu::readline("Parameter: ", parameter);
     const int value {BaseMenu::readline_int("New value: ")};
     poke_all_rochalves(pft, page_template, parameter, value);
     return;
