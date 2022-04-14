@@ -66,4 +66,5 @@ int get_num_rocs();
 int get_dpm_number();
 int get_num_channels_per_elink();
 int get_num_channels_per_roc();
+int get_number_of_samples_per_event(pflib::PolarfireTarget* pft);
 #endif /* PFTOOL_ROC_H */

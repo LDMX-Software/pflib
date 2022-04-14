@@ -4,6 +4,17 @@ void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
+int get_number_of_samples_per_event(PolarfireTarget* pft)
+{
+  int nsamples=1;
+  {
+    bool multi;
+    int nextra;
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    if (multi) nsamples=nextra+1;
+  }
+  return nsamples;
+}
 int get_num_channels_per_elink()
 {
   const int default_num_channels{36};
