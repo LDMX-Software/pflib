@@ -110,7 +110,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 #endif
   }
   if (cmd=="RESET") {
-    pft->daqSoftReset();
+    daq_softreset();
   }
   if (cmd=="HARD_RESET") {
     pft->daqHardReset();
@@ -409,6 +409,23 @@ void daq_status(pflib::PolarfireTarget* pft) {
 
 }
 
+void daq_softreset(pflib::PolarfireTarget*)
+{
+    pft->daqSoftReset();
+}
+
+void daq_standard(pflib::PolarfireTarget* pft)
+{
+
+    pflib::DAQ& daq=pft->hcal.daq();
+    daq_setup("FPGA",pft);
+    pflib::Elinks& elinks=pft->hcal.elinks();
+    for (int i=0; i<daq.nlinks(); i++) {
+      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
+      else daq.setupLink(i,true,true,15,40);
+    }
+}
+
 void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
 {
   pflib::DAQ& daq=pft->hcal.daq();
@@ -437,12 +454,7 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     setup_dma(pft);
   }
   if (cmd=="STANDARD") {
-    daq_setup("FPGA",pft);
-    pflib::Elinks& elinks=pft->hcal.elinks();
-    for (int i=0; i<daq.nlinks(); i++) {
-      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
-      else daq.setupLink(i,true,true,15,40);
-    }
+    daq_standard(pft);
   }
   if (cmd=="FPGA") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
