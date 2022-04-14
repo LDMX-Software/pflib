@@ -432,6 +432,11 @@ void calibrun(pflib::PolarfireTarget* pft,
   pft->prepareNewRun();
   daq_run(pft, pedestal_command, run, number_of_events, rate, pedestal_filename);
 
+
+
+  std::ofstream csv_out {chargescan_filename};
+
+  make_scan_csv_header(csv_out, "CALIB_DAC",  hc.nsamples);
   return;
 
 
