@@ -27,6 +27,7 @@ void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
 void dump_rocconfig(PolarfireTarget* pft, const int iroc);
 void load_parameters(PolarfireTarget* pft, const int iroc);
 
+std::string make_roc_config_filename(const int config_version, const int roc);
 void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
                      const bool prepend_defaults, const int num_rocs);
 /**

@@ -27,6 +27,14 @@ int get_dpm_number() {
   static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
   return dpm;
 }
+std::string make_roc_config_filename(const int config_version, const int roc)
+{
+  const int dpm {get_dpm_number()};
+  return "Config_v" + std::to_string(config_version)
+    +"_dpm" + std::to_string(dpm)
+    + "_board" + std::to_string(roc) + ".yaml";
+}
+
 void load_parameters(PolarfireTarget* pft, const int config_version,
                      const std::vector<std::string> filenames,
                      const bool prepend_defaults) {
