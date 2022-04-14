@@ -406,6 +406,14 @@ void daq_status(pflib::PolarfireTarget* pft) {
       printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     }
 #endif
+
+}
+
+void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
+{
+  pflib::DAQ& daq=pft->hcal.daq();
+  if (cmd=="STATUS") {
+    daq_status(pft);
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
