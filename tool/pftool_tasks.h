@@ -67,6 +67,9 @@ void scan_N_steps(PolarfireTarget* pft,
 void teardown_charge_injection(PolarfireTarget* pft);
 void prepare_charge_injection(PolarfireTarget* pft);
 
+
+void calibrun_ledruns(pflib::PolarfireTarget* pft,
+                     const std::vector<std::string>& led_filenames)
 void calibrun(pflib::PolarfireTarget* pft,
              const std::string& pedestal_filename,
              const std::string& chargescan_filename,

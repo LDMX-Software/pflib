@@ -381,6 +381,11 @@ std::vector<std::string> make_led_filenames() {
     return led_filenames;
 }
 
+void calibrun_ledruns(pflib::PolarfireTarget* pft,
+                     const std::vector<std::string>& led_filenames) {
+  const calibrun_hardcoded_values hc{};
+}
+
 void calibrun(pflib::PolarfireTarget* pft,
              const std::string& pedestal_filename,
              const std::string& chargescan_filename,
