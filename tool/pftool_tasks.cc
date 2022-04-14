@@ -389,6 +389,13 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   header_check(pft, 100);
   const calibrun_hardcoded_values hc{};
+  std::cout << "Setting up fc->calib_pulse with length "
+            << hc.calib_length
+            << " and offset "
+            << hc.calib_offset
+            <<'\n';
+  fc_calib(pft, hc.calib_length, hc.calib_offset);
+
   return;
 
 
