@@ -1,6 +1,26 @@
 
 #include "pftool_fastcontrol.h"
 using pflib::PolarfireTarget;
+
+void fc_calib(PolarfireTarget* pft,
+              const int len, const int offset) {
+    pft->backend->fc_setup_calib(len,offset);
+}
+void fc_calib(PolarfireTarget* pft) {
+    int len, offset;
+    pft->backend->fc_get_setup_calib(len,offset);
+#ifdef PFTOOL_UHAL
+    std::cout <<
+      "NOTE: A known bug in uMNio firmware which has been patched in later versions\n"
+      "      leads to the inability of the firmware to read some parameters.\n"
+      "      If you are seeing 0 as the default even after setting these parameters,\n"
+      "      you have this (slightly) buggy firmware."
+      << std::endl << std::endl;
+#endif
+    len=BaseMenu::readline_int("Calibration pulse length?",len);
+    offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
+    fc_calib(pft, len, offset);
+}
 void fc( const std::string& cmd, PolarfireTarget* pft ) {
   bool do_status=false;
 
@@ -31,19 +51,7 @@ void fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->hcal.fc().resetTransmitter();
   }
   if (cmd=="CALIB") {
-    int len, offset;
-    pft->backend->fc_get_setup_calib(len,offset);
-#ifdef PFTOOL_UHAL
-    std::cout <<
-      "NOTE: A known bug in uMNio firmware which has been patched in later versions\n"
-      "      leads to the inability of the firmware to read some parameters.\n"
-      "      If you are seeing 0 as the default even after setting these parameters,\n"
-      "      you have this (slightly) buggy firmware."
-      << std::endl << std::endl;
-#endif
-    len=BaseMenu::readline_int("Calibration pulse length?",len);
-    offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
-    pft->backend->fc_setup_calib(len,offset);
+    fc_calib(pft);
   }
   if (cmd=="MULTISAMPLE") {
     bool multi;

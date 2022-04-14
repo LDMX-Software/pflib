@@ -31,4 +31,8 @@
 void fc( const std::string& cmd, pflib::PolarfireTarget* pft);
 
 void veto_setup(pflib::PolarfireTarget* pft);
+void fc_calib(pflib::PolarfireTarget* pft,
+              const int len, const int offset) ;
+void fc_calib(pflib::PolarfireTarget* pft);
+
 #endif /* PFTOOL_FASTCONTROL_H */
