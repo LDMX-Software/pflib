@@ -476,6 +476,20 @@ void calibrun(pflib::PolarfireTarget* pft,
                dac_page,
                "HIGHRANGE"
   );
+  std::cout << "Running charge injection with highrange from "  <<
+    hc.highrange_coarse_dac_min << " to " << hc.highrange_coarse_dac_max << "\n";
+
+  scan_N_steps(pft,
+               csv_out,
+               hc.events_per_step,
+               hc.coarse_steps,
+               hc.highrange_coarse_dac_min,
+               hc.highrange_coarse_dac_max,
+               hc.nsamples,
+               dac_parameter_name,
+               dac_page,
+               "HIGHRANGE"
+  );
   return;
 
 
