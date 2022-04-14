@@ -480,7 +480,7 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   for (auto SiPM_bias : SiPM_biases) {
     std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << '\n';
-    std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards\n";
+    std::cout << "Setting SiPM bias to " << SiPM_bias << " on all boards\n";
     set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
 
     std::cout << "Running charge injection with lowrange from "  <<
