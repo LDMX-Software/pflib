@@ -500,8 +500,17 @@ void setup_dma(PolarfireTarget* pft)
     bool enabled;
     uint8_t samples_per_event, fpgaid_i;
     rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
+    std::cout << "DMA Status before: " << enabled
+              << " with "
+              << samples_per_event
+              << " samples per event\n";
     enabled = BaseMenu::readline_bool("Enable DMA? ", enabled);
     rwbi->daq_dma_enable(enabled);
+    rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
+    std::cout << "DMA Status after: " << enabled
+              << " with "
+              << samples_per_event
+              << " samples per event\n";
   } else {
     std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot "
                  "activate DMA.\n"
