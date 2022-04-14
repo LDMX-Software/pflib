@@ -490,6 +490,9 @@ void calibrun(pflib::PolarfireTarget* pft,
                dac_page,
                "HIGHRANGE"
   );
+
+  std::cout << "Running teardown for charge injection\n";
+  teardown_charge_injection(pft);
   return;
 
 
