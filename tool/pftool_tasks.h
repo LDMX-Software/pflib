@@ -27,14 +27,13 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 void beamprep(pflib::PolarfireTarget* pft);
 
 
-void make_scan_csv_header(std::ofstream& csv_out,
-                          const std::string& valuename,
-                          const int nsamples = 8);
+void make_scan_csv_header(PolarfireTarget* pft,
+                          std::ofstream& csv_out,
+                          const std::string& valuename);
 
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
                                      const int capacitor_type,
-                                     const int nsamples,
                                      const int events_per_step,
                                      const int ichan,
                                      const int value);
@@ -59,7 +58,6 @@ void scan_N_steps(PolarfireTarget* pft,
                   const int steps,
                   const int low_value,
                   const int high_value,
-                  const int nsamples,
                   const std::string& valuename,
                   const std::string& pagetemplate,
                   const std::string& modeinfo);

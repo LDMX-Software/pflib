@@ -1,9 +1,11 @@
 #include "pftool_tasks.h"
 
 
-void make_scan_csv_header(std::ofstream& csv_out,
-                          const std::string& valuename,
-                          const int nsamples) {
+void make_scan_csv_header(PolarfireTarget* pft,
+                          std::ofstream& csv_out,
+                          const std::string& valuename) {
+
+  const int nsamples = get_number_of_samples_per_event(pft);
   // csv header
   csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
   for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
@@ -17,16 +19,11 @@ void make_scan_csv_header(std::ofstream& csv_out,
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
                                      const int capacitor_type,
-                                     const int nsamples,
                                      const int events_per_step,
                                      const int ichan,
                                      const int value)
 {
-  std::cout << "Capacitor type: " << capacitor_type
-            << ", Nsamples: " << nsamples
-            << ", Events per step:" << events_per_step
-            << ", Value: " << value
-            << ", Channel: " << ichan << '\n';
+  const int nsamples = get_number_of_samples_per_event(pft);
   //////////////////////////////////////////////////////////
   /// Take the expected number of events and save the events
   for (int ievt=0; ievt<events_per_step; ievt++) {
@@ -99,7 +96,6 @@ void scan_N_steps(PolarfireTarget* pft,
                   const int steps,
                   const int low_value,
                   const int high_value,
-                  const int nsamples,
                   const std::string& valuename,
                   const std::string& pagetemplate,
                   const std::string& modeinfo)
@@ -197,13 +193,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   std::string valuename;
   std::string modeinfo;
 
-  int nsamples=1;
-  {
-    bool multi;
-    int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
-    if (multi) nsamples=nextra+1;
-  }
+  const int nsamples = get_number_of_samples_per_event(pft);
 
   if (cmd == "BEAMPREP") {
     beamprep(pft);
@@ -254,7 +244,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     std::string fname=BaseMenu::readline("Filename :  ",
                                          make_default_chargescan_filename(pft, valuename));
     std::ofstream csv_out=std::ofstream(fname);
-    make_scan_csv_header(csv_out, valuename, nsamples);
+    make_scan_csv_header(pft, csv_out, valuename);
 
     prepare_charge_injection(pft);
 
@@ -264,7 +254,6 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
                  steps,
                  low_value,
                  high_value,
-                 nsamples,
                  valuename,
                  pagetemplate,
                  modeinfo
@@ -478,7 +467,7 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   std::ofstream csv_out {chargescan_filename};
 
-  make_scan_csv_header(csv_out, "CALIB_DAC",  hc.nsamples);
+  make_scan_csv_header(pft, csv_out, "CALIB_DAC");
 
   std::cout << "Note: Currently not doing anything with the software veto settings\n";
   std::cout << "Prepare for charge injection\n";
