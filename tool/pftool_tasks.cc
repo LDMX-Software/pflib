@@ -437,6 +437,11 @@ void calibrun(pflib::PolarfireTarget* pft,
   std::ofstream csv_out {chargescan_filename};
 
   make_scan_csv_header(csv_out, "CALIB_DAC",  hc.nsamples);
+
+  std::cout << "Note: Currently not doing anything with the software veto settings\n";
+  std::cout << "Prepare for charge injection\n";
+  prepare_charge_injection(pft);
+
   return;
 
 
