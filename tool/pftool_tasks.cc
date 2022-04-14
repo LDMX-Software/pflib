@@ -395,6 +395,11 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
   std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs\n";
   set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
+    const int num_rocs {get_num_rocs()};
+    std::cout << "Setting " << hc.l1offset_parameter << " on page "
+              << hc.l1offset_page << " to "
+              << hc.led_l1offset << '\n';
+    poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
 }
 
 void calibrun(pflib::PolarfireTarget* pft,
