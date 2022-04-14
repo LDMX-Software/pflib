@@ -50,9 +50,9 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
       for (int i=0; i<nsamples; i++) {
        csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
       }
-      csv_out << ',' << capacitor_type;
+      csv_out << ',' << capacitor_type << ',' << SiPM_bias;
 
-      csv_out<< std::endl;
+      csv_out<< '\n';
     }
   }
 }
@@ -93,6 +93,7 @@ void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& mode
 }
 void scan_N_steps(PolarfireTarget* pft,
                   std::ofstream& csv_out,
+                  const int SiPM_bias,
                   const int events_per_step,
                   const int steps,
                   const int low_value,
@@ -128,8 +129,8 @@ void scan_N_steps(PolarfireTarget* pft,
 
         take_N_calibevents_with_channel(pft,
                                         csv_out,
+                                        SiPM_bias,
                                         capacitor_type,
-                                        nsamples,
                                         events_per_step,
                                         ichan,
                                         value);
@@ -248,9 +249,14 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     make_scan_csv_header(pft, csv_out, valuename);
 
     prepare_charge_injection(pft);
+    const int SiPM_bias = BaseMenu::readline_int("SiPM bias: ", 0);
+    const int num_boards{get_num_rocs()};
+    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+
 
     scan_N_steps(pft,
                  csv_out,
+                 SiPM_bias,
                  events_per_step,
                  steps,
                  low_value,
