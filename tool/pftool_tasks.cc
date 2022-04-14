@@ -395,11 +395,28 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
   std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs\n";
   set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
+
+    // IntCtest should be off
+    // Set Bias
+    // Run calib pulse
+    const std::string led_command = "CHARGE";
+    const int rate = 100;
+    const int run = 0;
     const int num_rocs {get_num_rocs()};
     std::cout << "Setting " << hc.l1offset_parameter << " on page "
               << hc.l1offset_page << " to "
               << hc.led_l1offset << '\n';
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
+
+    for (int i {0}; i < hc.led_dac_values.size(); ++i) {
+      const int dac_value {hc.led_dac_values[i]};
+      std::cout << "Doing LED run with dac value: " << dac_value <<'\n';
+      set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
+
+      pft->prepareNewRun();
+      daq_run(pft, led_command, run, hc.num_led_events, rate, led_filenames[i]);
+    }
+
 }
 
 void calibrun(pflib::PolarfireTarget* pft,
