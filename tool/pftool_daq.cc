@@ -479,6 +479,19 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
 }
 
+void setup_dma(PolarfireTarget* pft, bool force_to)
+{
+#ifdef PFTOOL_ROGUE
+  auto rwbi = dynamic_cast<pflib::rogue::RogueWishboneInterface *>(pft->wb);
+  if (rwbi) {
+    rwbi->daq_dma_enable(force_to);
+  } else {
+    std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot "
+                 "activate DMA.\n"
+              << std::endl;
+  }
+#endif
+}
 void setup_dma(PolarfireTarget* pft)
 {
 #ifdef PFTOOL_ROGUE
