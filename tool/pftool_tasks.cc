@@ -384,6 +384,13 @@ std::vector<std::string> make_led_filenames() {
 void calibrun_ledruns(pflib::PolarfireTarget* pft,
                      const std::vector<std::string>& led_filenames) {
   const calibrun_hardcoded_values hc{};
+
+  std::cout << "Setting up fc->led_calib_pulse with length "
+            << hc.led_calib_length
+            << " and offset "
+            << hc.led_calib_offset
+            <<'\n';
+  fc_calib(pft, hc.led_calib_length, hc.led_calib_offset);
 }
 
 void calibrun(pflib::PolarfireTarget* pft,
@@ -498,6 +505,7 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   std::cout << "Running teardown for charge injection\n";
   teardown_charge_injection(pft);
+  calibrun_ledruns(pft, led_filenames);
   return;
 
 
