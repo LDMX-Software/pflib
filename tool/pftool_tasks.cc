@@ -11,13 +11,14 @@ void make_scan_csv_header(PolarfireTarget* pft,
   for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
   for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
   for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-  csv_out << ",CAPACITOR_TYPE";
+  csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
   csv_out<<std::endl;
 
 }
 
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
+                                     const int SiPM_bias,
                                      const int capacitor_type,
                                      const int events_per_step,
                                      const int ichan,
