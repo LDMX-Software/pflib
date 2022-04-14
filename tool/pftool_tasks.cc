@@ -89,6 +89,57 @@ void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& mode
                                   const int ichan) {
   set_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan, 0);
 }
+void scan_N_steps(PolarfireTarget* pft,
+                  std::ofstream& csv_out,
+                  const int events_per_step,
+                  const int steps,
+                  const int low_value,
+                  const int high_value,
+                  const int nsamples,
+                  const std::string& valuename,
+                  const std::string& pagetemplate,
+                  const std::string& modeinfo)
+{
+    int capacitor_type {-1};
+    if (modeinfo == "HIGHRANGE") {
+      capacitor_type = 1;
+    } else if (modeinfo == "LOWRANGE") {
+      capacitor_type = 0;
+    }
+    ////////////////////////////////////////////////////////////
+
+    for (int step=0; step<steps; step++) {
+
+      ////////////////////////////////////////////////////////////
+      /// set values
+      int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
+
+      printf(" Scan %s=%d...\n",valuename.c_str(),value);
+
+      poke_all_rochalves(pft, pagetemplate, valuename, value);
+      ////////////////////////////////////////////////////////////
+
+      pft->prepareNewRun();
+
+      const int channels_per_elink = 36;
+      for (int ichan=0; ichan<channels_per_elink; ichan++) {
+
+        enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+
+        take_N_calibevents_with_channel(pft,
+                                        csv_out,
+                                        capacitor_type,
+                                        nsamples,
+                                        events_per_step,
+                                        ichan,
+                                        value);
+        csv_out << std::flush;
+
+        disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+      }
+    }
+}
+
 void teardown_charge_injection(PolarfireTarget* pft)
 {
   const int num_rocs {get_num_rocs()};

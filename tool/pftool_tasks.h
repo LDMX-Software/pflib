@@ -31,6 +31,15 @@ void make_scan_csv_header(std::ofstream& csv_out,
                           const std::string& valuename,
                           const int nsamples = 8);
 
+void take_N_calibevents_with_channel(PolarfireTarget* pft,
+                                     std::ofstream& csv_out,
+                                     const int capacitor_type,
+                                     const int nsamples,
+                                     const int events_per_step,
+                                     const int ichan,
+                                     const int value);
+
+
 void set_one_channel_per_elink(PolarfireTarget* pft,
                                const std::string& parameter,
                                const int channels_per_elink,
@@ -43,6 +52,17 @@ void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modei
 void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
                                    const int channels_per_elink,
                                    const int ichan);
+
+void scan_N_steps(PolarfireTarget* pft,
+                  std::ofstream& csv_out,
+                  const int events_per_step,
+                  const int steps,
+                  const int low_value,
+                  const int high_value,
+                  const int nsamples,
+                  const std::string& valuename,
+                  const std::string& pagetemplate,
+                  const std::string& modeinfo);
 // This screams for RAII...
 void teardown_charge_injection(PolarfireTarget* pft);
 void prepare_charge_injection(PolarfireTarget* pft);
