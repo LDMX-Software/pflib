@@ -532,6 +532,14 @@ void calibrun(pflib::PolarfireTarget* pft,
   std::cout << "Running teardown for charge injection\n";
   teardown_charge_injection(pft);
   calibrun_ledruns(pft, led_filenames);
+  std::cout << "Reminder:\n";
+  std::cout << "Pedestal filename: " << pedestal_filename <<'\n';
+  std::cout << "Charge scan filename: " << chargescan_filename <<'\n';
+  for (int i{}; i < hc.led_dac_values.size(); ++i) {
+    const int dac_value = hc.led_dac_values[i];
+    std::cout << "LED filename for DAC value " << dac_value
+              << ": " << led_filenames[i] << '\n';
+  }
   return;
 
 
