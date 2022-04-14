@@ -448,13 +448,8 @@ void calibrun(pflib::PolarfireTarget* pft,
   std::cout << "Disabling LED bias\n";
   set_bias_on_all_connectors(pft, num_boards, true, LED_bias);
 
-  if (BaseMenu::readline_bool("Enable SiPM bias during the calibration procedure?", true)) {
-    std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards\n";
-    set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
-  } else {
-    std::cout << "Disabling SiPM bias on all boards\n";
-    set_bias_on_all_connectors(pft, num_boards, false, 0);
-  }
+  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards\n";
+  set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
   std::cout << "... Done\n";
 
