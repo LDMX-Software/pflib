@@ -278,6 +278,10 @@ void beamprep(pflib::PolarfireTarget *pft) {
   }
   const int num_boards{ get_num_rocs()};
 
+  std::cout << "Running DAQ softreset\n";
+  daq_softreset(pft);
+  std::cout << "Running DAQ standard setup\n";
+  daq_standard(pft);
   std::cout << "There are some options that people might want to test changing"
             << "when developing the beam setup that can be customized here.\n "
             << "However, unless you know what you are doing OR you skipped "
@@ -425,8 +429,12 @@ void calibrun(pflib::PolarfireTarget* pft,
              const std::vector<std::string>& led_filenames)
 {
 
-  header_check(pft, 100);
   const calibrun_hardcoded_values hc{};
+  std::cout << "Running DAQ softreset\n";
+  daq_softreset(pft);
+  std::cout << "Running DAQ standard setup\n";
+  daq_standard(pft);
+  header_check(pft, 100);
   std::cout << "Setting up fc->calib_pulse with length "
             << hc.calib_length
             << " and offset "
