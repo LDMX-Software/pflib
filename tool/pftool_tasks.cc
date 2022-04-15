@@ -261,8 +261,8 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     if (cmd=="SCANTOAVREF") {
       int tot_ref_value = 475;
       int calib_dac_ref_value = 188;
-      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_ref_value, num_boards);
-      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac_ref_value, num_boards);
+      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_ref_value);
+      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac_ref_value);
     }
     
     scan_N_steps(pft,
