@@ -4,7 +4,7 @@
 #include <vector>
 
 struct calibrun_hardcoded_values {
-    std::vector<int> led_dac_values{1550, 1570, 1590, 1610, 1630, 1650};
+    std::vector<int> led_dac_values{1600, 1625, 1650, 1675, 1700, 1725, 1750};
 
     int num_led_events = 10000;
     int led_calib_length = 2;
