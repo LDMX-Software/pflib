@@ -21,8 +21,8 @@ struct calibrun_hardcoded_values {
     int highrange_coarse_dac_min = 300;
     int highrange_coarse_dac_max = 2047;
     int highrange_dac_max = 2047;
-    int coarse_steps = 10;
-    int fine_steps = 20;
+    int coarse_steps = 25;
+    int fine_steps = 50;
     int events_per_step = 3;
 
     // Number of samples - 1
