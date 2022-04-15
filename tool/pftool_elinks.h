@@ -4,7 +4,7 @@
 #include "pflib/PolarfireTarget.h"
 #include "Menu.h"
 #include "pflib/decoding/SuperPacket.h"
-
+#include "pftool_daq.h"
 
 /**
  * ELINKS menu commands
@@ -28,4 +28,7 @@
  */
 void elinks( const std::string& cmd, pflib::PolarfireTarget* pft);
 
+void align_elinks(pflib::PolarfireTarget* pft);
+
+void header_check(pflib::PolarfireTarget* pft, const int nevents);
 #endif /* PFTOOL_ELINKS_H */

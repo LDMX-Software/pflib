@@ -7,8 +7,10 @@
 #include "pflib/decoding/SuperPacket.h"
 #include "pftool_bias.h"
 #include "pftool_roc.h"
+#include "pftool_elinks.h"
 #include "pftool_fastcontrol.h"
 #include "pftool_daq.h"
+#include "pftool_hardcoded_values.h"
 /**
  * TASK menu commands
  *
@@ -24,4 +26,57 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 
 void beamprep(pflib::PolarfireTarget* pft);
 
+
+void make_scan_csv_header(PolarfireTarget* pft,
+                          std::ofstream& csv_out,
+                          const std::string& valuename);
+
+void take_N_calibevents_with_channel(PolarfireTarget* pft,
+                                     std::ofstream& csv_out,
+                                     const int SiPM_bias,
+                                     const int capacitor_type,
+                                     const int events_per_step,
+                                     const int ichan,
+                                     const int value);
+
+
+void set_one_channel_per_elink(PolarfireTarget* pft,
+                               const std::string& parameter,
+                               const int channels_per_elink,
+                               const int ichan,
+                               const int value);
+
+void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                  const int channels_per_elink,
+                                  const int ichan);
+void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
+                                   const int channels_per_elink,
+                                   const int ichan);
+
+void scan_N_steps(PolarfireTarget* pft,
+                  std::ofstream& csv_out,
+                  const int SiPM_bias,
+                  const int events_per_step,
+                  const int steps,
+                  const int low_value,
+                  const int high_value,
+                  const std::string& valuename,
+                  const std::string& pagetemplate,
+                  const std::string& modeinfo);
+// This screams for RAII...
+void teardown_charge_injection(PolarfireTarget* pft);
+void prepare_charge_injection(PolarfireTarget* pft);
+
+
+void calibrun_ledruns(pflib::PolarfireTarget* pft,
+                      const std::vector<std::string>& led_filenames);
+void calibrun(pflib::PolarfireTarget* pft,
+             const std::string& pedestal_filename,
+             const std::string& chargescan_filename,
+             const std::vector<std::string>& led_filenames);
+
+std::vector<std::string> make_led_filenames();
+std::string make_default_led_template();
+std::string make_default_chargescan_filename(PolarfireTarget* pft,
+                                             const std::string& valuename);
 #endif /* PFTOOL_TASKS_H */

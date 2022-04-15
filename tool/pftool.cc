@@ -67,8 +67,6 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
   }
 }
 
-
-
 /**
  * Menu construction for pftool
  *
@@ -118,6 +116,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
     pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
+    pfMenu::Line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", &elinks),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),
     pfMenu::Line("SCAN", "Scan on an elink",  &elinks ),
     pfMenu::Line("DELAY", "Set the delay on an elink", &elinks),
@@ -224,6 +223,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("BEAMPREP", "Run settings and optional configuration for taking beamdata", &tasks),
+    pfMenu::Line("CALIBRUN", "Produce the calibration scans", &tasks),
     pfMenu::Line("QUIT","Back to top menu")
   });
 

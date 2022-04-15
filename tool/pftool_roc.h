@@ -17,18 +17,26 @@ extern int iroc;
  */
 void roc_render( PolarfireTarget* pft );
 
+
 void poke_all_channels(PolarfireTarget* pft, const std::string& parameter,
                        const int value);
 
 void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
-                        const std::string& parameter, const int value, int num_rocs = -1);
+                        const std::string& parameter, const int value);
 
 
 void dump_rocconfig(PolarfireTarget* pft, const int iroc);
-void load_parameters(PolarfireTarget* pft, const int iroc);
 
+std::string make_roc_config_filename(const int config_version, const int roc);
+// Ask for everything
+void load_parameters(PolarfireTarget* pft, const int iroc);
+// Load a particular roc config
 void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fname,
-                     const bool prepend_defaults, const int num_rocs);
+                     const bool prepend_defaults);
+// Load multiple files
+void load_parameters(PolarfireTarget* pft, const int config_version,
+                     const std::vector<std::string> filenames,
+                     const bool prepend_values);
 /**
  * ROC menu commands
  *
@@ -54,5 +62,9 @@ void load_parameters(PolarfireTarget* pft, const int iroc, const std::string& fn
  */
 void roc( const std::string& cmd, PolarfireTarget* pft );
 
-
+int get_num_rocs();
+int get_dpm_number();
+int get_num_channels_per_elink();
+int get_num_channels_per_roc();
+int get_number_of_samples_per_event(pflib::PolarfireTarget* pft);
 #endif /* PFTOOL_ROC_H */
