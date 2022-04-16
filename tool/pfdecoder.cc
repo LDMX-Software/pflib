@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <algorithm>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
 #include <fcntl.h>
-
+#include <iostream>
 void usage() {
   fprintf(stderr, "Usage: [-d] [-v verbosity] [-r roclink] [file]\n");
   fprintf(stderr, "  -d  : show data words (default is header only)\n");
@@ -100,6 +101,9 @@ int main(int argc, char* argv[]) {
   std::vector<int> link_len;
   std::vector<uint32_t> link_data;
   
+  std::vector<std::vector<int>> timestamps_per_spill{};
+  int spillcounter {0};
+  int timestamp_counter{0};
   for (int i=0; i<int(data.size()); i++) {
     word_type=wt_unknown;
     if (data[i]==0x11111111 && data[i+1]==0xbeef2021) { // detect master header
@@ -162,13 +166,25 @@ int main(int argc, char* argv[]) {
     } else if (fmt==2 && rel_super>2+8 && packet_header<0) { // extended superheader
       int rel_super_tag=rel_super-(2+8+1);
       if (verbosity>1) {
-        if (rel_super_tag==0) printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",
-            i,rel_super,data[i],(data[i]>>12)&0xFFF,data[i]&0xFFF, data[i]&0xFFF);
-        else if (rel_super_tag==1) printf("%04d S%02d %08x    "
+        if (rel_super_tag==0) {
+          const int spill = (data[i] >> 12) &0xFFF;
+          if (spill != spillcounter) {
+            timestamps_per_spill.push_back({});
+            ++spillcounter;
+          }
+          printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",
+                 i,rel_super,data[i],spill,data[i]&0xFFF, data[i]&0xFFF);
+        }
+        else if (rel_super_tag==1) {
+          const int ticks_since_start_of_spill = data[i];
+          const double time_since_start_of_spill = ticks_since_start_of_spill / 5e6; // 5Mhz
+          printf("%04d S%02d %08x    "
             "Time since start of spill %.5fs (%d 5 Mhz tics)\n",
-            i,rel_super,data[i],data[i]/5e6,data[i]);
+            i,rel_super,data[i],time_since_start_of_spill,ticks_since_start_of_spill);
+          timestamps_per_spill.back().push_back(ticks_since_start_of_spill);
+        }
         else if (rel_super_tag==2) printf("%04d S%02d %08x    "
-            "Evt Number = %d \n",i,rel_super,data[i],data[i]);
+                                                   "Evt Number = %d \n",i,rel_super,data[i],data[i]);
         else if (rel_super_tag==3) printf("%04d S%02d %08x    "
             "Run %d start DD-MM hh:mm : %2d-%d %02d:%02d\n",
             i,rel_super,data[i],(data[i]&0xFFF),(data[i]>>23)&0x1F,
