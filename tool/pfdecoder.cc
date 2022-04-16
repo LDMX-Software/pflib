@@ -14,6 +14,7 @@ void usage() {
   fprintf(stderr, "Usage: [-d] [-v verbosity] [-r roclink] [file]\n");
   fprintf(stderr, "  -d  : show data words (default is header only)\n");
   fprintf(stderr, "  -l  : print link alignment counters at end\n");
+  fprintf(stderr, "  -e : print spills and timestamps at end\n" );
   fprintf(stderr, "  -v [verbosity level] (default is 3)\n");
   fprintf(stderr, "     0 : report error conditions only\n");
   fprintf(stderr, "     1 : report superheaders\n");
@@ -35,9 +36,10 @@ int main(int argc, char* argv[]) {
   std::vector<uint32_t> data;
   bool showdata=false;
   bool prettyadc=false;
+  bool printevents=false;
   bool printlink=false;
   
-  while ((opt = getopt(argc, argv, "dlv:r:a")) != -1) {
+  while ((opt = getopt(argc, argv, "dlv:r:ae")) != -1) {
     switch (opt) {
     case 'd':
       showdata=true;
@@ -48,6 +50,10 @@ int main(int argc, char* argv[]) {
     case 'a':
       prettyadc=true;
       break;
+    case 'e':
+      printevents=true;
+      break;
+
     case 'v':
       verbosity=atoi(optarg);
       break;
@@ -167,7 +173,7 @@ int main(int argc, char* argv[]) {
       ilink=-1;
     } else if (fmt==2 && rel_super>2+8 && packet_header<0) { // extended superheader
       int rel_super_tag=rel_super-(2+8+1);
-      if (verbosity>1) {
+      if (verbosity>1 || printevents) {
         if (rel_super_tag==0) {
           const int spill = (data[i] >> 12) &0xFFF;
           if (spill != spillcounter) {
