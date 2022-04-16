@@ -215,11 +215,12 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     //                                            "/home/ldmx/pflib/temporary_until_we_decide_where_to_put_stuff/");
     auto pedestal_filename=BaseMenu::readline("Filename for pedestal run:  ",
                                 make_default_daq_run_filename(pedestal_command));
+    calibrun_hardcoded_values hc{};
+    fc_calib(pft, hc.calib_length, hc.calib_offset);
     std::string chargescan_filename=BaseMenu::readline(
       "Filename for charge scan:  ",
-      make_default_chargescan_filename(pft, "CALIBRUN"));
+      make_default_chargescan_filename(pft, "CALIBRUN", hc.calib_offset));
     const auto led_filenames {make_led_filenames()};
-
     calibrun(pft, pedestal_filename, chargescan_filename, led_filenames);
 
 
@@ -244,7 +245,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
 
     std::string fname=BaseMenu::readline("Filename :  ",
-                                         make_default_chargescan_filename(pft, valuename));
+                                         make_default_chargescan_filename(pft, valuename, -1));
     std::ofstream csv_out=std::ofstream(fname);
     make_scan_csv_header(pft, csv_out, valuename);
 
@@ -364,11 +365,17 @@ std::string make_default_led_template() {
 }
 
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
-                                             const std::string& valuename)
+                                             const std::string& valuename,
+                                             const int calib_offset)
 {
     int len{};
     int offset{};
-    pft->backend->fc_get_setup_calib(len,offset);
+    if (calib_offset < 0) {
+
+      pft->backend->fc_get_setup_calib(len,offset);
+    } else {
+      offset = calib_offset;
+    }
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
     char fname_def_format[1024];
@@ -453,12 +460,6 @@ void calibrun(pflib::PolarfireTarget* pft,
   multisample_setup(pft, enable_multisample, hc.num_extra_samples);
 
   header_check(pft, 100);
-  std::cout << "Setting up fc->calib_pulse with length "
-            << hc.calib_length
-            << " and offset "
-            << hc.calib_offset
-            <<'\n';
-  fc_calib(pft, hc.calib_length, hc.calib_offset);
 
 
 

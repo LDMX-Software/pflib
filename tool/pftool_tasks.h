@@ -73,10 +73,11 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
 void calibrun(pflib::PolarfireTarget* pft,
              const std::string& pedestal_filename,
              const std::string& chargescan_filename,
-             const std::vector<std::string>& led_filenames);
+              const std::vector<std::string>& led_filenames);
 
 std::vector<std::string> make_led_filenames();
 std::string make_default_led_template();
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
-                                             const std::string& valuename);
+                                             const std::string& valuename,
+                                             const int calib_offset = -1);
 #endif /* PFTOOL_TASKS_H */
