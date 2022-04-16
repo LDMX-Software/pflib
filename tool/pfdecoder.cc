@@ -256,44 +256,58 @@ int main(int argc, char* argv[]) {
 
   close(infile);
 
-  std::vector<double> duplicate_rates{};
-  duplicate_rates.reserve(timestamps_per_spill.size());
-  for (int spill_index {0}; spill_index < timestamps_per_spill.size(); ++spill_index) {
-    const int spill {spill_index + 1};
-    std::cout << "Spill: " << spill << std::endl;
-    const auto& timestamps = timestamps_per_spill[spill_index];
-    for (const auto timestamp : timestamps ){
-      // std::cout << "Timestamp: " << timestamp << '\n';
-    }
 
-    auto found_duplicate = std::adjacent_find(std::cbegin(timestamps),
-                                              std::cend(timestamps));
-    int duplicate_counter {0};
-    while (found_duplicate != std::cend(timestamps)) {
-      ++duplicate_counter;
-      auto duplicate_ptr  = found_duplicate + 1;
-      std::cout << "Found duplicate in spill "
-                << spill
-                << " at position "
-                << std::distance(std::cbegin(timestamps), found_duplicate)
-                << " with value " << *found_duplicate
-                << " duplicate " << *(duplicate_ptr)
-                << std::endl;
-      found_duplicate = std::adjacent_find(duplicate_ptr,
-                                           std::cend(timestamps));
+  if (printevents) {
+    std::vector<double> duplicate_rates{};
+    duplicate_rates.reserve(timestamps_per_spill.size());
+
+    for (int spill_index {0}; spill_index < timestamps_per_spill.size(); ++spill_index) {
+      std::cout << "Spill index: " << spill_index << std::endl;
+      const auto timestamps = timestamps_per_spill[spill_index];
+      for (auto timestamp : timestamps) {
+        std::cout << "-- " << timestamp << '\n';
+      }
     }
-    const double duplicate_rate = static_cast<double>(duplicate_counter) / timestamps.size() * 100.;
-    std::cout << "Total duplicates " << duplicate_counter
-              << " out of " << timestamps.size()
-              << " timestamps in spill " << spill
-              << " or " << duplicate_rate
-              << " %" << std::endl;
-    duplicate_rates.push_back(duplicate_rate);
+    for (int spill_index {0}; spill_index < timestamps_per_spill.size(); ++spill_index) {
+      const int spill {spill_index + 1};
+      std::cout << "Spill: " << spill << std::endl;
+      const auto& timestamps = timestamps_per_spill[spill_index];
+      for (const auto timestamp : timestamps ){
+        // std::cout << "Timestamp: " << timestamp << '\n';
+      }
+
+      auto found_duplicate = std::adjacent_find(std::cbegin(timestamps),
+                                                std::cend(timestamps));
+      int duplicate_counter {0};
+      while (found_duplicate != std::cend(timestamps)) {
+        ++duplicate_counter;
+        auto duplicate_ptr  = found_duplicate + 1;
+        std::cout << "Found duplicate in spill "
+                  << spill
+                  << " at position "
+                  << std::distance(std::cbegin(timestamps), found_duplicate)
+                  << " with value " << *found_duplicate
+                  << " duplicate " << *(duplicate_ptr)
+                  << std::endl;
+        found_duplicate = std::adjacent_find(duplicate_ptr,
+                                             std::cend(timestamps));
+      }
+      const double duplicate_rate = static_cast<double>(duplicate_counter) / timestamps.size() * 100.;
+      std::cout << "Total duplicates " << duplicate_counter
+                << " out of " << timestamps.size()
+                << " timestamps in spill " << spill
+                << " or " << duplicate_rate
+                << " %" << std::endl;
+      duplicate_rates.push_back(duplicate_rate);
   }
   const auto average_rate_of_duplicates = std::accumulate(std::cbegin(duplicate_rates),
                                                           std::cend(duplicate_rates),
                                                           0.) / duplicate_rates.size();
-  std::cout << "Average rate of duplicates: " << average_rate_of_duplicates << " % for "  << timestamps_per_spill.size() << " spills" << std::endl;
+  std::cout << "Average rate of duplicates: "
+            << average_rate_of_duplicates << " % for "
+            << timestamps_per_spill.size() << " spills" << std::endl;
+
+  }
   if (printlink) {
     if (verbosity>0) printf("\n");
     printf("Link Alignment Checks\n");
