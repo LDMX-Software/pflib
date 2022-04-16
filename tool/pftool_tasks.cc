@@ -505,7 +505,7 @@ void calibrun(pflib::PolarfireTarget* pft,
   prepare_charge_injection(pft);
 
 
-  const std::vector<int> SiPM_biases {0, hc.SiPM_bias};
+  const std::vector<int> SiPM_biases {hc.SiPM_bias};
 
   for (auto SiPM_bias : SiPM_biases) {
     std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << std::endl;
