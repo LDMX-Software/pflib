@@ -97,6 +97,7 @@ void poke_all_channels(PolarfireTarget *pft, const std::string &parameter,
   const int num_channels = get_num_channels_per_roc();
   const int num_rocs{get_num_rocs()};
   for (int roc_number{0}; roc_number < num_rocs; ++roc_number) {
+    std::cout << "Poking: " << parameter <<" on ROC "  << roc_number << " with value " << value << std::endl;
     pflib::ROC roc {pft->hcal.roc(roc_number)};
     for (int channel{0}; channel < num_channels; ++channel) {
       roc.applyParameter(page_template + std::to_string(channel), parameter, value);
@@ -112,6 +113,7 @@ void poke_all_rochalves(PolarfireTarget* pft,
   const int num_rocs {get_num_rocs()};
   // Avoid shadowing iroc
   for (int roc_number {0}; roc_number < num_rocs; ++roc_number) {
+    std::cout << "Poking: " << parameter << " on ROC" << roc_number << " with value " << value << std::endl;
     pflib::ROC roc {pft->hcal.roc(roc_number)};
     roc.applyParameter(page_template + std::to_string(0), parameter, value);
     roc.applyParameter(page_template + std::to_string(1), parameter, value);
