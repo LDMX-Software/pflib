@@ -115,7 +115,7 @@ void scan_N_steps(PolarfireTarget* pft,
       ////////////////////////////////////////////////////////////
       /// set values
       int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
-      printf(" Scan %s=%d...\n",valuename.c_str(),value);
+      std::cout << " Scan " << valuename << "=" << value << "..." << std::endl;
 
       poke_all_rochalves(pft, pagetemplate, valuename, value);
       ////////////////////////////////////////////////////////////
@@ -124,6 +124,7 @@ void scan_N_steps(PolarfireTarget* pft,
 
       const int channels_per_elink = get_num_channels_per_elink();
       for (int ichan=0; ichan<channels_per_elink; ichan++) {
+        std::cout << "C: " << ichan << "... " << std::flush;
 
         enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
 
@@ -144,7 +145,7 @@ void scan_N_steps(PolarfireTarget* pft,
 void teardown_charge_injection(PolarfireTarget* pft)
 {
   const int num_rocs {get_num_rocs()};
-  printf(" Diabling IntCTest...\n");
+  std::cout << "Disabling IntCTest" << std::endl;
 
 
   std::string intctest_page = "REFERENCE_VOLTAGE_";
@@ -152,9 +153,9 @@ void teardown_charge_injection(PolarfireTarget* pft)
   const int intctest = 0;
   std::cout << "Setting " << intctest_parameter << " on page "
             << intctest_page << " to "
-            << intctest << '\n';
+            << intctest << std::endl;
   poke_all_rochalves(pft, intctest_page, intctest_parameter, intctest);
-  std::cout << "Note: L1OFFSET is not reset automatically by charge injection scans\n";
+  std::cout << "Note: L1OFFSET is not reset automatically by charge injection scans" << std::endl;
 
 }
 void prepare_charge_injection(PolarfireTarget* pft)
@@ -162,24 +163,25 @@ void prepare_charge_injection(PolarfireTarget* pft)
   const calibrun_hardcoded_values hc{};
   const int num_rocs {get_num_rocs()};
   const int off_value{0};
-    printf(" Clearing charge injection on all channels (ground-state)...\n");
+  std::cout << " Clearing charge injection on all channels (ground-state)..." << std::endl;
     poke_all_channels(pft, "HIGHRANGE", off_value);
+    std::cout << "Highrange cleared" << std::endl;
     printf("Highrange cleared\n");
     poke_all_channels(pft, "LOWRANGE", off_value);
-    printf("Lowrange cleared\n");
+    std::cout << "Lowrange cleared" << std::endl;
 
-    printf(" Enabling IntCTest...\n");
+    std::cout << " Enabling IntCTest..." << std::endl;
 
     const int intctest = 1;
     std::cout << "Setting " << hc.intctest_parameter << " on page "
               << hc.intctest_page << " to "
-              << intctest << '\n';
+              << intctest << std::endl;
     poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
 
 
     std::cout << "Setting " <<hc.l1offset_parameter << " on page "
               << hc.l1offset_page << " to "
-              << hc.charge_l1offset << '\n';
+              << hc.charge_l1offset << std::endl;
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
@@ -280,16 +282,16 @@ void beamprep(pflib::PolarfireTarget *pft) {
   const int num_boards{ get_num_rocs()};
 
 
-  std::cout << "Running DAQ softreset\n";
+  std::cout << "Running DAQ softreset" << std::endl;
   daq_softreset(pft);
-  std::cout << "Running DAQ standard setup\n";
+  std::cout << "Running DAQ standard setup" << std::endl;
   daq_standard(pft);
-  std::cout << "Running DAQ enable\n";
+  std::cout << "Running DAQ enable" << std::endl;
   daq_enable(pft);
 
   const calibrun_hardcoded_values hc{};
   std::cout << "Setting number of additional samples to: "
-            << hc.num_extra_samples << '\n';
+            << hc.num_extra_samples << std::endl;
   const bool enable_multisample = true;
   multisample_setup(pft, enable_multisample, hc.num_extra_samples);
 
@@ -391,12 +393,12 @@ std::vector<std::string> make_led_filenames() {
     std::string led_filename_template = BaseMenu::readline(
       "Filename template for LED runs (dac value is appended to this):",
       make_default_led_template());
-    std::cout << "Performing LED runs with DAC values: \n";
+    std::cout << "Performing LED runs with DAC values: " << std::endl;
     std::vector<std::string> led_filenames{};
 
     for (auto dac_value : hc.led_dac_values) {
       std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
-      std::cout << dac_value << ": " << filename <<'\n';
+      std::cout << dac_value << ": " << filename << std::endl;
       led_filenames.push_back(filename);
     }
     return led_filenames;
@@ -410,10 +412,10 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
             << hc.led_calib_length
             << " and offset "
             << hc.led_calib_offset
-            <<'\n';
+            <<std::endl;
   fc_calib(pft, hc.led_calib_length, hc.led_calib_offset);
   const int num_boards{get_num_rocs()};
-  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs\n";
+  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs"  << std::endl;
   set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
 
@@ -426,12 +428,12 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
     const int num_rocs {get_num_rocs()};
     std::cout << "Setting " << hc.l1offset_parameter << " on page "
               << hc.l1offset_page << " to "
-              << hc.led_l1offset << '\n';
+              << hc.led_l1offset << std::endl;
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
 
     for (int i {0}; i < hc.led_dac_values.size(); ++i) {
       const int dac_value {hc.led_dac_values[i]};
-      std::cout << "Doing LED run with dac value: " << dac_value <<'\n';
+      std::cout << "Doing LED run with dac value: " << dac_value << std::endl;
       set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
 
       pft->prepareNewRun();
@@ -447,15 +449,15 @@ void calibrun(pflib::PolarfireTarget* pft,
 {
 
   const calibrun_hardcoded_values hc{};
-  std::cout << "Running DAQ softreset\n";
+  std::cout << "Running DAQ softreset" <<std::endl;
   daq_softreset(pft);
-  std::cout << "Running DAQ standard setup\n";
+  std::cout << "Running DAQ standard setup" << std::endl;
   daq_standard(pft);
-  std::cout << "Running DAQ enable\n";
+  std::cout << "Running DAQ enable" << std::endl;
   daq_enable(pft);
 
   std::cout << "Setting number of additional samples to: "
-            << hc.num_extra_samples << '\n';
+            << hc.num_extra_samples << std::endl;
   const bool enable_multisample = true;
   multisample_setup(pft, enable_multisample, hc.num_extra_samples);
 
@@ -463,31 +465,31 @@ void calibrun(pflib::PolarfireTarget* pft,
 
 
 
-  std::cout << "Disabling external L1A, external spill, and timer L1A\n";
+  std::cout << "Disabling external L1A, external spill, and timer L1A" << std::endl;
   fc_enables(pft, false, false, false);
 
-  std::cout << "Disabling DMA\n";
+  std::cout << "Disabling DMA" << std::endl;
   setup_dma(pft, false);
 
 
   const int num_boards {get_num_rocs()};
   const int LED_bias {0};
-  std::cout << "Disabling LED bias\n";
+  std::cout << "Disabling LED bias" << std::endl;
   set_bias_on_all_connectors(pft, num_boards, true, LED_bias);
 
-  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards\n";
+  std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards" << std::endl;
   set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
-  std::cout << "... Done\n";
+  std::cout << "... Done" << std::endl;
 
-  std::cout << "DAQ status:\n";
+  std::cout << "DAQ status:" << std::endl;
   daq_status(pft);
 
-  std::cout << "Staring pedestal run\n";
+  std::cout << "Staring pedestal run" << std::endl;
   const int rate = 100;
   const int run = 0;
   const int number_of_events = 1000;
-  std::cout << number_of_events << " events with rate " << rate << " Hz\n";
+  std::cout << number_of_events << " events with rate " << rate << " Hz" << std::endl;
   const std::string pedestal_command{"PEDESTAL"};
   pft->prepareNewRun();
   daq_run(pft, pedestal_command, run, number_of_events, rate, pedestal_filename);
@@ -498,26 +500,26 @@ void calibrun(pflib::PolarfireTarget* pft,
 
   make_scan_csv_header(pft, csv_out, "CALIB_DAC");
 
-  std::cout << "Note: Currently not doing anything with the software veto settings\n";
-  std::cout << "Prepare for charge injection\n";
+  std::cout << "Note: Currently not doing anything with the software veto settings" << std::endl;
+  std::cout << "Prepare for charge injection" << std::endl;
   prepare_charge_injection(pft);
 
 
   const std::vector<int> SiPM_biases {0, hc.SiPM_bias};
 
   for (auto SiPM_bias : SiPM_biases) {
-    std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << '\n';
-    std::cout << "Setting SiPM bias to " << SiPM_bias << " on all boards\n";
+    std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << std::endl;
+    std::cout << "Setting SiPM bias to " << SiPM_bias << " on all boards" << std::endl;
     set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
 
     std::cout << "Running charge injection with lowrange from "  <<
-      hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << "\n";
+      hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << std::endl;
 
     const std::string dac_page = "REFERENCE_VOLTAGE_";
     const std::string dac_parameter_name = "CALIB_DAC";
     std::cout << "Scanning " <<  hc.coarse_steps
               << " steps of " << dac_parameter_name << " with "
-              << hc.events_per_step << " events per step\n";
+              << hc.events_per_step << " events per step" << std::endl;
     scan_N_steps(pft,
                  csv_out,
                  SiPM_bias,
@@ -530,7 +532,7 @@ void calibrun(pflib::PolarfireTarget* pft,
                  "LOWRANGE");
 
     std::cout << "Running charge injection with highrange from "  <<
-      hc.highrange_fine_dac_min << " to " << hc.highrange_fine_dac_max << "\n";
+      hc.highrange_fine_dac_min << " to " << hc.highrange_fine_dac_max << std::endl;
 
     scan_N_steps(pft,
                  csv_out,
@@ -544,7 +546,7 @@ void calibrun(pflib::PolarfireTarget* pft,
                  "HIGHRANGE"
     );
     std::cout << "Running charge injection with highrange from "  <<
-      hc.highrange_coarse_dac_min << " to " << hc.highrange_coarse_dac_max << "\n";
+      hc.highrange_coarse_dac_min << " to " << hc.highrange_coarse_dac_max << std::endl;
 
     scan_N_steps(pft,
                  csv_out,
@@ -559,16 +561,16 @@ void calibrun(pflib::PolarfireTarget* pft,
     );
   }
 
-  std::cout << "Running teardown for charge injection\n";
+  std::cout << "Running teardown for charge injection" << std::endl;
   teardown_charge_injection(pft);
   calibrun_ledruns(pft, led_filenames);
-  std::cout << "Reminder:\n";
-  std::cout << "Pedestal filename: " << pedestal_filename <<'\n';
-  std::cout << "Charge scan filename: " << chargescan_filename <<'\n';
+  std::cout << "Reminder:" << std::endl;
+  std::cout << "Pedestal filename: " << pedestal_filename << std::endl;
+  std::cout << "Charge scan filename: " << chargescan_filename << std::endl;
   for (int i{}; i < hc.led_dac_values.size(); ++i) {
     const int dac_value = hc.led_dac_values[i];
     std::cout << "LED filename for DAC value " << dac_value
-              << ": " << led_filenames[i] << '\n';
+              << ": " << led_filenames[i] << std::endl;
   }
   return;
 
