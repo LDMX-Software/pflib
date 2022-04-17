@@ -59,6 +59,7 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft) {
 }
 void preamp_alignment(PolarfireTarget* pft) {
 
+
   static int iroc=0;
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
   const int nsamples = get_number_of_samples_per_event(pft);
@@ -112,6 +113,7 @@ void preamp_alignment(PolarfireTarget* pft) {
   static int dac_start_value = 10;
   dac_start_value = BaseMenu::readline_int("Start from DAC value: ", dac_start_value);
 
+
   const int channels_per_elink = get_num_channels_per_elink();
   const std::string parameter = "REF_DAC_INV";
   for (int ch = 0; ch < channels_per_elink; ++ch) {
@@ -150,6 +152,7 @@ void preamp_alignment(PolarfireTarget* pft) {
     // std::cout << "Average: " << average << " is between tolerance? " << res << std::endl;
     return res;
   };
+
   constexpr const int ceiling_5bits {32};
   for (int ref_dac_inv = dac_start_value; ref_dac_inv < ceiling_5bits; ++ref_dac_inv) {
     std::cout << "DAC: " << ref_dac_inv << std::endl;
@@ -185,7 +188,17 @@ void preamp_alignment(PolarfireTarget* pft) {
               << ", Average ADC: " << averages[ch]
               << std::endl;
   }
+  for (int ch{0}; ch < num_channels; ++ ch) {
+    if(!stop[ch]) {
+      std::cout << "Channel: " << ch << " failed :( " << std::endl;
+    }
+
+  }
+  return;
 }
+
+
+
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
 
@@ -199,6 +212,7 @@ void read_pedestal(PolarfireTarget* pft) {
     iroc=BaseMenu::readline_int("Which ROC:",iroc);
     static int half = 0;
     half = BaseMenu::readline_int("Which half? 0/1", half);
+
 
     const int link = iroc * 2 + half;
     std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
@@ -226,6 +240,8 @@ void read_pedestal(PolarfireTarget* pft) {
     //   }
     // }
 }
+
+
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {
