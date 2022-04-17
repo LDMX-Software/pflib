@@ -1,6 +1,21 @@
 #include "pftool_tasks.h"
 
 
+
+// Really wishing we had C++17 here for the portable filesystem library...
+// https://stackoverflow.com/questions/18100097/portable-way-to-check-if-directory-exists-windows-linux-c
+//
+// Not really handling any errors, just report back true/false
+bool directory_exists(const std::string& directory) {
+
+  struct stat info;
+  // Populates the "info" struct
+  int statRC = stat(directory.c_str(), &info);
+  if (statRC != 0) {
+    return false;
+  }
+  return (info.st_mode & S_IFDIR) ? 1 : 0;
+}
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {

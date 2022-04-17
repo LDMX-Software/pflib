@@ -11,6 +11,7 @@
 #include "pftool_fastcontrol.h"
 #include "pftool_daq.h"
 #include "pftool_hardcoded_values.h"
+#include <sys/stat.h>
 /**
  * TASK menu commands
  *
@@ -80,4 +81,5 @@ std::string make_default_led_template();
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const std::string& valuename,
                                              const int calib_offset = -1);
+bool directory_exists(const std::string& directory);
 #endif /* PFTOOL_TASKS_H */
