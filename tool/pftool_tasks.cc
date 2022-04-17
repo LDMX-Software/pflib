@@ -242,6 +242,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   const int nsamples = get_number_of_samples_per_event(pft);
 
+  if (cmd == "DACB") {
+    test_one_channel(pft);
+    return;
+  }
   if (cmd == "PEDESTAL_READ") {
     read_pedestal(pft);
     return;
