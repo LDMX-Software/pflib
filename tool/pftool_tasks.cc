@@ -150,6 +150,15 @@ void preamp_alignment(PolarfireTarget* pft) {
     // std::cout << "Average: " << average << " is between tolerance? " << res << std::endl;
     return res;
   };
+  constexpr const int ceiling_5bits {32};
+  for (int ref_dac_inv = dac_start_value; ref_dac_inv < ceiling_5bits; ++ref_dac_inv) {
+    std::cout << "DAC: " << ref_dac_inv << std::endl;
+    pft->prepareNewRun();
+
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  }
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
