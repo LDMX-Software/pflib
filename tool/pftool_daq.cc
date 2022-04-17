@@ -145,6 +145,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
     run=BaseMenu::readline_int("Run number? ",run);
 
     char fname_def_format[1024];
+#ifdef PFTOOL_ROGUE
     sprintf(fname_def_format,"fpga%d_run%06d_%%Y%%m%%d_%%H%%M%%S.raw",fpgaid_i,run);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
@@ -208,6 +209,10 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
     if (f) fclose(f);
 
     if (dma_enabled) rwbi->daq_dma_close();
+
+#else
+    std::cout << "Pftool compiled without Rogue, can't take external run..." << std::endl;
+#endif // PFTOOL_ROGUE
 
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
