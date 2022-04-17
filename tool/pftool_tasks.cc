@@ -81,6 +81,7 @@ void preamp_alignment(PolarfireTarget* pft) {
 
   }
 
+
   std::cout << "The pre-amp pedestal alignment is best done when gain_conv = 0" << std::endl;
   if (BaseMenu::readline_bool("Update gain conv?", false)) {
     const std::string page = "Global_Analog_" + std::to_string(half);
@@ -99,6 +100,18 @@ void preamp_alignment(PolarfireTarget* pft) {
     const int SiPM_bias {3784};
     set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
   }
+
+  //Choose goal for pedestal
+  std::cout << "The channel-wise pre-amplifier voltage ref_dac_inv can only raise pedestals" << std::endl;
+  static int goal=50;
+  goal=BaseMenu::readline_int("Raise pedestals to:",goal);
+  static int tolerance = 10;
+  tolerance = BaseMenu::readline_int("Tolreance (+/-): ", tolerance);
+  std::cout << "Setting channel-wise ref_dac_inv to 0" << std::endl;
+
+  static int dac_start_value = 10;
+  dac_start_value = BaseMenu::readline_int("Start from DAC value: ", dac_start_value);
+
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
