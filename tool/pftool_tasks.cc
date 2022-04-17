@@ -41,6 +41,21 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
   auto minmax = std::minmax_element(std::begin(averages), std::end(averages));
   return {average, std_dev,*(minmax.first), *(minmax.second)};
 }
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft) {
+
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  const int link = iroc * 2 + half;
+  pft->prepareNewRun();
+
+  pft->backend->fc_sendL1A();
+  std::vector<uint32_t> event = pft->daqReadEvent();
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  return get_pedestal_stats(pft, data, link);
+}
 }
 void preamp_alignment(PolarfireTarget* pft) {
 
