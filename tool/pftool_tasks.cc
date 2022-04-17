@@ -59,6 +59,27 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft) {
 }
 void preamp_alignment(PolarfireTarget* pft) {
 
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+
+
+  auto roc {pft->hcal.roc(iroc)};
+  if (BaseMenu::readline_bool("Update Inv_vref?", false)){
+    static int inv_vref = 425;
+    inv_vref = BaseMenu::readline_int("Update Inv_Vref? ", inv_vref);
+    const std::string page = "Reference_voltage_" + std::to_string(half);
+    const std::string parameter = "Inv_Vref";
+    const int value = inv_vref;
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+
+  }
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
