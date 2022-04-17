@@ -5,8 +5,8 @@
 double get_average_adc(pflib::PolarfireTarget* pft,
                        const pflib::decoding::SuperPacket& data,
                        const int link,
-                       const int ch
-) {
+                       const int ch)
+{
 
   const int nsamples = get_number_of_samples_per_event(pft);
   double channel_average {};
@@ -14,7 +14,6 @@ double get_average_adc(pflib::PolarfireTarget* pft,
     channel_average += data.sample(sample).roc(link).get_adc(ch);
   }
   // std::cout << "Before: " << channel_average << " ch " << ch;
-
   channel_average /= nsamples;
   // std::cout << " after " << channel_average <<std::endl;
   return channel_average;
@@ -22,7 +21,8 @@ double get_average_adc(pflib::PolarfireTarget* pft,
 
 std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
                                        pflib::decoding::SuperPacket& data,
-                                       const int link) {
+                                       const int link)
+{
 
   constexpr const int num_channels = 36;
   std::vector<double> averages{};
@@ -41,7 +41,8 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
   auto minmax = std::minmax_element(std::begin(averages), std::end(averages));
   return {average, std_dev,*(minmax.first), *(minmax.second)};
 }
-std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft) {
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft)
+{
 
   static int iroc=0;
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
@@ -58,7 +59,8 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft) {
 }
 
 
-void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
+void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft)
+{
 
   static int iroc=0;
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
@@ -103,7 +105,8 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
 
 
 }
-void preamp_alignment(PolarfireTarget* pft) {
+void preamp_alignment(PolarfireTarget* pft)
+{
 
 
   static int iroc=0;
@@ -245,7 +248,8 @@ void preamp_alignment(PolarfireTarget* pft) {
 
 
 
-void read_pedestal(PolarfireTarget* pft) {
+void read_pedestal(PolarfireTarget* pft)
+{
   const int nsamples = get_number_of_samples_per_event(pft);
 
   pft->prepareNewRun();
@@ -275,20 +279,6 @@ void read_pedestal(PolarfireTarget* pft) {
     std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
               <<", min " << stats[2] << ", max " << stats[3]
               << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
-    // for(int ilink = iroc*2; ilink <= iroc*2+1; ilink++){
-    //   if (pft->hcal.elinks().isActive(ilink)) {
-    //     for (int k=0; k < 36; k++){
-    //       std::cout << "Ch " << k + (ilink % 2)*36<< ":  ";
-    //       for (int i=0; i<nsamples; i++){
-    //         std::cout << ' ' << data.sample(i).roc(ilink).get_adc(k);
-    //       }
-    //       std::cout << std::endl;
-    //     }
-    //   }
-    //   else{
-    //     std::cout << "Link not active" << std::endl;
-    //   }
-    // }
 }
 
 

@@ -11,6 +11,9 @@
 #include "pftool_fastcontrol.h"
 #include "pftool_daq.h"
 #include "pftool_hardcoded_values.h"
+#include <algorithm>
+#include <numeric>
+#include <cmath>
 /**
  * TASK menu commands
  *
@@ -80,4 +83,17 @@ std::string make_default_led_template();
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const std::string& valuename,
                                              const int calib_offset = -1);
+
+
+double get_average_adc(pflib::PolarfireTarget* pft,
+                       const pflib::decoding::SuperPacket& data,
+                       const int link,
+                       const int ch);
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
+                                       pflib::decoding::SuperPacket& data,
+                                       const int link);
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft);
+void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft);
 #endif /* PFTOOL_TASKS_H */
