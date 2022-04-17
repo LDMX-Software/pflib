@@ -1,6 +1,23 @@
 #include "pftool_tasks.h"
 
 
+double get_average_adc(pflib::PolarfireTarget* pft,
+                       const pflib::decoding::SuperPacket& data,
+                       const int link,
+                       const int ch
+) {
+
+  const int nsamples = get_number_of_samples_per_event(pft);
+  double channel_average {};
+  for (int sample{0}; sample < nsamples; ++sample) {
+    channel_average += data.sample(sample).roc(link).get_adc(ch);
+  }
+  // std::cout << "Before: " << channel_average << " ch " << ch;
+
+  channel_average /= nsamples;
+  // std::cout << " after " << channel_average <<std::endl;
+  return channel_average;
+}
 void preamp_alignment(PolarfireTarget* pft) {
 
 }
