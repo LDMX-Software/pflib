@@ -37,6 +37,24 @@ std::string get_yearmonthday() {
   // Constructs an std::string
   return buffer;
 }
+
+std::string get_calibration_output_directory() {
+
+  const std::string yearmonthday =  get_yearmonthday();
+  const std::string default_output_directory = "./data/" + yearmonthday + "/";
+  static std::string calibration_output_directory = BaseMenu::readline(
+    "Output directory for calibration data: ",
+    default_output_directory);
+
+  while (! directory_exists(calibration_output_directory)) {
+    std::cout << calibration_output_directory << " does not exist. Please enter a new one or create it and re-enter the current option.";
+      calibration_output_directory = BaseMenu::readline("Output directory for calibration data",
+                                                        calibration_output_directory);
+  }
+  return calibration_output_directory;
+
+}
+
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {

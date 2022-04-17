@@ -84,4 +84,5 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const int calib_offset = -1);
 bool directory_exists(const std::string& directory);
 std::string get_yearmonthday();
+std::string get_calibration_output_directory();
 #endif /* PFTOOL_TASKS_H */
