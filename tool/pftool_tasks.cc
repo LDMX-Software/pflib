@@ -158,6 +158,13 @@ void preamp_alignment(PolarfireTarget* pft) {
     pft->backend->fc_sendL1A();
     std::vector<uint32_t> event = pft->daqReadEvent();
     pflib::decoding::SuperPacket data(&(event[0]),event.size());
+    for (int ch = 0 ; ch < num_channels; ++ch) {
+
+      const int channel_number = ch + 36 * half;
+      const std::string page = "CHANNEL_" + std::to_string(channel_number);
+      // Calculate average over samples for this channel
+      auto channel_average {get_average_adc(pft, data, link, ch)};
+    }
   }
 }
 void read_pedestal(PolarfireTarget* pft) {
