@@ -89,6 +89,13 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
         pft->backend->fc_sendL1A();
         std::vector<uint32_t> event = pft->daqReadEvent();
         pflib::decoding::SuperPacket data(&(event[0]),event.size());
+        std::vector<int> adcs{};
+        for (int sample {0}; sample < 8; ++sample) {
+          const auto adc = data.sample(sample).roc(link).get_adc(channel);
+          adcs.push_back(adc);
+          std::cout << adc << ", ";
+        }
+        std::cout << std::endl;
       }
     } while (BaseMenu::readline_bool("Continue trying with this channel?", true));
   } while (BaseMenu::readline_bool("Continue trying with a different channel?", true));
