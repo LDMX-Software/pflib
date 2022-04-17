@@ -78,6 +78,10 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
     channel = BaseMenu::readline_int("Which Channel to investigate?", channel);
     num_adc_tests = BaseMenu::readline_int("How many pedestal samples to look at?", num_adc_tests);
     const std::string page = "CHANNEL_" + std::to_string(channel + 36 * half);
+    do {
+      signdac = BaseMenu::readline_int("Signdac? 0 off 1 on", signdac);
+      dacb = BaseMenu::readline_int("DACB value", dacb);
+    } while (BaseMenu::readline_bool("Continue trying with this channel?", true));
   } while (BaseMenu::readline_bool("Continue trying with a different channel?", true));
 
 
