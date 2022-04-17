@@ -1,6 +1,9 @@
 #include "pftool_tasks.h"
 
 
+void preamp_alignment(PolarfireTarget* pft) {
+
+}
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
 
@@ -241,6 +244,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   if (cmd == "PEDESTAL_READ") {
     read_pedestal(pft);
+    return;
+  }
+  if (cmd == "ALIGN_PREAMP") {
+    preamp_alignment(pft);
     return;
   }
   if (cmd == "BEAMPREP") {
