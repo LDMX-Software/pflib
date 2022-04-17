@@ -312,7 +312,7 @@ void beamprep(pflib::PolarfireTarget *pft) {
     gain_conv = BaseMenu::readline_int("Gain conv", gain_conv);
     poke_all_rochalves(pft, "Global_Analog_", "gain_conv", gain_conv);
 
-    static int l1offset{83};
+    static int l1offset{85};
     l1offset = BaseMenu::readline_int("L1OFFSET", l1offset);
     poke_all_rochalves(pft, "Digital_Half_", "L1OFFSET", l1offset);
   }
