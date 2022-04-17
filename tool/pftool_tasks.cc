@@ -74,6 +74,14 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
   const std::string dacb_parameter = "DACB";
   const std::string signdac_parameter = "SIGN_DAC";
   static int num_adc_tests{5};
+  do {
+    channel = BaseMenu::readline_int("Which Channel to investigate?", channel);
+    num_adc_tests = BaseMenu::readline_int("How many pedestal samples to look at?", num_adc_tests);
+    const std::string page = "CHANNEL_" + std::to_string(channel + 36 * half);
+  } while (BaseMenu::readline_bool("Continue trying with a different channel?", true));
+
+
+
 }
 void preamp_alignment(PolarfireTarget* pft) {
 
