@@ -17,7 +17,8 @@ bool directory_exists(const std::string& directory) {
   return (info.st_mode & S_IFDIR) ? 1 : 0;
 }
 
-std::string get_yearmonthday() {
+std::string get_yearmonthday()
+{
   // Time since epoch
   std::time_t time_raw{};
   // Gets current time since epoch
@@ -38,7 +39,8 @@ std::string get_yearmonthday() {
   return buffer;
 }
 
-std::string get_calibration_output_directory() {
+std::string get_calibration_output_directory()
+{
 
   const std::string yearmonthday =  get_yearmonthday();
   const std::string default_output_directory = "./data/" + yearmonthday + "/";
