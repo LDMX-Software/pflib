@@ -16,6 +16,27 @@ bool directory_exists(const std::string& directory) {
   }
   return (info.st_mode & S_IFDIR) ? 1 : 0;
 }
+
+std::string get_yearmonthday() {
+  // Time since epoch
+  std::time_t time_raw{};
+  // Gets current time since epoch
+  std::time(&time_raw);
+  // Convert ot local time in a struct that holds relevant calendar components
+  std::tm* time_info = std::localtime(&time_raw);
+  // Overkill
+  constexpr int buffer_size {2048};
+  char buffer[buffer_size];
+
+  // %Y -> Year in four digits
+  // %m -> Month in year in two digits
+  // %d -> Day in month in two digits (i.e. including 0 for 01 etc)
+  // buffer will be null terminated
+  std::strftime(buffer, buffer_size, "%Y%M%D", time_info);
+
+  // Constructs an std::string
+  return buffer;
+}
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {

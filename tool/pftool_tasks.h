@@ -12,6 +12,7 @@
 #include "pftool_daq.h"
 #include "pftool_hardcoded_values.h"
 #include <sys/stat.h>
+#include <ctime>
 /**
  * TASK menu commands
  *
@@ -82,4 +83,5 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const std::string& valuename,
                                              const int calib_offset = -1);
 bool directory_exists(const std::string& directory);
+std::string get_yearmonthday();
 #endif /* PFTOOL_TASKS_H */
