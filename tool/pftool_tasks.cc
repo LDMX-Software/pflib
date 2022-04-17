@@ -225,6 +225,10 @@ void read_pedestal(PolarfireTarget* pft) {
       std::cout << std::endl;
     }
 
+    auto stats {get_pedestal_stats(pft, data, link) };
+    std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
+              <<", min " << stats[2] << ", max " << stats[3]
+              << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
     // for(int ilink = iroc*2; ilink <= iroc*2+1; ilink++){
     //   if (pft->hcal.elinks().isActive(ilink)) {
     //     for (int k=0; k < 36; k++){
