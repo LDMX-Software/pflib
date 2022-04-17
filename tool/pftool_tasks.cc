@@ -1,6 +1,46 @@
 #include "pftool_tasks.h"
 
 
+void read_pedestal(PolarfireTarget* pft) {
+  const int nsamples = get_number_of_samples_per_event(pft);
+
+  pft->prepareNewRun();
+  pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+
+    static int iroc=0;
+    iroc=BaseMenu::readline_int("Which ROC:",iroc);
+    static int half = 0;
+    half = BaseMenu::readline_int("Which half? 0/1", half);
+
+    const int link = iroc * 2 + half;
+    std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+    for( int ch=0; ch < 36; ++ch) {
+      const int channel_number = ch + half * 36;
+      std::cout << "Ch: " << ch << ": ";
+      for (int sample {0}; sample < nsamples; ++sample) {
+        std::cout << ' ' << data.sample(sample).roc(link).get_adc(ch);
+      }
+      std::cout << std::endl;
+    }
+
+    // for(int ilink = iroc*2; ilink <= iroc*2+1; ilink++){
+    //   if (pft->hcal.elinks().isActive(ilink)) {
+    //     for (int k=0; k < 36; k++){
+    //       std::cout << "Ch " << k + (ilink % 2)*36<< ":  ";
+    //       for (int i=0; i<nsamples; i++){
+    //         std::cout << ' ' << data.sample(i).roc(ilink).get_adc(k);
+    //       }
+    //       std::cout << std::endl;
+    //     }
+    //   }
+    //   else{
+    //     std::cout << "Link not active" << std::endl;
+    //   }
+    // }
+}
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {
@@ -199,6 +239,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   const int nsamples = get_number_of_samples_per_event(pft);
 
+  if (cmd == "READ_PEDESTAL") {
+    read_pedestal(pft);
+    return;
+  }
   if (cmd == "BEAMPREP") {
     beamprep(pft);
     return;
