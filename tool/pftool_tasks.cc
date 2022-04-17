@@ -171,6 +171,12 @@ void preamp_alignment(PolarfireTarget* pft) {
         averages[ch] = channel_average;
       }
 
+      if (is_within_tolerance(channel_average) && stop[ch] != 1) {
+        pft->hcal.roc(iroc).applyParameter(page, parameter, previous[ch]);
+        averages[ch] = channel_average;
+        std::cout << "Channel: " << ch << " succeeded, stopping!" << std::endl;
+        stop[ch] = 1;
+      }
     }
   }
 }
