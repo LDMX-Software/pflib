@@ -84,10 +84,12 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft) {
       roc.applyParameter(page, dacb_parameter, dacb);
       roc.applyParameter(page, signdac_parameter, signdac);
 
-      pft->prepareNewRun();
-      pft->backend->fc_sendL1A();
-      std::vector<uint32_t> event = pft->daqReadEvent();
-      pflib::decoding::SuperPacket data(&(event[0]),event.size());
+      for (int i {0}; i < num_adc_tests; ++ i) {
+        pft->prepareNewRun();
+        pft->backend->fc_sendL1A();
+        std::vector<uint32_t> event = pft->daqReadEvent();
+        pflib::decoding::SuperPacket data(&(event[0]),event.size());
+      }
     } while (BaseMenu::readline_bool("Continue trying with this channel?", true));
   } while (BaseMenu::readline_bool("Continue trying with a different channel?", true));
 
