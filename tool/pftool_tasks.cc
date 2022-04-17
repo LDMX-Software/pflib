@@ -93,6 +93,12 @@ void preamp_alignment(PolarfireTarget* pft) {
     roc.applyParameter(page, parameter, value);
 
   }
+  std::cout << "The pre-amp pedestal alignment is with SiPM bias enabled... " << std::endl;
+  if (BaseMenu::readline_bool("Update SiPM bias?", false)) {
+    const int num_boards {get_num_rocs()};
+    const int SiPM_bias {3784};
+    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+  }
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
