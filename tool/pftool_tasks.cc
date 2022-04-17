@@ -112,6 +112,20 @@ void preamp_alignment(PolarfireTarget* pft) {
   static int dac_start_value = 10;
   dac_start_value = BaseMenu::readline_int("Start from DAC value: ", dac_start_value);
 
+  const int channels_per_elink = get_num_channels_per_elink();
+  const std::string parameter = "REF_DAC_INV";
+  for (int ch = 0; ch < channels_per_elink; ++ch) {
+    const int channel_number = ch + 36 * half;
+    const std::string page = "CHANNEL_" + std::to_string(channel_number);
+    const int value  = dac_start_value;
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+  }
+
+
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
