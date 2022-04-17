@@ -169,6 +169,8 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd == "ALIGN") {
     align_elinks(pft, elinks);
+    std::cout << "Running header check..." << std::endl;
+    header_check(pft, 100);
     return;
   }
   if (cmd=="HEADER_CHECK") {
@@ -203,6 +205,10 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd=="HARD_RESET") {
     elinks.resetHard();
+    std::cout << "Running elinks alignment" << std::endl;
+    align_elinks(pft, elinks);
+    std::cout << "Running header check..." << std::endl;
+    header_check(pft, 100);
   }
   if (cmd=="SCAN") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
