@@ -179,6 +179,12 @@ void preamp_alignment(PolarfireTarget* pft) {
       }
     }
   }
+  for (int ch {0}; ch < num_channels; ++ch) {
+    std::cout << "Ch " << ch << ": REF_DAC_INV ->" << previous[ch]
+              << ", succeeded? " << (stop[ch] != 0)
+              << ", Average ADC: " << averages[ch]
+              << std::endl;
+  }
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
