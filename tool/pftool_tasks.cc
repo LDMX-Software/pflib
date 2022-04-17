@@ -80,6 +80,19 @@ void preamp_alignment(PolarfireTarget* pft) {
     roc.applyParameter(page, parameter, value);
 
   }
+
+  std::cout << "The pre-amp pedestal alignment is best done when gain_conv = 0" << std::endl;
+  if (BaseMenu::readline_bool("Update gain conv?", false)) {
+    const std::string page = "Global_Analog_" + std::to_string(half);
+    const std::string parameter = "gain_conv";
+    const int value {BaseMenu::readline_int("Gain_Conv value? ", 0)};
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+
+  }
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
