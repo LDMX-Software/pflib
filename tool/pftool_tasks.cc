@@ -126,6 +126,30 @@ void preamp_alignment(PolarfireTarget* pft) {
   }
 
 
+  constexpr const int num_channels = 36;
+  std::array<int, num_channels> previous{};
+  std::array<int, num_channels> stop{};
+  std::array<int, num_channels> averages{};
+
+  const int link = iroc * 2 + half;
+  std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  std::cout << "Trying 0 - 31 of REF_DAC_INV... "  <<std::endl;
+
+
+  std::cout << std::boolalpha;
+  auto is_below_tolerance = [&](const double average){
+    auto res (average < goal - tolerance);
+    // std::cout << average << " is less than tolerance? " << res << std::endl;
+    return res;
+  };
+  auto is_above_tolerance = [&](const double average){
+    return (average > goal + tolerance) ;
+  };
+  auto is_within_tolerance = [&](const double average){
+    auto res {!is_below_tolerance(average) && !(is_above_tolerance(average))};
+    // std::cout << "Average: " << average << " is between tolerance? " << res << std::endl;
+    return res;
+  };
 }
 void read_pedestal(PolarfireTarget* pft) {
   const int nsamples = get_number_of_samples_per_event(pft);
