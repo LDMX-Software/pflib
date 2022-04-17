@@ -1,6 +1,7 @@
 #include "pftool_tasks.h"
 
 
+
 double get_average_adc(pflib::PolarfireTarget* pft,
                        const pflib::decoding::SuperPacket& data,
                        const int link,
@@ -17,6 +18,29 @@ double get_average_adc(pflib::PolarfireTarget* pft,
   channel_average /= nsamples;
   // std::cout << " after " << channel_average <<std::endl;
   return channel_average;
+}
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
+                                       pflib::decoding::SuperPacket& data,
+                                       const int link) {
+
+  constexpr const int num_channels = 36;
+  std::vector<double> averages{};
+  for (int ch = 0; ch < num_channels; ++ch) {
+    averages.push_back(get_average_adc(pft, data, link, ch));
+  }
+  auto average = std::accumulate(std::begin(averages),
+                                 std::end(averages),
+                                 0.) / num_channels;
+  auto sum_squared = std::inner_product(std::begin(averages),
+                                        std::end(averages),
+                                        std::begin(averages),
+                                        0.);
+  auto std_dev = std::sqrt(sum_squared/num_channels - average * average);
+
+  auto minmax = std::minmax_element(std::begin(averages), std::end(averages));
+  return {average, std_dev,*(minmax.first), *(minmax.second)};
+}
 }
 void preamp_alignment(PolarfireTarget* pft) {
 
