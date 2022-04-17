@@ -164,6 +164,13 @@ void preamp_alignment(PolarfireTarget* pft) {
       const std::string page = "CHANNEL_" + std::to_string(channel_number);
       // Calculate average over samples for this channel
       auto channel_average {get_average_adc(pft, data, link, ch)};
+
+      if(is_below_tolerance(channel_average)&& stop[ch] != 1) {
+        pft->hcal.roc(iroc).applyParameter(page, parameter, ref_dac_inv);
+        previous[ch] = ref_dac_inv;
+        averages[ch] = channel_average;
+      }
+
     }
   }
 }
