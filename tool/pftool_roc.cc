@@ -34,9 +34,16 @@ int get_num_rocs()
     return num_rocs;
 }
 
-int get_dpm_number() {
-  static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
-  return dpm;
+int get_dpm_number(PolarfireTarget* pft) {
+  // IIILE
+  if (pft == nullptr) {
+    static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
+    return dpm;
+  } else {
+    auto& daq = pft->hcal.daq();
+    static int dpm {BaseMenu::readline_int("Which DPM are you on?: ", daq.getFPGAid())};
+    return dpm;
+  }
 }
 std::string make_roc_config_filename(const int config_version, const int roc)
 {
