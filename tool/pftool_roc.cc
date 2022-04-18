@@ -76,7 +76,7 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
                "parameter names and their values.\n"
             << std::flush;
 
-  int config_version {BaseMenu::readline_int("Config version: ", 0)};
+  int config_version {BaseMenu::readline_int("Config version: ", 1)};
   const int dpm {get_dpm_number()};
   bool prepend_defaults = BaseMenu::readline_bool(
       "Update all parameter values on the chip using the defaults in the "
