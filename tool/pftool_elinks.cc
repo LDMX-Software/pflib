@@ -58,7 +58,8 @@ void header_check(PolarfireTarget* pft, const int nevents)
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
   const int nevents=10;
 
-  int delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+  static int delay_step = 10;
+  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
 
   int nsamples=1;
   {
@@ -174,6 +175,7 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   if (cmd=="HEADER_CHECK") {
     nevents=BaseMenu::readline_int("Num events? ",nevents);
     header_check(pft, nevents);
+    header_check(pft, 250);
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
@@ -203,6 +205,9 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd=="HARD_RESET") {
     elinks.resetHard();
+    align_elinks(pft, elinks);
+    header_check(pft, 250);
+
   }
   if (cmd=="SCAN") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
