@@ -7,11 +7,14 @@ std::string start_dma_cmd="";
 std::string stop_dma_cmd="";
 
 
-std::string make_default_daq_run_filename(const std::string& cmd) {
-  std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
+std::string make_default_daq_run_filename(const std::string& cmd,
+                                          const int dpm) {
+  const auto output_directory{get_output_directory()};
+  std::string fname_prefix = output_directory + "pedestal_DPM" + std::to_string(dpm) + "_";
   if (cmd == "CHARGE") {
-    fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
+    fname_prefix = output_directory + "charge_DPM" + std::to_string(dpm) + "_";
   }
+  std::string fname_def_format = fname_prefix + "%Y%m%d_%H%M%S.raw";
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
   char fname_def[64];
@@ -217,7 +220,8 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
 
-    std::string fname = make_default_daq_run_filename(cmd);
+    const int dpm {get_dpm_number(pft)};
+    std::string fname = make_default_daq_run_filename(cmd, dpm);
     int run=BaseMenu::readline_int("Run number? ",run);
     int nevents=BaseMenu::readline_int("How many events? ", 100);
     static int rate=100;
