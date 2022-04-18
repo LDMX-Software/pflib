@@ -9,12 +9,15 @@ Global_Analog_*:
   Delay9: 2 #Will probably stay in range 1-3
 
 Reference_Voltage_*:
-  Tot_vref: 475 #Board specific
-  Toa_vref: 0b0001110000 #Board specific
+  Tot_vref: 405 #Board specific
+  Toa_vref: 70 #Board specific
   Inv_vref: 400
   Calib_dac: 0
   IntCtest: 0
   ExtCtest: 0
+Reference_Voltage_0:
+  Tot_vref: 343
+  Toa_vref: 75
 
 #Recommendations
 Master_TDC_*:
