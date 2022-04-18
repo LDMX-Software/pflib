@@ -242,12 +242,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   menu_utop.steer( pft_ ) ;
 }
 
-/**
- * Check if a file exists by attempting to open it for reading
- * @param[in] fname name of file to check
- * @return true if file can be opened, false otherwise
- */
-bool file_exists(const std::string& fname) {
+bool file_exists(const std::string& fname)
+{
   FILE* f=fopen(fname.c_str(),"r");
   if (f==0) return false;
   fclose(f);
