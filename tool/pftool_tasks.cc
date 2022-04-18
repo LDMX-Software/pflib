@@ -33,7 +33,7 @@ std::string get_yearmonthday()
   // %m -> Month in year in two digits
   // %d -> Day in month in two digits (i.e. including 0 for 01 etc)
   // buffer will be null terminated
-  std::strftime(buffer, buffer_size, "%Y%M%D", time_info);
+  std::strftime(buffer, buffer_size, "%Y%m%d", time_info);
 
   // Constructs an std::string
   return buffer;
