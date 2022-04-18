@@ -127,7 +127,9 @@ void poke_all_rochalves(PolarfireTarget* pft,
   }
 }
 
-void roc( const std::string& cmd, PolarfireTarget* pft ) {
+void roc( const std::string& cmd, PolarfireTarget* pft )
+{
+  static std::string parameter;
   // generate lists of page names and param names for those pages
   // for tab completion
   static std::vector<std::string> page_names;
@@ -142,7 +144,6 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
       }
     }
   }
-
   if (cmd=="HARDRESET") {
     pft->hcal.hardResetROCs();
   }
@@ -200,7 +201,7 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
     if (param_names.find(page) == param_names.end()) {
       PFEXCEPTION_RAISE("BadPage","Page name "+page+" not recognized.");
     }
-    const std::string parameter = BaseMenu::readline("Parameter: ", param_names.at(page));
+    parameter = BaseMenu::readline("Parameter: ", param_names.at(page));
     int val = BaseMenu::readline_int("New value: ");
     roc.applyParameter(page, parameter, val);
     return;
