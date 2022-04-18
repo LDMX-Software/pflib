@@ -239,16 +239,24 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
   }
 }
 
-void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
+std::string make_default_rocdump_filename(const int dpm,
+                                  const int iroc)
+{
   std::string fname_def_format =
-      "hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
+    "DPM" + std::to_string(dpm) + "_hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
 
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
 
   char fname_def[64];
   strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+  return fname_def;
+}
+void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
+  const int dpm{get_dpm_number(pft)};
 
+  const auto output_dir {get_output_directory()};
+  const auto fname_def {output_dir + make_default_rocdump_filename(dpm, iroc)};
   std::string fname = BaseMenu::readline("Filename: ", fname_def);
   bool decompile = BaseMenu::readline_bool("Decompile register values? ", true);
   pft->dumpSettings(iroc, fname, decompile);
