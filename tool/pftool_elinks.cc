@@ -19,7 +19,7 @@ void auto_align(pflib::PolarfireTarget* pft) {
       pft->hcal.resyncLoadROC(-1);
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
-        align_elinks(pft, elinks, delay_step);
+        align_elinks(pft, elinks, delay_step, false);
         results = header_check(pft, nevents, false);
         if (results.is_acceptable(threshold)) {
           return;
