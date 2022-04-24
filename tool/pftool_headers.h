@@ -12,6 +12,7 @@ struct HeaderStatus {
         int n_good_idles = 0;
         int n_bad_idles = 0;
         int link;
+        void update(const pflib::decoding::RocPacket packet);
 };
 struct HeaderCheckResults {
     int num_links;
