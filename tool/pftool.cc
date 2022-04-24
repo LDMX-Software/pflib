@@ -115,6 +115,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
+    pfMenu::Line("AUTOALIGN", "Attempt to re-align automatically", &elinks),
     pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
     pfMenu::Line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", &elinks),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),

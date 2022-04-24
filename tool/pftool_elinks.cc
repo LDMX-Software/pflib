@@ -3,6 +3,10 @@ using pflib::PolarfireTarget;
 
 
 
+void auto_align(pflib::PolarfireTarget* pft) {
+
+
+}
 
 HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents)
 {
@@ -166,12 +170,26 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
     }
   }
 }
+void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
+
+  static int delay_step = 10;
+  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+  align_elinks(pft, elinks, delay_step);
+
+}
 
 void elinks( const std::string& cmd, PolarfireTarget* pft )
 {
   pflib::Elinks& elinks=pft->hcal.elinks();
   static int ilink=0,nevents{100};
   static int min_delay{0}, max_delay{128};
+  if (cmd == "AUTOALIGN") {
+    if (BaseMenu::readline_bool("Are you sure you want to try to change the ELINK alignment?", false)) {
+      auto_align(pft);
+    }
+
+    return;
+  }
   if (cmd=="RELINK"){
     ilink=BaseMenu::readline_int("Which elink? (-1 for all) ",ilink);
     min_delay=BaseMenu::readline_int("Min delay? ",min_delay);

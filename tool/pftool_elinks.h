@@ -30,6 +30,7 @@
 void elinks( const std::string& cmd, pflib::PolarfireTarget* pft);
 
 void align_elinks(pflib::PolarfireTarget* pft);
+void auto_align(pflib::PolarfireTarget* pft);
 
 HeaderCheckResults header_check(pflib::PolarfireTarget* pft, const int nevents);
 
