@@ -58,7 +58,8 @@ void header_check(PolarfireTarget* pft, const int nevents)
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
   const int nevents=10;
 
-  int delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+  static int delay_step = 10;
+  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
 
   int nsamples=1;
   {
