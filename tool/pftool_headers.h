@@ -17,6 +17,14 @@ struct HeaderCheckResults {
     int num_links;
     int num_active_links;
     std::vector<HeaderStatus> res;
+    HeaderCheckResults(int inum_links, int inum_active_links) :
+        num_links{inum_links},
+        num_active_links{inum_active_links}
+    {
+        for (int link{0}; link < num_active_links; ++link) {
+            res.push_back(link);
+        }
+    }
 };
 
 #endif /* PFTOOL_HEADERS_H */
