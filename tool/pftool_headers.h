@@ -26,6 +26,7 @@ struct HeaderCheckResults {
             res.push_back(link);
         }
     }
+    void add_event(const pflib::decoding::SuperPacket event, const int nsamples);
 };
 
 #endif /* PFTOOL_HEADERS_H */
