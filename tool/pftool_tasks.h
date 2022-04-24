@@ -11,6 +11,8 @@
 #include "pftool_fastcontrol.h"
 #include "pftool_daq.h"
 #include "pftool_hardcoded_values.h"
+#include <sys/stat.h>
+#include <ctime>
 /**
  * TASK menu commands
  *
@@ -78,6 +80,10 @@ void calibrun(pflib::PolarfireTarget* pft,
 std::vector<std::string> make_led_filenames();
 std::string make_default_led_template();
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
+                                             const int dpm,
                                              const std::string& valuename,
                                              const int calib_offset = -1);
+bool directory_exists(const std::string& directory);
+std::string get_yearmonthday();
+std::string get_output_directory();
 #endif /* PFTOOL_TASKS_H */

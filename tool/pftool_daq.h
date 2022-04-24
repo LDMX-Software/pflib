@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "pftool_roc.h"
 #ifdef PFTOOL_ROGUE
 #include "pflib/rogue/RogueWishboneInterface.h"
 #endif
@@ -16,7 +17,8 @@ extern std::string last_run_file;
 extern std::string start_dma_cmd;
 extern std::string stop_dma_cmd;
 
-std::string make_default_daq_run_filename(const std::string& cmd);
+std::string make_default_daq_run_filename(const std::string& cmd,
+                                          const int dpm);
 void daq_run(pflib::PolarfireTarget* pft,
              const std::string& cmd // PEDESTAL, CHARGE, or no trigger
       , int run // not used in this implementation of daq

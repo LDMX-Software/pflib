@@ -1,5 +1,59 @@
 #include "pftool_tasks.h"
 
+// Really wishing we had C++17 here for the portable filesystem library...
+// https://stackoverflow.com/questions/18100097/portable-way-to-check-if-directory-exists-windows-linux-c
+//
+// Not really handling any errors, just report back true/false
+bool directory_exists(const std::string& directory) {
+
+  struct stat info;
+  // Populates the "info" struct
+  int statRC = stat(directory.c_str(), &info);
+  if (statRC != 0) {
+    return false;
+  }
+  return (info.st_mode & S_IFDIR) ? 1 : 0;
+}
+
+std::string get_yearmonthday()
+{
+  // Time since epoch
+  std::time_t time_raw{};
+  // Gets current time since epoch
+  std::time(&time_raw);
+  // Convert ot local time in a struct that holds relevant calendar components
+  std::tm* time_info = std::localtime(&time_raw);
+  // Overkill
+  constexpr int buffer_size {2048};
+  char buffer[buffer_size];
+
+  // %Y -> Year in four digits
+  // %m -> Month in year in two digits
+  // %d -> Day in month in two digits (i.e. including 0 for 01 etc)
+  // buffer will be null terminated
+  std::strftime(buffer, buffer_size, "%Y%m%d", time_info);
+
+  // Constructs an std::string
+  return buffer;
+}
+
+std::string get_output_directory()
+{
+
+  const std::string yearmonthday =  get_yearmonthday();
+  const std::string default_output_directory = "./data/" + yearmonthday + "/";
+  static std::string output_directory = BaseMenu::readline(
+    "Output directory for calibration data: ",
+    default_output_directory);
+
+  while (! directory_exists(output_directory)) {
+    std::cout << output_directory << " does not exist. Please enter a new one or create it and re-enter the current option.";
+      output_directory = BaseMenu::readline("Output directory for calibration data",
+                                                        output_directory);
+  }
+  return output_directory;
+
+}
 
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
@@ -72,9 +126,6 @@ void set_one_channel_per_elink(PolarfireTarget* pft,
     int iroc=ilink/2;
     const int roc_half = ilink % 2;
     const int channel_number = roc_half * channels_per_elink + ichan;
-    // char pagename[32];
-    // snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(channels_per_elink)+ichan);
-    // set the value
     const std::string pagename = "CHANNEL_" + std::to_string(channel_number);
     pft->hcal.roc(iroc).applyParameter(pagename, parameter, value);
   }
@@ -197,6 +248,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   std::string valuename;
   std::string modeinfo;
 
+  const int dpm {get_dpm_number(pft)};
   const int nsamples = get_number_of_samples_per_event(pft);
 
   if (cmd == "BEAMPREP") {
@@ -213,15 +265,14 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   if (cmd == "CALIBRUN") {
     const std::string pedestal_command{"PEDESTAL"};
-    // auto output_directory = BaseMenu::readline("Output directory for data: (Must end with / and exist)",
-    //                                            "/home/ldmx/pflib/temporary_until_we_decide_where_to_put_stuff/");
-    auto pedestal_filename=BaseMenu::readline("Filename for pedestal run:  ",
-                                make_default_daq_run_filename(pedestal_command));
+    auto pedestal_filename= BaseMenu::readline(
+      "Filename for pedestal run:  ",
+      make_default_daq_run_filename(pedestal_command, dpm));
     calibrun_hardcoded_values hc{};
     fc_calib(pft, hc.calib_length, hc.calib_offset);
     std::string chargescan_filename=BaseMenu::readline(
       "Filename for charge scan:  ",
-      make_default_chargescan_filename(pft, "CALIBRUN", hc.calib_offset));
+      make_default_chargescan_filename(pft, dpm, "CALIBRUN", hc.calib_offset));
     const auto led_filenames {make_led_filenames()};
     calibrun(pft, pedestal_filename, chargescan_filename, led_filenames);
 
@@ -247,7 +298,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
 
     std::string fname=BaseMenu::readline("Filename :  ",
-                                         make_default_chargescan_filename(pft, valuename, -1));
+                                         make_default_chargescan_filename(pft, dpm, valuename, -1));
     std::ofstream csv_out=std::ofstream(fname);
     make_scan_csv_header(pft, csv_out, valuename);
 
@@ -331,18 +382,6 @@ void beamprep(pflib::PolarfireTarget *pft) {
   std::cout << "DAQ/DMA settings\n";
   setup_dma(pft, true);
 
-  // if (BaseMenu::readline_bool("Setup board specific parameters manually?",
-  //                             true)) {
-  //   std::cout << "Setting board specific parameters...\n"
-  //             << " this should probably be removed or at least not used once "
-  //                "we have board specific yaml files\n";
-  //   static int tot_vref_value{432};
-  //   tot_vref_value = BaseMenu::readline_int("TOT_VREF: ", tot_vref_value);
-  //   poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_vref_value, num_boards);
-  //   static int toa_vref_value{112};
-  //   toa_vref_value = BaseMenu::readline_int("TOA_VREF: ", toa_vref_value);
-  //   poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOA_VREF", toa_vref_value, num_boards);
-  // }
   std::cout << "DAQ status:\n";
   daq_status(pft);
   if (BaseMenu::readline_bool("Dump current config?", true)) {
@@ -355,7 +394,6 @@ void beamprep(pflib::PolarfireTarget *pft) {
 
 
 std::string make_default_led_template() {
-
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
     char fname_def_format[1024];
@@ -363,28 +401,34 @@ std::string make_default_led_template() {
     sprintf(fname_def_format,"led_DPM%d_%%Y%%m%%d_%%H%%M%%S_dac_", dpm);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-    return fname_def;
+    const std::string filename {get_output_directory() + std::string{fname_def}};
+    return filename;
 }
 
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
+                                             const int dpm,
                                              const std::string& valuename,
                                              const int calib_offset)
 {
     int len{};
     int offset{};
-    if (calib_offset < 0) {
-
+    if (calib_offset < 0 && pft != nullptr) {
       pft->backend->fc_get_setup_calib(len,offset);
     } else {
       offset = calib_offset;
     }
+
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
     char fname_def_format[1024];
-    sprintf(fname_def_format,"scan_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",valuename.c_str(), offset);
+    sprintf(fname_def_format,
+            "scan_DPM%d_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",
+            dpm,
+            valuename.c_str(), offset);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-    return fname_def;
+    const auto output_directory{get_output_directory()};
+    return output_directory + fname_def;
 }
 
 

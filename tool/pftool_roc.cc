@@ -34,9 +34,16 @@ int get_num_rocs()
     return num_rocs;
 }
 
-int get_dpm_number() {
-  static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
-  return dpm;
+int get_dpm_number(PolarfireTarget* pft) {
+  // IIILE
+  if (pft == nullptr) {
+    static int dpm {BaseMenu::readline_int("Which DPM are you on?: ")};
+    return dpm;
+  } else {
+    auto& daq = pft->hcal.daq();
+    static int dpm {BaseMenu::readline_int("Which DPM are you on?: ", daq.getFPGAid())};
+    return dpm;
+  }
 }
 std::string make_roc_config_filename(const int config_version, const int roc)
 {
@@ -69,7 +76,7 @@ void load_parameters(PolarfireTarget* pft, const int iroc) {
                "parameter names and their values.\n"
             << std::flush;
 
-  int config_version {BaseMenu::readline_int("Config version: ", 0)};
+  int config_version {BaseMenu::readline_int("Config version: ", 1)};
   const int dpm {get_dpm_number()};
   bool prepend_defaults = BaseMenu::readline_bool(
       "Update all parameter values on the chip using the defaults in the "
@@ -120,7 +127,9 @@ void poke_all_rochalves(PolarfireTarget* pft,
   }
 }
 
-void roc( const std::string& cmd, PolarfireTarget* pft ) {
+void roc( const std::string& cmd, PolarfireTarget* pft )
+{
+  static std::string parameter;
   // generate lists of page names and param names for those pages
   // for tab completion
   static std::vector<std::string> page_names;
@@ -135,7 +144,6 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
       }
     }
   }
-
   if (cmd=="HARDRESET") {
     pft->hcal.hardResetROCs();
   }
@@ -193,7 +201,7 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
     if (param_names.find(page) == param_names.end()) {
       PFEXCEPTION_RAISE("BadPage","Page name "+page+" not recognized.");
     }
-    const std::string parameter = BaseMenu::readline("Parameter: ", param_names.at(page));
+    parameter = BaseMenu::readline("Parameter: ", param_names.at(page));
     int val = BaseMenu::readline_int("New value: ");
     roc.applyParameter(page, parameter, val);
     return;
@@ -232,16 +240,24 @@ void roc( const std::string& cmd, PolarfireTarget* pft ) {
   }
 }
 
-void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
+std::string make_default_rocdump_filename(const int dpm,
+                                  const int iroc)
+{
   std::string fname_def_format =
-      "hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
+    "DPM" + std::to_string(dpm) + "_hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
 
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
 
   char fname_def[64];
   strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+  return fname_def;
+}
+void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
+  const int dpm{get_dpm_number(pft)};
 
+  const auto output_dir {get_output_directory()};
+  const auto fname_def {output_dir + make_default_rocdump_filename(dpm, iroc)};
   std::string fname = BaseMenu::readline("Filename: ", fname_def);
   bool decompile = BaseMenu::readline_bool("Decompile register values? ", true);
   pft->dumpSettings(iroc, fname, decompile);

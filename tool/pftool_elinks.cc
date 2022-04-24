@@ -177,6 +177,7 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   if (cmd=="HEADER_CHECK") {
     nevents=BaseMenu::readline_int("Num events? ",nevents);
     header_check(pft, nevents);
+    header_check(pft, 250);
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
@@ -209,7 +210,7 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
     std::cout << "Running elinks alignment" << std::endl;
     align_elinks(pft, elinks);
     std::cout << "Running header check..." << std::endl;
-    header_check(pft, 100);
+    header_check(pft, 250);
   }
   if (cmd=="SCAN") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
