@@ -59,17 +59,17 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents)
     int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
     int n_good_idles[8] = {0,0,0,0,0,0,0,0};
     int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
-    for (int ievent {0}; ievent < nevents; ++ievent) {
-
-      pft->backend->fc_sendL1A();
-      std::vector<uint32_t> event_raw = pft->daqReadEvent();
-      pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
-      results.add_event(event, nsamples);
-      }
+    // for (int ievent {0}; ievent < nevents; ++ievent) {
+    //   pft->backend->fc_sendL1A();
+    //   std::vector<uint32_t> event_raw = pft->daqReadEvent();
+    //   pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
+    //   results.add_event(event, nsamples);
+    //   }
     for (int ievt{0}; ievt < nevents; ievt++) {
       pft->backend->fc_sendL1A();
       std::vector<uint32_t> event_raw = pft->daqReadEvent();
       pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
+      results.add_event(event, nsamples);
       for (int s{0}; s < nsamples; s++) {
         for (int l{0}; l < 8; l++) {
           auto packet = event.sample(s).roc(l);
