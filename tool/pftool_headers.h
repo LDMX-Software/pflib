@@ -46,8 +46,8 @@ struct HeaderCheckResults {
     void add_event(const pflib::decoding::SuperPacket event, const int nsamples);
     bool is_acceptable (const int threshold) {
         for (auto status : res) {
-            if (res.percent_bad_headers() > threshold ||
-                res.percent_bad_idles() > threshold) {
+            if (status.percent_bad_headers() > threshold ||
+                status.percent_bad_idles() > threshold) {
                 return false;
             }
         }
