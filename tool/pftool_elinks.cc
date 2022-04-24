@@ -120,31 +120,32 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
     if (multi) nsamples=nextra+1;
   }
 
-  int bitslip_candidate[8] = {0,0,0,0,0,0,0,0};
-  int delay_candidate[8] = {0,0,0,0,0,0,0,0};
-  int record_bx[8] = {0,0,0,0,0,0,0,0};
-  int record_idle[8] = {0,0,0,0,0,0,0,0};
+  constexpr const int num_active_links {6};
+  int bitslip_candidate[num_active_links] {};
+  int delay_candidate[num_active_links] {};
+  int record_bx[num_active_links] {};
+  int record_idle[num_active_links] {};
 
   pft->prepareNewRun();
 
-  for(int bitslip = 0; bitslip <= 7; bitslip += 1){
+  for(int bitslip = 0; bitslip <= num_active_links - 1; bitslip += 1){
     std::cout << "Scanning bitslip: " << bitslip << std::endl;
     for(int delay = 0; delay <= 128; delay += delay_step){
-      for(int jlink = 0; jlink < 8; jlink++){
+      for(int jlink = 0; jlink < num_active_links; jlink++){
         elinks.setDelay(jlink,delay);
         elinks.setBitslipAuto(jlink,false);
         elinks.setBitslip(jlink,bitslip);
       }
-      int n_good_bxheaders[8] = {0,0,0,0,0,0,0,0};
-      int n_bad_bxheaders[8] = {0,0,0,0,0,0,0,0};
-      int n_good_idles[8] = {0,0,0,0,0,0,0,0};
-      int n_bad_idles[8] = {0,0,0,0,0,0,0,0};
+      int n_good_bxheaders[num_active_links] {};
+      int n_bad_bxheaders[num_active_links] {};
+      int n_good_idles[num_active_links] {};
+      int n_bad_idles[num_active_links] {};
       for (int ievt{0}; ievt < nevents; ievt++) {
         pft->backend->fc_sendL1A();
         std::vector<uint32_t> event_raw = pft->daqReadEvent();
         pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
         for (int s{0}; s < nsamples; s++) {
-          for(int jlink = 0; jlink < 8; jlink++){
+          for(int jlink = 0; jlink < num_active_links; jlink++){
             auto packet = event.sample(s).roc(jlink);
             if (packet.length() > 2) {
               if (event.sample(s).roc(jlink).good_bxheader()) n_good_bxheaders[jlink]++;
@@ -155,7 +156,7 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
           }
         }
       }
-      for(int i = 0; i < 8; i++){
+      for(int i = 0; i < num_active_links; i++){
         if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
           record_bx[i] = n_good_bxheaders[i];
           record_idle[i] = n_good_idles[i];
@@ -175,7 +176,7 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
   if (verbose) {
     std::cout << "Candidates" << std::endl;
   }
-  for(int i = 0; i < 8; i++){
+  for(int i = 0; i < num_active_links; i++){
 
   if (verbose) {
     std::cout << "Link " << i << std::endl;
