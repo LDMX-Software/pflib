@@ -13,5 +13,10 @@ struct HeaderStatus {
         int n_bad_idles = 0;
         int link;
 };
+struct HeaderCheckResults {
+    int num_links;
+    int num_active_links;
+    std::vector<HeaderStatus> res;
+};
 
 #endif /* PFTOOL_HEADERS_H */
