@@ -12,6 +12,8 @@ void auto_align(pflib::PolarfireTarget* pft) {
 
   static int delay_step = 10;
   delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+  auto results {header_check(pft, nevents)};
+  pflib::Elinks& elinks=pft->hcal.elinks();
 
 }
 
