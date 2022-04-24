@@ -15,6 +15,15 @@ struct HeaderStatus {
         double percent_bad_headers() const;
         double percent_bad_idles() const;
         HeaderStatus(int ilink) : link(ilink) {}
+        void report() const {
+            std::cout << "Link: " << link << "\n";
+            std::cout << "Num bad headers: " << n_bad_bxheaders
+                      << ", ratio: " << percent_bad_headers()
+                      << std::endl;
+            std::cout << "Num bad idles: " << n_bad_idles
+                      << ", ratio: " << percent_bad_idles()
+                      << std::endl;
+        }
         void update(const pflib::decoding::RocPacket packet);
 };
 struct HeaderCheckResults {
@@ -27,6 +36,11 @@ struct HeaderCheckResults {
     {
         for (int link{0}; link < num_active_links; ++link) {
             res.push_back(link);
+        }
+    }
+    void report() const {
+        for (auto status : res) {
+            status.report();
         }
     }
     void add_event(const pflib::decoding::SuperPacket event, const int nsamples);
