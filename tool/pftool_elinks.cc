@@ -20,7 +20,7 @@ void auto_align(pflib::PolarfireTarget* pft) {
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
         align_elinks(pft, elinks, delay_step);
-        results = header_check(pft, nevents);
+        results = header_check(pft, nevents, false);
         if (results.is_acceptable(threshold)) {
           return;
         }
