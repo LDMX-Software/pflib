@@ -13,6 +13,9 @@
 #include "pftool_hardcoded_values.h"
 #include <sys/stat.h>
 #include <ctime>
+#include <algorithm>
+#include <numeric>
+#include <cmath>
 /**
  * TASK menu commands
  *
@@ -83,7 +86,23 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const int dpm,
                                              const std::string& valuename,
                                              const int calib_offset = -1);
+<<<<<<< HEAD
 bool directory_exists(const std::string& directory);
 std::string get_yearmonthday();
 std::string get_output_directory();
+=======
+
+
+double get_average_adc(pflib::PolarfireTarget* pft,
+                       const pflib::decoding::SuperPacket& data,
+                       const int link,
+                       const int ch);
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
+                                       pflib::decoding::SuperPacket& data,
+                                       const int link);
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft);
+void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft);
+>>>>>>> 95e0d77ea4515ef09222a07c548be570cb52f333
 #endif /* PFTOOL_TASKS_H */

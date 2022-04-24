@@ -55,6 +55,287 @@ std::string get_output_directory()
 
 }
 
+
+double get_average_adc(pflib::PolarfireTarget* pft,
+                       const pflib::decoding::SuperPacket& data,
+                       const int link,
+                       const int ch)
+{
+
+  const int nsamples = get_number_of_samples_per_event(pft);
+  double channel_average {};
+  for (int sample{0}; sample < nsamples; ++sample) {
+    channel_average += data.sample(sample).roc(link).get_adc(ch);
+  }
+  // std::cout << "Before: " << channel_average << " ch " << ch;
+  channel_average /= nsamples;
+  // std::cout << " after " << channel_average <<std::endl;
+  return channel_average;
+}
+
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
+                                       pflib::decoding::SuperPacket& data,
+                                       const int link)
+{
+
+  constexpr const int num_channels = 36;
+  std::vector<double> averages{};
+  for (int ch = 0; ch < num_channels; ++ch) {
+    averages.push_back(get_average_adc(pft, data, link, ch));
+  }
+  auto average = std::accumulate(std::begin(averages),
+                                 std::end(averages),
+                                 0.) / num_channels;
+  auto sum_squared = std::inner_product(std::begin(averages),
+                                        std::end(averages),
+                                        std::begin(averages),
+                                        0.);
+  auto std_dev = std::sqrt(sum_squared/num_channels - average * average);
+
+  auto minmax = std::minmax_element(std::begin(averages), std::end(averages));
+  return {average, std_dev,*(minmax.first), *(minmax.second)};
+}
+std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft)
+{
+
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  const int link = iroc * 2 + half;
+  pft->prepareNewRun();
+
+  pft->backend->fc_sendL1A();
+  std::vector<uint32_t> event = pft->daqReadEvent();
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  return get_pedestal_stats(pft, data, link);
+}
+
+
+void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft)
+{
+
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  static int channel = 35;
+  static int signdac = 0;
+  static int dacb = 60;
+
+  const int link = iroc * 2 + half;
+  auto roc {pft->hcal.roc(iroc)};
+  const std::string dacb_parameter = "DACB";
+  const std::string signdac_parameter = "SIGN_DAC";
+  static int num_adc_tests{5};
+  do {
+    channel = BaseMenu::readline_int("Which Channel to investigate?", channel);
+    num_adc_tests = BaseMenu::readline_int("How many pedestal samples to look at?", num_adc_tests);
+    const std::string page = "CHANNEL_" + std::to_string(channel + 36 * half);
+    do {
+      signdac = BaseMenu::readline_int("Signdac? 0 off 1 on", signdac);
+      dacb = BaseMenu::readline_int("DACB value", dacb);
+      roc.applyParameter(page, dacb_parameter, dacb);
+      roc.applyParameter(page, signdac_parameter, signdac);
+
+      for (int i {0}; i < num_adc_tests; ++ i) {
+        pft->prepareNewRun();
+        pft->backend->fc_sendL1A();
+        std::vector<uint32_t> event = pft->daqReadEvent();
+        pflib::decoding::SuperPacket data(&(event[0]),event.size());
+        std::vector<int> adcs{};
+        for (int sample {0}; sample < 8; ++sample) {
+          const auto adc = data.sample(sample).roc(link).get_adc(channel);
+          adcs.push_back(adc);
+          std::cout << adc << ", ";
+        }
+        std::cout << std::endl;
+      }
+    } while (BaseMenu::readline_bool("Continue trying with this channel?", true));
+  } while (BaseMenu::readline_bool("Continue trying with a different channel?", true));
+
+
+
+}
+void preamp_alignment(PolarfireTarget* pft)
+{
+
+
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+
+
+  auto roc {pft->hcal.roc(iroc)};
+  if (BaseMenu::readline_bool("Update Inv_vref?", false)){
+    static int inv_vref = 425;
+    inv_vref = BaseMenu::readline_int("Update Inv_Vref? ", inv_vref);
+    const std::string page = "Reference_voltage_" + std::to_string(half);
+    const std::string parameter = "Inv_Vref";
+    const int value = inv_vref;
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+
+  }
+
+
+  std::cout << "The pre-amp pedestal alignment is best done when gain_conv = 0" << std::endl;
+  if (BaseMenu::readline_bool("Update gain conv?", false)) {
+    const std::string page = "Global_Analog_" + std::to_string(half);
+    const std::string parameter = "gain_conv";
+    const int value {BaseMenu::readline_int("Gain_Conv value? ", 0)};
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+
+  }
+  std::cout << "The pre-amp pedestal alignment is with SiPM bias enabled... " << std::endl;
+  if (BaseMenu::readline_bool("Update SiPM bias?", false)) {
+    const int num_boards {get_num_rocs()};
+    const int SiPM_bias {3784};
+    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+  }
+
+  //Choose goal for pedestal
+  std::cout << "The channel-wise pre-amplifier voltage ref_dac_inv can only raise pedestals" << std::endl;
+  static int goal=50;
+  goal=BaseMenu::readline_int("Raise pedestals to:",goal);
+  static int tolerance = 10;
+  tolerance = BaseMenu::readline_int("Tolreance (+/-): ", tolerance);
+  std::cout << "Setting channel-wise ref_dac_inv to 0" << std::endl;
+
+  static int dac_start_value = 10;
+  dac_start_value = BaseMenu::readline_int("Start from DAC value: ", dac_start_value);
+
+
+  const int channels_per_elink = get_num_channels_per_elink();
+  const std::string parameter = "REF_DAC_INV";
+  for (int ch = 0; ch < channels_per_elink; ++ch) {
+    const int channel_number = ch + 36 * half;
+    const std::string page = "CHANNEL_" + std::to_string(channel_number);
+    const int value  = dac_start_value;
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << value
+              << std::endl;
+    roc.applyParameter(page, parameter, value);
+  }
+
+
+  constexpr const int num_channels = 36;
+  std::array<int, num_channels> previous{};
+  std::array<int, num_channels> stop{};
+  std::array<int, num_channels> averages{};
+
+  const int link = iroc * 2 + half;
+  std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  std::cout << "Trying 0 - 31 of REF_DAC_INV... "  <<std::endl;
+
+
+  std::cout << std::boolalpha;
+  auto is_below_tolerance = [&](const double average){
+    auto res (average < goal - tolerance);
+    // std::cout << average << " is less than tolerance? " << res << std::endl;
+    return res;
+  };
+  auto is_above_tolerance = [&](const double average){
+    return (average > goal + tolerance) ;
+  };
+  auto is_within_tolerance = [&](const double average){
+    auto res {!is_below_tolerance(average) && !(is_above_tolerance(average))};
+    // std::cout << "Average: " << average << " is between tolerance? " << res << std::endl;
+    return res;
+  };
+
+  constexpr const int ceiling_5bits {32};
+  for (int ref_dac_inv = dac_start_value; ref_dac_inv < ceiling_5bits; ++ref_dac_inv) {
+    std::cout << "DAC: " << ref_dac_inv << std::endl;
+    pft->prepareNewRun();
+
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+    for (int ch = 0 ; ch < num_channels; ++ch) {
+
+      const int channel_number = ch + 36 * half;
+      const std::string page = "CHANNEL_" + std::to_string(channel_number);
+      // Calculate average over samples for this channel
+      auto channel_average {get_average_adc(pft, data, link, ch)};
+
+      if(is_below_tolerance(channel_average)&& stop[ch] != 1) {
+        pft->hcal.roc(iroc).applyParameter(page, parameter, ref_dac_inv);
+        previous[ch] = ref_dac_inv;
+        averages[ch] = channel_average;
+      }
+
+      if (is_within_tolerance(channel_average) && stop[ch] != 1) {
+        pft->hcal.roc(iroc).applyParameter(page, parameter, previous[ch]);
+        averages[ch] = channel_average;
+        std::cout << "Channel: " << ch << " succeeded, stopping!" << std::endl;
+        stop[ch] = 1;
+      }
+    }
+  }
+  for (int ch {0}; ch < num_channels; ++ch) {
+    std::cout << "Ch " << ch << ": REF_DAC_INV ->" << previous[ch]
+              << ", succeeded? " << (stop[ch] != 0)
+              << ", Average ADC: " << averages[ch]
+              << std::endl;
+  }
+  for (int ch{0}; ch < num_channels; ++ ch) {
+    if(!stop[ch]) {
+      std::cout << "Channel: " << ch << " failed :( " << std::endl;
+    }
+
+  }
+  return;
+}
+
+
+
+void read_pedestal(PolarfireTarget* pft)
+{
+  const int nsamples = get_number_of_samples_per_event(pft);
+
+  pft->prepareNewRun();
+  pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+
+    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+
+    static int iroc=0;
+    iroc=BaseMenu::readline_int("Which ROC:",iroc);
+    static int half = 0;
+    half = BaseMenu::readline_int("Which half? 0/1", half);
+
+
+    const int link = iroc * 2 + half;
+    std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+    for( int ch=0; ch < 36; ++ch) {
+      const int channel_number = ch + half * 36;
+      std::cout << "Ch: " << ch << ": ";
+      for (int sample {0}; sample < nsamples; ++sample) {
+        std::cout << ' ' << data.sample(sample).roc(link).get_adc(ch);
+      }
+      std::cout << std::endl;
+    }
+
+    auto stats {get_pedestal_stats(pft, data, link) };
+    std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
+              <<", min " << stats[2] << ", max " << stats[3]
+              << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
+}
+
+
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {
@@ -251,6 +532,18 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   const int dpm {get_dpm_number(pft)};
   const int nsamples = get_number_of_samples_per_event(pft);
 
+  if (cmd == "DACB") {
+    test_dacb_one_channel_at_a_time(pft);
+    return;
+  }
+  if (cmd == "PEDESTAL_READ") {
+    read_pedestal(pft);
+    return;
+  }
+  if (cmd == "ALIGN_PREAMP") {
+    preamp_alignment(pft);
+    return;
+  }
   if (cmd == "BEAMPREP") {
     beamprep(pft);
     return;
