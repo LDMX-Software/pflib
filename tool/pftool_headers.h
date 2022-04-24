@@ -50,12 +50,12 @@ struct HeaderCheckResults {
             if (status.percent_bad_headers() > threshold )
                  {
                      std::cout << "bad headers!,  "
-                               << status.percent_bad_headers()
+                               << status.percent_bad_headers() * 100
                                << " %" << std::endl;
                      return false;
                  } else if (status.percent_bad_idles() > threshold) {
                      std::cout << "bad idles!,  "
-                               << status.percent_bad_idles()
+                               << status.percent_bad_idles() * 100
                                << " %" << std::endl;
                      return false;
             }
