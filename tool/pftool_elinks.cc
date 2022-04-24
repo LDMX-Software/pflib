@@ -16,6 +16,16 @@ void auto_align(pflib::PolarfireTarget* pft) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   while(true) {
 
+
+    for (int i {0}; i < 100; ++i) {
+      for (int j {0}; j < 5; ++j) {
+        elinks.resetHard();
+        align_elinks(pft, elinks, delay_step);
+        results = header_check(pft, nevents);
+      }
+      pft->hcal.resyncLoadROC(-1);
+    }
+
     if (BaseMenu::readline_bool("Try a new threshold?", false)) {
       threshold = BaseMenu::readline_float("What should be our threshold value?");
     } else if (BaseMenu::readline_bool("Give up?", false)) {
