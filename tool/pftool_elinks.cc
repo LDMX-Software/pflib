@@ -1,7 +1,10 @@
 #include "pftool_elinks.h"
 using pflib::PolarfireTarget;
 
-void header_check(PolarfireTarget* pft, const int nevents)
+
+
+
+HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents)
 {
 
     std::cout << "Disabling DMA...\n";
@@ -14,6 +17,9 @@ void header_check(PolarfireTarget* pft, const int nevents)
       pft->hcal.fc().getMultisampleSetup(multi,nextra);
       if (multi) nsamples=nextra+1;
     }
+    constexpr const int num_links {8};
+    constexpr const int num_active_links {6};
+    HeaderCheckResults results {num_links, num_active_links};
 
     pft->prepareNewRun();
 
@@ -53,6 +59,8 @@ void header_check(PolarfireTarget* pft, const int nevents)
           n_good_bxheaders[ilink], n_bad_bxheaders[ilink], bg_bxheaders,
           n_good_idles[ilink], n_bad_idles[ilink], bg_idles);
     }
+    results.report();
+    return results;
 }
 
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
