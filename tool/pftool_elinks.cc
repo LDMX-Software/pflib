@@ -14,6 +14,14 @@ void auto_align(pflib::PolarfireTarget* pft) {
   delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
   auto results {header_check(pft, nevents)};
   pflib::Elinks& elinks=pft->hcal.elinks();
+  while(true) {
+
+    if (BaseMenu::readline_bool("Try a new threshold?", false)) {
+      threshold = BaseMenu::readline_float("What should be our threshold value?");
+    } else if (BaseMenu::readline_bool("Give up?", false)) {
+      return;
+    }
+  }
 
 }
 
