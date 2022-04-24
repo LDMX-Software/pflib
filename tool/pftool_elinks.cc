@@ -5,6 +5,13 @@ using pflib::PolarfireTarget;
 
 void auto_align(pflib::PolarfireTarget* pft) {
 
+  static float threshold = 0.2;
+  threshold = BaseMenu::readline_float("What should be our threshold value?");
+  static int nevents = 100;
+  nevents = BaseMenu::readline_int("How many events for the header checks?", nevents);
+
+  static int delay_step = 10;
+  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
 
 }
 
