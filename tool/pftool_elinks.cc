@@ -18,6 +18,7 @@ void auto_align(pflib::PolarfireTarget* pft) {
 
 
     for (int i {0}; i < 100; ++i) {
+      pft->hcal.resyncLoadROC(-1);
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
         align_elinks(pft, elinks, delay_step);
@@ -26,7 +27,6 @@ void auto_align(pflib::PolarfireTarget* pft) {
           return;
         }
       }
-      pft->hcal.resyncLoadROC(-1);
     }
 
     if (BaseMenu::readline_bool("Try a new threshold?", false)) {
