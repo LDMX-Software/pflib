@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.5.0</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.5.0-183-g3581b18e</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -91,16 +91,26 @@ $(document).ready(function(){initNavTree('pftool__elinks_8h_source.html',''); in
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define PFTOOL_ELINKS_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;pflib/PolarfireTarget.h&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;Menu.h&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;pflib/decoding/SuperPacket.h&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">void</span> elinks( <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keywordtype">void</span> align_elinks(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_ELINKS_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;pftool_headers.h&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;Menu.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;pflib/decoding/SuperPacket.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;pftool_daq.h&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">void</span> elinks( <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keywordtype">void</span> align_elinks(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a>* pft, <a class="code hl_class" href="classpflib_1_1Elinks.html">pflib::Elinks</a>&amp; elinks, <span class="keyword">const</span> <span class="keywordtype">int</span> delay_step, <span class="keywordtype">bool</span> verbose = <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keywordtype">void</span> align_elinks(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft, <a class="code hl_class" href="classpflib_1_1Elinks.html">pflib::Elinks</a>&amp; elinks);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keywordtype">void</span> auto_align(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><a class="code hl_struct" href="structHeaderCheckResults.html">HeaderCheckResults</a> header_check(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft, <span class="keyword">const</span> <span class="keywordtype">int</span> nevents,</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>                                <span class="keyword">const</span> <span class="keywordtype">bool</span> verbose = <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_ELINKS_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="abasic_string_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a></div></div>
+<div class="ttc" id="aclasspflib_1_1Elinks_html"><div class="ttname"><a href="classpflib_1_1Elinks.html">pflib::Elinks</a></div><div class="ttdoc">WishboneTarget for configuring the elinks.</div><div class="ttdef"><b>Definition:</b> Elinks.h:12</div></div>
+<div class="ttc" id="astructHeaderCheckResults_html"><div class="ttname"><a href="structHeaderCheckResults.html">HeaderCheckResults</a></div><div class="ttdef"><b>Definition:</b> pftool_headers.h:29</div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a></div><div class="ttdoc">Interface to a single polarfire.</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.h:33</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

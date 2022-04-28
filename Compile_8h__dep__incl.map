@@ -1,6 +1,10 @@
 <map id="include/pflib/Compile.h" name="include/pflib/Compile.h">
-<area shape="rect" id="node1" title="Definition of compiling and decompiling functions between page numbers, register numbers,..." alt="" coords="5,5,176,32"/>
-<area shape="rect" id="node2" href="$pftool_8h_source.html" title=" " alt="" coords="41,155,141,181"/>
-<area shape="rect" id="node4" href="$pftool__roc_8h_source.html" title=" " alt="" coords="78,80,205,107"/>
-<area shape="rect" id="node3" href="$pftool_8cc.html" title="File defining the pftool menus and their commands." alt="" coords="37,229,144,256"/>
+<area shape="rect" id="node1" title="Definition of compiling and decompiling functions between page numbers, register numbers,..." alt="" coords="25,5,196,32"/>
+<area shape="rect" id="node2" href="$pftool_8h_source.html" title=" " alt="" coords="271,379,371,405"/>
+<area shape="rect" id="node4" href="$pftool__roc_8h_source.html" title=" " alt="" coords="153,80,279,107"/>
+<area shape="rect" id="node3" href="$pftool_8cc.html" title="File defining the pftool menus and their commands." alt="" coords="268,453,375,480"/>
+<area shape="rect" id="node5" href="$pftool__bias_8h_source.html" title=" " alt="" coords="43,229,178,256"/>
+<area shape="rect" id="node6" href="$pftool__tasks_8h_source.html" title=" " alt="" coords="195,304,338,331"/>
+<area shape="rect" id="node7" href="$pftool__daq_8h_source.html" title=" " alt="" coords="283,155,413,181"/>
+<area shape="rect" id="node8" href="$pftool__elinks_8h_source.html" title=" " alt="" coords="304,229,451,256"/>
 </map>

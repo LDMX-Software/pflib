@@ -9,6 +9,8 @@ var dir_2a05f25c069d808f7ace6146417831f3 =
     [ "pftool_elinks.h", "pftool__elinks_8h_source.html", null ],
     [ "pftool_expert.h", "pftool__expert_8h_source.html", null ],
     [ "pftool_fastcontrol.h", "pftool__fastcontrol_8h_source.html", null ],
+    [ "pftool_hardcoded_values.h", "pftool__hardcoded__values_8h_source.html", null ],
+    [ "pftool_headers.h", "pftool__headers_8h_source.html", null ],
     [ "pftool_roc.h", "pftool__roc_8h_source.html", null ],
     [ "pftool_tasks.h", "pftool__tasks_8h_source.html", null ],
     [ "Rcfile.h", "Rcfile_8h_source.html", null ]

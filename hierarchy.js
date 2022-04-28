@@ -8,6 +8,7 @@ var hierarchy =
       [ "Menu< TargetType >", "classMenu.html", null ]
     ] ],
     [ "pflib::Bias", "classpflib_1_1Bias.html", null ],
+    [ "calibrun_hardcoded_values", "structcalibrun__hardcoded__values.html", null ],
     [ "pflib::DAQ", "classpflib_1_1DAQ.html", null ],
     [ "pflib::DetectorConfiguration", "classpflib_1_1DetectorConfiguration.html", null ],
     [ "std::exception", "http://en.cppreference.com/w/cpp/error/exception.html", [
@@ -15,6 +16,8 @@ var hierarchy =
     ] ],
     [ "pflib::detail::PolarfireSetting::Factory", "classpflib_1_1detail_1_1PolarfireSetting_1_1Factory.html", null ],
     [ "pflib::Hcal", "classpflib_1_1Hcal.html", null ],
+    [ "HeaderCheckResults", "structHeaderCheckResults.html", null ],
+    [ "HeaderStatus", "structHeaderStatus.html", null ],
     [ "Rcfile::HelpInfo", "structRcfile_1_1HelpInfo.html", null ],
     [ "hex< W >", "structhex.html", null ],
     [ "Menu< TargetType >::Line", "classMenu_1_1Line.html", null ],
