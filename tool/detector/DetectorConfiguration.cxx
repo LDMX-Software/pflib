@@ -123,12 +123,6 @@ void DetectorConfiguration::PolarfireConfiguration::import(YAML::Node conf) {
 void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& host) {
 #ifdef PFTOOL_ROGUE
   auto pft = std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(host,5970));
-#else
-  // no good reason just rushing
-  PFEXCEPTION_RAISE("NoImpl",
-      "DetectorConfiguratin::apply has not been implemented for uHAL systems.");
-#endif
-
 
   for (auto& setting : settings_) {
     setting.second->execute(pft.get());
@@ -138,6 +132,12 @@ void DetectorConfiguration::PolarfireConfiguration::apply(const std::string& hos
     // general HGC ROC parameters
     pft->hcal.roc(hgcroc.first).applyParameters(hgcroc.second);
   }
+#else
+  // no good reason just rushing
+  PFEXCEPTION_RAISE("NoImpl",
+      "DetectorConfiguratin::apply has not been implemented for uHAL systems.");
+
+#endif
 }
 
 DetectorConfiguration::DetectorConfiguration(const std::string& config) try {

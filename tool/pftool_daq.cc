@@ -6,6 +6,60 @@ std::string last_run_file=".last_run_file";
 std::string start_dma_cmd="";
 std::string stop_dma_cmd="";
 
+
+std::string make_default_daq_run_filename(const std::string& cmd,
+                                          const int dpm) {
+  const auto output_directory{get_output_directory()};
+  std::string fname_prefix = output_directory + "pedestal_DPM" + std::to_string(dpm) + "_";
+  if (cmd == "CHARGE") {
+    fname_prefix = output_directory + "charge_DPM" + std::to_string(dpm) + "_";
+  }
+  std::string fname_def_format = fname_prefix + "%Y%m%d_%H%M%S.raw";
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char fname_def[64];
+  strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+  return fname_def;
+}
+
+
+void daq_run(
+  PolarfireTarget* pft,
+  const std::string& cmd // PEDESTAL, CHARGE, or no trigger
+  , int run // not used in this implementation of daq
+  , int nevents // number of events to collect
+  , int rate // not used in this implementation of daq
+  , const std::string& fname // file to write to (appended)
+) {
+  std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
+  timeval tv0, tvi;
+
+  gettimeofday(&tv0,0);
+
+  for (int ievt=0; ievt<nevents; ievt++) {      // normally, some other controller would send the L1A
+    //  we are sending it so we get data during no signal
+    if (cmd=="PEDESTAL")
+      pft->backend->fc_sendL1A();
+    if (cmd=="CHARGE")
+      pft->backend->fc_calibpulse();
+
+    gettimeofday(&tvi,0);
+    double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
+    //      double ratenow=(ievt+1)/runsec;
+    double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
+    int usec_ahead=int((targettime-runsec)*1e6);
+    //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
+    if (usec_ahead>100) { // if we are running fast...
+      usleep(usec_ahead);
+      //        printf("Sleeping %d\n",usec_ahead);
+    }
+
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pft->backend->fc_advance_l1_fifo();
+    fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
+  }
+}
+
 std::vector<uint32_t> read_words_from_file()
 {
   std::vector<uint32_t> data;
@@ -36,41 +90,6 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 
   // default is non-DMA readout
   bool dma_enabled=false;
-  auto daq_run = [&](const std::string& cmd // PEDESTAL, CHARGE, or no trigger
-      , int run // not used in this implementation of daq
-      , int nevents // number of events to collect
-      , int rate // not used in this implementation of daq
-      , const std::string& fname // file to write to (appended)
-  ) {
-    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
-    timeval tv0, tvi;
-
-    gettimeofday(&tv0,0);
-
-    for (int ievt=0; ievt<nevents; ievt++) {
-      // normally, some other controller would send the L1A
-      //  we are sending it so we get data during no signal
-      if (cmd=="PEDESTAL")
-        pft->backend->fc_sendL1A();
-      if (cmd=="CHARGE")
-        pft->backend->fc_calibpulse();
-
-      gettimeofday(&tvi,0);
-      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
-      //      double ratenow=(ievt+1)/runsec;
-      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
-      int usec_ahead=int((targettime-runsec)*1e6);
-      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-      if (usec_ahead>100) { // if we are running fast...
-        usleep(usec_ahead);
-        //        printf("Sleeping %d\n",usec_ahead);
-      }
-
-      std::vector<uint32_t> event = pft->daqReadEvent();
-      pft->backend->fc_advance_l1_fifo();
-      fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
-    }
-  };
 
 #ifdef PFTOOL_ROGUE
   auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -78,7 +97,10 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
   if (rwbi) {
     uint8_t samples_per_event;
     rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
+  } else {
+    std::cout << "Unable to get RWBI\n";
   }
+
 #endif
 
   if (cmd=="STATUS") {
@@ -91,7 +113,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 #endif
   }
   if (cmd=="RESET") {
-    pft->daqSoftReset();
+    daq_softreset(pft);
   }
   if (cmd=="HARD_RESET") {
     pft->daqHardReset();
@@ -126,6 +148,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
     run=BaseMenu::readline_int("Run number? ",run);
 
     char fname_def_format[1024];
+#ifdef PFTOOL_ROGUE
     sprintf(fname_def_format,"fpga%d_run%06d_%%Y%%m%%d_%%H%%M%%S.raw",fpgaid_i,run);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
@@ -190,22 +213,20 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
 
     if (dma_enabled) rwbi->daq_dma_close();
 
+#else
+    std::cout << "Pftool compiled without Rogue, can't take external run..." << std::endl;
+#endif // PFTOOL_ROGUE
+
   }
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
-    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
-    if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
 
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-
-    char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
-
+    const int dpm {get_dpm_number(pft)};
+    std::string fname = make_default_daq_run_filename(cmd, dpm);
     int run=BaseMenu::readline_int("Run number? ",run);
     int nevents=BaseMenu::readline_int("How many events? ", 100);
     static int rate=100;
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    fname=BaseMenu::readline("Filename :  ", fname);
 
     pft->prepareNewRun();
 
@@ -217,7 +238,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
     } else
 #endif
     {
-      daq_run(cmd,run,nevents,rate,fname);
+      daq_run(pft, cmd,run,nevents,rate,fname);
     }
   }
   /** Deprecated by new TASK menu */
@@ -249,7 +270,7 @@ void daq( const std::string& cmd, PolarfireTarget* pft )
       } else
 #endif
       {
-        daq_run(trigtype,run,nevents,rate,fname);
+        daq_run(pft, trigtype,run,nevents,rate,fname);
       }
     }
   }
@@ -383,10 +404,7 @@ void daq_debug( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
 }
 
-void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
-{
-  pflib::DAQ& daq=pft->hcal.daq();
-  if (cmd=="STATUS") {
+void daq_status(pflib::PolarfireTarget* pft) {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -397,9 +415,40 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
       printf("DMA : %s Status=%08x\n",(enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     }
 #endif
+
+}
+
+void daq_softreset(pflib::PolarfireTarget* pft)
+{
+    pft->daqSoftReset();
+}
+
+void daq_standard(pflib::PolarfireTarget* pft)
+{
+
+    pflib::DAQ& daq=pft->hcal.daq();
+    daq_setup("FPGA",pft);
+    pflib::Elinks& elinks=pft->hcal.elinks();
+    for (int i=0; i<daq.nlinks(); i++) {
+      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
+      else daq.setupLink(i,true,true,15,40);
+    }
+}
+
+void daq_enable(pflib::PolarfireTarget* pft)
+{
+
+    pflib::DAQ& daq=pft->hcal.daq();
+    daq.enable(!daq.enabled());
+}
+void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
+{
+  pflib::DAQ& daq=pft->hcal.daq();
+  if (cmd=="STATUS") {
+    daq_status(pft);
   }
   if (cmd=="ENABLE") {
-    daq.enable(!daq.enabled());
+    daq_enable(pft);
   }
   if (cmd=="ZS") {
     int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);
@@ -417,26 +466,10 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
   }
   if (cmd=="DMA") {
-#ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, enabled);
-      enabled=BaseMenu::readline_bool("Enable DMA? ",enabled);
-      rwbi->daq_dma_enable(enabled);
-    } else {
-      std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot activate DMA.\n" << std::endl;
-    }
-#endif
+    setup_dma(pft);
   }
   if (cmd=="STANDARD") {
-    daq_setup("FPGA",pft);
-    pflib::Elinks& elinks=pft->hcal.elinks();
-    for (int i=0; i<daq.nlinks(); i++) {
-      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
-      else daq.setupLink(i,true,true,15,40);
-    }
+    daq_standard(pft);
   }
   if (cmd=="FPGA") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
@@ -452,4 +485,47 @@ void daq_setup( const std::string& cmd, pflib::PolarfireTarget* pft )
     }
 #endif
   }
+}
+
+void setup_dma(PolarfireTarget* pft, bool force_to)
+{
+#ifdef PFTOOL_ROGUE
+  auto rwbi = dynamic_cast<pflib::rogue::RogueWishboneInterface *>(pft->wb);
+  if (rwbi) {
+    rwbi->daq_dma_enable(force_to);
+  } else {
+    std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot "
+                 "activate DMA.\n"
+              << std::endl;
+  }
+#endif
+}
+void setup_dma(PolarfireTarget* pft)
+{
+#ifdef PFTOOL_ROGUE
+  auto rwbi = dynamic_cast<pflib::rogue::RogueWishboneInterface *>(pft->wb);
+  if (rwbi) {
+    bool enabled;
+    uint8_t samples_per_event= 33;
+    uint8_t fpgaid_i;
+    rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
+
+    std::cout << std::boolalpha
+              << "DMA Status before: " << enabled
+              << " with "
+              << (int)samples_per_event
+              << " samples per event" << std::endl;
+    enabled = BaseMenu::readline_bool("Enable DMA? ", enabled);
+    rwbi->daq_dma_enable(enabled);
+    rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
+    std::cout << "DMA Status after: " << enabled
+              << " with "
+              << (int)samples_per_event
+              << " samples per event\n";
+  } else {
+    std::cout << "\nNot connected to chip with RogueWishboneInterface, cannot "
+                 "activate DMA.\n"
+              << std::endl;
+  }
+#endif
 }
