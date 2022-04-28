@@ -14,6 +14,7 @@ namespace pflib {
  */
 class WishboneInterface {
  public:
+  virtual ~WishboneInterface() = default;
   /**
    * write a 32-bit word to the given target and address
    * @throws pflib::Exception in the case of a timeout or wishbone error
