@@ -115,6 +115,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
+    pfMenu::Line("AUTOALIGN", "Attempt to re-align automatically", &elinks),
     pfMenu::Line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", &elinks),
     pfMenu::Line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", &elinks),
     pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),
@@ -135,6 +136,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("POKE_REG","Change a single register value", &roc ),
      pfMenu::Line("POKE_PARAM","Change a single parameter value", &roc ),
      pfMenu::Line("POKE","Alias for POKE_PARAM", &roc ),
+     pfMenu::Line("POKE_ALL_ROCHALVES", "Like POKE_PARAM, but applies parameter to both halves of all ROCs", &roc),
+     pfMenu::Line("POKE_ALL_CHANNELS", "Like POKE_PARAM, but applies parameter to all channels of the all ROCs", &roc),
      pfMenu::Line("LOAD_REG","Load register values onto the chip from a CSV file", &roc ),
      pfMenu::Line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", &roc ),
      pfMenu::Line("LOAD","Alias for LOAD_PARAM", &roc ),
@@ -147,6 +150,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   //  pfMenu::Line("STATUS","Read the bias line settings", &bias ),
     pfMenu::Line("INIT","Initialize a board", &bias ),
     pfMenu::Line("SET","Set a specific bias line setting", &bias ),
+    pfMenu::Line("SET_ALL", "Set a specific bias line setting to every connector", &bias),
     pfMenu::Line("LOAD","Load bias values from file", &bias ),
     pfMenu::Line("QUIT","Back to top menu"),
   });
@@ -216,9 +220,14 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   });
 
   pfMenu menu_tasks({
-    pfMenu::Line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", &tasks),
+    // pfMenu::Line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", &tasks),
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
+    pfMenu::Line("BEAMPREP", "Run settings and optional configuration for taking beamdata", &tasks),
+    pfMenu::Line("CALIBRUN", "Produce the calibration scans", &tasks),
+    pfMenu::Line("PEDESTAL_READ", "foo", &tasks),
+    pfMenu::Line("ALIGN_PREAMP", "foo", &tasks),
+    pfMenu::Line("DACB","foo",&tasks),
     pfMenu::Line("QUIT","Back to top menu")
   });
 
@@ -237,12 +246,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
   menu_utop.steer( pft_ ) ;
 }
 
-/**
- * Check if a file exists by attempting to open it for reading
- * @param[in] fname name of file to check
- * @return true if file can be opened, false otherwise
- */
-bool file_exists(const std::string& fname) {
+bool file_exists(const std::string& fname)
+{
   FILE* f=fopen(fname.c_str(),"r");
   if (f==0) return false;
   fclose(f);

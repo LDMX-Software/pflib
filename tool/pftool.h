@@ -30,6 +30,11 @@
 #endif
 #include "Menu.h"
 #include "Rcfile.h"
-
+/**
+ * Check if a file exists by attempting to open it for reading
+ * @param[in] fname name of file to check
+ * @return true if file can be opened, false otherwise
+ */
+bool file_exists(const std::string& fname);
 
 #endif /* PFTOOL_H */

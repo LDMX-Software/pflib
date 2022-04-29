@@ -60,6 +60,7 @@ add_executable(pftool
   tool/pftool_daq.cc
   tool/pftool_expert.cc
   tool/pftool_elinks.cc
+  tool/pftool_headers.cc
   tool/pftool_fastcontrol.cc
   tool/pftool_bias.cc)
 target_link_libraries(pftool PRIVATE pflib readline)

@@ -1,0 +1,128 @@
+#Note the marked board specific settings
+
+#Basic analog settings
+Global_Analog_*:
+  Gain_conv: 4 #4 for data taking, but zero when adjusting pre-amplifier
+  Delay40: 2 ##Will probably stay in range 1-3, tuning this is not very useful for beam data
+  Delay65: 2 #Will probably stay in range 1-3
+  Delay87: 2 #Will probably stay in range 1-3
+  Delay9: 2 #Will probably stay in range 1-3
+
+Reference_Voltage_*:
+  Tot_vref: 475 #Board specific
+  Toa_vref: 0b0001110000 #Board specific
+  Inv_vref: 425
+  Calib_dac: 0
+  IntCtest: 0
+  ExtCtest: 0
+Reference_Voltage_0:
+  Inv_vref: 350
+
+#Recommendations
+Master_TDC_*:
+  GLOBAL_TA_SELECT_GAIN_TOA: 3
+  GLOBAL_TA_SELECT_GAIN_TOT: 3
+  GLOBAL_MODE_NO_TOT_SUB: 0
+  GLOBAL_LATENCY_TIME: 10
+  GLOBAL_MODE_FTDC_TOA_S0: 0
+  GLOBAL_MODE_FTDC_TOA_S1: 1
+  GLOBAL_SEU_TIME_OUT: 1
+  BIAS_FOLLOWER_CAL_P_D: 0
+  BIAS_FOLLOWER_CAL_P_EN: 0
+  INV_FRONT_40MHZ: 0
+  START_COUNTER: 1
+  CALIB_CHANNEL_DLL: 0
+  VD_CTDC_P_D: 0
+  VD_CTDC_P_DAC_EN: 0
+  EN_MASTER_CTDC_VOUT_INIT: 0
+  EN_MASTER_CTDC_DLL: 1
+  BIAS_CAL_DAC_CTDC_P_D: 0
+  CTDC_CALIB_FREQUENCY: 2
+  GLOBAL_MODE_TOA_DIRECT_OUTPUT: 0
+  BIAS_I_CTDC_D: 24
+  FOLLOWER_CTDC_EN: 1
+  GLOBAL_EN_BUFFER_CTDC: 0
+  VD_CTDC_N_FORCE_MAX: 1
+  VD_CTDC_N_D: 0
+  VD_CTDC_N_DAC_EN: 0
+  CTRL_IN_REF_CTDC_P_D: 0
+  CTRL_IN_REF_CTDC_P_EN: 0
+  CTRL_IN_SIG_CTDC_P_D: 0
+  CTRL_IN_SIG_CTDC_P_EN: 0
+  GLOBAL_INIT_DAC_B_CTDC: 0
+  BIAS_CAL_DAC_CTDC_P_EN: 1
+  VD_FTDC_P_D: 0
+  VD_FTDC_P_DAC_EN: 0
+  EN_MASTER_FTDC_VOUT_INIT: 0
+  EN_MASTER_FTDC_DLL: 1
+  BIAS_CAL_DAC_FTDC_P_D: 0
+  FTDC_CALIB_FREQUENCY: 2
+  EN_REF_BG: 1
+  BIAS_I_FTDC_D: 24
+  FOLLOWER_FTDC_EN: 1
+  GLOBAL_EN_BUFFER_FTDC: 0
+  VD_FTDC_N_FORCE_MAX: 1
+  VD_FTDC_N_D: 0
+  VD_FTDC_N_DAC_EN: 0
+  CTRL_IN_SIG_FTDC_P_D: 0
+  CTRL_IN_SIG_FTDC_P_EN: 0
+  GLOBAL_INIT_DAC_B_FTDC: 0
+  BIAS_CAL_DAC_FTDC_P_EN: 0
+  CTRL_IN_REF_FTDC_P_D: 0
+  CTRL_IN_REF_FTDC_P_EN: 0
+  GLOBAL_DISABLE_TOT_LIMIT: 0
+  GLOBAL_FORCE_EN_CLK: 0
+  GLOBAL_FORCE_EN_OUTPUT_DATA: 0
+  GLOBAL_FORCE_EN_TOT: 0
+
+#Timing parameters for link stability
+Top:
+  BIAS_I_PLL_D: 63
+  DIV_PLL: 0
+  EN_HIGH_CAPA: 1
+  EN_LOCK_CONTROL: 0
+  EN_PHASESHIFT: 1
+  EN_PLL: 1
+  EN_PLL_EXT: 0
+  EN_REF_BG: 1
+  ERROR_LIMIT_SC: 0
+  ET_AMPLITUDE: 3
+  ET_PRE_PHASE: 0
+  ET_PRE_SCALE: 0
+  FOLLOWER_PLL_EN: 1
+  ORBITSYNC_SC: 0
+  PHASE: 13 #Not important for beam data since the particles do not come synchronized with the clock
+  PLLLOCKEDSC: 1
+  PLL_PROBE_AMPLITUDE: 3
+  PLL_PROBE_PRE_PHASE: 0
+  PLL_PROBE_PRE_SCALE: 0
+  SEL_40M_EXT: 0
+  SEL_L1_FCMD: 1
+  SEL_ORBITSYNC_FCMD: 1
+  SEL_PLL_LOCKED: 1
+  SEL_RESYNC_FCMD: 1
+  SEL_STROBE_FCMD: 1
+  VOUT_INIT_EN: 0
+  VOUT_INIT_EXT_D: 0
+  VOUT_INIT_EXT_EN: 0
+
+Digital_Half_*:
+  L1Offset: 85 #Change this?
+
+#Reset channel-wise pedestal adjustment
+Channel_*:
+  Dacb: 60
+  Sign_dac: 0
+  Ref_dac_inv: 0
+
+#Channel-wise pedestal adjustments should go after this, for board specific files
+Channel_24:
+  Dacb: 57
+Channel_40:
+  Dacb: 57
+Channel_48:
+  Dacb: 57
+Channel_50:
+  Dacb: 57
+Channel_58:
+  Dacb: 57
