@@ -335,20 +335,27 @@ void read_pedestal(PolarfireTarget* pft)
               << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
 }
 
-
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {
 
   const int nsamples = get_number_of_samples_per_event(pft);
   // csv header
-  csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
-  for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
-  for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
-  for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-  csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
-  csv_out<<std::endl;
-
+  if(valuename != "GET_TOT"){
+    csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
+    csv_out<<std::endl;
+  }
+  if(valuename == "GET_TOT"){
+    csv_out <<"CALIB_DAC," << "TOT_VREF," << "REF_TOT_DAC" << ",DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+    csv_out<<std::endl;
+  }
 }
 
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
@@ -517,6 +524,262 @@ void prepare_charge_injection(PolarfireTarget* pft)
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
+void tot_tune(PolarfireTarget* pft)
+{
+
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  auto roc {pft->hcal.roc(iroc)};
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+
+  std::string valuename="CALIB_DAC";
+  std::string totvaluename="TOT_VREF";
+  std::string finetotvaluename="REF_DAC_TOT";
+
+  double goal;
+  goal=BaseMenu::readline_int("TOT turn-on value? (ADC value):",goal);
+
+  int low_value = 0;
+  int high_value = 1023;
+  int steps = 10;
+  int events_per_step = 100;
+
+  int tot_low_value = 0;
+  int tot_high_value = 1023;
+  int tot_steps = 10;
+
+  int fine_tot_low_value = 0;
+  int fine_tot_high_value = 31;
+  int fine_tot_steps = 4;
+
+  std::string modeinfo;
+
+  /// HGCROCv2 only has 11 bit dac
+  printf("CALIB_DAC valid range is 0...2047\n");
+  low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
+  high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
+  bool is_high_range=BaseMenu::readline_bool("Use HighRange? ",false);
+  if (is_high_range) modeinfo="HIGHRANGE";
+  else modeinfo="LOWRANGE";
+  steps=BaseMenu::readline_int("Number of calib_daq steps?",steps);
+  events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
+
+  printf("TOT_VREF valid range is 0...1023\n");
+  tot_low_value=BaseMenu::readline_int("Smallest value of TOT_VREF?",tot_low_value);
+  tot_high_value=BaseMenu::readline_int("Largest value of TOT_VREF?",tot_high_value);
+  tot_steps=BaseMenu::readline_int("Number of TOT_VREF steps?",tot_steps);
+
+  printf("REF_DAC_TOT valid range is 0...31\n");
+  fine_tot_low_value=BaseMenu::readline_int("Smallest value of REF_DAC_TOT?",fine_tot_low_value);
+  fine_tot_high_value=BaseMenu::readline_int("Largest value of REF_DAC_TOT?",fine_tot_high_value);
+  fine_tot_steps=BaseMenu::readline_int("Number of REF_DAC_TOT steps?",fine_tot_steps);
+
+  const auto dpm {get_dpm_number()};
+
+  std::string fname=BaseMenu::readline("Filename :  ",
+                                       make_default_chargescan_filename(pft, dpm, valuename, -1));
+  std::ofstream csv_out=std::ofstream(fname);
+  make_scan_csv_header(pft, csv_out, "GET_TOT");
+
+  int bad_channels[5] = {8,17,26,35,19};
+
+  std::cout << "Performing global tune of TOT_VREF" << std::endl;
+
+  double global_average=1e6;
+  double global_rms=1e6;
+  int global_tot_vref=0;
+
+  const int channels_per_elink = 36;
+
+  prepare_charge_injection(pft);
+
+  for(int totstep=0;totstep<tot_steps;totstep++){
+    int totvalue=tot_low_value+totstep*(tot_high_value-tot_low_value)/std::max(1,tot_steps-1);
+    const std::string page = "REFERENCE_VOLTAGE_" + std::to_string(half);
+    const std::string parameter = "TOT_VREF";
+    std::cout << "Updating: " << parameter
+              << " on page " << page
+              << " to value: " << totvalue
+              << std::endl;
+    roc.applyParameter(page, parameter, totvalue);
+
+    double temp_cumul=0;
+    double temp_counter=0;
+    double temp_rms_prim=0;
+
+    for(int step=0;step<steps;step++){
+
+      std::array<int, channels_per_elink> stop{};
+
+      int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
+      const std::string page = "REFERENCE_VOLTAGE_" + std::to_string(half);
+      const std::string parameter = "CALIB_DAC";
+      roc.applyParameter(page, parameter, value);
+
+      pft->prepareNewRun();
+
+      for (int ichan=0; ichan<channels_per_elink; ichan++) {
+        if(stop[ichan] == 1) continue;
+        for (int badchan = 0; badchan < 5; badchan++){
+          if(ichan == badchan) continue;
+        }
+
+        enable_one_channel_per_elink(pft, "LOWRANGE", channels_per_elink, ichan);
+
+        double channel_average = 0;
+
+        for (int ievt=0; ievt<events_per_step; ievt++) {
+          pft->backend->fc_calibpulse();
+          std::vector<uint32_t> event = pft->daqReadEvent();
+          pft->backend->fc_advance_l1_fifo();
+
+          pflib::decoding::SuperPacket data(&(event[0]),event.size());
+          const auto dpm {get_dpm_number()};
+
+          csv_out << value << ',' << totvalue << ',' << 0 << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
+          for (int i=0; i<nsamples; i++) {
+            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+          }
+          for (int i=0; i<nsamples; i++) {
+            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+          }
+          for (int i=0; i<nsamples; i++) {
+          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          }
+
+          csv_out<< '\n';
+
+          for (int i=0; i<nsamples; i++){
+            if(data.sample(i).roc(half).get_tot(ichan) != 0){
+              channel_average += data.sample(i).roc(half).get_adc(ichan);
+              break;
+            }
+          }
+        }
+        if((channel_average) != 0){
+          temp_cumul += channel_average/events_per_step;
+          temp_counter++;
+          temp_rms_prim += pow(channel_average/events_per_step, 2);
+          stop[ichan] = 1;
+        }
+	disable_one_channel_per_elink(pft, "LOWRANGE", channels_per_elink, ichan);
+      }
+    }
+    double temp_average=temp_cumul/temp_counter;
+    double temp_rms=sqrt(temp_rms_prim/temp_counter);
+    if((abs(temp_average-goal)<global_average) && (temp_rms<global_rms)){
+      global_average=abs(temp_average-goal);
+      global_rms=temp_rms;
+      global_tot_vref=totvalue;
+    }
+  }
+
+  std::cout << "Performing per_channel tune of REF_DAC_TOT" << std::endl;
+
+  std::array<double, channels_per_elink> per_channel_average{};
+  std::array<double, channels_per_elink> per_channel_rms{};
+  std::array<int, channels_per_elink> per_channel_dac{};
+
+  const std::string page = "REFERENCE_VOLTAGE_" + std::to_string(half);
+  const std::string parameter = "TOT_VREF";
+  roc.applyParameter(page, parameter, global_tot_vref);
+
+  prepare_charge_injection(pft);
+
+  for(int finetotstep=0;finetotstep<fine_tot_steps;finetotstep++){
+    int finetotvalue=fine_tot_low_value+finetotstep*(fine_tot_high_value-fine_tot_low_value)/std::max(1,fine_tot_steps-1);
+
+    std::array<double, channels_per_elink> per_channel_cumul{};
+    std::array<int, channels_per_elink>  per_channel_counter{};
+    std::array<double, channels_per_elink> per_channel_rms_prim{};
+
+    for(int step=0;step<steps;step++){
+
+      std::array<int, channels_per_elink> stop{};
+
+      int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
+      const std::string page = "REFERENCE_VOLTAGE_" + std::to_string(half);
+      const std::string parameter = "CALIB_DAC";
+      roc.applyParameter(page, parameter, value);
+
+      pft->prepareNewRun();
+
+      for (int ichan=0; ichan<channels_per_elink; ichan++) {
+        if(stop[ichan] == 1) continue;
+        for (int badchan = 0; badchan < 5; badchan++){
+          if(ichan == badchan) continue;
+        }
+
+        double channel_average = 0;
+
+        enable_one_channel_per_elink(pft, "LOWRANGE", channels_per_elink, ichan);
+        set_one_channel_per_elink(pft,"REF_DAC_TOT",channels_per_elink, ichan, finetotvalue);
+
+        for (int ievt=0; ievt<events_per_step; ievt++) {
+          pft->backend->fc_calibpulse();
+          std::vector<uint32_t> event = pft->daqReadEvent();
+          pft->backend->fc_advance_l1_fifo();
+
+          pflib::decoding::SuperPacket data(&(event[0]),event.size());
+          const auto dpm {get_dpm_number()};
+
+          csv_out << value << ',' << global_tot_vref << ',' << finetotvalue << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
+          for (int i=0; i<nsamples; i++) {
+            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+          }
+          for (int i=0; i<nsamples; i++) {
+            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+          }
+          for (int i=0; i<nsamples; i++) {
+          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          }
+
+          csv_out<< '\n';
+
+          for (int i=0; i<nsamples; i++){
+            if(data.sample(i).roc(half).get_tot(ichan) != 0){
+              channel_average += data.sample(i).roc(half).get_adc(ichan);
+              break;
+            }
+          }
+        }
+        if((channel_average) != 0){
+          per_channel_cumul[ichan] += channel_average/events_per_step;
+          per_channel_counter[ichan]++;
+          per_channel_rms_prim[ichan] += pow(channel_average/events_per_step, 2);
+          stop[ichan] = 1;
+        }
+	disable_one_channel_per_elink(pft, "LOWRANGE", channels_per_elink, ichan);
+      }
+    }
+    for (int ichan=0; ichan<channels_per_elink; ichan++) {
+      for (int badchan = 0; badchan < 5; badchan++){
+        if(ichan == badchan) continue;
+      }
+      double temp_average=per_channel_cumul[ichan]/per_channel_counter[ichan];
+      double temp_rms=sqrt(per_channel_rms_prim[ichan]/per_channel_counter[ichan]);
+      if((abs(temp_average-goal)<per_channel_average[ichan]) && (temp_rms<per_channel_rms[ichan])){
+        per_channel_average[ichan]=abs(temp_average-goal);
+        per_channel_rms[ichan]=temp_rms;
+        per_channel_dac[ichan]=finetotvalue;
+      }
+    }
+  }
+  std::cout << "Best TOT_VREF: " << global_tot_vref << std::endl;
+  std::cout << "Average: " << global_average << std::endl;
+  std::cout << "RMS: " << global_rms << std::endl;
+  for (int ichan=0; ichan<channels_per_elink; ichan++) {
+    for (int badchan = 0; badchan < 5; badchan++){
+      if(ichan == badchan) continue;
+    }
+    std::cout << "Best REF_DAC_TOT for Channel" << ichan<< ": " << per_channel_dac[ichan] << std::endl;
+    std::cout << "Average: " << per_channel_average[ichan] << std::endl;
+    std::cout << "RMS: " << per_channel_rms[ichan] << std::endl;    
+  }
+}
+
 void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 {
   pflib::DAQ& daq=pft->hcal.daq();
@@ -531,6 +794,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   const int dpm {get_dpm_number(pft)};
   const int nsamples = get_number_of_samples_per_event(pft);
+
+  if (cmd == "TUNE_TOT") {
+    tot_tune(pft);
+    return;
+  }
 
   if (cmd == "DACB") {
     test_dacb_one_channel_at_a_time(pft);
