@@ -31,6 +31,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 
 void beamprep(pflib::PolarfireTarget* pft);
 
+void tot_tune(pflib::PolarfireTarget* pft);
 
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,

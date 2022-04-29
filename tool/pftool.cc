@@ -225,6 +225,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("BEAMPREP", "Run settings and optional configuration for taking beamdata", &tasks),
     pfMenu::Line("CALIBRUN", "Produce the calibration scans", &tasks),
+    pfMenu::Line("TUNE_TOT", "Tune TOT globally and per-channel", &tasks),
     pfMenu::Line("PEDESTAL_READ", "foo", &tasks),
     pfMenu::Line("ALIGN_PREAMP", "foo", &tasks),
     pfMenu::Line("DACB","foo",&tasks),
