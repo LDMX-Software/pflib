@@ -71,9 +71,6 @@ target_link_libraries(test-menu PRIVATE pflib readline)
 
 add_executable(pfdecoder tool/pfdecoder.cc)
 
-add_executable(pf_tbmerge tool/pf_tbmerge.cxx)
-target_link_libraries(pf_tbmerge pflib)
-
 add_executable(pfcompile tool/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
