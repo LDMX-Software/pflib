@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.5.0-185-g207a428e</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.5.0-187-g76ef1ac9</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -104,20 +104,31 @@ $(document).ready(function(){initNavTree('SuperPacket_8h_source.html',''); initR
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keywordtype">int</span> fpgaid()<span class="keyword"> const </span>{<span class="keywordflow">if</span> (length_ == 0) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[0]&gt;&gt;20)&amp;0xFF;}</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordtype">int</span> nsamples()<span class="keyword"> const </span>{<span class="keywordflow">if</span> (length_ == 0) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[0]&gt;&gt;16)&amp;0xF;}</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keywordtype">int</span> formatversion()<span class="keyword"> const </span>{<span class="keywordflow">if</span> (length_ == 0) <span class="keywordflow">return</span> -1; <span class="keywordflow">return</span> (data_[0]&gt;&gt;28)&amp;0xF;}</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordtype">int</span> length32_for_sample(<span class="keywordtype">int</span> isample) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <a class="code hl_class" href="classpflib_1_1decoding_1_1PolarfirePacket.html">PolarfirePacket</a> sample(<span class="keywordtype">int</span> isample) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keyword">const</span> uint32_t* data_;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordtype">int</span> length_;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keywordtype">int</span> version_;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>};</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordtype">int</span> event_tag_length() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordtype">int</span> spill() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordtype">int</span> bxid() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  uint32_t time_in_spill() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  uint32_t eventid() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordtype">int</span> runid() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keywordtype">void</span> run_start(<span class="keywordtype">int</span>&amp; month, <span class="keywordtype">int</span>&amp; day, <span class="keywordtype">int</span>&amp; hour, <span class="keywordtype">int</span>&amp; minute);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordtype">int</span> length32_for_sample(<span class="keywordtype">int</span> isample) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <a class="code hl_class" href="classpflib_1_1decoding_1_1PolarfirePacket.html">PolarfirePacket</a> sample(<span class="keywordtype">int</span> isample) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#endif</span><span class="comment">// pflib_decoding_PolarfirePacket_h</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordtype">int</span> offset_to_header()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> offset_; }</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keyword">const</span> uint32_t* data_;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordtype">int</span> length_;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordtype">int</span> version_;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">int</span> offset_;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>};</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>}</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif</span><span class="comment">// pflib_decoding_PolarfirePacket_h</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  </div>
 <div class="ttc" id="aclasspflib_1_1decoding_1_1PolarfirePacket_html"><div class="ttname"><a href="classpflib_1_1decoding_1_1PolarfirePacket.html">pflib::decoding::PolarfirePacket</a></div><div class="ttdef"><b>Definition:</b> PolarfirePacket.h:12</div></div>
 <div class="ttc" id="aclasspflib_1_1decoding_1_1SuperPacket_html"><div class="ttname"><a href="classpflib_1_1decoding_1_1SuperPacket.html">pflib::decoding::SuperPacket</a></div><div class="ttdef"><b>Definition:</b> SuperPacket.h:11</div></div>
 <div class="ttc" id="anamespacepflib_html"><div class="ttname"><a href="namespacepflib.html">pflib</a></div><div class="ttdoc">Polarfire Interaction Library.</div><div class="ttdef"><b>Definition:</b> Backend.h:8</div></div>
