@@ -18,17 +18,16 @@ std::vector<int> getActiveLinkNumbers(pflib::PolarfireTarget* pft)
 
 std::vector<float> link_thresholds(pflib::PolarfireTarget* pft) {
   const auto activeLinkNumbers {getActiveLinkNumbers(pft)};
-  static float threshold = 0.2;
   if (BaseMenu::readline_bool("Set individual thresholds for each active link? ", false)) {
     std::vector<float> thresholds{};
     for (auto link : activeLinkNumbers) {
-      threshold = BaseMenu::readline_float("Threshold value for link: "  + std::to_string(link));
+      float threshold = BaseMenu::readline_float("Threshold value for link "  + std::to_string(link) + ": ");
       thresholds.push_back(threshold);
     }
     return thresholds;
 
   } else {
-    threshold = BaseMenu::readline_float("What should be our threshold value? ");
+    float threshold = BaseMenu::readline_float("What should be our threshold value? ");
     std::vector<float> thresholds(threshold, activeLinkNumbers.size());
     return thresholds;
   }
