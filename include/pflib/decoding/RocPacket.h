@@ -23,6 +23,18 @@ class RocPacket {
 
   int length() const { return length_; }
 
+  int bxheader() const {
+    if (length_ < 3) {
+      return -1;
+    }
+    return data_[2] & 0xff000000;
+  }
+    int idle() const {
+      if (length_ < 42) {
+        return -1;
+      }
+      return data_[41];
+    }
   bool good_bxheader() const { if (length_<3) return false; return (data_[2]&0xff000000)==0xaa000000; }
 
   bool good_idle() const { if (length_<42) return false; return data_[41]==0xaccccccc; }
