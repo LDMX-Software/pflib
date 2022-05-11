@@ -60,7 +60,6 @@ class uhalWishboneInterface : public WishboneInterface, public Backend {
   virtual void fc_setup_calib(int pulse_len, int l1a_offset);
   virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset);
   virtual void fc_read_counters(int&  spill_count, int& header_occ, int& header_occ_max, int& event_count, int& vetoed_counter) override;
-
   virtual void fc_clear_run() override;
   virtual void fc_advance_l1_fifo() override;
   virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a) override;
