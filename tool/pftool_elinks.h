@@ -37,5 +37,6 @@ void auto_align(pflib::PolarfireTarget* pft);
 HeaderCheckResults header_check(pflib::PolarfireTarget* pft, const int nevents,
                                 const bool verbose = true);
 
+std::vector<int> getActiveLinkNumbers(pflib::PolarfireTarget* pft);
 
 #endif /* PFTOOL_ELINKS_H */

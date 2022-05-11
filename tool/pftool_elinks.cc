@@ -2,6 +2,19 @@
 using pflib::PolarfireTarget;
 
 
+std::vector<int> getActiveLinkNumbers(pflib::PolarfireTarget* pft)
+{
+
+    constexpr const int max_links = 8;
+    static std::vector<int> activeLinks;
+    const pflib::Elinks& elinks {pft->hcal.elinks()};
+    for (int i {0}; i < max_links; ++i) {
+        if(elinks.isActive(i)) {
+            activeLinks.push_back(i);
+        }
+    }
+    return activeLinks;
+}
 
 void auto_align(pflib::PolarfireTarget* pft) {
 
