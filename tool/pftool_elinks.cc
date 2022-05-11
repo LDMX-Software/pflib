@@ -95,11 +95,12 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
     if (multi) nsamples=nextra+1;
   }
 
-  constexpr const int num_active_links {6};
-  int bitslip_candidate[num_active_links] {};
-  int delay_candidate[num_active_links] {};
-  int record_bx[num_active_links] {};
-  int record_idle[num_active_links] {};
+
+  const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
+  const std::size_t num_active_links {activeLinkNumbers.size()};
+  std::vector<int> bitslip_candidate(num_active_links);
+  std::vector<int> delay_candidate(num_active_links);
+  std::vector<HeaderStatus> record_status(num_active_links);
 
   pft->prepareNewRun();
 
