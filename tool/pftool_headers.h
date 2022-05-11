@@ -21,6 +21,9 @@ struct HeaderStatus {
                    n_good_idles, n_bad_idles, percent_bad_idles());
         }
         void update(const pflib::decoding::RocPacket packet);
+        HeaderStatus(const HeaderStatus&) = default;
+        HeaderStatus& operator=(const HeaderStatus&) = default;
+        HeaderStatus() : link{-1} {}
 };
 struct HeaderCheckResults {
     std::vector<HeaderStatus> res;
