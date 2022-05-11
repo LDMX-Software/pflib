@@ -78,30 +78,30 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
     setup_dma(pft, false);
   }
 
-    int nsamples=1;
-    {
-      bool multi;
-      int nextra;
-      pft->hcal.fc().getMultisampleSetup(multi,nextra);
-      if (multi) nsamples=nextra+1;
-    }
-    const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
-    HeaderCheckResults results {activeLinkNumbers};
-    results.verbose = verbose;
+  int nsamples=1;
+  {
+    bool multi;
+    int nextra;
+    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    if (multi) nsamples=nextra+1;
+  }
+  const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
+  HeaderCheckResults results {activeLinkNumbers};
+  results.verbose = verbose;
 
-    pft->prepareNewRun();
-    for (int ievt{0}; ievt < nevents; ievt++) {
-      pft->backend->fc_sendL1A();
-      std::vector<uint32_t> event_raw = pft->daqReadEvent();
-      pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
-      results.add_event(event, nsamples);
-    }
+  pft->prepareNewRun();
+  for (int ievt{0}; ievt < nevents; ievt++) {
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event_raw = pft->daqReadEvent();
+    pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
+    results.add_event(event, nsamples);
+  }
 
-    if (verbose) {
-      results.report();
+  if (verbose) {
+    results.report();
 
-    }
-    return results;
+  }
+  return results;
 }
 
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_step, bool verbose)
