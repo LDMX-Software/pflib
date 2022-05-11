@@ -108,7 +108,6 @@ void uhalWishboneInterface::fc_sendL1A() {
   dispatch();
 }
 
-
 void uhalWishboneInterface::fc_linkreset() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("FAST_CONTROL.SEND_LINK_RESET").write(1);
@@ -209,10 +208,6 @@ void uhalWishboneInterface::fc_enables(bool ext_l1a, bool ext_spill, bool timer_
   dispatch();
 }
 
-//time setup read
-
-//timer setup
-
 void uhalWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l1_occ, int& l1_occ_busy, int& l1_occ_ok) {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
 
@@ -227,7 +222,7 @@ void uhalWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l
   veto_daq_busy=(vetoreg&MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ)!=0;
   veto_l1_occ=(vetoreg&MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC)!=0;
 
-   ::uhal::ValWord<uint32_t> occregval = m_base.getNode("FAST_CONTROL.OCCVETO").read();
+   ::uhal::ValWord<uint32_t> occregval = m_base.getNode("FAST_CONTROL.OCC_VETO").read();
   dispatch();
 
   uint32_t occreg = occregval; 
@@ -242,7 +237,6 @@ void uhalWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l
 
 }
 
-//veto setup
 void uhalWishboneInterface::fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) {
 
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
@@ -269,7 +263,7 @@ void uhalWishboneInterface::fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, 
 
   uint32_t occreg=((l1_occ_busy&MASK_FC_OCCBUSY)<<SHIFT_FC_OCCBUSY)|((l1_occ_ok&MASK_FC_OCC_OK)<<SHIFT_FC_OCC_OK);
 
-  m_base.getNode("FAST_CONTROL.OCCVETO").write(occreg);
+  m_base.getNode("FAST_CONTROL.OCC_VETO").write(occreg);
   dispatch(); 
 
 }

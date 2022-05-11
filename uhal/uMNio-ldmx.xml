@@ -39,7 +39,7 @@
      <node id="ADVANCE_L1_FIFO" address="0x1" permission="rw" mask="0x20" />
      <node id="ENABLES" address="0x0" permission="rw" />
      <node id="VETO_SETUP" address="0x0" permission="rw" />
-     <node id="OCCVETO" address="4" permission="rw" />
+     <node id="OCC_VETO" address="4" permission="rw" />
   </node>
   <node id="WISHBONE" address="0x100000">
     <node id="WB_WRITE_DATA" address="0x3" description="Data to write"/>
