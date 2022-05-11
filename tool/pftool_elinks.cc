@@ -85,7 +85,6 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
       pft->hcal.fc().getMultisampleSetup(multi,nextra);
       if (multi) nsamples=nextra+1;
     }
-    constexpr const int num_links {8};
     const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
     HeaderCheckResults results {activeLinkNumbers};
     results.verbose = verbose;
