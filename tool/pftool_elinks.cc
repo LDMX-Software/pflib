@@ -136,14 +136,23 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         //   }
         // }
       }
-      for(int i = 0; i < num_active_links; i++){
-        if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
-          record_bx[i] = n_good_bxheaders[i];
-          record_idle[i] = n_good_idles[i];
-          bitslip_candidate[i] = bitslip;
-          delay_candidate[i] = delay;
+      for(std::size_t  link_index{0}; link_index < num_active_links; ++link_index) {
+        const auto& status = results.res[link_index];
+        if (status.n_good_idles >= record_status[link_index].n_good_idles &&
+            status.n_good_bxheaders >= record_status[link_index].n_good_bxheaders) {
+          record_status[link_index]  = status;
+          bitslip_candidate[link_index] = bitslip;
+          delay_candidate[link_index] = delay;
         }
       }
+      // for(int i = 0; i < num_active_links; i++){
+      //   if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
+      //     record_bx[i] = n_good_bxheaders[i];
+      //     record_idle[i] = n_good_idles[i];
+      //     bitslip_candidate[i] = bitslip;
+      //     delay_candidate[i] = delay;
+      //   }
+      // }
 
       /*
         for(int jlink = 0; jlink < 8; jlink++){
