@@ -39,8 +39,8 @@ void auto_align(pflib::PolarfireTarget* pft) {
   nevents = BaseMenu::readline_int("How many events for the header checks?", nevents);
   auto thresholds = link_thresholds(pft);
 
-  static int delay_step = 10;
-  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
+  static int delay_steps = 10;
+  delay_steps = BaseMenu::readline_int("Number of delay steps: ",delay_steps);
   auto results {header_check(pft, nevents)};
   pflib::Elinks& elinks=pft->hcal.elinks();
   while(true) {
@@ -49,12 +49,12 @@ void auto_align(pflib::PolarfireTarget* pft) {
       pft->hcal.resyncLoadROC(-1);
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
-        align_elinks(pft, elinks, delay_step, false);
+        align_elinks(pft, elinks, delay_steps, false);
         results = header_check(pft, nevents, false);
         if (results.is_acceptable(thresholds)) {
           std::cout << "Success!" << std::endl;
           std::cout << "Redoing bitslip/delay scan with maximum granularity" << std::endl;
-          align_elinks(pft, elinks, 1, false);
+          align_elinks(pft, elinks, 128, false);
           return;
         }
       }
@@ -104,7 +104,7 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
   return results;
 }
 
-void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_step, bool verbose)
+void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_steps, bool verbose)
 {
 
   const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
@@ -116,13 +116,14 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
   constexpr const int bitslip_max = 8;
   constexpr const int bitslip_min = 0;
   constexpr const int delay_min = 0;
-  constexpr const int delay_max = 128;
+  constexpr const int delay_range_max = 128;
 
+  const int delay_max = std::min(delay_steps, delay_max);
   constexpr const int nevents {10};
 
-  for(int bitslip = bitslip_min; bitslip < bitslip_max; bitslip += 1){
+  for(int bitslip = bitslip_min; bitslip < bitslip_max; bitslip ++){
     std::cout << "Scanning bitslip: " << bitslip << " of " << bitslip_max -1 << std::endl;
-    for(int delay = delay_min; delay < delay_max; delay += delay_step) {
+    for(int delay = delay_min; delay < delay_max; delay++) {
       for(auto link : activeLinkNumbers){
         elinks.setDelay(link,delay);
         elinks.setBitslip(link,bitslip);
@@ -169,9 +170,9 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
 }
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
 
-  static int delay_step = 10;
-  delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
-  align_elinks(pft, elinks, delay_step);
+  static int delay_steps = 10;
+  delay_steps = BaseMenu::readline_int("Number of delay steps: ",delay_steps);
+  align_elinks(pft, elinks, delay_steps);
 
 }
 
