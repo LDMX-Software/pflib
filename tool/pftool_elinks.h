@@ -34,6 +34,7 @@ void align_elinks(pflib::PolarfireTarget* pft, pflib::Elinks& elinks);
 
 void auto_align(pflib::PolarfireTarget* pft);
 
+std::vector<float> link_thresholds(pflib::PolarfireTarget* pft);
 HeaderCheckResults header_check(pflib::PolarfireTarget* pft, const int nevents,
                                 const bool verbose = true);
 
