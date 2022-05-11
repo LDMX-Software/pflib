@@ -165,42 +165,54 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
   if (verbose) {
     std::cout << "Candidates" << std::endl;
   }
-  for(int i = 0; i < num_active_links; i++){
+  for(int link_index = 0; link_index < num_active_links; link_index++){
 
-  if (verbose) {
-    std::cout << "Link " << i << std::endl;
-    std::cout << "Bitslip: " << bitslip_candidate[i] << "   Delay: " << delay_candidate[i] << std::endl;
-  }
-
-
-    elinks.setDelay(i,delay_candidate[i]);
-    elinks.setBitslipAuto(i,false);
-    elinks.setBitslip(i,bitslip_candidate[i]);
-
-    float bg_bxheaders = 1.;
-    int bad_bxheaders = nsamples*nevents-record_bx[i];
-    if (record_bx[i]>0)
-      bg_bxheaders = float(bad_bxheaders)/
-        (record_bx[i]+bad_bxheaders);
+    const auto record = record_status[link_index];
+    const int link = record.link;
+    const int bitslip = bitslip_candidate[link_index];
+    const int delay = delay_candidate[link_index];
     if (verbose) {
-      std::cout << "Percentage of bad BX headers: " << bg_bxheaders*100. << std::endl;
+      std::cout << "Link " << link << std::endl;
+      std::cout << "Bitslip: " << bitslip << "   Delay: " << delay << std::endl;
     }
 
 
-    if(bg_bxheaders > 0.1 && verbose){
-      std::cout << "Consider a PLL hard_reset" << std::endl;
-    }
-    float bg_idles = 1.;
-    int bad_idles = nsamples*nevents-record_idle[i];
-    if (record_idle[i]>0)
-      bg_idles = float(bad_idles)/
-        (record_idle[i]+bad_idles);
+    elinks.setDelay(link, delay);
+    elinks.setBitslipAuto(link,false);
+    elinks.setBitslip(link,bitslip);
+
+
     if (verbose) {
-    std::cout << "Percentage of bad idles: " << bg_idles*100. << std::endl;
-    if(bg_idles > 0.1){
-      std::cout << "Consider a PLL hard_reset" << std::endl;
+      std::cout << "Percent of bad BX headers: " << record.percent_bad_headers() * 100. << std::endl;
+      std::cout << "Percent of bad idles: " << record.percent_bad_idles() * 100. << std::endl;
+      if (record.percent_bad_headers() > 0.1 || record.percent_bad_idles() > 0.1) {
+        std::cout << "Consider a PLL hard_reset" << std::endl;
+      }
     }
-    }
+    // float bg_bxheaders = 1.;
+    // int bad_bxheaders = nsamples*nevents-record.n_good_bxheaders;
+    // if (record.n_good_bxheaders>0)
+    //   bg_bxheaders = float(bad_bxheaders)/
+    //     (record_bx[link_index]+bad_bxheaders);
+    // if (verbose) {
+    //   std::cout << "Percentage of bad BX headers: " << bg_bxheaders*100. << std::endl;
+    // }
+
+
+    // if(bg_bxheaders > 0.1 && verbose){
+    //   std::cout << "Consider a PLL hard_reset" << std::endl;
+    // }
+    // float bg_idles = 1.;
+    // int bad_idles = nsamples*nevents-record_idle[link_index];
+    // if (record_idle[link_index]>0)
+    //   bg_idles = float(bad_idles)/
+    //     (record_idle[link_index]+bad_idles);
+    // if (verbose) {
+    // std::cout << "Percentage of bad idles: " << bg_idles*100. << std::endl;
+    // if(bg_idles > 0.1){
+    //   std::cout << "Consider a PLL hard_reset" << std::endl;
+    // }
+    // }
   }
 }
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
