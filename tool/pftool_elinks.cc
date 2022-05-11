@@ -106,13 +106,13 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
   constexpr const int bitslip_max = 8;
   constexpr const int bitslip_min = 0;
 
-    for(int delay = 0; delay <= 128; delay += delay_step){
-      for(int jlink = 0; jlink < num_active_links; jlink++){
-        elinks.setDelay(jlink,delay);
-        elinks.setBitslipAuto(jlink,false);
-        elinks.setBitslip(jlink,bitslip);
   for(int bitslip = bitslip_min; bitslip < bitslip_max; bitslip += 1){
     std::cout << "Scanning bitslip: " << bitslip << " of " << bitslip_max -1 << std::endl;
+    for(int delay = 0; delay <= 128; delay += delay_step) {
+      for(auto link : activeLinkNumbers){
+        elinks.setDelay(link,delay);
+        elinks.setBitslipAuto(link,false);
+        elinks.setBitslip(link,bitslip);
       }
       int n_good_bxheaders[num_active_links] {};
       int n_bad_bxheaders[num_active_links] {};
