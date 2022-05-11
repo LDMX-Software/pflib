@@ -124,6 +124,17 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         std::vector<uint32_t> event_raw = pft->daqReadEvent();
         pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
         results.add_event(event, nsamples);
+        // for (int s{0}; s < nsamples; s++) {
+        //   for(int jlink = 0; jlink < num_active_links; jlink++){
+        //     auto packet = event.sample(s).roc(jlink);
+        //     if (packet.length() > 2) {
+        //       if (event.sample(s).roc(jlink).good_bxheader()) n_good_bxheaders[jlink]++;
+        //       else n_bad_bxheaders[jlink]++;
+        //       if (event.sample(s).roc(jlink).good_idle()) n_good_idles[jlink]++;
+        //       else n_bad_idles[jlink]++;
+        //     }
+        //   }
+        // }
       }
       for(int i = 0; i < num_active_links; i++){
         if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
