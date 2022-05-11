@@ -75,8 +75,8 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
 
   if (verbose) {
     std::cout << "Disabling DMA...\n";
-    setup_dma(pft, false);
   }
+  setup_dma(pft, false);
 
   int nsamples=1;
   {
