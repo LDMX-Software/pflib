@@ -34,20 +34,42 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
         }
     }
 }
+
+bool HeaderStatus::is_acceptable(const float threshold) const
+{
+    if (percent_bad_headers() > threshold) {
+        std::cout << "Bad headers!, "
+                  << percent_bad_headers() * 100.
+                  << " %" << std::endl;
+        return false;
+    }
+    if (percent_bad_idles() > threshold) {
+        std::cout << "Bad idles!, "
+                  << percent_bad_idles() * 100.
+                  << " %" << std::endl;
+        return false;
+    }
+    return true;
+}
+bool HeaderCheckResults::is_acceptable(const std::vector<float> thresholds) const
+{
+    for (auto link_index{0}; link_index < thresholds.size(); ++link_index) {
+        auto& status {res[link_index]};
+        std::cout << "Testing link " << status.link << "... ";
+        auto threshold = thresholds[link_index];
+        if (!status.is_acceptable(threshold)) {
+            return false;
+        }
+        std::cout << " ok!" << std::endl;
+
+    }
+    return true;
+}
+bool HeaderCheckResults::is_acceptable(const float threshold) const
 {
     for (auto status : res) {
         std::cout << "Testing link " << status.link << "... ";
-        if (status.percent_bad_headers() > threshold )
-        {
-            std::cout << "bad headers!,  "
-                      << status.percent_bad_headers() * 100
-                      << " %" << std::endl;
-            return false;
-        } else if (status.percent_bad_idles() > threshold) {
-            std::cout << "bad idles!,  "
-                      << status.percent_bad_idles() * 100
-                      << " %" << std::endl;
-bool HeaderCheckResults::is_acceptable(const float threshold) const
+        if (!status.is_acceptable(threshold)) {
             return false;
         }
         std::cout << " ok!" << std::endl;

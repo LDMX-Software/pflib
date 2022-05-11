@@ -20,6 +20,7 @@ struct HeaderStatus {
                    n_good_bxheaders, n_bad_bxheaders, percent_bad_headers(),
                    n_good_idles, n_bad_idles, percent_bad_idles());
         }
+        bool is_acceptable(const float threshold) const;
         void update(const pflib::decoding::RocPacket packet);
         HeaderStatus(const HeaderStatus&) = default;
         HeaderStatus& operator=(const HeaderStatus&) = default;
@@ -42,7 +43,8 @@ struct HeaderCheckResults {
         }
     }
     void add_event(const pflib::decoding::SuperPacket event, const int nsamples);
-    bool is_acceptable (const double threshold) const;
+    bool is_acceptable (const float threshold) const;
+    bool is_acceptable(const std::vector<float> thresholds) const;
 };
 
 
