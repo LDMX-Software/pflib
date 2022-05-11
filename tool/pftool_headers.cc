@@ -34,7 +34,6 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
         }
     }
 }
-bool HeaderCheckResults::is_acceptable (const double threshold) const
 {
     for (auto status : res) {
         std::cout << "Testing link " << status.link << "... ";
@@ -48,6 +47,7 @@ bool HeaderCheckResults::is_acceptable (const double threshold) const
             std::cout << "bad idles!,  "
                       << status.percent_bad_idles() * 100
                       << " %" << std::endl;
+bool HeaderCheckResults::is_acceptable(const float threshold) const
             return false;
         }
         std::cout << " ok!" << std::endl;
