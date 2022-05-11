@@ -106,15 +106,6 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
 
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_step, bool verbose)
 {
-  const int nevents=10;
-  int nsamples=1;
-  {
-    bool multi;
-    int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
-    if (multi) nsamples=nextra+1;
-  }
-
 
   const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
   const std::size_t num_active_links {activeLinkNumbers.size()};
@@ -122,11 +113,12 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
   std::vector<int> delay_candidate(num_active_links);
   std::vector<HeaderStatus> record_status(num_active_links);
 
-  pft->prepareNewRun();
   constexpr const int bitslip_max = 8;
   constexpr const int bitslip_min = 0;
   constexpr const int delay_min = 0;
   constexpr const int delay_max = 128;
+
+  constexpr const int nevents {10};
 
   for(int bitslip = bitslip_min; bitslip < bitslip_max; bitslip += 1){
     std::cout << "Scanning bitslip: " << bitslip << " of " << bitslip_max -1 << std::endl;
@@ -135,13 +127,7 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         elinks.setDelay(link,delay);
         elinks.setBitslip(link,bitslip);
       }
-      HeaderCheckResults results{activeLinkNumbers};
-      for (int ievt{0}; ievt < nevents; ievt++) {
-        pft->backend->fc_sendL1A();
-        std::vector<uint32_t> event_raw = pft->daqReadEvent();
-        pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
-        results.add_event(event, nsamples);
-      }
+      auto results {header_check(pft, nevents, false)};
       for(std::size_t  link_index{0}; link_index < num_active_links; ++link_index) {
         const auto& status = results.res[link_index];
         if (status.n_good_idles >= record_status[link_index].n_good_idles &&
