@@ -114,25 +114,16 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         elinks.setBitslipAuto(link,false);
         elinks.setBitslip(link,bitslip);
       }
-      int n_good_bxheaders[num_active_links] {};
-      int n_bad_bxheaders[num_active_links] {};
-      int n_good_idles[num_active_links] {};
-      int n_bad_idles[num_active_links] {};
+      HeaderCheckResults results{activeLinkNumbers};
+      // int n_good_bxheaders[num_active_links] {};
+      // int n_bad_bxheaders[num_active_links] {};
+      // int n_good_idles[num_active_links] {};
+      // int n_bad_idles[num_active_links] {};
       for (int ievt{0}; ievt < nevents; ievt++) {
         pft->backend->fc_sendL1A();
         std::vector<uint32_t> event_raw = pft->daqReadEvent();
         pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
-        for (int s{0}; s < nsamples; s++) {
-          for(int jlink = 0; jlink < num_active_links; jlink++){
-            auto packet = event.sample(s).roc(jlink);
-            if (packet.length() > 2) {
-              if (event.sample(s).roc(jlink).good_bxheader()) n_good_bxheaders[jlink]++;
-              else n_bad_bxheaders[jlink]++;
-              if (event.sample(s).roc(jlink).good_idle()) n_good_idles[jlink]++;
-              else n_bad_idles[jlink]++;
-            }
-          }
-        }
+        results.add_event(event, nsamples);
       }
       for(int i = 0; i < num_active_links; i++){
         if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
