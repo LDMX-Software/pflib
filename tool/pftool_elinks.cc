@@ -46,7 +46,7 @@ void auto_align(pflib::PolarfireTarget* pft) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   while(true) {
     for (int i {0}; i < 100; ++i) {
-      std::cout << "Runinng ResyncLoad" << std::endl;
+      std::cout << "Running ResyncLoad" << std::endl;
       pft->hcal.resyncLoadROC(-1);
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
