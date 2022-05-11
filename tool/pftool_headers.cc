@@ -23,15 +23,12 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
     for (int sample{0}; sample < nsamples; ++sample) {
         for (auto& status: res) {
             const auto packet {event.sample(sample).roc(status.link)};
-            if (status.link == 0 && sample == 0) {
+            if (verbose && status.link == 0 && sample == 0) {
                 std::cout << std::hex;
                 std::cout << "Debugging link 0, sample 0: " << std::endl;
-                std::cout << "Packet length (expected >=3, <42)" << packet.length() << std::endl;
+                std::cout << "Packet length (expected >=3, ==42)" << packet.length() << std::endl;
                 std::cout << "Packet BX header (expected 0xaa000000) " << packet.bxheader() << std::endl;
                 std::cout << "Packet idle at position 42 (expected 0xaccccccc)" << packet.idle() << std::endl;
-
-                // std::cout << "Dumping packet...\n";
-                // packet.dump();
             }
             status.update(packet);
         }

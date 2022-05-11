@@ -27,6 +27,7 @@ struct HeaderStatus {
 };
 struct HeaderCheckResults {
     std::vector<HeaderStatus> res;
+    bool verbose = false;
     HeaderCheckResults(const std::vector<int>& active_links )
     {
         for (auto link : active_links) {

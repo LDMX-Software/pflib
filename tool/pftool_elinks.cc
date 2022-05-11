@@ -68,6 +68,7 @@ HeaderCheckResults header_check(PolarfireTarget* pft, const int nevents,
     constexpr const int num_links {8};
     const std::vector<int> activeLinkNumbers = getActiveLinkNumbers(pft);
     HeaderCheckResults results {activeLinkNumbers};
+    results.verbose = verbose;
 
     pft->prepareNewRun();
     for (int ievt{0}; ievt < nevents; ievt++) {
