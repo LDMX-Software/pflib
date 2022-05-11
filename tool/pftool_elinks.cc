@@ -36,10 +36,9 @@ std::vector<float> link_thresholds(pflib::PolarfireTarget* pft) {
 
 void auto_align(pflib::PolarfireTarget* pft) {
 
-  static float threshold = 0.2;
-  threshold = BaseMenu::readline_float("What should be our threshold value?");
   static int nevents = 100;
   nevents = BaseMenu::readline_int("How many events for the header checks?", nevents);
+  auto thresholds = link_thresholds(pft);
 
   static int delay_step = 10;
   delay_step = BaseMenu::readline_int("Delay step: ",delay_step);
@@ -47,19 +46,23 @@ void auto_align(pflib::PolarfireTarget* pft) {
   pflib::Elinks& elinks=pft->hcal.elinks();
   while(true) {
     for (int i {0}; i < 100; ++i) {
+      std::cout << "Runinng ResyncLoad" << std::endl;
       pft->hcal.resyncLoadROC(-1);
       for (int j {0}; j < 5; ++j) {
         elinks.resetHard();
         align_elinks(pft, elinks, delay_step, false);
         results = header_check(pft, nevents, false);
-        if (results.is_acceptable(threshold)) {
+        if (results.is_acceptable(thresholds)) {
+          std::cout << "Success!" << std::endl;
+          std::cout << "Redoing bitslip/delay scan with maximum granularity" << std::endl;
+          align_elinks(pft, elinks, 1, false);
           return;
         }
       }
     }
 
     if (BaseMenu::readline_bool("Try a new threshold?", false)) {
-      threshold = BaseMenu::readline_float("What should be our threshold value?");
+      thresholds = link_thresholds(pft);
     } else if (BaseMenu::readline_bool("Give up?", false)) {
       return;
     }
