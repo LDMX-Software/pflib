@@ -28,6 +28,26 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
     }
 }
 
+bool HeaderCheckResults::is_acceptable (const double threshold) const
+{
+    for (auto status : res) {
+        std::cout << "Testing link " << status.link << "... ";
+        if (status.percent_bad_headers() > threshold )
+        {
+            std::cout << "bad headers!,  "
+                      << status.percent_bad_headers() * 100
+                      << " %" << std::endl;
+            return false;
+        } else if (status.percent_bad_idles() > threshold) {
+            std::cout << "bad idles!,  "
+                      << status.percent_bad_idles() * 100
+                      << " %" << std::endl;
+            return false;
+        }
+        std::cout << " ok!" << std::endl;
+    }
+    return true;
+};
 void HeaderStatus::update(const pflib::decoding::RocPacket packet)
 {
     if (packet.length() > 2) {
