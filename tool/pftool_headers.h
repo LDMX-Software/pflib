@@ -16,13 +16,9 @@ struct HeaderStatus {
         double percent_bad_idles() const;
         HeaderStatus(int ilink) : link(ilink) {}
         void report() const {
-            std::cout << "Link: " << link << "\n";
-            std::cout << "Num bad headers: " << n_bad_bxheaders
-                      << ", ratio: " << percent_bad_headers()
-                      << std::endl;
-            std::cout << "Num bad idles: " << n_bad_idles
-                      << ", ratio: " << percent_bad_idles()
-                      << std::endl;
+            printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", link,
+                   n_good_bxheaders, n_bad_bxheaders, percent_bad_headers(),
+                   n_good_idles, n_bad_idles, percent_bad_idles());
         }
         void update(const pflib::decoding::RocPacket packet);
 };
@@ -36,6 +32,8 @@ struct HeaderCheckResults {
         }
     }
     void report() const {
+        printf("     %26s | %26s\n","BX Headers","Idles");
+        printf("Link %10s %10s %4s | %10s %10s %4s\n","Good","Bad","B/T","Good","Bad","B/T");
         for (auto status : res) {
             status.report();
         }
