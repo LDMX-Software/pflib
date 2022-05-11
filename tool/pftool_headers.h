@@ -31,7 +31,6 @@ struct HeaderCheckResults {
     {
         for (auto link : active_links) {
             res.push_back(link);
-            std::cout << "Adding active link: " << link << std::endl;
         }
     }
     void report() const {
