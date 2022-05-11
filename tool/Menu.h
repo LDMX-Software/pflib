@@ -9,6 +9,7 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+#include <iomanip>
 
 #ifndef PFLIB_TEST_MENU
 #include "pflib/Exception.h"
@@ -181,109 +182,41 @@ class BaseMenu {
 /**
  * A menu to execute commands with a specific target
  *
- * @tparam TargetType class to be passed to execution commands
+ * Generally, it is a good idea to have a header defining 
+ * the type of menu you wish to operate for your program.
+ * In it, you would have a line like
+ * ```cpp
+ * using pftool = Menu<PolarfireTarget>;
+ * ```
+ * so that in the files where you are implementing menu
+ * commands the registration is less likely to be messed up.
+ * ```cpp
+ * // example registration using above alias
+ * namespace {
+ * auto sb = pftool::menu("SB","example empty submenu");
+ * }
+ * ```
+ * and running the menu takes on a more appealing form.
+ * ```cpp
+ * // tgt is a handle to the target of the menu
+ * // i.e. it is of type pftool::TargetHandle
+ * pftool::run(tgt);
+ * ```
+ *
+ * @tparam T class to be passed to execution commands
+ * @tparam H a handle for T (defaults to T*)
  */
-template <class TargetType>
+template <typename T, typename H = T*>
 class Menu : public BaseMenu {
  public:
+  /// the type of target this menu points to
+  using TargetType = T;
+  /// the type of handle we use to access the target
+  using TargetHandle = H;
   /// type of function which does something with the target
-  using SingleTargetCommand = std::function<void(TargetType*)>;
+  using SingleTargetCommand = std::function<void(TargetHandle)>;
   /// type of function which does one of several commands with target
-  using MultipleTargetCommands = std::function<void(const std::string&, TargetType*)>;
-
-  /**
-   * A command in the menu
-   *
-   * A menu command can do one of two tasks:
-   * 1. Enter a sub-menu
-   * 2. Execute a specific command on the target
-   *
-   * There are two ways to execute a command on the target,
-   * the user can provide a function that only does one command
-   * on the target (the function signature is SingleTargetCommand)
-   * or the user can provide a function that can do multiple
-   * commands on a target (the function signature is MultipleTargetCommands)
-   * where the first argument to that function will be the name of that
-   * Line.
-   */
-  class Line {
-   public:
-    /// define a menu line that uses a single target command
-    Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(f) {}
-    /// define a menu line that uses a multiple command function
-    Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_(0), 
-          cmd_([&](TargetType* p) { f(this->name_, p); }) {}
-    /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, Menu* m)
-        : name_(n), desc_(d), sub_menu_(m), cmd_(0) {}
-    /**
-     * define an empty menu line with only a name and description
-     *
-     * empty lines are used to exit menus because they will do nothing
-     * when execute is called and will leave the do-while loop in Menu::steer
-     */
-    Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_(0), cmd_(0) {}
-    
-    /**
-     * Execute this line
-     *
-     * If this line is a sub-menu, we give the target to that menu's
-     * steer function. Otherwise, we execute the function that is
-     * available for this line, perferring the single target command.
-     *
-     * @note Empty menu lines will just do nothing when executed.
-     *
-     * @param[in] p pointer to target
-     * @return true if we were a sub-menu and the command options
-     *  need to be reset to the parent menu options
-     */
-    bool execute(TargetType* p) const {
-      if (sub_menu_) {
-        sub_menu_->steer(p);
-        return true;
-      } else if (cmd_) {
-        try {
-          cmd_(p);
-#ifndef PFLIB_TEST_MENU
-        } catch(const pflib::Exception& e) {
-          std::cerr << " pflib ERR [" << e.name()
-            << "] : " << e.message() << std::endl;
-#endif
-        } catch(const std::exception& e) {
-          std::cerr << " Unknown Exception " << e.what() << std::endl;
-        }
-      }
-      // empty and command lines don't need the parent menu
-      // to reset the command options
-      return false;
-    }
-
-    /**
-     * Check if this line is an empty one
-     */
-    bool empty() const {
-      return sub_menu_ == 0 and cmd_ == 0;
-    }
-
-    /// name of this line to select it
-    const char* name() const { return name_; }
-    /// short description to print with menu
-    const char* desc() const { return desc_; }
-   private:
-    /// the name of this line
-    const char* name_;
-    /// short description for what this line is
-    const char* desc_;
-    /// pointer to sub menu (if it exists)
-    Menu* sub_menu_;
-    /// function pointer to execute (if exists)
-    SingleTargetCommand cmd_;
-    /// is this a null line?
-    bool is_null;
-  };
+  using MultipleTargetCommands = std::function<void(const std::string&, TargetHandle)>;
 
   /**
    * The type of function used to "render" a menu
@@ -293,16 +226,115 @@ class Menu : public BaseMenu {
    * this can include necessary initiliazation procedures
    * if need be.
    */
-  using RenderFuncType = void (*)(TargetType*);
+  using RenderFuncType = std::function<void(TargetHandle)>;
 
   /**
-   * Construct a menu with a rendering function and the input lines
+   * declare a single target command with thei nput name and desc
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex function to execute when name is called
+   * @return pointer to us
    */
-  Menu(std::initializer_list<Line> lines, RenderFuncType f = 0)
-      : lines_{lines}, render_func_{f} {}
+  Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
+    lines_.emplace_back(name,desc,ex);
+    return this;
+  }
 
-  /// add a new line to this menu
-  void addLine(const Line& line) { lines_.push_back(line); }
+  /**
+   * declare a single target command with the input name and desc
+   *
+   * MultipleTargetCommands functions have a string parameter which
+   * is given name when run.
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex function to execute when name is called
+   * @return pointer to us
+   */
+  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
+    lines_.emplace_back(name,desc,ex);
+    return this;
+  }
+
+  /**
+   * declare a sub menu of us with input name and desc
+   *
+   * appends this menu line to us and then returns a pointer to us
+   *
+   * @note Line takes ownership of Menus that are provided to it,
+   * so Menus should be dynamically created and not deleted.
+   * It is suggested to use the menu function to avoid complication.
+   *
+   * This can be used if you already have a menu and you wish to add
+   * another submenu to it.
+   * ```cpp
+   * namespace {
+   * auto mymain = Menu<T>::menu("MAIN","will be on the root menu");
+   * auto sb = mymain->submenu("SB","A line in the MAIN menu");
+   * }
+   * ```
+   *
+   * @param[in] name Name of this line to use when running
+   * @param[in] desc short description to print with menu
+   * @param[in] ex pointer to menu that we should append
+   * @return pointer to the newly created submenu
+   */
+  Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
+    auto sb = new Menu(f);
+    lines_.emplace_back(name,desc,sb); // Line takes ownership
+    return sb;
+  }
+
+  /**
+   * Retreve a pointer to the root menu
+   */
+  static Menu* root() {
+    static Menu root;
+    return &root;
+  }
+
+  /**
+   * Go through and render each of the lines in this menu
+   *
+   * @note No need to add EXIT/QUIT lines!
+   *
+   * Afterwards, we append the "EXIT" line to us.
+   */
+  void render() {
+    // go through menu options and add exit
+    for (Line& l : lines_) l.render();
+    lines_.emplace_back("EXIT","leave this menu");
+  }
+
+  /**
+   * Call this function when ready to run
+   *
+   * Provide a TargetHandle to run over.
+   *
+   * After rendering the menu, we give tgt to
+   * steer to start off.
+   *
+   * @param[in] tgt TargetHandle to run with
+   */
+  static void run(TargetHandle tgt) {
+    root()->render();
+    root()->steer(tgt);
+  }
+  
+  /// no copying
+  Menu(const Menu&) = delete;
+  /// no copying
+  void operator=(const Menu&) = delete;
+
+  /**
+   * Construct a menu with a rendering function
+   */
+  Menu(RenderFuncType f = 0) : render_func_{f} {}
 
   /**
    * give control over the target to this menu
@@ -324,7 +356,83 @@ class Menu : public BaseMenu {
    *
    * @param[in] p_target pointer to the target
    */
-  void steer(TargetType* p_target) const;
+  void steer(TargetHandle p_target) const {
+    this->cmd_options_ = this->command_options(); // we are the captain now
+    const Line* theMatch = 0;
+    do {
+      if (render_func_ != 0) {
+        this->render_func_(p_target);
+      }
+      // if cmd text queue is empty, then print menu for interactive user
+      if (this->cmdTextQueue_.empty()) {
+        printf("\n");
+        for (const auto& l : lines_) 
+          std::cout << l << std::endl;
+      }
+      std::string request = readline_cmd();
+      theMatch = 0;
+      // check for a unique match...
+      int nmatch = 0;
+      for (size_t i = 0; i < lines_.size(); i++)
+        if (strcasecmp(request.c_str(), lines_[i].name()) == 0) {
+          theMatch = &(lines_[i]);
+          nmatch++;
+        }
+      if (nmatch > 1) theMatch = 0;
+      // ok
+      if (theMatch == 0)
+        printf("  Command '%s' not understood.\n\n", request.c_str());
+      else {
+        add_to_history(theMatch->name());
+        if (theMatch->execute(p_target)) {
+          // resume control when the chosen line was a submenu
+          this->cmd_options_ = this->command_options();
+        }
+      }
+    } while (theMatch == 0 or not theMatch->empty());
+  }
+
+  /**
+   * Construct a new menu with the root as parent and optional rendering
+   * 
+   * After using submenu to attach ourselves to the input parent,
+   * we return a pointer to the newly constructed menu.
+   * This is to allow chaining during the declaration of a menu,
+   * so that the declaration of a menu has a form similar to what
+   * the menu looks like at run time.
+   *
+   * A simple example (actually using the shorter alias) is below.
+   * `one_func` and `two_func` are both functions accessible by this
+   * piece of code (either via a header or in this translation unit)
+   * and are `void` functions with take a handle to the target type.
+   * `color_func` is similarly accessible but it takes a string and 
+   * the target handle. The string will be the command that is selected
+   * at runtime (e.g. "RED" if it is typed by the user)
+   * ```cpp
+   * namespace {
+   * auto sb = Menu<T>::menu("SB","example submenu")
+   *   ->line("ONE", "one command in this menu", one_func)
+   *   ->line("TWO", "two command in this menu", two_func)
+   *   ->line("RED", "can have multiple lines directed to the same func", color_func)
+   *   ->line("BLUE", "see?" , color_func)
+   * ;
+   * }
+   * ```
+   * The anonymous namespace is used to force the variable within it to
+   * be static and therefore created at library linking time. 
+   * The dummy variable is (unfortunately) necessary so that the sub
+   * menu can maintain existence throughout the runtime of the program.
+   *
+   * @see submenu for attaching to another menu directly
+   * @param[in] name Name of this sub menu for selection
+   * @param[in] desc description of this sub menu
+   * @param[in] render_func function to use to render this sub menu
+   * @return pointer to newly created menu
+   */
+  static Menu* menu(const char* name, const char* desc, 
+      RenderFuncType render_func = 0) {
+    return root()->submenu(name,desc,render_func);
+  }
 
  private:
   /**
@@ -340,47 +448,135 @@ class Menu : public BaseMenu {
   }
 
  private:
+  /**
+   * A command in the menu
+   *
+   * A menu command can do one of two tasks:
+   * 1. Enter a sub-menu
+   * 2. Execute a specific command on the target
+   *
+   * There are two ways to execute a command on the target,
+   * the user can provide a function that only does one command
+   * on the target (the function signature is SingleTargetCommand)
+   * or the user can provide a function that can do multiple
+   * commands on a target (the function signature is MultipleTargetCommands)
+   * where the first argument to that function will be the name of that
+   * Line.
+   */
+  class Line {
+   public:
+    /// define a menu line that uses a single target command
+    Line(const char* n, const char* d, SingleTargetCommand f)
+        : name_(n), desc_(d), sub_menu_{0}, cmd_(f), mult_cmds_{0} {}
+    /// define a menu line that uses a multiple command function
+    Line(const char* n, const char* d, MultipleTargetCommands f)
+        : name_(n), desc_(d), sub_menu_{0}, mult_cmds_{f} {}
+    /// define a menu line that enters a sub menu
+    Line(const char* n, const char* d, Menu* m)
+        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
+    /**
+     * define an empty menu line with only a name and description
+     *
+     * empty lines are used to exit menus because they will do nothing
+     * when execute is called and will leave the do-while loop in Menu::steer
+     */
+    Line(const char* n, const char* d)
+        : name_(n), desc_(d), sub_menu_{0}, cmd_(0), mult_cmds_{0} {}
+
+    /**
+     * noexcept move constructor allows std::vector to use it when expanding capacity
+     */
+    Line(Line&& l) noexcept 
+      : name_{l.name_},
+        desc_{l.desc_},
+        sub_menu_{l.sub_menu_},
+        cmd_{l.cmd_},
+        mult_cmds_{l.mult_cmds_}
+    {
+      l.sub_menu_ = 0;
+    }
+
+    Line(const Line& l) = default;
+
+    ~Line() {
+      if (sub_menu_) delete sub_menu_;
+    }
+
+    /**
+     * Execute this line
+     *
+     * If this line is a sub-menu, we give the target to that menu's
+     * steer function. Otherwise, we execute the function that is
+     * available for this line, perferring the single target command.
+     *
+     * @note Empty menu lines will just do nothing when executed.
+     *
+     * @param[in] p pointer to target
+     * @return true if we were a sub-menu and the command options
+     *  need to be reset to the parent menu options
+     */
+    bool execute(TargetHandle p) const {
+      if (sub_menu_) {
+        sub_menu_->steer(p);
+        return true;
+      } else if (cmd_ or mult_cmds_) {
+        try {
+          if (cmd_) cmd_(p);
+          else mult_cmds_(name_,p);
+#ifndef PFLIB_TEST_MENU
+        } catch(const pflib::Exception& e) {
+          std::cerr << " pflib ERR [" << e.name()
+            << "] : " << e.message() << std::endl;
+#endif
+        } catch(const std::exception& e) {
+          std::cerr << " Unknown Exception " << e.what() << std::endl;
+        }
+      }
+      // empty and command lines don't need the parent menu
+      // to reset the command options
+      return false;
+    }
+
+    /**
+     * Check if this line is an empty one
+     */
+    bool empty() const {
+      return !sub_menu_ and cmd_ == 0 and mult_cmds_ == 0;
+    }
+
+    /**
+     * add an exit line if this is a menu, otherwise do nothing
+     */
+    void render() {
+      if (sub_menu_) sub_menu_->render();
+    }
+
+    /// name of this line to select it
+    const char* name() const { return name_; }
+    /// short description to print with menu
+    const char* desc() const { return desc_; }
+    friend std::ostream& operator<<(std::ostream& s, const Line& l) {
+      return (s << "  " << std::left << std::setw(12) << l.name() 
+                << " " << l.desc());
+    }
+   private:
+    /// the name of this line
+    const char* name_;
+    /// short description for what this line is
+    const char* desc_;
+    /// pointer to sub menu (if it exists)
+    Menu* sub_menu_;
+    /// function pointer to execute (if exists)
+    SingleTargetCommand cmd_;
+    /// function handling multiple commands to execute (if exists)
+    MultipleTargetCommands mult_cmds_;
+  };  // Line
+
+ private:
   /// lines in this menu
   std::vector<Line> lines_;
   /// function pointer to render the menu prompt
   RenderFuncType render_func_;
-};
-
-template <class TargetType>
-void Menu<TargetType>::steer(TargetType* p_target) const {
-  this->cmd_options_ = this->command_options(); // we are the captain now
-  const Line* theMatch = 0;
-  do {
-    printf("\n");
-    if (render_func_ != 0) {
-      this->render_func_(p_target);
-    }
-    // if cmd text queue is empty, then print menu for interactive user
-    if (this->cmdTextQueue_.empty())
-      for (size_t i = 0; i < lines_.size(); i++) {
-        printf("   %-12s %s\n", lines_[i].name(), lines_[i].desc());
-      }
-    std::string request = readline_cmd();
-    theMatch = 0;
-    // check for a unique match...
-    int nmatch = 0;
-    for (size_t i = 0; i < lines_.size(); i++)
-      if (strcasecmp(request.c_str(), lines_[i].name()) == 0) {
-        theMatch = &(lines_[i]);
-        nmatch++;
-      }
-    if (nmatch > 1) theMatch = 0;
-    // ok
-    if (theMatch == 0)
-      printf("  Command '%s' not understood.\n\n", request.c_str());
-    else {
-      add_to_history(theMatch->name());
-      if (theMatch->execute(p_target)) {
-        // resume control when the chosen line was a submenu
-        this->cmd_options_ = this->command_options();
-      }
-    }
-  } while (theMatch == 0 or not theMatch->empty());
-}
+};  // Menu
 
 #endif  // PFLIB_TOOL_MENU_H
