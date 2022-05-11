@@ -136,26 +136,11 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         elinks.setBitslip(link,bitslip);
       }
       HeaderCheckResults results{activeLinkNumbers};
-      // int n_good_bxheaders[num_active_links] {};
-      // int n_bad_bxheaders[num_active_links] {};
-      // int n_good_idles[num_active_links] {};
-      // int n_bad_idles[num_active_links] {};
       for (int ievt{0}; ievt < nevents; ievt++) {
         pft->backend->fc_sendL1A();
         std::vector<uint32_t> event_raw = pft->daqReadEvent();
         pflib::decoding::SuperPacket event{&(event_raw[0]), int(event_raw.size())};
         results.add_event(event, nsamples);
-        // for (int s{0}; s < nsamples; s++) {
-        //   for(int jlink = 0; jlink < num_active_links; jlink++){
-        //     auto packet = event.sample(s).roc(jlink);
-        //     if (packet.length() > 2) {
-        //       if (event.sample(s).roc(jlink).good_bxheader()) n_good_bxheaders[jlink]++;
-        //       else n_bad_bxheaders[jlink]++;
-        //       if (event.sample(s).roc(jlink).good_idle()) n_good_idles[jlink]++;
-        //       else n_bad_idles[jlink]++;
-        //     }
-        //   }
-        // }
       }
       for(std::size_t  link_index{0}; link_index < num_active_links; ++link_index) {
         const auto& status = results.res[link_index];
@@ -166,21 +151,6 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
           delay_candidate[link_index] = delay;
         }
       }
-      // for(int i = 0; i < num_active_links; i++){
-      //   if(n_good_idles[i] >= record_idle[i] && n_good_bxheaders[i] >= record_bx[i]){
-      //     record_bx[i] = n_good_bxheaders[i];
-      //     record_idle[i] = n_good_idles[i];
-      //     bitslip_candidate[i] = bitslip;
-      //     delay_candidate[i] = delay;
-      //   }
-      // }
-
-      /*
-        for(int jlink = 0; jlink < 8; jlink++){
-        std::cout << n_good_bxheaders[jlink] << ":" << n_good_idles[jlink] << "  ";
-        }
-        std::cout << std::endl;
-      */
     }
   }
   if (verbose) {
@@ -209,30 +179,6 @@ void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_s
         std::cout << "Consider a PLL hard_reset" << std::endl;
       }
     }
-    // float bg_bxheaders = 1.;
-    // int bad_bxheaders = nsamples*nevents-record.n_good_bxheaders;
-    // if (record.n_good_bxheaders>0)
-    //   bg_bxheaders = float(bad_bxheaders)/
-    //     (record_bx[link_index]+bad_bxheaders);
-    // if (verbose) {
-    //   std::cout << "Percentage of bad BX headers: " << bg_bxheaders*100. << std::endl;
-    // }
-
-
-    // if(bg_bxheaders > 0.1 && verbose){
-    //   std::cout << "Consider a PLL hard_reset" << std::endl;
-    // }
-    // float bg_idles = 1.;
-    // int bad_idles = nsamples*nevents-record_idle[link_index];
-    // if (record_idle[link_index]>0)
-    //   bg_idles = float(bad_idles)/
-    //     (record_idle[link_index]+bad_idles);
-    // if (verbose) {
-    // std::cout << "Percentage of bad idles: " << bg_idles*100. << std::endl;
-    // if(bg_idles > 0.1){
-    //   std::cout << "Consider a PLL hard_reset" << std::endl;
-    // }
-    // }
   }
 }
 void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks) {
