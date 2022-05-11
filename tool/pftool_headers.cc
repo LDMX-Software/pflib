@@ -27,7 +27,6 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
         }
     }
 }
-
 bool HeaderCheckResults::is_acceptable (const double threshold) const
 {
     for (auto status : res) {

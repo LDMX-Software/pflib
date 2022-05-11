@@ -27,8 +27,6 @@ struct HeaderStatus {
         void update(const pflib::decoding::RocPacket packet);
 };
 struct HeaderCheckResults {
-    int num_links;
-    int num_active_links;
     std::vector<HeaderStatus> res;
     HeaderCheckResults(const std::vector<int>& active_links )
     {
