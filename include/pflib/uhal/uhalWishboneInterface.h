@@ -59,6 +59,14 @@ class uhalWishboneInterface : public WishboneInterface, public Backend {
   virtual void fc_calibpulse();
   virtual void fc_setup_calib(int pulse_len, int l1a_offset);
   virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset);
+  virtual void fc_read_counters(int&  spill_count, int& header_occ, int& header_occ_max, int& event_count, int& vetoed_counter) override;
+  virtual void fc_clear_run() override;
+  virtual void fc_advance_l1_fifo() override;
+  virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a) override;
+  virtual void fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a) override;
+  virtual void fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l1_occ, int& l1_occ_busy, int& l1_occ_ok) override;
+  virtual void fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) override;
+   
 
   virtual void daq_reset();
   virtual void daq_advance_ptr();

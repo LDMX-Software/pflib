@@ -3,6 +3,11 @@
 #include "Menu.h"
 #include "pflib/PolarfireTarget.h"
 #include "pflib/Compile.h"
+
+
+// Forward declaration due to unorganized source structure
+std::string get_output_directory();
+
 using pflib::PolarfireTarget;
 /**
  * ROC currently being interacted with by user
@@ -25,7 +30,10 @@ void poke_all_rochalves(PolarfireTarget *pft, const std::string& page_template,
                         const std::string& parameter, const int value);
 
 
-void dump_rocconfig(PolarfireTarget* pft, const int iroc);
+std::string make_default_rocdump_filename(const int dpm,
+                                          const int iroc);
+void dump_rocconfig(PolarfireTarget* pft,
+                    const int iroc);
 
 std::string make_roc_config_filename(const int config_version, const int roc);
 // Ask for everything
@@ -63,7 +71,7 @@ void load_parameters(PolarfireTarget* pft, const int config_version,
 void roc( const std::string& cmd, PolarfireTarget* pft );
 
 int get_num_rocs();
-int get_dpm_number();
+int get_dpm_number(pflib::PolarfireTarget* pft = nullptr);
 int get_num_channels_per_elink();
 int get_num_channels_per_roc();
 int get_number_of_samples_per_event(pflib::PolarfireTarget* pft);

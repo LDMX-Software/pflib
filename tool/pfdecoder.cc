@@ -2,16 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <algorithm>
+#include <numeric>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
 #include <fcntl.h>
-
+#include <iostream>
 void usage() {
   fprintf(stderr, "Usage: [-d] [-v verbosity] [-r roclink] [file]\n");
   fprintf(stderr, "  -d  : show data words (default is header only)\n");
   fprintf(stderr, "  -l  : print link alignment counters at end\n");
+  fprintf(stderr, "  -e : print spills and timestamps at end\n" );
   fprintf(stderr, "  -v [verbosity level] (default is 3)\n");
   fprintf(stderr, "     0 : report error conditions only\n");
   fprintf(stderr, "     1 : report superheaders\n");
@@ -24,6 +27,7 @@ void usage() {
 
 void renderADC(const std::vector<uint32_t>& data);
 
+
 int main(int argc, char* argv[]) {
   int opt;
   int infile=0;
@@ -32,9 +36,10 @@ int main(int argc, char* argv[]) {
   std::vector<uint32_t> data;
   bool showdata=false;
   bool prettyadc=false;
+  bool printevents=false;
   bool printlink=false;
   
-  while ((opt = getopt(argc, argv, "dlv:r:a")) != -1) {
+  while ((opt = getopt(argc, argv, "dlv:r:ae")) != -1) {
     switch (opt) {
     case 'd':
       showdata=true;
@@ -45,6 +50,10 @@ int main(int argc, char* argv[]) {
     case 'a':
       prettyadc=true;
       break;
+    case 'e':
+      printevents=true;
+      break;
+
     case 'v':
       verbosity=atoi(optarg);
       break;
@@ -99,7 +108,10 @@ int main(int argc, char* argv[]) {
   std::vector<int> link_pointers;
   std::vector<int> link_len;
   std::vector<uint32_t> link_data;
-  
+
+  std::vector<std::vector<int>> timestamps_per_spill{};
+  int spillcounter {0};
+  int timestamp_counter{0};
   for (int i=0; i<int(data.size()); i++) {
     word_type=wt_unknown;
     if (data[i]==0x11111111 && data[i+1]==0xbeef2021) { // detect master header
@@ -161,14 +173,26 @@ int main(int argc, char* argv[]) {
       ilink=-1;
     } else if (fmt==2 && rel_super>2+8 && packet_header<0) { // extended superheader
       int rel_super_tag=rel_super-(2+8+1);
-      if (verbosity>1) {
-        if (rel_super_tag==0) printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",
-            i,rel_super,data[i],(data[i]>>12)&0xFFF,data[i]&0xFFF, data[i]&0xFFF);
-        else if (rel_super_tag==1) printf("%04d S%02d %08x    "
+      if (verbosity>1 || printevents) {
+        if (rel_super_tag==0) {
+          const int spill = (data[i] >> 12) &0xFFF;
+          if (spill != spillcounter) {
+            timestamps_per_spill.push_back({});
+            ++spillcounter;
+          }
+          printf("%04d S%02d %08x    Spill = %d  BX = %d (0x%x)\n",
+                 i,rel_super,data[i],spill,data[i]&0xFFF, data[i]&0xFFF);
+        }
+        else if (rel_super_tag==1) {
+          const int ticks_since_start_of_spill = data[i];
+          const double time_since_start_of_spill = ticks_since_start_of_spill / 5e6; // 5Mhz
+          printf("%04d S%02d %08x    "
             "Time since start of spill %.5fs (%d 5 Mhz tics)\n",
-            i,rel_super,data[i],data[i]/5e6,data[i]);
+            i,rel_super,data[i],time_since_start_of_spill,ticks_since_start_of_spill);
+          timestamps_per_spill.back().push_back(ticks_since_start_of_spill);
+        }
         else if (rel_super_tag==2) printf("%04d S%02d %08x    "
-            "Evt Number = %d \n",i,rel_super,data[i],data[i]);
+                                                   "Evt Number = %d \n",i,rel_super,data[i],data[i]);
         else if (rel_super_tag==3) printf("%04d S%02d %08x    "
             "Run %d start DD-MM hh:mm : %2d-%d %02d:%02d\n",
             i,rel_super,data[i],(data[i]&0xFFF),(data[i]>>23)&0x1F,
@@ -232,6 +256,58 @@ int main(int argc, char* argv[]) {
 
   close(infile);
 
+
+  if (printevents) {
+    std::vector<double> duplicate_rates{};
+    duplicate_rates.reserve(timestamps_per_spill.size());
+
+    for (int spill_index {0}; spill_index < timestamps_per_spill.size(); ++spill_index) {
+      std::cout << "Spill index: " << spill_index << std::endl;
+      const auto timestamps = timestamps_per_spill[spill_index];
+      for (auto timestamp : timestamps) {
+        std::cout << "-- " << timestamp << '\n';
+      }
+    }
+    for (int spill_index {0}; spill_index < timestamps_per_spill.size(); ++spill_index) {
+      const int spill {spill_index + 1};
+      std::cout << "Spill: " << spill << std::endl;
+      const auto& timestamps = timestamps_per_spill[spill_index];
+      for (const auto timestamp : timestamps ){
+        // std::cout << "Timestamp: " << timestamp << '\n';
+      }
+
+      auto found_duplicate = std::adjacent_find(std::cbegin(timestamps),
+                                                std::cend(timestamps));
+      int duplicate_counter {0};
+      while (found_duplicate != std::cend(timestamps)) {
+        ++duplicate_counter;
+        auto duplicate_ptr  = found_duplicate + 1;
+        std::cout << "Found duplicate in spill "
+                  << spill
+                  << " at position "
+                  << std::distance(std::cbegin(timestamps), found_duplicate)
+                  << " with value " << *found_duplicate
+                  << " duplicate " << *(duplicate_ptr)
+                  << std::endl;
+        found_duplicate = std::adjacent_find(duplicate_ptr,
+                                             std::cend(timestamps));
+      }
+      const double duplicate_rate = static_cast<double>(duplicate_counter) / timestamps.size() * 100.;
+      std::cout << "Total duplicates " << duplicate_counter
+                << " out of " << timestamps.size()
+                << " timestamps in spill " << spill
+                << " or " << duplicate_rate
+                << " %" << std::endl;
+      duplicate_rates.push_back(duplicate_rate);
+  }
+  const auto average_rate_of_duplicates = std::accumulate(std::cbegin(duplicate_rates),
+                                                          std::cend(duplicate_rates),
+                                                          0.) / duplicate_rates.size();
+  std::cout << "Average rate of duplicates: "
+            << average_rate_of_duplicates << " % for "
+            << timestamps_per_spill.size() << " spills" << std::endl;
+
+  }
   if (printlink) {
     if (verbosity>0) printf("\n");
     printf("Link Alignment Checks\n");

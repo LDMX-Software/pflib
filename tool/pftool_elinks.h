@@ -2,6 +2,7 @@
 #define PFTOOL_ELINKS_H
 
 #include "pflib/PolarfireTarget.h"
+#include "pftool_headers.h"
 #include "Menu.h"
 #include "pflib/decoding/SuperPacket.h"
 #include "pftool_daq.h"
@@ -28,7 +29,13 @@
  */
 void elinks( const std::string& cmd, pflib::PolarfireTarget* pft);
 
-void align_elinks(pflib::PolarfireTarget* pft);
+void align_elinks(PolarfireTarget* pft, pflib::Elinks& elinks, const int delay_step, bool verbose = true);
+void align_elinks(pflib::PolarfireTarget* pft, pflib::Elinks& elinks);
 
-void header_check(pflib::PolarfireTarget* pft, const int nevents);
+void auto_align(pflib::PolarfireTarget* pft);
+
+HeaderCheckResults header_check(pflib::PolarfireTarget* pft, const int nevents,
+                                const bool verbose = true);
+
+
 #endif /* PFTOOL_ELINKS_H */

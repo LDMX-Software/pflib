@@ -30,6 +30,16 @@
      <node id="STATIC_BITS" address="0" permission="rw" mask="0xF00"/>
      <node id="CALIB_PULSE_LEN" address="2" permission="rw"  mask="0x0F000000"/>
      <node id="CALIB_L1A_OFFSET" address="2" permission="rw" mask="0x00FF0000"/>
+     <node id="OCC" address="0x44" permission="r" mask="0xFF"/>
+     <node id="OCC_MAX" address="0x44" permission="r" mask="0xFF00" />
+     <node id="SPILL_COUNT" address="0x44" permission="r" mask="0xFFF0000"/>
+     <node id="EVENT_COUNT" address="0x45" permission="r" />
+     <node id="VETO" address="0x49" permission="r" mask="0xFFF" />
+     <node id="CLEAR_FIFO" address="0x1" permission="rw" mask="0x10" />
+     <node id="ADVANCE_L1_FIFO" address="0x1" permission="rw" mask="0x20" />
+     <node id="ENABLES" address="0x0" permission="rw" />
+     <node id="VETO_SETUP" address="0x0" permission="rw" />
+     <node id="OCC_VETO" address="4" permission="rw" />
   </node>
   <node id="WISHBONE" address="0x100000">
     <node id="WB_WRITE_DATA" address="0x3" description="Data to write"/>
