@@ -489,7 +489,6 @@ void teardown_charge_injection(PolarfireTarget* pft)
   const int num_rocs {get_num_rocs()};
   std::cout << "Disabling IntCTest" << std::endl;
 
-
   std::string intctest_page = "REFERENCE_VOLTAGE_";
   std::string intctest_parameter = "INTCTEST";
   const int intctest = 0;
@@ -516,14 +515,15 @@ void prepare_charge_injection(PolarfireTarget* pft)
   
   const int intctest = 1;
   std::cout << "Setting " << hc.intctest_parameter << " on page "
-	    << hc.intctest_page << " to "
-	    << intctest << '\n';
+            << hc.intctest_page << " to "
+            << intctest << std::endl;
   poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
-  
+
   std::cout << "Setting " <<hc.l1offset_parameter << " on page "
-	    << hc.l1offset_page << " to "
-	    << hc.charge_l1offset << '\n';
+            << hc.l1offset_page << " to "
+            << hc.charge_l1offset << std::endl;
   poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
+
 }
 
 void tot_tune(PolarfireTarget* pft)
@@ -975,7 +975,8 @@ std::string make_default_led_template() {
   sprintf(fname_def_format,"led_DPM%d_%%Y%%m%%d_%%H%%M%%S_dac_", dpm);
   char fname_def[1024];
   strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-  return fname_def;
+  const std::string filename {get_output_directory() + std::string{fname_def}};
+  return filename;
 }
 
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
@@ -983,39 +984,39 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const std::string& valuename,
                                              const int calib_offset)
 {
-    int len{};
-    int offset{};
-    if (calib_offset < 0 && pft != nullptr) {
-      pft->backend->fc_get_setup_calib(len,offset);
-    } else {
-      offset = calib_offset;
-    }
+  int len{};
+  int offset{};
+  if (calib_offset < 0 && pft != nullptr) {
+    pft->backend->fc_get_setup_calib(len,offset);
+  } else {
+    offset = calib_offset;
+  }
 
-    time_t t=time(NULL);
-    struct tm *tm = localtime(&t);
-    char fname_def_format[1024];
-    sprintf(fname_def_format,
-            "scan_DPM%d_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",
-            dpm,
-            valuename.c_str(), offset);
-    char fname_def[1024];
-    strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-    const auto output_directory{get_output_directory()};
-    return output_directory + fname_def;
+  time_t t=time(NULL);
+  struct tm *tm = localtime(&t);
+  char fname_def_format[1024];
+  sprintf(fname_def_format,
+          "scan_DPM%d_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",
+          dpm,
+          valuename.c_str(), offset);  char fname_def[1024];
+  char fname_def[1024];
+  strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
+  const auto output_directory{get_output_directory()};
+  return output_directory + fname_def;
 }
 
 
 std::vector<std::string> make_led_filenames() {
   const calibrun_hardcoded_values hc{};
   std::string led_filename_template = BaseMenu::readline(
-							 "Filename template for LED runs (dac value is appended to this):",
-							 make_default_led_template());
-  std::cout << "Performing LED runs with DAC values: \n";
+    "Filename template for LED runs (dac value is appended to this):",
+  make_default_led_template());
+  std::cout << "Performing LED runs with DAC values: " << std::endl;
   std::vector<std::string> led_filenames{};
-  
+
   for (auto dac_value : hc.led_dac_values) {
     std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
-    std::cout << dac_value << ": " << filename <<'\n';
+    std::cout << dac_value << ": " << filename << std::endl;
     led_filenames.push_back(filename);
   }
   return led_filenames;
@@ -1046,12 +1047,12 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
 	    << hc.l1offset_page << " to "
 	    << hc.led_l1offset << std::endl;
   poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
-  
+
   for (int i {0}; i < hc.led_dac_values.size(); ++i) {
     const int dac_value {hc.led_dac_values[i]};
     std::cout << "Doing LED run with dac value: " << dac_value << std::endl;
     set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
-    
+
     pft->prepareNewRun();
     daq_run(pft, led_command, run, hc.num_led_events, rate, led_filenames[i]);
   }
