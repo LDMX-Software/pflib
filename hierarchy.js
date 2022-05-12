@@ -5,7 +5,7 @@ var hierarchy =
       [ "pflib::uhal::uhalWishboneInterface", "classpflib_1_1uhal_1_1uhalWishboneInterface.html", null ]
     ] ],
     [ "BaseMenu", "classBaseMenu.html", [
-      [ "Menu< TargetType >", "classMenu.html", null ]
+      [ "Menu< T, H >", "classMenu.html", null ]
     ] ],
     [ "pflib::Bias", "classpflib_1_1Bias.html", null ],
     [ "calibrun_hardcoded_values", "structcalibrun__hardcoded__values.html", null ],
@@ -20,7 +20,7 @@ var hierarchy =
     [ "HeaderStatus", "structHeaderStatus.html", null ],
     [ "Rcfile::HelpInfo", "structRcfile_1_1HelpInfo.html", null ],
     [ "hex< W >", "structhex.html", null ],
-    [ "Menu< TargetType >::Line", "classMenu_1_1Line.html", null ],
+    [ "Menu< T, H >::Line", "classMenu_1_1Line.html", null ],
     [ "pflib::MAX5825", "classpflib_1_1MAX5825.html", null ],
     [ "pflib::Parameter", "structpflib_1_1Parameter.html", null ],
     [ "pflib::DetectorConfiguration::PolarfireConfiguration", "structpflib_1_1DetectorConfiguration_1_1PolarfireConfiguration.html", null ],

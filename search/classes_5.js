@@ -16,7 +16,8 @@ var searchData=
   ['front_5finsert_5fiterator_13',['front_insert_iterator',['http://en.cppreference.com/w/cpp/iterator/front_insert_iterator.html',1,'std']]],
   ['fstream_14',['fstream',['http://en.cppreference.com/w/cpp/io/basic_fstream.html',1,'std']]],
   ['function_15',['function',['http://en.cppreference.com/w/cpp/utility/functional/function.html',1,'std']]],
-  ['function_3c_20void_28targettype_20_2a_29_3e_16',['function&lt; void(TargetType *)&gt;',['http://en.cppreference.com/w/cpp/utility/functional/function.html',1,'std']]],
-  ['future_17',['future',['http://en.cppreference.com/w/cpp/thread/future.html',1,'std']]],
-  ['future_5ferror_18',['future_error',['http://en.cppreference.com/w/cpp/thread/future_error.html',1,'std']]]
+  ['function_3c_20void_28const_20std_3a_3astring_20_26_2c_20targethandle_29_3e_16',['function&lt; void(const std::string &amp;, TargetHandle)&gt;',['http://en.cppreference.com/w/cpp/utility/functional/function.html',1,'std']]],
+  ['function_3c_20void_28targethandle_29_3e_17',['function&lt; void(TargetHandle)&gt;',['http://en.cppreference.com/w/cpp/utility/functional/function.html',1,'std']]],
+  ['future_18',['future',['http://en.cppreference.com/w/cpp/thread/future.html',1,'std']]],
+  ['future_5ferror_19',['future_error',['http://en.cppreference.com/w/cpp/thread/future_error.html',1,'std']]]
 ];

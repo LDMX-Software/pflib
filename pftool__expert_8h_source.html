@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-3-g497ec986</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -89,14 +89,16 @@ $(document).ready(function(){initNavTree('pftool__expert_8h_source.html',''); in
 <div class="contents">
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef PFTOOL_I2C_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define PFTOOL_I2C_H</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;Menu.h&quot;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;pflib/PolarfireTarget.h&quot;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;pftool.h&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="keyword">using</span> <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>;</div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keywordtype">void</span> i2c(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft);</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keywordtype">void</span> wb(<span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft);</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_I2C_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keywordtype">void</span> link( <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a>* pft );</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_I2C_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="abasic_string_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a></div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a></div><div class="ttdoc">Interface to a single polarfire.</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.h:33</div></div>
 </div><!-- fragment --></div><!-- contents -->

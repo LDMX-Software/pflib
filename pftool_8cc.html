@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-3-g497ec986</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -90,27 +90,21 @@ $(document).ready(function(){initNavTree('pftool_8cc.html',''); initResizable();
 </div><!--header-->
 <div class="contents">
 
-<p>File defining the pftool menus and their commands.  
+<p>File defining the pftool executable.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;pftool.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for pftool.cc:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="pftool_8cc__incl.svg" width="2219" height="799"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="pftool_8cc__incl.svg" width="2246" height="710"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad9591d27a709a7c68f359245b4124fc5"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#ad9591d27a709a7c68f359245b4124fc5">status</a> (<a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft)</td></tr>
-<tr class="memdesc:ad9591d27a709a7c68f359245b4124fc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main status of menu.  <a href="pftool_8cc.html#ad9591d27a709a7c68f359245b4124fc5">More...</a><br /></td></tr>
-<tr class="separator:ad9591d27a709a7c68f359245b4124fc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff7e805ef88f957e253a1221f3b06b63"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;cmd, <a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft)</td></tr>
-<tr class="memdesc:aff7e805ef88f957e253a1221f3b06b63"><td class="mdescLeft">&#160;</td><td class="mdescRight">LINK menu commands.  <a href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">More...</a><br /></td></tr>
-<tr class="separator:aff7e805ef88f957e253a1221f3b06b63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c4a609522efe5fea10a5bcfce4d9dd9"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#a5c4a609522efe5fea10a5bcfce4d9dd9">RunMenu</a> (<a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *pft_)</td></tr>
-<tr class="memdesc:a5c4a609522efe5fea10a5bcfce4d9dd9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classMenu.html" title="A menu to execute commands with a specific target.">Menu</a> construction for pftool.  <a href="pftool_8cc.html#a5c4a609522efe5fea10a5bcfce4d9dd9">More...</a><br /></td></tr>
-<tr class="separator:a5c4a609522efe5fea10a5bcfce4d9dd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b76e3feaf7fced9c5e9ebdc1ea56dd5"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#a3b76e3feaf7fced9c5e9ebdc1ea56dd5">status</a> (<a class="el" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a> *pft)</td></tr>
+<tr class="memdesc:a3b76e3feaf7fced9c5e9ebdc1ea56dd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main status of menu.  <a href="pftool_8cc.html#a3b76e3feaf7fced9c5e9ebdc1ea56dd5">More...</a><br /></td></tr>
+<tr class="separator:a3b76e3feaf7fced9c5e9ebdc1ea56dd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacf21f385291770a8c2f61c149aefa0a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pftool_8cc.html#aacf21f385291770a8c2f61c149aefa0a">file_exists</a> (const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;fname)</td></tr>
 <tr class="memdesc:aacf21f385291770a8c2f61c149aefa0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a file exists by attempting to open it for reading.  <a href="pftool_8cc.html#aacf21f385291770a8c2f61c149aefa0a">More...</a><br /></td></tr>
 <tr class="separator:aacf21f385291770a8c2f61c149aefa0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -122,8 +116,7 @@ Functions</h2></td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p >File defining the pftool menus and their commands. </p>
-<p >The commands are written into functions corresponding to the menu's name. </p>
+<div class="textblock"><p >File defining the pftool executable. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="aacf21f385291770a8c2f61c149aefa0a" name="aacf21f385291770a8c2f61c149aefa0a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aacf21f385291770a8c2f61c149aefa0a">&#9670;&nbsp;</a></span>file_exists()</h2>
@@ -149,52 +142,6 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if file can be opened, false otherwise </dd></dl>
-
-</div>
-</div>
-<a id="aff7e805ef88f957e253a1221f3b06b63" name="aff7e805ef88f957e253a1221f3b06b63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aff7e805ef88f957e253a1221f3b06b63">&#9670;&nbsp;</a></span>link()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void link </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="elRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a> &amp;&#160;</td>
-          <td class="paramname"><em>cmd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *&#160;</td>
-          <td class="paramname"><em>pft</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>LINK menu commands. </p>
-<dl class="section note"><dt>Note</dt><dd>All interaction with target has been commented out. These commands do nothing at the moment.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">cmd</td><td>LINK command </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pft</td><td>active target </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -261,44 +208,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a5c4a609522efe5fea10a5bcfce4d9dd9" name="a5c4a609522efe5fea10a5bcfce4d9dd9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c4a609522efe5fea10a5bcfce4d9dd9">&#9670;&nbsp;</a></span>RunMenu()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void RunMenu </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *&#160;</td>
-          <td class="paramname"><em>pft_</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p><a class="el" href="classMenu.html" title="A menu to execute commands with a specific target.">Menu</a> construction for pftool. </p>
-<p >Currently, we must manually list all of the menus and their commands and sub-menus somewhere. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> function is just helpful for keeping the listing isolated.</p>
-<dl class="section note"><dt>Note</dt><dd>Again, this listing is <em>manual</em>. It is very easy to implement a new command within one of the menu functions but forget to repeat its listing here.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">pft</td><td>target that has been initialized </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ad9591d27a709a7c68f359245b4124fc5" name="ad9591d27a709a7c68f359245b4124fc5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9591d27a709a7c68f359245b4124fc5">&#9670;&nbsp;</a></span>status()</h2>
+<a id="a3b76e3feaf7fced9c5e9ebdc1ea56dd5" name="a3b76e3feaf7fced9c5e9ebdc1ea56dd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b76e3feaf7fced9c5e9ebdc1ea56dd5">&#9670;&nbsp;</a></span>status()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -309,7 +220,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">static void status </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a> *&#160;</td>
           <td class="paramname"><em>pft</em></td><td>)</td>
           <td></td>
         </tr>

@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-3-g497ec986</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -140,7 +140,7 @@ $(document).ready(function(){initNavTree('PolarfireTarget_8h_source.html',''); i
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpflib_1_1PolarfireTarget.html#a44c1bed54ddd2a7b3b254d1b12c8016f">daqStatus</a>(<a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/io/basic_ostream.html">std::ostream</a>&amp; os);</div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpflib_1_1PolarfireTarget.html#a4ce918ae2698035a8d1b9a84597c04b8">enableZeroSuppression</a>(<span class="keywordtype">int</span> <a class="code hl_function" href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a>, <span class="keywordtype">bool</span> full_suppress);</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpflib_1_1PolarfireTarget.html#a4ce918ae2698035a8d1b9a84597c04b8">enableZeroSuppression</a>(<span class="keywordtype">int</span> link, <span class="keywordtype">bool</span> full_suppress);</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
 <div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="structpflib_1_1PolarfireTarget.html#a9409b97ec1521248fa6cbeaaf499a925">daqSoftReset</a>();</div>
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
@@ -177,7 +177,6 @@ $(document).ready(function(){initNavTree('PolarfireTarget_8h_source.html',''); i
 <div class="ttc" id="anamespacepflib_html"><div class="ttname"><a href="namespacepflib.html">pflib</a></div><div class="ttdoc">Polarfire Interaction Library.</div><div class="ttdef"><b>Definition:</b> Backend.h:8</div></div>
 <div class="ttc" id="anamespacepflib_html_ae6e9e68aa0f397b4184a5d90bc2ea380"><div class="ttname"><a href="namespacepflib.html#ae6e9e68aa0f397b4184a5d90bc2ea380">pflib::decompile</a></div><div class="ttdeci">std::map&lt; std::string, std::map&lt; std::string, int &gt; &gt; decompile(const std::map&lt; int, std::map&lt; int, uint8_t &gt; &gt; &amp;compiled_config, bool be_careful)</div><div class="ttdoc">unpack register values into the page names, parameter names and parameter values mapping</div><div class="ttdef"><b>Definition:</b> Compile.cxx:474</div></div>
 <div class="ttc" id="apair_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/utility/pair.html">std::pair</a></div></div>
-<div class="ttc" id="apftool_8cc_html_aff7e805ef88f957e253a1221f3b06b63"><div class="ttname"><a href="pftool_8cc.html#aff7e805ef88f957e253a1221f3b06b63">link</a></div><div class="ttdeci">static void link(const std::string &amp;cmd, PolarfireTarget *pft)</div><div class="ttdoc">LINK menu commands.</div><div class="ttdef"><b>Definition:</b> pftool.cc:40</div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a></div><div class="ttdoc">Interface to a single polarfire.</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.h:33</div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html_a18bcef88dd2e05b8e43c188ea70ffc15"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html#a18bcef88dd2e05b8e43c188ea70ffc15">pflib::PolarfireTarget::loadBiasSettings</a></div><div class="ttdeci">bool loadBiasSettings(const std::string &amp;file_name)</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.cxx:441</div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html_a338a759cbddd8830c23cb6bfcd76a3f8"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html#a338a759cbddd8830c23cb6bfcd76a3f8">pflib::PolarfireTarget::backend</a></div><div class="ttdeci">Backend * backend</div><div class="ttdoc">handle to opened backend connection</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.h:39</div></div>
