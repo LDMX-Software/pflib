@@ -1,20 +1,8 @@
+/**
+ * @file pftool.cc File defining the pftool executable
+ */
+
 #include "pftool.h"
-
-/**
- * @file pftool.cc File defining the pftool menus and their commands.
- *
- * The commands are written into functions corresponding to the menu's name.
- */
-
-/**
- * pull the target of our menu into this source file to reduce code
- */
-using pflib::PolarfireTarget;
-
-/**
- * The type of menu we are constructing
- */
-using pftool = Menu<PolarfireTarget>;
 
 /**
  * Main status of menu
@@ -23,7 +11,7 @@ using pftool = Menu<PolarfireTarget>;
  *
  * @param[in] pft pointer to active target
  */
-static void status( PolarfireTarget* pft ) {
+static void status(pflib::PolarfireTarget* pft ) {
   std::pair<int,int> version = pft->getFirmwareVersion();
   printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
   printf("  Active DAQ links: ");
@@ -227,18 +215,18 @@ int main(int argc, char* argv[]) {
       }
 
       // initialize connect with Polarfire
-      std::unique_ptr<PolarfireTarget> p_pft;
+      std::unique_ptr<pflib::PolarfireTarget> p_pft;
       try {
 #ifdef PFTOOL_ROGUE
         if (isrogue) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
+          p_pft=std::make_unique<pflib::PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
         }
 #endif
 #ifdef PFTOOL_UHAL
         if (isuhal) {
           // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
+          p_pft=std::make_unique<pflib::PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
                 options.contents().getString("ipbus_map_path")));
         }
 #endif
