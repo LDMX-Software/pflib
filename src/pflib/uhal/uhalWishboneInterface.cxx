@@ -142,6 +142,139 @@ void uhalWishboneInterface::fc_get_setup_calib(int& pulse_len, int& l1a_offset) 
   l1a_offset=lo;
 }
 
+void uhalWishboneInterface::fc_read_counters(int&  spill_count, int& header_occ, int& header_occ_max, int& event_count, int& vetoed_counter) {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  
+  ::uhal::ValWord<uint32_t> occ = m_base.getNode("FAST_CONTROL.OCC").read();
+  ::uhal::ValWord<uint32_t> occ_max = m_base.getNode("FAST_CONTROL.OCC_MAX").read();
+  ::uhal::ValWord<uint32_t> sc = m_base.getNode("FAST_CONTROL.SPILL_COUNT").read();
+  ::uhal::ValWord<uint32_t> ec = m_base.getNode("FAST_CONTROL.EVENT_COUNT").read();
+  ::uhal::ValWord<uint32_t> veto = m_base.getNode("FAST_CONTROL.VETO").read();
+
+  dispatch();
+
+  header_occ=occ;
+  header_occ_max=occ_max;
+  spill_count = sc;
+  event_count = ec;
+  vetoed_counter = veto;
+}
+
+void uhalWishboneInterface::fc_clear_run() {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.CLEAR_FIFO").write(0x1);
+  dispatch();
+}
+
+void uhalWishboneInterface::fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a) {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+
+  ::uhal::ValWord<uint32_t> reg = m_base.getNode("FAST_CONTROL.ENABLES").read();
+  dispatch();
+
+  const int MASK_FC_CONTROL_ENABLE_EXT_L1A = 0x02;
+  const int MASK_FC_CONTROL_ENABLE_EXT_SPILL = 0x01;
+  const int MASK_FC_CONTROL_ENABLE_TIMER_L1A = 0x04;
+  
+  ext_l1a=(reg&MASK_FC_CONTROL_ENABLE_EXT_L1A);
+  ext_spill=(reg&MASK_FC_CONTROL_ENABLE_EXT_SPILL);
+  timer_l1a=(reg&MASK_FC_CONTROL_ENABLE_TIMER_L1A);
+
+}
+
+void uhalWishboneInterface::fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a) {
+
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+
+  ::uhal::ValWord<uint32_t> regval = m_base.getNode("FAST_CONTROL.ENABLES").read();
+  dispatch();
+
+  uint32_t reg = regval;
+
+  const int MASK_FC_CONTROL_ENABLE_EXT_L1A = 0x02;
+  const int MASK_FC_CONTROL_ENABLE_EXT_SPILL = 0x01;
+  const int MASK_FC_CONTROL_ENABLE_TIMER_L1A = 0x04;
+
+  reg|=MASK_FC_CONTROL_ENABLE_EXT_L1A;
+  if (!ext_l1a) reg^=MASK_FC_CONTROL_ENABLE_EXT_L1A;
+
+  reg|=MASK_FC_CONTROL_ENABLE_EXT_SPILL;
+  if (!ext_spill) reg^=MASK_FC_CONTROL_ENABLE_EXT_SPILL;
+
+  reg|=MASK_FC_CONTROL_ENABLE_TIMER_L1A;
+  if (!timer_l1a) reg^=MASK_FC_CONTROL_ENABLE_TIMER_L1A;
+
+  m_base.getNode("FAST_CONTROL.ENABLES").write(reg);
+  dispatch();
+}
+
+void uhalWishboneInterface::fc_veto_setup_read(bool& veto_daq_busy, bool& veto_l1_occ, int& l1_occ_busy, int& l1_occ_ok) {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+
+  ::uhal::ValWord<uint32_t> vetoregval = m_base.getNode("FAST_CONTROL.VETO_SETUP").read();
+  dispatch();
+
+  uint32_t vetoreg = vetoregval;
+
+  const int MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ  = 0x08;
+  const int MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC = 0x10;
+
+  veto_daq_busy=(vetoreg&MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ)!=0;
+  veto_l1_occ=(vetoreg&MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC)!=0;
+
+   ::uhal::ValWord<uint32_t> occregval = m_base.getNode("FAST_CONTROL.OCC_VETO").read();
+  dispatch();
+
+  uint32_t occreg = occregval; 
+
+  const int MASK_FC_OCCBUSY = 0xFF;
+  const int SHIFT_FC_OCC_OK = 12;
+  const int SHIFT_FC_OCCBUSY = 0;
+  const int MASK_FC_OCC_OK = 0xFF;
+
+  l1_occ_busy=(occreg>>SHIFT_FC_OCCBUSY)&MASK_FC_OCCBUSY;
+  l1_occ_ok=(occreg>>SHIFT_FC_OCC_OK)&MASK_FC_OCC_OK;
+
+}
+
+void uhalWishboneInterface::fc_veto_setup(bool veto_daq_busy, bool veto_l1_occ, int l1_occ_busy, int l1_occ_ok) {
+
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+
+  ::uhal::ValWord<uint32_t> regval = m_base.getNode("FAST_CONTROL.VETO_SETUP").read();
+  dispatch();
+
+  uint32_t reg = regval;
+
+  const int MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ  = 0x08;
+  const int MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC = 0x10;
+
+  reg|=(MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ|MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC);
+  if (!veto_daq_busy) reg^=MASK_FC_CONTROL_ENABLE_VETO_BUSY_DAQ;
+  if (!veto_l1_occ) reg^=MASK_FC_CONTROL_ENABLE_VETO_HEADEROCC;
+   
+  m_base.getNode("FAST_CONTROL.VETO_SETUP").write(reg);
+  dispatch();
+
+  const int MASK_FC_OCCBUSY = 0xFF;
+  const int SHIFT_FC_OCC_OK = 12;
+  const int SHIFT_FC_OCCBUSY = 0;
+  const int MASK_FC_OCC_OK = 0xFF;
+
+  uint32_t occreg=((l1_occ_busy&MASK_FC_OCCBUSY)<<SHIFT_FC_OCCBUSY)|((l1_occ_ok&MASK_FC_OCC_OK)<<SHIFT_FC_OCC_OK);
+
+  m_base.getNode("FAST_CONTROL.OCC_VETO").write(occreg);
+  dispatch(); 
+
+}
+
+
+void uhalWishboneInterface::fc_advance_l1_fifo() {
+  const ::uhal::Node& m_base(hw_->getNode("LDMX"));
+  m_base.getNode("FAST_CONTROL.ADVANCE_L1_FIFO").write(1);
+  dispatch();
+}
+
 void uhalWishboneInterface::daq_reset() {
   const ::uhal::Node& m_base(hw_->getNode("LDMX"));
   m_base.getNode("DAQ.DAQ_CLEAR").write(1);
