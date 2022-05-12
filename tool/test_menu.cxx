@@ -42,7 +42,7 @@ auto r = test_menu::root()
 int main(int argc, char* argv[]) {
   try {
     int i = 3;
-    Menu<int>::run(&i);
+    test_menu::run(&i);
   } catch (std::exception& e) {
     fprintf(stderr, "Exception!  %s\n",e.what());
     return 1;

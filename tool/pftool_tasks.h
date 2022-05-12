@@ -1,9 +1,8 @@
 #ifndef PFTOOL_TASKS_H
 #define PFTOOL_TASKS_H
 
-#include "pflib/PolarfireTarget.h"
-#include <fstream>
-#include "Menu.h"
+#include "pftool.h"
+
 #include "pflib/decoding/SuperPacket.h"
 #include "pftool_bias.h"
 #include "pftool_roc.h"
@@ -16,6 +15,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+
 /**
  * TASK menu commands
  *

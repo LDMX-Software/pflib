@@ -1,9 +1,7 @@
 #ifndef PFTOOL_ROC_H
 #define PFTOOL_ROC_H
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
-#include "pflib/Compile.h"
 
+#include "pftool.h"
 
 // Forward declaration due to unorganized source structure
 std::string get_output_directory();
