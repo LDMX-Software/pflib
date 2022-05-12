@@ -32,180 +32,10 @@ static void status( PolarfireTarget* pft ) {
   printf("\n");
 }
 
-
-
-/**
- * LINK menu commands
- *
- * @note All interaction with target has been commented out.
- * These commands do nothing at the moment.
- *
- * @param[in] cmd LINK command
- * @param[in] pft active target
- */
-static void link( const std::string& cmd, PolarfireTarget* pft ) {
-  if (cmd=="STATUS") {
-    uint32_t status;
-    uint32_t ratetx=0, raterx=0, ratek=0;
-    //    uint32_t status=ldmx->link_status(&ratetx,&raterx,&ratek);
-    printf("Link Status: %08x   TX Rate: %d   RX Rate: %d   K Rate : %d\n",status,ratetx,raterx,ratek);
-  }
-  if (cmd=="CONFIG") {
-    bool reset_txpll=BaseMenu::readline_bool("TX-PLL Reset?", false);
-    bool reset_gtxtx=BaseMenu::readline_bool("GTX-TX Reset?", false);
-    bool reset_tx=BaseMenu::readline_bool("TX Reset?", false);
-    bool reset_rx=BaseMenu::readline_bool("RX Reset?", false);
-    static bool polarity=false;
-    polarity=BaseMenu::readline_bool("Choose negative TX polarity?",polarity);
-    static bool polarity2=false;
-    polarity2=BaseMenu::readline_bool("Choose negative RX polarity?",polarity2);
-    static bool bypass=false;
-    bypass=BaseMenu::readline_bool("Bypass CRC on receiver?",false);
-    //    ldmx->link_setup(polarity,polarity2,bypass);
-    // ldmx->link_resets(reset_txpll,reset_gtxtx,reset_tx,reset_rx);
-  }
-  if (cmd=="SPY") {
-    /*
-    std::vector<uint32_t> spy=ldmx->link_spy();
-    for (size_t i=0; i<spy.size(); i++)
-      printf("%02d %05x\n",int(i),spy[i]);
-    */
-  }
-}
-
 namespace {
-
-auto menu_expert = pftool::menu("EXPERT", "expert functions");
-
-auto menu_wishbone = menu_expert->submenu("WB", "raw wishbone interactions")
-  ->line("RESET", "Enable/disable (toggle)",  wb )
-  ->line("READ", "Read from an address",  wb )
-  ->line("BLOCKREAD", "Read several words starting at an address",  wb )
-  ->line("WRITE", "Write to an address",  wb )
-  ->line("STATUS", "Wishbone errors counters",  wb )
+auto v = pftool::root()
+  ->line("STATUS","print overall status of polarfire", status)
 ;
-
-auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
-  ->line("BUS","Pick the I2C bus to use", i2c )
-  ->line("READ", "Read from an address",  i2c )
-  ->line("WRITE", "Write to an address",  i2c )
-  ->line("MULTIREAD", "Read from an address",  i2c )
-  ->line("MULTIWRITE", "Write to an address",  i2c )
-;
-
-auto menu_olink = menu_expert->submenu("OLINK","optical link interactions (NOT IMPLEMENTED)")
-      /*
-  ->line("STATUS","Dump link status", link )
-  ->line("CONFIG","Setup link", link )
-  ->line("SPY", "Spy on the uplink",  link )
-    */
-;
-
-auto menu_elinks = pftool::menu("ELINKS","manage the elinks")
-  ->line("RELINK","Follow standard procedure to establish links", elinks)
-  ->line("HARD_RESET","Hard reset of the PLL", elinks)
-  ->line("STATUS", "Elink status summary",  elinks )
-  ->line("SPY", "Spy on an elink",  elinks )
-  ->line("AUTOALIGN", "Attempt to re-align automatically", elinks)
-  ->line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", elinks)
-  ->line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", elinks)
-  ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
-  ->line("SCAN", "Scan on an elink",  elinks )
-  ->line("DELAY", "Set the delay on an elink", elinks)
-  ->line("BIGSPY", "Take a spy of a specific channel at 32-bits", elinks)
-;
-
-auto menu_roc = pftool::menu("ROC","Read-Out Chip Configuration", roc_render)
-   ->line("HARDRESET","Hard reset to all rocs", roc)
-   ->line("SOFTRESET","Soft reset to all rocs", roc)
-   ->line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", roc)
-   ->line("IROC","Change the active ROC number", roc )
-   ->line("CHAN","Dump link status", roc )
-   ->line("PAGE","Dump a page", roc )
-   ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
-   ->line("POKE_REG","Change a single register value", roc )
-   ->line("POKE_PARAM","Change a single parameter value", roc )
-   ->line("POKE","Alias for POKE_PARAM", roc )
-   ->line("POKE_ALL_ROCHALVES", "Like POKE_PARAM, but applies parameter to both halves of all ROCs", roc)
-   ->line("POKE_ALL_CHANNELS", "Like POKE_PARAM, but applies parameter to all channels of the all ROCs", roc)
-   ->line("LOAD_REG","Load register values onto the chip from a CSV file", roc )
-   ->line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", roc )
-   ->line("LOAD","Alias for LOAD_PARAM", roc )
-   ->line("DUMP","Dump hgcroc settings to a file", roc )
-   ->line("DEFAULT_PARAMS", "Load default YAML files", roc)
-;
-
-auto menu_bias = pftool::menu("BIAS","bias voltage settings")
-  //->line("STATUS","Read the bias line settings", bias )
-  ->line("INIT","Initialize a board", bias )
-  ->line("SET","Set a specific bias line setting", bias )
-  ->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
-  ->line("LOAD","Load bias values from file", bias )
-;
-
-auto menu_fc = pftool::menu("FAST_CONTROL","configuration and testing of fast control")
-  ->line("STATUS","Check status and counters", fc )
-  ->line("SW_L1A","Send a software L1A", fc )
-  ->line("LINK_RESET","Send a link reset", fc )
-  ->line("BUFFER_CLEAR","Send a buffer clear", fc )
-  ->line("RUN_CLEAR","Send a run clear", fc )
-  ->line("COUNTER_RESET","Reset counters", fc )
-  ->line("FC_RESET","Reset the fast control", fc )
-  ->line("VETO_SETUP","Setup the L1 Vetos", fc )
-  ->line("MULTISAMPLE","Setup multisample readout", fc )
-  ->line("CALIB","Setup calibration pulse", fc )
-  ->line("ENABLES","Enable various sources of signal", fc )
-;
-
-auto menu_daq = pftool::menu("DAQ","Data AcQuisition configuration and testing")
-  ->line("STATUS", "Status of the DAQ", daq)
-  ->line("RESET", "Reset the DAQ", daq)
-  ->line("HARD_RESET", "Reset the DAQ, including all parameters", daq)
-  ->line("PEDESTAL","Take a simple random pedestal run", daq)
-  ->line("CHARGE","Take a charge-injection run", daq)
-  ->line("EXTERNAL","Take an externally-triggered run", daq)
-//  ->line("SCAN","Take many charge or pedestal runs while changing a single parameter", daq)
-;
-
-auto menu_daq_debug = menu_daq->submenu("DEBUG","expert functions for debugging DAQ")
-  ->line("STATUS","Provide the status", daq_debug )
-  ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
-  ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
-  ->line("READ", "Read an event", daq)
-  ->line("ROC_LOAD", "Load a practice ROC events from a file",  daq_debug )
-  ->line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  daq_debug )
-  ->line("FULL_LOAD", "Load a practice full event from a file",  daq_debug )
-  ->line("FULL_SEND", "Send the buffer to the off-detector electronics",  daq_debug )
-  ->line("SPY", "Spy on the front-end buffer",  daq_debug )
-  ->line("IBSPY","Spy on an input buffer",  daq_debug )
-  ->line("EFSPY","Spy on an event formatter buffer",  daq_debug )
-;
-
-auto menu_daq_setup = menu_daq->submenu("SETUP","setup the DAQ")
-  ->line("STATUS", "Status of the DAQ", daq_setup)
-  ->line("ENABLE", "Toggle enable status", daq_setup)
-  ->line("ZS", "Toggle ZS status", daq_setup)
-  ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
-  ->line("FPGA", "Set FPGA id", daq_setup)
-  ->line("STANDARD","Do the standard setup for HCAL", daq_setup)
-  ->line("MULTISAMPLE","Setup multisample readout", fc )
-#ifdef PFTOOL_ROGUE
-  ->line("DMA", "Enable/disable DMA readout (only available with rogue)", daq_setup)
-#endif
-;
-
-auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and tunes")
-//  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
-  ->line("SCANCHARGE","Charge scan over all active channels", tasks)
-  ->line("DELAYSCAN","Charge injection delay scan", tasks )
-  ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
-  ->line("CALIBRUN", "Produce the calibration scans", tasks)
-  ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
-  ->line("PEDESTAL_READ", "foo", tasks)
-  ->line("ALIGN_PREAMP", "foo", tasks)
-  ->line("DACB","foo",tasks)
-;
-
 }
 
 bool file_exists(const std::string& fname)
@@ -419,6 +249,8 @@ int main(int argc, char* argv[]) {
 
       if (options.contents().has_key("runnumber_file"))
         last_run_file=options.contents().getString("runnumber_file");
+      else
+        last_run_file=".last_run_file";
 
       if (p_pft) {
       	// prepare the links

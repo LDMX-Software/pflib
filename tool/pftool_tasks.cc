@@ -1181,3 +1181,18 @@ void calibrun(pflib::PolarfireTarget* pft,
 
 
 }
+
+namespace {
+auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and tunes")
+//  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
+  ->line("SCANCHARGE","Charge scan over all active channels", tasks)
+  ->line("DELAYSCAN","Charge injection delay scan", tasks )
+  ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
+  ->line("CALIBRUN", "Produce the calibration scans", tasks)
+  ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
+  ->line("PEDESTAL_READ", "foo", tasks)
+  ->line("ALIGN_PREAMP", "foo", tasks)
+  ->line("DACB","foo",tasks)
+;
+}
+

@@ -1,7 +1,7 @@
 #ifndef PFTOOL_I2C_H
 #define PFTOOL_I2C_H
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
+
+#include "pftool.h"
 using pflib::PolarfireTarget;
 
 /**
@@ -42,4 +42,15 @@ void i2c(const std::string &cmd, PolarfireTarget *pft);
  * @param[in] pft active target
  */
 void wb(const std::string &cmd, PolarfireTarget *pft);
+
+/**
+ * LINK menu commands
+ *
+ * @note All interaction with target has been commented out.
+ * These commands do nothing at the moment.
+ *
+ * @param[in] cmd LINK command
+ * @param[in] pft active target
+ */
+void link( const std::string& cmd, PolarfireTarget* pft );
 #endif /* PFTOOL_I2C_H */

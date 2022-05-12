@@ -1,8 +1,6 @@
 #include "pftool_elinks.h"
 using pflib::PolarfireTarget;
 
-
-
 void auto_align(pflib::PolarfireTarget* pft) {
 
   static float threshold = 0.2;
@@ -296,4 +294,20 @@ void elinks( const std::string& cmd, PolarfireTarget* pft )
   if (cmd=="STATUS") {
     pft->elinkStatus(std::cout);
   }
+}
+
+namespace {
+auto menu_elinks = pftool::menu("ELINKS","manage the elinks")
+  ->line("RELINK","Follow standard procedure to establish links", elinks)
+  ->line("HARD_RESET","Hard reset of the PLL", elinks)
+  ->line("STATUS", "Elink status summary",  elinks )
+  ->line("SPY", "Spy on an elink",  elinks )
+  ->line("AUTOALIGN", "Attempt to re-align automatically", elinks)
+  ->line("HEADER_CHECK", "Do a pedestal run and tally good/bad headers, only non-DMA", elinks)
+  ->line("ALIGN", "Align elink using packet headers and idle patterns, only non-DMA", elinks)
+  ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
+  ->line("SCAN", "Scan on an elink",  elinks )
+  ->line("DELAY", "Set the delay on an elink", elinks)
+  ->line("BIGSPY", "Take a spy of a specific channel at 32-bits", elinks)
+;
 }

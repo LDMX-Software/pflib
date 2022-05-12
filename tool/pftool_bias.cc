@@ -84,3 +84,13 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
     }
   }
 }
+
+namespace {
+auto menu_bias = pftool::menu("BIAS","bias voltage settings")
+  //->line("STATUS","Read the bias line settings", bias )
+  ->line("INIT","Initialize a board", bias )
+  ->line("SET","Set a specific bias line setting", bias )
+  ->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
+  ->line("LOAD","Load bias values from file", bias )
+;
+}

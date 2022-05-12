@@ -172,3 +172,19 @@ void fc_enables(pflib::PolarfireTarget* pft,
   std::cout << "Setting fc_enables: " << std::boolalpha << external_l1a << ", " << external_spill << ", " << timer_l1a <<'\n';
     pft->backend->fc_enables(external_l1a, external_spill, timer_l1a);
 }
+
+namespace {
+auto menu_fc = pftool::menu("FAST_CONTROL","configuration and testing of fast control")
+  ->line("STATUS","Check status and counters", fc )
+  ->line("SW_L1A","Send a software L1A", fc )
+  ->line("LINK_RESET","Send a link reset", fc )
+  ->line("BUFFER_CLEAR","Send a buffer clear", fc )
+  ->line("RUN_CLEAR","Send a run clear", fc )
+  ->line("COUNTER_RESET","Reset counters", fc )
+  ->line("FC_RESET","Reset the fast control", fc )
+  ->line("VETO_SETUP","Setup the L1 Vetos", fc )
+  ->line("MULTISAMPLE","Setup multisample readout", fc )
+  ->line("CALIB","Setup calibration pulse", fc )
+  ->line("ENABLES","Enable various sources of signal", fc )
+;
+}

@@ -97,3 +97,61 @@ void wb( const std::string& cmd, PolarfireTarget* pft )
     printf("Wishbone errors: %d\n",wbe);
   }
 }
+
+void link( const std::string& cmd, PolarfireTarget* pft ) {
+  if (cmd=="STATUS") {
+    uint32_t status;
+    uint32_t ratetx=0, raterx=0, ratek=0;
+    //    uint32_t status=ldmx->link_status(&ratetx,&raterx,&ratek);
+    printf("Link Status: %08x   TX Rate: %d   RX Rate: %d   K Rate : %d\n",status,ratetx,raterx,ratek);
+  }
+  if (cmd=="CONFIG") {
+    bool reset_txpll=BaseMenu::readline_bool("TX-PLL Reset?", false);
+    bool reset_gtxtx=BaseMenu::readline_bool("GTX-TX Reset?", false);
+    bool reset_tx=BaseMenu::readline_bool("TX Reset?", false);
+    bool reset_rx=BaseMenu::readline_bool("RX Reset?", false);
+    static bool polarity=false;
+    polarity=BaseMenu::readline_bool("Choose negative TX polarity?",polarity);
+    static bool polarity2=false;
+    polarity2=BaseMenu::readline_bool("Choose negative RX polarity?",polarity2);
+    static bool bypass=false;
+    bypass=BaseMenu::readline_bool("Bypass CRC on receiver?",false);
+    //    ldmx->link_setup(polarity,polarity2,bypass);
+    // ldmx->link_resets(reset_txpll,reset_gtxtx,reset_tx,reset_rx);
+  }
+  if (cmd=="SPY") {
+    /*
+    std::vector<uint32_t> spy=ldmx->link_spy();
+    for (size_t i=0; i<spy.size(); i++)
+      printf("%02d %05x\n",int(i),spy[i]);
+    */
+  }
+}
+
+namespace {
+auto menu_expert = pftool::menu("EXPERT", "expert functions");
+
+auto menu_wishbone = menu_expert->submenu("WB", "raw wishbone interactions")
+  ->line("RESET", "Enable/disable (toggle)",  wb )
+  ->line("READ", "Read from an address",  wb )
+  ->line("BLOCKREAD", "Read several words starting at an address",  wb )
+  ->line("WRITE", "Write to an address",  wb )
+  ->line("STATUS", "Wishbone errors counters",  wb )
+;
+
+auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
+  ->line("BUS","Pick the I2C bus to use", i2c )
+  ->line("READ", "Read from an address",  i2c )
+  ->line("WRITE", "Write to an address",  i2c )
+  ->line("MULTIREAD", "Read from an address",  i2c )
+  ->line("MULTIWRITE", "Write to an address",  i2c )
+;
+
+auto menu_olink = menu_expert->submenu("OLINK","optical link interactions (NOT IMPLEMENTED)")
+      /*
+  ->line("STATUS","Dump link status", link )
+  ->line("CONFIG","Setup link", link )
+  ->line("SPY", "Spy on the uplink",  link )
+    */
+;
+}
