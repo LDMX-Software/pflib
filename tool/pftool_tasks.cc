@@ -349,8 +349,11 @@ void make_scan_csv_header(PolarfireTarget* pft,
     csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
     csv_out<<std::endl;
   }
-  if(valuename == "GET_TOT"){
-    csv_out <<"CALIB_DAC," << "TOT_VREF," << "REF_TOT_DAC" << ",DPM,ILINK,CHAN,EVENT";
+  if(valuename == "GET_TOT" || valuename == "GET_TOA"){
+    if (valuename == "GET_TOT")
+      csv_out <<"CALIB_DAC," << "TOT_VREF," << "REF_TOT_DAC" << ",DPM,ILINK,CHAN,EVENT";
+    else
+      csv_out <<"CALIB_DAC," << "TOA_VREF," << "REF_TOT_DAC" << ",DPM,ILINK,CHAN,EVENT";
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
@@ -381,7 +384,7 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
 
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
-
+      
       csv_out << value << ',' << dpm << ',' << ilink << ',' << ichan << ',' << ievt;
       for (int i=0; i<nsamples; i++) {
         csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
@@ -410,7 +413,7 @@ void set_one_channel_per_elink(PolarfireTarget* pft,
   /// Enable charge injection channel by channel -- per elink
   for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
     if (!pft->hcal.elinks().isActive(ilink)) continue;
-
+    
     int iroc=ilink/2;
     const int roc_half = ilink % 2;
     const int channel_number = roc_half * channels_per_elink + ichan;
@@ -427,7 +430,7 @@ void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modei
 
 void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
                                    const int channels_per_elink,
-                                  const int ichan) {
+				   const int ichan) {
   set_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan, 0);
 }
 void scan_N_steps(PolarfireTarget* pft,
@@ -475,7 +478,7 @@ void scan_N_steps(PolarfireTarget* pft,
                                         ichan,
                                         value);
         csv_out << std::flush;
-
+	
         disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
       }
     }
@@ -485,7 +488,6 @@ void teardown_charge_injection(PolarfireTarget* pft)
 {
   const int num_rocs {get_num_rocs()};
   std::cout << "Disabling IntCTest" << std::endl;
-
 
   std::string intctest_page = "REFERENCE_VOLTAGE_";
   std::string intctest_parameter = "INTCTEST";
@@ -502,26 +504,26 @@ void prepare_charge_injection(PolarfireTarget* pft)
   const calibrun_hardcoded_values hc{};
   const int num_rocs {get_num_rocs()};
   const int off_value{0};
+
   std::cout << " Clearing charge injection on all channels (ground-state)..." << std::endl;
-    poke_all_channels(pft, "HIGHRANGE", off_value);
-    std::cout << "Highrange cleared" << std::endl;
-    printf("Highrange cleared\n");
-    poke_all_channels(pft, "LOWRANGE", off_value);
-    std::cout << "Lowrange cleared" << std::endl;
+  poke_all_channels(pft, "HIGHRANGE", off_value);
+  std::cout << "Highrange cleared" << std::endl;
+  poke_all_channels(pft, "LOWRANGE", off_value);
+  std::cout << "Lowrange cleared" << std::endl;
+  
+  std::cout << " Enabling IntCTest..." << std::endl;
+  
+  const int intctest = 1;
+  std::cout << "Setting " << hc.intctest_parameter << " on page "
+            << hc.intctest_page << " to "
+            << intctest << std::endl;
+  poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
 
-    std::cout << " Enabling IntCTest..." << std::endl;
+  std::cout << "Setting " <<hc.l1offset_parameter << " on page "
+            << hc.l1offset_page << " to "
+            << hc.charge_l1offset << std::endl;
+  poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 
-    const int intctest = 1;
-    std::cout << "Setting " << hc.intctest_parameter << " on page "
-              << hc.intctest_page << " to "
-              << intctest << std::endl;
-    poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
-
-
-    std::cout << "Setting " <<hc.l1offset_parameter << " on page "
-              << hc.l1offset_page << " to "
-              << hc.charge_l1offset << std::endl;
-    poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
 void tot_tune(PolarfireTarget* pft)
@@ -816,7 +818,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     beamprep(pft);
     return;
   }
-  if (cmd=="RESET_POWERUP") {
+  if (cmd=="RESETPOWERUP") {
     pft->hcal.fc().resetTransmitter();
     pft->hcal.resyncLoadROC();
     pft->daqHardReset();
@@ -837,7 +839,6 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     const auto led_filenames {make_led_filenames()};
     calibrun(pft, pedestal_filename, chargescan_filename, led_filenames);
 
-
     return;
   }
   if (cmd=="SCANCHARGE") {
@@ -851,12 +852,19 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     if (is_high_range) modeinfo="HIGHRANGE";
     else modeinfo="LOWRANGE";
   }
+  if (cmd == "SCANTOAVREF") {
+    valuename = "TOA_VREF";
+    pagetemplate = "REFERENCE_VOLTAGE_";
+    modeinfo = "LOWRANGE";
+    low_value = 0;
+    high_value = 1000;
+    steps = 50;
+  }
   /// common stuff for all scans
-  if (cmd=="SCANCHARGE") {
+  if (cmd=="SCANCHARGE" || cmd=="SCANTOAVREF") {
 
     steps=BaseMenu::readline_int("Number of steps?",steps);
     events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
-
 
     std::string fname=BaseMenu::readline("Filename :  ",
                                          make_default_chargescan_filename(pft, dpm, valuename, -1));
@@ -868,7 +876,13 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     const int num_boards{get_num_rocs()};
     set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
 
-
+    if (cmd=="SCANTOAVREF") {
+      int tot_ref_value = 475;
+      int calib_dac_ref_value = 188;
+      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "TOT_VREF", tot_ref_value);
+      poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac_ref_value);
+    }
+    
     scan_N_steps(pft,
                  csv_out,
                  SiPM_bias,
@@ -881,8 +895,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
                  modeinfo
                  );
 
-    teardown_charge_injection(pft);
-    }
+  }
 }
 
 void beamprep(pflib::PolarfireTarget *pft) {
@@ -955,15 +968,15 @@ void beamprep(pflib::PolarfireTarget *pft) {
 
 
 std::string make_default_led_template() {
-    time_t t=time(NULL);
-    struct tm *tm = localtime(&t);
-    char fname_def_format[1024];
-    const int dpm{get_dpm_number()};
-    sprintf(fname_def_format,"led_DPM%d_%%Y%%m%%d_%%H%%M%%S_dac_", dpm);
-    char fname_def[1024];
-    strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-    const std::string filename {get_output_directory() + std::string{fname_def}};
-    return filename;
+  time_t t=time(NULL);
+  struct tm *tm = localtime(&t);
+  char fname_def_format[1024];
+  const int dpm{get_dpm_number()};
+  sprintf(fname_def_format,"led_DPM%d_%%Y%%m%%d_%%H%%M%%S_dac_", dpm);
+  char fname_def[1024];
+  strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
+  const std::string filename {get_output_directory() + std::string{fname_def}};
+  return filename;
 }
 
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
@@ -971,48 +984,48 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const std::string& valuename,
                                              const int calib_offset)
 {
-    int len{};
-    int offset{};
-    if (calib_offset < 0 && pft != nullptr) {
-      pft->backend->fc_get_setup_calib(len,offset);
-    } else {
-      offset = calib_offset;
-    }
+  int len{};
+  int offset{};
+  if (calib_offset < 0 && pft != nullptr) {
+    pft->backend->fc_get_setup_calib(len,offset);
+  } else {
+    offset = calib_offset;
+  }
 
-    time_t t=time(NULL);
-    struct tm *tm = localtime(&t);
-    char fname_def_format[1024];
-    sprintf(fname_def_format,
-            "scan_DPM%d_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",
-            dpm,
-            valuename.c_str(), offset);
-    char fname_def[1024];
-    strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
-    const auto output_directory{get_output_directory()};
-    return output_directory + fname_def;
+  time_t t=time(NULL);
+  struct tm *tm = localtime(&t);
+  char fname_def_format[1024];
+  sprintf(fname_def_format,
+          "scan_DPM%d_%s_coff%d_%%Y%%m%%d_%%H%%M%%S.csv",
+          dpm,
+          valuename.c_str(), offset);  char fname_def[1024];
+  char fname_def[1024];
+  strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
+  const auto output_directory{get_output_directory()};
+  return output_directory + fname_def;
 }
 
 
 std::vector<std::string> make_led_filenames() {
   const calibrun_hardcoded_values hc{};
-    std::string led_filename_template = BaseMenu::readline(
-      "Filename template for LED runs (dac value is appended to this):",
-      make_default_led_template());
-    std::cout << "Performing LED runs with DAC values: " << std::endl;
-    std::vector<std::string> led_filenames{};
+  std::string led_filename_template = BaseMenu::readline(
+    "Filename template for LED runs (dac value is appended to this):",
+  make_default_led_template());
+  std::cout << "Performing LED runs with DAC values: " << std::endl;
+  std::vector<std::string> led_filenames{};
 
-    for (auto dac_value : hc.led_dac_values) {
-      std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
-      std::cout << dac_value << ": " << filename << std::endl;
-      led_filenames.push_back(filename);
-    }
-    return led_filenames;
+  for (auto dac_value : hc.led_dac_values) {
+    std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
+    std::cout << dac_value << ": " << filename << std::endl;
+    led_filenames.push_back(filename);
+  }
+  return led_filenames;
 }
 
 void calibrun_ledruns(pflib::PolarfireTarget* pft,
                      const std::vector<std::string>& led_filenames) {
   const calibrun_hardcoded_values hc{};
-
+  
   std::cout << "Setting up fc->led_calib_pulse with length "
             << hc.led_calib_length
             << " and offset "
@@ -1023,34 +1036,33 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
   std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs"  << std::endl;
   set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
 
+  // IntCtest should be off
+  // Set Bias
+  // Run calib pulse
+  const std::string led_command = "CHARGE";
+  const int rate = 100;
+  const int run = 0;
+  const int num_rocs {get_num_rocs()};
+  std::cout << "Setting " << hc.l1offset_parameter << " on page "
+	    << hc.l1offset_page << " to "
+	    << hc.led_l1offset << std::endl;
+  poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
 
-    // IntCtest should be off
-    // Set Bias
-    // Run calib pulse
-    const std::string led_command = "CHARGE";
-    const int rate = 100;
-    const int run = 0;
-    const int num_rocs {get_num_rocs()};
-    std::cout << "Setting " << hc.l1offset_parameter << " on page "
-              << hc.l1offset_page << " to "
-              << hc.led_l1offset << std::endl;
-    poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.led_l1offset);
+  for (int i {0}; i < hc.led_dac_values.size(); ++i) {
+    const int dac_value {hc.led_dac_values[i]};
+    std::cout << "Doing LED run with dac value: " << dac_value << std::endl;
+    set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
 
-    for (int i {0}; i < hc.led_dac_values.size(); ++i) {
-      const int dac_value {hc.led_dac_values[i]};
-      std::cout << "Doing LED run with dac value: " << dac_value << std::endl;
-      set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
-
-      pft->prepareNewRun();
-      daq_run(pft, led_command, run, hc.num_led_events, rate, led_filenames[i]);
-    }
+    pft->prepareNewRun();
+    daq_run(pft, led_command, run, hc.num_led_events, rate, led_filenames[i]);
+  }
 
 }
 
 void calibrun(pflib::PolarfireTarget* pft,
-             const std::string& pedestal_filename,
-             const std::string& chargescan_filename,
-             const std::vector<std::string>& led_filenames)
+	      const std::string& pedestal_filename,
+	      const std::string& chargescan_filename,
+	      const std::vector<std::string>& led_filenames)
 {
 
   const calibrun_hardcoded_values hc{};
