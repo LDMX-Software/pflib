@@ -524,6 +524,33 @@ void prepare_charge_injection(PolarfireTarget* pft)
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
+void phasescan(PolarfireTarget* pft) {
+
+  std::cout << "Running DAQ softreset" <<std::endl;
+  daq_softreset(pft);
+  std::cout << "Running DAQ standard setup" << std::endl;
+  daq_standard(pft);
+  std::cout << "Running DAQ enable" << std::endl;
+  daq_enable(pft);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  std::cout << "Disabling external L1A, external spill, and timer L1A" << std::endl;
+  fc_enables(pft, false, false, false);
+
+  std::cout << "Disabling DMA" << std::endl;
+  setup_dma(pft, false);
+  const int num_boards {get_num_rocs()};
+  const int LED_bias {0};
+  std::cout << "Disabling LED bias" << std::endl;
+  set_bias_on_all_connectors(pft, num_boards, true, LED_bias);
+  const int sipm_bias {3784};
+  std::cout << "Setting SiPM bias to " << sipm_bias << " on all boards" << std::endl;
+  set_bias_on_all_connectors(pft, num_boards, false, sipm_bias);
+  const int rate = 100;
+  const int run = 0;
+  const int number_of_events = 1000;
+  std::ofstream csv_out {"PHASESCAN.csv"};
+  make_scan_csv_header(pft, csv_out, "PHASE");
+}
 void tot_tune(PolarfireTarget* pft)
 {
 
@@ -794,6 +821,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   const int dpm {get_dpm_number(pft)};
   const int nsamples = get_number_of_samples_per_event(pft);
+
+  if (cmd == "PHASESCAN") {
+    phasescan(pft);
+    return;
+  }
 
   if (cmd == "TUNE_TOT") {
     tot_tune(pft);
@@ -1187,6 +1219,7 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
 //  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
   ->line("SCANCHARGE","Charge scan over all active channels", tasks)
   ->line("DELAYSCAN","Charge injection delay scan", tasks )
+  ->line("PHASESCAN", "Scan phases", tasks)
   ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
   ->line("CALIBRUN", "Produce the calibration scans", tasks)
   ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
