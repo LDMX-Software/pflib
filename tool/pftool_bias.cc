@@ -16,14 +16,22 @@ void initialize_bias(PolarfireTarget* pft,
     pflib::Bias bias=pft->hcal.bias(iboard);
     bias.initialize();
 }
+void set_bias_on_all_active_boards(PolarfireTarget* pft)
+{
+  static int led_sipm {0};
+  led_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ", led_sipm);
+  static int dac {0};
+  dac=BaseMenu::readline_int(" What DAC value? ", dac);
+  set_bias_on_all_active_boards(pft, led_sipm == 1, dac);
+}
 void set_bias_on_all_active_boards(PolarfireTarget* pft,
                                    const bool set_led,
                                    const int dac_value)
 {
   std::vector<int> active_boards{get_rocs_with_active_links(pft)};
   for (const auto board : active_boards) {
-    const int num_connections = 16;
     const int led_bias{0};
+    const int num_connections {16};
     initialize_bias(pft, board);
     for (int connection{0}; connection < num_connections; ++connection) {
       pft->setBiasSetting(board, set_led, connection, dac_value);
