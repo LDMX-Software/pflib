@@ -28,7 +28,7 @@ std::vector<float> link_thresholds(pflib::PolarfireTarget* pft) {
 
   } else {
     float threshold = BaseMenu::readline_float("What should be our threshold value? ");
-    std::vector<float> thresholds(threshold, activeLinkNumbers.size());
+    std::vector<float> thresholds(activeLinkNumbers.size(), threshold);
     return thresholds;
   }
 }
