@@ -85,6 +85,9 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
   if (cmd=="SET_ALL") {
       set_bias_on_all_boards(pft);
   }
+  if (cmd=="SET_ACTIVE") {
+    set_bias_on_all_active_boards(pft);
+  }
   if (cmd=="SET") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     static int led_sipm=0;
@@ -114,7 +117,8 @@ auto menu_bias = pftool::menu("BIAS","bias voltage settings")
   //->line("STATUS","Read the bias line settings", bias )
   ->line("INIT","Initialize a board", bias )
   ->line("SET","Set a specific bias line setting", bias )
-  ->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
+  ->line("SET_ALL", "Set a specific bias line setting to every connector on each board", bias)
+  ->line("SET_ACTIVE", "Set a speficic bias line setting to every connector on each board that has active links", bias)
   ->line("LOAD","Load bias values from file", bias )
 ;
 }
