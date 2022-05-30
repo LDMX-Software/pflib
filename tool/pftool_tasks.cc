@@ -547,6 +547,9 @@ void phasescan(PolarfireTarget* pft) {
   set_bias_on_all_active_boards(pft, true, LED_bias);
   std::cout << "Setting SiPM bias to: " << SiPM_bias << std::endl;
   set_bias_on_all_active_boards(pft, false, SiPM_bias);
+
+  const int calib_dac {BaseMenu::readline_int("CALIB_DAC (0...2047)", 1700)};
+  poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac);
   const int rate = 100;
   const int run = 0;
   const int number_of_events = 1000;
