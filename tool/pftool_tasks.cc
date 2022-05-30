@@ -571,6 +571,10 @@ void phasescan(PolarfireTarget* pft) {
   for (int step {0}; step < steps; ++step) {
     const int phase {step};
     std::cout << "Scanning phase: " << phase << std::endl;
+    for (const auto board : active_boards) {
+      auto roc {pft->hcal.roc(board)};
+      roc.applyParameter(page, parameter, phase);
+    }
     std::cout << std::endl;
   }
   teardown_charge_injection(pft);
