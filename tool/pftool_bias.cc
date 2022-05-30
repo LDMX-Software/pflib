@@ -38,7 +38,7 @@ void set_bias_on_all_active_boards(PolarfireTarget* pft,
     }
   }
 }
-void set_bias_on_all_connectors(PolarfireTarget* pft,
+void set_bias_on_all_boards(PolarfireTarget* pft,
                                 const int num_boards,
                                 const bool set_led,
                                 const int dac_value) {
@@ -51,7 +51,7 @@ void set_bias_on_all_connectors(PolarfireTarget* pft,
     }
 }
 
-void set_bias_on_all_connectors(PolarfireTarget* pft) {
+void set_bias_on_all_boards(PolarfireTarget* pft) {
     static int dac_value {0};
     static int led_or_sipm {0};
     const int num_boards {get_num_rocs()};
@@ -62,7 +62,7 @@ void set_bias_on_all_connectors(PolarfireTarget* pft) {
         return;
     }
     bool set_led {led_or_sipm == 1};
-    set_bias_on_all_connectors(pft, num_boards, set_led, dac_value);
+    set_bias_on_all_boards(pft, num_boards, set_led, dac_value);
 }
 
 void bias( const std::string& cmd, PolarfireTarget* pft )
@@ -78,7 +78,7 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
     initialize_bias(pft, iboard);
   }
   if (cmd=="SET_ALL") {
-      set_bias_on_all_connectors(pft);
+      set_bias_on_all_boards(pft);
   }
   if (cmd=="SET") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
