@@ -1,4 +1,16 @@
 #include "pftool_roc.h"
+std::vector<int> get_rocs_with_active_links(PolarfireTarget* pft) {
+
+  std::vector<int> active_boards{};
+  const int num_boards {get_num_rocs()};
+  const pflib::Elinks& elinks {pft->hcal.elinks()};
+  for (int board {0}; board < num_boards; ++board) {
+    if (elinks.isActive(2 * board)|| elinks.isActive(2 *board + 1)) {
+      active_boards.push_back(board);
+    }
+  }
+  return active_boards;
+}
 int iroc = 0;
 void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
