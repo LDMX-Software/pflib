@@ -556,6 +556,13 @@ void phasescan(PolarfireTarget* pft) {
   std::ofstream csv_out {"PHASESCAN.csv"};
   make_scan_csv_header(pft, csv_out, "PHASE");
   prepare_charge_injection(pft);
+  const std::string modeinfo {BaseMenu::readline("Which capacitor? (LOWRANGE/HIGHRANGE)", "LOWRANGE")};
+  int capacitor_type {-1};
+  if (modeinfo == "HIGHRANGE") {
+    capacitor_type = 1;
+  } else if (modeinfo == "LOWRANGE") {
+    capacitor_type = 0;
+  }
   teardown_charge_injection(pft);
 }
 void tot_tune(PolarfireTarget* pft)
