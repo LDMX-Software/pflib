@@ -552,7 +552,7 @@ void phasescan(PolarfireTarget* pft) {
   poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac);
   const int rate = 100;
   const int run = 0;
-  const int number_of_events = 1000;
+  const int events_per_step = BaseMenu::readline_int("Number of events per step?", 2);
   std::ofstream csv_out {"PHASESCAN.csv"};
   make_scan_csv_header(pft, csv_out, "PHASE");
 }
