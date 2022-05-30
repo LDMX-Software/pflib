@@ -68,6 +68,7 @@ void load_parameters(PolarfireTarget* pft, const int config_version,
  */
 void roc( const std::string& cmd, PolarfireTarget* pft );
 
+std::vector<int> get_rocs_with_active_links(pflib::PolarfireTarget* pft);
 int get_num_rocs();
 int get_dpm_number(pflib::PolarfireTarget* pft = nullptr);
 int get_num_channels_per_elink();
