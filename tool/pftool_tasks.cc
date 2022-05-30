@@ -575,6 +575,21 @@ void phasescan(PolarfireTarget* pft) {
       auto roc {pft->hcal.roc(board)};
       roc.applyParameter(page, parameter, phase);
     }
+    pft->prepareNewRun();
+    const int channels_per_elink = get_num_channels_per_elink();
+    for (int ichan=0; ichan<channels_per_elink; ichan++) {
+      std::cout << "C: " << ichan << "... " << std::flush;
+      enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+      take_N_calibevents_with_channel(pft,
+                                      csv_out,
+                                      SiPM_bias,
+                                      capacitor_type,
+                                      events_per_step,
+                                      ichan,
+                                      phase);
+      csv_out << std::flush;
+      disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+    }
     std::cout << std::endl;
   }
   teardown_charge_injection(pft);
