@@ -555,6 +555,8 @@ void phasescan(PolarfireTarget* pft) {
   const int events_per_step = BaseMenu::readline_int("Number of events per step?", 2);
   std::ofstream csv_out {"PHASESCAN.csv"};
   make_scan_csv_header(pft, csv_out, "PHASE");
+  prepare_charge_injection(pft);
+  teardown_charge_injection(pft);
 }
 void tot_tune(PolarfireTarget* pft)
 {
