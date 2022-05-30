@@ -377,7 +377,7 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
 
     // here we decode the event and store the relevant information only...
     pflib::decoding::SuperPacket data(&(event[0]),event.size());
-    const auto dpm {get_dpm_number()};
+    const auto dpm {get_dpm_number(pft)};
 
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
