@@ -1,4 +1,16 @@
 #include "pftool_roc.h"
+std::vector<int> get_rocs_with_active_links(PolarfireTarget* pft) {
+
+  std::vector<int> active_boards{};
+  const int num_boards {get_num_rocs()};
+  const pflib::Elinks& elinks {pft->hcal.elinks()};
+  for (int board {0}; board < num_boards; ++board) {
+    if (elinks.isActive(2 * board)|| elinks.isActive(2 *board + 1)) {
+      active_boards.push_back(board);
+    }
+  }
+  return active_boards;
+}
 int iroc = 0;
 void roc_render( PolarfireTarget* pft ) {
   printf(" Active ROC: %d\n",iroc);
@@ -261,4 +273,26 @@ void dump_rocconfig(PolarfireTarget* pft, const int iroc) {
   std::string fname = BaseMenu::readline("Filename: ", fname_def);
   bool decompile = BaseMenu::readline_bool("Decompile register values? ", true);
   pft->dumpSettings(iroc, fname, decompile);
+}
+
+namespace {
+auto menu_roc = pftool::menu("ROC","Read-Out Chip Configuration", roc_render)
+   ->line("HARDRESET","Hard reset to all rocs", roc)
+   ->line("SOFTRESET","Soft reset to all rocs", roc)
+   ->line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", roc)
+   ->line("IROC","Change the active ROC number", roc )
+   ->line("CHAN","Dump link status", roc )
+   ->line("PAGE","Dump a page", roc )
+   ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
+   ->line("POKE_REG","Change a single register value", roc )
+   ->line("POKE_PARAM","Change a single parameter value", roc )
+   ->line("POKE","Alias for POKE_PARAM", roc )
+   ->line("POKE_ALL_ROCHALVES", "Like POKE_PARAM, but applies parameter to both halves of all ROCs", roc)
+   ->line("POKE_ALL_CHANNELS", "Like POKE_PARAM, but applies parameter to all channels of the all ROCs", roc)
+   ->line("LOAD_REG","Load register values onto the chip from a CSV file", roc )
+   ->line("LOAD_PARAM","Load parameter values onto the chip from a YAML file", roc )
+   ->line("LOAD","Alias for LOAD_PARAM", roc )
+   ->line("DUMP","Dump hgcroc settings to a file", roc )
+   ->line("DEFAULT_PARAMS", "Load default YAML files", roc)
+;
 }

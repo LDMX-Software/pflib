@@ -1,12 +1,6 @@
 #ifndef PFTOOL_H
 #define PFTOOL_H
-#include "pftool_fastcontrol.h"
-#include "pftool_expert.h"
-#include "pftool_tasks.h"
-#include "pftool_roc.h"
-#include "pftool_daq.h"
-#include "pftool_elinks.h"
-#include "pftool_bias.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -36,5 +30,17 @@
  * @return true if file can be opened, false otherwise
  */
 bool file_exists(const std::string& fname);
+
+/**
+ * Define our type of menu
+ */
+using pftool = Menu<pflib::PolarfireTarget>;
+
+/**
+ * storage of file path to last run file
+ *
+ * used in DAQ.EXTERNAL
+ */
+static std::string last_run_file;
 
 #endif /* PFTOOL_H */

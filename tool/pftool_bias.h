@@ -22,10 +22,18 @@
 void bias( const std::string& cmd, pflib::PolarfireTarget* pft );
 
 void set_bias_on_all_connectors(pflib::PolarfireTarget* pft,
-                                const int num_boards,
+                                const int board,
                                 const bool set_led,
                                 const int dac_value);
-void set_bias_on_all_connectors(pflib::PolarfireTarget* pft);
+void set_bias_on_all_active_boards(pflib::PolarfireTarget* pft);
+void set_bias_on_all_active_boards(pflib::PolarfireTarget* pft,
+                                   const bool set_led,
+                                   const int dac_value);
+void set_bias_on_all_boards(pflib::PolarfireTarget* pft,
+                            const int num_boards,
+                            const bool set_led,
+                            const int dac_value);
+void set_bias_on_all_boards(pflib::PolarfireTarget* pft);
 
 void initialize_bias_on_all_boards(pflib::PolarfireTarget* pft,
                                    const int num_boards = 3);

@@ -1,9 +1,7 @@
 #ifndef PFTOOL_ROC_H
 #define PFTOOL_ROC_H
-#include "Menu.h"
-#include "pflib/PolarfireTarget.h"
-#include "pflib/Compile.h"
 
+#include "pftool.h"
 
 // Forward declaration due to unorganized source structure
 std::string get_output_directory();
@@ -70,6 +68,7 @@ void load_parameters(PolarfireTarget* pft, const int config_version,
  */
 void roc( const std::string& cmd, PolarfireTarget* pft );
 
+std::vector<int> get_rocs_with_active_links(pflib::PolarfireTarget* pft);
 int get_num_rocs();
 int get_dpm_number(pflib::PolarfireTarget* pft = nullptr);
 int get_num_channels_per_elink();

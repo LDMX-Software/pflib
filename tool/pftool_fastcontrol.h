@@ -1,14 +1,8 @@
 #ifndef PFTOOL_FASTCONTROL_H
 #define PFTOOL_FASTCONTROL_H
-#include "pflib/PolarfireTarget.h"
-#include "Menu.h"
 
-#ifdef PFTOOL_ROGUE
-#include "pflib/rogue/RogueWishboneInterface.h"
-#endif
-#ifdef PFTOOL_UHAL
-#include "pflib/uhal/uhalWishboneInterface.h"
-#endif
+#include "pftool.h"
+
 /**
  * Fast Control (FC) menu commands
  *

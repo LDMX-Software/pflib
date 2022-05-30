@@ -1,11 +1,7 @@
 #include "pftool_daq.h"
+#include "pftool_fastcontrol.h"
 
 using pflib::PolarfireTarget;
-
-std::string last_run_file=".last_run_file";
-std::string start_dma_cmd="";
-std::string stop_dma_cmd="";
-
 
 std::string make_default_daq_run_filename(const std::string& cmd,
                                           const int dpm) {
@@ -528,4 +524,43 @@ void setup_dma(PolarfireTarget* pft)
               << std::endl;
   }
 #endif
+}
+
+namespace {
+auto menu_daq = pftool::menu("DAQ","Data AcQuisition configuration and testing")
+  ->line("STATUS", "Status of the DAQ", daq)
+  ->line("RESET", "Reset the DAQ", daq)
+  ->line("HARD_RESET", "Reset the DAQ, including all parameters", daq)
+  ->line("PEDESTAL","Take a simple random pedestal run", daq)
+  ->line("CHARGE","Take a charge-injection run", daq)
+  ->line("EXTERNAL","Take an externally-triggered run", daq)
+//  ->line("SCAN","Take many charge or pedestal runs while changing a single parameter", daq)
+;
+
+auto menu_daq_debug = menu_daq->submenu("DEBUG","expert functions for debugging DAQ")
+  ->line("STATUS","Provide the status", daq_debug )
+  ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
+  ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
+  ->line("READ", "Read an event", daq)
+  ->line("ROC_LOAD", "Load a practice ROC events from a file",  daq_debug )
+  ->line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  daq_debug )
+  ->line("FULL_LOAD", "Load a practice full event from a file",  daq_debug )
+  ->line("FULL_SEND", "Send the buffer to the off-detector electronics",  daq_debug )
+  ->line("SPY", "Spy on the front-end buffer",  daq_debug )
+  ->line("IBSPY","Spy on an input buffer",  daq_debug )
+  ->line("EFSPY","Spy on an event formatter buffer",  daq_debug )
+;
+
+auto menu_daq_setup = menu_daq->submenu("SETUP","setup the DAQ")
+  ->line("STATUS", "Status of the DAQ", daq_setup)
+  ->line("ENABLE", "Toggle enable status", daq_setup)
+  ->line("ZS", "Toggle ZS status", daq_setup)
+  ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
+  ->line("FPGA", "Set FPGA id", daq_setup)
+  ->line("STANDARD","Do the standard setup for HCAL", daq_setup)
+  ->line("MULTISAMPLE","Setup multisample readout", fc )
+#ifdef PFTOOL_ROGUE
+  ->line("DMA", "Enable/disable DMA readout (only available with rogue)", daq_setup)
+#endif
+;
 }

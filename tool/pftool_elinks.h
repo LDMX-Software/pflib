@@ -1,10 +1,9 @@
 #ifndef PFTOOL_ELINKS_H
 #define PFTOOL_ELINKS_H
 
-#include "pflib/PolarfireTarget.h"
-#include "pftool_headers.h"
-#include "Menu.h"
+#include "pftool.h"
 #include "pflib/decoding/SuperPacket.h"
+#include "pftool_headers.h"
 #include "pftool_daq.h"
 
 /**
