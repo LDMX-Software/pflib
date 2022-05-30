@@ -21,6 +21,7 @@
  */
 void bias( const std::string& cmd, pflib::PolarfireTarget* pft );
 
+void set_bias_on_all_active_boards(pflib::PolarfireTarget* pft);
 void set_bias_on_all_active_boards(pflib::PolarfireTarget* pft,
                                    const bool set_led,
                                    const int dac_value);
