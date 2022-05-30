@@ -202,7 +202,7 @@ void preamp_alignment(PolarfireTarget* pft)
   if (BaseMenu::readline_bool("Update SiPM bias?", false)) {
     const int num_boards {get_num_rocs()};
     const int SiPM_bias {3784};
-    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+    set_bias_on_all_boards(pft, num_boards, false, SiPM_bias);
   }
 
   //Choose goal for pedestal
@@ -538,13 +538,15 @@ void phasescan(PolarfireTarget* pft) {
 
   std::cout << "Disabling DMA" << std::endl;
   setup_dma(pft, false);
-  const int num_boards {get_num_rocs()};
-  const int LED_bias {0};
+
+
+
+  const int SiPM_bias {BaseMenu::readline_int("SiPM bias: ", 3784)};
   std::cout << "Disabling LED bias" << std::endl;
-  set_bias_on_all_connectors(pft, num_boards, true, LED_bias);
-  const int sipm_bias {3784};
-  std::cout << "Setting SiPM bias to " << sipm_bias << " on all boards" << std::endl;
-  set_bias_on_all_connectors(pft, num_boards, false, sipm_bias);
+  const int LED_bias {0};
+  set_bias_on_all_active_boards(pft, true, LED_bias);
+  std::cout << "Setting SiPM bias to: " << SiPM_bias << std::endl;
+  set_bias_on_all_active_boards(pft, false, SiPM_bias);
   const int rate = 100;
   const int run = 0;
   const int number_of_events = 1000;
@@ -898,7 +900,7 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     prepare_charge_injection(pft);
     const int SiPM_bias = BaseMenu::readline_int("SiPM bias: ", 0);
     const int num_boards{get_num_rocs()};
-    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+    set_bias_on_all_boards(pft, num_boards, false, SiPM_bias);
 
 
     scan_N_steps(pft,
@@ -949,7 +951,7 @@ void beamprep(pflib::PolarfireTarget *pft) {
 
   static int SiPM_bias{3784};
   SiPM_bias = BaseMenu::readline_int("SiPM Bias", SiPM_bias);
-  set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+  set_bias_on_all_boards(pft, num_boards, false, SiPM_bias);
   if (!BaseMenu::readline_bool("Skip customizing? (Recommended)", true)) {
 
     static int gain_conv{4};
@@ -961,7 +963,7 @@ void beamprep(pflib::PolarfireTarget *pft) {
     poke_all_rochalves(pft, "Digital_Half_", "L1OFFSET", l1offset);
   }
   if (BaseMenu::readline_bool("Disable LED bias? (Recommended)", true)) {
-    set_bias_on_all_connectors(pft, num_boards, true, 0);
+    set_bias_on_all_boards(pft, num_boards, true, 0);
   }
   std::cout << "Fastcontrol settings\n";
   // BUSY, OCC, Dont ask the user
@@ -1053,7 +1055,7 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
   fc_calib(pft, hc.led_calib_length, hc.led_calib_offset);
   const int num_boards{get_num_rocs()};
   std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards in case it was disabled for the charge injection runs"  << std::endl;
-  set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
+  set_bias_on_all_boards(pft, num_boards, false, hc.SiPM_bias);
 
 
     // IntCtest should be off
@@ -1071,7 +1073,7 @@ void calibrun_ledruns(pflib::PolarfireTarget* pft,
     for (int i {0}; i < hc.led_dac_values.size(); ++i) {
       const int dac_value {hc.led_dac_values[i]};
       std::cout << "Doing LED run with dac value: " << dac_value << std::endl;
-      set_bias_on_all_connectors(pft, num_rocs, true, dac_value);
+      set_bias_on_all_boards(pft, num_rocs, true, dac_value);
 
       pft->prepareNewRun();
       daq_run(pft, led_command, run, hc.num_led_events, rate, led_filenames[i]);
@@ -1112,10 +1114,10 @@ void calibrun(pflib::PolarfireTarget* pft,
   const int num_boards {get_num_rocs()};
   const int LED_bias {0};
   std::cout << "Disabling LED bias" << std::endl;
-  set_bias_on_all_connectors(pft, num_boards, true, LED_bias);
+  set_bias_on_all_boards(pft, num_boards, true, LED_bias);
 
   std::cout << "Setting SiPM bias to " << hc.SiPM_bias << " on all boards" << std::endl;
-  set_bias_on_all_connectors(pft, num_boards, false, hc.SiPM_bias);
+  set_bias_on_all_boards(pft, num_boards, false, hc.SiPM_bias);
 
   std::cout << "... Done" << std::endl;
 
@@ -1147,7 +1149,7 @@ void calibrun(pflib::PolarfireTarget* pft,
   for (auto SiPM_bias : SiPM_biases) {
     std::cout << "Running charge injection for SiPM bias: " << SiPM_bias << std::endl;
     std::cout << "Setting SiPM bias to " << SiPM_bias << " on all boards" << std::endl;
-    set_bias_on_all_connectors(pft, num_boards, false, SiPM_bias);
+    set_bias_on_all_boards(pft, num_boards, false, SiPM_bias);
 
     std::cout << "Running charge injection with lowrange from "  <<
       hc.lowrange_dac_min << " to " << hc.lowrange_dac_max << std::endl;
