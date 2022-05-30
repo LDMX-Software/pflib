@@ -567,7 +567,15 @@ void phasescan(PolarfireTarget* pft) {
   const int steps {BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
   const std::string page {"TOP"};
   const std::string parameter {"PHASE"};
+  const std::vector<int> active_boards{get_rocs_with_active_links(pft)};
+  for (int step {0}; step < steps; ++step) {
+    const int phase {step};
+    std::cout << "Scanning phase: " << phase << std::endl;
+    std::cout << std::endl;
+  }
   teardown_charge_injection(pft);
+
+
 }
 void tot_tune(PolarfireTarget* pft)
 {
