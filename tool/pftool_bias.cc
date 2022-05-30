@@ -9,7 +9,7 @@ void initialize_bias_on_all_boards(PolarfireTarget* pft, const int num_boards) {
       initialize_bias(pft, board);
     }
 }
-void set_bias_on_all_connectors(PolarfireTarget* pft, const int board,
+void set_bias_on_each_connector(PolarfireTarget* pft, const int board,
                                 const bool set_led,
                                 const int dac_value) {
   const int num_connections {16};
@@ -40,7 +40,7 @@ void set_bias_on_all_active_boards(PolarfireTarget* pft,
   for (const auto board : active_boards) {
     const int led_bias{0};
     initialize_bias(pft, board);
-    set_bias_on_all_connectors(pft, board, set_led, dac_value);
+    set_bias_on_each_connector(pft, board, set_led, dac_value);
   }
 }
 void set_bias_on_all_boards(PolarfireTarget* pft,
@@ -99,7 +99,7 @@ void bias( const std::string& cmd, PolarfireTarget* pft )
     }
     if (ichan==-1) {
       printf("\n Setting bias on all 16 connectors. \n");
-      set_bias_on_all_connectors(pft, iboard, led_sipm==1,dac);
+      set_bias_on_each_connector(pft, iboard, led_sipm==1,dac);
     }
   }
   if (cmd=="LOAD") {
