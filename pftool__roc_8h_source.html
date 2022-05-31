@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-3-g497ec986</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-10-g3113088c</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -125,12 +125,13 @@ $(document).ready(function(){initNavTree('pftool__roc_8h_source.html',''); initR
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                     <span class="keyword">const</span> <span class="keywordtype">bool</span> prepend_values);</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keywordtype">void</span> roc( <span class="keyword">const</span> <a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a>&amp; cmd, <a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">PolarfireTarget</a>* pft );</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keywordtype">int</span> get_num_rocs();</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keywordtype">int</span> get_dpm_number(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="keywordtype">int</span> get_num_channels_per_elink();</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keywordtype">int</span> get_num_channels_per_roc();</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="keywordtype">int</span> get_number_of_samples_per_event(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_ROC_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><a class="code hl_classRef" href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector&lt;int&gt;</a> get_rocs_with_active_links(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keywordtype">int</span> get_num_rocs();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="keywordtype">int</span> get_dpm_number(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keywordtype">int</span> get_num_channels_per_elink();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="keywordtype">int</span> get_num_channels_per_roc();</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="keywordtype">int</span> get_number_of_samples_per_event(<a class="code hl_struct" href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a>* pft);</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#endif </span><span class="comment">/* PFTOOL_ROC_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="abasic_string_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/string/basic_string.html">std::string</a></div></div>
 <div class="ttc" id="astructpflib_1_1PolarfireTarget_html"><div class="ttname"><a href="structpflib_1_1PolarfireTarget.html">pflib::PolarfireTarget</a></div><div class="ttdoc">Interface to a single polarfire.</div><div class="ttdef"><b>Definition:</b> PolarfireTarget.h:33</div></div>
 <div class="ttc" id="avector_html"><div class="ttname"><a href="http://en.cppreference.com/w/cpp/container/vector.html">std::vector</a></div></div>
