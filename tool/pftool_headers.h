@@ -24,7 +24,7 @@ struct HeaderStatus {
                       << ", ratio: " << percent_bad_idles()
                       << std::endl;
         }
-        void update(const pflib::decoding::RocPacket packet);
+        void update(const pflib::decoding::LinkPacket packet);
 };
 struct HeaderCheckResults {
     int num_links;

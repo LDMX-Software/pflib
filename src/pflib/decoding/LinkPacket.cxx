@@ -1,14 +1,14 @@
-#include "pflib/decoding/RocPacket.h"
+#include "pflib/decoding/LinkPacket.h"
 #include <stdio.h>
 
 namespace pflib {
 namespace decoding {
 
-RocPacket::RocPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len} {
+LinkPacket::LinkPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len} {
   
 }
 
-void RocPacket::dump() const {
+void LinkPacket::dump() const {
   for (int i=0; i<length_; i++) {
     printf("%2d %08x ",i,data_[i]);
     if (i<36 && has_chan(i)) printf(" %d",get_adc(i));
@@ -16,7 +16,7 @@ void RocPacket::dump() const {
   }
 }
 
-int RocPacket::offset_to_chan(int ichan) const {
+int LinkPacket::offset_to_chan(int ichan) const {
   if (length_<2 || ichan<0 || ichan>=36) return -1;
   int offset=0;
 

@@ -65,7 +65,7 @@ double get_average_adc(pflib::PolarfireTarget* pft,
   const int nsamples = get_number_of_samples_per_event(pft);
   double channel_average {};
   for (int sample{0}; sample < nsamples; ++sample) {
-    channel_average += data.sample(sample).roc(link).get_adc(ch);
+    channel_average += data.sample(sample).link(link).get_adc(ch);
   }
   // std::cout << "Before: " << channel_average << " ch " << ch;
   channel_average /= nsamples;
@@ -147,7 +147,7 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft)
         pflib::decoding::SuperPacket data(&(event[0]),event.size());
         std::vector<int> adcs{};
         for (int sample {0}; sample < 8; ++sample) {
-          const auto adc = data.sample(sample).roc(link).get_adc(channel);
+          const auto adc = data.sample(sample).link(link).get_adc(channel);
           adcs.push_back(adc);
           std::cout << adc << ", ";
         }
@@ -324,7 +324,7 @@ void read_pedestal(PolarfireTarget* pft)
       const int channel_number = ch + half * 36;
       std::cout << "Ch: " << ch << ": ";
       for (int sample {0}; sample < nsamples; ++sample) {
-        std::cout << ' ' << data.sample(sample).roc(link).get_adc(ch);
+        std::cout << ' ' << data.sample(sample).link(link).get_adc(ch);
       }
       std::cout << std::endl;
     }
@@ -384,13 +384,13 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
 
       csv_out << value << ',' << dpm << ',' << ilink << ',' << ichan << ',' << ievt;
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_adc(ichan);
       }
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_tot(ichan);
       }
       for (int i=0; i<nsamples; i++) {
-       csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
+       csv_out << ',' << data.sample(i).link(ilink).get_toa(ichan);
       }
       csv_out << ',' << capacitor_type << ',' << SiPM_bias;
 
@@ -533,6 +533,7 @@ void tot_tune(PolarfireTarget* pft)
   const int nsamples = get_number_of_samples_per_event(pft);
   static int half = 0;
   half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  int link = 2*iroc + half;
 
   std::string valuename="CALIB_DAC";
   std::string totvaluename="TOT_VREF";
@@ -640,20 +641,20 @@ void tot_tune(PolarfireTarget* pft)
 
           csv_out << value << ',' << totvalue << ',' << 0 << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_adc(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_tot(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          csv_out << ',' << data.sample(i).link(link).get_toa(ichan);
           }
 
           csv_out<< '\n';
 
           for (int i=0; i<nsamples; i++){
-            if(data.sample(i).roc(half).get_tot(ichan) != 0){
-              channel_average += data.sample(i).roc(half).get_adc(ichan);
+            if(data.sample(i).link(link).get_tot(ichan) != 0){
+              channel_average += data.sample(i).link(link).get_adc(ichan);
               break;
             }
           }
@@ -727,20 +728,20 @@ void tot_tune(PolarfireTarget* pft)
 
           csv_out << value << ',' << global_tot_vref << ',' << finetotvalue << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_adc(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_tot(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          csv_out << ',' << data.sample(i).link(link).get_toa(ichan);
           }
 
           csv_out<< '\n';
 
           for (int i=0; i<nsamples; i++){
-            if(data.sample(i).roc(half).get_tot(ichan) != 0){
-              channel_average += data.sample(i).roc(half).get_adc(ichan);
+            if(data.sample(i).link(link).get_tot(ichan) != 0){
+              channel_average += data.sample(i).link(link).get_adc(ichan);
               break;
             }
           }

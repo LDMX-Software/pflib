@@ -33,7 +33,7 @@ class PolarfirePacket {
   
   int linkrid(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+7))&0x1;}
 
-  LinkPacket roc(int ilink) const;
+  LinkPacket link(int ilink) const;
  private:
   int offset_to_elink(int ilink) const;
   
