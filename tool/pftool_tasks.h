@@ -103,6 +103,7 @@ std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
 
 std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft);
 void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft);
+void read_charge(PolarfireTarget* pft);
 void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data);
 void read_pedestal(PolarfireTarget* pft);
 #endif /* PFTOOL_TASKS_H */

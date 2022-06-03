@@ -328,6 +328,14 @@ void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data
 
 }
 
+void read_charge(PolarfireTarget* pft) {
+  pft->prepareNewRun();
+  pft->backend->fc_calibpulse();
+  std::vector<uint32_t> event {pft->daqReadEvent()};
+  pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+  pft->backend->fc_advance_l1_fifo();
+  read_samples(pft, data);
+}
 void read_pedestal(PolarfireTarget* pft)
 {
 
