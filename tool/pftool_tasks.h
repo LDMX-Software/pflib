@@ -98,7 +98,7 @@ double get_average_adc(pflib::PolarfireTarget* pft,
                        const int ch);
 
 std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
-                                       pflib::decoding::SuperPacket& data,
+                                       const pflib::decoding::SuperPacket& data,
                                        const int link);
 
 std::vector<double> get_pedestal_stats(pflib::PolarfireTarget* pft);
