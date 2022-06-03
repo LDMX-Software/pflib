@@ -302,16 +302,8 @@ void preamp_alignment(PolarfireTarget* pft)
 
 
 
-void read_pedestal(PolarfireTarget* pft)
-{
+void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data) {
   const int nsamples = get_number_of_samples_per_event(pft);
-
-  pft->prepareNewRun();
-  pft->backend->fc_sendL1A();
-  std::vector<uint32_t> event = pft->daqReadEvent();
-
-  pflib::decoding::SuperPacket data(&(event[0]),event.size());
-
   static int iroc=0;
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
   static int half = 0;
@@ -333,6 +325,19 @@ void read_pedestal(PolarfireTarget* pft)
   std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
             <<", min " << stats[2] << ", max " << stats[3]
             << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
+
+}
+
+void read_pedestal(PolarfireTarget* pft)
+{
+
+  pft->prepareNewRun();
+  pft->backend->fc_sendL1A();
+  std::vector<uint32_t> event = pft->daqReadEvent();
+
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  read_samples(pft, data);
+
 }
 
 void make_scan_csv_header(PolarfireTarget* pft,
