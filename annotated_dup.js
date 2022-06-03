@@ -2,9 +2,9 @@ var annotated_dup =
 [
     [ "pflib", "namespacepflib.html", [
       [ "decoding", null, [
-        [ "PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", null ],
-        [ "RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
-        [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ]
+        [ "LinkPacket", "classpflib_1_1decoding_1_1LinkPacket.html", "classpflib_1_1decoding_1_1LinkPacket" ],
+        [ "PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", "classpflib_1_1decoding_1_1PolarfirePacket" ],
+        [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", "classpflib_1_1decoding_1_1SuperPacket" ]
       ] ],
       [ "detail", "namespacepflib_1_1detail.html", [
         [ "PolarfireSetting", "classpflib_1_1detail_1_1PolarfireSetting.html", "classpflib_1_1detail_1_1PolarfireSetting" ]
@@ -42,6 +42,5 @@ var annotated_dup =
     [ "Menu", "classMenu.html", "classMenu" ],
     [ "Rcfile", "classRcfile.html", "classRcfile" ],
     [ "Rcmap", "classRcmap.html", "classRcmap" ],
-    [ "sipm_bias", "classsipm__bias.html", "classsipm__bias" ],
-    [ "This", "classThis.html", null ]
+    [ "sipm_bias", "classsipm__bias.html", "classsipm__bias" ]
 ];

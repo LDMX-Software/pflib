@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-10-g3113088c</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-13-g38d8a880</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -87,9 +87,9 @@ $(document).ready(function(){initNavTree('md_tool_README.html',''); initResizabl
   <div class="headertitle"><div class="title">pftool </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p >The main executable product of pflib is the <code>pftool</code>. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> executable is designed to offer low-level through high-level interactions with the polarfire connected to HGC ROC(s). <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> tool opens up a rudimentary terminal with various menus and submenus with commands for configuring the chips and aquiring data.</p>
+<div class="textblock"><p >The main executable product of pflib is the <code>pftool</code>. This executable is designed to offer low-level through high-level interactions with the polarfire connected to HGC ROC(s). This tool opens up a rudimentary terminal with various menus and submenus with commands for configuring the chips and aquiring data.</p>
 <p >Look at the [detector](detector) subdirectory for the detector-wide (multiple polarfire) configuration executable.</p>
-<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> document is meant to give an overview of its design and provide some manual documentation on its properties. We assume that <code>pftool</code> is already successfully built. More detail about the menu commands within pftool is given in the documentation of <a class="el" href="pftool_8cc.html" title="File defining the pftool executable.">pftool.cc</a>.</p>
+<p >This document is meant to give an overview of its design and provide some manual documentation on its properties. We assume that <code>pftool</code> is already successfully built. More detail about the menu commands within pftool is given in the documentation of <a class="el" href="pftool_8cc.html" title="File defining the pftool executable.">pftool.cc</a>.</p>
 <h1><a class="anchor" id="autotoc_md50"></a>
 General Notes</h1>
 <h3><a class="anchor" id="autotoc_md51"></a>
@@ -100,7 +100,7 @@ Running</h3>
 <div class="line">  ... main menu ...</div>
 <div class="line"> </div>
 <div class="line">&gt;</div>
-</div><!-- fragment --><p> Notice that the firmware version is printed. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> shows a successful connection to the polarfire. The indices of the active DAQ links are also printed which can help the user double-check that their <code>pftoolrc</code> was loaded successfully.</p>
+</div><!-- fragment --><p> Notice that the firmware version is printed. This shows a successful connection to the polarfire. The indices of the active DAQ links are also printed which can help the user double-check that their <code>pftoolrc</code> was loaded successfully.</p>
 <p >The listing of commands in your current menu is always printed after you execute a command. I will omit these menu printouts in this document. The commands are listed in all-caps, but the tool is case-insensitive, so I will often list the commands in all lower-case.</p>
 <h3><a class="anchor" id="autotoc_md52"></a>
 pftoolrc Files</h3>
@@ -110,7 +110,7 @@ pftoolrc Files</h3>
 <li>File named <code>.pftoolrc</code> in your home directory</li>
 </ol>
 <p ><b>Tip</b> A potentially helpful alias is to prepend <code>pftool</code> with the environment variable so that <code>pftool</code> always loads the RC file in this repository. </p><div class="fragment"><div class="line">alias pftool=&#39;PFTOOLRC=/full/path/to/pflib/pftoolrc pftool&#39;</div>
-</div><!-- fragment --><p> <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> specific alias assumes that <code>pftool</code> is installed to a directory in the <code>PATH</code> environment variable.</p>
+</div><!-- fragment --><p> This specific alias assumes that <code>pftool</code> is installed to a directory in the <code>PATH</code> environment variable.</p>
 <h3><a class="anchor" id="autotoc_md53"></a>
 uHal Config Files</h3>
 <p >uHal needs to load a set of XML files defining the IP-bus mapping. You can support this by either running pftool from within the uhal directory or by providing the full path to that directory using the <code>ipbus_map_path</code> parameter in the RC file.</p>
@@ -137,17 +137,17 @@ daq.status</h2>
 <div class="line"> 0007 0507 01 01 00 01 08397895</div>
 <div class="line">-----Off-detector FIFO-----</div>
 <div class="line"> NOT-FULL 0000EMPTY Events ready: 000 Next event size: 101</div>
-</div><!-- fragment --><p> At UMN, we only have one HGC ROC and therefore only two active links. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> means all of the links except for the first two are fully zero suppressed (ZS == 1).</p>
-<p >The ID number is defined during the execution of <code>daq.standard</code> and is <code>(&lt;fpga-id&gt; &lt;&lt; 8) + &lt;link&gt;</code>. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is the status for a "standard" setup. You can get back to the "standard" setup by running the <code>daq</code> commands <code>hard_reset</code>, <code>standard</code>, <code>enable</code> (in that order).</p>
+</div><!-- fragment --><p> At UMN, we only have one HGC ROC and therefore only two active links. This means all of the links except for the first two are fully zero suppressed (ZS == 1).</p>
+<p >The ID number is defined during the execution of <code>daq.standard</code> and is <code>(&lt;fpga-id&gt; &lt;&lt; 8) + &lt;link&gt;</code>. This is the status for a "standard" setup. You can get back to the "standard" setup by running the <code>daq</code> commands <code>hard_reset</code>, <code>standard</code>, <code>enable</code> (in that order).</p>
 <h2><a class="anchor" id="autotoc_md57"></a>
 roc.hard_reset</h2>
-<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> sets the HGC ROC back to its power-on default state, including resetting all of its parameters. If this command is issued, any ROC parameters that were loaded (via <code>roc.load</code> need to be re-loaded).</p>
+<p >This sets the HGC ROC back to its power-on default state, including resetting all of its parameters. If this command is issued, any ROC parameters that were loaded (via <code>roc.load</code> need to be re-loaded).</p>
 <h2><a class="anchor" id="autotoc_md58"></a>
 daq.hard_reset</h2>
-<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> forcefully clears the event buffers as if a run wasn't started <em>and</em> resets any DAQ parameters.</p>
+<p >This forcefully clears the event buffers as if a run wasn't started <em>and</em> resets any DAQ parameters.</p>
 <h2><a class="anchor" id="autotoc_md59"></a>
 elinks.spy</h2>
-<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> should show the "idle" pattern (ac cc cc cc repeated) when the link is behaving correctly.</p>
+<p >This should show the "idle" pattern (ac cc cc cc repeated) when the link is behaving correctly.</p>
 <h2><a class="anchor" id="autotoc_md60"></a>
 elinks.bitsplit and elinks.delay</h2>
 <p >Theses parameters help "align" the links so that they correctly show the "idle" pattern when you <code>elinks.spy</code>. The values should be relatively constant for a given physical chip and firmware version even if they need to be reset when the chip is restarted.</p>
@@ -156,10 +156,10 @@ daq.setup.l1aparams</h2>
 <p >These parameters should be stable for a given setup. <b>Across setups</b>, the readout length should be 40. For UMN, the delay should be 15.</p>
 <h2><a class="anchor" id="autotoc_md62"></a>
 roc.resyncload</h2>
-<p ><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> can be done after a <code>roc.hard\_reset</code> and helps maintain link stability.</p>
+<p >This can be done after a <code>roc.hard\_reset</code> and helps maintain link stability.</p>
 <h2><a class="anchor" id="autotoc_md63"></a>
 fast_control.calib</h2>
-<p >A known uMNio firmware bug (that has been patched in later versions by Jeremy), leads to an inability to read some parameters. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> causes the defaults for this command to always be <code>0</code> even though the actual registers are (probably) updated successfully. Users may wish to always set these parameters on every entry into pftool just to be safe.</p>
+<p >A known uMNio firmware bug (that has been patched in later versions by Jeremy), leads to an inability to read some parameters. This causes the defaults for this command to always be <code>0</code> even though the actual registers are (probably) updated successfully. Users may wish to always set these parameters on every entry into pftool just to be safe.</p>
 <ul>
 <li>pulse length should be <code>1</code></li>
 <li>L1A offset should be <code>15</code></li>

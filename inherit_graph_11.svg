@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
-<g id="a_node1"><a xlink:href="classpflib_1_1decoding_1_1SuperPacket.html" target="_top" xlink:title=" ">
+<g id="a_node1"><a xlink:href="classpflib_1_1decoding_1_1SuperPacket.html" target="_top" xlink:title="Decoding of entire &quot;super packet&quot; which holds multiple polarfire packets &#45; one for each sample in an ...">
 <polygon fill="none" stroke="black" points="0,-0.5 0,-19.5 153,-19.5 153,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="76.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">pflib::decoding::SuperPacket</text>
 </a>

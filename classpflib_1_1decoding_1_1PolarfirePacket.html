@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-10-g3113088c</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-13-g38d8a880</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -92,64 +92,333 @@ $(document).ready(function(){initNavTree('classpflib_1_1decoding_1_1PolarfirePac
   <div class="headertitle"><div class="title">pflib::decoding::PolarfirePacket Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>wrap the encoded binary data readout by a single polarfire  
+ <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="PolarfirePacket_8h_source.html">PolarfirePacket.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa235370a76cbec9b1e04fac268697e0a"><td class="memItemLeft" align="right" valign="top"><a id="aa235370a76cbec9b1e04fac268697e0a" name="aa235370a76cbec9b1e04fac268697e0a"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>PolarfirePacket</b> (const uint32_t *header_ptr, int len)</td></tr>
+<tr class="memitem:aa235370a76cbec9b1e04fac268697e0a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#aa235370a76cbec9b1e04fac268697e0a">PolarfirePacket</a> (const uint32_t *header_ptr, int len)</td></tr>
+<tr class="memdesc:aa235370a76cbec9b1e04fac268697e0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap the input array and its lenth as a <a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html" title="wrap the encoded binary data readout by a single polarfire">PolarfirePacket</a>.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#aa235370a76cbec9b1e04fac268697e0a">More...</a><br /></td></tr>
 <tr class="separator:aa235370a76cbec9b1e04fac268697e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b9ece75c06784ac6abbe5c2fdf660b1"><td class="memItemLeft" align="right" valign="top"><a id="a6b9ece75c06784ac6abbe5c2fdf660b1" name="a6b9ece75c06784ac6abbe5c2fdf660b1"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>length</b> () const</td></tr>
+<tr class="memitem:a6b9ece75c06784ac6abbe5c2fdf660b1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#a6b9ece75c06784ac6abbe5c2fdf660b1">length</a> () const</td></tr>
+<tr class="memdesc:a6b9ece75c06784ac6abbe5c2fdf660b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the length of this packet as reported in the first header word.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#a6b9ece75c06784ac6abbe5c2fdf660b1">More...</a><br /></td></tr>
 <tr class="separator:a6b9ece75c06784ac6abbe5c2fdf660b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae032dca94b118e2b57c4e88cf99598c3"><td class="memItemLeft" align="right" valign="top"><a id="ae032dca94b118e2b57c4e88cf99598c3" name="ae032dca94b118e2b57c4e88cf99598c3"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>nlinks</b> () const</td></tr>
+<tr class="memitem:ae032dca94b118e2b57c4e88cf99598c3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#ae032dca94b118e2b57c4e88cf99598c3">nlinks</a> () const</td></tr>
+<tr class="memdesc:ae032dca94b118e2b57c4e88cf99598c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of links readout in this packet as reported in header.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#ae032dca94b118e2b57c4e88cf99598c3">More...</a><br /></td></tr>
 <tr class="separator:ae032dca94b118e2b57c4e88cf99598c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b07043b31f01673ddc660f93f3ec0f0"><td class="memItemLeft" align="right" valign="top"><a id="a4b07043b31f01673ddc660f93f3ec0f0" name="a4b07043b31f01673ddc660f93f3ec0f0"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>fpgaid</b> () const</td></tr>
+<tr class="memitem:a4b07043b31f01673ddc660f93f3ec0f0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#a4b07043b31f01673ddc660f93f3ec0f0">fpgaid</a> () const</td></tr>
+<tr class="memdesc:a4b07043b31f01673ddc660f93f3ec0f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the ID of this polarfire.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#a4b07043b31f01673ddc660f93f3ec0f0">More...</a><br /></td></tr>
 <tr class="separator:a4b07043b31f01673ddc660f93f3ec0f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1463331fde65773c5ebd6025650846f"><td class="memItemLeft" align="right" valign="top"><a id="ab1463331fde65773c5ebd6025650846f" name="ab1463331fde65773c5ebd6025650846f"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>formatversion</b> () const</td></tr>
+<tr class="memitem:ab1463331fde65773c5ebd6025650846f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#ab1463331fde65773c5ebd6025650846f">formatversion</a> () const</td></tr>
+<tr class="memdesc:ab1463331fde65773c5ebd6025650846f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the format version of this polarfire daq format.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#ab1463331fde65773c5ebd6025650846f">More...</a><br /></td></tr>
 <tr class="separator:ab1463331fde65773c5ebd6025650846f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad917e735d68ff59b83fa9e53dbbb18f3"><td class="memItemLeft" align="right" valign="top"><a id="ad917e735d68ff59b83fa9e53dbbb18f3" name="ad917e735d68ff59b83fa9e53dbbb18f3"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>length_for_elink</b> (int ilink) const</td></tr>
+<tr class="memitem:ad917e735d68ff59b83fa9e53dbbb18f3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#ad917e735d68ff59b83fa9e53dbbb18f3">length_for_elink</a> (int ilink) const</td></tr>
+<tr class="memdesc:ad917e735d68ff59b83fa9e53dbbb18f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the length for a input elink.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#ad917e735d68ff59b83fa9e53dbbb18f3">More...</a><br /></td></tr>
 <tr class="separator:ad917e735d68ff59b83fa9e53dbbb18f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b3c7d69122dda968451f7ec088a3e38"><td class="memItemLeft" align="right" valign="top"><a id="a7b3c7d69122dda968451f7ec088a3e38" name="a7b3c7d69122dda968451f7ec088a3e38"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>bxid</b> () const</td></tr>
+<tr class="memitem:a7b3c7d69122dda968451f7ec088a3e38"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#a7b3c7d69122dda968451f7ec088a3e38">bxid</a> () const</td></tr>
+<tr class="memdesc:a7b3c7d69122dda968451f7ec088a3e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get BX ID of this readout packet.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#a7b3c7d69122dda968451f7ec088a3e38">More...</a><br /></td></tr>
 <tr class="separator:a7b3c7d69122dda968451f7ec088a3e38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa8ddd1a10ef2e31b875ac5df18585c3"><td class="memItemLeft" align="right" valign="top"><a id="aaa8ddd1a10ef2e31b875ac5df18585c3" name="aaa8ddd1a10ef2e31b875ac5df18585c3"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>rreq</b> () const</td></tr>
+<tr class="memitem:aaa8ddd1a10ef2e31b875ac5df18585c3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#aaa8ddd1a10ef2e31b875ac5df18585c3">rreq</a> () const</td></tr>
+<tr class="memdesc:aaa8ddd1a10ef2e31b875ac5df18585c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get RREQ of this readout packet.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#aaa8ddd1a10ef2e31b875ac5df18585c3">More...</a><br /></td></tr>
 <tr class="separator:aaa8ddd1a10ef2e31b875ac5df18585c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafd0c3a03b45edc5bee5cda3676f6f09"><td class="memItemLeft" align="right" valign="top"><a id="aafd0c3a03b45edc5bee5cda3676f6f09" name="aafd0c3a03b45edc5bee5cda3676f6f09"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>orbit</b> () const</td></tr>
+<tr class="memitem:aafd0c3a03b45edc5bee5cda3676f6f09"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#aafd0c3a03b45edc5bee5cda3676f6f09">orbit</a> () const</td></tr>
+<tr class="memdesc:aafd0c3a03b45edc5bee5cda3676f6f09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the orbit number from this readout packet.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#aafd0c3a03b45edc5bee5cda3676f6f09">More...</a><br /></td></tr>
 <tr class="separator:aafd0c3a03b45edc5bee5cda3676f6f09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e80efe88159a898bfab517d6582a9ec"><td class="memItemLeft" align="right" valign="top"><a id="a4e80efe88159a898bfab517d6582a9ec" name="a4e80efe88159a898bfab517d6582a9ec"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>linklen</b> (int link) const</td></tr>
-<tr class="separator:a4e80efe88159a898bfab517d6582a9ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b305c55496a54f8cfa1734d36ecea7d"><td class="memItemLeft" align="right" valign="top"><a id="a3b305c55496a54f8cfa1734d36ecea7d" name="a3b305c55496a54f8cfa1734d36ecea7d"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>linkcrc</b> (int link) const</td></tr>
-<tr class="separator:a3b305c55496a54f8cfa1734d36ecea7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad18b7bc80654683d7f03046ce37d3b1b"><td class="memItemLeft" align="right" valign="top"><a id="ad18b7bc80654683d7f03046ce37d3b1b" name="ad18b7bc80654683d7f03046ce37d3b1b"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>linkrid</b> (int link) const</td></tr>
-<tr class="separator:ad18b7bc80654683d7f03046ce37d3b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e06279adec6118653eb7f8a4a4a7f5a"><td class="memItemLeft" align="right" valign="top"><a id="a4e06279adec6118653eb7f8a4a4a7f5a" name="a4e06279adec6118653eb7f8a4a4a7f5a"></a>
-<a class="el" href="classpflib_1_1decoding_1_1RocPacket.html">RocPacket</a>&#160;</td><td class="memItemRight" valign="bottom"><b>roc</b> (int iroc) const</td></tr>
-<tr class="separator:a4e06279adec6118653eb7f8a4a4a7f5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ee1986f59b135baa2957795f53fdf46"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpflib_1_1decoding_1_1LinkPacket.html">LinkPacket</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#a6ee1986f59b135baa2957795f53fdf46">link</a> (int ilink) const</td></tr>
+<tr class="memdesc:a6ee1986f59b135baa2957795f53fdf46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the link packet wrapped with our decoding class.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#a6ee1986f59b135baa2957795f53fdf46">More...</a><br /></td></tr>
+<tr class="separator:a6ee1986f59b135baa2957795f53fdf46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:af418e6a180031c6f9b8b2bee4beaac4c"><td class="memItemLeft" align="right" valign="top"><a id="af418e6a180031c6f9b8b2bee4beaac4c" name="af418e6a180031c6f9b8b2bee4beaac4c"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>offset_to_elink</b> (int iroc) const</td></tr>
-<tr class="separator:af418e6a180031c6f9b8b2bee4beaac4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15de57077acb235ccda5da858a21e880"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html#a15de57077acb235ccda5da858a21e880">offset_to_elink</a> (int ilink) const</td></tr>
+<tr class="memdesc:a15de57077acb235ccda5da858a21e880"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the offset from the start of the polarfire packet to the input link packet.  <a href="classpflib_1_1decoding_1_1PolarfirePacket.html#a15de57077acb235ccda5da858a21e880">More...</a><br /></td></tr>
+<tr class="separator:a15de57077acb235ccda5da858a21e880"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a75efa927e7ab5c7223aa83cfc2b2cdec"><td class="memItemLeft" align="right" valign="top"><a id="a75efa927e7ab5c7223aa83cfc2b2cdec" name="a75efa927e7ab5c7223aa83cfc2b2cdec"></a>
 const uint32_t *&#160;</td><td class="memItemRight" valign="bottom"><b>data_</b></td></tr>
+<tr class="memdesc:a75efa927e7ab5c7223aa83cfc2b2cdec"><td class="mdescLeft">&#160;</td><td class="mdescRight">header pointer to data array <br /></td></tr>
 <tr class="separator:a75efa927e7ab5c7223aa83cfc2b2cdec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcefbca6fc25b028e5f7fd9e87094459"><td class="memItemLeft" align="right" valign="top"><a id="afcefbca6fc25b028e5f7fd9e87094459" name="afcefbca6fc25b028e5f7fd9e87094459"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>length_</b></td></tr>
+<tr class="memdesc:afcefbca6fc25b028e5f7fd9e87094459"><td class="mdescLeft">&#160;</td><td class="mdescRight">length of data array <br /></td></tr>
 <tr class="separator:afcefbca6fc25b028e5f7fd9e87094459"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p >wrap the encoded binary data readout by a single polarfire </p>
+<p >This is representing Table 3 from the <a href="hgcroc_dataformats.pdf">HGCROC Data Formats</a> manual. <b>Remember</b> Table 3 references "ROC Subpackets" which are really <a class="el" href="classpflib_1_1decoding_1_1LinkPacket.html" title="smallest formatted packet being readout by the HGCROC-Polarfire pipeline">LinkPacket</a>. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="aa235370a76cbec9b1e04fac268697e0a" name="aa235370a76cbec9b1e04fac268697e0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa235370a76cbec9b1e04fac268697e0a">&#9670;&nbsp;</a></span>PolarfirePacket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">pflib::decoding::PolarfirePacket::PolarfirePacket </td>
+          <td>(</td>
+          <td class="paramtype">const uint32_t *&#160;</td>
+          <td class="paramname"><em>header_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wrap the input array and its lenth as a <a class="el" href="classpflib_1_1decoding_1_1PolarfirePacket.html" title="wrap the encoded binary data readout by a single polarfire">PolarfirePacket</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">header_ptr</td><td>pointer to beginning of data array </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>length of data array </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a7b3c7d69122dda968451f7ec088a3e38" name="a7b3c7d69122dda968451f7ec088a3e38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b3c7d69122dda968451f7ec088a3e38">&#9670;&nbsp;</a></span>bxid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::bxid </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get BX ID of this readout packet. </p>
+<dl class="section return"><dt>Returns</dt><dd>bxid, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="ab1463331fde65773c5ebd6025650846f" name="ab1463331fde65773c5ebd6025650846f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1463331fde65773c5ebd6025650846f">&#9670;&nbsp;</a></span>formatversion()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::formatversion </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the format version of this polarfire daq format. </p>
+<dl class="section return"><dt>Returns</dt><dd>version, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="a4b07043b31f01673ddc660f93f3ec0f0" name="a4b07043b31f01673ddc660f93f3ec0f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b07043b31f01673ddc660f93f3ec0f0">&#9670;&nbsp;</a></span>fpgaid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::fpgaid </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the ID of this polarfire. </p>
+<dl class="section return"><dt>Returns</dt><dd>id number, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="a6b9ece75c06784ac6abbe5c2fdf660b1" name="a6b9ece75c06784ac6abbe5c2fdf660b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b9ece75c06784ac6abbe5c2fdf660b1">&#9670;&nbsp;</a></span>length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::length </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the length of this packet as reported in the first header word. </p>
+<dl class="section return"><dt>Returns</dt><dd>length, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="ad917e735d68ff59b83fa9e53dbbb18f3" name="ad917e735d68ff59b83fa9e53dbbb18f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad917e735d68ff59b83fa9e53dbbb18f3">&#9670;&nbsp;</a></span>length_for_elink()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::length_for_elink </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the length for a input elink. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index within this polarfire </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>length of that link, 0 if link doe snot exist </dd></dl>
+
+</div>
+</div>
+<a id="a6ee1986f59b135baa2957795f53fdf46" name="a6ee1986f59b135baa2957795f53fdf46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ee1986f59b135baa2957795f53fdf46">&#9670;&nbsp;</a></span>link()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classpflib_1_1decoding_1_1LinkPacket.html">LinkPacket</a> pflib::decoding::PolarfirePacket::link </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the link packet wrapped with our decoding class. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index within this polarfire </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classpflib_1_1decoding_1_1LinkPacket.html" title="smallest formatted packet being readout by the HGCROC-Polarfire pipeline">LinkPacket</a> decoding that link, empty packet if link does not exist </dd></dl>
+
+</div>
+</div>
+<a id="ae032dca94b118e2b57c4e88cf99598c3" name="ae032dca94b118e2b57c4e88cf99598c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae032dca94b118e2b57c4e88cf99598c3">&#9670;&nbsp;</a></span>nlinks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::nlinks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the number of links readout in this packet as reported in header. </p>
+<dl class="section return"><dt>Returns</dt><dd>number of links, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="a15de57077acb235ccda5da858a21e880" name="a15de57077acb235ccda5da858a21e880"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15de57077acb235ccda5da858a21e880">&#9670;&nbsp;</a></span>offset_to_elink()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::offset_to_elink </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ilink</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Calculate the offset from the start of the polarfire packet to the input link packet. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ilink</td><td>link index within this polarfire </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>offset, -1 if link does not exist </dd></dl>
+
+</div>
+</div>
+<a id="aafd0c3a03b45edc5bee5cda3676f6f09" name="aafd0c3a03b45edc5bee5cda3676f6f09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafd0c3a03b45edc5bee5cda3676f6f09">&#9670;&nbsp;</a></span>orbit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::orbit </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the orbit number from this readout packet. </p>
+<dl class="section return"><dt>Returns</dt><dd>orbit, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
+<a id="aaa8ddd1a10ef2e31b875ac5df18585c3" name="aaa8ddd1a10ef2e31b875ac5df18585c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa8ddd1a10ef2e31b875ac5df18585c3">&#9670;&nbsp;</a></span>rreq()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pflib::decoding::PolarfirePacket::rreq </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get RREQ of this readout packet. </p>
+<dl class="section return"><dt>Returns</dt><dd>read request, -1 if packet is empty </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/pflib/decoding/<a class="el" href="PolarfirePacket_8h_source.html">PolarfirePacket.h</a></li>
 <li>src/pflib/decoding/PolarfirePacket.cxx</li>

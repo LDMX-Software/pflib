@@ -1,9 +1,9 @@
 var namespacepflib =
 [
     [ "decoding", null, [
-      [ "PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", null ],
-      [ "RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
-      [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ]
+      [ "LinkPacket", "classpflib_1_1decoding_1_1LinkPacket.html", "classpflib_1_1decoding_1_1LinkPacket" ],
+      [ "PolarfirePacket", "classpflib_1_1decoding_1_1PolarfirePacket.html", "classpflib_1_1decoding_1_1PolarfirePacket" ],
+      [ "SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", "classpflib_1_1decoding_1_1SuperPacket" ]
     ] ],
     [ "detail", "namespacepflib_1_1detail.html", "namespacepflib_1_1detail" ],
     [ "rogue", null, [

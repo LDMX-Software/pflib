@@ -26,7 +26,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-10-g3113088c</span>
+   <div id="projectname">pflib<span id="projectnumber">&#160;v2.6.1-13-g38d8a880</span>
    </div>
    <div id="projectbrief">Polarfire Interaction Library</div>
   </td>
@@ -480,7 +480,7 @@ template&lt;typename T , typename H  = T*&gt; </div>
 </div><div class="memdoc">
 
 <p>Construct a new menu with the root as parent and optional rendering. </p>
-<p >After using submenu to attach ourselves to the input parent, we return a pointer to the newly constructed menu. <a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> is to allow chaining during the declaration of a menu, so that the declaration of a menu has a form similar to what the menu looks like at run time.</p>
+<p >After using submenu to attach ourselves to the input parent, we return a pointer to the newly constructed menu. This is to allow chaining during the declaration of a menu, so that the declaration of a menu has a form similar to what the menu looks like at run time.</p>
 <p >A simple example (actually using the shorter alias) is below. <code>one_func</code> and <code>two_func</code> are both functions accessible by this piece of code (either via a header or in this translation unit) and are <code>void</code> functions with take a handle to the target type. <code>color_func</code> is similarly accessible but it takes a string and the target handle. The string will be the command that is selected at runtime (e.g. "RED" if it is typed by the user) </p><div class="fragment"><div class="line"><span class="keyword">namespace </span>{</div>
 <div class="line"><span class="keyword">auto</span> sb = <a class="code hl_function" href="classMenu.html#a656806d3c4f4297311f79be354670524">Menu&lt;T&gt;::menu</a>(<span class="stringliteral">&quot;SB&quot;</span>,<span class="stringliteral">&quot;example submenu&quot;</span>)</div>
 <div class="line">  -&gt;<a class="code hl_function" href="classMenu.html#ae5c8e2ea33f9a7118ff514e1c4be2d96">line</a>(<span class="stringliteral">&quot;ONE&quot;</span>, <span class="stringliteral">&quot;one command in this menu&quot;</span>, one_func)</div>
@@ -665,7 +665,7 @@ template&lt;typename T , typename H  = T*&gt; </div>
 <p>declare a sub menu of us with input name and desc </p>
 <p >appends this menu line to us and then returns a pointer to us</p>
 <dl class="section note"><dt>Note</dt><dd><a class="el" href="classMenu_1_1Line.html" title="A command in the menu.">Line</a> takes ownership of Menus that are provided to it, so Menus should be dynamically created and not deleted. It is suggested to use the menu function to avoid complication.</dd></dl>
-<p><a class="el" href="classThis.html" title="the innermost part of an HGCROC packet given a pointer to a series of unsigned 32-bit integers and a ...">This</a> can be used if you already have a menu and you wish to add another submenu to it. </p><div class="fragment"><div class="line"><span class="keyword">namespace </span>{</div>
+<p>This can be used if you already have a menu and you wish to add another submenu to it. </p><div class="fragment"><div class="line"><span class="keyword">namespace </span>{</div>
 <div class="line"><span class="keyword">auto</span> mymain = <a class="code hl_function" href="classMenu.html#a656806d3c4f4297311f79be354670524">Menu&lt;T&gt;::menu</a>(<span class="stringliteral">&quot;MAIN&quot;</span>,<span class="stringliteral">&quot;will be on the root menu&quot;</span>);</div>
 <div class="line"><span class="keyword">auto</span> sb = mymain-&gt;submenu(<span class="stringliteral">&quot;SB&quot;</span>,<span class="stringliteral">&quot;A line in the MAIN menu&quot;</span>);</div>
 <div class="line">}</div>

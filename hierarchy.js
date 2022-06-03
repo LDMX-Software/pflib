@@ -21,6 +21,7 @@ var hierarchy =
     [ "Rcfile::HelpInfo", "structRcfile_1_1HelpInfo.html", null ],
     [ "hex< W >", "structhex.html", null ],
     [ "Menu< T, H >::Line", "classMenu_1_1Line.html", null ],
+    [ "pflib::decoding::LinkPacket", "classpflib_1_1decoding_1_1LinkPacket.html", null ],
     [ "pflib::MAX5825", "classpflib_1_1MAX5825.html", null ],
     [ "pflib::Parameter", "structpflib_1_1Parameter.html", null ],
     [ "pflib::DetectorConfiguration::PolarfireConfiguration", "structpflib_1_1DetectorConfiguration_1_1PolarfireConfiguration.html", null ],
@@ -34,9 +35,7 @@ var hierarchy =
     [ "Rcmap", "classRcmap.html", null ],
     [ "pflib::RegisterLocation", "structpflib_1_1RegisterLocation.html", null ],
     [ "pflib::ROC", "classpflib_1_1ROC.html", null ],
-    [ "pflib::decoding::RocPacket", "classpflib_1_1decoding_1_1RocPacket.html", null ],
     [ "pflib::decoding::SuperPacket", "classpflib_1_1decoding_1_1SuperPacket.html", null ],
-    [ "This", "classThis.html", null ],
     [ "pflib::WishboneInterface", "classpflib_1_1WishboneInterface.html", [
       [ "pflib::rogue::RogueWishboneInterface", "classpflib_1_1rogue_1_1RogueWishboneInterface.html", null ],
       [ "pflib::uhal::uhalWishboneInterface", "classpflib_1_1uhal_1_1uhalWishboneInterface.html", null ]
