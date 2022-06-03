@@ -308,14 +308,14 @@ void read_pedestal(PolarfireTarget* pft)
 
   pft->prepareNewRun();
   pft->backend->fc_sendL1A();
-    std::vector<uint32_t> event = pft->daqReadEvent();
+  std::vector<uint32_t> event = pft->daqReadEvent();
 
-    pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
 
-    static int iroc=0;
-    iroc=BaseMenu::readline_int("Which ROC:",iroc);
-    static int half = 0;
-    half = BaseMenu::readline_int("Which half? 0/1", half);
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which half? 0/1", half);
 
 
     const int link = iroc * 2 + half;
@@ -328,11 +328,13 @@ void read_pedestal(PolarfireTarget* pft)
       }
       std::cout << std::endl;
     }
+    std::cout << std::endl;
+  }
 
-    auto stats {get_pedestal_stats(pft, data, link) };
-    std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
-              <<", min " << stats[2] << ", max " << stats[3]
-              << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
+  auto stats {get_pedestal_stats(pft, data, link) };
+  std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
+            <<", min " << stats[2] << ", max " << stats[3]
+            << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
 }
 
 void make_scan_csv_header(PolarfireTarget* pft,
