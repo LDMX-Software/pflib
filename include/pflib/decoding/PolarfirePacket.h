@@ -1,14 +1,15 @@
 #ifndef pflib_decoding_PolarfirePacket_h
 #define pflib_decoding_PolarfirePacket_h 1
 
-#include "pflib/decoding/RocPacket.h"
+#include "pflib/decoding/LinkPacket.h"
 
 namespace pflib {
 namespace decoding {
 
-  /** \class This class decodes the innermost part of an HGCROC packet given
-    a pointer to a series of unsigned 32-bit integers and a length.
-*/
+/** 
+ * decodes the innermost part of an HGCROC packet given 
+ * a pointer to a series of unsigned 32-bit integers and a length.
+ */
 class PolarfirePacket {
  public:
   PolarfirePacket(const uint32_t* header_ptr, int len)  : data_{header_ptr}, length_{len} { }
@@ -32,9 +33,9 @@ class PolarfirePacket {
   
   int linkrid(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+7))&0x1;}
 
-  RocPacket roc(int iroc) const;
-private:
-  int offset_to_elink(int iroc) const;
+  LinkPacket roc(int ilink) const;
+ private:
+  int offset_to_elink(int ilink) const;
   
   const uint32_t* data_;
   int length_;
