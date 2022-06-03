@@ -22,14 +22,14 @@ void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, con
 {
     for (int sample{0}; sample < nsamples; ++sample) {
         for (int link{0}; link < num_active_links; ++link) {
-            const auto packet {event.sample(sample).roc(link)};
+            const auto packet {event.sample(sample).link(link)};
             auto& status {res[link]};
             status.update(packet);
         }
     }
 }
 
-void HeaderStatus::update(const pflib::decoding::RocPacket packet)
+void HeaderStatus::update(const pflib::decoding::LinkPacket packet)
 {
     if (packet.length() > 2) {
         if (packet.good_bxheader()) {

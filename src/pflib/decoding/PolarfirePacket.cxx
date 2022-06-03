@@ -3,10 +3,10 @@
 namespace pflib {
 namespace decoding {
 
-RocPacket PolarfirePacket::roc(int ilink) const {
+LinkPacket PolarfirePacket::link(int ilink) const {
   int offset=offset_to_elink(ilink);
-  if (offset<0) return RocPacket(0,0);
-  else return RocPacket(data_+offset,length_for_elink(ilink));
+  if (offset<0) return LinkPacket(0,0);
+  else return LinkPacket(data_+offset,length_for_elink(ilink));
 }
 
 int PolarfirePacket::offset_to_elink(int ilink) const {
