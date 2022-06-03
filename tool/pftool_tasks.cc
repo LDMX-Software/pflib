@@ -1215,10 +1215,12 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
   ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
   ->line("CALIBRUN", "Produce the calibration scans", tasks)
   ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
-  ->line("PEDESTAL_READ", "foo", tasks)
+  ->line("PEDESTAL_READ", "Take a single pedestal event, and dump details to stdout", tasks)
   ->line("CHARGE_READ", "Take a single calib_pulse event, and dump details to stdout", tasks)
-  ->line("ALIGN_PREAMP", "foo", tasks)
-  ->line("DACB","foo",tasks)
+  ->line("ALIGN_PREAMP",
+         "Attempt to automatically tune REF_DAC_INV to hit a particular pedestal +- tolerance",
+         tasks)
+  ->line("DACB","Attempt to manually tune the channel-wise DACB parameter",tasks)
 ;
 }
 
