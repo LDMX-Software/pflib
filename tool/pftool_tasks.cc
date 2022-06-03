@@ -67,9 +67,7 @@ double get_average_adc(pflib::PolarfireTarget* pft,
   for (int sample{0}; sample < nsamples; ++sample) {
     channel_average += data.sample(sample).link(link).get_adc(ch);
   }
-  // std::cout << "Before: " << channel_average << " ch " << ch;
   channel_average /= nsamples;
-  // std::cout << " after " << channel_average <<std::endl;
   return channel_average;
 }
 
@@ -182,7 +180,6 @@ void preamp_alignment(PolarfireTarget* pft)
               << " to value: " << value
               << std::endl;
     roc.applyParameter(page, parameter, value);
-
   }
 
 
@@ -308,10 +305,13 @@ void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
   static int half = 0;
   half = BaseMenu::readline_int("Which half? 0/1", half);
+  static int channel {-1};
+  channel = BaseMenu::readline_int("Which channel ? (-1 for all)", channel);
 
 
-    const int link = iroc * 2 + half;
-    std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  const int link = iroc * 2 + half;
+  std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  if (channel == -1) {
     for( int ch=0; ch < 36; ++ch) {
       const int channel_number = ch + half * 36;
       std::cout << "Ch: " << ch << ": ";
@@ -319,6 +319,12 @@ void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data
         std::cout << ' ' << data.sample(sample).link(link).get_adc(ch);
       }
       std::cout << std::endl;
+    }
+  } else {
+    const int channel_number = channel + half * 36;
+    std::cout << "Ch: " << channel << ": ";
+    for (int sample {0}; sample < nsamples; ++sample) {
+      std::cout << ' ' << data.sample(sample).link(link).get_adc(channel);
     }
     std::cout << std::endl;
   }
@@ -344,7 +350,6 @@ void read_pedestal(PolarfireTarget* pft)
   pft->prepareNewRun();
   pft->backend->fc_sendL1A();
   std::vector<uint32_t> event = pft->daqReadEvent();
-
   pflib::decoding::SuperPacket data(&(event[0]),event.size());
   read_samples(pft, data);
 
