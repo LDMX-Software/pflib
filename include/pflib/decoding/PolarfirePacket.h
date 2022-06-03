@@ -7,37 +7,87 @@ namespace pflib {
 namespace decoding {
 
 /** 
- * decodes the innermost part of an HGCROC packet given 
- * a pointer to a series of unsigned 32-bit integers and a length.
+ * wrap the encoded binary data readout by a single polarfire
+ *
+ * This is representing Table 3 from the \dataformats manual.
+ * **Remember** Table 3 references "ROC Subpackets" which are really
+ * LinkPacket.
  */
 class PolarfirePacket {
  public:
-  PolarfirePacket(const uint32_t* header_ptr, int len)  : data_{header_ptr}, length_{len} { }
+  /**
+   * Wrap the input array and its lenth as a PolarfirePacket
+   * @param[in] header_ptr pointer to beginning of data array
+   * @param[in] len length of data array
+   */
+  PolarfirePacket(const uint32_t* header_ptr, int len);
 
-  int length() const { if (length_<1) return -1; return data_[0]&0xFFF; }
-  int nlinks() const { if (length_<1) return -1; return (data_[0]>>14)&0x3F; }
-  int fpgaid() const { if (length_<1) return -1; return (data_[0]>>20)&0xFF; }
-  int formatversion() const { if (length_<1) return -1; return (data_[0]>>28)&0xF; }
+  /**
+   * Get the length of this packet as reported in the first header word
+   * @return length, -1 if packet is empty
+   */
+  int length() const;
 
-  int length_for_elink(int ilink) const { if (ilink>=nlinks()) return 0; return (data_[2+(ilink/4)]>>(8*(ilink%4)))&0x3F; }
+  /**
+   * Get the number of links readout in this packet as reported in header
+   * @return number of links, -1 if packet is empty
+   */
+  int nlinks() const;
+
+  /**
+   * Get the ID of this polarfire
+   * @return id number, -1 if packet is empty
+   */
+  int fpgaid() const;
+
+  /**
+   * Get the format version of this polarfire daq format
+   * @return version, -1 if packet is empty
+   */
+  int formatversion() const;
+
+  /**
+   * Get the length for a input elink
+   * @param[in] ilink link index within this polarfire
+   * @return length of that link, 0 if link doe snot exist
+   */
+  int length_for_elink(int ilink) const;
     
-  int bxid() const { if (length_<2) return -1; return (data_[1]>>20)&0xFFF;}
+  /**
+   * Get BX ID of this readout packet
+   * @return bxid, -1 if packet is empty
+   */
+  int bxid() const;
 
-  int rreq() const { if (length_<2) return -1; return (data_[1]>>10)&0x3FF;}
+  /**
+   * Get RREQ of this readout packet
+   * @return read request, -1 if packet is empty
+   */
+  int rreq() const;
 
-  int orbit() const { if (length_<2) return -1; return data_[1]&0x3FF;}
+  /**
+   * Get the orbit number from this readout packet
+   * @return orbit, -1 if packet is empty
+   */
+  int orbit() const;
 
-  int linklen(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8))&0x3F;}
-  
-  int linkcrc(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+6))&0x1;}
-  
-  int linkrid(int link) const { if (length_<3) return -1; return (data_[2]>>(link*8+7))&0x1;}
-
+  /**
+   * Get the link packet wrapped with our decoding class
+   * @param[in] ilink link index within this polarfire
+   * @return LinkPacket decoding that link, empty packet if link does not exist
+   */
   LinkPacket link(int ilink) const;
  private:
+  /**
+   * Calculate the offset from the start of the polarfire packet
+   * to the input link packet
+   * @param[in] ilink link index within this polarfire
+   * @return offset, -1 if link does not exist
+   */
   int offset_to_elink(int ilink) const;
-  
+  /// header pointer to data array
   const uint32_t* data_;
+  /// length of data array
   int length_;
 };
   

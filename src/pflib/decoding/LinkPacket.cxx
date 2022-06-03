@@ -4,9 +4,64 @@
 namespace pflib {
 namespace decoding {
 
-LinkPacket::LinkPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len} {
-  
+LinkPacket::LinkPacket(const uint32_t* header_ptr, int len) 
+  : data_{header_ptr}, length_{len} {}
+
+int LinkPacket::linkid() const {
+  if (length_ == 0) return -1;
+  return (data_[0]>>16)&0xFFFF;
 }
+
+int LinkPacket::crc() const {
+  if (length_==0) return -1; 
+  return (data_[0]>>15)&0x1;
+}
+
+int LinkPacket::bxid() const { 
+  if (length_<3) return -1; 
+  return (data_[2]>>11)&0x7FF;
+}
+
+int LinkPacket::wadd() const { 
+  if (length_<3) return -1; 
+  return (data_[2]>>3)&0xFF;
+}
+
+int LinkPacket::length() const {
+  return length_; 
+}
+
+bool LinkPacket::good_bxheader() const { 
+  if (length_<3) return false; 
+  return (data_[2]&0xff000000)==0xaa000000; 
+}
+
+bool LinkPacket::good_idle() const { 
+  if (length_<42) return false; 
+  return data_[41]==0xaccccccc; 
+}
+
+bool LinkPacket::has_chan(int ichan) const {
+  return offset_to_chan(ichan)>=0;
+}
+
+int LinkPacket::get_tot(int ichan) const { 
+  int offset = offset_to_chan(ichan); 
+  if (offset == -1) return -1; 
+  return (data_[offset]>>20)&0xFFF;
+} 
+
+int LinkPacket::get_toa(int ichan) const {
+  int offset = offset_to_chan(ichan); 
+  if (offset == -1) return -1; 
+  return (data_[offset]>>10)&0x3FF;
+}
+
+int LinkPacket::get_adc(int ichan) const { 
+  int offset = offset_to_chan(ichan); 
+  if (offset == -1) return -1; 
+  return data_[offset]&0x3FF;
+} 
 
 void LinkPacket::dump() const {
   for (int i=0; i<length_; i++) {
