@@ -105,8 +105,7 @@ void PolarfireWB::runThread() {
   log_->logThreadId();
 
   while(threadEn_) {
-    if ( (tran = queue_.pop()) != NULL ) {
-
+    if ((tran = queue_.pop()) != NULL) {
       rim::TransactionLockPtr lock = tran->lock();
 
       if ( tran->expired() ) {
@@ -121,6 +120,8 @@ void PolarfireWB::runThread() {
         continue;
       }
 
+      log_->debug("Transaction correct size and not expired");
+
       /// gather information
       uint32_t addr=tran->address()&MASK_ADDR;
       uint32_t target=(tran->address()>>32);
@@ -129,44 +130,60 @@ void PolarfireWB::runThread() {
       uint32_t* p_buffer=(uint32_t*)tran->begin();
       int naddr=tran->size()/4;
 
+      log_->debug("Transaction { addr : %i target: %i isWrite: %d naddr: %d buff: 0x%08x }",
+          addr,target,isWrite,naddr,p_buffer);
+
       if (target==target_Backend_FC) {
-	if (base_fc_==0) {
-	  tran->error("Backend fast control not mapped");
-	} else {
-	  for (int iw=0; iw<naddr; iw++) {
-	    if (isWrite) base_fc_[0x100+iw+addr]=p_buffer[iw];
-	    else p_buffer[iw]=base_fc_[0x100+iw+addr];
-	  }
-	  tran->done();
-	}
-	continue;
+        log_->debug("Backend FC Transaction");
+        if (base_fc_==0) {
+          tran->error("Backend fast control not mapped");
+        } else {
+          log_->debug("Backed FC mapped");
+          for (int iw=0; iw<naddr; iw++) {
+            if (isWrite) base_fc_[0x100+iw+addr]=p_buffer[iw];
+            else p_buffer[iw]=base_fc_[0x100+iw+addr];
+          }
+          tran->done();
+        }
+        continue;
       } else if (target==target_Backend_DAQ) {
-	if (base_daq_==0) {
-	  tran->error("Backend DAQ not mapped");
-	} else {
-	  for (int iw=0; iw<naddr; iw++) {
-	    if (isWrite) base_daq_[iw+addr]=p_buffer[iw];
-	    else p_buffer[iw]=base_daq_[iw+addr];
-	  }
-	  tran->done();
-	}
-	continue;	
+        log_->debug("Backend DAQ transaction");
+        if (base_daq_==0) {
+          tran->error("Backend DAQ not mapped");
+        } else {
+          log_->debug("Backed DAQ mapped");
+          for (int iw=0; iw<naddr; iw++) {
+            if (isWrite) base_daq_[iw+addr]=p_buffer[iw];
+            else p_buffer[iw]=base_daq_[iw+addr];
+          }
+          tran->done();
+        }
+        continue; 
       }
+
       target&=MASK_TARGET;
 
       uint32_t common_reg2;
       common_reg2=(target<<SHIFT_TARGET);
       if (isWrite) common_reg2|=DIR_IS_WRITE;
 
+      log_->debug("common_reg2 = 0x%08x", common_reg2);
+
       bool failed=false;
       for (int iw=0; iw<naddr; iw++) {
         // set address, target, direction
         base_[REG_ADDR_DIR]=((addr+iw)&MASK_ADDR) | common_reg2;
+        log_->debug("Set REG_ADDR_DIR 0x%08x", base_[REG_ADDR_DIR]);
         // if appropriate, set data
-        if (isWrite) base_[REG_DATO]=p_buffer[iw];
+        if (isWrite) {
+          base_[REG_DATO]=p_buffer[iw];
+          log_->debug("Set REG_DATAO 0x%x", base_[REG_DATO]);
+        }
         // start the transaction
+        log_->debug("Set base_[REG_CTL] to 0x%x", START);
         base_[REG_CTL]=START;
-        
+        log_->debug("Signal start (base_[REG_CTL] == 0x%x)", base_[REG_CTL]);
+        log_->debug("begin spin wait with status 0x%x", base_[REG_STATUS]);
         int ispin=0;
         static const int TIMEOUT=100000;
         bool done=false;
@@ -175,23 +192,30 @@ void PolarfireWB::runThread() {
           ispin=ispin+1;
           done=(base_[REG_STATUS]&WB_DONE)!=0;
         } while (!done && ispin<TIMEOUT);
-
-        if (ispin==TIMEOUT) {
+        log_->debug("completed spin wait with status 0x%x", base_[REG_STATUS]);
+        if (!done) {
           // clear the WB transactor
+          log_->error("unable to complete transaction within alloted timeout %d", ispin);
+          log_->debug("attempting to recover (set REG_CTL = 0x%x)", RECOVER);
           base_[REG_CTL]=RECOVER;
+          log_->debug("recovering with base_[REG_CTL] == 0x%x", base_[REG_CTL]);
           failed=true;
           // report failure
+          log_->debug("reporting failure to transaction");
           tran->error("Wishbone bus timeout");
+          log_->debug("leaving naddr loop");
           break;
         } else {
+          log_->debug("successful transation");
           if (!isWrite) p_buffer[iw]=base_[REG_DATI];
         }
       }
-
       if (!failed) {
-        log_->debug("Transaction id=0x%08x, addr 0x%08x. Size=%i, type=%i",tran->id(),tran->address(),tran->size(),tran->type());
+        log_->debug("Transaction id=0x%08x, addr 0x%08x. Size=%i, type=%i",
+            tran->id(),tran->address(),tran->size(),tran->type());
         tran->done();
       }
+      log_->debug("done with transaction");
     }
   }
 }
