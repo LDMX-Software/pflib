@@ -610,6 +610,23 @@ void phasescan(PolarfireTarget* pft) {
         pft->backend->fc_advance_l1_fifo();
         const pflib::decoding::SuperPacket data (&(event[0]), event.size());
         const auto dpm{get_dpm_number(pft)};
+        for (auto link : active_links) {
+          for (auto channel {0}; channel < channels_per_elink; ++channel) {
+            csv_out << phase << ',' << dpm << ',' << link << ',' << channel << ',' << event_number;
+            for (auto sample {0}; sample < nsamples; ++sample) {
+              csv_out << ',' << data.sample(sample).link(link).get_adc(channel);
+            }
+            for (auto sample {0}; sample < nsamples; ++sample) {
+              csv_out << ',' << data.sample(sample).link(link).get_tot(channel);
+            }
+            for (auto sample {0}; sample < nsamples; ++sample) {
+              csv_out << ',' << data.sample(sample).link(link).get_toa(channel);
+            }
+            csv_out << ',' << LED_dac << ',' << LED_Bias << ',' << SiPM_bias
+              // Want both flush and newline
+              csv_out << std::endl;
+          }
+        }
       }
       std::cout << std::endl;
     }
