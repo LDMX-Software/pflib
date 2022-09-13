@@ -1,4 +1,7 @@
 #include "pftool_tasks.h"
+#include "pftool_elinks.h"
+#include "pftool_roc.h"
+#include <cstdint>
 
 // Really wishing we had C++17 here for the portable filesystem library...
 // https://stackoverflow.com/questions/18100097/portable-way-to-check-if-directory-exists-windows-linux-c
@@ -577,6 +580,22 @@ void phasescan(PolarfireTarget* pft) {
       set_bias_on_all_active_boards(pft, true, LED_bias);
       set_bias_on_all_active_boards(pft, false, SiPM_bias);
     }
+    static int LED_dac {1500};
+    LED_dac = BaseMenu::readline_int("LED DAC (0...2047)", LED_dac);
+    const int rate = 100;
+    const int run = 0;
+    const int events_per_step =
+        BaseMenu::readline_int("Number of events per step?", 2);
+    std::ofstream csv_out{"PHASESCAN.csv"};
+    make_scan_csv_header(pft, csv_out, "PHASE_LED");
+    const int steps{
+        BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
+    const std::string page{"TOP"};
+    const std::string parameter{"PHASE"};
+    const std::vector<int> active_boards{get_rocs_with_active_links(pft)};
+    auto active_links {getActiveLinkNumbers(pft)};
+    const auto channels_per_elink {get_num_channels_per_elink()};
+    const int nsamples = get_number_of_samples_per_event(pft);
   } else {
     std::cout << "Doing phase scan with charge injection...\n";
     std::cout << "Disabling LED bias" << std::endl;
