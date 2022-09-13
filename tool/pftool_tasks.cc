@@ -603,9 +603,18 @@ void phasescan(PolarfireTarget* pft) {
         auto roc{pft->hcal.roc(board)};
         roc.applyParameter(page, parameter, phase);
       }
+      pft->prepareNewRun();
+      for (int event_number {0}; event_number < events_per_step; ++event_number) {
+        pft->backend->fc_calibpulse();
+        std::vector<std::uint32_t> event {pft->daqReadEvent()};
+        pft->backend->fc_advance_l1_fifo();
+        const pflib::decoding::SuperPacket data (&(event[0]), event.size());
+        const auto dpm{get_dpm_number(pft)};
+      }
       std::cout << std::endl;
     }
   } else {
+    const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
     std::cout << "Doing phase scan with charge injection...\n";
     std::cout << "Disabling LED bias" << std::endl;
     const int LED_bias{0};
