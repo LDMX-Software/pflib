@@ -590,8 +590,8 @@ void phasescan(PolarfireTarget* pft) {
     const int rate = 100;
     const int run = 0;
     const int events_per_step =
-        BaseMenu::readline_int("Number of events per step?", 2);
-    std::ofstream csv_out{"PHASESCAN.csv"};
+        BaseMenu::readline_int("Number of events per step?", 100);
+    std::ofstream csv_out{"PHASESCAN_LED.csv"};
     make_scan_csv_header(pft, csv_out, "PHASE_LED");
     const int steps{
         BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
