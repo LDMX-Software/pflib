@@ -567,10 +567,16 @@ void phasescan(PolarfireTarget* pft) {
   std::cout << "Disabling DMA" << std::endl;
   setup_dma(pft, false);
 
-  const bool flashLEDs{BaseMenu::Readline_bool("Scan with LED?", false)};
+  const bool flashLEDs{BaseMenu::Readline_bool("Scan with LED? If false, will use charge injection.", false)};
 
-  const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
   if (flashLEDs) {
+    std::cout << "Doing phase scan with LED flash..." << std::endl;
+    if (BaseMenu::readline_bool("Update bias settings?", false)) {
+      const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
+      const int LED_bias{BaseMenu::readline_int("LED bias: ", 1500)};
+      set_bias_on_all_active_boards(pft, true, LED_bias);
+      set_bias_on_all_active_boards(pft, false, SiPM_bias);
+    }
   } else {
     std::cout << "Doing phase scan with charge injection...\n";
     std::cout << "Disabling LED bias" << std::endl;
