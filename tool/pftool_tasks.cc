@@ -574,11 +574,18 @@ void phasescan(PolarfireTarget* pft) {
 
   if (flashLEDs) {
     std::cout << "Doing phase scan with LED flash..." << std::endl;
+    static int LED_bias {1500};
+    static int SiPM_bias {3784};
     if (BaseMenu::readline_bool("Update bias settings?", false)) {
-      const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
-      const int LED_bias{BaseMenu::readline_int("LED bias: ", 1500)};
+      SiPM_bias = BaseMenu::readline_int("SiPM bias: ", SiPM_bias);
+      LED_bias = BaseMenu::readline_int("LED bias: ", LED_bias);
       set_bias_on_all_active_boards(pft, true, LED_bias);
       set_bias_on_all_active_boards(pft, false, SiPM_bias);
+    } else {
+      std::cout << "Using LED bias: " << LED_bias << " and SiPM bias" << SiPM_bias << std::endl;
+    }
+    if (BaseMenu::readline_bool("Update ROC Configuration (e.g. L1Offset)", false)) {
+      std::cout << "Fast control:" << std::endl;
     }
     static int LED_dac {1500};
     LED_dac = BaseMenu::readline_int("LED DAC (0...2047)", LED_dac);
@@ -622,9 +629,9 @@ void phasescan(PolarfireTarget* pft) {
             for (auto sample {0}; sample < nsamples; ++sample) {
               csv_out << ',' << data.sample(sample).link(link).get_toa(channel);
             }
-            csv_out << ',' << LED_dac << ',' << LED_Bias << ',' << SiPM_bias
-              // Want both flush and newline
-              csv_out << std::endl;
+            csv_out << ',' << LED_dac << ',' << LED_bias << ',' << SiPM_bias;
+            // Want both flush and newline
+            csv_out << std::endl;
           }
         }
       }
