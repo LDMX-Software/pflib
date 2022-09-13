@@ -397,7 +397,7 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
 
     // here we decode the event and store the relevant information only...
     pflib::decoding::SuperPacket data(&(event[0]),event.size());
-    const auto dpm {get_dpm_number()};
+    const auto dpm {get_dpm_number(pft)};
 
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
@@ -544,6 +544,78 @@ void prepare_charge_injection(PolarfireTarget* pft)
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
+void phasescan(PolarfireTarget* pft) {
+
+  std::cout << "Running DAQ softreset" <<std::endl;
+  daq_softreset(pft);
+  std::cout << "Running DAQ standard setup" << std::endl;
+  daq_standard(pft);
+  std::cout << "Running DAQ enable" << std::endl;
+  daq_enable(pft);
+  const int nsamples = get_number_of_samples_per_event(pft);
+  std::cout << "Disabling external L1A, external spill, and timer L1A" << std::endl;
+  fc_enables(pft, false, false, false);
+
+  std::cout << "Disabling DMA" << std::endl;
+  setup_dma(pft, false);
+
+
+
+  const int SiPM_bias {BaseMenu::readline_int("SiPM bias: ", 3784)};
+  std::cout << "Disabling LED bias" << std::endl;
+  const int LED_bias {0};
+  set_bias_on_all_active_boards(pft, true, LED_bias);
+  std::cout << "Setting SiPM bias to: " << SiPM_bias << std::endl;
+  set_bias_on_all_active_boards(pft, false, SiPM_bias);
+
+  const int calib_dac {BaseMenu::readline_int("CALIB_DAC (0...2047)", 1700)};
+  poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac);
+  const int rate = 100;
+  const int run = 0;
+  const int events_per_step = BaseMenu::readline_int("Number of events per step?", 2);
+  std::ofstream csv_out {"PHASESCAN.csv"};
+  make_scan_csv_header(pft, csv_out, "PHASE");
+  prepare_charge_injection(pft);
+
+  const std::string modeinfo {BaseMenu::readline("Which capacitor? (LOWRANGE/HIGHRANGE)", "LOWRANGE")};
+  int capacitor_type {-1};
+  if (modeinfo == "HIGHRANGE") {
+    capacitor_type = 1;
+  } else if (modeinfo == "LOWRANGE") {
+    capacitor_type = 0;
+  }
+  const int steps {BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
+  const std::string page {"TOP"};
+  const std::string parameter {"PHASE"};
+  const std::vector<int> active_boards{get_rocs_with_active_links(pft)};
+  for (int step {0}; step < steps; ++step) {
+    const int phase {step};
+    std::cout << "Scanning phase: " << phase << std::endl;
+    for (const auto board : active_boards) {
+      auto roc {pft->hcal.roc(board)};
+      roc.applyParameter(page, parameter, phase);
+    }
+    pft->prepareNewRun();
+    const int channels_per_elink = get_num_channels_per_elink();
+    for (int ichan=0; ichan<channels_per_elink; ichan++) {
+      std::cout << "C: " << ichan << "... " << std::flush;
+      enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+      take_N_calibevents_with_channel(pft,
+                                      csv_out,
+                                      SiPM_bias,
+                                      capacitor_type,
+                                      events_per_step,
+                                      ichan,
+                                      phase);
+      csv_out << std::flush;
+      disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+    }
+    std::cout << std::endl;
+  }
+  teardown_charge_injection(pft);
+
+
+}
 void tot_tune(PolarfireTarget* pft)
 {
 
@@ -815,6 +887,11 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
 
   const int dpm {get_dpm_number(pft)};
   const int nsamples = get_number_of_samples_per_event(pft);
+
+  if (cmd == "PHASESCAN") {
+    phasescan(pft);
+    return;
+  }
 
   if (cmd == "TUNE_TOT") {
     tot_tune(pft);
@@ -1212,6 +1289,7 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
 //  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
   ->line("SCANCHARGE","Charge scan over all active channels", tasks)
   ->line("DELAYSCAN","Charge injection delay scan", tasks )
+  ->line("PHASESCAN", "Scan phases", tasks)
   ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
   ->line("CALIBRUN", "Produce the calibration scans", tasks)
   ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
