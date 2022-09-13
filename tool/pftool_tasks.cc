@@ -596,6 +596,11 @@ void phasescan(PolarfireTarget* pft) {
     auto active_links {getActiveLinkNumbers(pft)};
     const auto channels_per_elink {get_num_channels_per_elink()};
     const int nsamples = get_number_of_samples_per_event(pft);
+    for (int step{0}; step < steps; ++step) {
+      const int phase{step};
+      std::cout << "Scanning phase: " << phase << std::endl;
+      std::cout << std::endl;
+    }
   } else {
     std::cout << "Doing phase scan with charge injection...\n";
     std::cout << "Disabling LED bias" << std::endl;
