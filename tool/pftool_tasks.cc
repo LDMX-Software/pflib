@@ -361,14 +361,6 @@ void make_scan_csv_header(PolarfireTarget* pft,
 
   const int nsamples = get_number_of_samples_per_event(pft);
   // csv header
-  if(valuename != "GET_TOT"){
-    csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
-    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
-    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
-    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
-    csv_out<<std::endl;
-  }
   if(valuename == "GET_TOT"){
     csv_out <<"CALIB_DAC," << "TOT_VREF," << "REF_TOT_DAC" << ",DPM,ILINK,CHAN,EVENT";
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
@@ -376,8 +368,24 @@ void make_scan_csv_header(PolarfireTarget* pft,
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
     csv_out<<std::endl;
   }
+  else if (valuename == "PHASE_LED"){
+    csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+    csv_out << ",DAC,LED_BIAS,SIPM_BIAS";
+    csv_out<<std::endl;
+  }
+  else {
+    // CALIB_DAC
+    csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
+    csv_out<<std::endl;
+  }
 }
-
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
                                      const int SiPM_bias,
