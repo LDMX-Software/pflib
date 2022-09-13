@@ -18,21 +18,14 @@ double HeaderStatus::percent_bad_idles() const
     }
     return -1;
 }
-void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event, const int nsamples)
-{
-    for (int sample{0}; sample < nsamples; ++sample) {
-        for (auto& status: res) {
-            const auto packet {event.sample(sample).roc(status.link)};
-            if (verbose && status.link == 0 && sample == 0) {
-                std::cout << std::hex;
-                std::cout << "Debugging link 0, sample 0: " << std::endl;
-                std::cout << "Packet length (expected >=3, ==42)" << packet.length() << std::endl;
-                std::cout << "Packet BX header (expected 0xaa000000) " << packet.bxheader() << std::endl;
-                std::cout << "Packet idle at position 42 (expected 0xaccccccc)" << packet.idle() << std::endl;
-            }
-            status.update(packet);
-        }
+void HeaderCheckResults::add_event(const pflib::decoding::SuperPacket event,
+                                   const int nsamples) {
+  for (int sample{0}; sample < nsamples; ++sample) {
+    for (auto &status : res) {
+      const auto packet{event.sample(sample).link(status.link)};
+      status.update(packet);
     }
+  }
 }
 
 bool HeaderStatus::is_acceptable(const float threshold) const
@@ -65,29 +58,27 @@ bool HeaderCheckResults::is_acceptable(const std::vector<float> thresholds) cons
     }
     return true;
 }
-bool HeaderCheckResults::is_acceptable(const float threshold) const
-{
-    for (auto status : res) {
-        std::cout << "Testing link " << status.link << "... ";
-        if (!status.is_acceptable(threshold)) {
-            return false;
-        }
-        std::cout << " ok!" << std::endl;
+bool HeaderCheckResults::is_acceptable(const float threshold) const {
+  for (auto status : res) {
+    std::cout << "Testing link " << status.link << "... ";
+    if (!status.is_acceptable(threshold)) {
+      return false;
     }
-    return true;
+    std::cout << " ok!" << std::endl;
+  }
+  return true;
 };
-void HeaderStatus::update(const pflib::decoding::RocPacket packet)
-{
-    if (packet.length() > 2) {
-        if (packet.good_bxheader()) {
-            n_good_bxheaders++;
-        } else  {
-            n_bad_bxheaders++;
-        }
-        if (packet.good_idle()) {
-            n_good_idles++;
-        } else {
-            n_bad_idles++;
-        }
+void HeaderStatus::update(const pflib::decoding::LinkPacket packet) {
+  if (packet.length() > 2) {
+    if (packet.good_bxheader()) {
+      n_good_bxheaders++;
+    } else {
+      n_bad_bxheaders++;
     }
+    if (packet.good_idle()) {
+      n_good_idles++;
+    } else {
+      n_bad_idles++;
+    }
+  }
 }

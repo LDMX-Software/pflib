@@ -42,7 +42,7 @@ add_library(pflib SHARED
   src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
   src/pflib/PolarfireTarget.cxx
-  src/pflib/decoding/RocPacket.cxx
+  src/pflib/decoding/LinkPacket.cxx
   src/pflib/decoding/PolarfirePacket.cxx
   src/pflib/decoding/SuperPacket.cxx
 )

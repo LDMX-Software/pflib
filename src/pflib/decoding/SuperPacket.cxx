@@ -4,7 +4,8 @@
 namespace pflib {
 namespace decoding {
 
-SuperPacket::SuperPacket(const uint32_t* header_ptr, int len) : data_{header_ptr}, length_{len}, version_{0}, offset_{0} {
+SuperPacket::SuperPacket(const uint32_t* header_ptr, int len) 
+  : data_{header_ptr}, length_{len}, version_{0}, offset_{0} {
   bool found_header=false;
   while (length_>0 && !found_header) {
     if (*data_==0xBEEF2021u) {
@@ -27,6 +28,22 @@ int SuperPacket::length32() const {
   if (version_==2) return (data_[0]&0xFFFF)*2;
   return -1;
 }
+
+int SuperPacket::fpgaid() const {
+  if (length_ == 0) return -1;
+  return (data_[0]>>20)&0xFF;
+}
+
+int SuperPacket::nsamples() const {
+  if (length_ == 0) return -1;
+  return (data_[0]>>16)&0xF;
+}
+
+int SuperPacket::formatversion() const {
+  if (length_ == 0) return -1;
+  return (data_[0]>>28)&0xF;
+}
+
 int SuperPacket::length32_for_sample(int isample) const {
   if (isample<0 || isample>=nsamples()) return 0;
   return (data_[1+(isample/2)]>>(16*(isample%2)))&0xFFF;

@@ -6,25 +6,25 @@
 #include <iostream>
 #include <vector>
 struct HeaderStatus {
-    public:
-        int n_good_bxheaders = 0;
-        int n_bad_bxheaders = 0;
-        int n_good_idles = 0;
-        int n_bad_idles = 0;
-        int link;
-        double percent_bad_headers() const;
-        double percent_bad_idles() const;
-        HeaderStatus(int ilink) : link(ilink) {}
-        void report() const {
-            printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", link,
-                   n_good_bxheaders, n_bad_bxheaders, percent_bad_headers(),
-                   n_good_idles, n_bad_idles, percent_bad_idles());
-        }
-        bool is_acceptable(const float threshold) const;
-        void update(const pflib::decoding::RocPacket packet);
-        HeaderStatus(const HeaderStatus&) = default;
-        HeaderStatus& operator=(const HeaderStatus&) = default;
-        HeaderStatus() : link{-1} {}
+public:
+  int n_good_bxheaders = 0;
+  int n_bad_bxheaders = 0;
+  int n_good_idles = 0;
+  int n_bad_idles = 0;
+  int link;
+  double percent_bad_headers() const;
+  double percent_bad_idles() const;
+  HeaderStatus(int ilink) : link(ilink) {}
+  void report() const {
+    printf("%4d %10d %10d %.2f | %10d %10d %.2f\n", link, n_good_bxheaders,
+           n_bad_bxheaders, percent_bad_headers(), n_good_idles, n_bad_idles,
+           percent_bad_idles());
+  }
+  bool is_acceptable(const float threshold) const;
+  void update(const pflib::decoding::LinkPacket packet);
+  HeaderStatus(const HeaderStatus &) = default;
+  HeaderStatus &operator=(const HeaderStatus &) = default;
+  HeaderStatus() : link{-1} {}
 };
 struct HeaderCheckResults {
     std::vector<HeaderStatus> res;
@@ -46,7 +46,5 @@ struct HeaderCheckResults {
     bool is_acceptable (const float threshold) const;
     bool is_acceptable(const std::vector<float> thresholds) const;
 };
-
-
 
 #endif /* PFTOOL_HEADERS_H */

@@ -65,16 +65,14 @@ double get_average_adc(pflib::PolarfireTarget* pft,
   const int nsamples = get_number_of_samples_per_event(pft);
   double channel_average {};
   for (int sample{0}; sample < nsamples; ++sample) {
-    channel_average += data.sample(sample).roc(link).get_adc(ch);
+    channel_average += data.sample(sample).link(link).get_adc(ch);
   }
-  // std::cout << "Before: " << channel_average << " ch " << ch;
   channel_average /= nsamples;
-  // std::cout << " after " << channel_average <<std::endl;
   return channel_average;
 }
 
 std::vector<double> get_pedestal_stats(pflib::PolarfireTarget*pft,
-                                       pflib::decoding::SuperPacket& data,
+                                       const pflib::decoding::SuperPacket& data,
                                        const int link)
 {
 
@@ -147,7 +145,7 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft)
         pflib::decoding::SuperPacket data(&(event[0]),event.size());
         std::vector<int> adcs{};
         for (int sample {0}; sample < 8; ++sample) {
-          const auto adc = data.sample(sample).roc(link).get_adc(channel);
+          const auto adc = data.sample(sample).link(link).get_adc(channel);
           adcs.push_back(adc);
           std::cout << adc << ", ";
         }
@@ -182,7 +180,6 @@ void preamp_alignment(PolarfireTarget* pft)
               << " to value: " << value
               << std::endl;
     roc.applyParameter(page, parameter, value);
-
   }
 
 
@@ -302,37 +299,60 @@ void preamp_alignment(PolarfireTarget* pft)
 
 
 
-void read_pedestal(PolarfireTarget* pft)
-{
+void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data) {
   const int nsamples = get_number_of_samples_per_event(pft);
-
-  pft->prepareNewRun();
-  pft->backend->fc_sendL1A();
-    std::vector<uint32_t> event = pft->daqReadEvent();
-
-    pflib::decoding::SuperPacket data(&(event[0]),event.size());
-
-    static int iroc=0;
-    iroc=BaseMenu::readline_int("Which ROC:",iroc);
-    static int half = 0;
-    half = BaseMenu::readline_int("Which half? 0/1", half);
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which half? 0/1", half);
+  static int channel {-1};
+  channel = BaseMenu::readline_int("Which channel ? (-1 for all)", channel);
 
 
-    const int link = iroc * 2 + half;
-    std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  const int link = iroc * 2 + half;
+  std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  if (channel == -1) {
     for( int ch=0; ch < 36; ++ch) {
       const int channel_number = ch + half * 36;
       std::cout << "Ch: " << ch << ": ";
       for (int sample {0}; sample < nsamples; ++sample) {
-        std::cout << ' ' << data.sample(sample).roc(link).get_adc(ch);
+        std::cout << ' ' << data.sample(sample).link(link).get_adc(ch);
       }
       std::cout << std::endl;
     }
+  } else {
+    const int channel_number = channel + half * 36;
+    std::cout << "Ch: " << channel << ": ";
+    for (int sample {0}; sample < nsamples; ++sample) {
+      std::cout << ' ' << data.sample(sample).link(link).get_adc(channel);
+    }
+    std::cout << std::endl;
+  }
 
-    auto stats {get_pedestal_stats(pft, data, link) };
-    std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
-              <<", min " << stats[2] << ", max " << stats[3]
-              << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
+  auto stats {get_pedestal_stats(pft, data, link) };
+  std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
+            <<", min " << stats[2] << ", max " << stats[3]
+            << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
+
+}
+
+void read_charge(PolarfireTarget* pft) {
+  pft->prepareNewRun();
+  pft->backend->fc_calibpulse();
+  std::vector<uint32_t> event {pft->daqReadEvent()};
+  pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+  pft->backend->fc_advance_l1_fifo();
+  read_samples(pft, data);
+}
+void read_pedestal(PolarfireTarget* pft)
+{
+
+  pft->prepareNewRun();
+  pft->backend->fc_sendL1A();
+  std::vector<uint32_t> event = pft->daqReadEvent();
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  read_samples(pft, data);
+
 }
 
 void make_scan_csv_header(PolarfireTarget* pft,
@@ -384,13 +404,13 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
 
       csv_out << value << ',' << dpm << ',' << ilink << ',' << ichan << ',' << ievt;
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).roc(ilink).get_adc(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_adc(ichan);
       }
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).roc(ilink).get_tot(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_tot(ichan);
       }
       for (int i=0; i<nsamples; i++) {
-       csv_out << ',' << data.sample(i).roc(ilink).get_toa(ichan);
+       csv_out << ',' << data.sample(i).link(ilink).get_toa(ichan);
       }
       csv_out << ',' << capacitor_type << ',' << SiPM_bias;
 
@@ -533,6 +553,7 @@ void tot_tune(PolarfireTarget* pft)
   const int nsamples = get_number_of_samples_per_event(pft);
   static int half = 0;
   half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  int link = 2*iroc + half;
 
   std::string valuename="CALIB_DAC";
   std::string totvaluename="TOT_VREF";
@@ -640,20 +661,20 @@ void tot_tune(PolarfireTarget* pft)
 
           csv_out << value << ',' << totvalue << ',' << 0 << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_adc(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_tot(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          csv_out << ',' << data.sample(i).link(link).get_toa(ichan);
           }
 
           csv_out<< '\n';
 
           for (int i=0; i<nsamples; i++){
-            if(data.sample(i).roc(half).get_tot(ichan) != 0){
-              channel_average += data.sample(i).roc(half).get_adc(ichan);
+            if(data.sample(i).link(link).get_tot(ichan) != 0){
+              channel_average += data.sample(i).link(link).get_adc(ichan);
               break;
             }
           }
@@ -727,20 +748,20 @@ void tot_tune(PolarfireTarget* pft)
 
           csv_out << value << ',' << global_tot_vref << ',' << finetotvalue << ',' << dpm << ',' << half << ',' << ichan << ',' << ievt;
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_adc(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_adc(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-            csv_out << ',' << data.sample(i).roc(half).get_tot(ichan);
+            csv_out << ',' << data.sample(i).link(link).get_tot(ichan);
           }
           for (int i=0; i<nsamples; i++) {
-          csv_out << ',' << data.sample(i).roc(half).get_toa(ichan);
+          csv_out << ',' << data.sample(i).link(link).get_toa(ichan);
           }
 
           csv_out<< '\n';
 
           for (int i=0; i<nsamples; i++){
-            if(data.sample(i).roc(half).get_tot(ichan) != 0){
-              channel_average += data.sample(i).roc(half).get_adc(ichan);
+            if(data.sample(i).link(link).get_tot(ichan) != 0){
+              channel_average += data.sample(i).link(link).get_adc(ichan);
               break;
             }
           }
@@ -806,6 +827,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
   if (cmd == "PEDESTAL_READ") {
     read_pedestal(pft);
+    return;
+  }
+  if (cmd == "CHARGE_READ") {
+    read_charge(pft);
     return;
   }
   if (cmd == "ALIGN_PREAMP") {
@@ -1190,9 +1215,12 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
   ->line("BEAMPREP", "Run settings and optional configuration for taking beamdata", tasks)
   ->line("CALIBRUN", "Produce the calibration scans", tasks)
   ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
-  ->line("PEDESTAL_READ", "foo", tasks)
-  ->line("ALIGN_PREAMP", "foo", tasks)
-  ->line("DACB","foo",tasks)
+  ->line("PEDESTAL_READ", "Take a single pedestal event, and dump details to stdout", tasks)
+  ->line("CHARGE_READ", "Take a single calib_pulse event, and dump details to stdout", tasks)
+  ->line("ALIGN_PREAMP",
+         "Attempt to automatically tune REF_DAC_INV to hit a particular pedestal +- tolerance",
+         tasks)
+  ->line("DACB","Attempt to manually tune the channel-wise DACB parameter",tasks)
 ;
 }
 
