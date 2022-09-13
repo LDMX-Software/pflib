@@ -559,62 +559,62 @@ void phasescan(PolarfireTarget* pft) {
   std::cout << "Disabling DMA" << std::endl;
   setup_dma(pft, false);
 
+  const bool flashLEDs{BaseMenu::Readline_bool("Scan with LED?", false)};
 
+  const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
+  if (flashLEDs) {
+  } else {
+    std::cout << "Doing phase scan with charge injection...\n";
+    std::cout << "Disabling LED bias" << std::endl;
+    const int LED_bias{0};
+    set_bias_on_all_active_boards(pft, true, LED_bias);
+    std::cout << "Setting SiPM bias to: " << SiPM_bias << std::endl;
+    set_bias_on_all_active_boards(pft, false, SiPM_bias);
 
-  const int SiPM_bias {BaseMenu::readline_int("SiPM bias: ", 3784)};
-  std::cout << "Disabling LED bias" << std::endl;
-  const int LED_bias {0};
-  set_bias_on_all_active_boards(pft, true, LED_bias);
-  std::cout << "Setting SiPM bias to: " << SiPM_bias << std::endl;
-  set_bias_on_all_active_boards(pft, false, SiPM_bias);
+    const int calib_dac{BaseMenu::readline_int("CALIB_DAC (0...2047)", 1700)};
+    poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac);
+    const int rate = 100;
+    const int run = 0;
+    const int events_per_step =
+        BaseMenu::readline_int("Number of events per step?", 2);
+    std::ofstream csv_out{"PHASESCAN.csv"};
+    make_scan_csv_header(pft, csv_out, "PHASE");
+    prepare_charge_injection(pft);
 
-  const int calib_dac {BaseMenu::readline_int("CALIB_DAC (0...2047)", 1700)};
-  poke_all_rochalves(pft, "REFERENCE_VOLTAGE_", "CALIB_DAC", calib_dac);
-  const int rate = 100;
-  const int run = 0;
-  const int events_per_step = BaseMenu::readline_int("Number of events per step?", 2);
-  std::ofstream csv_out {"PHASESCAN.csv"};
-  make_scan_csv_header(pft, csv_out, "PHASE");
-  prepare_charge_injection(pft);
-
-  const std::string modeinfo {BaseMenu::readline("Which capacitor? (LOWRANGE/HIGHRANGE)", "LOWRANGE")};
-  int capacitor_type {-1};
-  if (modeinfo == "HIGHRANGE") {
-    capacitor_type = 1;
-  } else if (modeinfo == "LOWRANGE") {
-    capacitor_type = 0;
-  }
-  const int steps {BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
-  const std::string page {"TOP"};
-  const std::string parameter {"PHASE"};
-  const std::vector<int> active_boards{get_rocs_with_active_links(pft)};
-  for (int step {0}; step < steps; ++step) {
-    const int phase {step};
-    std::cout << "Scanning phase: " << phase << std::endl;
-    for (const auto board : active_boards) {
-      auto roc {pft->hcal.roc(board)};
-      roc.applyParameter(page, parameter, phase);
+    const std::string modeinfo{BaseMenu::readline(
+        "Which capacitor? (LOWRANGE/HIGHRANGE)", "LOWRANGE")};
+    int capacitor_type{-1};
+    if (modeinfo == "HIGHRANGE") {
+      capacitor_type = 1;
+    } else if (modeinfo == "LOWRANGE") {
+      capacitor_type = 0;
     }
-    pft->prepareNewRun();
-    const int channels_per_elink = get_num_channels_per_elink();
-    for (int ichan=0; ichan<channels_per_elink; ichan++) {
-      std::cout << "C: " << ichan << "... " << std::flush;
-      enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
-      take_N_calibevents_with_channel(pft,
-                                      csv_out,
-                                      SiPM_bias,
-                                      capacitor_type,
-                                      events_per_step,
-                                      ichan,
-                                      phase);
-      csv_out << std::flush;
-      disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+    const int steps{
+        BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
+    const std::string page{"TOP"};
+    const std::string parameter{"PHASE"};
+    const std::vector<int> active_boards{get_rocs_with_active_links(pft)};
+    for (int step{0}; step < steps; ++step) {
+      const int phase{step};
+      std::cout << "Scanning phase: " << phase << std::endl;
+      for (const auto board : active_boards) {
+        auto roc{pft->hcal.roc(board)};
+        roc.applyParameter(page, parameter, phase);
+      }
+      pft->prepareNewRun();
+      const int channels_per_elink = get_num_channels_per_elink();
+      for (int ichan = 0; ichan < channels_per_elink; ichan++) {
+        std::cout << "C: " << ichan << "... " << std::flush;
+        enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+        take_N_calibevents_with_channel(pft, csv_out, SiPM_bias, capacitor_type,
+                                        events_per_step, ichan, phase);
+        csv_out << std::flush;
+        disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
+    teardown_charge_injection(pft);
   }
-  teardown_charge_injection(pft);
-
-
 }
 void tot_tune(PolarfireTarget* pft)
 {
