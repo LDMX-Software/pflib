@@ -376,7 +376,7 @@ void make_scan_csv_header(PolarfireTarget* pft,
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-    csv_out << ",DAC,LED_BIAS,SIPM_BIAS";
+    csv_out << ",LED_BIAS,SIPM_BIAS";
     csv_out<<std::endl;
   }
   else {
@@ -587,8 +587,6 @@ void phasescan(PolarfireTarget* pft) {
     if (BaseMenu::readline_bool("Update ROC Configuration (e.g. L1Offset)", false)) {
       std::cout << "Fast control:" << std::endl;
     }
-    static int LED_dac {1500};
-    LED_dac = BaseMenu::readline_int("LED DAC (0...2047)", LED_dac);
     const int rate = 100;
     const int run = 0;
     const int events_per_step =
@@ -629,7 +627,7 @@ void phasescan(PolarfireTarget* pft) {
             for (auto sample {0}; sample < nsamples; ++sample) {
               csv_out << ',' << data.sample(sample).link(link).get_toa(channel);
             }
-            csv_out << ',' << LED_dac << ',' << LED_bias << ',' << SiPM_bias;
+            csv_out << ',' << LED_bias << ',' << SiPM_bias;
             // Want both flush and newline
             csv_out << std::endl;
           }
