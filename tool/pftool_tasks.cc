@@ -570,7 +570,7 @@ void phasescan(PolarfireTarget* pft) {
   std::cout << "Disabling DMA" << std::endl;
   setup_dma(pft, false);
 
-  const bool flashLEDs{BaseMenu::readline_bool("Scan with LED? If false, will use charge injection.", false)};
+  const bool flashLEDs{BaseMenu::readline_bool("Scan with LED? If false, will use charge injection.", true)};
 
   if (flashLEDs) {
     std::cout << "Doing phase scan with LED flash..." << std::endl;
