@@ -543,7 +543,6 @@ void teardown_charge_injection(PolarfireTarget* pft)
             << intctest_page << " to "
             << intctest << std::endl;
   poke_all_rochalves(pft, intctest_page, intctest_parameter, intctest);
-  std::cout << "Note: L1OFFSET is not reset automatically by charge injection scans" << std::endl;
 
 }
 void prepare_charge_injection(PolarfireTarget* pft)
@@ -565,12 +564,6 @@ void prepare_charge_injection(PolarfireTarget* pft)
               << hc.intctest_page << " to "
               << intctest << std::endl;
     poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
-
-
-    std::cout << "Setting " <<hc.l1offset_parameter << " on page "
-              << hc.l1offset_page << " to "
-              << hc.charge_l1offset << std::endl;
-    poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
 void phasescan(PolarfireTarget* pft) {
