@@ -547,23 +547,27 @@ void teardown_charge_injection(PolarfireTarget* pft)
 }
 void prepare_charge_injection(PolarfireTarget* pft)
 {
-  const calibrun_hardcoded_values hc{};
   const int num_rocs {get_num_rocs()};
-  const int off_value{0};
-  std::cout << " Clearing charge injection on all channels (ground-state)..." << std::endl;
-    poke_all_channels(pft, "HIGHRANGE", off_value);
-    std::cout << "Highrange cleared" << std::endl;
-    printf("Highrange cleared\n");
-    poke_all_channels(pft, "LOWRANGE", off_value);
-    std::cout << "Lowrange cleared" << std::endl;
+  const std::string internal_charge_test_parameter {"INTCTEST"};
+  const std::string internal_charge_test_page {"REFERENCE_VOLTAGE_"};
+  const int disabled{0};
+  const int enabled{1};
+  std::cout << " Clearing charge injection on all channels (ground-state)..."
+            << std::endl;
+  poke_all_channels(pft, "HIGHRANGE", disabled);
+  std::cout << "Highrange cleared" << std::endl;
+  printf("Highrange cleared\n");
+  poke_all_channels(pft, "LOWRANGE", disabled);
+  std::cout << "Lowrange cleared" << std::endl;
 
-    std::cout << " Enabling IntCTest..." << std::endl;
+  std::cout << " Enabling IntCTest..." << std::endl;
 
-    const int intctest = 1;
-    std::cout << "Setting " << hc.intctest_parameter << " on page "
-              << hc.intctest_page << " to "
-              << intctest << std::endl;
-    poke_all_rochalves(pft, hc.intctest_page, hc.intctest_parameter, intctest);
+  std::cout << "Setting " << internal_charge_test_parameter
+            << " on page " << internal_charge_test_page
+            << " to " << enabled << std::endl;
+  poke_all_rochalves(pft, internal_charge_test_page,
+                     internal_charge_test_parameter,
+                     enabled);
 }
 
 void phasescan(PolarfireTarget* pft) {
