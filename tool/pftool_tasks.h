@@ -69,7 +69,6 @@ void prepare_charge_injection(PolarfireTarget* pft);
 
 
 std::vector<std::string> make_led_filenames();
-std::string make_default_led_template();
 std::string make_default_chargescan_filename(PolarfireTarget* pft,
                                              const int dpm,
                                              const std::string& valuename,

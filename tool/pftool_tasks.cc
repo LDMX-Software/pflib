@@ -1108,23 +1108,6 @@ std::string make_default_chargescan_filename(PolarfireTarget* pft,
 }
 
 
-std::vector<std::string> make_led_filenames() {
-  const calibrun_hardcoded_values hc{};
-    std::string led_filename_template = BaseMenu::readline(
-      "Filename template for LED runs (dac value is appended to this):",
-      make_default_led_template());
-    std::cout << "Performing LED runs with DAC values: " << std::endl;
-    std::vector<std::string> led_filenames{};
-
-    for (auto dac_value : hc.led_dac_values) {
-      std::string filename = led_filename_template + std::to_string(dac_value) + ".raw";
-      std::cout << dac_value << ": " << filename << std::endl;
-      led_filenames.push_back(filename);
-    }
-    return led_filenames;
-}
-
-
 namespace {
 auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and tunes")
 //  ->line("RESET_POWERUP", "Execute FC,ELINKS,DAQ reset after power up", tasks)
