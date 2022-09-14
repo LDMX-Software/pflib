@@ -310,7 +310,7 @@ void preamp_alignment(PolarfireTarget* pft)
 
 
 
-void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data) {
+std::vector<double> read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data) {
   const int nsamples = get_number_of_samples_per_event(pft);
   static int iroc=0;
   iroc=BaseMenu::readline_int("Which ROC:",iroc);
@@ -344,7 +344,7 @@ void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data
   std::cout << "Average: " << stats[0] << " sigma, " << stats[1]
             <<", min " << stats[2] << ", max " << stats[3]
             << ", Delta min/max " << stats[3] - stats[2] <<std::endl;
-
+  return stats;
 }
 
 void read_charge(PolarfireTarget* pft) {
