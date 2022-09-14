@@ -3,6 +3,14 @@
 #include "pftool_roc.h"
 #include <cstdint>
 
+struct ChargeInjectionSettings {
+  int CALIB_DAC;
+  int SIPM_BIAS;
+  int CALIB_OFFSET;
+  int CAPACITOR_TYPE = -1;
+  int CHAN = -1;
+};
+
 // Really wishing we had C++17 here for the portable filesystem library...
 // https://stackoverflow.com/questions/18100097/portable-way-to-check-if-directory-exists-windows-linux-c
 //
