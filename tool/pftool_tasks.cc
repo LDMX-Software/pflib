@@ -26,6 +26,7 @@ bool directory_exists(const std::string& directory) {
   return (info.st_mode & S_IFDIR) ? 1 : 0;
 }
 
+
 std::string get_yearmonthday()
 {
   // Time since epoch
@@ -385,6 +386,13 @@ void make_scan_csv_header(PolarfireTarget* pft,
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
     csv_out << ",LED_BIAS,SIPM_BIAS,CALIB_OFFSET";
+    csv_out<<std::endl;
+  } else if (valuename == "PHASE_CI") {
+    csv_out <<valuename << ",DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
+    for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
+    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS,CALIB_DAC,CALIB_OFFSET";
     csv_out<<std::endl;
   }
   else {
