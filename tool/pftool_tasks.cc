@@ -1065,10 +1065,14 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     const int num_boards{get_num_rocs()};
     set_bias_on_all_boards(pft, num_boards, false, SiPM_bias);
 
+    ChargeInjectionSettings settings {
+    -1, SiPM_bias, -1
+    // CD, Bias, CAP, 
+  };
 
     scan_N_steps(pft,
                  csv_out,
-                 SiPM_bias,
+                 settings,
                  events_per_step,
                  steps,
                  low_value,
@@ -1322,9 +1326,12 @@ void calibrun(pflib::PolarfireTarget* pft,
     std::cout << "Scanning " <<  hc.coarse_steps
               << " steps of " << dac_parameter_name << " with "
               << hc.events_per_step << " events per step" << std::endl;
+    ChargeInjectionSettings settings {
+    -1, SiPM_bias, -1
+  };
     scan_N_steps(pft,
                  csv_out,
-                 SiPM_bias,
+                 settings,
                  hc.events_per_step,
                  hc.coarse_steps,
                  hc.lowrange_dac_min,
@@ -1338,7 +1345,7 @@ void calibrun(pflib::PolarfireTarget* pft,
 
     scan_N_steps(pft,
                  csv_out,
-                 SiPM_bias,
+                 settings,
                  hc.events_per_step,
                  hc.fine_steps,
                  hc.highrange_fine_dac_min,
@@ -1352,7 +1359,7 @@ void calibrun(pflib::PolarfireTarget* pft,
 
     scan_N_steps(pft,
                  csv_out,
-                 SiPM_bias,
+                 settings,
                  hc.events_per_step,
                  hc.coarse_steps,
                  hc.highrange_coarse_dac_min,
