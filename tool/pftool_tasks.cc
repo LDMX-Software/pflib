@@ -587,17 +587,20 @@ void phasescan(PolarfireTarget* pft) {
     std::cout << "Doing phase scan with LED flash..." << std::endl;
     static int LED_bias {1500};
     static int SiPM_bias {3784};
+    static int LED_CALIB_OFFSET {18};
     if (BaseMenu::readline_bool("Update bias settings?", false)) {
       SiPM_bias = BaseMenu::readline_int("SiPM bias: ", SiPM_bias);
       LED_bias = BaseMenu::readline_int("LED bias: ", LED_bias);
-      set_bias_on_all_active_boards(pft, true, LED_bias);
-      set_bias_on_all_active_boards(pft, false, SiPM_bias);
+    set_bias_on_all_active_boards(pft, true, LED_bias);
+    set_bias_on_all_active_boards(pft, false, SiPM_bias);
     } else {
       std::cout << "Not touching bias settings, last settings used within the phasescan routine was: LED " <<  LED_bias << ", SiPM " << SiPM_bias << std::endl;
       std::cout << "If this is wrong, keep in mind that this will be off in the CSV output..." << std::endl;
     }
-    if (BaseMenu::readline_bool("Update ROC Configuration (e.g. L1Offset)", false)) {
+    if (BaseMenu::readline_bool("Update ROC Configuration (e.g. CALIB stuff)", false)) {
       std::cout << "Fast control:" << std::endl;
+      // static int LED_CALIB_OFFSET {18};
+      BaseMenu::readline_int("FC->CALIB_OFFSET: ", LED_CALIB_OFFSET); 
     }
     const int rate = 100;
     const int run = 0;
