@@ -593,7 +593,8 @@ void phasescan(PolarfireTarget* pft) {
       set_bias_on_all_active_boards(pft, true, LED_bias);
       set_bias_on_all_active_boards(pft, false, SiPM_bias);
     } else {
-      std::cout << "Using LED bias: " << LED_bias << " and SiPM bias" << SiPM_bias << std::endl;
+      std::cout << "Not touching bias settings, last settings used within the phasescan routine was: LED " <<  LED_bias << ", SiPM " << SiPM_bias << std::endl;
+      std::cout << "If this is wrong, keep in mind that this will be off in the CSV output..." << std::endl;
     }
     if (BaseMenu::readline_bool("Update ROC Configuration (e.g. L1Offset)", false)) {
       std::cout << "Fast control:" << std::endl;
