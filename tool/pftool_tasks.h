@@ -9,7 +9,6 @@
 #include "pftool_elinks.h"
 #include "pftool_fastcontrol.h"
 #include "pftool_daq.h"
-#include "pftool_hardcoded_values.h"
 #include <sys/stat.h>
 #include <ctime>
 #include <algorithm>
