@@ -37,19 +37,18 @@ void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename);
 
-void take_N_calibevents_with_channel(PolarfireTarget* pft,
-                                     std::ofstream& csv_out,
-                                     const int SiPM_bias,
-                                     const int capacitor_type,
-                                     const int events_per_step,
-                                     const int ichan,
-                                     const int value);
 
 
 void set_one_channel_per_elink(PolarfireTarget* pft,
                                const std::string& parameter,
                                const int channels_per_elink,
                                const int ichan,
+// void take_N_calibevents_with_channel(PolarfireTarget *pft,
+//                                      std::ofstream &csv_out,
+//                                      const int SiPM_bias,
+//                                      const int capacitor_type,
+//                                      const int events_per_step, const int
+//                                      ichan, const int value);
                                const int value);
 
 void enable_one_channel_per_elink(PolarfireTarget* pft, const std::string& modeinfo,
@@ -59,16 +58,11 @@ void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& mode
                                    const int channels_per_elink,
                                    const int ichan);
 
-void scan_N_steps(PolarfireTarget* pft,
-                  std::ofstream& csv_out,
-                  const int SiPM_bias,
-                  const int events_per_step,
-                  const int steps,
-                  const int low_value,
-                  const int high_value,
-                  const std::string& valuename,
-                  const std::string& pagetemplate,
-                  const std::string& modeinfo);
+// void scan_N_steps(PolarfireTarget *pft, std::ofstream &csv_out,
+//                   const int SiPM_bias, const int events_per_step,
+//                   const int steps, const int low_value, const int high_value,
+//                   const std::string &valuename, const std::string
+//                   &pagetemplate, const std::string &modeinfo);
 // This screams for RAII...
 void teardown_charge_injection(PolarfireTarget* pft);
 void prepare_charge_injection(PolarfireTarget* pft);
@@ -106,4 +100,6 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft);
 void read_charge(PolarfireTarget* pft);
 void read_samples(PolarfireTarget* pft, const pflib::decoding::SuperPacket& data);
 void read_pedestal(PolarfireTarget* pft);
+std::vector<double> read_samples(PolarfireTarget *pft,
+                                 const pflib::decoding::SuperPacket &data);
 #endif /* PFTOOL_TASKS_H */
