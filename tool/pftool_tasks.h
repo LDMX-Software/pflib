@@ -29,7 +29,6 @@
 
 void tasks( const std::string& cmd, pflib::PolarfireTarget* pft );
 
-void beamprep(pflib::PolarfireTarget* pft);
 
 void tot_tune(pflib::PolarfireTarget* pft);
 
@@ -68,12 +67,6 @@ void teardown_charge_injection(PolarfireTarget* pft);
 void prepare_charge_injection(PolarfireTarget* pft);
 
 
-void calibrun_ledruns(pflib::PolarfireTarget* pft,
-                      const std::vector<std::string>& led_filenames);
-void calibrun(pflib::PolarfireTarget* pft,
-             const std::string& pedestal_filename,
-             const std::string& chargescan_filename,
-              const std::vector<std::string>& led_filenames);
 
 std::vector<std::string> make_led_filenames();
 std::string make_default_led_template();
