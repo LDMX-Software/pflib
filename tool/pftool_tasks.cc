@@ -384,7 +384,7 @@ void make_scan_csv_header(PolarfireTarget* pft,
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-    csv_out << ",LED_BIAS,SIPM_BIAS";
+    csv_out << ",LED_BIAS,SIPM_BIAS,CALIB_OFFSET";
     csv_out<<std::endl;
   }
   else {
@@ -393,7 +393,7 @@ void make_scan_csv_header(PolarfireTarget* pft,
     for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOT" << i;
     for (int i=0; i<nsamples; i++) csv_out << ",TOA" << i;
-    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS";
+    csv_out << ",CAPACITOR_TYPE,SIPM_BIAS,CALIB_OFFSET";
     csv_out<<std::endl;
   }
 }
