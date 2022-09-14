@@ -407,10 +407,8 @@ void make_scan_csv_header(PolarfireTarget* pft,
 }
 void take_N_calibevents_with_channel(PolarfireTarget* pft,
                                      std::ofstream& csv_out,
-                                     const int SiPM_bias,
-                                     const int capacitor_type,
+                                     const ChargeInjectionSettings& settings,
                                      const int events_per_step,
-                                     const int ichan,
                                      const int value)
 {
   const int nsamples = get_number_of_samples_per_event(pft);
@@ -429,17 +427,20 @@ void take_N_calibevents_with_channel(PolarfireTarget* pft,
     for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
       if (!pft->hcal.elinks().isActive(ilink)) continue;
 
-      csv_out << value << ',' << dpm << ',' << ilink << ',' << ichan << ',' << ievt;
+      csv_out << value << ',' << dpm << ',' << ilink << ',' << settings.CHAN << ',' << ievt;
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).link(ilink).get_adc(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_adc(settings.CHAN);
       }
       for (int i=0; i<nsamples; i++) {
-        csv_out << ',' << data.sample(i).link(ilink).get_tot(ichan);
+        csv_out << ',' << data.sample(i).link(ilink).get_tot(settings.CHAN);
       }
       for (int i=0; i<nsamples; i++) {
-       csv_out << ',' << data.sample(i).link(ilink).get_toa(ichan);
+       csv_out << ',' << data.sample(i).link(ilink).get_toa(settings.CHAN);
       }
-      csv_out << ',' << capacitor_type << ',' << SiPM_bias;
+      csv_out << ',' << settings.CAPACITOR_TYPE
+              << ',' << settings.SIPM_BIAS
+              << ',' << settings.CALIB_DAC
+              << ',' << settings.CALIB_OFFSET;
 
       csv_out<< '\n';
     }
