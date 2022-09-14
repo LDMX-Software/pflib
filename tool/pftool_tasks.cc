@@ -489,11 +489,10 @@ void scan_N_steps(PolarfireTarget* pft,
                   const std::string& pagetemplate,
                   const std::string& modeinfo)
 {
-    int capacitor_type {-1};
     if (modeinfo == "HIGHRANGE") {
-      capacitor_type = 1;
+      settings.CAPACITOR_TYPE = 1;
     } else if (modeinfo == "LOWRANGE") {
-      capacitor_type = 0;
+      settings.CAPACITOR_TYPE = 0;
     }
     ////////////////////////////////////////////////////////////
 
@@ -502,6 +501,9 @@ void scan_N_steps(PolarfireTarget* pft,
       ////////////////////////////////////////////////////////////
       /// set values
       int value=low_value+step*(high_value-low_value)/std::max(1,steps-1);
+    if (valuename == "CALIB_DAC") {
+      settings.CALIB_DAC = value;
+    }
       std::cout << " Scan " << valuename << "=" << value << "..." << std::endl;
 
       poke_all_rochalves(pft, pagetemplate, valuename, value);
@@ -515,12 +517,11 @@ void scan_N_steps(PolarfireTarget* pft,
 
         enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
 
+        settings.CHAN = ichan;
         take_N_calibevents_with_channel(pft,
                                         csv_out,
-                                        SiPM_bias,
-                                        capacitor_type,
+                                        settings,
                                         events_per_step,
-                                        ichan,
                                         value);
         csv_out << std::flush;
 
