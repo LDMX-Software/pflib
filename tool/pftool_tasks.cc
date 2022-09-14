@@ -480,7 +480,7 @@ void disable_one_channel_per_elink(PolarfireTarget* pft, const std::string& mode
 }
 void scan_N_steps(PolarfireTarget* pft,
                   std::ofstream& csv_out,
-                  const int SiPM_bias,
+                  ChargeInjectionSettings settings,
                   const int events_per_step,
                   const int steps,
                   const int low_value,
