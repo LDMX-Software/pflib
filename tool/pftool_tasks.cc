@@ -651,6 +651,9 @@ void phasescan(PolarfireTarget* pft) {
       std::cout << std::endl;
     }
   } else {
+
+    static int CI_CALIB_OFFSET {15};
+      BaseMenu::readline_int("FC->CALIB_OFFSET: ", CI_CALIB_OFFSET); 
     const int SiPM_bias{BaseMenu::readline_int("SiPM bias: ", 3784)};
     std::cout << "Doing phase scan with charge injection...\n";
     std::cout << "Disabling LED bias" << std::endl;
@@ -666,16 +669,19 @@ void phasescan(PolarfireTarget* pft) {
     const int events_per_step =
         BaseMenu::readline_int("Number of events per step?", 2);
     std::ofstream csv_out{"PHASESCAN.csv"};
-    make_scan_csv_header(pft, csv_out, "PHASE");
+    make_scan_csv_header(pft, csv_out, "PHASE_CI");
     prepare_charge_injection(pft);
+    
 
+    ChargeInjectionSettings settings{
+    calib_dac, SiPM_bias, CI_CALIB_OFFSET
+  };
     const std::string modeinfo{BaseMenu::readline(
         "Which capacitor? (LOWRANGE/HIGHRANGE)", "LOWRANGE")};
-    int capacitor_type{-1};
     if (modeinfo == "HIGHRANGE") {
-      capacitor_type = 1;
+      settings.CAPACITOR_TYPE = 1;
     } else if (modeinfo == "LOWRANGE") {
-      capacitor_type = 0;
+      settings.CAPACITOR_TYPE = 0;
     }
     const int steps{
         BaseMenu::readline_int("Number of phase steps: (0 .. 15) ", 15)};
@@ -692,10 +698,11 @@ void phasescan(PolarfireTarget* pft) {
       pft->prepareNewRun();
       const int channels_per_elink = get_num_channels_per_elink();
       for (int ichan = 0; ichan < channels_per_elink; ichan++) {
+        settings.CHAN = ichan;
         std::cout << "C: " << ichan << "... " << std::flush;
         enable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
-        take_N_calibevents_with_channel(pft, csv_out, SiPM_bias, capacitor_type,
-                                        events_per_step, ichan, phase);
+        take_N_calibevents_with_channel(pft, csv_out, settings,
+                                        events_per_step, phase);
         csv_out << std::flush;
         disable_one_channel_per_elink(pft, modeinfo, channels_per_elink, ichan);
       }
