@@ -544,6 +544,303 @@ void prepare_charge_injection(PolarfireTarget* pft)
     poke_all_rochalves(pft, hc.l1offset_page, hc.l1offset_parameter, hc.charge_l1offset);
 }
 
+void dacb_scan(PolarfireTarget* pft){
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  auto roc {pft->hcal.roc(iroc)};
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  const int link = iroc * 2 + half;
+  const int nsamples = get_number_of_samples_per_event(pft);
+
+  static int channel = 0;
+  channel = BaseMenu::readline_int("Which channel? 0-36:",channel);
+
+  pft->prepareNewRun();
+ 
+  roc.applyParameter(std::string("Reference_voltage_")+std::to_string(half), "CALIB_DAC", 1024);
+  roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "LOWRANGE", 0);
+  roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "HIGHRANGE", 1);
+  roc.applyParameter(std::string("REFERENCE_VOLTAGE_")+std::to_string(half), "INTCTEST", 1);
+  pft->setBiasSetting(2, 1, 0, 0);
+  pft->backend->fc_setup_calib(0,14); 
+  
+  for(int dacb = 0; dacb < 64; dacb++){
+
+    roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "DACB", dacb);
+    std::cout << "DACB " << dacb << std::endl;
+
+    //Measure pedestal
+    double pedestal = 0;
+    int nevents = 100;
+    for(int i = 0; i < nevents; i++){
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event {pft->daqReadEvent()};
+      pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+      pft->backend->fc_advance_l1_fifo();
+      for (int sample {0}; sample < nsamples; ++sample) {
+        double adc = (double)data.sample(sample).link(link).get_adc(channel);
+        pedestal += adc;
+      }
+
+    }
+    pedestal = pedestal / (double)nevents / 8.0;
+
+    std::cout << "Pedestal: " << pedestal << std::endl;
+
+    //Measure top of ADC dynamic range
+    double upperRange = 0;
+    nevents = 100;
+    for(int i = 0; i < nevents; i++){
+      pft->backend->fc_calibpulse();
+      std::vector<uint32_t> event {pft->daqReadEvent()};
+      pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+      pft->backend->fc_advance_l1_fifo();
+      double max = 0;
+      for (int sample {0}; sample < nsamples; ++sample) {
+        double adc = (double)data.sample(sample).link(link).get_adc(channel);
+        if(adc > max){
+          max = adc;
+        }
+      }
+      upperRange += max;
+
+    }
+    upperRange = upperRange / (double)nevents;
+    
+    std::cout << "upperRange: " << upperRange << std::endl;
+
+  }
+
+}
+
+void photoelectron_scan(PolarfireTarget* pft){
+  static int iroc=0;
+  iroc=BaseMenu::readline_int("Which ROC:",iroc);
+  auto roc {pft->hcal.roc(iroc)};
+  static int half = 0;
+  half = BaseMenu::readline_int("Which ROC half? 0/1", half);
+  const int link = iroc * 2 + half;
+  const int nsamples = get_number_of_samples_per_event(pft);
+
+  static int channel = 0;
+  channel = BaseMenu::readline_int("Which channel? 0-36:",channel); 
+
+  std::string fname = "pe.txt";
+  fname = BaseMenu::readline("filename?: ",fname);
+  std::ofstream out=std::ofstream(fname);
+ 
+  /*
+  Increase amplification, PEs will unlikely be seen with the normal "beam" confguration
+  */
+  //Load configuration with optimized parameters
+  //dacb, sw_cf, sw_cf_comp, sw_rf
+  //DELAY parameters tuned (especially for the lsb?)
+
+  /*
+  Looking for PEs would most easily be done separated from the pedestal, but still in the range 
+  the low-range charge injection can reach (for measuring DNL)
+  So let's limit the range to the inner two quartiles of the range [pedestal, upper limit of low-range charge injections] 
+  */
+  
+  //Measure the above range, with a pedestal measurement and a handful of charge injections with maximal charge
+  pft->prepareNewRun();
+
+  pft->backend->fc_sendL1A();
+  std::vector<uint32_t> event = pft->daqReadEvent();
+  pflib::decoding::SuperPacket data(&(event[0]),event.size());
+  std::cout << "Ch: " << channel << ": ";
+  double pedestal;
+  for (int sample {0}; sample < nsamples; ++sample) {
+    pedestal += (double)data.sample(sample).link(link).get_adc(channel);
+  }
+  pedestal = pedestal / (double)nsamples;
+  std::cout << "Pedestal: " << pedestal << std::endl; 
+
+
+
+  //TODO Set parameters for internal charge injection correctly
+  roc.applyParameter(std::string("Reference_voltage_")+std::to_string(half), "CALIB_DAC", 2047-512);
+  roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "LOWRANGE", 1);
+  roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "HIGHRANGE", 0);
+  roc.applyParameter(std::string("REFERENCE_VOLTAGE_")+std::to_string(half), "INTCTEST", 1);
+  pft->setBiasSetting(2, 1, 0, 0);
+
+  pft->backend->fc_setup_calib(0,14);
+
+  double upperRange = 0;
+  double peakSample;
+  int nevents = 100;
+  for(int i = 0; i < nevents; i++){
+    pft->backend->fc_calibpulse();
+    std::vector<uint32_t> event {pft->daqReadEvent()};
+    pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+    pft->backend->fc_advance_l1_fifo();
+    double max = 0;
+    double sampleMax = 0;
+    for (int sample {0}; sample < nsamples; ++sample) {
+      double adc = (double)data.sample(sample).link(link).get_adc(channel);
+      if(adc > max){
+        max = adc;
+        sampleMax = (double)sample;
+      }
+    }
+    upperRange += max;
+    peakSample += sampleMax;
+    
+  }
+  upperRange = upperRange / (double)nevents;
+  peakSample = peakSample / (double)nevents;
+
+  std::cout << "Charge injection peaks in sample: " << peakSample << std::endl;
+
+  out << "UPPER RANGE\n" << upperRange << std::endl;
+
+  roc.applyParameter(std::string("Reference_voltage_")+std::to_string(half), "CALIB_DAC", 512);
+
+  double lowerRange = 0;
+  for(int i = 0; i < nevents; i++){
+    pft->backend->fc_calibpulse();
+    std::vector<uint32_t> event {pft->daqReadEvent()};
+    pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+    pft->backend->fc_advance_l1_fifo();
+    double max = 0;
+    for (int sample {0}; sample < nsamples; ++sample) {
+      double adc = (double)data.sample(sample).link(link).get_adc(channel);
+      if(adc > max){
+        max = adc;
+      }
+    }
+    lowerRange += max;
+  }
+  lowerRange = lowerRange / (double)nevents;
+  
+  out << "LOWER RANGE\n" << lowerRange << std::endl;
+
+  std::cout << "upperRange " << upperRange << std::endl;
+  std::cout << "lowerRange " << lowerRange << std::endl;
+
+  /*
+  DNL Estimation with internal charge injection
+  */
+  out << "DNL ESTIMATION" << std::endl;
+
+  for(int calib_dac = 512; calib_dac <= 2047-512; calib_dac += 1){
+    roc.applyParameter(std::string("Reference_voltage_")+std::to_string(0), "CALIB_DAC", calib_dac);
+    for(int i = 0; i < 2; i++){
+      pft->backend->fc_calibpulse();
+      std::vector<uint32_t> event {pft->daqReadEvent()};
+      pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+      pft->backend->fc_advance_l1_fifo();
+      std::cout << calib_dac << " ";
+      out << calib_dac << " ";
+      for (int sample {0}; sample < nsamples; ++sample) {
+        double adc = (double)data.sample(sample).link(link).get_adc(channel);
+        std::cout << adc << " ";
+        out << adc << " ";
+      }
+      std::cout << std::endl;
+      out << std::endl;
+
+    }
+
+  }
+    
+
+  //Disable internal charge injection
+  roc.applyParameter(std::string("CHANNEL_")+std::to_string(channel), "LOWRANGE", 0);
+  roc.applyParameter(std::string("REFERENCE_VOLTAGE_")+std::to_string(half), "INTCTEST", 0);
+ 
+  //Set up LED flashing 
+  pft->backend->fc_setup_calib(0,20);
+  
+  /*
+  Find the range of LED Bias DAC values that correspond to the chosen range [lowerRange, upperRange] 
+  */
+
+  std::vector<std::tuple<int,double>> peaks;
+  for(int calib_dac = 1500; calib_dac <= 2500; calib_dac += 10){
+    pft->setBiasSetting(2, 1, 0, calib_dac);
+    double pulsePeak = 0;
+    peakSample = 0;
+    for(int i = 0; i < 10; i++){
+      pft->backend->fc_calibpulse();
+      std::vector<uint32_t> event {pft->daqReadEvent()};
+      pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+      pft->backend->fc_advance_l1_fifo();
+      double max = 0;
+      double sampleMax;
+      for (int sample {0}; sample < nsamples; ++sample) {
+        double adc = (double)data.sample(sample).link(link).get_adc(channel);
+        if(adc > max){
+          max = adc;
+          sampleMax = (double)sample;
+        }
+      }
+      pulsePeak += max;
+      peakSample += sampleMax;
+
+    }
+    pulsePeak = pulsePeak / 10.0;
+    peakSample = peakSample / 10.0;
+
+    peaks.push_back(std::make_tuple(calib_dac, pulsePeak));
+
+  }
+
+  std::cout << "upperRange " << upperRange << std::endl;
+  int lowerLEDDAC = -1;
+  int upperLEDDAC = -1;
+  for(std::tuple<int,double> t : peaks){
+    std::cout << std::get<0>(t) << " " << std::get<1>(t) << std::endl;
+    if( std::get<1>(t) < lowerRange ){
+      lowerLEDDAC = std::get<0>(t);
+    }
+    if( std::get<1>(t) > upperRange && upperLEDDAC == -1){
+      upperLEDDAC = std::get<0>(t);
+    }
+  }
+
+  std::cout << "lowerLEDDAC " << lowerLEDDAC << " upperLEDDAC " << upperLEDDAC << std::endl;
+
+  /*
+  Take a series of LED pulses, from small to large
+  We do not have to look for PEs on the tails of a single pulse, but we can look at at many LED flashes of different amplitude
+
+  Flashes should be more separated than individual PE peaks however, e.g. ~20 ADC counts between different flashes' peaks. 
+  */
+
+  out << "LED MEASUREMENTS" << std::endl;
+
+  for(int calib_dac = lowerLEDDAC; calib_dac <= upperLEDDAC; calib_dac += (upperLEDDAC-lowerLEDDAC)/((upperRange-lowerRange)/20.)){
+    pft->setBiasSetting(2, 1, 0, calib_dac);
+    for(int i = 0; i < 10000; i++){
+      std::cout << calib_dac << " ";
+      out << calib_dac << " ";
+      pft->backend->fc_calibpulse();
+      std::vector<uint32_t> event {pft->daqReadEvent()};
+      pflib::decoding::SuperPacket data{&(event[0]), static_cast<int>(event.size())};
+      pft->backend->fc_advance_l1_fifo();
+      for (int sample {0}; sample < nsamples; ++sample) {
+        int adc = data.sample(sample).link(link).get_adc(channel);
+        std::cout << adc << " ";
+        out << adc << " ";
+      }
+      std::cout << std::endl;
+      out << std::endl;
+    }
+  }
+
+  //Do the above again with different ref_dac_inv to estimate away DNL TODO
+
+  //Take a few representative LED flashes to estimate amplification TODO
+
+  //Revert to default amplification, by loading the normal configuration TODO
+
+  //Measure a few LED flashes again to see how much the amplification decreased TODO
+
+}
+
 void tot_tune(PolarfireTarget* pft)
 {
 
@@ -907,7 +1204,15 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
                  );
 
     teardown_charge_injection(pft);
-    }
+  }
+  if (cmd=="PHOTOELECTRONS"){
+    photoelectron_scan(pft);
+    return;
+  }
+  if (cmd=="DACB_SCAN"){
+    dacb_scan(pft);
+    return;
+  }
 }
 
 void beamprep(pflib::PolarfireTarget *pft) {
@@ -1221,6 +1526,8 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
          "Attempt to automatically tune REF_DAC_INV to hit a particular pedestal +- tolerance",
          tasks)
   ->line("DACB","Attempt to manually tune the channel-wise DACB parameter",tasks)
+  ->line("PHOTOELECTRONS", "Measurements for seeing photolectrons in LED flashes", tasks)
+  ->line("DACB_SCAN", "Test ADC dynamic range for different dacb", tasks)
 ;
 }
 
