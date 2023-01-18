@@ -355,6 +355,53 @@ void read_pedestal(PolarfireTarget* pft)
 
 }
 
+
+void pedestal_run(PolarfireTarget* pft) {
+  //runs ten million in one million intervals
+  const int nsamples = get_number_of_samples_per_event(pft);
+  //static int num_events=0;
+  //num_events=BaseMenu::readline_int("Number of events:",num_events);
+  static int dpm = 5;
+  dpm = BaseMenu::readline_int("Which DPM?", dpm);
+  std::string file_name = "default.csv";
+  //file_name = BaseMenu::readline("Filename?",file_name);
+
+  for (int count=0; count<10; count++){
+    std::cout << "doing iteration:" << count <<"/10"<<std::endl;
+    std::ofstream csv_out = std::ofstream("iter_"+std::to_string(count)+"_"+file_name);
+
+    csv_out <<"DPM,ILINK,CHAN,EVENT";
+    for (int i=0; i<nsamples; i++) csv_out << ",ADC" << i;
+      csv_out<<std::endl;
+
+    static int num_events = 100000;
+    for (int i=0; i<num_events; i++){
+      pft->prepareNewRun();
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event = pft->daqReadEvent();
+      pflib::decoding::SuperPacket data(&(event[0]),event.size());
+      for (int iroc=0; iroc<2; iroc++){
+        if(iroc!=1) continue;
+        for (int half=0; half<2; half++){
+          if(half==0) continue;
+          const int link = iroc * 2 + half;
+          for (int chan=0; chan<36; chan++){
+            const int channel = chan + half * 36;
+            csv_out<<dpm<<","<<link<<","<<chan<<","<<i;
+            for (int sam=0; sam<nsamples; sam++){
+              csv_out<<","<<data.sample(sam).link(link).get_adc(chan);
+            }
+            csv_out<<std::endl;
+          }
+        }
+      }
+    }
+
+    csv_out << std::flush;
+  }
+}
+
+
 void make_scan_csv_header(PolarfireTarget* pft,
                           std::ofstream& csv_out,
                           const std::string& valuename) {
@@ -827,6 +874,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
   }
   if (cmd == "PEDESTAL_READ") {
     read_pedestal(pft);
+    return;
+  }
+  if (cmd == "PEDESTAL_RUN") {
+    pedestal_run(pft);
     return;
   }
   if (cmd == "CHARGE_READ") {
