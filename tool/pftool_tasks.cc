@@ -157,6 +157,319 @@ void test_dacb_one_channel_at_a_time(pflib::PolarfireTarget* pft)
 
 
 }
+void align_pedestal(PolarfireTarget* pft)
+{
+  const int nsamples = get_number_of_samples_per_event(pft);
+  static int iroc = 0;
+  iroc = BaseMenu::readline_int("Which ROC: ", iroc);
+  static int half = 0;
+  half = BaseMenu::readline_int("Which half? 0/1", half);
+  auto roc {pft->hcal.roc(iroc)};
+  //Gain_conv should be 0 while inv_vref, noinv_vref and ref_dac_inv is adjusted to get the pedestals aligned and at a certain value. Gain_conv is then changed to 4 before the final tuning with dacb.
+ //gain_conv is set to 0
+  const std::string pageglobal = "global_analog_" + std::to_string(half);
+  const std::string parametergain = "gain_conv";
+  const int valuegain_initial {BaseMenu::readline_int("Input gain_conv value ", 0)};
+  std::cout << "Poking: " << parametergain  << " on page: " << pageglobal  << " to value: " << valuegain_initial << std::endl;
+  roc.applyParameter(pageglobal, parametergain, valuegain_initial);
+  
+  
+  //set all ref_dac_inv values to 0, all sign_dacb values to 1 and all dacb to 63 initially
+  std::cout << "Setting all ref_dac_inv values to 0, all sign_dacb values to 1 and all dacb values to 63 initially" << std::endl;
+
+  const int valueref_dac_inv {BaseMenu::readline_int("ref_dac_inv initial value", 0)};
+  const int valuedacb {BaseMenu::readline_int("dacb initial value", 63)};
+  const int valuesign_dac {BaseMenu::readline_int("sign_dac value", 1)};
+  //loop over channels to set initial values on all channels
+  for ( int ch = 0; ch < 36; ++ch) {
+    const int channel_number = ch + half * 36;
+    // std::cout << "Ch: " << ch << ": ";
+    const std::string pagechannel = "Channel_" + std::to_string(channel_number);
+    const std::string parameterref_dac_inv = "ref_dac_inv";
+    const std::string parameterdacb = "dacb";
+    const std::string parametersign_dac = "sign_dac";
+    // std::cout << "On page: " << pagechannel << " poking " << parameterref_dac_inv << " to value: " << valueref_dac_inv << " and " << parameterdacb << " to value: " << valuedacb << " and " << parametersign_dac << " to value: " << valuesign_dac << std::endl;
+    roc.applyParameter(pagechannel, parameterref_dac_inv, valueref_dac_inv);
+    roc.applyParameter(pagechannel, parameterdacb, valuedacb);
+    roc.applyParameter(pagechannel, parametersign_dac, valuesign_dac);
+  }
+  //Setting noinv_vref to initial values, might want to make this into a lopp at a later stage, a bad combination between inv_vref and noinv_vref might lead to bad pedestals (0)
+  std::cout << "Setting noinv_vref and adjusting inv_vref to get pedestals to approximate values" << std::endl;
+  
+  static int noinv_vref = 300;
+  noinv_vref = BaseMenu::readline_int("Set noinv_vref to constant value", noinv_vref);
+  const std::string pageref = "Reference_voltage_" + std::to_string(half);
+  const std::string parameternoinv_vref = "Noinv_vref";
+  const int valuenoinv_vref = noinv_vref;
+  std::cout << "Poking: " << parameternoinv_vref << " on page " << pageref << " to value: " << valuenoinv_vref << std::endl;
+  roc.applyParameter(pageref, parameternoinv_vref, valuenoinv_vref);
+  
+  // choose approximate goal for pedestal in inital stage, the next parameter, ref dac inv, can only push the pedestals up so this value can be a bit lower. Also, changing the gain_conv at a later stage also increases the pedestals slightly
+  std::cout << "Find the inv_vref to get the pedestals up to a certain goal" << std::endl;
+  static int goal1 = 80;
+  goal1 = BaseMenu::readline_int("Raise pedestals to: ", goal1);
+  static int tolerance1 = 25;
+  tolerance1 = BaseMenu::readline_int("Tolerance (+/-): ", tolerance1);
+  //Setting initial value of inv_vref
+  std::cout << "Set inv_vref to 100 as initial value " << std::endl;
+  static int inv_vref_start_value = 100;
+  inv_vref_start_value = BaseMenu:: readline_int("Start from inv_vref value: ", inv_vref_start_value);
+
+  constexpr const int num_channels = 36;
+  std::array<int, num_channels> previous{};
+  std::array<int, num_channels> stop{};
+  std::array<int, num_channels> data_samples{};
+
+  std::cout << "ROC: " << iroc << ", half: " << half << ", Link: " << link << std::endl;
+  std::cout << " Trying inv_vref = 100 and above" << std::endl;
+
+  std::cout << std::boolalpha;
+  auto is_below_tolerance = [&](const double sample_adc) {
+    auto res (sample_adc < goal1 - tolerance1);
+    return res;
+  };
+  auto is_above_tolerance = [&](const double sample_adc) {
+    return (sample_adc > goal1 + tolerance1);
+  };
+  auto is_within_tolerance = [&](const double sample_adc) {
+    auto res {!is_below_tolerance(sample_adc) && !(is_above_tolerance(sample_adc))};
+    return res;
+  };
+
+  std::array<bool, num_channels> alignedChannels{};
+  
+  //set a max value for inv_vref, the loop will not go higher than this
+  constexpr const int max_inv_vref {405};
+  for (int inv_vref = inv_vref_start_value; inv_vref < max_inv_vref; inv_vref += 10) {
+    std::cout << "INV_VREF: " << inv_vref << std::endl;
+    pft->prepareNewRun();
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pflib::decoding::SuperPacket data(&(event[0]), event.size());
+
+    if (std::find(std::begin(alignedChannels), std::end(alignedChannels), false) != std::end(alignedChannels)){
+	      const std::string pageref = "Reference_voltage_" + std::to_string(half);
+	      const std::string parameterinv_vref = "INV_VREF";
+
+	    pft->hcal.roc(iroc).applyParameter(pageref, parameterinv_vref, inv_vref); //since this parameter is set globally we do't poke the parameter in the channel loop
+	
+
+	    for (int ch = 0; ch < num_channels; ++ch) {
+
+	      //const std::string pageref = "Reference_voltage_" + std::to_string(half);
+	      //const std::string parameterinv_vref = "INV_VREF";
+	      //std::cout << "Ch: " << ch << ": " << "inv_vref value: " << inv_vref << std::endl;
+	      for ( int sample {0}; sample < nsamples; ++sample) {
+		const int link = iroc * 2 + half;
+		auto data_sample {data.sample(sample).link(link).get_adc(ch)}; //to compare with all 8 samples since sometimes one or two is very different from the others
+		//checking if the pedestals reach the goal
+		if (is_above_tolerance(data_sample) && stop[ch] != 1) {
+		  //std::cout << " TOO HIGH, stopping " << ch << std::endl;
+		  previous[ch] = inv_vref;
+		  data_samples[ch] = data_sample;
+		  alignedChannels[ch] = true;
+		}
+
+		if (is_below_tolerance(data_sample) && stop[ch] != 1) {
+		  //std::cout << "TOO LOW, poking channel: " << ch << std::endl;
+		  previous[ch] = inv_vref;
+		  data_samples[ch] = data_sample;
+		  alignedChannels[ch] = false;
+		}
+		if (is_within_tolerance(data_sample) && stop[ch] != 1) {
+		  data_samples[ch] = data_sample;
+		  std::cout << "Channel: " << ch << " Goal reached. Stopping. " << std::endl;
+		  stop[ch] = 1;
+		  alignedChannels[ch] = true;
+		}
+
+		 }
+	      
+	    }
+    }
+//    auto stats {get_pedestal_stats(pft, data, link) };
+  //  std::cout << "Average: " << stats[0] << " Sigma: " << stats[1] << " Min: " << stats[2] << " Max: " << stats[3] << " Delta min/max: " << stats[3] - stats[2] << std::endl;
+}
+ for (int ch{0}; ch < num_channels; ++ch) {
+  std::cout << "Ch: " << ch << " inv_vref: " << previous[ch] << " succeeded? " << (stop[ch] != 0) << " pedestal values: " << data_samples[ch] << std::endl;
+}
+ for (int ch{0}; ch < num_channels; ++ch) {
+  if (!stop[ch]) {
+    std::cout << "Channel: " << ch << " failed to reach goal for pedestal value." << std::endl;
+    }
+    }
+   // return;
+
+  //raise pedestals to 2nd goal with ref_dac_inv
+  std::cout << "Find the ref_dac_inv channel-wise to get the pedestals up to a certain goal" << std::endl;
+  static int goal_ref_dac_inv = 95;
+  goal_ref_dac_inv = BaseMenu:: readline_int("Raise pedestals to: ", goal_ref_dac_inv);
+  static int tolerance_ref_dac_inv = 20;
+  tolerance_ref_dac_inv = BaseMenu::readline_int("Tolerance (+/-): ", tolerance_ref_dac_inv);
+  std::cout << "Set ref dac inv to value between 0 and 31" << std::endl;
+  //setting ref_dac_inv initial value
+  static int ref_dac_inv_start_value = 0;
+  ref_dac_inv_start_value = BaseMenu::readline_int("Start from ref_dac_inv value: ", ref_dac_inv_start_value);
+
+  std::array<int, num_channels> previous_ref_dac_inv{};
+  std::array<int, num_channels> stop_ref_dac_inv{};
+  std::array<int, num_channels> data_samples2{};
+
+  //std::cout << "ROC: " << iroc << ", half: " << half << ", link: " << link << std::endl;
+  //std::cout << "Trying ref_dac_inv 0-31" << std::endl;
+
+  std::cout << std::boolalpha;
+  auto is_below_tolerance2 = [&](const double sample_adc) {
+    auto res (sample_adc < goal_ref_dac_inv - tolerance_ref_dac_inv);
+    return res;
+  };
+  auto is_above_tolerance2 = [&](const double sample_adc){
+    return ( sample_adc > goal_ref_dac_inv + tolerance_ref_dac_inv );
+  };
+  auto is_within_tolerance2 = [&]( const double sample_adc) {
+    auto res {!is_below_tolerance2(sample_adc) && !(is_above_tolerance2(sample_adc))};
+    return res;
+  };
+
+  constexpr const int max_ref_dac_inv {32};
+  for (int ref_dac_inv = ref_dac_inv_start_value; ref_dac_inv < max_ref_dac_inv; ++ref_dac_inv) {
+    //std::cout << "REF_DAC_INV: " << ref_dac_inv << std::endl;
+    pft->prepareNewRun();
+    pft->backend->fc_sendL1A();
+    std::vector<uint32_t> event = pft->daqReadEvent();
+    pflib::decoding::SuperPacket data(&(event[0]), event.size());
+    for (int ch = 0 ; ch < num_channels; ++ch) {
+      const int channel_number = ch + 36 * half;
+      const std::string pagechannel = "CHANNEL_" + std::to_string(channel_number);
+      const std::string parameterref_dac_inv = "REF_DAC_INV";
+      //std::cout << "channel: " << ch << ", ref_dac_inv value: " << ref_dac_inv << std::endl;
+      //bool channelOk = true;
+      for ( int sample {0}; sample < nsamples; ++sample) {
+	const int link = iroc * 2 + half;
+	auto data_sample {data.sample(sample).link(link).get_adc(ch)};
+
+      if (is_above_tolerance2(data_sample) && stop_ref_dac_inv[ch] != 1) {
+        //std::cout << "Too high " << ch << std::endl;
+	roc.applyParameter(pagechannel, parameterref_dac_inv, previous_ref_dac_inv[ch]);
+	data_samples2[ch] = data_sample;
+	stop_ref_dac_inv[ch] = 1;
+      }
+
+      if (is_below_tolerance2(data_sample) && stop_ref_dac_inv[ch] != 1) {
+	//std::cout << " TOO LOW, poking channel: " << ch << std::endl;
+        roc.applyParameter(pagechannel, parameterref_dac_inv, ref_dac_inv);
+	//channelOk = false;
+	previous_ref_dac_inv[ch] = ref_dac_inv;
+	data_samples2[ch] = data_sample;
+      }
+      if ( is_within_tolerance2(data_sample) && stop_ref_dac_inv[ch] != 1) {
+        roc.applyParameter(pagechannel, parameterref_dac_inv, previous_ref_dac_inv[ch]);
+	data_samples2[ch] = data_sample;
+	std::cout << "Channel: " << ch << ". Goal reached, stopping." << std::endl;
+	stop_ref_dac_inv[ch] = 1;
+      }
+      }
+      //if !channelOk ... poke 
+      }
+  }
+  for (int ch{0}; ch < num_channels; ++ch) {
+    std::cout << "Ch: " << ch << " ref_dac_inv: " << previous_ref_dac_inv[ch] << " succeded? " << (stop_ref_dac_inv[ch] != 0) << " pedestal values: " << data_samples2[ch] << std::endl;
+    }
+  for (int ch{0}; ch < num_channels; ++ch) {
+    if (!stop_ref_dac_inv[ch]) {
+      std::cout << "Channel: " << ch << " failed to reach goal for pedestal value" << std::endl;
+      }
+      }
+  //update gain_conv to 4
+  
+  const int valuegain {BaseMenu::readline_int("Input gain_conv value", 4)};
+  std::cout << "Poking: " << parametergain << " on page: " << pageglobal << " to value: " << valuegain << std::endl;
+  roc.applyParameter(pageglobal, parametergain, valuegain);
+//change dacb to get right pedestal values. Start from dacb= 63 (default) and decrease, when sign_dac = 1 (default), this parameter lowers the pedestals when it is lowered
+  std::cout << "Find the dacb value channel-wise to get the pedestals up to a certain value" << std::endl;
+
+  static int goal_dacb = 100;
+  goal_dacb = BaseMenu::readline_int("Goal for pedestal values: ", goal_dacb);
+  static int tolerance_dacb = 20;
+  tolerance_dacb = BaseMenu::readline_int("Tolerance (+/-): ", tolerance_dacb);
+  std::cout << "Find dacb value between 0 and 63" << std::endl;
+  
+  static int dacb_start_value = 63;
+  dacb_start_value = BaseMenu::readline_int("Start from dacb value: ", dacb_start_value);
+
+  std::array<int, num_channels> previous_dacb{};
+  std::array<int, num_channels> stop_dacb{};
+  std::array<int, num_channels> data_samples3{};
+
+  std::cout << "ROC: " << iroc << ", half: " << half << ", link: " << link << std::endl;
+  std::cout << "Trying dacb from 63 to 0" << std::endl;
+
+  std::cout << std::boolalpha;
+
+  auto is_below_tolerance3 = [&](const double sample_adc){
+    auto res(sample_adc < goal_dacb - tolerance_dacb);
+    return res;
+  };
+  auto is_above_tolerance3 = [&](const double sample_adc){
+      return (sample_adc > goal_dacb + tolerance_dacb);
+    };
+  auto is_within_tolerance3 = [&](const double sample_adc){
+    auto res{!is_below_tolerance3(sample_adc) && !(is_above_tolerance3(sample_adc))};
+    return res;
+  };
+  for (int ch = 0 ; ch < num_channels; ++ch) {
+    const int channel_number = ch + 36 * half;
+    const std::string pagechannel = "CHANNEL_" + std::to_string(channel_number);
+    const std::string parameterdacb = "DACB";
+    
+
+    constexpr const int min_dacb {0};
+    for (int dacb = dacb_start_value; dacb > min_dacb; --dacb) {
+      //std::cout << "DACB: " << dacb << std::endl;
+      pft->prepareNewRun();
+      pft->backend->fc_sendL1A();
+      std::vector<uint32_t> event = pft->daqReadEvent();
+      pflib::decoding::SuperPacket data(&(event[0]), event.size());
+      for (int sample {0}; sample < nsamples; ++sample) {
+        const int link = iroc * 2 + half;
+        auto data_sample {data.sample(sample).link(link).get_adc(ch)};
+
+        if (is_below_tolerance3(data_sample) && stop_dacb[ch] != 1) {
+          //std::cout << "Too low, stopping: " << ch << std::endl;
+          roc.applyParameter(pagechannel, parameterdacb, previous_dacb[ch]);
+          data_samples3[ch] = data_sample;
+	  stop_dacb[ch] = 1;
+
+        }
+        if (is_above_tolerance3(data_sample) && stop_dacb[ch] != 1) {
+	  //std::cout << "Too high, poking channel: " << ch << std::endl;
+          roc.applyParameter(pagechannel, parameterdacb, dacb);
+          previous_dacb[ch] = dacb;
+          data_samples3[ch] = data_sample;
+      }
+
+        if (is_within_tolerance3(data_sample) && stop_dacb[ch] != 1) {
+          roc.applyParameter(pagechannel, parameterdacb, previous_dacb[ch]);
+          data_samples3[ch] = data_sample;
+          std::cout << "Channel: " << ch << ". Goal reached, stopping." << std::endl;
+          stop_dacb[ch] = 1;
+      }}
+     
+    }
+ }
+ for (int ch{0}; ch < num_channels; ++ch) {
+   std::cout << "Ch: " << ch << " dacb: " << previous_dacb[ch] << " succeeded? " << (stop_dacb[ch] != 0 ) << " pedestal values: " << data_samples3[ch] << std::endl;
+ }
+ for (int ch {0}; ch < num_channels; ++ch) {
+   if (!stop_dacb[ch]) {
+     std::cout << "Channel: " << ch << " failed to reach goal for pedestal value. " << std::endl;
+   }
+ }
+ 
+   
+  
+
+}
 void preamp_alignment(PolarfireTarget* pft)
 {
 
@@ -295,6 +608,7 @@ void preamp_alignment(PolarfireTarget* pft)
 
   }
   return;
+
 }
 
 
@@ -833,6 +1147,10 @@ void tasks( const std::string& cmd, pflib::PolarfireTarget* pft )
     read_charge(pft);
     return;
   }
+  if (cmd == "PEDESTAL_ALIGNMENT") {
+    align_pedestal(pft);
+    return;
+  }
   if (cmd == "ALIGN_PREAMP") {
     preamp_alignment(pft);
     return;
@@ -1217,6 +1535,7 @@ auto menu_tasks = pftool::menu("TASKS","various high-level tasks like scans and 
   ->line("TUNE_TOT", "Tune TOT globally and per-channel", tasks)
   ->line("PEDESTAL_READ", "Take a single pedestal event, and dump details to stdout", tasks)
   ->line("CHARGE_READ", "Take a single calib_pulse event, and dump details to stdout", tasks)
+  ->line("PEDESTAL_ALIGNMENT", "WIP: automatically align all pedestals", tasks)
   ->line("ALIGN_PREAMP",
          "Attempt to automatically tune REF_DAC_INV to hit a particular pedestal +- tolerance",
          tasks)
