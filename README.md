@@ -1,6 +1,8 @@
 # pflib
 
-The Polarfire Libary (pflib) encapsulates the higher-level functionality for communicating with the Polarfire FPGA on the HCAL and ECAL front ends.  The library is separated from the rest of the development as it is also used in a standalone implementation which does not depend on the COB/Rogue.
+The Pretty Fine Libary (pflib) encapsulates library functionality for communicating with the HGCROC on the HCAL and ECAL front ends and provides a simple user frontend for use with the ZCU102-based readouts (both direct readout and via lpGBT).
+
+The library is separated from the rest of the development for efficiency at this time.
 
 ## Quickstart
 We assume you have the YAML parser yaml-cpp and at least one of the communication methods below installed.
@@ -39,20 +41,16 @@ make install
 ```
 
 ## Communication Method
-This software can communicate with the polarfire using two different methods. At least one is required to be available in order for the library to be built.
 
-### Rogue
- - [Documentation](https://slaclab.github.io/rogue/index.html)
- - [Installng Rogue with Anaconda](https://slaclab.github.io/rogue/installing/anaconda.html)
- - [Installing Rogue on Archlinux](https://slaclab.github.io/rogue/installing/build.html#archlinux)
+This software can communicate with the HGCROC and other front-end items using several different methods.
 
-### uHal
- - [Installation Docs](https://ipbus.web.cern.ch/doc/user/html/software/installation.html)
- - [General uHAL Docs](https://ipbus.web.cern.ch/doc/user/html/software/index.html)
-
+### Direct I2C
+ This mode of operation is used for the HCAL HGCROC board tester.  It has no external dependencies as it uses /dev/i2c character
+ devices for communication.
+ 
 ## Other Dependencies
-Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
-This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.
+ Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
+ This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.
 
 ### UMN Setup
 Layer | Description
@@ -62,8 +60,6 @@ gcc | 8.5.0
 cmake | 3.20.2
 yaml-cpp | 0.7.0
 readline | 7.0
-Rogue | 5.11.1
-uHAL | 2.8.1
 
 ### Lund Setup
 Layer | Description
@@ -75,18 +71,6 @@ yaml-cpp | 0.7.0
 readline | 7.0
 Rogue | NA
 uHAL | 2.8.1
-
-### CERN Setup
-Layer | Description
----|---
-OS | CentOS Stream 8
-gcc | 8.5.0
-cmake | 3.20.2
-yaml-cpp | 0.7.0
-readline | 7.0
-Rogue | 5.11.0-2-g38ba1728
-uHAL | 2.8.1
-
 
 ## Directory Structure
 - config : helpful HGC ROC YAML parameter settings to load onto chips

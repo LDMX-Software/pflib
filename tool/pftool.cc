@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -17,13 +18,10 @@
 #include <unistd.h>
 #include <string>
 #include <exception>
-#include "pflib/PolarfireTarget.h"
+#include "pflib/Target.h"
+#include "pflib/Hcal.h"
 #include "pflib/Compile.h" // for parameter listing
 #ifdef PFTOOL_ROGUE
-#include "pflib/rogue/RogueWishboneInterface.h"
-#endif
-#ifdef PFTOOL_UHAL
-#include "pflib/uhal/uhalWishboneInterface.h"
 #endif
 #include "Menu.h"
 #include "Rcfile.h"
@@ -31,7 +29,7 @@
 /**
  * pull the target of our menu into this source file to reduce code
  */
-using pflib::PolarfireTarget;
+using pflib::Target;
 
 /**
  * Main status of menu
@@ -40,65 +38,16 @@ using pflib::PolarfireTarget;
  *
  * @param[in] pft pointer to active target
  */
-static void status( PolarfireTarget* pft ) {
+static void status( Target* pft ) {
+  /*
   std::pair<int,int> version = pft->getFirmwareVersion();
   printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
   printf("  Active DAQ links: ");
-  for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++)
-    if (pft->hcal.elinks().isActive(ilink)) printf("%d ",ilink);
+  for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++)
+    if (pft->hcal().elinks().isActive(ilink)) printf("%d ",ilink);
   printf("\n");
-}
-
-/**
- * Low-level Wishbone Interactions
- *
- * We acces the active wishbone connection via PolarfireTarget.
- * @see BaseMenu::readline_int for how integers can be passed in
- * (in short, decimal, hex, octal, and binary are supported)
- *
- * ## Commands
- * - RESET : WishboneInterface::wb_reset
- * - WRITE : WishboneInterface::wb_write
- * - READ : WishboneInterface::wb_read
- * - BLOCKREAD : Loop over READ for input number of words
- * - STATUS : Print results form WishboneInterface::wb_errors
- *
- * @param[in] cmd Wishbone Command
- * @param[in] pft active target
- */
-static void wb( const std::string& cmd, PolarfireTarget* pft ) {
-  static uint32_t target=0;
-  static uint32_t addr=0;
-  if (cmd=="RESET") {
-    pft->wb->wb_reset();
-  }
-  if (cmd=="WRITE") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Address",addr);
-    uint32_t val=BaseMenu::readline_int("Value",0);
-    pft->wb->wb_write(target,addr,val);
-  }
-  if (cmd=="READ") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Address",addr);
-    uint32_t val=pft->wb->wb_read(target,addr);
-    printf(" Read: 0x%08x\n",val);
-  }
-  if (cmd=="BLOCKREAD") {
-    target=BaseMenu::readline_int("Target",target);
-    addr=BaseMenu::readline_int("Starting address",addr);
-    int len=BaseMenu::readline_int("Number of words",8);
-    for (int i=0; i<len; i++) {
-      uint32_t val=pft->wb->wb_read(target,addr+i);
-      printf(" %2d/0x%04x : 0x%08x\n",target,addr+i,val);
-    }
-  }
-  if (cmd=="STATUS") {
-    uint32_t crcd, crcu, wbe;
-    pft->wb->wb_errors(crcu,crcd,wbe);
-    printf("CRC errors: Up -- %d   Down --%d \n",crcu,crcd);
-    printf("Wishbone errors: %d\n",wbe);
-  }
+  */
+  printf("We don't have any right now\n");
 }
 
 /**
@@ -117,17 +66,24 @@ static void wb( const std::string& cmd, PolarfireTarget* pft ) {
  * @param[in] cmd I2C command
  * @param[in] pft active target
  */
-static void i2c( const std::string& cmd, PolarfireTarget* pft ) {
+static void i2c( const std::string& cmd, Target* target ) {
   static uint32_t addr=0;
   static int waddrlen=1;
   static int i2caddr=0;
-  pflib::I2C i2c(pft->wb);
+  static std::string chosen_bus;
+
+  printf(" Current bus: %s\n",chosen_bus.c_str());
 
   if (cmd=="BUS") {
-    int ibus=i2c.get_active_bus();
-    ibus=BaseMenu::readline_int("Bus to make active",ibus);
-    i2c.set_active_bus(ibus);
+    std::vector<std::string> busses=target->i2c_bus_names();
+    for (auto name: target->i2c_bus_names()) 
+      printf(" %s\n",name.c_str());
+    chosen_bus=BaseMenu::readline("Bus to make active",chosen_bus);
+    if (chosen_bus.size()>1) 
+      target->get_i2c_bus(chosen_bus);
   }
+  if (chosen_bus.size()<2) return;
+  pflib::I2C& i2c=target->get_i2c_bus(chosen_bus);
   if (cmd=="WRITE") {
     i2caddr=BaseMenu::readline_int("I2C Target ",i2caddr);
     uint32_t val=BaseMenu::readline_int("Value ",0);
@@ -187,7 +143,8 @@ static void i2c( const std::string& cmd, PolarfireTarget* pft ) {
  * @param[in] cmd LINK command
  * @param[in] pft active target
  */
-static void link( const std::string& cmd, PolarfireTarget* pft ) {
+/*
+static void link( const std::string& cmd, Target* pft ) {
   if (cmd=="STATUS") {
     uint32_t status;
     uint32_t ratetx=0, raterx=0, ratek=0;
@@ -208,14 +165,8 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
     //    ldmx->link_setup(polarity,polarity2,bypass);
     // ldmx->link_resets(reset_txpll,reset_gtxtx,reset_tx,reset_rx);
   }
-  if (cmd=="SPY") {
-    /*
-    std::vector<uint32_t> spy=ldmx->link_spy();
-    for (size_t i=0; i<spy.size(); i++)
-      printf("%02d %05x\n",int(i),spy[i]);
-    */
-  }
 }
+*/
 
 /**
  * ELINKS menu commands
@@ -224,20 +175,21 @@ static void link( const std::string& cmd, PolarfireTarget* pft ) {
  * pflib::Hcal::elinks and then procede to the commands.
  *
  * ## Commands
- * - RELINK : pflib::PolarfireTarget::elink_relink with verbosity 2
+ * - RELINK : pflib::Target::elink_relink with verbosity 2
  * - SPY : pflib::Elinks::spy
  * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
- * - BIGSPY : PolarfireTarget::elinksBigSpy
+ * - BIGSPY : Target::elinksBigSpy
  * - DELAY : pflib::Elinks::setDelay
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
- * - STATUS : pflib::PolarfireTarget::elinkStatus with std::cout input
+ * - STATUS : pflib::Target::elinkStatus with std::cout input
  *
  * @param[in] cmd ELINKS command
  * @param[in] pft active target
  */
-static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::Elinks& elinks=pft->hcal.elinks();
+/*
+static void elinks( const std::string& cmd, Target* pft ) {
+  pflib::Elinks& elinks=pft->hcal().elinks();
   static int ilink=0;
   if (cmd=="RELINK")
     pft->elink_relink(2);
@@ -284,6 +236,7 @@ static void elinks( const std::string& cmd, PolarfireTarget* pft ) {
     pft->elinkStatus(std::cout);
   } 
 }
+*/
 
 /**
  * ROC currently being interacted with by user
@@ -296,7 +249,7 @@ static int iroc = 0;
  *
  * @param[in] pft active target (not used)
  */
-static void roc_render( PolarfireTarget* pft ) {
+static void roc_render( Target* pft ) {
   printf(" Active ROC: %d\n",iroc);
 }
 
@@ -316,27 +269,27 @@ static void roc_render( PolarfireTarget* pft ) {
  * - PARAM_NAMES : Use pflib::parameters to get list ROC parameter names
  * - POKE_REG : pflib::ROC::setValue
  * - POKE_PARAM : pflib::ROC::applyParameter
- * - LOAD_REG : pflib::PolarfireTarget::loadROCRegisters
- * - LOAD_PARAM : pflib::PolarfireTarget::loadROCParameters
- * - DUMP : pflib::PolarfireTarget::dumpSettings
+ * - LOAD_REG : pflib::Target::loadROCRegisters
+ * - LOAD_PARAM : pflib::Target::loadROCParameters
+ * - DUMP : pflib::Target::dumpSettings
  *
  * @param[in] cmd ROC command
  * @param[in] pft active target
  */
-static void roc( const std::string& cmd, PolarfireTarget* pft ) {
+static void roc( const std::string& cmd, Target* pft ) {
   if (cmd=="HARDRESET") {
-    pft->hcal.hardResetROCs();
+    //    pft->hcal().hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    pft->hcal.softResetROC();
+    //    pft->hcal().softResetROC();
   }
   if (cmd=="RESYNCLOAD") {
-    pft->hcal.resyncLoadROC();
+    //    pft->hcal().resyncLoadROC();
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
   }
-  pflib::ROC roc=pft->hcal.roc(iroc);
+  pflib::ROC roc=pft->hcal().roc(iroc);
   if (cmd=="CHAN") {
     int chan=BaseMenu::readline_int("Which channel? ",0);
     std::vector<uint8_t> v=roc.getChannelParameters(chan);
@@ -387,7 +340,7 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
       " --- This command expects a CSV file with columns [page,offset,value].\n"
       << std::flush;
     std::string fname = BaseMenu::readline("Filename: ");
-    pft->loadROCRegisters(iroc,fname);
+    //    pft->loadROCRegisters(iroc,fname);
   }
   if (cmd=="LOAD"||cmd=="LOAD_PARAM") {
     std::cout <<
@@ -396,7 +349,7 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
       << std::flush;
     std::string fname = BaseMenu::readline("Filename: ");
     bool prepend_defaults = BaseMenu::readline_bool("Update all parameter values on the chip using the defaults in the manual for any values not provided? ", false);
-    pft->loadROCParameters(iroc,fname,prepend_defaults);
+    //    pft->loadROCParameters(iroc,fname,prepend_defaults);
   }
   if (cmd=="DUMP") {
     std::string fname_def_format = "hgcroc_"+std::to_string(iroc)+"_settings_%Y%m%d_%H%M%S.yaml";
@@ -409,7 +362,7 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
     
     std::string fname = BaseMenu::readline("Filename: ", fname_def);
 	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
-    pft->dumpSettings(iroc,fname,decompile);
+          //    pft->dumpSettings(iroc,fname,decompile);
   }
 }
 
@@ -432,7 +385,8 @@ static void roc( const std::string& cmd, PolarfireTarget* pft ) {
  * @param[in] cmd FC menu command
  * @param[in] pft active target
  */
-static void fc( const std::string& cmd, PolarfireTarget* pft ) {
+/*
+static void fc( const std::string& cmd, Target* pft ) {
   bool do_status=false;
 
   if (cmd=="SW_L1A") {
@@ -452,11 +406,11 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd=="COUNTER_RESET") {
-    pft->hcal.fc().resetCounters();
+    pft->hcal().fc().resetCounters();
     do_status=true;
   }
   if (cmd=="FC_RESET") {
-    pft->hcal.fc().resetTransmitter();
+    pft->hcal().fc().resetTransmitter();
   }
   if (cmd=="CALIB") {
     int len, offset;
@@ -476,11 +430,11 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    pft->hcal().fc().getMultisampleSetup(multi,nextra);
     multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
     if (multi)
       nextra=BaseMenu::readline_int("Extra samples (total is +1 from this number) : ",nextra);
-    pft->hcal.fc().setupMultisample(multi,nextra);
+    pft->hcal().fc().setupMultisample(multi,nextra);
     // also, DMA needs to know
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -506,14 +460,14 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     };
     bool multi;
     int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    pft->hcal().fc().getMultisampleSetup(multi,nextra);
     if (multi) printf(" Multisample readout enabled : %d extra L1a (%d total samples)\n",nextra,nextra+1);
     else printf(" Multisaple readout disabled\n");
     printf(" Snapshot: %03x\n",pft->wb->wb_read(1,3));
     uint32_t sbe,dbe;
-    pft->hcal.fc().getErrorCounters(sbe,dbe);
+    pft->hcal().fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
-    std::vector<uint32_t> cnt=pft->hcal.fc().getCmdCounters();
+    std::vector<uint32_t> cnt=pft->hcal().fc().getCmdCounters();
     for (int i=0; i<8; i++) 
       printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i).c_str()); 
     int spill_count, header_occ, event_count,vetoed_counter;
@@ -529,6 +483,7 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
     pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
   }
 }
+*/
 
 /**
  * DAQ->SETUP menu commands
@@ -537,10 +492,10 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
  * object via pflib::Hcal::daq.
  *
  * ## Commands
- * - STATUS : pflib::PolarfireTarget::daqStatus
+ * - STATUS : pflib::Target::daqStatus
  *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in that manner
  * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and pflib::DAQ::enabled
- * - ZS : pflib::PolarfireTarget::enableZeroSuppression
+ * - ZS : pflib::Target::enableZeroSuppression
  * - L1APARAMS : Use target's wishbone interface to set the L1A delay and capture length
  *   Uses pflib::tgt_DAQ_Inbuffer
  * - DMA : enable DMA readout pflib::rogue::RogueWishboneInterface::daq_dma_enable
@@ -552,8 +507,9 @@ static void fc( const std::string& cmd, PolarfireTarget* pft ) {
  * @param[in] cmd selected command from DAQ->SETUP menu
  * @param[in] pft active target
  */
-static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::DAQ& daq=pft->hcal.daq();
+/*
+static void daq_setup( const std::string& cmd, Target* pft ) {
+  pflib::DAQ& daq=pft->hcal().daq();
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
@@ -600,7 +556,7 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
   }
   if (cmd=="STANDARD") {
     daq_setup("FPGA",pft);
-    pflib::Elinks& elinks=pft->hcal.elinks();
+    pflib::Elinks& elinks=pft->hcal().elinks();
     for (int i=0; i<daq.nlinks(); i++) {
       if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
       else daq.setupLink(i,true,true,15,40);
@@ -621,7 +577,7 @@ static void daq_setup( const std::string& cmd, PolarfireTarget* pft ) {
 #endif
   }
 }
-
+*/
 
 static std::string last_run_file=".last_run_file";
 static std::string start_dma_cmd="";
@@ -632,13 +588,13 @@ static std::string stop_dma_cmd="";
  * DAQ menu commands, DOES NOT include sub-menu commands
  *
  * ## Commands
- * - STATUS : pflib::PolarfireTarget::daqStatus
+ * - STATUS : pflib::Target::daqStatus
  *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in that manner
- * - RESET : pflib::PolarfireTarget::daqSoftReset
- * - HARD_RESET : pflib::PolarfireTarget::daqHardReset
- * - READ : pflib::PolarfireTarget::daqReadDirect with option to save output to file
- * - PEDESTAL : pflib::PolarfireTarget::prepareNewRun and then send an L1A trigger with
- *   pflib::Backend::fc_sendL1A and collect events with pflib::PolarfireTarget::daqReadEvent
+ * - RESET : pflib::Target::daqSoftReset
+ * - HARD_RESET : pflib::Target::daqHardReset
+ * - READ : pflib::Target::daqReadDirect with option to save output to file
+ * - PEDESTAL : pflib::Target::prepareNewRun and then send an L1A trigger with
+ *   pflib::Backend::fc_sendL1A and collect events with pflib::Target::daqReadEvent
  *   for the input number of events
  * - CHARGE : same as PEDESTAL but using pflib::Backend::fc_calibpulse instead of direct L1A
  * - SCAN : do a PEDESTAL (or CHARGE)-equivalent for each value of 
@@ -647,8 +603,9 @@ static std::string stop_dma_cmd="";
  * @param[in] cmd command selected from menu
  * @param[in] pft active target
  */
-static void daq( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::DAQ& daq=pft->hcal.daq();
+/*
+static void daq( const std::string& cmd, Target* pft ) {
+  pflib::DAQ& daq=pft->hcal().daq();
 
   // default is non-DMA readout
   bool dma_enabled=false;
@@ -860,7 +817,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     pft->prepareNewRun();
 
     for(int value = minvalue; value <= maxvalue; value += step){
-      pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
+      pft->hcal().roc(iroc).applyParameter(pagename, valuename, value);
 #ifdef PFTOOL_ROGUE
       if (dma_enabled) {
         rwbi->daq_dma_dest(fname);
@@ -874,6 +831,7 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
 }
+*/
 
 /**
  * TASK menu commands
@@ -884,8 +842,9 @@ static void daq( const std::string& cmd, PolarfireTarget* pft ) {
  * @param[in] cmd command selected from menu
  * @param[in] pft active target
  */
-static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
-  pflib::DAQ& daq=pft->hcal.daq();
+/*
+static void tasks( const std::string& cmd, Target* pft ) {
+  pflib::DAQ& daq=pft->hcal().daq();
 
   static int low_value=10;
   static int high_value=500;
@@ -898,7 +857,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
   {
     bool multi;
     int nextra;
-    pft->hcal.fc().getMultisampleSetup(multi,nextra);
+    pft->hcal().fc().getMultisampleSetup(multi,nextra);
     if (multi) nsamples=nextra+1;
   }
   
@@ -934,16 +893,16 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     printf(" Clearing charge injection on all channels (ground-state)...\n");
     
     /// first, disable charge injection on all channels
-    for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-      if (!pft->hcal.elinks().isActive(ilink)) continue;
+    for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++) {
+      if (!pft->hcal().elinks().isActive(ilink)) continue;
 
       int iroc=ilink/2;        
       for (int ichan=0; ichan<NUM_ELINK_CHAN; ichan++) {
         char pagename[32];
         snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
         // set the value
-        pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
-        pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+        pft->hcal().roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
+        pft->hcal().roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
       }
     }
     ////////////////////////////////////////////////////////////
@@ -956,14 +915,14 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
       /// set values
       int value=low_value+step*(high_value-low_value)/steps;
 
-      for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-        if (!pft->hcal.elinks().isActive(ilink)) continue;
+      for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++) {
+        if (!pft->hcal().elinks().isActive(ilink)) continue;
 
         int iroc=ilink/2;
         char pagename[32];
         snprintf(pagename,32,pagetemplate.c_str(),ilink%2);
         // set the value
-        pft->hcal.roc(iroc).applyParameter(pagename, valuename, value);
+        pft->hcal().roc(iroc).applyParameter(pagename, valuename, value);
       }
       ////////////////////////////////////////////////////////////
 
@@ -973,15 +932,15 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
         ////////////////////////////////////////////////////////////
         /// Enable charge injection channel by channel -- per elink
-        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-          if (!pft->hcal.elinks().isActive(ilink)) continue;
+        for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++) {
+          if (!pft->hcal().elinks().isActive(ilink)) continue;
           
           int iroc=ilink/2;        
           char pagename[32];
           snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
           // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
-          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+          pft->hcal().roc(iroc).applyParameter(pagename, "LOWRANGE", 1);
+          //          pft->hcal().roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
         }
                 
         //////////////////////////////////////////////////////////
@@ -993,8 +952,8 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
           // here we decode the event and store the relevant information only...
 
-          for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-            if (!pft->hcal.elinks().isActive(ilink)) continue;
+          for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++) {
+            if (!pft->hcal().elinks().isActive(ilink)) continue;
 
             csv_out << value << ',' << ilink << ',' << ichan << ',' << ievt;
             for (int i=0; i<nsamples; i++) csv_out << ',' << i;
@@ -1005,15 +964,15 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
 
         ////////////////////////////////////////////////////////////
         /// Disable charge injection channel by channel -- per elink
-        for (int ilink=0; ilink<pft->hcal.elinks().nlinks(); ilink++) {
-          if (!pft->hcal.elinks().isActive(ilink)) continue;
+        for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++) {
+          if (!pft->hcal().elinks().isActive(ilink)) continue;
           
           int iroc=ilink/2;        
           char pagename[32];
           snprintf(pagename,32,"CHANNEL_%d",(ilink%2)*(NUM_ELINK_CHAN)+ichan);
           // set the value
-          pft->hcal.roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
-          //          pft->hcal.roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
+          pft->hcal().roc(iroc).applyParameter(pagename, "LOWRANGE", 0);
+          //          pft->hcal().roc(iroc).applyParameter(pagename, "HIGHRANGE", 0);
         }
 
         //////////////////////////////////////////////////////////
@@ -1023,6 +982,7 @@ static void tasks( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
 }
+*/
 
 /**
  * Print data words from raw binary file and return them
@@ -1062,7 +1022,8 @@ std::vector<uint32_t> read_words_from_file() {
  * @param[in] cmd selected command from menu
  * @param[in] pft active target
  */
-static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
+/*
+static void daq_debug( const std::string& cmd, Target* pft ) {
   if (cmd=="STATUS") {
     // get the general status
     daq("STATUS", pft); 
@@ -1072,7 +1033,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     printf(" Disable ROC links: %s\n",(reg1&0x80000000u)?("TRUE"):("FALSE"));
 
     printf(" Link  F E RP WP \n");
-    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
+    for (int ilink=0; ilink<Target::NLINKS; ilink++) {
       uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|3);
       printf("   %2d  %d %d %2d %2d       %08x\n",ilink,(reg>>26)&1,(reg>>27)&1,(reg>>16)&0xf,(reg>>12)&0xf,reg);
     }
@@ -1172,11 +1133,11 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     
   if (cmd=="ROC_LOAD") {
     std::vector<uint32_t> data=read_words_from_file();
-    if (int(data.size())!=PolarfireTarget::NLINKS*40) {
-      printf("Expected %d words, got only %d\n",PolarfireTarget::NLINKS*40,int(data.size()));
+    if (int(data.size())!=Target::NLINKS*40) {
+      printf("Expected %d words, got only %d\n",Target::NLINKS*40,int(data.size()));
       return;
     }
-    for (int ilink=0; ilink<PolarfireTarget::NLINKS; ilink++) {
+    for (int ilink=0; ilink<Target::NLINKS; ilink++) {
       uint32_t reg;
       // set the wishbone page to match the read page, and set the length
       reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3);
@@ -1189,6 +1150,7 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
 }
+*/
 
 /**
  * BIAS menu commands
@@ -1199,22 +1161,23 @@ static void daq_debug( const std::string& cmd, PolarfireTarget* pft ) {
  * ## Commands
  * - STATUS : _does nothing_ after selecting a board.
  * - INIT : pflib::Bias::initialize the selected board
- * - SET : pflib::PolarfireTarget::setBiasSetting
- * - LOAD : pflib::PolarfireTarget::loadBiasSettings
+ * - SET : pflib::Target::setBiasSetting
+ * - LOAD : pflib::Target::loadBiasSettings
  *
  * @param[in] cmd selected menu command
  * @param[in] pft active target
  */
-static void bias( const std::string& cmd, PolarfireTarget* pft ) {
+/*
+static void bias( const std::string& cmd, Target* pft ) {
   static int iboard=0;
   if (cmd=="STATUS") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
-    pflib::Bias bias=pft->hcal.bias(iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
   }
   
   if (cmd=="INIT") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
-    pflib::Bias bias=pft->hcal.bias(iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
     bias.initialize();
   }
   if (cmd=="SET") {
@@ -1242,6 +1205,7 @@ static void bias( const std::string& cmd, PolarfireTarget* pft ) {
     }
   }
 }
+*/
 
 /**
  * Menu construction for pftool
@@ -1256,9 +1220,10 @@ static void bias( const std::string& cmd, PolarfireTarget* pft ) {
  *
  * @param[in] pft target that has been initialized
  */
-static void RunMenu( PolarfireTarget* pft_ ) {
-  using pfMenu = Menu<PolarfireTarget>;
+static void RunMenu( Target* pft_ ) {
+  using pfMenu = Menu<Target>;
 
+  /*
   pfMenu menu_wishbone({
     pfMenu::Line("RESET", "Enable/disable (toggle)",  &wb ),
     pfMenu::Line("READ", "Read from an address",  &wb ),
@@ -1267,7 +1232,7 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("STATUS", "Wishbone errors counters",  &wb ),
     pfMenu::Line("QUIT","Back to top menu")
     });
-  
+  */
   pfMenu menu_i2c({
     pfMenu::Line("BUS","Pick the I2C bus to use", &i2c ),
     pfMenu::Line("READ", "Read from an address",  &i2c ),
@@ -1277,15 +1242,16 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
     });
   
-  pfMenu menu_link({
       /*
+  pfMenu menu_link({
     pfMenu::Line("STATUS","Dump link status", &link ),
     pfMenu::Line("CONFIG","Setup link", &link ),
     pfMenu::Line("SPY", "Spy on the uplink",  &link ),
-    */
     pfMenu::Line("QUIT","Back to top menu")
     });
-  
+    */
+
+  /*
   pfMenu menu_elinks({
     pfMenu::Line("RELINK","Follow standard procedure to establish links", &elinks),
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),    
@@ -1297,11 +1263,11 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &elinks),
     pfMenu::Line("QUIT","Back to top menu")
   });
+  */
   
   pfMenu menu_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &roc),
-     pfMenu::Line("RESYNCLOAD","ResyncLoad to all rocs to help maintain link stability", &roc),
      pfMenu::Line("IROC","Change the active ROC number", &roc ),
      pfMenu::Line("CHAN","Dump link status", &roc ),
      pfMenu::Line("PAGE","Dump a page", &roc ),
@@ -1315,7 +1281,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
      pfMenu::Line("DUMP","Dump hgcroc settings to a file", &roc ),
      pfMenu::Line("QUIT","Back to top menu")
     }, roc_render);
-  
+
+  /*
   pfMenu menu_bias({
   //  pfMenu::Line("STATUS","Read the bias line settings", &bias ),
     pfMenu::Line("INIT","Initialize a board", &bias ),
@@ -1323,7 +1290,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("LOAD","Load bias values from file", &bias ),
     pfMenu::Line("QUIT","Back to top menu"),
   });
-  
+  */
+  /*
   pfMenu menu_fc({
     pfMenu::Line("STATUS","Check status and counters", &fc ),
     pfMenu::Line("SW_L1A","Send a software L1A", &fc ),
@@ -1337,7 +1305,9 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+  */
+
+  /*
   pfMenu menu_daq_debug({
     pfMenu::Line("STATUS","Provide the status", &daq_debug ),
     pfMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &daq_debug ),
@@ -1352,7 +1322,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     pfMenu::Line("EFSPY","Spy on an event formatter buffer",  &daq_debug ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+  */
+  /*
   pfMenu menu_daq_setup({
     pfMenu::Line("STATUS", "Status of the DAQ", &daq_setup),
     pfMenu::Line("ENABLE", "Toggle enable status", &daq_setup),
@@ -1366,7 +1337,8 @@ static void RunMenu( PolarfireTarget* pft_ ) {
 #endif
     pfMenu::Line("QUIT","Back to DAQ menu")
   });
-  
+  */
+  /*
   pfMenu menu_daq({
     pfMenu::Line("DEBUG", "Debugging menu",  &menu_daq_debug ),
     pfMenu::Line("STATUS", "Status of the DAQ", &daq),
@@ -1379,31 +1351,33 @@ static void RunMenu( PolarfireTarget* pft_ ) {
     //    pfMenu::Line("SCAN","Take many charge or pedestal runs while changing a single parameter", &daq),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  
+  */
+  /*
   pfMenu menu_expert({ 
     pfMenu::Line("OLINK","Optical link functions", &menu_link),
     pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
     pfMenu::Line("I2C","Access the I2C Core", &menu_i2c ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-
+  */
+  /*
   pfMenu menu_tasks({ 
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
     pfMenu::Line("DELAYSCAN","Charge injection delay scan", &tasks ),
     pfMenu::Line("QUIT","Back to top menu")
   });
+  */
 
-
-  
+   
   pfMenu menu_utop({ 
     pfMenu::Line("STATUS","Status summary", &status),
-    pfMenu::Line("TASKS","Various high-level tasks like scans", &menu_tasks ),
-    pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
+    //    pfMenu::Line("TASKS","Various high-level tasks like scans", &menu_tasks ),
+    //    pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
     pfMenu::Line("ROC","ROC Configuration", &menu_roc ),
-    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
-    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
-    pfMenu::Line("DAQ","DAQ", &menu_daq ),
-    pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
+    //    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
+    //    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
+    //    pfMenu::Line("DAQ","DAQ", &menu_daq ),
+    //    pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
     pfMenu::Line("EXIT","Exit this tool")
   });
 
@@ -1465,25 +1439,9 @@ int main(int argc, char* argv[]) {
   
   // print help
   if (argc == 2 and (!strcmp(argv[1],"-h") or !strcmp(argv[1],"--help"))) {
-#ifdef PFTOOL_ROGUE
-#ifdef PFTOOL_UHAL
-    printf("Usage: pftool [hostname] [-u] [-r] [-s script]\n");
-    printf("  Supporting both UHAL and ROGUE\n");
-    printf("   -u uHAL connection\n");
-    printf("   -r rogue connection\n");
-#else
-    printf("Usage: pftool [hostname] [-s script]\n");
-    printf("  Supporting only ROGUE\n");
-#endif
-#else
-#ifdef PFTOOL_UHAL
-    printf("Usage: pftool [hostname] [-s script]\n");
-    printf("  Supporting only UHAL\n");
-#else
-    printf("Usage: pftool [hostname] [-s script]\n");
-    printf("  Supporting NO TRANSPORTS\n");
-#endif
-#endif
+    printf("Usage: (HCal HGCROC fiberless mode\n");
+    printf("   pftool -z [-s script]\n");
+
     printf("Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, ${HOME}/.pftoolrc with priority in this order\n");
     options.help();
     
@@ -1512,14 +1470,8 @@ int main(int argc, char* argv[]) {
   /*****************************************************************************
    * Parse Command Line Parameters
    ****************************************************************************/
-  bool isuhal=false;
-  bool isrogue=false;
-  // rogue is default if it is available
-#ifdef PFTOOL_ROGUE
-  isrogue=true; // default
-#else
-  isuhal=true; // default
-#endif
+  enum RunMode { Unknown=0, Fiberless, UIO_ZCU, Rogue } mode=Unknown;
+
   std::vector<std::string> hostnames;
   for (int i = 1 ; i < argc ; i++) {
     std::string arg(argv[i]);
@@ -1546,25 +1498,15 @@ int main(int argc, char* argv[]) {
       }
       sFile.close() ;
     }
-#ifdef PFTOOL_UHAL
-#ifdef PFTOOL_ROGUE
-    else if (arg=="-u") {
-      isuhal  = true;
-      isrogue = false;
-    } 
-    else if (arg=="-r") {
-      isrogue = true;
-      isuhal  = false;
-    } 
-#endif
-#endif
+    else if (arg=="-z") 
+      mode=Fiberless;
     else {
       // positional argument -> hostname
       hostnames.push_back( arg ) ;
     }
   }
 
-  if (hostnames.size() == 0) {
+  if (hostnames.size() == 0 && mode==Rogue) {
     std::string hn = options.contents().getString("default_hostname");
     if (hn.empty()) {
       std::cerr << "No hostnames to connect to provided on the command line or in RC file" << std::endl;
@@ -1600,20 +1542,23 @@ int main(int argc, char* argv[]) {
       } else {
         i_host = 0;
       }
-      
-      // initialize connect with Polarfire
-      std::unique_ptr<PolarfireTarget> p_pft;
+            
+      // initialize connection
+      std::unique_ptr<Target> p_pft;
       try {
+        if (mode==Fiberless) {
+          p_pft=std::unique_ptr<Target>(pflib::makeTargetFiberless());
+        }
 #ifdef PFTOOL_ROGUE
         if (isrogue) {
-          // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
+          // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
+          p_pft=std::make_unique<Target>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
         }
 #endif
 #ifdef PFTOOL_UHAL
         if (isuhal) {
-          // the PolarfireTarget wraps the passed pointers in STL smart pointers so the memory will be handled
-          p_pft=std::make_unique<PolarfireTarget>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
+          // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
+          p_pft=std::make_unique<Target>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
                 options.contents().getString("ipbus_map_path")));
         }
 #endif
@@ -1624,19 +1569,9 @@ int main(int argc, char* argv[]) {
 
       if (options.contents().has_key("runnumber_file"))
         last_run_file=options.contents().getString("runnumber_file");
-      if (options.contents().has_key("start_dma_command"))
-        start_dma_cmd=options.contents().getString("start_dma_command");
-      if (options.contents().has_key("stop_dma_command"))
-        stop_dma_cmd=options.contents().getString("stop_dma_command");
       
       if (p_pft) {
       	// prepare the links
-      	if (options.contents().is_vector("roclinks")) {	  
-      	  std::vector<bool> actives=options.contents().getVBool("roclinks");
-      	  for (int ilink=0; 
-              ilink<p_pft->hcal.elinks().nlinks() and ilink<int(actives.size()); 
-              ilink++) p_pft->hcal.elinks().markActive(ilink,actives[ilink]);
-      	}
         status(p_pft.get());
         RunMenu(p_pft.get());
       } else {

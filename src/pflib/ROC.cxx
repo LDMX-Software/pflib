@@ -23,21 +23,20 @@ static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
   30, 31, 32, 33, // 64-67
   34, 35, 36, 37}; // 68-71
 
-ROC::ROC(I2C& i2c, int ibus) : i2c_{i2c},ibus_{ibus} {
+ROC::ROC(I2C& i2c, uint8_t roc_base_addr) : i2c_{i2c}, roc_base_{roc_base_addr} {
 }
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
-  i2c_.set_active_bus(ibus_);
   i2c_.set_bus_speed(1400);
 
   std::vector<uint8_t> retval;
   for (int i=0; i<len; i++) {
     // set the address
     uint16_t fulladdr=(ipage<<5)|i;
-    i2c_.write_byte(0,fulladdr&0xFF);
-    i2c_.write_byte(1,(fulladdr>>8)&0xFF);
+    i2c_.write_byte(roc_base_+0,fulladdr&0xFF);
+    i2c_.write_byte(roc_base_+1,(fulladdr>>8)&0xFF);
     // now read
-    retval.push_back(i2c_.read_byte(2));
+    retval.push_back(i2c_.read_byte(roc_base_+2));
   }
   return retval;
 }
@@ -51,12 +50,11 @@ void ROC::setChannelParameters(int ichan, std::vector<uint8_t>& values) {
 }
 
 void ROC::setValue(int page, int offset, uint32_t value) {
-  i2c_.set_active_bus(ibus_);
   i2c_.set_bus_speed(1400);
   uint16_t fulladdr=(page<<5)|offset;
-  i2c_.write_byte(0,fulladdr&0xFF);
-  i2c_.write_byte(1,(fulladdr>>8)&0xFF);
-  i2c_.write_byte(2,value&0xFF);
+  i2c_.write_byte(roc_base_+0,fulladdr&0xFF);
+  i2c_.write_byte(roc_base_+1,(fulladdr>>8)&0xFF);
+  i2c_.write_byte(roc_base_+2,value&0xFF);
 }
 
 void ROC::setRegisters(const std::map<int,std::map<int,uint8_t>>& registers) {

@@ -20,7 +20,7 @@ message(STATUS "Deduced pflib version ${pflib_vers}")
 # Set the project name
 project(pflib
 	VERSION ${pflib_vers}
-	DESCRIPTION "Polarfire configuration library."
+	DESCRIPTION "Pretty fine HGCROC configuration library."
 	LANGUAGES CXX)
 
 # YAML->register value "compiler"
@@ -28,20 +28,19 @@ project(pflib
 find_package(yaml-cpp REQUIRED)
 message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
 
-# Build the polarfire library
+# Build the pf library
+#
+#  src/pflib/Bias.cxx
+#  src/pflib/FastControl.cxx
+  
 add_library(pflib SHARED 
-  src/pflib/Backend.cxx
-  src/pflib/Bias.cxx
-  src/pflib/DAQ.cxx
-  src/pflib/Elinks.cxx
-  src/pflib/FastControl.cxx
-  src/pflib/GPIO.cxx
-  src/pflib/Hcal.cxx
-  src/pflib/I2C.cxx
+  src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
-  src/pflib/WishboneTarget.cxx
   src/pflib/Compile.cxx
-  src/pflib/PolarfireTarget.cxx)
+  src/pflib/Hcal.cxx
+  src/pflib/Target.cxx
+  src/pflib/TargetFiberless.cxx
+)
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -126,9 +125,9 @@ else()
   message(STATUS "Unable to find uHal, will not compile uhal submodule of pflib.")
 endif()
 
-if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
-  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
-endif()
+#if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
+#  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
+#endif()
 
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
 

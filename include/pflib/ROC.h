@@ -14,7 +14,7 @@ namespace pflib {
  */
 class ROC {
  public:
-  ROC(I2C& i2c, int ibus=0);
+  ROC(I2C& i2c, uint8_t roc_base_addr);
 
   std::vector<uint8_t> readPage(int ipage, int len);
   void setValue(int page, int offset, uint32_t value);
@@ -31,7 +31,7 @@ class ROC {
 
  private:
   I2C& i2c_;
-  int ibus_;
+  uint8_t roc_base_;
 };      
   
 }
