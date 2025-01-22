@@ -32,13 +32,25 @@ int I2C_Linux::get_bus_speed() {
 
 void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
   ioctl(handle_,0x0703, i2c_dev_addr);
-  int rv=write(handle_,&data,1);
 
-  if (rv<0) {
-    char message[120];
-    snprintf(message,120,"Error %d writing 0x%02x to i2c target 0x%02x",errno,data,i2c_dev_addr);
-    PFEXCEPTION_RAISE("I2CError",message);
-  }
+  int rv;
+  int tries=4;
+  do {
+    rv=write(handle_,&data,1);
+
+    if (rv>=0) {
+       printf("Wrote %x, read %x\n",data,read_byte(i2c_dev_addr));
+       return;
+    }
+
+    if (tries==0) {
+      char message[120];
+      snprintf(message,120,"Error %d writing 0x%02x to i2c target 0x%02x",errno,data,i2c_dev_addr);
+      PFEXCEPTION_RAISE("I2CError",message);
+    }
+    tries--;
+  } while (rv<0);
+
 }
 
 uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {

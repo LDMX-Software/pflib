@@ -1352,14 +1352,14 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
   });
   */
-  /*
+  
   pfMenu menu_expert({ 
-    pfMenu::Line("OLINK","Optical link functions", &menu_link),
-    pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
+      //    pfMenu::Line("OLINK","Optical link functions", &menu_link),
+      //    pfMenu::Line("WB","Raw wishbone interactions", &menu_wishbone ),
     pfMenu::Line("I2C","Access the I2C Core", &menu_i2c ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  */
+  
   /*
   pfMenu menu_tasks({ 
     pfMenu::Line("SCANCHARGE","Charge scan over all active channels", &tasks),
@@ -1377,7 +1377,7 @@ static void RunMenu( Target* pft_ ) {
     //    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
     //    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
     //    pfMenu::Line("DAQ","DAQ", &menu_daq ),
-    //    pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
+    pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
     pfMenu::Line("EXIT","Exit this tool")
   });
 
