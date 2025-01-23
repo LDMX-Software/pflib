@@ -3,6 +3,7 @@
 
 #include "pflib/I2C.h"
 #include "pflib/Hcal.h"
+#include "pflib/FastControl.h"
 
 namespace pflib {
 
@@ -17,10 +18,13 @@ class Target {
 
   Hcal& hcal() { return *hcal_; }
 
+  FastControl& fc() { return *fc_; }
+  
  protected:
   std::map<std::string, std::shared_ptr<I2C> > i2c_;
 
   std::shared_ptr<Hcal> hcal_;
+  std::shared_ptr<FastControl> fc_;
   
 };
 

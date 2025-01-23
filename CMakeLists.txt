@@ -40,6 +40,7 @@ add_library(pflib SHARED
   src/pflib/Hcal.cxx
   src/pflib/Target.cxx
   src/pflib/TargetFiberless.cxx
+  src/pflib/FastControlCMS_MMap.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

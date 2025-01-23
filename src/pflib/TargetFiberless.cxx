@@ -18,6 +18,7 @@ class TargetFiberless : public Target {
     roc_i2cs.push_back(i2croc_);
 
     hcal_=std::shared_ptr<Hcal>(new Hcal(roc_i2cs));
+    fc_=std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
  private:
   std::shared_ptr<I2C> i2croc_;

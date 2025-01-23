@@ -76,9 +76,10 @@ static void i2c( const std::string& cmd, Target* target ) {
 
   if (cmd=="BUS") {
     std::vector<std::string> busses=target->i2c_bus_names();
+    printf("\n\nKnown I2C busses:\n");
     for (auto name: target->i2c_bus_names()) 
       printf(" %s\n",name.c_str());
-    chosen_bus=BaseMenu::readline("Bus to make active",chosen_bus);
+    chosen_bus=BaseMenu::readline("Bus to make active: ",chosen_bus);
     if (chosen_bus.size()>1) 
       target->get_i2c_bus(chosen_bus);
   }
@@ -385,36 +386,33 @@ static void roc( const std::string& cmd, Target* pft ) {
  * @param[in] cmd FC menu command
  * @param[in] pft active target
  */
-/*
 static void fc( const std::string& cmd, Target* pft ) {
   bool do_status=false;
 
   if (cmd=="SW_L1A") {
-    pft->backend->fc_sendL1A();
+    pft->fc().sendL1A();
     printf("Sent SW L1A\n");
   }
   if (cmd=="LINK_RESET") {
-    pft->backend->fc_linkreset();
+    pft->fc().linkreset_rocs();
     printf("Sent LINK RESET\n");
   }
   if (cmd=="RUN_CLEAR") {
-    pft->backend->fc_clear_run();
+    pft->fc().clear_run();
     std::cout << "Cleared run counters" << std::endl;
   }
   if (cmd=="BUFFER_CLEAR") {
-    pft->backend->fc_bufferclear();
+    pft->fc().bufferclear();
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd=="COUNTER_RESET") {
-    pft->hcal().fc().resetCounters();
+    //    pft->fc().resetCounters();
     do_status=true;
   }
-  if (cmd=="FC_RESET") {
-    pft->hcal().fc().resetTransmitter();
-  }
+  /*
   if (cmd=="CALIB") {
     int len, offset;
-    pft->backend->fc_get_setup_calib(len,offset);
+    pft->fc().get_setup_calib(len,offset);
 #ifdef PFTOOL_UHAL
     std::cout <<
       "NOTE: A known bug in uMNio firmware which has been patched in later versions\n"
@@ -425,8 +423,10 @@ static void fc( const std::string& cmd, Target* pft ) {
 #endif
     len=BaseMenu::readline_int("Calibration pulse length?",len);
     offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
-    pft->backend->fc_setup_calib(len,offset);
+    pft->fc().setup_calib(len,offset);
   }
+  */
+  /*
   if (cmd=="MULTISAMPLE") {
     bool multi;
     int nextra;
@@ -447,6 +447,7 @@ static void fc( const std::string& cmd, Target* pft ) {
     }
 #endif
   }
+  */
   if (cmd=="STATUS" || do_status) {
     static const std::vector<std::string> bit_comments = {
       "orbit requests",
@@ -458,8 +459,9 @@ static void fc( const std::string& cmd, Target* pft ) {
       "",
       ""
     };
+    /*
     bool multi;
-    int nextra;
+    int nextra;    
     pft->hcal().fc().getMultisampleSetup(multi,nextra);
     if (multi) printf(" Multisample readout enabled : %d extra L1a (%d total samples)\n",nextra,nextra+1);
     else printf(" Multisaple readout disabled\n");
@@ -467,23 +469,26 @@ static void fc( const std::string& cmd, Target* pft ) {
     uint32_t sbe,dbe;
     pft->hcal().fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
-    std::vector<uint32_t> cnt=pft->hcal().fc().getCmdCounters();
+    */
+    std::vector<uint32_t> cnt=pft->fc().getCmdCounters();
     for (int i=0; i<8; i++) 
       printf("  Bit %d count: %20u (%s)\n",i,cnt[i],bit_comments.at(i).c_str()); 
     int spill_count, header_occ, event_count,vetoed_counter;
-    pft->backend->fc_read_counters(spill_count, header_occ, event_count, vetoed_counter);
+    pft->fc().read_counters(spill_count, header_occ, event_count, vetoed_counter);
     printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",spill_count,event_count,header_occ,vetoed_counter);
   }
+  /*
   if (cmd=="ENABLES") {
     bool ext_l1a, ext_spill, timer_l1a;
-    pft->backend->fc_enables_read(ext_l1a, ext_spill, timer_l1a);
+    pft->fc().enables_read(ext_l1a, ext_spill, timer_l1a);
     ext_l1a=BaseMenu::readline_bool("Enable external L1A? ",ext_l1a);
     ext_spill=BaseMenu::readline_bool("Enable external spill? ",ext_spill);
     timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
-    pft->backend->fc_enables(ext_l1a, ext_spill, timer_l1a);
+    pft->fc().enables(ext_l1a, ext_spill, timer_l1a);
   }
+  */
 }
-*/
+
 
 /**
  * DAQ->SETUP menu commands
@@ -624,9 +629,9 @@ static void daq( const std::string& cmd, Target* pft ) {
       // normally, some other controller would send the L1A
       //  we are sending it so we get data during no signal
       if (cmd=="PEDESTAL")
-        pft->backend->fc_sendL1A();
+        pft->fc().sendL1A();
       if (cmd=="CHARGE")
-        pft->backend->fc_calibpulse();
+        pft->fc().calibpulse();
   
       gettimeofday(&tvi,0);
       double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
@@ -726,14 +731,14 @@ static void daq( const std::string& cmd, Target* pft ) {
     }
     
     // enable external triggers
-    pft->backend->fc_enables(true,true,false);
+    pft->fc().enables(true,true,false);
 
     int ievent=0, wasievent=0;
     while (ievent<event_target) {
 
       if (dma_enabled) {
         int spill,occ,vetoed;
-        pft->backend->fc_read_counters(spill,occ,ievent,vetoed);
+        pft->fc().read_counters(spill,occ,ievent,vetoed);
         if (ievent>wasievent) {
           printf("...Now read %d events\n",ievent);
           wasievent=ievent;
@@ -758,7 +763,7 @@ static void daq( const std::string& cmd, Target* pft ) {
     }
     
     // disable external triggers
-    pft->backend->fc_enables(false,true,false);
+    pft->fc().enables(false,true,false);
 
     if (f) fclose(f);
 
@@ -947,7 +952,7 @@ static void tasks( const std::string& cmd, Target* pft ) {
         /// Take the expected number of events and save the events
         for (int ievt=0; ievt<events_per_step; ievt++) {
 
-          pft->backend->fc_sendL1A();
+          pft->fc().sendL1A();
           std::vector<uint32_t> event = pft->daqReadEvent();
 
           // here we decode the event and store the relevant information only...
@@ -1291,7 +1296,7 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu"),
   });
   */
-  /*
+  
   pfMenu menu_fc({
     pfMenu::Line("STATUS","Check status and counters", &fc ),
     pfMenu::Line("SW_L1A","Send a software L1A", &fc ),
@@ -1305,8 +1310,7 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("ENABLES","Enable various sources of signal", &fc ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  */
-
+ 
   /*
   pfMenu menu_daq_debug({
     pfMenu::Line("STATUS","Provide the status", &daq_debug ),
@@ -1372,7 +1376,7 @@ static void RunMenu( Target* pft_ ) {
   pfMenu menu_utop({ 
     pfMenu::Line("STATUS","Status summary", &status),
     //    pfMenu::Line("TASKS","Various high-level tasks like scans", &menu_tasks ),
-    //    pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
+    pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
     pfMenu::Line("ROC","ROC Configuration", &menu_roc ),
     //    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
     //    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
