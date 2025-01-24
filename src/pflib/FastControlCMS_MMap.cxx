@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include "pflib/FastControl.h"
+#include "pflib/Exception.h"
 
 namespace pflib {
 
@@ -73,7 +74,15 @@ class FastControlCMS_MMap : public FastControl {
  public:
   FastControlCMS_MMap() : FastControl()  {
     handle_=open("/dev/uio4",O_RDWR);
+    if (_handle<0) {
+      char msg[100];
+      snprintf(msg,100,"Error opening /dev/uio4 : %d", errno);
+      PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
+    }
     base_=(uint32_t*)(mmap(0,MAP_SIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle_,0));
+    if (base_==MAP_FAILED) {
+      PFEXCEPTION_RAISE("DeviceFileAccessError","Failed to mmap FastControl memory block");
+    }
     standard_setup();
   }
   
