@@ -94,38 +94,6 @@ else()
   message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
 endif()
 
-# uHal
-if (DEFINED ENV{UHAL_DIR})
-  set(Uhal_DIR $ENV{UHAL_DIR})
-else()
-  set(Uhal_DIR /opt/cactus)
-endif()
-
-if(EXISTS ${Uhal_DIR}/include/uhal/versiona.hpp)
-  # we found uHal!
-  set(Uhal_FOUND YES)
-  # deduce its version
-  file(STRINGS ${Uhal_DIR}/include/uhal/version.hpp version_lines REGEX "^#define UHAL_VERSION_(.*)$")
-  foreach(version_line ${version_lines})
-    string(REGEX REPLACE "^#define " "" trimmed ${version_line})
-    message(STATUS ${trimmed})
-  endforeach()  
-  #message(STATUS "Uhal version: ${UHAL_VERSION_MAJOR}.${UHAL_VERSION_MINOR}.${UHAL_VERSION_PATCH}")
-  # define source files this submodule uses
-#  add_library(uhal SHARED src/pflib/uhal/uhalWishboneInterface.cxx)
-  # attach uHal as a dependency
-#  target_link_libraries(uhal PUBLIC pflib "${Uhal_DIR}/lib/libcactus_uhal_uhal.so")
-  target_include_directories(uhal PUBLIC "${Uhal_DIR}/include")
-  # let pftool know that uHal is available
-#  target_compile_definitions(pftool PRIVATE PFTOOL_UHAL=1)
-  # link submodule lib to pftool
-#  target_link_libraries(pftool PRIVATE uhal)
-#  list(APPEND comm_libs uhal)
-else()
-  set(Uhal_FOUND NO)
-  message(STATUS "Unable to find uHal, will not compile uhal submodule of pflib.")
-endif()
-
 #if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
 #  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
 #endif()

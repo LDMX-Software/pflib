@@ -74,7 +74,7 @@ class FastControlCMS_MMap : public FastControl {
  public:
   FastControlCMS_MMap() : FastControl()  {
     handle_=open("/dev/uio4",O_RDWR);
-    if (_handle<0) {
+    if (handle_<0) {
       char msg[100];
       snprintf(msg,100,"Error opening /dev/uio4 : %d", errno);
       PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
@@ -83,7 +83,7 @@ class FastControlCMS_MMap : public FastControl {
     if (base_==MAP_FAILED) {
       PFEXCEPTION_RAISE("DeviceFileAccessError","Failed to mmap FastControl memory block");
     }
-    standard_setup();
+//    standard_setup();
   }
   
   ~FastControlCMS_MMap() {
