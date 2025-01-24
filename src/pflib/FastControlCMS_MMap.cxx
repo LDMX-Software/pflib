@@ -60,10 +60,10 @@ class Periodic {
     a|=(flavor&0x7)<<3;
     a|=(follow_which*0xF)<<20;
     a|=(bx&0xFFF)<<8;
-    _image[0]=a;
+    //    _image[0]=a;
     uint32_t b(orbit_prescale&0xFFFFF);
     b|=(burst_length&0x3FF)<<20;
-    _image[1]=b;
+    //  _image[1]=b;
   }
  private:
   uint32_t* _image;
@@ -103,7 +103,6 @@ class FastControlCMS_MMap : public FastControl {
   
   void standard_setup() {
     Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
-    return;
 
     std_l1a.bx=10;
     std_l1a.flavor=0;
