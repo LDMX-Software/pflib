@@ -24,9 +24,9 @@ class GPIO_HcalHGCROCZCU : public GPIO {
 
   virtual std::vector<bool> getGPI();
 
-  void setGPO(int ibit, bool toTrue=true);
-
+  virtual void setGPO(int ibit, bool toTrue=true);
   virtual void setGPO(const std::vector<bool>& bits);
+  
   virtual std::vector<bool> getGPO();
 
  private:
@@ -60,6 +60,48 @@ void GPIO_HcalHGCROCZCU::setup() {
   
 }
 
+void GPIO_HcalHGCROCZCU::setGPO(int ibit, bool toTrue) {
+  if (ibit<0 || ibit>=getGPOcount()) {
+    PFEXCEPTION_RAISE("GPIOError","Requested bit out of range");
+  }
+  gpio_v2_line_values req;
+  req.mask=1<<ibit;
+  
+  if (toTrue) req.bits=req.mask;
+  else req.bits=0;
+
+  if (ioctl(gpiodev_,GPIO_V2_LINE_SET_VALUES_IOCTL,&req)) {
+    char msg[100];
+    snprintf(msg,100,"Error in writing GPO %d : %d", ibit, errno);
+    PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
+  }  
+
+}
+  
+  
+void GPIO_HcalHGCROCZCU::setGPO(const std::vector<bool>& bits) {
+  if (int(bits.size())!=getGPOcount()) {
+    PFEXCEPTION_RAISE("GPIOError","Requested bits out of range");
+  }
+}
+
+
+std::vector<bool> GPIO_HcalHGCROCZCU::getGPO() {
+  // GPOs are lines 0-7
+  std::vector<bool> retval;
+  gpio_v2_line_values req;
+  req.mask=0xFF;
+  if (ioctl(gpiodev_,GPIO_V2_LINE_GET_VALUES_IOCTL,&req)) {
+    char msg[100];
+    snprintf(msg,100,"Error in reading GPOs : %d", errno);
+    PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
+  }  
+  
+  for (int i=0; i<getGPOcount(); i++)
+    retval.push_back((req.bits&(1<<(i)))!=0);
+  return retval;
+}
+
 std::vector<bool> GPIO_HcalHGCROCZCU::getGPI() {
   // GPIs are lines 8
   std::vector<bool> retval;
@@ -67,7 +109,7 @@ std::vector<bool> GPIO_HcalHGCROCZCU::getGPI() {
   req.mask=0x800;
   if (ioctl(gpiodev_,GPIO_V2_LINE_GET_VALUES_IOCTL,&req)) {
     char msg[100];
-    snprintf(msg,100,"Error in reading GPO %d", errno);
+    snprintf(msg,100,"Error in reading GPIs : %d", errno);
     PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
   }  
   

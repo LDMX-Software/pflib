@@ -39,7 +39,7 @@ add_library(pflib SHARED
   src/pflib/Compile.cxx
   src/pflib/Hcal.cxx
   src/pflib/Target.cxx
-  src/pflib/Target.cxx
+  src/pflib/TargetFiberless.cxx
   src/pflib/GPIO.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
