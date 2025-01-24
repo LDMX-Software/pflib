@@ -6,7 +6,7 @@
 #include "pflib/I2C.h"
 #include "pflib/Bias.h"
 //#include "pflib/Elinks.h"
-//#include "pflib/GPIO.h"
+#include "pflib/GPIO.h"
 //#include "pflib/FastControl.h"
 //#include "pflib/DAQ.h"
 
@@ -26,17 +26,17 @@ class Hcal {
   //  Bias bias(int which);
 
   /** Generate a hard reset to all the HGCROC boards */
-  void hardResetROCs();
+  virtual void hardResetROCs();
 
   /** Get the firmware version */
   uint32_t getFirmwareVersion();
 
   /** Generate a soft reset to a specific HGCROC board, -1 for all */
-  void softResetROC(int which=-1);
+  virtual void softResetROC(int which=-1);
 
-  /** Generate a resyncLoad to a specific HGCROC board, -1 for all */
-  void resyncLoadROC(int which=-1);
-
+  /** Get the GPIO object for debugging purposes */
+  virtual GPIO& gpio() { return *gpio_; }
+  
   /** get the Elinks object */
   //  Elinks& elinks() { return elinks_; }
   
@@ -46,12 +46,12 @@ class Hcal {
   /** get the DAQ object */
   //  DAQ& daq();
   
- private:
+ protected:
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
   
   /** The GPIO interface */
-  //  std::shared_ptr<GPIO> gpio_;
+  std::unique_ptr<GPIO> gpio_;
   
   /** The ROC I2C interfaces */
   std::vector<std::shared_ptr<I2C>> roc_i2c_;

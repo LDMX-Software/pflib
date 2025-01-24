@@ -2,6 +2,7 @@
 #define PFLIB_GPIO_H_
 
 #include <vector>
+#include <string>
 
 namespace pflib {
 
@@ -12,6 +13,7 @@ class GPIO {
  protected:
   GPIO(int gpo, int gpi) : ngpo_{gpo}, ngpi_{gpi} { }
 
+ public:
   /**
    * Get the number of GPO bits 
    */
@@ -22,6 +24,9 @@ class GPIO {
    */
   int getGPIcount() { return ngpi_; }
 
+  /** Get the name of a bit if possible */
+  virtual std::string getBitName(int ibit, bool isgpo=true) { return ""; }
+  
   /** 
    * Read a GPI bit
    */

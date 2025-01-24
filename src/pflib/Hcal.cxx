@@ -28,9 +28,6 @@ void Hcal::hardResetROCs() {
 void Hcal::softResetROC(int which) {
 }
 
-void Hcal::resyncLoadROC(int which) {
-}
-
 uint32_t Hcal::getFirmwareVersion() {
   return 0;
 }

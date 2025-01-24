@@ -24,6 +24,17 @@ class GPIO_HcalHGCROCZCU : public GPIO {
 
   virtual std::vector<bool> getGPI();
 
+  static constexpr const char* gpo_names[]={
+    "HGCROC_RSTB_I2C","HGCROC_SOFT_RSTB",
+    "HGCROC_HARD_RSTB","UNUSED1",
+    "HGCROC_ADDR0","HGCROC_ADDR1",
+    "SCL_PHASE","POWER_OFF"};
+
+  virtual std::string getBitName(int ibit, bool isgpo) {
+    if (isgpo) return gpo_names[ibit];
+    else return "HGCROC_ERROR";
+  }
+
   virtual void setGPO(int ibit, bool toTrue=true);
   virtual void setGPO(const std::vector<bool>& bits);
   
@@ -83,6 +94,20 @@ void GPIO_HcalHGCROCZCU::setGPO(const std::vector<bool>& bits) {
   if (int(bits.size())!=getGPOcount()) {
     PFEXCEPTION_RAISE("GPIOError","Requested bits out of range");
   }
+
+  gpio_v2_line_values req;
+  req.mask=0xFF;
+  req.bits=0;
+
+  for (int i=0; i<getGPOcount(); i++) 
+    if (bits[i]) req.bits|=(1<<i);
+
+  if (ioctl(gpiodev_,GPIO_V2_LINE_SET_VALUES_IOCTL,&req)) {
+    char msg[100];
+    snprintf(msg,100,"Error in writing GPOs : %d", errno);
+    PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
+  }  
+  
 }
 
 
