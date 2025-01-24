@@ -3,6 +3,6 @@ install**
 *.raw
 *.root
 .*.swp
-~*
+*~
 docs/html/**
 tool/test-menu

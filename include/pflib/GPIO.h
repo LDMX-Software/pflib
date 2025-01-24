@@ -1,55 +1,51 @@
 #ifndef PFLIB_GPIO_H_
 #define PFLIB_GPIO_H_
 
-#include "pflib/WishboneTarget.h"
 #include <vector>
 
 namespace pflib {
 
 /**
- * Representation of GPIO controller in the Polarfire
+ * Representation of GPIO controller
  */
-class GPIO : public WishboneTarget {
- public:
-  GPIO(WishboneInterface* wb, int target = tgt_GPIO) : WishboneTarget(wb,target) {
-    ngpi_=-1;
-    ngpo_=-1;
-  }
+class GPIO {
+ protected:
+  GPIO(int gpo, int gpi) : ngpo_{gpo}, ngpi_{gpi} { }
 
   /**
    * Get the number of GPO bits 
    */
-  int getGPOcount();
+  int getGPOcount() { return ngpo_; }
 
   /**
    * Get the number of GPI bits 
    */
-  int getGPIcount();
+  int getGPIcount() { return ngpi_; }
 
   /** 
    * Read a GPI bit
    */
-  bool getGPI(int ibit);
+  virtual bool getGPI(int ibit);
 
   /** 
    * Read all GPI bits
    */
-  std::vector<bool> getGPI();
+  virtual std::vector<bool> getGPI() = 0;
 
   /** 
    * Set a single GPO bit
    */
-  void setGPO(int ibit, bool toTrue);
+  virtual void setGPO(int ibit, bool toTrue=true);
 
   /**
    * Set all GPO bits
    */
-  void setGPO(const std::vector<bool>& bits);
+  virtual void setGPO(const std::vector<bool>& bits) = 0;
 
   /** 
    * Read all GPO bits
    */
-  std::vector<bool> getGPO();
+  virtual std::vector<bool> getGPO() = 0;
 
   /// convenience wrapper for python bindings
   bool getGPI_single(int ibit) { return getGPI(ibit); }
@@ -62,8 +58,9 @@ class GPIO : public WishboneTarget {
    * Cached numbers of GPI and GPO bits
    */
   int ngpi_, ngpo_;
-
 };
+
+GPIO* make_GPIO_HcalHGCROCZCU();
 
 }
 
