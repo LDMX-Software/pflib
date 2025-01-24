@@ -19,7 +19,8 @@ class GPIO_HcalHGCROCZCU : public GPIO {
       char msg[100];
       snprintf(msg,100,"Error opening /dev/gpiochip4 : %d", errno);
       PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
-    }   
+    }
+    setup();
   }
 
   virtual std::vector<bool> getGPI();
@@ -63,7 +64,7 @@ void GPIO_HcalHGCROCZCU::setup() {
   req.config.flags=GPIO_V2_LINE_FLAG_OUTPUT;
   req.config.num_attrs=0;
 
-  if (ioctl(gpiodev_,GPIO_V2_LINE_SET_CONFIG_IOCTL,&req)) {
+  if (ioctl(gpiodev_,GPIO_V2_GET_LINE_IOCTL,&req)) {
     char msg[100];
     snprintf(msg,100,"Error in setting up GPIO outputs %d", errno);
     PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
@@ -84,6 +85,7 @@ void GPIO_HcalHGCROCZCU::setGPO(int ibit, bool toTrue) {
   if (ioctl(gpiodev_,GPIO_V2_LINE_SET_VALUES_IOCTL,&req)) {
     char msg[100];
     snprintf(msg,100,"Error in writing GPO %d : %d", ibit, errno);
+    sleep(2000);
     PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
   }  
 
