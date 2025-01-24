@@ -41,11 +41,12 @@ class Periodic {
 
   Periodic(uint32_t* image) : _image{image} { reload(); }
   void reload() {
-    enable=_image[0]&0x1;
-    enable_follow=_image[0]&0x4;
-    flavor=(_image[0]&0x38)>>3;
-    follow_which=(_image[0]&0xF00000)>>20;
-    bx=(_image[0]&0xFFF00)>>8;
+    uint32_t a=_image[0]; // get into a register
+    enable=a&0x1;
+    enable_follow=a&0x4;
+    flavor=(a&0x38)>>3;
+    follow_which=(a&0xF00000)>>20;
+    bx=(a&0xFFF00)>>8;
     orbit_prescale=(_image[1]&0xFFFFF);
     burst_length=(_image[1]>>20)&0x3FF;
   }
@@ -83,7 +84,7 @@ class FastControlCMS_MMap : public FastControl {
     if (base_==MAP_FAILED) {
       PFEXCEPTION_RAISE("DeviceFileAccessError","Failed to mmap FastControl memory block");
     }
-//    standard_setup();
+    standard_setup();
   }
   
   ~FastControlCMS_MMap() {
@@ -102,6 +103,8 @@ class FastControlCMS_MMap : public FastControl {
   
   void standard_setup() {
     Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
+    return;
+
     std_l1a.bx=10;
     std_l1a.flavor=0;
     std_l1a.orbit_prescale=1000;
