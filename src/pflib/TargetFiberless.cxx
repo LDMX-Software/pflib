@@ -1,6 +1,7 @@
 #include "pflib/Target.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/GPIO.h"
+#include <iostream>
 
 namespace pflib {
 
@@ -8,11 +9,16 @@ class HcalFiberless : public Hcal {
  public:
   static const int GPO_HGCROC_RESET_HARD = 2;
   static const int GPO_HGCROC_RESET_SOFT = 1;
+  static const int GPO_HGCROC_RESET_I2C  = 0;
 
   HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c) : Hcal(roc_i2c) {
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
+
+    // should already be done, but be SURE
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, true);
-    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true); 
+    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);
+    gpio_->setGPO(GPO_HGCROC_RESET_I2C, true); 
+
   }
 
   
