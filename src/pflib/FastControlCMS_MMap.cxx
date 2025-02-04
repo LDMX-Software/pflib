@@ -52,8 +52,7 @@ class Periodic {
     bx=(a&0xFFF00)>>8;
     orbit_prescale=(uio_.read(offset_+1)&0xFFFFF);
     burst_length=(uio_.read(offset_+1)>>20)&0x3FF;
-    printf("%x %x\n",orbit_prescale,burst_length);
-  }
+   }
   void request() {
     uio_.rmw(offset_+0,0x2,0x2);
   }
@@ -64,12 +63,10 @@ class Periodic {
     a|=(flavor&0x7)<<3;
     a|=(follow_which*0xF)<<20;
     a|=(bx&0xFFF)<<8;
-    printf("StepA\n");
     uio_.write(offset_,a);
     uint32_t b(orbit_prescale&0xFFFFF);
     b|=(burst_length&0x3FF)<<20;
     uio_.write(offset_+1,b);
-    printf("StepB\n");
   }
  private:
   UIO& uio_;
@@ -101,7 +98,6 @@ class FastControlCMS_MMap : public FastControl {
     std_l1a.orbit_prescale=1000;
     std_l1a.enable_follow=false;
     std_l1a.enable=false;
-    printf("STDL1a\n");
     std_l1a.pack();
 
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
@@ -110,7 +106,6 @@ class FastControlCMS_MMap : public FastControl {
     charge_inj.enable_follow=false;
     charge_inj.orbit_prescale=1000;
     charge_inj.enable=false;
-    printf("CHARGEI\n");
     charge_inj.pack();
 
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
@@ -120,7 +115,6 @@ class FastControlCMS_MMap : public FastControl {
     l1a_charge.follow_which=CHARGE_PERIODIC;
     l1a_charge.orbit_prescale=0;
     l1a_charge.enable=true;
-    printf("CHL1a\n");
     l1a_charge.pack();
 
     Periodic pled(periodic(LED_PERIODIC));
@@ -129,7 +123,6 @@ class FastControlCMS_MMap : public FastControl {
     pled.enable_follow=false;
     pled.orbit_prescale=1000;
     pled.enable=false;
-    printf("led\n");
     pled.pack();
 
     Periodic l1a_led(periodic(LED_L1A_PERIODIC));
@@ -139,7 +132,6 @@ class FastControlCMS_MMap : public FastControl {
     l1a_led.follow_which=LED_PERIODIC;
     l1a_led.orbit_prescale=0;
     l1a_led.enable=true;
-    printf("l1aled\n");
     l1a_led.pack();
     
   }

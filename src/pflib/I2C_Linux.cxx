@@ -39,7 +39,7 @@ void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
     rv=write(handle_,&data,1);
 
     if (rv>=0) {
-       printf("Wrote %x, read %x\n",data,read_byte(i2c_dev_addr));
+      //       printf("Wrote %x, read %x\n",data,read_byte(i2c_dev_addr));
        return;
     }
 
