@@ -43,6 +43,7 @@ add_library(pflib SHARED
   src/pflib/GPIO.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
+  src/pflib/zcu/UIO.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

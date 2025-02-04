@@ -3,15 +3,17 @@
    Fast control library which can be controlled over MMap/UIO
 */
 #include <stdio.h>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <stdint.h>
-#include <fcntl.h>
 #include "pflib/FastControl.h"
 #include "pflib/Exception.h"
+#include "pflib/zcu/UIO.h"
 
 namespace pflib {
 
+
+  static const size_t ADDR_CTL_REG               = 0;
+  static const size_t ADDR_REQUEST               = 1;
+  /*
 struct FastControlAXI {
   uint32_t ctl_reg;
   uint32_t request;
@@ -28,7 +30,8 @@ struct FastControlAXI {
   uint32_t cmdseq_prescale;
   uint32_t command_delay; // don't use me!  
 };
-
+  */
+  
 class Periodic {
  public:
   bool enable;
@@ -39,19 +42,20 @@ class Periodic {
   int orbit_prescale;
   int burst_length;
 
-  Periodic(uint32_t* image) : _image{image} { reload(); }
+  Periodic(UIO& uio, int offset) : uio_{uio},offset_(offset) { reload(); }
   void reload() {
-    uint32_t a=_image[0]; // get into a register
+    uint32_t a=uio_.read(offset_);
     enable=a&0x1;
     enable_follow=a&0x4;
     flavor=(a&0x38)>>3;
     follow_which=(a&0xF00000)>>20;
     bx=(a&0xFFF00)>>8;
-    orbit_prescale=(_image[1]&0xFFFFF);
-    burst_length=(_image[1]>>20)&0x3FF;
+    orbit_prescale=(uio_.read(offset_+1)&0xFFFFF);
+    burst_length=(uio_.read(offset_+1)>>20)&0x3FF;
+    printf("%x %x\n",orbit_prescale,burst_length);
   }
   void request() {
-    _image[0]|=0x2; 
+    uio_.rmw(offset_+0,0x2,0x2);
   }
   void pack() {
     uint32_t a(0);
@@ -60,40 +64,28 @@ class Periodic {
     a|=(flavor&0x7)<<3;
     a|=(follow_which*0xF)<<20;
     a|=(bx&0xFFF)<<8;
-    //    _image[0]=a;
+    printf("StepA\n");
+    uio_.write(offset_,a);
     uint32_t b(orbit_prescale&0xFFFFF);
     b|=(burst_length&0x3FF)<<20;
-    //  _image[1]=b;
+    uio_.write(offset_+1,b);
+    printf("StepB\n");
   }
  private:
-  uint32_t* _image;
+  UIO& uio_;
+  size_t offset_;
 };
-
-static const int MAP_SIZE=4096;
 
 class FastControlCMS_MMap : public FastControl {
  public:
-  FastControlCMS_MMap() : FastControl()  {
-    handle_=open("/dev/uio4",O_RDWR);
-    if (handle_<0) {
-      char msg[100];
-      snprintf(msg,100,"Error opening /dev/uio4 : %d", errno);
-      PFEXCEPTION_RAISE("DeviceFileAccessError",msg);
-    }
-    base_=(uint32_t*)(mmap(0,MAP_SIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle_,0));
-    if (base_==MAP_FAILED) {
-      PFEXCEPTION_RAISE("DeviceFileAccessError","Failed to mmap FastControl memory block");
-    }
+  FastControlCMS_MMap() : FastControl(), uio_("/dev/uio4",4096)  {
     standard_setup();
   }
   
   ~FastControlCMS_MMap() {
-    if (handle_!=0) {
-      munmap(base_,MAP_SIZE);
-    }
   }
 
-  Periodic periodic(int i) { return Periodic(base_+0x20+i*2); }
+  Periodic periodic(int i) { return Periodic(uio_,0x20+i*2); }
 
   static const int PEDESTAL_PERIODIC=2;
   static const int CHARGE_PERIODIC=3;
@@ -109,6 +101,7 @@ class FastControlCMS_MMap : public FastControl {
     std_l1a.orbit_prescale=1000;
     std_l1a.enable_follow=false;
     std_l1a.enable=false;
+    printf("STDL1a\n");
     std_l1a.pack();
 
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
@@ -117,6 +110,7 @@ class FastControlCMS_MMap : public FastControl {
     charge_inj.enable_follow=false;
     charge_inj.orbit_prescale=1000;
     charge_inj.enable=false;
+    printf("CHARGEI\n");
     charge_inj.pack();
 
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
@@ -126,6 +120,7 @@ class FastControlCMS_MMap : public FastControl {
     l1a_charge.follow_which=CHARGE_PERIODIC;
     l1a_charge.orbit_prescale=0;
     l1a_charge.enable=true;
+    printf("CHL1a\n");
     l1a_charge.pack();
 
     Periodic pled(periodic(LED_PERIODIC));
@@ -134,6 +129,7 @@ class FastControlCMS_MMap : public FastControl {
     pled.enable_follow=false;
     pled.orbit_prescale=1000;
     pled.enable=false;
+    printf("led\n");
     pled.pack();
 
     Periodic l1a_led(periodic(LED_L1A_PERIODIC));
@@ -143,6 +139,7 @@ class FastControlCMS_MMap : public FastControl {
     l1a_led.follow_which=LED_PERIODIC;
     l1a_led.orbit_prescale=0;
     l1a_led.enable=true;
+    printf("l1aled\n");
     l1a_led.pack();
     
   }
@@ -154,7 +151,7 @@ class FastControlCMS_MMap : public FastControl {
   virtual std::vector<uint32_t> getCmdCounters() {
     std::vector<uint32_t> retval;
     for (int i=65; i<=89; i++)
-      retval.push_back(base_[i]);
+      retval.push_back(uio_.read(i));
     return retval;
   }
   
@@ -178,16 +175,14 @@ class FastControlCMS_MMap : public FastControl {
   static const uint32_t REQ_spare6                  = 0x40000000;  // Send a SPARE6 command (auto-clear)/>
   static const uint32_t REQ_spare7                  = 0x80000000u;  // Send a SPARE7 command (auto-clear)/>
   
-   virtual void linkreset_rocs() {
-    FastControlAXI* axi=(FastControlAXI*)base_;
-    axi->request|=REQ_link_reset_roct;
-    // must have a break here
-    axi->request|=REQ_link_reset_rocd;
+  virtual void linkreset_rocs() {
+    uio_.rmw(ADDR_REQUEST, REQ_link_reset_roct, REQ_link_reset_roct);
+    usleep(10);
+    uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
   virtual void bufferclear() {
-    FastControlAXI* axi=(FastControlAXI*)base_;
-    axi->request|=REQ_ebr;
+    uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr);
   }
 
   virtual void chargepulse() {
@@ -200,8 +195,7 @@ class FastControlCMS_MMap : public FastControl {
 
   
  private:
-  int handle_;
-  uint32_t* base_;
+  UIO uio_;
 };
 
 FastControl* make_FastControlCMS_MMap() { return new FastControlCMS_MMap(); }
