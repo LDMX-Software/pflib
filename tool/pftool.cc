@@ -188,17 +188,16 @@ static void link( const std::string& cmd, Target* pft ) {
  * @param[in] cmd ELINKS command
  * @param[in] pft active target
  */
-/*
 static void elinks( const std::string& cmd, Target* pft ) {
   pflib::Elinks& elinks=pft->hcal().elinks();
   static int ilink=0;
-  if (cmd=="RELINK")
-    pft->elink_relink(2);
+  //if (cmd=="RELINK")
+  //    pft->elink_relink(2);
   if (cmd=="SPY") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    std::vector<uint8_t> spy=elinks.spy(ilink);
+    std::vector<uint32_t> spy=elinks.spy(ilink);
     for (size_t i=0; i<spy.size(); i++)
-      printf("%02d %05x\n",int(i),spy[i]);
+      printf("%02d %08x\n",int(i),spy[i]);
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
@@ -212,6 +211,7 @@ static void elinks( const std::string& cmd, Target* pft ) {
       }
     }
   }
+  /*
   if (cmd=="BIGSPY") {
     int mode=BaseMenu::readline_int("Mode? (0=immediate, 1=L1A) ",0);
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
@@ -221,23 +221,25 @@ static void elinks( const std::string& cmd, Target* pft ) {
       printf("%03d %08x\n",i,words[i]);
     }
   }
+  */
+  /*
   if (cmd=="DELAY") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
     int idelay=BaseMenu::readline_int("Delay value: ",128);
     elinks.setDelay(ilink,idelay);
   }
+  */
   if (cmd=="HARD_RESET") {
     elinks.resetHard();
   }
+  /*
   if (cmd=="SCAN") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
     elinks.scanAlign(ilink);
   }
-  if (cmd=="STATUS") {
-    pft->elinkStatus(std::cout);
-  } 
+  */
 }
-*/
+
 
 /**
  * ROC currently being interacted with by user
@@ -1256,7 +1258,6 @@ static void RunMenu( Target* pft_ ) {
     });
     */
 
-  /*
   pfMenu menu_elinks({
     pfMenu::Line("RELINK","Follow standard procedure to establish links", &elinks),
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),    
@@ -1268,7 +1269,7 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &elinks),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  */
+
   
   pfMenu menu_roc({
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
@@ -1379,7 +1380,7 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("FAST_CONTROL","Fast Control", &menu_fc ),
     pfMenu::Line("ROC","ROC Configuration", &menu_roc ),
     //    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
-    //    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
+    pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
     //    pfMenu::Line("DAQ","DAQ", &menu_daq ),
     pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
     pfMenu::Line("EXIT","Exit this tool")

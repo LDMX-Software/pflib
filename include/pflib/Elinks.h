@@ -1,25 +1,24 @@
 #ifndef pflib_Elinks_h_
 #define pflib_Elinks_h_
 
-#include "pflib/WishboneTarget.h"
 #include <vector>
+#include <stdint.h>
 
 namespace pflib {
 
 /**
- * WishboneTarget for configuring the elinks
+ * Interface for configuring the elinks
  */
-class Elinks : public WishboneTarget {
- public:
+class Elinks {
+  
+ protected:
   /**
-   * wrap the wishbone interface and use the tgt_Elinks target
    */
-  Elinks(WishboneInterface* wb, int target = tgt_Elinks);
+  Elinks(int nlinks);
 
+public:
   /**
    * Get the number of links stored in this class
-   *
-   * This value is read at construction time using the passed WishboneInterface
    */
   int nlinks() const { return n_links; }
 
@@ -53,7 +52,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @return the bytes retreived from the spy
    */
-  std::vector<uint8_t> spy(int ilink);
+  virtual std::vector<uint32_t> spy(int ilink) = 0;
 
   /**
    * set the bitslip value for the link
@@ -61,7 +60,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @param[in] bitslip value for bitslip
    */
-  void setBitslip(int ilink, int bitslip);
+  virtual void setBitslip(int ilink, int bitslip) = 0;
 
   /**
    * enable auto-setting of bitslip value
@@ -74,7 +73,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @param[in] enable true if you want the auto-setting enabled
    */
-  void setBitslipAuto(int ilink,bool enable);
+  virtual void setBitslipAuto(int ilink,bool enable) { }
 
   /**
    * check if a link is auto-setting the bitslip
@@ -82,7 +81,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @return true if auto-setting is enabled
    */
-  bool isBitslipAuto(int ilink);
+  virtual bool isBitslipAuto(int ilink) { return false; }
 
   /**
    * Get the bitslip value for a given link
@@ -90,7 +89,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @return value of bitslip
    */
-  int getBitslip(int ilink);
+  virtual int getBitslip(int ilink) = 0;
 
   /**
    * Get the status of the input link
@@ -98,14 +97,14 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @return encoded 4-bytes of link status
    */
-  uint32_t getStatusRaw(int ilink);
+  virtual uint32_t getStatusRaw(int ilink) = 0;
 
   /**
    * Clear the error counters for the input link
    *
    * @param[in] ilink link index
    */
-  void clearErrorCounters(int ilink);
+  virtual void clearErrorCounters(int ilink) = 0;
 
   /**
    * Decode the counters for non-idles and resyncs from the status
@@ -115,12 +114,12 @@ class Elinks : public WishboneTarget {
    * @param[out] nonidles set to the number of non-idles
    * @param[out] resyncs set to the number or resyncs
    */
-  void readCounters(int link, uint32_t& nonidles, uint32_t& resyncs);
+  virtual void readCounters(int link, uint32_t& nonidles, uint32_t& resyncs) { }
 
   /**
    * Hard reset the links
    */
-  void resetHard();
+  virtual void resetHard() = 0;
 
   /** 
    * Prepare for a big spy of the link
@@ -134,7 +133,7 @@ class Elinks : public WishboneTarget {
    * @param[in] ilink link index
    * @param[in] presamples number of presamples
    */
-  void setupBigspy(int mode, int ilink, int presamples);
+  //  void setupBigspy(int mode, int ilink, int presamples);
 
   /**
    * Read the current setup for a bigspy
@@ -143,41 +142,42 @@ class Elinks : public WishboneTarget {
    * @param[out] ilink link index
    * @param[out] presamples number of presamples
    */
-  void getBigspySetup(int& mode, int& ilink, int& presamples);
+  //  void getBigspySetup(int& mode, int& ilink, int& presamples);
 
   /**
    * Check if the current bigspy is done
    * @return true if we are done with the bigspy
    */
-  bool bigspyDone();  
+  //  bool bigspyDone();  
 
   /**
    * Readout the bigspy and return the data
    * @return vector of 4-byte words readout from bigspy
    */
-  std::vector<uint32_t> bigspy();
+  //  std::vector<uint32_t> bigspy();
   
   /**
    * scan the input link attempting to align it
    * @param[in] ilink link index
    */
-  void scanAlign(int ilink);
+  //  void scanAlign(int ilink);
 
   /**
-   * Set the delay for the input link
+   * Set the l1a delay for the input link
    * @param[in] ilink link index
    * @param[in] idelay delay to use
    */
-  void setDelay(int ilink, int idelay);
- private:
+  virtual void setDelay(int ilink, int idelay) { }
+private:
   /// number of links available, read from chip
   int n_links;
   /// which links are "active", set by user
   std::vector<bool> m_linksActive;
-  /// UNUSED
-  std::vector<int> phaseDelay;
 };
 
+  // factories
+  Elinks* create_Elinks_zcu(bool daq);
+  
 }
 
 #endif // pflib_Elinks_h_

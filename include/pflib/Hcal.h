@@ -5,7 +5,7 @@
 #include "pflib/ROC.h"
 #include "pflib/I2C.h"
 #include "pflib/Bias.h"
-//#include "pflib/Elinks.h"
+#include "pflib/Elinks.h"
 #include "pflib/GPIO.h"
 //#include "pflib/FastControl.h"
 //#include "pflib/DAQ.h"
@@ -38,7 +38,7 @@ class Hcal {
   virtual GPIO& gpio() { return *gpio_; }
   
   /** get the Elinks object */
-  //  Elinks& elinks() { return elinks_; }
+  virtual Elinks& elinks() = 0;
   
   /** get the FastControl object */
   //  FastControl& fc() { return fc_; }

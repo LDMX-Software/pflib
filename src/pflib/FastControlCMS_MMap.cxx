@@ -13,6 +13,10 @@ namespace pflib {
 
   static const size_t ADDR_CTL_REG               = 0;
   static const size_t ADDR_REQUEST               = 1;
+
+  static const uint32_t CTL_ENABLE_ORBITSYNC       = 0x0004;
+  static const uint32_t CTL_ENABLE_L1AS            = 0x0008;
+   
   /*
 struct FastControlAXI {
   uint32_t ctl_reg;
@@ -133,7 +137,10 @@ class FastControlCMS_MMap : public FastControl {
     l1a_led.orbit_prescale=0;
     l1a_led.enable=true;
     l1a_led.pack();
-    
+
+    // enable the BCR, L1As (in general)
+    uio_.rmw(ADDR_CTL_REG,CTL_ENABLE_ORBITSYNC, CTL_ENABLE_ORBITSYNC);
+    uio_.rmw(ADDR_CTL_REG,CTL_ENABLE_L1AS, CTL_ENABLE_L1AS);    
   }
 
   virtual void sendL1A() {
