@@ -2,7 +2,7 @@
 #define PFLIB_DAQ_H_INCLUDED
 
 #include <vector>
-#include "pflib/WishboneInterface.h"
+#include <stdint.h>
 
 namespace pflib {
 
@@ -14,38 +14,43 @@ namespace pflib {
  * light so it can be done often.
  */
 class DAQ {
+ protected:
+  DAQ(int links) : n_links{links} { }
  public:
-  /**
-   * attach to our active WishboneInterface
-   */
-  DAQ(WishboneInterface* wb);
-  /// 
-  void reset();
+  virtual void reset() = 0;
   ///
-  void getHeaderOccupancy(int& current, int& maximum);
+  virtual int getEventOccupancy() = 0;
   /// Set the FPGA id and the link ids based on the FPGA id
-  void setIds(int fpga_id);
+  //void setIds(int fpga_id);
   /// Get the FPGA id
-  int getFPGAid();
-  /// Setup a link
-  void setupLink(int ilink, bool zs, bool zs_all, int l1a_delay, int l1a_capture_width);
+  //int getFPGAid();
+  /// Setup a link.
+  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) = 0;
   /// read link parameters into the passed variables
-  void getLinkSetup(int ilink, bool& zs, bool& zs_all, int& l1a_delay, int& l1a_capture_width);
+  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) = 0;
   /// get empty/full status for the given link and stage
-  void bufferStatus(int ilink, bool postfmt, bool& empty, bool& full);
+  virtual void bufferStatus(int ilink, bool& empty, bool& full) = 0;
   /// enable/disable the readout
-  void enable(bool enable=true);
+  virtual void enable(bool enable=true) { enabled_=enable; }
   /// is the readout enabled?
-  bool enabled();
+  virtual bool enabled() { return enabled_; }
   /// number of elinks
   int nlinks() const { return n_links; }
+  /// read out link data
+  virtual std::vector<uint32_t> getLinkData(int ilink) = 0;
+  /// Advance link read pointer
+  virtual void advanceLinkReadPtr() { }
+  
  private:
-  /// pointer to active wbi
-  WishboneInterface* wb_;
   /// number of links
   int n_links;
+  /// enabled
+  bool enabled_;
 };      
-  
+
+
+DAQ* get_DAQ_zcu();
+
 }
 
 #endif // PFLIB_DAQ_H_INCLUDED

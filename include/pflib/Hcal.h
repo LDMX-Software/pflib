@@ -8,7 +8,7 @@
 #include "pflib/Elinks.h"
 #include "pflib/GPIO.h"
 //#include "pflib/FastControl.h"
-//#include "pflib/DAQ.h"
+#include "pflib/DAQ.h"
 
 namespace pflib {
 
@@ -44,7 +44,7 @@ class Hcal {
   //  FastControl& fc() { return fc_; }
 
   /** get the DAQ object */
-  //  DAQ& daq();
+  virtual DAQ& daq() = 0;
   
  protected:
   /** Number of HGCROC boards in this system */
@@ -55,15 +55,6 @@ class Hcal {
   
   /** The ROC I2C interfaces */
   std::vector<std::shared_ptr<I2C>> roc_i2c_;
-
-  /** The Elinks interface */
-  //  Elinks elinks_;
-  
-  /** The FastControl interface */
-  //  FastControl fc_;
-
-  /** The DAQ interface */
-  //  DAQ daq_;
 
 };
 

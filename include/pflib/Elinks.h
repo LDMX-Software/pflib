@@ -167,8 +167,13 @@ public:
    * @param[in] ilink link index
    * @param[in] idelay delay to use
    */
-  virtual void setDelay(int ilink, int idelay) { }
-private:
+  virtual void setAlignPhase(int ilink, int iphase) { }
+
+  /**
+   * Get the alignment phase
+   */
+  virtual int getAlignPhase(int ilink) { return -1; }
+ private:
   /// number of links available, read from chip
   int n_links;
   /// which links are "active", set by user
@@ -176,7 +181,7 @@ private:
 };
 
   // factories
-  Elinks* create_Elinks_zcu(bool daq);
+  Elinks* get_Elinks_zcu();
   
 }
 

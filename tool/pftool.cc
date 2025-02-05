@@ -281,13 +281,10 @@ static void roc_render( Target* pft ) {
  */
 static void roc( const std::string& cmd, Target* pft ) {
   if (cmd=="HARDRESET") {
-    //    pft->hcal().hardResetROCs();
+    pft->hcal().hardResetROCs();
   }
   if (cmd=="SOFTRESET") {
-    //    pft->hcal().softResetROC();
-  }
-  if (cmd=="RESYNCLOAD") {
-    //    pft->hcal().resyncLoadROC();
+    pft->hcal().softResetROC();
   }
   if (cmd=="IROC") {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
@@ -514,11 +511,11 @@ static void fc( const std::string& cmd, Target* pft ) {
  * @param[in] cmd selected command from DAQ->SETUP menu
  * @param[in] pft active target
  */
-/*
+
 static void daq_setup( const std::string& cmd, Target* pft ) {
   pflib::DAQ& daq=pft->hcal().daq();
   if (cmd=="STATUS") {
-    pft->daqStatus(std::cout);
+    //    pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
@@ -532,19 +529,21 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
   }
+  /*
   if (cmd=="ZS") {
     int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);    
     bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
     pft->enableZeroSuppression(jlink,fullSuppress);
   }
+  */
   if (cmd=="L1APARAMS") {
     int ilink=BaseMenu::readline_int("Which link? ",-1);    
     if (ilink>=0) {
-      uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1);
-      int delay=BaseMenu::readline_int("L1A delay? ",(reg1>>8)&0xFF);
-      int capture=BaseMenu::readline_int("L1A capture length? ",(reg1>>16)&0xFF);
-      reg1=(reg1&0xFF)|((delay&0xFF)<<8)|((capture&0xFF)<<16);
-      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|1,reg1);
+      int delay,capture;
+      daq.getLinkSetup(ilink,delay,capture);
+      delay=BaseMenu::readline_int("L1A delay? ",delay);
+      capture=BaseMenu::readline_int("L1A capture length? ",capture);
+      daq.setupLink(ilink,delay,capture);
     }
   }
   if (cmd=="DMA") {
@@ -562,13 +561,13 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
 #endif
   }
   if (cmd=="STANDARD") {
-    daq_setup("FPGA",pft);
     pflib::Elinks& elinks=pft->hcal().elinks();
     for (int i=0; i<daq.nlinks(); i++) {
-      if (elinks.isActive(i)) daq.setupLink(i,false,false,15,40);
-      else daq.setupLink(i,true,true,15,40);
+      if (elinks.isActive(i)) daq.setupLink(i,15,40);
+      else daq.setupLink(i,15,40);
     }
   }
+  /*
   if (cmd=="FPGA") {
     int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
@@ -583,8 +582,9 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
     }
 #endif
   }
+  */
 }
-*/
+
 
 static std::string last_run_file=".last_run_file";
 static std::string start_dma_cmd="";
@@ -610,12 +610,12 @@ static std::string stop_dma_cmd="";
  * @param[in] cmd command selected from menu
  * @param[in] pft active target
  */
-/*
 static void daq( const std::string& cmd, Target* pft ) {
   pflib::DAQ& daq=pft->hcal().daq();
 
   // default is non-DMA readout
   bool dma_enabled=false;
+  /*
   auto daq_run = [&](const std::string& cmd // PEDESTAL, CHARGE, or no trigger
       , int run // not used in this implementation of daq
       , int nevents // number of events to collect
@@ -650,7 +650,8 @@ static void daq( const std::string& cmd, Target* pft ) {
       fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
     }
   };
-
+  */
+  
 #ifdef PFTOOL_ROGUE
   auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
   if (rwbi) {
@@ -658,7 +659,7 @@ static void daq( const std::string& cmd, Target* pft ) {
     rwbi->daq_get_dma_setup(fpgaid_i,samples_per_event, dma_enabled);
   }
 #endif
-  
+  /*  
   if (cmd=="STATUS") {
     pft->daqStatus(std::cout);
 #ifdef PFTOOL_ROGUE
@@ -674,19 +675,25 @@ static void daq( const std::string& cmd, Target* pft ) {
   if (cmd=="HARD_RESET") {
     pft->daqHardReset();
   }
+  */
   if (cmd=="READ") {
-    std::vector<uint32_t> buffer = pft->daqReadDirect();
-    for (size_t i=0; i<buffer.size() && i<32; i++) {
-      printf("%04d %08x\n",int(i),buffer[i]);
+    for (int ilink=0; ilink<daq.nlinks(); ilink++) {
+      std::vector<uint32_t> buffer = daq.getLinkData(ilink);
+      printf("Link %d\n",ilink);
+      for (size_t i=0; i<buffer.size(); i++) {
+        printf(" %04d %08x\n",int(i),buffer[i]);
     }
+      /*
     bool save_to_disk=BaseMenu::readline_bool("Save to disk?  ",false);
     if (save_to_disk) {
       std::string fname=BaseMenu::readline("Filename :  ");
       FILE* f=fopen(fname.c_str(),"w");
       fwrite(&(buffer[0]),sizeof(uint32_t),buffer.size(),f);
       fclose(f);
-    }
+      }
+      */
   }
+  /*
   if (cmd=="EXTERNAL") {
     int run=0;
 
@@ -776,6 +783,8 @@ static void daq( const std::string& cmd, Target* pft ) {
     }
     
   }
+  */
+  /*
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
     if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
@@ -805,6 +814,8 @@ static void daq( const std::string& cmd, Target* pft ) {
       daq_run(cmd,run,nevents,rate,fname);
     }
   }
+  */
+  /*
   if (cmd=="SCAN"){
     std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
     std::string valuename=BaseMenu::readline("Value (aka Parameter) name :  ");
@@ -837,8 +848,8 @@ static void daq( const std::string& cmd, Target* pft ) {
       }
     }
   }
+  */
 }
-*/
 
 /**
  * TASK menu commands
@@ -988,8 +999,9 @@ static void tasks( const std::string& cmd, Target* pft ) {
       ////////////////////////////////////////////////////////////
     }
   }
-}
 */
+}
+
 
 /**
  * Print data words from raw binary file and return them

@@ -19,8 +19,8 @@ class HcalFiberless : public Hcal {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);
 
-    daq_elinks.reset(create_Elinks_zcu(true));
-
+    elinks_=get_Elinks_zcu();
+    daq_=get_DAQ_zcu();
   }
   
   virtual void hardResetROCs() {
@@ -33,10 +33,11 @@ class HcalFiberless : public Hcal {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true); // active low
   }
 
-  virtual Elinks& elinks() { return *daq_elinks; }
-  
+  virtual Elinks& elinks() { return *elinks_; }
+  virtual DAQ& daq() { return *daq_; }
 private:
-  std::unique_ptr<Elinks> daq_elinks;
+  Elinks* elinks_;
+  DAQ* daq_;
 };
 
 class TargetFiberless : public Target {
@@ -59,6 +60,7 @@ class TargetFiberless : public Target {
  private:
   std::shared_ptr<I2C> i2croc_;
   std::shared_ptr<I2C> i2cboard_;
+ 
 };
 
 Target* makeTargetFiberless() { return new TargetFiberless(); }
