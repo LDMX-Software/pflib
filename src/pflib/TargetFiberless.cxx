@@ -82,6 +82,10 @@ std::vector<uint32_t> TargetFiberless::read_event() {
 
     for (int i=0; i<hcal().daq().nlinks(); i++) {
       std::vector<uint32_t> data=hcal().daq().getLinkData(i);
+      if (i>=2) { // trigger links
+	uint32_t theader=0x30000000|((i-2))|(data.size()<<8);
+	data.insert(data.begin(),theader);
+      }
       size_t len=data.size();
       len_total+=len;
       buffer.insert(buffer.end(),data.begin(),data.end());
