@@ -180,7 +180,7 @@ static void link( const std::string& cmd, Target* pft ) {
  * - SPY : pflib::Elinks::spy
  * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
  * - BIGSPY : Target::elinksBigSpy
- * - DELAY : pflib::Elinks::setDelay
+ * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
  * - STATUS : pflib::Target::elinkStatus with std::cout input
@@ -222,22 +222,33 @@ static void elinks( const std::string& cmd, Target* pft ) {
     }
   }
   */
-  /*
+  
   if (cmd=="DELAY") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    int idelay=BaseMenu::readline_int("Delay value: ",128);
-    elinks.setDelay(ilink,idelay);
+    int idelay=elinks.getAlignPhase(ilink);
+    idelay = BaseMenu::readline_int("Phase value: ",idelay);
+    elinks.setAlignPhase(ilink,idelay);
   }
-  */
+  
   if (cmd=="HARD_RESET") {
     elinks.resetHard();
   }
-  /*
+  
   if (cmd=="SCAN") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    elinks.scanAlign(ilink);
+    for (int i=0; i<0xFF; i+=5) {
+      elinks.setAlignPhase(ilink,i);
+      uint32_t v;
+      int mismatches=0;
+      for (int test=0; test<100; test++) {	
+	std::vector<uint32_t> spy=elinks.spy(ilink);
+	if (test>0 && spy[0]!=v) mismatches++;
+	v=spy[0];
+      }
+      printf(" %d %d \n",i,mismatches);
+    }
   }
-  */
+  
 }
 
 
@@ -563,8 +574,8 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
   if (cmd=="STANDARD") {
     pflib::Elinks& elinks=pft->hcal().elinks();
     for (int i=0; i<daq.nlinks(); i++) {
-      if (elinks.isActive(i)) daq.setupLink(i,15,40);
-      else daq.setupLink(i,15,40);
+      if (elinks.isActive(i)) daq.setupLink(i,11,40);
+      else daq.setupLink(i,11,40);
     }
   }
   /*
