@@ -19,7 +19,7 @@ namespace pflib {
     ~UIO();
 
     /** Read the given word from the UIO device register space */
-    uint32_t read(size_t i) { return (i<size_)?(ptr_[i]):(0xDEADBEEF); }
+    uint32_t read(size_t i) { return (i<size_)?(ptr_[i]):(0xDEADB33F); }
 
     /** Write the given value to the UIO device register */
     void write(size_t where, uint32_t what);

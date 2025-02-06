@@ -7,7 +7,7 @@ namespace pflib {
 
 class Capture_zcu : public Elinks, public DAQ {
   public:
-  Capture_zcu() : Elinks(6),DAQ(6), uio_("/dev/uio5",4*4096) { // currently covers all elinks
+  Capture_zcu() : Elinks(6),DAQ(6), uio_("/dev/uio5",16*4096) { // currently covers all elinks
     }
 
     virtual int getBitslip(int ilink);
@@ -118,6 +118,7 @@ std::vector<uint32_t> Capture_zcu::getLinkData(int ilink) {
   }
   
   size_t addr=0x200|(ilink<<6);
+  printf("%d %d %x\n",ilink,addr,addr);
   for (size_t i=0; i<l1a_capture_width_[ilink]; i++)
     rv.push_back(uio_.read(addr+i));
   return rv;

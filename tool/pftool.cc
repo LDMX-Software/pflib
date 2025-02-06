@@ -677,12 +677,6 @@ static void daq( const std::string& cmd, Target* pft ) {
   }
   */
   if (cmd=="READ") {
-    for (int ilink=0; ilink<daq.nlinks(); ilink++) {
-      std::vector<uint32_t> buffer = daq.getLinkData(ilink);
-      printf("Link %d\n",ilink);
-      for (size_t i=0; i<buffer.size(); i++) {
-        printf(" %04d %08x\n",int(i),buffer[i]);
-    }
       /*
     bool save_to_disk=BaseMenu::readline_bool("Save to disk?  ",false);
     if (save_to_disk) {
@@ -1000,7 +994,7 @@ static void tasks( const std::string& cmd, Target* pft ) {
     }
   }
 */
-}
+
 
 
 /**
@@ -1041,10 +1035,10 @@ std::vector<uint32_t> read_words_from_file() {
  * @param[in] cmd selected command from menu
  * @param[in] pft active target
  */
-/*
 static void daq_debug( const std::string& cmd, Target* pft ) {
   if (cmd=="STATUS") {
     // get the general status
+    /*
     daq("STATUS", pft); 
     uint32_t reg1,reg2;
     printf("-----Per-ROC Controls-----\n");
@@ -1067,109 +1061,25 @@ static void daq_debug( const std::string& cmd, Target* pft ) {
     reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
     reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);    printf(" Read Page: %d  Write Page : %d   Full: %d  Empty: %d   Evt Length on current page: %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
     printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event : %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
+    */
   } 
-  if (cmd=="FULL_DEBUG") {
-    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
-    reg2=reg2^0x2;// invert
-    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
-  }
-  if (cmd=="DISABLE_ROCLINKS") {
-    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
-    reg=reg^0x80000000u;// invert
-    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg);
-  }
-  if (cmd=="FULL_SEND") {
-    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
-    reg2=reg2|0x1000;// set the send bit
-    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
-  }
-  if (cmd=="ROC_SEND") {
-    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
-    reg2=reg2|0x40000000;// set the send bit
-    pft->wb->wb_write(pflib::tgt_DAQ_Control,1,reg2);
-  }
-  if (cmd=="FULL_LOAD") {
-    std::vector<uint32_t> data=read_words_from_file();
-
-    // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
-    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
-    int rpage=(reg1>>12)&0x1;
-    if (rpage) reg2=reg2|0x1;
-    else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
-
-    for (size_t i=0; i<data.size(); i++) 
-      pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,0x1000+i,data[i]);
-          
-    /// set the length
-    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
-    reg2=reg2&0xFFFF;// remove the upper bits
-    reg2=reg2|(data.size()<<16);
-    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
-  }
-  if (cmd=="IBSPY") {
+  if (cmd=="ESPY") {
     static int input=0;
     input=BaseMenu::readline_int("Which input?",input);
-    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|3);
-    int rp=BaseMenu::readline_int("Read page?",(reg>>16)&0xF);
-    reg=reg&0xFFFFFFF0u;
-    reg=reg|(rp&0xF);
-    pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,((input<<7)|3),reg);
-    for (int i=0; i<40; i++) {
-      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(input<<7)|0x40|i);
-      printf("%2d %08x\n",i,val);
-    }      
-  }
-  if (cmd=="EFSPY") {
-    static int input=0;
-    input=BaseMenu::readline_int("Which input?",input);
-    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);
-    uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
-    printf("PTRs now: 0x%08x\n",reg);
-    int rp=BaseMenu::readline_int("Read page?",reg&0xF);
-    for (int i=0; i<40; i++) {
-      pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0x400|(rp<<6)|i);
-      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_LinkFmt,(input<<7)|4);
-      printf("%2d %08x\n",i,val);
-    }
-    pft->wb->wb_write(pflib::tgt_DAQ_LinkFmt,(input<<7)|3,0);    
-  }
-  if (cmd=="SPY") {
-    // set the spy page to match the read page
-    uint32_t reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
-    uint32_t reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);
-    int rpage=(reg1>>12)&0x1;
-    if (rpage) reg2=reg2|0x1;
-    else reg2=reg2&0xFFFFFFFEu;
-    pft->wb->wb_write(pflib::tgt_DAQ_Outbuffer,2,reg2);
+    pflib::DAQ& daq=pft->hcal().daq();
 
-    for (size_t i=0; i<32; i++) {
-      uint32_t val=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,0x1000|i);
-      printf("%04d %08x\n",int(i),val);
+    std::vector<uint32_t> buffer = daq.getLinkData(input);
+    for (size_t i=0; i<buffer.size(); i++) {
+      printf(" %04d %08x\n",int(i),buffer[i]);
     }
+
   }
-    
-  if (cmd=="ROC_LOAD") {
-    std::vector<uint32_t> data=read_words_from_file();
-    if (int(data.size())!=Target::NLINKS*40) {
-      printf("Expected %d words, got only %d\n",Target::NLINKS*40,int(data.size()));
-      return;
-    }
-    for (int ilink=0; ilink<Target::NLINKS; ilink++) {
-      uint32_t reg;
-      // set the wishbone page to match the read page, and set the length
-      reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3);
-      int rpage=(reg>>16)&0xF;
-      reg=(reg&0xFFFFF000u)|rpage|(40<<4);
-      pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)+3,reg);
-      // load the bytes
-      for (int i=0; i<40; i++)
-        pft->wb->wb_write(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|0x40|i,data[40*ilink+i]);      
-    }
+  if (cmd=="ADV") {
+    pflib::DAQ& daq=pft->hcal().daq();
+    daq.advanceLinkReadPtr();
   }
 }
-*/
+
 
 /**
  * BIAS menu commands
@@ -1324,23 +1234,15 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("QUIT","Back to top menu")
   });
  
-  /*
+  
   pfMenu menu_daq_debug({
     pfMenu::Line("STATUS","Provide the status", &daq_debug ),
-    pfMenu::Line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  &daq_debug ),
-    pfMenu::Line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  &daq_debug ),
-    pfMenu::Line("READ", "Read an event", &daq),
-    pfMenu::Line("ROC_LOAD", "Load a practice ROC events from a file",  &daq_debug ),
-    pfMenu::Line("ROC_SEND", "Generate a SW L1A to send the ROC buffers to the builder",  &daq_debug ),
-    pfMenu::Line("FULL_LOAD", "Load a practice full event from a file",  &daq_debug ),
-    pfMenu::Line("FULL_SEND", "Send the buffer to the off-detector electronics",  &daq_debug ),
-    pfMenu::Line("SPY", "Spy on the front-end buffer",  &daq_debug ),
-    pfMenu::Line("IBSPY","Spy on an input buffer",  &daq_debug ),
-    pfMenu::Line("EFSPY","Spy on an event formatter buffer",  &daq_debug ),
+    pfMenu::Line("ESPY","Spy on one elink",  &daq_debug ),
+    pfMenu::Line("ADV","Advance the readout pointers",  &daq_debug ),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  */
-  /*
+  
+  
   pfMenu menu_daq_setup({
     pfMenu::Line("STATUS", "Status of the DAQ", &daq_setup),
     pfMenu::Line("ENABLE", "Toggle enable status", &daq_setup),
@@ -1354,8 +1256,8 @@ static void RunMenu( Target* pft_ ) {
 #endif
     pfMenu::Line("QUIT","Back to DAQ menu")
   });
-  */
-  /*
+  
+  
   pfMenu menu_daq({
     pfMenu::Line("DEBUG", "Debugging menu",  &menu_daq_debug ),
     pfMenu::Line("STATUS", "Status of the DAQ", &daq),
@@ -1368,7 +1270,7 @@ static void RunMenu( Target* pft_ ) {
     //    pfMenu::Line("SCAN","Take many charge or pedestal runs while changing a single parameter", &daq),
     pfMenu::Line("QUIT","Back to top menu")
   });
-  */
+ 
   
   pfMenu menu_expert({ 
       //    pfMenu::Line("OLINK","Optical link functions", &menu_link),
@@ -1393,7 +1295,7 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("ROC","ROC Configuration", &menu_roc ),
     //    pfMenu::Line("BIAS","BIAS voltage setting", &menu_bias ),
     pfMenu::Line("ELINKS","Manage the elinks", &menu_elinks ),
-    //    pfMenu::Line("DAQ","DAQ", &menu_daq ),
+    pfMenu::Line("DAQ","DAQ", &menu_daq ),
     pfMenu::Line("EXPERT","Expert functions", &menu_expert ),
     pfMenu::Line("EXIT","Exit this tool")
   });
