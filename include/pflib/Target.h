@@ -19,6 +19,9 @@ class Target {
   Hcal& hcal() { return *hcal_; }
 
   FastControl& fc() { return *fc_; }
+
+  virtual std::vector<uint32_t> read_event() = 0;
+  virtual bool has_event() { return hcal().daq().getEventOccupancy()>0; }
   
  protected:
   std::map<std::string, std::shared_ptr<I2C> > i2c_;

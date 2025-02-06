@@ -47,8 +47,11 @@ static const uint32_t MASK_RESET_BUFFER   = 0x00010000;
 static const uint32_t MASK_ADVANCE_FIFO   = 0x00020000;
 static const uint32_t MASK_SOFTWARE_L1A   = 0x00040000;
 
+static const uint32_t MASK_OCCUPANCY      = 0x000000FF;
+
 static const size_t ADDR_TOP_CTL          =  0x0;
 static const size_t ADDR_LINK_STATUS_BASE = 0x26;
+static const size_t ADDR_OFFSET_BUFSTATUS =    1;
 
 int Capture_zcu::getBitslip(int ilink) {
   int ictl=ctl_for(ilink);
@@ -81,6 +84,8 @@ void Capture_zcu::reset() {
   uio_.rmw(ADDR_TOP_CTL,MASK_RESET_BUFFER,MASK_RESET_BUFFER);
 }
 int Capture_zcu::getEventOccupancy() {
+  // use link 0 for occupancy
+  return uio_.readMasked(ADDR_LINK_STATUS_BASE+ADDR_OFFSET_BUFSTATUS,MASK_OCCUPANCY);
 }
 void Capture_zcu::setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
   int ictl=ctl_for(ilink);
@@ -125,7 +130,8 @@ std::vector<uint32_t> Capture_zcu::getLinkData(int ilink) {
 }
 
 void Capture_zcu::advanceLinkReadPtr() {
-  uio_.rmw(ADDR_TOP_CTL,MASK_ADVANCE_FIFO,MASK_ADVANCE_FIFO);
+  if (getEventOccupancy()>0) 
+    uio_.rmw(ADDR_TOP_CTL,MASK_ADVANCE_FIFO,MASK_ADVANCE_FIFO);
 }
 
 static std::unique_ptr<Capture_zcu> the_capture_;
