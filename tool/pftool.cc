@@ -591,6 +591,43 @@ static std::string start_dma_cmd="";
 static std::string stop_dma_cmd="";
 
 
+static void daq_run(Target* pft, const std::string& cmd // PEDESTAL, CHARGE, or no trigger
+                       , int run // not used in this implementation of daq
+                       , int nevents // number of events to collect
+                       , int rate // not used in this implementation of daq
+                       , const std::string& fname // file to write to (appended)
+                       ) {
+    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
+    timeval tv0, tvi;
+  
+    gettimeofday(&tv0,0);
+    
+    for (int ievt=0; ievt<nevents; ievt++) {
+      // normally, some other controller would send the L1A
+      //  we are sending it so we get data during no signal
+      if (cmd=="PEDESTAL")
+        pft->fc().sendL1A();
+      //if (cmd=="CHARGE")
+        //        pft->fc().calibpulse();
+  
+      gettimeofday(&tvi,0);
+      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
+      //      double ratenow=(ievt+1)/runsec;
+      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
+      int usec_ahead=int((targettime-runsec)*1e6);
+      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
+      if (usec_ahead>100) { // if we are running fast...
+        usleep(usec_ahead);
+        //        printf("Sleeping %d\n",usec_ahead);
+      }
+      
+      std::vector<uint32_t> event = pft->read_event();
+      fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
+    }
+};
+
+
+
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
  *
@@ -615,42 +652,6 @@ static void daq( const std::string& cmd, Target* pft ) {
 
   // default is non-DMA readout
   bool dma_enabled=false;
-  /*
-  auto daq_run = [&](const std::string& cmd // PEDESTAL, CHARGE, or no trigger
-      , int run // not used in this implementation of daq
-      , int nevents // number of events to collect
-      , int rate // not used in this implementation of daq
-      , const std::string& fname // file to write to (appended)
-  ) {
-    std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(),"a"),&fclose};
-    timeval tv0, tvi;
-  
-    gettimeofday(&tv0,0);
-    
-    for (int ievt=0; ievt<nevents; ievt++) {
-      // normally, some other controller would send the L1A
-      //  we are sending it so we get data during no signal
-      if (cmd=="PEDESTAL")
-        pft->fc().sendL1A();
-      if (cmd=="CHARGE")
-        pft->fc().calibpulse();
-  
-      gettimeofday(&tvi,0);
-      double runsec=(tvi.tv_sec-tv0.tv_sec)+(tvi.tv_usec-tvi.tv_usec)/1e6;
-      //      double ratenow=(ievt+1)/runsec;
-      double targettime=(ievt+1.0)/rate; // what I'd like the rate to be
-      int usec_ahead=int((targettime-runsec)*1e6);
-      //printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-      if (usec_ahead>100) { // if we are running fast...
-        usleep(usec_ahead);
-        //        printf("Sleeping %d\n",usec_ahead);
-      }
-      
-      std::vector<uint32_t> event = pft->daqReadEvent();
-      fwrite(&(event[0]),sizeof(uint32_t),event.size(),fp.get());
-    }
-  };
-  */
   
 #ifdef PFTOOL_ROGUE
   auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -778,7 +779,6 @@ static void daq( const std::string& cmd, Target* pft ) {
     
   }
   */
-  /*
   if (cmd=="PEDESTAL" || cmd=="CHARGE") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
     if (cmd=="CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
@@ -795,7 +795,7 @@ static void daq( const std::string& cmd, Target* pft ) {
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
     std::string fname=BaseMenu::readline("Filename :  ", fname_def);
     
-    pft->prepareNewRun();
+    //    pft->prepareNewRun();
 
 #ifdef PFTOOL_ROGUE
     if (dma_enabled) {
@@ -805,10 +805,10 @@ static void daq( const std::string& cmd, Target* pft ) {
     } else 
 #endif
     {
-      daq_run(cmd,run,nevents,rate,fname);
+      daq_run(pft,cmd,run,nevents,rate,fname);
     }
   }
-  */
+  
   /*
   if (cmd=="SCAN"){
     std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
@@ -1245,12 +1245,12 @@ static void RunMenu( Target* pft_ ) {
   
   pfMenu menu_daq_setup({
     pfMenu::Line("STATUS", "Status of the DAQ", &daq_setup),
-    pfMenu::Line("ENABLE", "Toggle enable status", &daq_setup),
-    pfMenu::Line("ZS", "Toggle ZS status", &daq_setup),
+    //     pfMenu::Line("ENABLE", "Toggle enable status", &daq_setup),
+    //    pfMenu::Line("ZS", "Toggle ZS status", &daq_setup),
     pfMenu::Line("L1APARAMS", "Setup parameters for L1A capture", &daq_setup),
     pfMenu::Line("FPGA", "Set FPGA id", &daq_setup),
     pfMenu::Line("STANDARD","Do the standard setup for HCAL", &daq_setup),
-    pfMenu::Line("MULTISAMPLE","Setup multisample readout", &fc ),
+    //pfMenu::Line("MULTISAMPLE","Setup multisample readout", &fc ),
 #ifdef PFTOOL_ROGUE
     pfMenu::Line("DMA", "Enable/disable DMA readout (only available with rogue)", &daq_setup),
 #endif
@@ -1262,8 +1262,8 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("DEBUG", "Debugging menu",  &menu_daq_debug ),
     pfMenu::Line("STATUS", "Status of the DAQ", &daq),
     pfMenu::Line("SETUP", "Setup the DAQ", &menu_daq_setup),
-    pfMenu::Line("RESET", "Reset the DAQ", &daq),
-    pfMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &daq),
+    //    pfMenu::Line("RESET", "Reset the DAQ", &daq),
+    // pfMenu::Line("HARD_RESET", "Reset the DAQ, including all parameters", &daq),
     pfMenu::Line("PEDESTAL","Take a simple random pedestal run", &daq),
     pfMenu::Line("CHARGE","Take a charge-injection run", &daq),
     pfMenu::Line("EXTERNAL","Take an externally-triggered run", &daq),
