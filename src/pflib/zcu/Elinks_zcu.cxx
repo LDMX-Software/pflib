@@ -48,7 +48,7 @@ static const uint32_t MASK_ADVANCE_FIFO   = 0x00020000;
 static const uint32_t MASK_SOFTWARE_L1A   = 0x00040000;
 
 static const size_t ADDR_TOP_CTL          =  0x0;
-static const size_t ADDR_LINK_STATUS_BASE = 0x24;
+static const size_t ADDR_LINK_STATUS_BASE = 0x26;
 
 int Capture_zcu::getBitslip(int ilink) {
   int ictl=ctl_for(ilink);

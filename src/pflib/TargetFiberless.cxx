@@ -2,6 +2,7 @@
 #include "pflib/I2C_Linux.h"
 #include "pflib/GPIO.h"
 #include <iostream>
+#include <unistd.h>
 
 namespace pflib {
 
@@ -25,7 +26,10 @@ class HcalFiberless : public Hcal {
   
   virtual void hardResetROCs() {
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, false); // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_I2C, false); // active low
+    usleep(10); printf("HARD\n");
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, true); // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_I2C, true); // active low
   }
 
   virtual void softResetROC(int which) {
