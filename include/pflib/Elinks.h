@@ -65,25 +65,12 @@ public:
   /**
    * enable auto-setting of bitslip value
    *
-   * @note Auto-setting the bitslip value for a link is
-   * a firmware-level task which is not well implemented at this time.
-   *
-   * This overrides any manual setting of the bitslip value.
    *
    * @param[in] ilink link index
-   * @param[in] enable true if you want the auto-setting enabled
    */
-  virtual void setBitslipAuto(int ilink,bool enable) { }
+  virtual int scanBitslip(int ilink);
 
-  /**
-   * check if a link is auto-setting the bitslip
-   *
-   * @param[in] ilink link index
-   * @return true if auto-setting is enabled
-   */
-  virtual bool isBitslipAuto(int ilink) { return false; }
-
-  /**
+  /*
    * Get the bitslip value for a given link
    *
    * @param[in] ilink link index
@@ -160,7 +147,7 @@ public:
    * scan the input link attempting to align it
    * @param[in] ilink link index
    */
-  //  void scanAlign(int ilink);
+  virtual int scanAlign(int ilink, bool debug=false);
 
   /**
    * Set the l1a delay for the input link

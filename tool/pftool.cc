@@ -176,9 +176,9 @@ static void link( const std::string& cmd, Target* pft ) {
  * pflib::Hcal::elinks and then procede to the commands.
  *
  * ## Commands
- * - RELINK : pflib::Target::elink_relink with verbosity 2
  * - SPY : pflib::Elinks::spy
- * - BITSLIP : pflib::Elinks::setBitslip and pflib::Elinks::setBitslipAuto
+ * - AUTO : 
+ * - BITSLIP : pflib::Elinks::setBitslip 
  * - BIGSPY : Target::elinksBigSpy
  * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
@@ -201,14 +201,10 @@ static void elinks( const std::string& cmd, Target* pft ) {
   }
   if (cmd=="BITSLIP") {
     ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    int bitslip=BaseMenu::readline_int("Bitslip value (-1 for auto): ",elinks.getBitslip(ilink));
+    int bitslip=BaseMenu::readline_int("Bitslip value : ",elinks.getBitslip(ilink));
     for (int jlink=0; jlink<8; jlink++) {
       if (ilink>=0 && jlink!=ilink) continue;
-      if (bitslip<0) elinks.setBitslipAuto(jlink,true);
-      else {
-        elinks.setBitslipAuto(jlink,false);
-        elinks.setBitslip(jlink,bitslip);
-      }
+      elinks.setBitslip(jlink,bitslip);      
     }
   }
   /*
@@ -235,17 +231,30 @@ static void elinks( const std::string& cmd, Target* pft ) {
   }
   
   if (cmd=="SCAN") {
-    ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    for (int i=0; i<0xFF; i+=5) {
-      elinks.setAlignPhase(ilink,i);
-      uint32_t v;
-      int mismatches=0;
-      for (int test=0; test<100; test++) {	
-	std::vector<uint32_t> spy=elinks.spy(ilink);
-	if (test>0 && spy[0]!=v) mismatches++;
-	v=spy[0];
+    ilink=BaseMenu::readline_int("Which elink?",ilink);
+
+    int bp=elinks.scanAlign(ilink,true);
+    printf("\n Best Point: %d\n",bp);
+  }
+  if (cmd=="AUTO") {
+    std::vector<bool> running;
+    for (int iroc=0; iroc<pft->hcal().nrocs(); iroc++) {
+      running.push_back(pft->hcal().roc(iroc).isRunMode());
+      if (running[iroc]) {
+	pft->hcal().roc(iroc).setRunMode(false);
       }
-      printf(" %d %d \n",i,mismatches);
+    }
+    for (int alink=0; alink<elinks.nlinks(); alink++) {
+      int apt=elinks.scanAlign(alink,false);
+      elinks.setAlignPhase(alink,apt);
+      int bpt=elinks.scanBitslip(alink);
+      elinks.setBitslip(alink,bpt);
+      printf(" %d Best phase : %d  Bitslip : %d \n",alink,apt,bpt);
+    }
+    for (int iroc=0; iroc<pft->hcal().nrocs(); iroc++) {
+      if (running[iroc]) {
+	pft->hcal().roc(iroc).setRunMode(true);
+      }
     }
   }
   
@@ -277,6 +286,7 @@ static void roc_render( Target* pft ) {
  * - HARDRESET : pflib::Hcal::hardResetROCs
  * - SOFTRESET : pflib::Hcal::softResetROC
  * - RESYNCLOAD : pflib::Hcal::resyncLoadROC
+ * - RUNMODE : 
  * - IROC : Change which ROC to focus on
  * - CHAN : pflib::ROC::getChannelParameters
  * - PAGE : pflib::ROC::readPage
@@ -301,6 +311,11 @@ static void roc( const std::string& cmd, Target* pft ) {
     iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
   }
   pflib::ROC roc=pft->hcal().roc(iroc);
+  if (cmd=="RUNMODE") {
+    bool isRunMode = roc.isRunMode();
+    isRunMode=BaseMenu::readline_bool("Set ROC runmode: ",isRunMode);
+    roc.setRunMode(isRunMode);
+  }
   if (cmd=="CHAN") {
     int chan=BaseMenu::readline_int("Which channel? ",0);
     std::vector<uint8_t> v=roc.getChannelParameters(chan);
@@ -1199,7 +1214,8 @@ static void RunMenu( Target* pft_ ) {
     pfMenu::Line("HARD_RESET","Hard reset of the PLL", &elinks),    
     pfMenu::Line("STATUS", "Elink status summary",  &elinks ),
     pfMenu::Line("SPY", "Spy on an elink",  &elinks ),
-    pfMenu::Line("BITSLIP", "Set the bitslip for a link or turn on auto", &elinks),
+    pfMenu::Line("AUTO", "Carry out automatic alignment and bitslip cycle", &elinks),
+    pfMenu::Line("BITSLIP", "Set the bitslip for a link", &elinks),
     pfMenu::Line("SCAN", "Scan on an elink",  &elinks ),
     pfMenu::Line("DELAY", "Set the delay on an elink", &elinks),
     pfMenu::Line("BIGSPY", "Take a spy of a specific channel at 32-bits", &elinks),
@@ -1211,6 +1227,7 @@ static void RunMenu( Target* pft_ ) {
      pfMenu::Line("HARDRESET","Hard reset to all rocs", &roc),
      pfMenu::Line("SOFTRESET","Soft reset to all rocs", &roc),
      pfMenu::Line("IROC","Change the active ROC number", &roc ),
+     pfMenu::Line("RUNMODE","Set/clear the run mode", &roc ),
      pfMenu::Line("CHAN","Dump link status", &roc ),
      pfMenu::Line("PAGE","Dump a page", &roc ),
      pfMenu::Line("PARAM_NAMES", "Print a list of parameters on a page", &roc),

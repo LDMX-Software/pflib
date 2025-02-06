@@ -41,6 +41,34 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   return retval;
 }
 
+uint8_t ROC::getValue(int ipage, int offset) {
+  i2c_.set_bus_speed(1400);
+
+
+  // set the address
+  uint16_t fulladdr=(ipage<<5)|offset;
+  i2c_.write_byte(roc_base_+0,fulladdr&0xFF);
+  i2c_.write_byte(roc_base_+1,(fulladdr>>8)&0xFF);
+    // now read
+  return i2c_.read_byte(roc_base_+2);
+}
+
+  static const int TOP_PAGE       =  45;
+  static const int MASK_RUN_MODE  = 0x3;
+  
+  void ROC::setRunMode(bool active) {
+    uint8_t cval=getValue(TOP_PAGE,0);
+    uint8_t imask=0xFF^MASK_RUN_MODE;
+    cval&=imask;
+    if (active) cval|=MASK_RUN_MODE;
+    setValue(TOP_PAGE,0,cval);
+  }
+  
+  bool ROC::isRunMode() {
+    uint8_t cval=getValue(TOP_PAGE,0);
+    return cval&MASK_RUN_MODE;
+  }
+  
 std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
   return readPage(block_for_chan[ichan],14);
 }
@@ -49,7 +77,7 @@ void ROC::setChannelParameters(int ichan, std::vector<uint8_t>& values) {
   std::cout << "I don't do anything right now" << std::endl;
 }
 
-void ROC::setValue(int page, int offset, uint32_t value) {
+void ROC::setValue(int page, int offset, uint8_t value) {
   i2c_.set_bus_speed(1400);
   uint16_t fulladdr=(page<<5)|offset;
   i2c_.write_byte(roc_base_+0,fulladdr&0xFF);

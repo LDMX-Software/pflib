@@ -19,6 +19,9 @@ class Hcal {
  public:
   Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c);
 
+  /** number of boards */
+  int nrocs() { return nhgcroc_; }
+  
   /** Get a ROC interface for the given HGCROC board */
   ROC roc(int which);
 

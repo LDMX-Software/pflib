@@ -16,8 +16,12 @@ class ROC {
  public:
   ROC(I2C& i2c, uint8_t roc_base_addr);
 
+  void setRunMode(bool active=true);
+  bool isRunMode();
+  
   std::vector<uint8_t> readPage(int ipage, int len);
-  void setValue(int page, int offset, uint32_t value);
+  uint8_t getValue(int page, int offset);
+  void setValue(int page, int offset, uint8_t value);
   
   std::vector<uint8_t> getChannelParameters(int ichan);
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
