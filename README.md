@@ -17,6 +17,26 @@ make
 ./pftool -h # print help
 ```
 
+### Brief History
+Versions 1 and 2 were designed with a different board setup where we were connecting to
+an intermediate *P*olar*F*ire board (hence the `pf` in the name) that connected to the HGCROC.
+This mode was used for a preliminary testbeam and a lot of additional development was done
+on top of the basic setup.
+We have now switched to a connection where we SSH to a ZCU board which then connects to
+the HGCROC directly. This connection has been enabled after branching off of v2.0.6
+and is the new `main` branch which has led to a weird branch structure.
+```
+                 v2.0.6 tag
+                 |
+--o--o--o--o--o--o--o--o--o--o--o <- `main` branch where releases v3 and above will be
+                  \
+                   \o--o--o--o--o--o <- `v2` branch with releases >v2.0.6 and <v3
+```
+We (Jeremy and Tom) have decided to do this so that we can pick and choose which
+features that were developed for the testbeam to copy over to the new connection
+structure. Some of them rely on the old connection structure and so do not work
+with the new structure.
+
 ## YAML->Register "Compilation"
 The more detailed documentation for this compilation can be found in the pflib/Compile.h file.
 The \hgcrocmanual is also a decent reference since that is where most of the parameter names are pulled from.
@@ -24,6 +44,7 @@ The documentation of \dataformats is helpful for learning how to decode the raw 
 
 Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. 
 I have chosen to use [yaml-cpp](https://github.com/jbeder/yaml-cpp) which is very light and easy to install.
+v0.6.3 is installed in the ZCU image Jeremy has shared.
 
 **Note**: Make sure to build yaml-cpp with the `YAML_BUILD_SHARED_LIBS=ON` cmake option so that we can link it properly to our code.
 
@@ -45,12 +66,24 @@ make install
 This software can communicate with the HGCROC and other front-end items using several different methods.
 
 ### Direct I2C
- This mode of operation is used for the HCAL HGCROC board tester.  It has no external dependencies as it uses /dev/i2c character
- devices for communication.
+This mode of operation is used for the HCAL HGCROC board tester.
+It has no external dependencies as it uses /dev/i2c character devices for communication.
  
 ## Other Dependencies
- Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
- This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.
+Besides these two "larger" dependencies, we simply use some C++14 as well as the GNU readline library for the `pftool`.
+This effectively restricts us to relatively new Linux systems; we haven't tested this library on a large set of potentional options.
+
+### ZCU Image
+For HGCROC tester setups, we connect to the HGCROV directly over I2C from
+a ZCU with a standardized image Jeremy has shared via Google Drive.
+
+Layer | Description
+---|---
+OS | AlmaLinux 9.4
+gcc | 11.4.1
+cmake | 3.26.5
+readline | 8.1
+yaml-cpp | 0.6.3
 
 ### UMN Setup
 Layer | Description
