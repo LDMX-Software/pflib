@@ -117,7 +117,10 @@ blockname_to_subblock_type = {
     'calib': 'CHANNELWISE',
     'HalfWise': 'CHANNELWISE',
     'Top' : 'TOP',
-    'DigitalHalf': 'DIGITALHALF'
+    'DigitalHalf': 'DIGITALHALF',
+    'GlobalAnalog': 'GLOBALANALOG',
+    'MasterTdc': 'MASTERTDC',
+    'ReferenceVoltage': 'REFERENCEVOLTAGE'
 }
 subblock_types = {}
 subblocks = {}
@@ -125,7 +128,7 @@ for block_name, block_node in byte_pair_map.items():
     subblock_typename = blockname_to_subblock_type.get(block_name, block_name)
     for subblock_id, subblock_node in block_node.items():
         subblock_parameters = {
-            name: Parameter.from_swamp_parameter(node)
+            name.upper(): Parameter.from_swamp_parameter(node)
             for name, node in subblock_node.items()
         }
         if block_name not in subblock_types:
@@ -141,7 +144,10 @@ for block_name, block_node in byte_pair_map.items():
         )
         if len(subblock_addresses) != 1:
             raise ValueError(f'Subblock {block_name}_{subblock_id} does not have exactly one address! {subblock_addresses}')
-        subblocks[f'{block_name}_{subblock_id}'] = SubBlock(
+        subblock_name = block_name.upper()
+        if subblock_name != 'TOP':
+            subblock_name += f'_{subblock_id}'
+        subblocks[subblock_name] = SubBlock(
             address = subblock_addresses.pop(),
             type = subblock_typename
         )
