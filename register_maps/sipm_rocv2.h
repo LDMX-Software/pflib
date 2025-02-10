@@ -237,10 +237,20 @@ const std::map<std::string,Parameter> TOP_LUT = {
   {"EN_PLL_EXT"    , Parameter(7,7,1,0)}
 };
 
+const std::map<std::string,const std::map<std::string,Parameter>&>
+PAGE_LUT = {
+  {"GLOBAL_ANALOG", GLOBAL_ANALOG_LUT},
+  {"REFERENCE_VOLTAGE", REFERENCE_VOLTAGE_LUT},
+  {"MASTER_TDC", MASTER_TDC_LUT},
+  {"DIGITAL_HALF", DIGITAL_HALF_LUT},
+  {"TOP", TOP_LUT},
+  {"CHANNEL_WISE", CHANNEL_WISE_LUT}
+};
+
 /**
  * Entire parameter Look Up Table.
  */
-const std::map<std::string,std::pair<int,std::map<std::string,Parameter>>>
+const std::map<std::string,std::pair<int,const std::map<std::string,Parameter>&>>
 PARAMETER_LUT = {
   {"GLOBAL_ANALOG_0", { 297, GLOBAL_ANALOG_LUT }},
   {"REFERENCE_VOLTAGE_0", {296, REFERENCE_VOLTAGE_LUT}},
