@@ -12,6 +12,7 @@
 
 #include "pflib/Exception.h"
 #include "pflib/Compile.h"
+#include "pflib/Version.h"
 
 static void usage() {
   std::cout <<
@@ -20,6 +21,7 @@ static void usage() {
     "  pfcompile [options] setting_file [setting_file1 [setting_file2 ...]]\n"
     "\n"
     " OPTIONS:\n"
+    "  -v,--version: print pflib version and the ROC it was built for\n"
     "  -h,--help : Print this help and exit\n"
     "  --no-defaults : Don't apply the defaults copied from the documentation before anything else\n"
     "  --output, -o  : Define the output file.\n"
@@ -45,6 +47,9 @@ int main(int argc, char *argv[]) {
         prepend_defaults = false;
       } else if (arg == "--help" or arg == "-h") {
         usage();
+        return 0;
+      } else if (arg == "--version" or arg == "-v") {
+        print_version();
         return 0;
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {

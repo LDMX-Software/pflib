@@ -21,6 +21,7 @@
 #include "pflib/Target.h"
 #include "pflib/Hcal.h"
 #include "pflib/Compile.h" // for parameter listing
+#include "pflib/Version.h"
 #ifdef PFTOOL_ROGUE
 #endif
 #include "Menu.h"
@@ -47,7 +48,8 @@ static void status( Target* pft ) {
     if (pft->hcal().elinks().isActive(ilink)) printf("%d ",ilink);
   printf("\n");
   */
-  printf("We don't have any right now\n");
+
+  print_version();
 }
 
 /**
