@@ -1,0 +1,14 @@
+/**
+ * pflib Version file copying parameters in from the CMake build configuration
+ */
+
+#pragma once
+
+
+#define PFLIB_VERSION "${pflib_vers}"
+#define GIT_DESCRIBE "${git_describe}"
+#define ROC_VERSION "${ROC}"
+
+void print_version() {
+  printf("  pflib %s (%s)\n  built for %s\n", PFLIB_VERSION, GIT_DESCRIBE, ROC_VERSION);
+}
