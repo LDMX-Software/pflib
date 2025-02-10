@@ -145,13 +145,14 @@ for block_name, block_node in byte_pair_map.items():
         if len(subblock_addresses) != 1:
             raise ValueError(f'Subblock {block_name}_{subblock_id} does not have exactly one address! {subblock_addresses}')
         subblock_name = block_name.upper()
+        # skip adding the index number to the TOP page since
+        # there is only one of them
         if subblock_name != 'TOP':
             subblock_name += f'_{subblock_id}'
         subblocks[subblock_name] = SubBlock(
             address = subblock_addresses.pop(),
             type = subblock_typename
         )
-
 
 # sort the parameters by their first register to help in comparison to the manual
 subblock_types = {
@@ -165,6 +166,8 @@ subblock_types = {
     for name, parameters in subblock_types.items()
 }
 
+
+# yaml dump for easier comparison to manual
 with open(args.output, 'w') as f:
     yaml.safe_dump(
         {
@@ -183,6 +186,7 @@ with open(args.output, 'w') as f:
     )
 
 
+# C++ dump for inclusion in pflib
 with open(args.output.with_suffix('.h'), 'w') as f:
     for name, parameters in subblock_types.items():
         f.write('const std::map<std::string, Parameter> %s = {\n'%(name))
@@ -192,6 +196,14 @@ with open(args.output.with_suffix('.h'), 'w') as f:
         ))
         f.write('\n};\n\n')
 
+    f.write('const std::map<std::string, const std::map<std::string, Parameter>&>\n')
+    f.write('PAGE_LUT = {\n')
+    f.write(',\n'.join(
+        '  {"%s", %s }'
+        for name in subblock_types
+    ))
+    f.write('\n};\n\n')
+
     f.write('const std::map<std::string, std::pair<int, const std::map<std::string, Parameter>&>>\n')
     f.write('PARAMETER_LUT = {\n')
     f.write(',\n'.join(
@@ -199,4 +211,5 @@ with open(args.output.with_suffix('.h'), 'w') as f:
         for name, subblock in subblocks.items()
     ))
     f.write('\n};\n')
+
 
