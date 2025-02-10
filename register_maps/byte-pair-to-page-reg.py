@@ -89,8 +89,6 @@ class Parameter:
         return 'Parameter({'+', '.join(l.to_cpp() for l in self.bit_locations)+'}, '+self.default_value+')'
 
 
-
-
 @dataclass
 class SubBlock:
     """A subblock has an address and a type specifying its parameters"""
@@ -100,7 +98,8 @@ class SubBlock:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('input', help='input yaml file with R0/R1 addresses')
-parser.add_argument('output', type=Path, help='output yaml file with page/register addresses')
+parser.add_argument('output', type=Path, help='output file with page/register addresses')
+parser.add_argument('--no-intermediate-yaml', action='store_true', help='do not dump intermediate page/register addresses into a yaml for comparison. Used in the CMakeLists.txt to avoid extraneous files.')
 args = parser.parse_args()
 
 with open(args.input) as f:
@@ -166,24 +165,27 @@ subblock_types = {
     for name, parameters in subblock_types.items()
 }
 
+# on new builds, the directory we are writing the header to may not exist yet
+args.output.parent.mkdir(exist_ok=True, parents=True)
 
 # yaml dump for easier comparison to manual
-with open(args.output, 'w') as f:
-    yaml.safe_dump(
-        {
-            'subblocks': {
-                name: asdict(subblock)
-                for name, subblock in subblocks.items()
+if not args.no_intermediate_yaml:
+    with open(args.output.with_suffix('.yaml'), 'w') as f:
+        yaml.safe_dump(
+            {
+                'subblocks': {
+                    name: asdict(subblock)
+                    for name, subblock in subblocks.items()
+                },
+                'subblock_types': {
+                    name: { param : asdict(val) }
+                    for name, parameters in subblock_types.items()
+                    for param, val in parameters.items()
+                }
             },
-            'subblock_types': {
-                name: { param : asdict(val) }
-                for name, parameters in subblock_types.items()
-                for param, val in parameters.items()
-            }
-        },
-        f,
-        sort_keys=False # our order is intentional, do not do dictionary sort
-    )
+            f,
+            sort_keys=False # our order is intentional, do not do dictionary sort
+        )
 
 
 # C++ dump for inclusion in pflib
@@ -199,7 +201,7 @@ with open(args.output.with_suffix('.h'), 'w') as f:
     f.write('const std::map<std::string, const std::map<std::string, Parameter>&>\n')
     f.write('PAGE_LUT = {\n')
     f.write(',\n'.join(
-        '  {"%s", %s }'
+        '  {"%s", %s }'%(name, name)
         for name in subblock_types
     ))
     f.write('\n};\n\n')
@@ -211,5 +213,4 @@ with open(args.output.with_suffix('.h'), 'w') as f:
         for name, subblock in subblocks.items()
     ))
     f.write('\n};\n')
-
 

@@ -1,0 +1,31 @@
+DirectAccess:
+  AutoReload:
+    address: 4
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 1
+  4JM0:
+    address: 4
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 2
+  4JM1:
+    address: 4
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 4
+  Error:
+    address: 7
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 1    
+  Parity:
+    address: 7
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 2  
+  Pll_lock:
+    address: 7
+    defval_mask: 0
+    param_mask: 1
+    reg_mask: 4
