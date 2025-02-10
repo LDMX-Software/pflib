@@ -23,10 +23,37 @@ project(pflib
 	DESCRIPTION "Pretty fine HGCROC configuration library."
 	LANGUAGES CXX)
 
+set(
+  ROC
+  "sipm_rocv3b"
+  CACHE STRING
+  "Type and version of HGCROC we will interface with. This affects how parameters are compiled into registers."
+)
+
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)
 message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
+
+if (ROC STREQUAL "sipm_v2")
+  # copy manually written file from pflib v2 into build include area
+  message(STATUS "Copying legacy manually-written C++ parameter LUTs into build.")
+  configure_file(
+      register_maps/sipm_rocv2.h
+      include/register_maps/roc.h
+      COPYONLY
+  )
+elseif(ROC STREQUAL "si_roc" OR ROC STREQUAL "si_rocv3b" OR ROC STREQUAL "sipm_rocv3" OR ROC STREQUAL "sipm_rocv3b")
+  set(reg_map_src "${PROJECT_SOURCE_DIR}/register_maps/${ROC}_regmap.yaml")
+  message(STATUS "Generating C++ parameter LUTs from ${reg_map_src}")
+  execute_process(
+    COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
+      ${reg_map_src} ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/roc.h --no-intermediate-yaml
+    COMMAND_ERROR_IS_FATAL ANY
+  )
+else()
+  message(FATAL "Setting ${ROC} not one of the allowed options.")
+endif()
 
 # Build the pf library
 #
@@ -49,6 +76,9 @@ add_library(pflib SHARED
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_include_directories(pflib PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp)
 
@@ -113,6 +143,7 @@ install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefa
   INCLUDES DESTINATION include
   )
 install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
 install(EXPORT pflibTargets
   FILE pflibTargets.cmake
   NAMESPACE pflib::

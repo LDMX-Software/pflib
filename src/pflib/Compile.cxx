@@ -52,7 +52,7 @@ struct Parameter {
     : Parameter({RegisterLocation(r,m,n)},def) {}
 };
 
-#include "register_maps/sipm_rocv2.h"
+#include "register_maps/roc.h"
 
 int str_to_int(std::string str) {
   if (str == "0") return 0;
@@ -205,24 +205,13 @@ std::vector<std::string> parameters(const std::string& page) {
   };
 
   std::string PAGE{upper_cp(page)};
-  if (PAGE == "DIGITALHALF") {
-    return get_parameter_names(DIGITAL_HALF_LUT);
-  } else if (PAGE == "CHANNELWISE") {
-    return get_parameter_names(CHANNEL_WISE_LUT);
-  } else if (PAGE == "TOP" ) {
-    return get_parameter_names(TOP_LUT);
-  } else if (PAGE == "MASTERTDC") {
-    return get_parameter_names(MASTER_TDC_LUT);
-  } else if (PAGE == "REFERENCEVOLTAGE") {
-    return get_parameter_names(REFERENCE_VOLTAGE_LUT);
-  } else if (PAGE == "GLOBALANALOG") {
-    return get_parameter_names(GLOBAL_ANALOG_LUT);
-  } else if (PARAMETER_LUT.find(PAGE) != PARAMETER_LUT.end()) {
-    return get_parameter_names(PARAMETER_LUT.at(PAGE).second);
-  } else {
+  auto page_it{PAGE_LUT.find(PAGE)};
+  if (page_it == PAGE_LUT.end()) {
     PFEXCEPTION_RAISE("BadName", 
         "Input page name "+page+" does not match a page or type of page.");
   }
+
+  return get_parameter_names(page_it->second);
 }
 
 std::map<std::string,std::map<std::string,int>> defaults() {
