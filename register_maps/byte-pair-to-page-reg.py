@@ -196,11 +196,10 @@ if not args.no_intermediate_yaml:
 with open(args.output.with_suffix('.h'), 'w') as f:
     f.write(f'/* auto-generated LUT header from {args.input} */\n\n')
     f.write('#pragma once\n\n')
-    f.write('namespace %s {\n\n'%(args.namespace))
     # the types PAGE_TYPE, PAGE_LUT_TYPE, and PARAMETER_LUT_TYPE are defined
-    # in register_maps/register_maps.h.in which is copied into the generated
-    # register_maps/register_maps.h and defined before including any of
-    # the headers that this script generates
+    # in register_maps/register_maps_types.h
+    f.write('#include "register_maps/register_maps_types.h"\n\n')
+    f.write('namespace %s {\n\n'%(args.namespace))
     for name, parameters in subblock_types.items():
         f.write('const PAGE_TYPE %s = {\n'%(name))
         f.write(',\n'.join(

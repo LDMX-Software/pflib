@@ -52,7 +52,17 @@ struct Parameter {
     : Parameter({RegisterLocation(r,m,n)},def) {}
 };
 
-#include "register_maps/roc.h"
+#include "register_maps/register_maps.h"
+
+static auto& [ PAGE_LUT, PARAMETER_LUT ] = REGISTER_MAP_BY_ROC_TYPE.at("sipm_rocv3b");
+
+void set_roc_type_version(const std::string& roc) {
+  auto reg_map_it = REGISTER_MAP_BY_ROC_TYPE.find(roc);
+  if (reg_map_it == REGISTER_MAP_BY_ROC_TYPE.end()) {
+    PFEXCEPTION_RAISE("BadRocType", "ROC type_version "+roc+" is not present within the map.");
+  }
+  auto [ PAGE_LUT, PARAMETER_LUT ] = *reg_map_it;
+}
 
 int str_to_int(std::string str) {
   if (str == "0") return 0;
