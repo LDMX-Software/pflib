@@ -10,11 +10,6 @@ parser.add_argument(
     nargs='+'
 )
 parser.add_argument(
-    '--prefix',
-    help='put the contents of this file before the generated C++',
-    type=Path
-)
-parser.add_argument(
     '--output',
     type=Path,
     help='where to write header to'
@@ -22,10 +17,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 with open(args.output, 'w') as f:
-    # write the first part of the C++ file into the generated file
-    with open(args.prefix) as prefix:
-        f.write(prefix.read())
-
+    f.write('/* auto generated from scratch */\n\n')
+    f.write('#pragma once\n\n')
     f.write('// include the register maps for each ROC type/version\n')
     for rt in args.roc_types:
         f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
