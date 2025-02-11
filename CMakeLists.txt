@@ -22,6 +22,7 @@ project(pflib
 	VERSION ${pflib_vers}
 	DESCRIPTION "Pretty fine HGCROC configuration library."
 	LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
 
 
 # YAML->register value "compiler"
@@ -65,7 +66,7 @@ add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
-    --prefix ${PROJECT_SOURCE_DIR}/register_maps/register_maps.h.in
+  COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
   DEPENDS ${generate_headers}
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
