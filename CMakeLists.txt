@@ -44,8 +44,8 @@ add_custom_command(
   COMMENT "Copying legacy C++ parameter LUTs from ${reg_map_src}"
   VERBATIM
 )
-add_custom_target(sipm_rocv2_header DEPENDS ${reg_map_header})
-list(APPEND generate_headers sipm_rocv2_header)
+add_custom_target(sipm_rocv2 DEPENDS ${reg_map_header})
+list(APPEND generate_headers sipm_rocv2)
 foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
   set(reg_map_src "${PROJECT_SOURCE_DIR}/register_maps/${roc}_regmap.yaml")
   set(reg_map_header "include/register_maps/${roc}.h")
@@ -57,9 +57,20 @@ foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
     COMMENT "Generating C++ parameter LUTs from ${reg_map_src}"
     VERBATIM
   )
-  add_custom_target(${roc}_header DEPENDS ${reg_map_header})
-  list(APPEND generate_headers "${roc}_header")
+  add_custom_target(${roc} DEPENDS ${reg_map_header})
+  list(APPEND generate_headers "${roc}")
 endforeach()
+
+add_custom_command(
+  OUTPUT include/register_maps/register_maps.h
+  COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
+    ${generate_headers} --output include/register_maps/register_maps.h
+    --prefix ${PROJECT_SOURCE_DIR}/register_maps/register_maps.h.in
+  DEPENDS ${generate_headers}
+  COMMENT "Writing unifying header for parameter LUTs"
+  VERBATIM
+)
+add_custom_target(register_maps_header DEPENDS include/register_maps/register_maps.h)
 
 configure_file(include/pflib/Version.h.in include/pflib/Version.h)
 
@@ -90,7 +101,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp)
-add_dependencies(pflib ${generate_headers})
+add_dependencies(pflib register_maps_header)
 
 add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)

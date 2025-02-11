@@ -1,0 +1,39 @@
+"""Write the header that includes all of the different LUT options and names them"""
+
+import argparse
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    'roc_types',
+    help='list of ROC types that were generated headers',
+    nargs='+'
+)
+parser.add_argument(
+    '--prefix',
+    help='put the contents of this file before the generated C++',
+    type=Path
+)
+parser.add_argument(
+    '--output',
+    type=Path,
+    help='where to write header to'
+)
+args = parser.parse_args()
+
+with open(args.output, 'w') as f:
+    # write the first part of the C++ file into the generated file
+    with open(args.prefix) as prefix:
+        f.write(prefix.read())
+
+    f.write('// include the register maps for each ROC type/version\n')
+    for rt in args.roc_types:
+        f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
+    f.write('\n// name the register maps so they can be retrieved by name\n')
+    f.write('const std::map<std::string, std::pair<const PAGE_LUT_TYPE&, const PARAMETER_LUT_TYPE&>>\n')
+    f.write('REGISTER_MAP_BY_ROC_TYPE = {\n')
+    f.write(',\n'.join(
+        '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
+        for rt in args.roc_types
+    ))
+    f.write('\n};\n\n')
