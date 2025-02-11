@@ -76,7 +76,7 @@ class Parameter:
             curr_min_bit += location.n_bits
         # store the default value as a string in binary, padded out to the full length
         # again, hopefully making it easier for comparison to the manual
-        bit_rep = '0b'+f'{defval:0b}'.zfill(curr_min_bit)
+        bit_rep = '0b'+f'{defval:0b}'.zfill(curr_min_bit) if defval != 0 else '0'
         return cls(bit_locations = locations, default_value = bit_rep)
 
 
