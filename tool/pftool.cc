@@ -303,6 +303,20 @@ static void roc_render( Target* pft ) {
  * @param[in] pft active target
  */
 static void roc( const std::string& cmd, Target* pft ) {
+  // generate lists of page names and param names for those pages
+  // for tab completion
+  static std::vector<std::string> page_names;
+  static std::map<std::string,std::vector<std::string>> param_names;
+  if (page_names.empty()) {
+    // only need to do this once 
+    auto defs = pflib::defaults();
+    for (const auto& page : defs) {
+      page_names.push_back(page.first);
+      for (const auto& param : page.second) {
+        param_names[page.first].push_back(param.first);
+      }
+    }
+  }
   if (cmd=="HARDRESET") {
     pft->hcal().hardResetROCs();
   }
@@ -332,16 +346,12 @@ static void roc( const std::string& cmd, Target* pft ) {
       printf("%02d : %02x\n",i,v[i]);
   }
   if (cmd=="PARAM_NAMES") {
-    std::cout <<
-      "Select a page type from the following list:\n"
-      " - DigitalHalf\n"
-      " - ChannelWise (used for Channel_, CALIB, and CM pages)\n"
-      " - Top\n"
-      " - MasterTDC\n"
-      " - ReferenceVoltage\n"
-      " - GlobalAnalog\n"
-      << std::endl;
-    std::string p = BaseMenu::readline("Page type? ", "Top");
+    std::cout << "Select a page type from the following list:\n";
+    for (const auto& page : page_names) {
+      std::cout << " - " << page << "\n";
+    }
+    std::cout << std::endl;
+    std::string p = BaseMenu::readline("Page type? ", page_names);
     std::vector<std::string> param_names = roc.parameters(p);
     for (const std::string& pn : param_names) {
       std::cout << pn << "\n";
@@ -356,8 +366,11 @@ static void roc( const std::string& cmd, Target* pft ) {
     roc.setValue(page,entry,value);
   }
   if (cmd=="POKE"||cmd=="POKE_PARAM") {
-    std::string page = BaseMenu::readline("Page: ", "Global_Analog_0");
-    std::string param = BaseMenu::readline("Parameter: ");
+    std::string page = BaseMenu::readline("Page: ", page_names);
+    if (param_names.find(page) == param_names.end()) {
+      PFEXCEPTION_RAISE("BadPage", "Page name "+page+" not recognized.");
+    }
+    std::string param = BaseMenu::readline("Parameter: ", param_names.at(page));
     int val = BaseMenu::readline_int("New value: ");
 
     roc.applyParameter(page, param, val);
