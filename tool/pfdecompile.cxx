@@ -24,6 +24,8 @@ static void usage() {
     "  -h,--help     : Print this help and exit\n"
     "  --no-careful  : Don't print warnings and use 0 for missing registers\n"
     "  --careful     : Print warnings and skip parameters with missing registers (default)\n"
+    "  -r,--roc      : Define the ROC type_version that should be used for compilation\n"
+    "                  By default, we use the sipm_rocv3b register mapping.\n"
     "  --output, -o  : Define the output file.\n"
     "                  By default, the output file is the file with register values with extension\n"
     "                  changed to 'yaml'\n"
@@ -89,6 +91,20 @@ int main(int argc, char *argv[]) {
       if (arg == "--help" or arg == "-h") {
         usage();
         return 0;
+      } else if (arg == "--roc" or arg == "-r") {
+        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
+          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          return 1;
+        }
+        i_arg++;
+        std::string type_version{argv[i_arg]};
+        try {
+          pflib::set_roc_type_version(type_version);
+        } catch (const pflib::Exception& e) {
+          std::cerr << "ERROR: " << "[" << e.name() << "] "
+            << e.message() << std::endl;
+          return 1;
+        }
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
           std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
