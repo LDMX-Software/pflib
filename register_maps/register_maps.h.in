@@ -1,0 +1,26 @@
+/* unifying header for all register maps
+ * the specific maps written into the headers corresponding
+ * to the names of the HGCROC type/versions rely on this header
+ * to join them together into a coherent interface for the compiler
+ * and to include the necessary headers they rely upon.
+ */
+
+#pragma once
+
+// need maps and strings for the LUTs
+#include <map>
+#include <string>
+
+// type for a page specifying names and specifications of parameters
+using PAGE_TYPE = std::map<std::string, Parameter>;
+
+// type for LUT that holds page types
+using PAGE_LUT_TYPE = std::map<std::string, const PAGE_TYPE&>;
+
+// type for a LUT that holds pages with their address and page type
+using PARAMETER_LUT_TYPE = std::map<std::string, std::pair<int, const PAGE_TYPE&>>;
+
+/*
+ * below this comment, the header is written by
+ * register_maps/write-unifying-header.py
+ */
