@@ -20,7 +20,3 @@ using PAGE_LUT_TYPE = std::map<std::string, const PAGE_TYPE&>;
 // type for a LUT that holds pages with their address and page type
 using PARAMETER_LUT_TYPE = std::map<std::string, std::pair<int, const PAGE_TYPE&>>;
 
-/*
- * below this comment, the header is written by
- * register_maps/write-unifying-header.py
- */

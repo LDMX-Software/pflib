@@ -38,6 +38,16 @@ int str_to_int(std::string str);
 std::string upper_cp(const std::string& str);
 
 /**
+ * Define the HGCROC type_version that we are working with
+ *
+ * This chooses which parameters are available and which registers
+ * the parameters affect.
+ *
+ * @param[in] roc the type_version string
+ */
+void set_roc_type_version(const std::string& roc);
+
+/**
  * Overlay a single parameter onto the input register map.
  *
  * This only overwrites the bits that need to be changed

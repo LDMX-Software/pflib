@@ -8,6 +8,8 @@
  * compared to the manual and is obtained from CMS folks.
  */
 
+namespace sipm_rocv2 {
+
 /**
  * The Look Up Table of for the Global Analog sub-blocks
  * of an HGC ROC
@@ -341,3 +343,5 @@ PARAMETER_LUT = {
   {"CHANNEL_70", {36, CHANNEL_WISE_LUT}},
   {"CHANNEL_71", {37, CHANNEL_WISE_LUT}}
 };
+
+}
