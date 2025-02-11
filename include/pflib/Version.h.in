@@ -9,6 +9,7 @@
 #define GIT_DESCRIBE "${git_describe}"
 #define ROC_VERSION "${ROC}"
 
-void print_version() {
-  printf("  pflib %s (%s)\n  built for %s\n", PFLIB_VERSION, GIT_DESCRIBE, ROC_VERSION);
-}
+/**
+ * print a two-line version message to stdout
+ */
+void print_version();
