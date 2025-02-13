@@ -1,0 +1,8 @@
+build_x86_64_almalinux8:
+  extends: .build_template_x86_64
+  image:
+    name: gitlab-registry.cern.ch/hgcal-daq-sw/serenity-daq/docker_images/base/almalinux8-x86_64
+  variables:
+    OS: almalinux
+    VERSION: "8"
+    TGT_ARCH: x86_64

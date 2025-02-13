@@ -23,7 +23,7 @@ with open(args.output, 'w') as f:
     for rt in args.roc_types:
         f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
     f.write('\n// name the register maps so they can be retrieved by name\n')
-    f.write('const std::map<std::string, std::pair<const PAGE_LUT_TYPE&, const PARAMETER_LUT_TYPE&>>\n')
+    f.write('const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>\n')
     f.write('REGISTER_MAP_BY_ROC_TYPE = {\n')
     f.write(',\n'.join(
         '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)

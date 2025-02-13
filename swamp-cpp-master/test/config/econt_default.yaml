@@ -1,0 +1,1846 @@
+Algo:
+  Global:
+    tmr_err_cnt_alg: 0
+AlgoDroplsb:
+  Global:
+    drop_lsb: 0
+AlgoThreshold:
+  00: 0
+  01: 0
+  02: 0
+  03: 0
+  04: 0
+  05: 0
+  06: 0
+  07: 0
+  08: 0
+  09: 0
+  10: 0
+  11: 0
+  12: 0
+  13: 0
+  14: 0
+  15: 0
+  16: 0
+  17: 0
+  18: 0
+  19: 0
+  20: 0
+  21: 0
+  22: 0
+  23: 0
+  24: 0
+  25: 0
+  26: 0
+  27: 0
+  28: 0
+  29: 0
+  30: 0
+  31: 0
+  32: 0
+  33: 0
+  34: 0
+  35: 0
+  36: 0
+  37: 0
+  38: 0
+  39: 0
+  40: 0
+  41: 0
+  42: 0
+  43: 0
+  44: 0
+  45: 0
+  46: 0
+  47: 0
+Aligner:
+  Global:
+    snapshot_arm: 0
+    snapshot_en: 1
+    i2c_snapshot_en: 0
+    dbg_fc_cnt_clr: 0
+    freeze_output_enable: 1
+    freeze_output_enable_all_channels_locked: 1
+    match_pattern_val:
+      00: 2594876074
+      01: 0
+    match_mask_val:
+      00: 0
+      01: 4294967295
+    orbsyn_hdr_val: 9
+    orbsyn_hdr_mask: 0
+    idle_hdr_val: 10
+    idle_hdr_mask: 0
+    orbsyn_cnt_max_val: 3563
+    orbsyn_cnt_load_val: 3513
+    orbsyn_cnt_snapshot: 2
+    done: 0
+    dbg_lreset_rcvd: 0
+    dbg_orbsyn_rcvd: 0
+    dbg_fc_cnt: 0
+    tmr_err_cnt_aligner: 0
+Cal:
+  00: 2048
+  01: 2048
+  02: 2048
+  03: 2048
+  04: 2048
+  05: 2048
+  06: 2048
+  07: 2048
+  08: 2048
+  09: 2048
+  10: 2048
+  11: 2048
+  12: 2048
+  13: 2048
+  14: 2048
+  15: 2048
+  16: 2048
+  17: 2048
+  18: 2048
+  19: 2048
+  20: 2048
+  21: 2048
+  22: 2048
+  23: 2048
+  24: 2048
+  25: 2048
+  26: 2048
+  27: 2048
+  28: 2048
+  29: 2048
+  30: 2048
+  31: 2048
+  32: 2048
+  33: 2048
+  34: 2048
+  35: 2048
+  36: 2048
+  37: 2048
+  38: 2048
+  39: 2048
+  40: 2048
+  41: 2048
+  42: 2048
+  43: 2048
+  44: 2048
+  45: 2048
+  46: 2048
+  47: 2048
+ChAligner:
+  00:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  01:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  02:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  03:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  04:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  05:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  06:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  07:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  08:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  09:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  10:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+  11:
+    user_word:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    per_ch_align_en: 1
+    sel_override_en: 0
+    patt_en: 0
+    prbs28_en: 0
+    patt_sel: 0
+    prbs_chk_en: 0
+    force_ch_outputs: 0
+    sel_override_val: 0
+    seed_in: 0
+    pattern_match: 0
+    snapshot_dv: 0
+    hdr_mm_err: 0
+    spare_err: 0
+    orbsyn_hdr_err: 0
+    orbsyn_arr_err: 0
+    orbsyn_fc_err: 0
+    prbs_chk_err: 0
+    select: 32
+    snapshot:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    hdr_mm_cntr: 0
+    orbsyn_hdr_err_cnt: 0
+    orbsyn_arr_err_cnt: 0
+    orbsyn_fc_err_cnt: 0
+    prbs_chk_err_cnt: 0
+    tmr_err_cnt_chan_aligner: 0
+    tmr_err_cnt_chan_err: 0
+    tmr_err_cnt_chan_eprxgrp: 0
+ChEprxGrp:
+  00:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  01:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  02:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  03:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  04:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  05:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  06:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  07:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  08:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  09:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  10:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+  11:
+    dll_reset_req: 0
+    reset_channels: 0
+    train_channel: 0
+    phase_select_channelinput: 0
+    dll_state: 0
+    phase_select_channeloutput: 0
+    dll_instant_lock: 0
+    channel_locked: 0
+    dll_locked: 0
+    dll_lock_filter_state: 0
+    dll_loss_of_lock_count: 0
+ChErr:
+  00:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  01:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  02:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  03:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  04:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  05:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  06:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  07:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  08:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  09:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  10:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+  11:
+    clr_on_read: 0
+    wren_err: 0
+    wren_msk: 0
+    err_raw_dat: 0
+    msk_dat: 0
+    err_dat: 0
+    err_out: 0
+ClocksAndResets:
+  Global:
+    test_output_select:
+      00: 0
+      01: 0
+    test_output_enable:
+      00: 1
+      01: 1
+    test_output_invert_data:
+      00: 0
+      01: 0
+    test_output_preemp_mode:
+      00: 0
+      01: 0
+    test_output_drive_strength:
+      00: 3
+      01: 3
+    test_output_preemp_strength:
+      00: 3
+      01: 3
+    test_output_preemp_width:
+      00: 0
+      01: 0
+    test_output_low_supply_r:
+      00: 0
+      01: 0
+    pusm_timeout_pll_action_rst: 0
+    pusm_timeout_dll_action_rst: 0
+    pusm_watchdog_pll_action_rst: 0
+    pusm_watchdog_dll_action_rst: 0
+    pusm_left_ready_action_rst: 0
+    pusm_state_upset_action_rst: 0
+    lock_filter_loss_of_lock_count_rst: 0
+    fc_locked_action_rst: 0
+    pusm_force_state: 0
+    pusm_force_magic: 0
+    pusm_state_forced: 0
+    pusm_wdog_pll_disable: 0
+    pusm_wdog_dll_disable: 0
+    pusm_timeout_pll_lock_config: 0
+    pusm_timeout_dll_lock_config: 0
+    pusm_run: 0
+    clk_tree_magic_number: 0
+    clk_tree_a_disable: 0
+    clk_tree_b_disable: 0
+    clk_tree_c_disable: 0
+    pll_config_res: 2
+    pll_config_res_when_locked: 2
+    pll_config_integral: 9
+    pll_config_integral_when_locked: 9
+    pll_config_proportional: 9
+    pll_config_proportional_when_locked: 9
+    vco_config_biasgen: 8
+    vco_config_dac: 8
+    vco_rail_rail_mode: 1
+    enable_capbank_override: 0
+    capbank_select: 31
+    calibration_end_of_count_select: 15
+    wait_pll_time: 15
+    enable_control_override: 0
+    co_enable_pll: 0
+    co_connect_pll: 0
+    co_dis_data_counter_ref: 0
+    co_dis_des_vbiasgen: 0
+    co_override_vc: 0
+    lock_filter_enable: 1
+    lock_filter_lock_threshold: 15
+    lock_filter_relock_threshold: 15
+    lock_filter_un_lock_threshold: 15
+    lock_filter_clk_always_enable: 0
+    ref_clk_sel_testclkin: 0
+    clk_tree_sram_disable: 0
+    clk_tree_erx_disable: 0
+    clk_tree_etx_disable: 0
+    pusm_timeout_pll_action_counter: 0
+    pusm_timeout_dll_action_counter: 0
+    pusm_watchdog_pll_action_counter: 0
+    pusm_watchdog_dll_action_counter: 0
+    pusm_left_ready_action_counter: 0
+    pusm_state_upset_action_counter: 0
+    pusm_state: 0
+    lock_filter_state: 0
+    lock_filter_locked: 0
+    lock_filter_loss_of_lock_count: 0
+    sm_state: 0
+    sm_locked: 0
+    vco_capbank: 0
+    tmr_err_cnt_clocks_and_resets: 0
+Config:
+  00:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  01:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  02:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  03:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  04:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  05:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  06:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  07:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  08:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  09:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  10:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  11:
+    bad_erx_pass_fail_counter: 0
+    bad_erx_err_out: 0
+  Global:
+    tmr_err_cnt_mfc: 0
+ConfigAlgo:
+  Global:
+    alg_type: 0
+    alg_high_density: 0
+    bad_erx_mode: 0
+    valid_threshold: 1
+    invalid_threshold: 1
+    observation_window: 1
+ERx:
+  00:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  01:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  02:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  03:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  04:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  05:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  06:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  07:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  08:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  09:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  10:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  11:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  Global:
+    tmr_err_cnt_erx: 0
+  Mux00:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  Mux01:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+  Mux02:
+    enable: 1
+    invert_data: 0
+    enable_termination: 1
+    equalizer: 0
+    set_common_mode: 0
+ETx:
+  00:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  01:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  02:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  03:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  04:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  05:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  06:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  07:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  08:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  09:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  10:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  11:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  12:
+    invert_data: 0
+    drive_strength: 3
+    pre_emphasis_mode: 0
+    pre_emphasis_width: 0
+    pre_emphasis_strength: 3
+    low_supply_r: 0
+  Global:
+    tmr_err_cnt_etx: 0
+Encoder:
+  00:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  01:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  02:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  03:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  04:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  05:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  06:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  07:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  08:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  09:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  10:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  11:
+    weights_byte0:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte16:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte32:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte48:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte64:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte80:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte96:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte112:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+    weights_byte128:
+      00: 0
+      01: 0
+  Global:
+    tmr_err_cnt_auto_encoder: 0
+EprxGrpTop:
+  Global:
+    dll_current_set: 1
+    dll_coarse_lock_detection: 1
+    data_gating_enable: 1
+    track_mode: 1
+    dll_lock_threshold: 5
+    dll_re_lock_threshold: 5
+    dll_un_lock_threshold: 5
+    dll_confirm_count_select: 2
+    dll_init_sm_force_clock_enable: 0
+    enable_re_init: 0
+    tmr_err_cnt_eprxgrp_top: 0
+ErrTop:
+  Global:
+    clr_on_read_top: 0
+    wren_err_top: 0
+    wren_msk_top: 0
+    wr_data_top: 0
+    err_wr_data: 0
+    msk_dat_top: 0
+    err_dat_top: 0
+    err_out_top: 0
+    tmr_err_cnt_err_top: 0
+FCtrl:
+  Global:
+    spare_fcmd_count:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+      06: 0
+      07: 0
+    edge_sel_t1: 1
+    pre_l1a_offset: 0
+    invert_command_rx: 0
+    capture_fcmd_ctrl: 0
+    command_rx_inverted: 0
+    locked: 0
+    lock_count: 0
+    bcr_fcmd_count: 0
+    ocr_fcmd_count: 0
+    l1a_fcmd_count: 0
+    nzs_fcmd_count: 0
+    cal_pulse_int_fcmd_count: 0
+    cal_pulse_ext_fcmd_count: 0
+    ebr_fcmd_count: 0
+    ecr_fcmd_count: 0
+    link_reset_roc_t_fcmd_count: 0
+    link_reset_roc_d_fcmd_count: 0
+    link_reset_econ_t_fcmd_count: 0
+    link_reset_econ_d_fcmd_count: 0
+    unassigned_fcmd_count: 0
+    fc_error_fcmd_count: 0
+    tmr_err_cnt_fast_ctrl_decoder: 0
+FormatterBuffer:
+  Global:
+    align_serializer:
+      00: 0
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+      06: 0
+      07: 0
+      08: 0
+      09: 0
+      10: 0
+      11: 0
+      12: 0
+    buff_t1: 48
+    buff_t2: 511
+    buff_t3: 0
+    use_sum: 1
+    stc_type: 1
+    active_etxs: 3
+    idle_pattern: 1450
+    keep_auto_encoder_bits:
+      00: 4294967295
+      01: 4294967295
+      02: 4294967295
+      03: 4294967295
+      04: 65535
+    link_reset_pattern: 290
+    etx_pattern: 0
+    buffer_wr_ptr_ovflw_err: 0
+    tmr_err_cnt_fmtbuf: 0
+Misc:
+  Global:
+    rw_err_clr:
+      00: 0
+    ro:
+      00: 0
+    status_clear: 0
+    status_capture: 0
+    bad_erx_status_clear: 0
+    wbmaster_err_wb_adr_cnt: 0
+Misc_TMR_ERR_CNT:
+  Global:
+    tmr_err_cnt_misc: 0
+Mux:
+  00: 0
+  01: 1
+  02: 2
+  03: 3
+  04: 4
+  05: 5
+  06: 6
+  07: 7
+  08: 8
+  09: 9
+  10: 10
+  11: 11
+  12: 12
+  13: 13
+  14: 14
+  15: 15
+  16: 16
+  17: 17
+  18: 18
+  19: 19
+  20: 20
+  21: 21
+  22: 22
+  23: 23
+  24: 24
+  25: 25
+  26: 26
+  27: 27
+  28: 28
+  29: 29
+  30: 30
+  31: 31
+  32: 32
+  33: 33
+  34: 34
+  35: 35
+  36: 36
+  37: 37
+  38: 38
+  39: 39
+  40: 40
+  41: 41
+  42: 42
+  43: 43
+  44: 44
+  45: 45
+  46: 46
+  47: 47

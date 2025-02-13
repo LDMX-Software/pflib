@@ -1,0 +1,49 @@
+#train:
+  transport:
+    ic:
+      type: ic_ec_with_emp
+      cfg: 
+        connection_file: file:///opt/hgc_utils/etc/connections.xml
+        device: x1
+        emp_channel: 12
+        timeout: 10000
+    ec:
+      type: ic_ec_with_emp
+      cfg:
+        connection_file: file:///opt/hgc_utils/etc/connections.xml
+        device: x1
+        emp_channel: 12
+        timeout: 10000
+        isIC: false
+    i2c_trg_w0:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_w
+      cfg:
+        bus: 0
+  chip:
+    lpgbt_daq:
+      type: lpgbt
+      transport: ic
+      cfg:
+        address: 0x70
+    lpgbt_trg_w:
+      type: lpgbt
+      transport: ec
+      cfg:
+        address: 0x71
+    roc0_w0:
+      type: roc
+      transport: i2c_trg_w0
+      cfg:
+        address: 0x08
+    roc1_w0:
+      type: roc
+      transport: i2c_trg_w0
+      cfg:
+        address: 0x18
+    roc2_w0:
+      type: roc
+      transport: i2c_trg_w0
+      cfg:
+        address: 0x28
+

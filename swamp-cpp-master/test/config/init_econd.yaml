@@ -1,0 +1,37 @@
+## Change settings to match HGCROCv3 format
+RocDaqCtrl:
+  Global:
+    hgcroc_hdr_marker: 5
+    sync_header: 0xa
+    sync_body: 0x5555555
+    first_sync_header: 0x9
+    pass_thru_mode: 1
+    active_erxs: 0x3F
+    simple_mode: 1
+    bcr_bucket_default: 5
+FormatterBuffer:
+  Global:
+    active_etxs: 0x1 #only 1 etx for wagon with 3 modules, 0x3 = 2 etx active with wagon with 1 module; may need to start with 6 active etx (0x3f, but it is the default) and then back to 1 
+    idle_pattern: 0xccccff
+    link_reset_pattern: 0x1aa
+    errin_mask: 0xff
+    header_marker: 0x154
+ELinkProcessors:
+  Global:
+    veto_pass_fail: 0xffff
+    recon_mode_result: 0x0
+    v_reconstruct_thresh: 0x3
+Aligner:
+  Global:
+    orbsyn_cnt_load_val: 1
+    orbsyn_cnt_snapshot: 3483
+    snapshot_en: 1
+    match_pattern_val: 
+      00: 0x95555555
+      01: 0x0
+    freeze_output_enable: 0x0
+    freeze_output_enable_all_channels_locked: 0x0
+FCtrl:
+  Global:
+    pre_l1a_offset: 0x3
+    capture_fcmd_ctrl: 0x4

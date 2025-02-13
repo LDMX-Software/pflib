@@ -342,7 +342,7 @@ static void roc( const std::string& cmd, Target* pft ) {
       " - GlobalAnalog\n"
       << std::endl;
     std::string p = BaseMenu::readline("Page type? ", "Top");
-    std::vector<std::string> param_names = pflib::parameters(p);
+    std::vector<std::string> param_names = roc.parameters(p);
     for (const std::string& pn : param_names) {
       std::cout << pn << "\n";
     }

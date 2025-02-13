@@ -3,66 +3,12 @@
 
 #include <map>
 #include <iostream>
-#include <algorithm>
 #include <strings.h>
 
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
 
 namespace pflib {
-
-/**
- * Structure holding a location in the registers
- */
-struct RegisterLocation {
-  /// the register the parameter is in (0-15)
-  const int reg;
-  /// the min bit the location is in the register (0-7)
-  const int min_bit;
-  /// the number of bits the location has in the register (1-8)
-  const int n_bits;
-  /// the mask for this number of bits
-  const int mask;
-  /**
-   * Usable constructor
-   *
-   * This constructor allows us to calculat the mask from the
-   * number of bits so that the downstream compilation functions
-   * don't have to calculate it themselves.
-   */
-  RegisterLocation(int r, int m, int n)
-    : reg{r}, min_bit{m}, n_bits{n},
-      mask{((1 << n_bits) - 1)} {}
-};
-
-/**
- * A parameter for the HGC ROC includes one or more register locations
- * and a default value defined in the manual.
- */
-struct Parameter {
-  /// the default parameter value
-  const int def;
-  /// the locations that the parameter is split over
-  const std::vector<RegisterLocation> registers;
-  /// pass locations and default value of parameter
-  Parameter(std::initializer_list<RegisterLocation> r,int def)
-    : def{def}, registers{r} {}
-  /// short constructor for single-location parameters
-  Parameter(int r, int m, int n, int def)
-    : Parameter({RegisterLocation(r,m,n)},def) {}
-};
-
-#include "register_maps/register_maps.h"
-
-static auto& [ PAGE_LUT, PARAMETER_LUT ] = REGISTER_MAP_BY_ROC_TYPE.at("sipm_rocv3b");
-
-void set_roc_type_version(const std::string& roc) {
-  auto reg_map_it = REGISTER_MAP_BY_ROC_TYPE.find(roc);
-  if (reg_map_it == REGISTER_MAP_BY_ROC_TYPE.end()) {
-    PFEXCEPTION_RAISE("BadRocType", "ROC type_version "+roc+" is not present within the map.");
-  }
-  auto [ PAGE_LUT, PARAMETER_LUT ] = *reg_map_it;
-}
 
 int str_to_int(std::string str) {
   if (str == "0") return 0;
@@ -91,10 +37,23 @@ std::string upper_cp(const std::string& str) {
   return STR;
 }
 
-void compile(const std::string& page_name, const std::string& param_name, const int& val, 
+#include "register_maps/register_maps.h"
+
+Compiler Compiler::get(const std::string& roc_type_version) {
+  auto reg_map_it = REGISTER_MAP_BY_ROC_TYPE.find(roc_type_version);
+  if (reg_map_it == REGISTER_MAP_BY_ROC_TYPE.end()) {
+    PFEXCEPTION_RAISE("BadRocType", "ROC type_version "+roc_type_version+" is not present within the map.");
+  }
+  return Compiler(reg_map_it->second.second, reg_map_it->second.first);
+}
+
+Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
+  : parameter_lut_{parameter_lut}, page_lut_{page_lut} {}
+
+void Compiler::compile(const std::string& page_name, const std::string& param_name, const int& val, 
     std::map<int,std::map<int,uint8_t>>& register_values) {
-  const auto& page_id {PARAMETER_LUT.at(page_name).first};
-  const Parameter& spec{PARAMETER_LUT.at(page_name).second.at(param_name)};
+  const auto& page_id {parameter_lut_.at(page_name).first};
+  const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   std::size_t value_curr_min_bit{0};
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
@@ -114,12 +73,12 @@ void compile(const std::string& page_name, const std::string& param_name, const 
 }
 
 std::map<int,std::map<int,uint8_t>> 
-compile(const std::string& page_name, const std::string& param_name, const int& val) {
+Compiler::compile(const std::string& page_name, const std::string& param_name, const int& val) {
   std::string PAGE_NAME(upper_cp(page_name)), PARAM_NAME(upper_cp(param_name));
-  if (PARAMETER_LUT.find(PAGE_NAME) == PARAMETER_LUT.end()) {
+  if (parameter_lut_.find(PAGE_NAME) == parameter_lut_.end()) {
     PFEXCEPTION_RAISE("NotFound", "The page named '"+PAGE_NAME+"' is not found in the look up table.");
   }
-  const auto& page_lut{PARAMETER_LUT.at(PAGE_NAME).second};
+  const auto& page_lut{parameter_lut_.at(PAGE_NAME).second};
   if (page_lut.find(PARAM_NAME) == page_lut.end()) {
     PFEXCEPTION_RAISE("NotFound", "The parameter named '"+PARAM_NAME
         +"' is not found in the look up table for page "+PAGE_NAME);
@@ -130,19 +89,19 @@ compile(const std::string& page_name, const std::string& param_name, const int& 
 }
 
 std::map<int,std::map<int,uint8_t>> 
-compile(const std::map<std::string,std::map<std::string,int>>& settings) {
+Compiler::compile(const std::map<std::string,std::map<std::string,int>>& settings) {
   std::map<int,std::map<int,uint8_t>> register_values;
   for (const auto& page : settings) {
     // page.first => page name
     // page.second => parameter to value map
     std::string page_name = upper_cp(page.first);
-    if (PARAMETER_LUT.find(page_name) == PARAMETER_LUT.end()) {
+    if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
       // this exception shouldn't really ever happen because we check if the input
       // page matches any of the pages in the LUT in detail::apply, but
       // we leave this check in here for future development
       PFEXCEPTION_RAISE("NotFound", "The page named '"+page.first+"' is not found in the look up table.");
     }
-    const auto& page_lut{PARAMETER_LUT.at(page_name).second};
+    const auto& page_lut{parameter_lut_.at(page_name).second};
     for (const auto& param : page.second) {
       // param.first => parameter name
       // param.second => value
@@ -159,9 +118,9 @@ compile(const std::map<std::string,std::map<std::string,int>>& settings) {
 }
 
 std::map<std::string,std::map<std::string,int>>
-decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_careful) {
+Compiler::decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_careful) {
   std::map<std::string,std::map<std::string,int>> settings;
-  for (const auto& page : PARAMETER_LUT) {
+  for (const auto& page : parameter_lut_) {
     const std::string& page_name{page.first};
     const int& page_id{page.second.first};
     const auto& page_lut{page.second.second};
@@ -207,7 +166,7 @@ decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_ca
   return settings;
 }
 
-std::vector<std::string> parameters(const std::string& page) {
+std::vector<std::string> Compiler::parameters(const std::string& page) {
   static auto get_parameter_names = [&](const std::map<std::string,Parameter>& lut) -> std::vector<std::string> {
     std::vector<std::string> names;
     for (const auto& param : lut) names.push_back(param.first);
@@ -215,8 +174,8 @@ std::vector<std::string> parameters(const std::string& page) {
   };
 
   std::string PAGE{upper_cp(page)};
-  auto page_it{PAGE_LUT.find(PAGE)};
-  if (page_it == PAGE_LUT.end()) {
+  auto page_it{page_lut_.find(PAGE)};
+  if (page_it == page_lut_.end()) {
     PFEXCEPTION_RAISE("BadName", 
         "Input page name "+page+" does not match a page or type of page.");
   }
@@ -224,9 +183,9 @@ std::vector<std::string> parameters(const std::string& page) {
   return get_parameter_names(page_it->second);
 }
 
-std::map<std::string,std::map<std::string,int>> defaults() {
+std::map<std::string,std::map<std::string,int>> Compiler::defaults() {
   std::map<std::string,std::map<std::string,int>> settings;
-  for(auto& page : PARAMETER_LUT) {
+  for(auto& page : parameter_lut_) {
     for (auto& param : page.second.second) {
       settings[page.first][param.first] = param.second.def;
     }
@@ -235,7 +194,7 @@ std::map<std::string,std::map<std::string,int>> defaults() {
 }
 
 
-void extract(const std::vector<std::string>& setting_files,
+void Compiler::extract(const std::vector<std::string>& setting_files,
     std::map<std::string,std::map<std::string,int>>& settings) {
   for (auto& setting_file : setting_files) {
     YAML::Node setting_yaml;
@@ -245,15 +204,15 @@ void extract(const std::vector<std::string>& setting_files,
       PFEXCEPTION_RAISE("BadFile","Unable to load file " + setting_file);
     }
     if (setting_yaml.IsSequence()) {
-      for (std::size_t i{0}; i < setting_yaml.size(); i++) detail::extract(setting_yaml[i],settings);
+      for (std::size_t i{0}; i < setting_yaml.size(); i++) Compiler::extract(setting_yaml[i],settings);
     } else {
-      detail::extract(setting_yaml, settings);
+      Compiler::extract(setting_yaml, settings);
     }
   }
 }
 
 std::map<int,std::map<int,uint8_t>> 
-compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
+Compiler::compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
   std::map<std::string,std::map<std::string,int>> settings;
   // if we prepend the defaults, put all settings and their defaults 
   // into the settings map before extraction
@@ -263,18 +222,16 @@ compile(const std::vector<std::string>& setting_files, bool prepend_defaults) {
 }
 
 std::map<int,std::map<int,uint8_t>> 
-compile(const std::string& setting_file, bool prepend_defaults) {
+Compiler::compile(const std::string& setting_file, bool prepend_defaults) {
   return compile(std::vector<std::string>{setting_file}, prepend_defaults);
 }
 
-namespace detail {
-
-void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
+void Compiler::extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run
   static std::vector<std::string> page_names;
   if (page_names.empty()) {
-    for (auto& page : PARAMETER_LUT) page_names.push_back(page.first);
+    for (auto& page : parameter_lut_) page_names.push_back(page.first);
   }
 
   if (params.IsNull()) {
@@ -330,5 +287,4 @@ void extract(YAML::Node params, std::map<std::string,std::map<std::string,int>>&
   }
 }
 
-} // namespace detail
 } // namespace pflib
