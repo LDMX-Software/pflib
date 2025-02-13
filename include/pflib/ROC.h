@@ -2,6 +2,7 @@
 #define PFLIB_ROC_H_INCLUDED
 
 #include "pflib/I2C.h"
+#include "pflib/Compile.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -14,7 +15,7 @@ namespace pflib {
  */
 class ROC {
  public:
-  ROC(I2C& i2c, uint8_t roc_base_addr);
+  ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version);
 
   void setRunMode(bool active=true);
   bool isRunMode();
@@ -27,6 +28,8 @@ class ROC {
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
 
   void setRegisters(const std::map<int,std::map<int,uint8_t>>& registers);
+  std::vector<std::string> parameters(const std::string& page);
+
   void applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters);
 
   // short-hand for just applying a single parameter
@@ -36,6 +39,7 @@ class ROC {
  private:
   I2C& i2c_;
   uint8_t roc_base_;
+  Compiler compiler_;
 };      
   
 }

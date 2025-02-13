@@ -1,5 +1,4 @@
 #include "pflib/ROC.h"
-#include "pflib/Compile.h"
 #include <iostream>
 
 namespace pflib {
@@ -23,8 +22,8 @@ static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
   30, 31, 32, 33, // 64-67
   34, 35, 36, 37}; // 68-71
 
-ROC::ROC(I2C& i2c, uint8_t roc_base_addr) : i2c_{i2c}, roc_base_{roc_base_addr} {
-}
+ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
+  : i2c_{i2c}, roc_base_{roc_base_addr}, compiler_{Compiler::get(type_version)} {}
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
@@ -93,9 +92,13 @@ void ROC::setRegisters(const std::map<int,std::map<int,uint8_t>>& registers) {
   }
 }
 
+std::vector<std::string> ROC::parameters(const std::string& page) {
+  return compiler_.parameters(page);
+}
+
 void ROC::applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters) {
   // 1. get registers YAML file contains by compiling without defaults
-  auto touched_registers = compile(parameters);
+  auto touched_registers = compiler_.compile(parameters);
   // 2. get the current register values on the chip
   std::map<int,std::map<int,uint8_t>> chip_reg;
   for (auto& page : touched_registers) {
@@ -115,7 +118,7 @@ void ROC::applyParameters(const std::map<std::string,std::map<std::string,int>>&
   for (auto& page : parameters) {
     std::string page_name = upper_cp(page.first);
     for (auto& param : page.second) {
-      compile(page_name,upper_cp(param.first),param.second,chip_reg);
+      compiler_.compile(page_name,upper_cp(param.first),param.second,chip_reg);
     }
   }
   // 4. put these updated values onto the chip

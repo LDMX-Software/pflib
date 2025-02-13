@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
   bool careful{true};
   std::string input_filename;
   std::string output_filename;
+  std::string roc_type_version;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
     if (arg[0] == '-') {
@@ -97,14 +98,7 @@ int main(int argc, char *argv[]) {
           return 1;
         }
         i_arg++;
-        std::string type_version{argv[i_arg]};
-        try {
-          pflib::set_roc_type_version(type_version);
-        } catch (const pflib::Exception& e) {
-          std::cerr << "ERROR: " << "[" << e.name() << "] "
-            << e.message() << std::endl;
-          return 1;
-        }
+        roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
           std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
@@ -170,7 +164,7 @@ int main(int argc, char *argv[]) {
     parameters;
   try {
     // compilation checks parameter/page names
-    parameters = pflib::decompile(settings,careful);
+    parameters = pflib::Compiler::get(roc_type_version).decompile(settings,careful);
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

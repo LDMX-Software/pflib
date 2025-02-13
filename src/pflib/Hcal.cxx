@@ -6,11 +6,11 @@ Hcal::Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c) : roc_i2c_{roc_i2c}
   nhgcroc_=int(roc_i2c.size());
 }
 
-ROC Hcal::roc(int which) {
+ROC Hcal::roc(int which, const std::string& roc_type_version) {
   if (which<0 || which>=nhgcroc_) {
     PFEXCEPTION_RAISE("InvalidROCid","Requested out-of-range ROC id");
   }
-  return ROC(*roc_i2c_[which],0x20|(which*8)); 
+  return ROC(*roc_i2c_[which],0x20|(which*8), roc_type_version); 
 }
 
 /*
