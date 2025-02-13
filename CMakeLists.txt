@@ -67,7 +67,7 @@ add_custom_command(
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
-  DEPENDS ${generate_headers}
+  DEPENDS ${generate_headers} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
