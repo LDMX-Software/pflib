@@ -1,0 +1,603 @@
+transport:
+    ic:
+      type: ic_ec_with_sct
+      cfg: 
+        connection_file: "file:///opt/cms-hgcal-firmware/hgc-test-systems/active/uHAL_xml/connections.xml"
+        device: TOP
+        broadcast_address: 1
+    ec:
+      type: ic_ec_with_sct
+      cfg: 
+        connection_file: "file:///opt/cms-hgcal-firmware/hgc-test-systems/active/uHAL_xml/connections.xml"
+        device: TOP
+        broadcast_address: 2
+    i2c_daq_1:
+      type: lpgbt_i2c
+      carrier: lpgbt_daq
+      cfg:
+        bus: 1
+    i2c_trg_w0:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_w
+      cfg:
+        bus: 0
+    i2c_trg_w1:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_w
+      cfg:
+        bus: 1
+    i2c_trg_w2:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_w
+      cfg:
+        bus: 2
+    i2c_trg_e0:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_e
+      cfg:
+        bus: 0
+    i2c_trg_e1:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_e
+      cfg:
+        bus: 1
+    i2c_trg_e2:
+      type: lpgbt_i2c
+      carrier: lpgbt_trg_e
+      cfg:
+        bus: 2        
+chip:
+  lpgbt_daq:
+    type: lpgbt
+    transport: ic
+    cfg:
+      address: 0x70
+  lpgbt_trg_w:
+    type: lpgbt
+    transport: ec
+    cfg:
+      address: 0x71
+  lpgbt_trg_e:
+    type: lpgbt
+    transport: ec
+    cfg:
+      address: 0x72
+  roc0_w0:
+    type: roc
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x08
+  roc1_w0:
+    type: roc
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x18
+  roc2_w0:
+    type: roc
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x28
+  econd_w0:
+    type: econ
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x60
+  econt_w0:
+    type: econ
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x20
+  roc0_w1:
+    type: roc
+    transport: i2c_trg_w1
+    cfg:
+      address: 0x08
+  roc1_w1:
+    type: roc
+    transport: i2c_trg_w1
+    cfg:
+      address: 0x18
+  roc2_w1:
+    type: roc
+    transport: i2c_trg_w1
+    cfg:
+      address: 0x28
+  econd_w1:
+    type: econ
+    transport: i2c_trg_w1
+    cfg:
+      address: 0x60
+  econt_w1:
+    type: econ
+    transport: i2c_trg_w1
+    cfg:
+      address: 0x20
+  roc0_w2:
+    type: roc
+    transport: i2c_trg_w2
+    cfg:
+      address: 0x08
+  roc1_w2:
+    type: roc
+    transport: i2c_trg_w2
+    cfg:
+      address: 0x18
+  roc2_w2:
+    type: roc
+    transport: i2c_trg_w2
+    cfg:
+      address: 0x28
+  econd_w2:
+    type: econ
+    transport: i2c_trg_w2
+    cfg:
+      address: 0x60
+  econt_w2:
+    type: econ
+    transport: i2c_trg_w2
+    cfg:
+      address: 0x20
+  roc0_e0:
+    type: roc
+    transport: i2c_trg_e0
+    cfg:
+      address: 0x08
+  roc1_e0:
+    type: roc
+    transport: i2c_trg_e0
+    cfg:
+      address: 0x18
+  roc2_e0:
+    type: roc
+    transport: i2c_trg_e0
+    cfg:
+      address: 0x28
+  econd_e0:
+    type: econ
+    transport: i2c_trg_e0
+    cfg:
+      address: 0x60
+  econt_e0:
+    type: econ
+    transport: i2c_trg_e0
+    cfg:
+      address: 0x20
+  roc0_e1:
+    type: roc
+    transport: i2c_trg_e1
+    cfg:
+      address: 0x08
+  roc1_e1:
+    type: roc
+    transport: i2c_trg_e1
+    cfg:
+      address: 0x18
+  roc2_e1:
+    type: roc
+    transport: i2c_trg_e1
+    cfg:
+      address: 0x28
+  econd_e1:
+    type: econ
+    transport: i2c_trg_e1
+    cfg:
+      address: 0x60
+  econt_e1:
+    type: econ
+    transport: i2c_trg_e1
+    cfg:
+      address: 0x20
+  roc0_e2:
+    type: roc
+    transport: i2c_trg_e2
+    cfg:
+      address: 0x08
+  roc1_e2:
+    type: roc
+    transport: i2c_trg_e2
+    cfg:
+      address: 0x18
+  roc2_e2:
+    type: roc
+    transport: i2c_trg_e2
+    cfg:
+      address: 0x28
+  econd_e2:
+    type: econ
+    transport: i2c_trg_e2
+    cfg:
+      address: 0x60
+  econt_e2:
+    type: econ
+    transport: i2c_trg_e2
+    cfg:
+      address: 0x20
+gpio:
+  pg_dcdc_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 0
+      dir: input
+  pg_ldo_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 1
+      dir: input
+  pg_ldo_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 2
+      dir: input
+  pg_ldo_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 3
+      dir: input
+  pg_dcdc_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 4
+      dir: input
+  pg_ldo_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 5
+      dir: input
+  pg_dcdc_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 6
+      dir: input
+  pg_ldo_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 7
+      dir: input
+  pg_dcdc_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 8
+      dir: input
+  pg_dcdc_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 9
+      dir: input
+  pg_ldo_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 10
+      dir: input
+  pg_dcdc_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 11
+      dir: input
+  wready:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 12
+      dir: input
+  eready:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 13
+      dir: input
+  wrstb:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 14
+      dir: output
+      chip2Reset:
+        - {name: lpgbt_trg_w, template: lpgbt_template}
+        - {name: roc0_w0, template: siroc_template}
+        - {name: roc1_w0, template: siroc_template}
+        - {name: roc2_w0, template: siroc_template}
+        - {name: econd_w0, template: econd_template}
+        - {name: econt_w0, template: econt_template}
+        - {name: roc0_w1, template: siroc_template}
+        - {name: roc1_w1, template: siroc_template}
+        - {name: roc2_w1, template: siroc_template}
+        - {name: econd_w1, template: econd_template}
+        - {name: econt_w1, template: econt_template}
+        - {name: roc0_w2, template: siroc_template}
+        - {name: roc1_w2, template: siroc_template}
+        - {name: roc2_w2, template: siroc_template}
+        - {name: econd_w2, template: econd_template}
+        - {name: econt_w2, template: econt_template}
+  erstb:
+    type: lpgbt_gpio
+    carrier: lpgbt_daq
+    cfg:
+      pin: 15
+      dir: output
+      chip2Reset:
+        - {name: lpgbt_trg_e, template: lpgbt_template}
+        - {name: roc0_e0, template: siroc_template}
+        - {name: roc1_e0, template: siroc_template}
+        - {name: roc2_e0, template: siroc_template}
+        - {name: econd_e0, template: econd_template}
+        - {name: econt_e0, template: econt_template}
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+        - {name: roc0_e2, template: siroc_template}
+        - {name: roc1_e2, template: siroc_template}
+        - {name: roc2_e2, template: siroc_template}
+        - {name: econd_e2, template: econd_template}
+        - {name: econt_e2, template: econt_template}
+  pwr_en_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 0
+      dir: output
+      chip2Reset:
+        - {name: roc0_e0, template: siroc_template}
+        - {name: roc1_e0, template: siroc_template}
+        - {name: roc2_e0, template: siroc_template}
+        - {name: econd_e0, template: econd_template}
+        - {name: econt_e0, template: econt_template}
+  pwr_en_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 1
+      dir: output
+      chip2Reset:
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+  pwr_en_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 2
+      dir: output
+      chip2Reset:
+        - {name: roc0_e2, template: siroc_template}
+        - {name: roc1_e2, template: siroc_template}
+        - {name: roc2_e2, template: siroc_template}
+        - {name: econd_e2, template: econd_template}
+        - {name: econt_e2, template: econt_template}
+  hgcroc_re_hb_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 3
+      dir: output
+      chip2Reset:
+        - {name: roc0_e0, template: siroc_template}
+        - {name: roc1_e0, template: siroc_template}
+        - {name: roc2_e0, template: siroc_template}
+  hgcroc_re_hb_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 4
+      dir: output
+      chip2Reset:
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+  hgcroc_re_hb_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 5
+      dir: output
+      chip2Reset:
+        - {name: roc0_e2, template: siroc_template}
+        - {name: roc1_e2, template: siroc_template}
+        - {name: roc2_e2, template: siroc_template}
+  hgcroc_re_sb_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 6
+      dir: output      
+  hgcroc_re_sb_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 7
+      dir: output      
+  hgcroc_re_sb_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 8
+      dir: output      
+  econ_re_hb_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 9
+      dir: output      
+      chip2Reset:
+        - {name: econd_e0, template: econd_template}
+        - {name: econt_e0, template: econt_template}
+  econ_re_hb_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 10
+      dir: output      
+      chip2Reset:
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+  econ_re_hb_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 11
+      dir: output      
+      chip2Reset:
+        - {name: econd_e2, template: econd_template}
+        - {name: econt_e2, template: econt_template}
+  econ_re_sb_e0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 12
+      dir: output      
+  econ_re_sb_e1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 13
+      dir: output      
+  econ_re_sb_e2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_e
+    cfg:
+      pin: 14
+      dir: output      
+  pwr_en_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 0
+      dir: output
+      chip2Reset:
+        - {name: roc0_w0, template: siroc_template}
+        - {name: roc1_w0, template: siroc_template}
+        - {name: roc2_w0, template: siroc_template}
+        - {name: econd_w0, template: econd_template}
+        - {name: econt_w0, template: econt_template}
+  pwr_en_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 1
+      dir: output
+      chip2Reset:
+        - {name: roc0_w1, template: siroc_template}
+        - {name: roc1_w1, template: siroc_template}
+        - {name: roc2_w1, template: siroc_template}
+        - {name: econd_w1, template: econd_template}
+        - {name: econt_w1, template: econt_template}
+  pwr_en_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 2
+      dir: output
+      chip2Reset:
+        - {name: roc0_w2, template: siroc_template}
+        - {name: roc1_w2, template: siroc_template}
+        - {name: roc2_w2, template: siroc_template}
+        - {name: econd_w2, template: econd_template}
+        - {name: econt_w2, template: econt_template}
+  hgcroc_re_hb_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 3
+      dir: output
+      chip2Reset:
+        - {name: roc0_w0, template: siroc_template}
+        - {name: roc1_w0, template: siroc_template}
+        - {name: roc2_w0, template: siroc_template}
+  hgcroc_re_hb_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 4
+      dir: output
+      chip2Reset:
+        - {name: roc0_w1, template: siroc_template}
+        - {name: roc1_w1, template: siroc_template}
+        - {name: roc2_w1, template: siroc_template}
+  hgcroc_re_hb_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 5
+      dir: output
+      chip2Reset:
+        - {name: roc0_w2, template: siroc_template}
+        - {name: roc1_w2, template: siroc_template}
+        - {name: roc2_w2, template: siroc_template}
+  hgcroc_re_sb_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 6
+      dir: output      
+  hgcroc_re_sb_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 7
+      dir: output      
+  hgcroc_re_sb_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 8
+      dir: output      
+  econ_re_hb_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 9
+      dir: output      
+      chip2Reset:
+        - {name: econd_w0, template: econd_template}
+        - {name: econt_w0, template: econt_template}
+  econ_re_hb_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 10
+      dir: output      
+      chip2Reset:
+        - {name: econd_w1, template: econd_template}
+        - {name: econt_w1, template: econt_template}
+  econ_re_hb_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 11
+      dir: output      
+      chip2Reset:
+        - {name: econd_w2, template: econd_template}
+        - {name: econt_w2, template: econt_template}
+  econ_re_sb_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 12
+      dir: output      
+  econ_re_sb_w1:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 13
+      dir: output      
+  econ_re_sb_w2:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 14
+      dir: output      

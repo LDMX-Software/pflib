@@ -12,6 +12,7 @@
 
 #include "pflib/Exception.h"
 #include "pflib/Compile.h"
+#include "pflib/Version.h"
 
 static void usage() {
   std::cout <<
@@ -20,7 +21,10 @@ static void usage() {
     "  pfcompile [options] setting_file [setting_file1 [setting_file2 ...]]\n"
     "\n"
     " OPTIONS:\n"
-    "  -h,--help : Print this help and exit\n"
+    "  -v,--version  : Print pflib version\n"
+    "  -h,--help     : Print this help and exit\n"
+    "  -r,--roc      : Define the ROC type_version that should be used for compilation\n"
+    "                  By default, we use the sipm_rocv3b register mapping.\n"
     "  --no-defaults : Don't apply the defaults copied from the documentation before anything else\n"
     "  --output, -o  : Define the output file.\n"
     "                  By default, the output file is the last setting file with the extension\n"
@@ -36,6 +40,7 @@ int main(int argc, char *argv[]) {
 
   bool prepend_defaults = true;
   std::vector<std::string> setting_files;
+  std::string roc_type_version{"sipm_rocv3b"};
   std::string output_filename;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
@@ -46,6 +51,16 @@ int main(int argc, char *argv[]) {
       } else if (arg == "--help" or arg == "-h") {
         usage();
         return 0;
+      } else if (arg == "--version" or arg == "-v") {
+        print_version();
+        return 0;
+      } else if (arg == "--roc" or arg == "-r") {
+        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
+          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          return 1;
+        }
+        i_arg++;
+        roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
           std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
@@ -88,7 +103,7 @@ int main(int argc, char *argv[]) {
   std::map<int,std::map<int,uint8_t>> settings;
   try {
     // compilation checks parameter/page names
-    settings = pflib::compile(setting_files, prepend_defaults);
+    settings = pflib::Compiler::get(roc_type_version).compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
     std::cerr << "ERROR: " << "[" << e.name() << "] "
       << e.message() << std::endl;

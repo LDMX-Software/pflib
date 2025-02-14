@@ -23,7 +23,7 @@ class Hcal {
   int nrocs() { return nhgcroc_; }
   
   /** Get a ROC interface for the given HGCROC board */
-  ROC roc(int which);
+  ROC roc(int which, const std::string& roc_type_version = "sipm_rocv3b");
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   //  Bias bias(int which);

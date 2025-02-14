@@ -1,0 +1,8 @@
+build_aarch64_almalinux8:
+  extends: .build_template_aarch64
+  image:
+    name: gitlab-registry.cern.ch/hgcal-daq-sw/serenity-daq/docker_images/base/almalinux8-aarch64
+  variables:
+    OS: almalinux
+    VERSION: "8"
+    TGT_ARCH: aarch64

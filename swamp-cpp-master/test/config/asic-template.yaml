@@ -1,0 +1,21 @@
+chip:
+  lpgbt_template:
+    type: lpgbt
+    cfg:
+      address: 0x70
+  vtrxp_template:
+    type: vtrxp
+    cfg:
+      address: 0x50
+  siroc_template:
+    type: roc
+    cfg:
+      address: 0x08
+  econt_template:
+    type: econ
+    cfg:
+      address: 0x20
+  econd_template:
+    type: econ
+    cfg:
+      address: 0x60

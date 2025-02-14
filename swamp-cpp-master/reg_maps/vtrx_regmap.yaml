@@ -1,0 +1,198 @@
+#CF: https://edms.cern.ch/ui/file/1719330/1/VLplus_quadLDD_spec_v1.4.pdf#page=17
+CH1:
+  EN:
+    bit_mask: 0x1
+    offset: 0
+    default: 0x1
+    address: 0x00
+  BIAS:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x30
+    address: 0x03
+  MOD:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x20
+    address: 0x04
+  MODEN:
+    bit_mask: 0x1
+    offset: 7
+    default: 0x1
+    address: 0x04
+  EMPA: 
+    bit_mask: 0x7
+    offset: 0
+    default: 0x0
+    address: 0x05
+  EMPR: 
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x05
+  EMPF: 
+    bit_mask: 0x1
+    offset: 4
+    default: 0x0
+    address: 0x05
+CH2:
+  EN:
+    bit_mask: 0x1
+    offset: 1
+    default: 0x0
+    address: 0x00
+  BIAS:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x30
+    address: 0x06
+  MOD:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x20
+    address: 0x07
+  MODEN:
+    bit_mask: 0x1
+    offset: 7
+    default: 0x1
+    address: 0x07
+  EMPA: 
+    bit_mask: 0x7
+    offset: 0
+    default: 0x0
+    address: 0x08
+  EMPR: 
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x08
+  EMPF: 
+    bit_mask: 0x1
+    offset: 4
+    default: 0x0
+    address: 0x08
+CH3:
+  EN:
+    bit_mask: 0x1
+    offset: 2
+    default: 0x0
+    address: 0x00
+  BIAS:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x30
+    address: 0x09
+  MOD:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x20
+    address: 0x0A
+  MODEN:
+    bit_mask: 0x1
+    offset: 7
+    default: 0x1
+    address: 0x0A
+  EMPA: 
+    bit_mask: 0x7
+    offset: 0
+    default: 0x0
+    address: 0x0B
+  EMPR: 
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x0B
+  EMPF: 
+    bit_mask: 0x1
+    offset: 4
+    default: 0x0
+    address: 0x0B
+CH4:
+  EN:
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x00
+  BIAS:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x30
+    address: 0x0C
+  MOD:
+    bit_mask: 0x7f
+    offset: 0
+    default: 0x20
+    address: 0x0D
+  MODEN:
+    bit_mask: 0x1
+    offset: 7
+    default: 0x1
+    address: 0x0D
+  EMPA: 
+    bit_mask: 0x7
+    offset: 0
+    default: 0x0
+    address: 0x0E
+  EMPR: 
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x0E
+  EMPF: 
+    bit_mask: 0x1
+    offset: 4
+    default: 0x0
+    address: 0x0E
+SDACNT:
+  SDADS:
+    bit_mask: 0x1
+    offset: 0
+    default: 0x1
+    address: 0x02
+  DRVSDA:
+    bit_mask: 0x1
+    offset: 1
+    default: 0x0
+    address: 0x02
+STATUS: #RO
+  PORA:
+    bit_mask: 0x1
+    offset: 0
+    default: 0x0
+    address: 0x14
+  PORB:
+    bit_mask: 0x1
+    offset: 1
+    default: 0x0
+    address: 0x14
+  PORC:
+    bit_mask: 0x1
+    offset: 2
+    default: 0x0
+    address: 0x14
+  DIS:
+    bit_mask: 0x1
+    offset: 3
+    default: 0x0
+    address: 0x14
+ID: #RO
+  REVID:
+    bit_mask: 0xf
+    offset: 0
+    default: 0x5
+    address: 0x15
+  CHIPID:
+    bit_mask: 0xf
+    offset: 4
+    default: 0x1
+    address: 0x15
+UID: #RO
+  bit_mask: 0xFFFFFFFF
+  offset: 0
+  default: 0x0
+  address: 0x16
+SEUCNT: #R/CLR : Writing any value to any of the four registers clears the counter.
+  bit_mask: 0xFFFFFFFF
+  offset: 0
+  default: 0x0
+  address: 0x1A

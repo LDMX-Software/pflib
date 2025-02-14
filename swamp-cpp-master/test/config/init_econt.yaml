@@ -1,0 +1,186 @@
+Aligner:
+  Global:
+    match_mask_val:
+      00: 0
+    match_pattern_val:
+      00: 0x95555555
+      01: 0xa5555555
+    orbsyn_cnt_load_val: 1
+    orbsyn_cnt_snapshot: 3482
+FCtrl:
+  Global:
+    invert_command_rx: 0
+    edge_sel_t1: 1
+FormatterBuffer:
+  Global:
+    active_etxs: 15
+    link_reset_pattern: 426 #0x1aa    
+    use_sum : 1
+    stc_type: 3
+    buff_t1: 120 #0x78
+AlgoDroplsb:
+  Global:
+    drop_lsb: 1
+EprxGrpTop:
+  Global:
+    track_mode: 2
+#### not sure how to configure the pll with this version of the ECONT. In the ECOND, ClockAndResets registers are not configured (we use teh default) - So we do the same with ECONT
+# Pll:
+#   Global:
+#     enable_ser: 1
+#     config_p_ff_cdr: 6
+#     pll_r_config_wl: 2
+#     config_i_pll_wl: 9
+#     config_p_pll_wl: 9
+#     config_p_ff_cdr_wl: 6
+#     config_i_fll_wl: 5
+#     vco_cap_select: 27
+#     pll_r_config: 2
+#     config_i_pll: 9
+#     config_p_pll: 9
+#     enable_cap_bank_override: 1
+#     lf_lock_thr_counter: 3
+#     lf_re_lock_thr_counter: 3
+#     lf_un_lock_thr_counter: 3
+#     toclkgen_dis_des: 1
+#     ref_clk_sel: 1
+ConfigAlgo:
+  Global: 
+    alg_type: 1
+    alg_high_density: 1
+    # select: 1
+    # density: 1
+ChAligner:
+  00:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  01:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  02:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  03:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  04:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  05:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  06:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  07:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  08:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  09:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  10:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+  11:
+   patt_sel: 0
+   patt_en:  0
+   force_ch_outputs: 0
+   per_ch_align_en : 1
+ERx:
+  00:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  01:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  02:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  03:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  04:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  05:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  06:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  07:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  08:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  09:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  10:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1
+  11:
+   set_common_mode: 0
+   equalizer: 0
+   enable_termination: 1
+   invert_data: 1
+   enable: 1

@@ -1,0 +1,9 @@
+DirectAccess:
+  AutoReload: 0
+  4JM0: 0
+  4JM1: 1
+  ## The following are READ ONLY parameter. Only to be used in swamp-cpp unit test
+  Error: 0
+  Parity: 0
+  Pll_lock: 1
+  ## 0 0 1 -> chosen to be fine with dummy transport

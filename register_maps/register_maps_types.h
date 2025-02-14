@@ -1,0 +1,98 @@
+/* unifying header for all register maps
+ * the specific maps written into the headers corresponding
+ * to the names of the HGCROC type/versions rely on this header
+ * to join them together into a coherent interface for the compiler
+ * and to include the necessary headers they rely upon.
+ */
+
+#pragma once
+
+// need maps and strings for the LUTs
+#include <map>
+#include <string>
+
+/**
+ * Structure holding a location in the registers
+ */
+struct RegisterLocation {
+  /// the register the parameter is in (0-31)
+  const int reg;
+  /// the min bit the location is in the register (0-7)
+  const int min_bit;
+  /// the number of bits the location has in the register (1-8)
+  const int n_bits;
+  /// the mask for this number of bits
+  const int mask;
+  /**
+   * Usable constructor
+   *
+   * This constructor allows us to calculate the mask from the
+   * number of bits so that the downstream compilation functions
+   * don't have to calculate it themselves.
+   */
+  RegisterLocation(int r, int m, int n)
+    : reg{r}, min_bit{m}, n_bits{n},
+      mask{((1 << n_bits) - 1)} {}
+};
+
+/**
+ * A parameter for the HGC ROC includes one or more register locations
+ * and a default value defined in the manual.
+ */
+struct Parameter {
+  /// the default parameter value
+  const int def;
+  /// the locations that the parameter is split over
+  const std::vector<RegisterLocation> registers;
+  /// pass locations and default value of parameter
+  Parameter(std::initializer_list<RegisterLocation> r,int def)
+    : def{def}, registers{r} {}
+  /// short constructor for single-location parameters
+  Parameter(int r, int m, int n, int def)
+    : Parameter({RegisterLocation(r,m,n)},def) {}
+};
+
+/**
+ * A non-copyable mapping
+ *
+ * This is helpful for our Look Up Tables (LUTs) since we want
+ * to define them once and then just pass them around without
+ * copying their large size.
+ *
+ * Always retrieve constant references of these types, for example
+ * ```cpp
+ * const auto& my_handle = get_lut();
+ * ```
+ */
+template<typename Key, typename Val>
+class NoCopyMap : public std::map<Key, Val> {
+ public:
+  using Mapping = std::map<Key,Val>;
+  NoCopyMap(const NoCopyMap&) = delete;
+  NoCopyMap& operator=(const NoCopyMap&) = delete;
+  /**
+   * Constructor necessary to support a simpler definition syntax.
+   * ```cpp
+   * using MyLUT = NoCopyMap<Key,Val>;
+   * const MyLUT EXAMPLE = NoCopyMap::Mapping({
+   *   {key, val},
+   *   // etc...
+   * });
+   * ```
+   * I tried playing around with std::initializer_list but I
+   * couldn't get it to work and since the headers where these
+   * LUTs are defined are written by a script anyways, I decided
+   * to leave the boilerplate in.
+   */
+  NoCopyMap(const Mapping& contents) : Mapping(contents) {}
+};
+
+// type for hold sets of parameters by name
+using Page = NoCopyMap<std::string, Parameter>;
+
+// type for holding a set of abstract pages just associating names with specific sets of parameters
+using PageLUT = NoCopyMap<std::string, const Page&>;
+
+// type for a LUT that holds concrete pages with their address and Page parameters
+using ParameterLUT = NoCopyMap<std::string, std::pair<int, const Page&>>;
+

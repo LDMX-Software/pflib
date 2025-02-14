@@ -1,0 +1,5 @@
+.vscode*
+*~
+build
+swamp/include/generated_*_register_map.hpp
+

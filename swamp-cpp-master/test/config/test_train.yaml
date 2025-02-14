@@ -1,0 +1,104 @@
+transport:
+  ic:
+    type: dummy
+    cfg: 
+      broadcast_address: 1
+      transportType: ic
+  dummyTr:
+    type: dummy
+    carrier: dummy
+    cfg:
+      unused: 0
+      read_value: 0xFF
+      transportType: lpgbt_i2c_daq
+  i2c_trg_w0:
+    type: lpgbt_i2c
+    carrier: lpgbt_trg_w
+    cfg:
+      bus: 0
+      transportType: lpgbt_i2c_trg
+chip:
+  dummyChip:
+    type: dummy
+    cfg:
+      address: 0xab
+      chipType: generic
+  lpgbt_daq:
+    type: lpgbt
+    transport: ic
+    cfg:
+      address: 0x70
+      chipType: lpgbt_d
+  lpgbt_trg_w:
+    type: lpgbt
+    transport: dummyTr
+    cfg:
+      address: 0x71
+      chipType: lpgbt_t
+  vtrx:
+    type: vtrxp
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x50
+      chipType: vtrxp      
+  roc0_w0:
+    type: roc
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x08
+      chipType: hgcroc_si
+  econd_w0:
+    type: econ
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x60
+      chipType: econ_d
+  econt_w0:
+    type: econ
+    transport: i2c_trg_w0
+    cfg:
+      address: 0x20
+      chipType: econ_t
+gpio:
+  hgcroc_re_hb_w0:
+    type: lpgbt_gpio
+    carrier: lpgbt_trg_w
+    cfg:
+      pin: 3
+      direction: output
+      gpioType: hgcroc_re_hb
+      chip2Reset:
+        - {name: roc0_w0, template: siroc_template}
+        - {name: roc1_w0, template: siroc_template}
+        - {name: roc2_w0, template: siroc_template}
+        - {name: lpgbt_daq, template: lpgbt_template}
+        - {name: econd_w0, template: econd_template}
+        - {name: econt_w0, template: econt_template}
+adc:
+  adc_daq:
+    type: lpgbt_adc
+    carrier: lpgbt_daq
+    cfg:
+      current_dac_enable: 1
+      current_dac_value: 127
+      voltage_dac_enable: 0
+      voltage_dac_value: 0
+      vref_tune: 140
+      external_measurements:
+        - {name: rtd_w0, channel_p: ext0, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+        - {name: rtd_w1, channel_p: ext1, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+        - {name: rtd_w2, channel_p: ext2, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+        - {name: rtd_e0, channel_p: ext3, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+        - {name: rtd_e1, channel_p: ext4, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+        - {name: rtd_e2, channel_p: ext5, channel_n: vref2, current_dac_ch_enable: 1, gain: 0}
+  adc_trg_e:
+    type: lpgbt_adc
+    carrier: lpgbt_trg_e
+    cfg:
+      - {name: vmon_ref_w0}
+      - {name: vmon_ref_w1}
+      - {name: vmon_ref_w2}
+      - {name: vmon_lvs_w0}
+      - {name: vmon_lvs_w1}
+      - {name: vmon_lvs_w2}
+      - {name: probe_dc}

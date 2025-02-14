@@ -1,0 +1,93 @@
+DigitalHalf:
+  0:
+    L1Offset: 10
+    IdleFrame: 0xCCCCCCC
+    Bx_offset: 2
+    Bx_trigger: 2
+  1:
+    L1Offset: 10
+    IdleFrame: 0xCCCCCCC
+    Bx_offset: 2
+    Bx_trigger: 2
+GlobalAnalog:
+  0:
+    Delay40: 2
+    Delay65: 3
+    Delay87: 3
+    Delay9: 3
+    Ibi_inv_buf: 0
+    Ibi_noinv_buf: 0
+    Ibo_inv_buf: 12
+    Ibo_noinv_buf: 12
+    dac_pol: 0
+    range_inv: 6
+    range_tot: 7
+    trim_vbi_pa: 15
+  1:
+    Delay40: 2
+    Delay65: 3
+    Delay87: 3
+    Delay9: 3
+    Ibi_inv_buf: 0
+    Ibi_noinv_buf: 0
+    Ibo_inv_buf: 12
+    Ibo_noinv_buf: 12
+    dac_pol: 0
+    range_inv: 6
+    range_tot: 7
+    trim_vbi_pa: 15
+ReferenceVoltage:
+  0:
+    Vbg_1v: 3
+    Refi: 1
+    Inv_vref: 400
+    Noinv_vref: 250
+    Tot_vref: 600
+    Toa_vref: 400
+  1:
+    Vbg_1v: 3
+    Refi: 1
+    Inv_vref: 400
+    Noinv_vref: 250
+    Tot_vref: 600
+    Toa_vref: 400
+Top:
+  0:
+    BIAS_I_PLL_D: 63
+    EN_HIGH_CAPA: 1
+    RunL: 1
+    RunR: 1
+    in_inv_cmd_rx: 1
+MasterTdc:
+  0:
+    #GLOBAL_FORCE_EN_CLK: 0 # 0 by default
+    BIAS_I_CTDC_D: 10 # 24 by default
+    FOLLOWER_CTDC_EN: 1 # 1 by default
+    BIAS_FOLLOWER_CAL_P_CTDC_EN: 1 # 0 by default
+    BIAS_FOLLOWER_CAL_P_D: 4 # 0 by default
+    GLOBAL_EN_BUFFER_CTDC: 1 # 0 by default
+    BIAS_CAL_DAC_CTDC_P_EN: 1 # 0 by default
+    BIAS_CAL_DAC_CTDC_P_D: 2 # 0 by default
+    BIAS_I_FTDC_D: 10 # 24 by default
+    FOLLOWER_FTDC_EN: 1 # 1 by default
+    BIAS_FOLLOWER_CAL_P_FTDC_EN: 1 # 0 by default
+    BIAS_FOLLOWER_CAL_P_FTDC_D: 4 # 0 by default
+    GLOBAL_EN_BUFFER_FTDC: 1 # 0 by default
+    CTDC_CALIB_FREQUENCY: 2 # 2 by default
+    FTDC_CALIB_FREQUENCY: 2 # 2 by default
+  1:
+    #GLOBAL_FORCE_EN_CLK: 0 # 0 by default
+    BIAS_I_CTDC_D: 10 # 24 by default
+    FOLLOWER_CTDC_EN: 1 # 1 by default
+    BIAS_FOLLOWER_CAL_P_CTDC_EN: 1 # 0 by default
+    BIAS_FOLLOWER_CAL_P_D: 4 # 0 by default
+    GLOBAL_EN_BUFFER_CTDC: 1 # 0 by default
+    BIAS_CAL_DAC_CTDC_P_EN: 1 # 0 by default
+    BIAS_CAL_DAC_CTDC_P_D: 2 # 0 by default
+    BIAS_I_FTDC_D: 10 # 24 by default
+    FOLLOWER_FTDC_EN: 1 # 1 by default
+    BIAS_FOLLOWER_CAL_P_FTDC_EN: 1 # 0 by default
+    BIAS_FOLLOWER_CAL_P_FTDC_D: 4 # 0 by default
+    GLOBAL_EN_BUFFER_FTDC: 1 # 0 by default
+    CTDC_CALIB_FREQUENCY: 2 # 2 by default
+    FTDC_CALIB_FREQUENCY: 2 # 2 by default

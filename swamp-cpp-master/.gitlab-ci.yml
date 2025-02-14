@@ -1,0 +1,44 @@
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+
+stages:  
+  - build
+  - deploy
+  - update
+
+include:
+  - local: '/ci/almalinux/9/x86_64/.gitlab-ci.yml'
+  - local: '/ci/almalinux/9/aarch64/.gitlab-ci.yml'
+  - local: '/ci/almalinux/8/x86_64/.gitlab-ci.yml'
+  - local: '/ci/almalinux/8/aarch64/.gitlab-ci.yml'
+  - local: '/ci/template/build-template.yml'
+
+deploy-eos:
+  stage: deploy
+  image: gitlab-registry.cern.ch/hgcal-daq-sw/docker-images/cd-tools
+  variables:
+    EOS_ROOT: '/eos/user/h/hgcwebsw/www'
+    EOS_PATH: '${EOS_ROOT}/hgcal-daq-sw'
+    CI_OUTPUT_DIR: rpm_path
+  before_script:
+    # deploy to test repository instead if the branch is master
+    - | 
+      if [ "$CI_COMMIT_BRANCH" == "master" ]; then
+        export EOS_PATH="${EOS_ROOT}/hgcal-daq-sw-test"
+      fi
+  script:
+    - echo "Deploying from [${CI_OUTPUT_DIR}] to [${EOS_PATH}]"
+    - deploy-eos
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "master"'
+
+update-eos:
+  stage: update
+  image: gitlab-registry.cern.ch/hgcal-daq-sw/serenity-daq/docker_images/utilities/ssh:production
+  script:
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H lxplus.cern.ch >> ~/.ssh/known_hosts
+    - sshpass -p "${EOS_ACCOUNT_PASSWORD}" ssh -o StrictHostKeyChecking=no "${EOS_ACCOUNT_USERNAME}@lxplus.cern.ch" 'cd ~ && ./updateAllRepo'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "master"'
+
