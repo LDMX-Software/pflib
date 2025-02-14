@@ -52,12 +52,47 @@ struct Parameter {
     : Parameter({RegisterLocation(r,m,n)},def) {}
 };
 
-// type for a page specifying names and specifications of parameters
-using Page = std::map<std::string, Parameter>;
+/**
+ * A non-copyable mapping
+ *
+ * This is helpful for our Look Up Tables (LUTs) since we want
+ * to define them once and then just pass them around without
+ * copying their large size.
+ *
+ * Always retrieve constant references of these types, for example
+ * ```cpp
+ * const auto& my_handle = get_lut();
+ * ```
+ */
+template<typename Key, typename Val>
+class NoCopyMap : public std::map<Key, Val> {
+ public:
+  using Mapping = std::map<Key,Val>;
+  NoCopyMap(const NoCopyMap&) = delete;
+  NoCopyMap& operator=(const NoCopyMap&) = delete;
+  /**
+   * Constructor necessary to support a simpler definition syntax.
+   * ```cpp
+   * using MyLUT = NoCopyMap<Key,Val>;
+   * const MyLUT EXAMPLE = NoCopyMap::Mapping({
+   *   {key, val},
+   *   // etc...
+   * });
+   * ```
+   * I tried playing around with std::initializer_list but I
+   * couldn't get it to work and since the headers where these
+   * LUTs are defined are written by a script anyways, I decided
+   * to leave the boilerplate in.
+   */
+  NoCopyMap(const Mapping& contents) : Mapping(contents) {}
+};
+
+// type for hold sets of parameters by name
+using Page = NoCopyMap<std::string, Parameter>;
 
 // type for holding a set of abstract pages just associating names with specific sets of parameters
-using PageLUT = std::map<std::string, const Page&>;
+using PageLUT = NoCopyMap<std::string, const Page&>;
 
 // type for a LUT that holds concrete pages with their address and Page parameters
-using ParameterLUT = std::map<std::string, std::pair<int, const Page&>>;
+using ParameterLUT = NoCopyMap<std::string, std::pair<int, const Page&>>;
 
