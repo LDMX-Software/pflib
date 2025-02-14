@@ -8,14 +8,15 @@
  * compared to the manual and is obtained from CMS folks.
  */
 
+#include "register_maps/register_maps_types.h"
+
 namespace sipm_rocv2 {
 
 /**
  * The Look Up Table of for the Global Analog sub-blocks
  * of an HGC ROC
  */
-const std::map<std::string,Parameter>
-GLOBAL_ANALOG_LUT = {
+const Page GLOBAL_ANALOG_LUT = Page::Mapping({
   {"ON_DAC_TRIM", Parameter(0,0,1,1)},
   {"ON_INPUT_DAC", Parameter(0,1,1,1)},
   {"ON_CONV", Parameter(0,2,1,1)},
@@ -58,14 +59,13 @@ GLOBAL_ANALOG_LUT = {
   {"POL_ADC", Parameter(14,1,1,1)},
   {"DELAY87", Parameter(14,2,3,0)},
   {"DELAY9", Parameter(14,5,3,0)}
-};
+});
 
 /**
  * The Look Up Table of for the Reference Voltage sub-blocks
  * of an HGC ROC
  */
-const std::map<std::string,Parameter>
-REFERENCE_VOLTAGE_LUT = {
+const Page REFERENCE_VOLTAGE_LUT = Page::Mapping({
   {"PROBE_VREF_PA", Parameter(0,0,1,0)},
   {"PROBE_VREF_TIME", Parameter(0,1,1,0)},
   {"REFI", Parameter(0,2,2,0b11)},
@@ -79,14 +79,13 @@ REFERENCE_VOLTAGE_LUT = {
   {"INTCTEST", Parameter(7,6,1,0)},
   {"EXTCTEST", Parameter(7,7,1,0)},
   {"PROBE_DC", Parameter(8,0,8,0)}
-};
+});
 
 /**
  * The Look Up Table of for the Master TDC sub-blocks`
  * of an HGC ROC
  */
-const std::map<std::string,Parameter>
-MASTER_TDC_LUT = {
+const Page MASTER_TDC_LUT = Page::Mapping({
   {"GLOBAL_TA_SELECT_GAIN_TOA", Parameter(0,0,4,0b0011)},
   {"GLOBAL_TA_SELECT_GAIN_TOT", Parameter(0,4,4,0b0011)},
   {"GLOBAL_MODE_NO_TOT_SUB", Parameter(1,0,1,0)},
@@ -141,13 +140,13 @@ MASTER_TDC_LUT = {
   {"GLOBAL_FORCE_EN_CLK", Parameter(15,1,1,0)},
   {"GLOBAL_FORCE_EN_OUTPUT_DATA", Parameter(15,2,1,0)},
   {"GLOBAL_FORCE_EN_TOT", Parameter(15,3,1,0)}
-};
+});
 
 /**
  * The Look Up Table of for the individual channel sub-blocks`
  * of an HGC ROC
  */
-const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
+const Page CHANNEL_WISE_LUT = Page::Mapping({
   {"INPUTDAC", Parameter(0,0,6,0b011111)},
   {"DACB", Parameter({RegisterLocation(2,6,2),RegisterLocation(1,6,2),RegisterLocation(0,6,2)},0b111111)},
   {"SIGN_DAC", Parameter(1,0,1,0)},
@@ -177,13 +176,13 @@ const std::map<std::string,Parameter> CHANNEL_WISE_LUT = {
   {"EXTDATA", Parameter({RegisterLocation(13,0,8),RegisterLocation(11,0,2)},0)},
   {"MASK_ALIGNBUFFER", Parameter(11,7,1,0)},
   {"ADC_PEDESTAL", Parameter(12,0,8,0)}
-};
+});
 
 /**
  * The Look Up Table of for the Digital Half sub-blocks`
  * of an HGC ROC
  */
-const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
+const Page DIGITAL_HALF_LUT = Page::Mapping({
   {"SELRAWDATA", Parameter(0,0,1,1)},
   {"SELTC4"    , Parameter(0,1,1,1)},
   {"CMDSELEDGE", Parameter(0,2,1,1)},
@@ -202,13 +201,13 @@ const std::map<std::string,Parameter> DIGITAL_HALF_LUT = {
   {"TOT_P1"    , Parameter(12,0,7,0)},
   {"TOT_P2"    , Parameter(13,0,7,0)},
   {"TOT_P3"    , Parameter(14,0,7,0)}
-};
+});
 
 /**
  * The Look Up Table of for the Top sub-block
  * of an HGC ROC
  */
-const std::map<std::string,Parameter> TOP_LUT = {
+const Page TOP_LUT = Page::Mapping({
   {"EN_LOCK_CONTROL", Parameter(0,0,1,1)},
   {"ERROR_LIMIT_SC" , Parameter(0,1,3,0b010)},
   {"SEL_PLL_LOCKED" , Parameter(0,4,1,1)},
@@ -237,23 +236,21 @@ const std::map<std::string,Parameter> TOP_LUT = {
   {"EN_PHASESHIFT" , Parameter(7,0,1,1)},
   {"PHASE"         , Parameter(7,1,4,0)},
   {"EN_PLL_EXT"    , Parameter(7,7,1,0)}
-};
+});
 
-const std::map<std::string,const std::map<std::string,Parameter>&>
-PAGE_LUT = {
+const PageLUT PAGE_LUT = PageLUT::Mapping({
   {"GLOBAL_ANALOG", GLOBAL_ANALOG_LUT},
   {"REFERENCE_VOLTAGE", REFERENCE_VOLTAGE_LUT},
   {"MASTER_TDC", MASTER_TDC_LUT},
   {"DIGITAL_HALF", DIGITAL_HALF_LUT},
   {"TOP", TOP_LUT},
   {"CHANNEL_WISE", CHANNEL_WISE_LUT}
-};
+});
 
 /**
  * Entire parameter Look Up Table.
  */
-const std::map<std::string,std::pair<int,const std::map<std::string,Parameter>&>>
-PARAMETER_LUT = {
+const ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({
   {"GLOBAL_ANALOG_0", { 297, GLOBAL_ANALOG_LUT }},
   {"REFERENCE_VOLTAGE_0", {296, REFERENCE_VOLTAGE_LUT}},
   {"GLOBAL_ANALOG_0", {297, GLOBAL_ANALOG_LUT}},
@@ -342,6 +339,6 @@ PARAMETER_LUT = {
   {"CHANNEL_69", {35, CHANNEL_WISE_LUT}},
   {"CHANNEL_70", {36, CHANNEL_WISE_LUT}},
   {"CHANNEL_71", {37, CHANNEL_WISE_LUT}}
-};
+});
 
 }
