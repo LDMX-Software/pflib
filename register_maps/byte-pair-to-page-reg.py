@@ -201,26 +201,26 @@ with open(args.output.with_suffix('.h'), 'w') as f:
     f.write('#include "register_maps/register_maps_types.h"\n\n')
     f.write('namespace %s {\n\n'%(args.namespace))
     for name, parameters in subblock_types.items():
-        f.write('const Page %s = {\n'%(name))
+        f.write('const Page %s = Page::Mapping({\n'%(name))
         f.write(',\n'.join(
             '  {"%s", %s }'%(parameter_name, parameter_spec.to_cpp())
             for parameter_name, parameter_spec in parameters.items()
         ))
-        f.write('\n};\n\n')
+        f.write('\n});\n\n')
 
-    f.write('const PageLUT PAGE_LUT = {\n')
+    f.write('const PageLUT PAGE_LUT = PageLUT::Mapping({\n')
     f.write(',\n'.join(
         '  {"%s", %s }'%(name, name)
         for name in subblock_types
     ))
-    f.write('\n};\n\n')
+    f.write('\n});\n\n')
 
-    f.write('const ParameterLUT PARAMETER_LUT = {\n')
+    f.write('const ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({\n')
     f.write(',\n'.join(
         '  {"%s", { %d, %s }}'%(name, subblock.address, subblock.type)
         for name, subblock in subblocks.items()
     ))
-    f.write('\n};\n\n')
+    f.write('\n});\n\n')
     f.write('} // namespace %s\n'%(args.namespace))
 
 
