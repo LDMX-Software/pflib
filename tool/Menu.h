@@ -337,6 +337,16 @@ class Menu : public BaseMenu {
   Menu(RenderFuncType f = 0) : render_func_{f} {}
 
   /**
+   * Print menu without running it
+   */
+  void print(std::ostream& s, int indent = 0) const {
+    for (const auto& l: lines_) {
+      l.print(s, indent);
+    }
+  }
+  
+
+  /**
    * give control over the target to this menu
    *
    * We enter a do-while loop that continues until the user selects
@@ -555,10 +565,27 @@ class Menu : public BaseMenu {
     const char* name() const { return name_; }
     /// short description to print with menu
     const char* desc() const { return desc_; }
+
+    /**
+     * Overload output stream operator for easier printing
+     */
     friend std::ostream& operator<<(std::ostream& s, const Line& l) {
       return (s << "  " << std::left << std::setw(12) << l.name() 
                 << " " << l.desc());
     }
+
+    /**
+     * More specialized printing function to make it easier to recursively
+     * printout entire menu with descriptions.
+     */
+    void print(std::ostream& s, int indent = 0) const {
+      for (std::size_t i{0}; i < indent; i++) s << " ";
+      s << *this << "\n";
+      if (sub_menu_) {
+        sub_menu_->print(s, indent+2);
+      }
+    }
+
    private:
     /// the name of this line
     const char* name_;
