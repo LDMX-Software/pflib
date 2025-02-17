@@ -40,6 +40,11 @@ auto r = test_menu::root()
  * ```
  */
 int main(int argc, char* argv[]) {
+  if (argc > 1) {
+    Menu<int>::root()->print(std::cout);
+    std::cout << std::flush;
+    return 0;
+  }
   try {
     int i = 3;
     Menu<int>::run(&i);
