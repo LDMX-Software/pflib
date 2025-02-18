@@ -1383,13 +1383,20 @@ void prepareOpts(Rcfile& rcfile) {
 int main(int argc, char* argv[]) {
   Rcfile options;
   prepareOpts(options);
-  
-  // print help
-  if (argc == 2 and (!strcmp(argv[1],"-h") or !strcmp(argv[1],"--help"))) {
-    printf("Usage: (HCal HGCROC fiberless mode\n");
-    printf("   pftool -z [-s script]\n");
 
-    printf("Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, ${HOME}/.pftoolrc with priority in this order\n");
+  // print help before attempting to load RC file incase the RC file is broken
+  if (argc == 2 and (!strcmp(argv[1],"-h") or !strcmp(argv[1],"--help"))) {
+    printf("\nUSAGE: (HCal HGCROC fiberless mode)\n");
+    printf("   %s -z OPTIONS\n\n", argv[0]);
+    printf("OPTIONS:\n");
+    printf("  -z : required for fiberless (no-polarfire, zcu102-based) mode\n");
+    printf("  -s : pass a script of commands to run through pftool\n");
+    printf("  -h|--help : print this help and exit\n");
+    printf("  -d|--dump : print out the entire pftool menu and submenus with their command descriptions\n");
+    printf("\n");
+
+    printf("CONFIG:\n");
+    printf(" Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, ${HOME}/.pftoolrc with priority in this order.\n");
     options.help();
     
     printf("\n");
@@ -1444,10 +1451,14 @@ int main(int argc, char* argv[]) {
         BaseMenu::add_to_command_queue(line);
       }
       sFile.close() ;
-    }
-    else if (arg=="-z") 
+    } else if (arg=="-z") {
       mode=Fiberless;
-    else {
+    } else if (arg == "-d" or arg == "--dump") {
+      // dump out the entire menu to stdout
+      pftool::root()->print(std::cout);
+      std::cout << std::flush;
+      return 0;
+    } else {
       // positional argument -> hostname
       hostnames.push_back( arg ) ;
     }
