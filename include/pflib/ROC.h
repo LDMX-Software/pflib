@@ -23,6 +23,11 @@ class ROC {
   std::vector<uint8_t> readPage(int ipage, int len);
   uint8_t getValue(int page, int offset);
   void setValue(int page, int offset, uint8_t value);
+
+  bool getDirectAccess(const std::string& name);
+  bool getDirectAccess(int reg, int bit);
+  void setDirectAccess(const std::string& name, bool val);
+  void setDirectAccess(int reg, int bit, bool val);
   
   std::vector<uint8_t> getChannelParameters(int ichan);
   void setChannelParameters(int ichan, std::vector<uint8_t>& values);
