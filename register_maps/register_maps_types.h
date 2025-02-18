@@ -1,5 +1,8 @@
-/* unifying header for all register maps
- * the specific maps written into the headers corresponding
+/**
+ * @file register_maps_types.h
+ * Header defining types stored within the parameter to register mappings
+ *
+ * The specific maps written into the headers corresponding
  * to the names of the HGCROC type/versions rely on this header
  * to join them together into a coherent interface for the compiler
  * and to include the necessary headers they rely upon.
