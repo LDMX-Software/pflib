@@ -267,7 +267,6 @@ static void elinks( const std::string& cmd, Target* pft ) {
   
 }
 
-
 /**
  * ROC currently being interacted with by user
  */
@@ -308,13 +307,14 @@ static void roc_render( Target* pft ) {
  * @param[in] pft active target
  */
 static void roc( const std::string& cmd, Target* pft ) {
-  // generate lists of page names and param names for those pages
-  // for tab completion
+  static std::string type_version = "sipm_rocv3b";
   static std::vector<std::string> page_names;
   static std::map<std::string,std::vector<std::string>> param_names;
   if (page_names.empty()) {
-    // only need to do this once 
-    auto defs = pflib::defaults();
+    // generate lists of page names and param names for those pages
+    // for tab completion
+    // only need to do this if the ROC changes type_version
+    auto defs = pflib::Compiler::get(type_version).defaults();
     for (const auto& page : defs) {
       page_names.push_back(page.first);
       for (const auto& param : page.second) {
@@ -329,9 +329,23 @@ static void roc( const std::string& cmd, Target* pft ) {
     pft->hcal().softResetROC();
   }
   if (cmd=="IROC") {
-    iroc=BaseMenu::readline_int("Which ROC to manage: ",iroc);
+    iroc = BaseMenu::readline_int("Which ROC to manage: ",iroc);
+    auto new_tv = BaseMenu::readline("type_version of the HGCROC: ", type_version);
+    if (new_tv != type_version) {
+      // generate lists of page names and param names for those pages
+      // for tab completion
+      // only need to do this if the ROC changes type_version
+      auto defs = pflib::Compiler::get(new_tv).defaults();
+      for (const auto& page : defs) {
+        page_names.push_back(page.first);
+        for (const auto& param : page.second) {
+          param_names[page.first].push_back(param.first);
+        }
+      }
+    }
+    type_version = new_tv;
   }
-  pflib::ROC roc=pft->hcal().roc(iroc);
+  pflib::ROC roc = pft->hcal().roc(iroc, type_version);
   if (cmd=="RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode=BaseMenu::readline_bool("Set ROC runmode: ",isRunMode);

@@ -34,6 +34,7 @@ class ROC {
 
   void setRegisters(const std::map<int,std::map<int,uint8_t>>& registers);
   std::vector<std::string> parameters(const std::string& page);
+  std::map<std::string,std::map<std::string,int>> defaults();
 
   void applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters);
 

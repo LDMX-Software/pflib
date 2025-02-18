@@ -144,6 +144,10 @@ std::vector<std::string> ROC::parameters(const std::string& page) {
   return compiler_.parameters(page);
 }
 
+std::map<std::string,std::map<std::string,int>> ROC::defaults() {
+  return compiler_.defaults();
+}
+
 void ROC::applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters) {
   // 1. get registers YAML file contains by compiling without defaults
   auto touched_registers = compiler_.compile(parameters);
