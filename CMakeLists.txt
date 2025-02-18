@@ -63,6 +63,23 @@ foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
 endforeach()
 
 add_custom_command(
+  OUTPUT "include/register_maps/direct_access.h"
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/write-direct-access-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/si_roc_directaccess_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/direct_access.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/write-direct-access-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/si_roc_directaccess_regmap.yaml
+  COMMENT "Generating C++ Direct Access LUT from register_maps/si_roc_directaccess_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(direct_access DEPENDS include/register_maps/direct_access.h)
+# do NOT include the direct_access header in the list of register maps to be included in the unifying header
+# direct access "compilation" is simpler and is done directly within the ROC class and not
+# within the Compiler
+
+add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
@@ -102,7 +119,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp)
-add_dependencies(pflib register_maps_header)
+add_dependencies(pflib register_maps_header direct_access)
 
 add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)

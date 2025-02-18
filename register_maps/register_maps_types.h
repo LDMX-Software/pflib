@@ -53,6 +53,26 @@ struct Parameter {
 };
 
 /**
+ * A direct access parameter is used to directly configure the HGCROC I2C connection
+ * in a fast but simplified manner.
+ *
+ * Direct access is slightly simpler, none of the direct access parameters spread
+ * across more than one register and are all only one bit.
+ * The registers that the direct access parameters are in are also different
+ * than the registers that the normal configuration parameters are in.
+ * They are situated within the I2C circuit and so their register is relative
+ * to the root I2C address of the HGCROC.
+ */
+struct DirectAccessParameter {
+  /// the register this parameter is in (relative to the root I2C address of the HGCROC) (4-7)
+  const int reg;
+  /// the bit location within the register that this parameter is in (0-7)
+  const int bit_location;
+  /// the default parameter value
+  const bool def;
+};
+
+/**
  * A non-copyable mapping
  *
  * This is helpful for our Look Up Tables (LUTs) since we want
@@ -87,12 +107,14 @@ class NoCopyMap : public std::map<Key, Val> {
   NoCopyMap(const Mapping& contents) : Mapping(contents) {}
 };
 
-// type for hold sets of parameters by name
+/// type for hold sets of parameters by name
 using Page = NoCopyMap<std::string, Parameter>;
 
-// type for holding a set of abstract pages just associating names with specific sets of parameters
+/// type for holding a set of abstract pages just associating names with specific sets of parameters
 using PageLUT = NoCopyMap<std::string, const Page&>;
 
-// type for a LUT that holds concrete pages with their address and Page parameters
+/// type for a LUT that holds concrete pages with their address and Page parameters
 using ParameterLUT = NoCopyMap<std::string, std::pair<int, const Page&>>;
 
+/// direct access parameters LUT
+using DirectAccessParameterLUT = NoCopyMap<std::string, DirectAccessParameter>;

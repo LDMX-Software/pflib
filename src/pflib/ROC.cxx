@@ -1,6 +1,8 @@
 #include "pflib/ROC.h"
 #include <iostream>
 
+#include "register_maps/direct_access.h"
+
 namespace pflib {
 
 static const int block_for_chan[] = {261, 260, 259, 258, // 0-3
@@ -43,7 +45,6 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_.set_bus_speed(1400);
 
-
   // set the address
   uint16_t fulladdr=(ipage<<5)|offset;
   i2c_.write_byte(roc_base_+0,fulladdr&0xFF);
@@ -52,21 +53,68 @@ uint8_t ROC::getValue(int ipage, int offset) {
   return i2c_.read_byte(roc_base_+2);
 }
 
-  static const int TOP_PAGE       =  45;
-  static const int MASK_RUN_MODE  = 0x3;
-  
-  void ROC::setRunMode(bool active) {
-    uint8_t cval=getValue(TOP_PAGE,0);
-    uint8_t imask=0xFF^MASK_RUN_MODE;
-    cval&=imask;
-    if (active) cval|=MASK_RUN_MODE;
-    setValue(TOP_PAGE,0,cval);
+bool ROC::getDirectAccess(const std::string& name) {
+  auto spec_it = pflib::DIRECT_ACCESS_PARAMETER_LUT.find(name);
+  if (spec_it == pflib::DIRECT_ACCESS_PARAMETER_LUT.end()) {
+    PFEXCEPTION_RAISE("BadName", "Direct Access parameter named '"+name+"' not found in mapping.");
   }
-  
-  bool ROC::isRunMode() {
-    uint8_t cval=getValue(TOP_PAGE,0);
-    return cval&MASK_RUN_MODE;
+  return getDirectAccess(spec_it->second.reg, spec_it->second.bit_location);
+}
+
+bool ROC::getDirectAccess(int reg, int bit) {
+  if (reg < 4 or reg > 7) {
+    PFEXCEPTION_RAISE("BadReg", "Direct access registers are the values 4, 5, 6, and 7.");
   }
+  if (bit < 0 or bit > 7) {
+    PFEXCEPTION_RAISE("BadBit", "Direct access bit locations are the indices from 0 to 7.");
+  }
+  uint8_t reg_val = i2c_.read_byte(roc_base_+reg);
+  return ((reg_val >> bit)&0b1) == 1;
+}
+
+void ROC::setDirectAccess(const std::string& name, bool val) {
+  auto spec_it = pflib::DIRECT_ACCESS_PARAMETER_LUT.find(name);
+  if (spec_it == pflib::DIRECT_ACCESS_PARAMETER_LUT.end()) {
+    PFEXCEPTION_RAISE("BadName", "Direct Access parameter named '"+name+"' not found in mapping.");
+  }
+  setDirectAccess(spec_it->second.reg, spec_it->second.bit_location, val);
+}
+
+void ROC::setDirectAccess(int reg, int bit, bool val) {
+  if (reg < 4 or reg > 7) {
+    PFEXCEPTION_RAISE("BadReg", "Direct access registers are the values 4, 5, 6, and 7.");
+  }
+  if (reg == 7) {
+    PFEXCEPTION_RAISE("BadReg", "Direct access register 7 is read only.");
+  }
+  if (bit < 0 or bit > 7) {
+    PFEXCEPTION_RAISE("BadBit", "Direct access bit locations are the indices from 0 to 7.");
+  }
+  // get the register
+  uint8_t reg_val = i2c_.read_byte(roc_base_+reg);
+  // clear the value in that bit position
+  reg_val &= ~(static_cast<uint8_t>(1) << bit);
+  // set the bit to the same as our value
+  reg_val |= (static_cast<uint8_t>(val ? 1 : 0) << bit);
+  // write the register back
+  i2c_.write_byte(roc_base_+reg, reg_val);
+}
+
+static const int TOP_PAGE       =  45;
+static const int MASK_RUN_MODE  = 0x3;
+
+void ROC::setRunMode(bool active) {
+  uint8_t cval=getValue(TOP_PAGE,0);
+  uint8_t imask=0xFF^MASK_RUN_MODE;
+  cval&=imask;
+  if (active) cval|=MASK_RUN_MODE;
+  setValue(TOP_PAGE,0,cval);
+}
+
+bool ROC::isRunMode() {
+  uint8_t cval=getValue(TOP_PAGE,0);
+  return cval&MASK_RUN_MODE;
+}
   
 std::vector<uint8_t> ROC::getChannelParameters(int ichan) {
   return readPage(block_for_chan[ichan],14);
