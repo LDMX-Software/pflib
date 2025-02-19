@@ -371,8 +371,11 @@ static void roc( const std::string& cmd, Target* pft ) {
     }
     std::cout << std::endl;
     std::string p = BaseMenu::readline("Page type? ", page_names);
-    std::vector<std::string> param_names = roc.parameters(p);
-    for (const std::string& pn : param_names) {
+    auto param_list_it = param_names.find(p);
+    if (param_list_it == param_names.end()) {
+      PFEXCEPTION_RAISE("BadPage", "Page name "+p+" not known.");
+    }
+    for (const std::string& pn : param_list_it->second) {
       std::cout << pn << "\n";
     }
     std::cout << std::endl;
