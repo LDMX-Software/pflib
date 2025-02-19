@@ -24,6 +24,7 @@ class ROC {
   uint8_t getValue(int page, int offset);
   void setValue(int page, int offset, uint8_t value);
 
+  std::vector<std::string> getDirectAccessParameters();
   bool getDirectAccess(const std::string& name);
   bool getDirectAccess(int reg, int bit);
   void setDirectAccess(const std::string& name, bool val);

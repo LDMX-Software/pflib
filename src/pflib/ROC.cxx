@@ -53,6 +53,15 @@ uint8_t ROC::getValue(int ipage, int offset) {
   return i2c_.read_byte(roc_base_+2);
 }
 
+std::vector<std::string> ROC::getDirectAccessParameters() {
+  std::vector<std::string> names;
+  names.reserve(pflib::DIRECT_ACCESS_PARAMETER_LUT.size());
+  for (const auto& [name, spec]: pflib::DIRECT_ACCESS_PARAMETER_LUT) {
+    names.push_back(name);
+  }
+  return names;
+}
+
 bool ROC::getDirectAccess(const std::string& name) {
   auto spec_it = pflib::DIRECT_ACCESS_PARAMETER_LUT.find(name);
   if (spec_it == pflib::DIRECT_ACCESS_PARAMETER_LUT.end()) {

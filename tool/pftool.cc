@@ -357,6 +357,25 @@ static void roc( const std::string& cmd, Target* pft ) {
     for (int i=0; i<int(v.size()); i++)
       printf("%02d : %02x\n",i,v[i]);
   }
+  if (cmd == "DIRECT_ACCESS_PARAMETERS") {
+    for (const auto& name: roc.getDirectAccessParameters()) {
+      std::cout << "  " << name << "\n";
+    }
+    std::cout << std::flush;
+  }
+  if (cmd == "GET_DIRECT_ACCESS") {
+    auto options = roc.getDirectAccessParameters();
+    auto name = BaseMenu::readline("Direct Access Parameter to Read: ", options);
+    bool val = roc.getDirectAccess(name);
+    std::cout << std::boolalpha << "  " << name << " set to " << val << std::endl;
+  }
+  if (cmd == "SET_DIRECT_ACCESS") {
+    auto options = roc.getDirectAccessParameters();
+    //TODO filter out the readonly DA parameters on register 7
+    auto name = BaseMenu::readline("Direct Access Parameter to Set: ", options);
+    bool val = BaseMenu::readline_bool("On/Off: ", true);
+    roc.setDirectAccess(name, val);
+  }
   if (cmd=="PAGE") {
     int page=BaseMenu::readline_int("Which page? ",0);
     int len=BaseMenu::readline_int("Length?", 8);
@@ -1250,6 +1269,9 @@ auto menu_roc = pftool::menu("ROC","Read-Out Chip Configuration", roc_render)
    ->line("HARDRESET","Hard reset to all rocs", roc)
    ->line("SOFTRESET","Soft reset to all rocs", roc)
    //->line("RESYNCLOAD","ResyncLoad to specified roc to help maintain link stability", roc)
+   ->line("DIRECT_ACCESS_PARAMETERS", "list the direct access parameters we know about", roc)
+   ->line("GET_DIRECT_ACCESS", "print a direct access parameter", roc)
+   ->line("SET_DIRECT_ACCESS", "set a direct access parameter", roc)
    ->line("IROC","Change the active ROC number", roc )
    ->line("RUNMODE", "set/clear the run mode", roc )
    ->line("CHAN","Dump link status", roc )
