@@ -54,17 +54,22 @@ void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
 }
 
 uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
-  ioctl(handle_,0x0703, i2c_dev_addr);
+  ioctl(handle_, 0x0703, i2c_dev_addr);
   uint8_t buffer[8];
-  int rv=read(handle_,buffer,1);
-
-  if (rv<0) {
-    char message[120];
-    snprintf(message,120,"Error %d reading from i2c target 0x%02x",errno,i2c_dev_addr);
-    PFEXCEPTION_RAISE("I2CError",message);
+  int rv{-1};
+  int tries = 4;
+  for (std::size_t i_try{0}; i_try < 4; i_try++) {
+    rv = read(handle_, buffer, 1);
+    if (rv >= 0) {
+      return buffer[0];
+    }
   }
-
-  return buffer[0];
+  // got hear because rv is in error status (negative)
+  char message[120];
+  snprintf(message,120,"Error %d reading from i2c target 0x%02x",errno,i2c_dev_addr);
+  PFEXCEPTION_RAISE("I2CError",message);
+  // won't get to this return because of the exception
+  return 0;
 }
 
   
