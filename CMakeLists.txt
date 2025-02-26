@@ -149,39 +149,6 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-# Now determine which method of interaction to use for communicating with the polarfire
-#   - if neither are available, fatal cmake error - this library is useless without one
-
-# Rogue
-if (DEFINED ENV{ROGUE_DIR})
-   set(Rogue_DIR $ENV{ROGUE_DIR}/lib)
-else()
-   set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
-endif()
-# issues its own "found Rogue version ___" message
-find_package(Rogue CONFIG)
-
-if (Rogue_FOUND)
-  # the libraries parameter includes the PUBLIC keyword annoyingly
-  list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
-  # define source files this submodule uses
-  add_library(rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
-  # attach rogue as a dependency
-  target_link_libraries(rogue PUBLIC pflib ${ROGUE_LIBRARIES})
-  target_include_directories(rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
-  # let pftool know that rogue is available
-  target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
-  # link submodule lib to pftool
-  target_link_libraries(pftool PRIVATE rogue)
-  list(APPEND comm_libs rogue)
-else()
-  message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
-endif()
-
-#if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
-#  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
-#endif()
-
 set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
 
 install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefaults
