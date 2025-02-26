@@ -121,22 +121,22 @@ target_include_directories(pflib PUBLIC
 target_link_libraries(pflib PUBLIC yaml-cpp)
 add_dependencies(pflib register_maps_header direct_access)
 
-add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
+add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu tool/test_menu.cxx tool/Menu.cc)
+add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
-add_executable(pfdecoder tool/pfdecoder.cc)
+add_executable(pfdecoder app/pfdecoder.cc)
 
-add_executable(pfcompile tool/pfcompile.cxx)
+add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
-add_executable(pfdecompile tool/pfdecompile.cxx)
+add_executable(pfdecompile app/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
 
-add_executable(pfdefaults tool/pfdefaults.cxx)
+add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 # Now determine which method of interaction to use for communicating with the polarfire
