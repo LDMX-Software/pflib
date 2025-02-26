@@ -1,3 +1,6 @@
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "env/yaml-cpp"]
+	path = env/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp

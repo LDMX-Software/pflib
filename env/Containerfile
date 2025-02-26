@@ -1,0 +1,17 @@
+FROM almalinux:9.4
+LABEL os.version="almalinux:9.4"
+RUN yum install -y \
+      gcc \
+      g++ \
+      git \
+      cmake \
+      bash \
+      readline-devel
+COPY ./yaml-cpp ./src
+RUN cmake \
+      -DYAML_BUILD_SHARED_LIBS=ON \
+      -B src/build \
+      -S src &&\
+    cmake --build src/build --target install &&\
+    rm -rf src
+
