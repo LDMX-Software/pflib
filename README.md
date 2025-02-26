@@ -108,8 +108,7 @@ uHAL | 2.8.1
 ## Directory Structure
 - config : helpful HGC ROC YAML parameter settings to load onto chips
 - docs : documentation generation and helpful PDF manuals
-- include : header files
-- src : implementation files
-- tool : executables and supporting source files
-- uhal : XML files used for configuring uHAL connection
-
+- include : header files of pflib library
+- src : implementation files of pflib library
+- app : executables and supporting source files for executables
+- register_maps : files for mapping parameters to their registers on the chip
