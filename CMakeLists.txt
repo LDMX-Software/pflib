@@ -138,7 +138,16 @@ target_link_libraries(pftool PRIVATE pflib readline)
 add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
+add_library(pflib_packing SHARED
+  src/pflib/packing/FileReader.cxx
+  src/pflib/packing/BufferReader.cxx
+  src/pflib/packing/LinkFrame.cxx
+)
+target_include_directories(pflib_packing PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 add_executable(pfdecoder app/pfdecoder.cc)
+target_link_libraries(pfdecoder PRIVATE pflib_packing)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
@@ -149,9 +158,7 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
-
-install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib pflib_packing pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
