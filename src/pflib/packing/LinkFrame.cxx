@@ -1,46 +1,60 @@
 #include "pflib/packing/LinkFrame.h"
 
-#include <cstdint>
+#include "pflib/packing/Hex.h"
+
+#include <bitset>
+#include <iostream>
 
 namespace pflib::packing {
 
-Reader& LinkFrame::Sample::read(Reader& r) {
-  uint32_t word;
-  r >> word;
-  Tc = ((word >> 31)&0b1) == 1;
-  Tp = ((word >> 30)&0b1) == 1;
-  toa = (word & mask<10>);
-  if (not Tc and not Tp) {
-    // normal adc behavior, no TOT
-    adc_tm1 = (word >> 20) & mask<10>;
-    adc = (word >> 10) & mask<10>;
-    tot = -1;
-  } else if (not Tc and Tp) {
-    // TOT busy, adc saturated or undershoot
-    adc_tm1 = (word >> 20) & mask<10>;
-    adc = (word >> 10) & mask<10>;
-    tot = -1;
-  } else if (Tc and Tp) {
-    // TOT output
-    adc_tm1 = (word >> 20) & mask<10>;
-    adc = -1;
-    tot = (word >> 10) & mask<10>;
-  } else /* Tc and not Tp */ {
-    // only appear when TOT value is near threshold
-    adc_tm1 = -1;
-    adc = (word >> 20) & mask<10>;
-    tot = (word >> 10) & mask<10>;
-  }
-  return r;
+bool Sample::Tc() {
+  return ((this->word >> 31)&0b1) == 1;
 }
 
-Reader& LinkFrame::read(Reader& r) {
-  uint32_t header, cm, crc_sum, idle;
-  r >> header;
+bool Sample::Tp() {
+  return ((this->word >> 30)&0b1) == 1;
+}
 
+int Sample::toa() {
+  return (this->word & mask<10>);
+}
+
+int Sample::adc_tm1() {
+  // weird situation without pre-sample
+  if (Tc() and not Tp()) return -1;
+  // otherwise, just the 10 bits after the two flags
+  return ((this->word >> 20) & mask<10>);
+}
+
+int Sample::adc() {
+  if (not Tc()) {
+    return ((this->word >> 10) & mask<10>);
+  } else if (not Tp()) {
+    return ((this->word >> 20) & mask<10>);
+  } else {
+    return -1;
+  }
+}
+
+int Sample::tot() {
+  if (Tc()) {
+    return ((this->word >> 10) & mask<10>);
+  } else {
+    return -1;
+  }
+}
+
+void LinkFrame::from(std::span<uint32_t> data) {
+  if (data.size() != 40) {
+    throw std::runtime_error("LinkFrame provided data words of incorrect length "+std::to_string(data.size()));
+  }
+
+  const uint32_t& header = data[0];
+  std::cout << "daq link header " << hex(header) << std::endl;
   uint32_t allones = (header >> (12+6+3+1+1+1+4)) & mask<4>;
   if (allones != 0b1111) {
     // bad!
+    std::cout << "  bad leading header bits " << std::bitset<4>(allones) << std::endl;
   }
   bx = (header >> (6+3+1+1+1+4)) & mask<12>;
   event = (header >> (3+1+1+1+4)) & mask<6>;
@@ -52,29 +66,33 @@ Reader& LinkFrame::read(Reader& r) {
   first_event = (trailflag == 0b0101);
   if (not first_event and trailflag != 0b0010) {
     // bad!
+    std::cout << "  bad event header flag " << std::bitset<4>(trailflag) << std::endl;
   }
 
-  r >> cm;
-  if (((cm >> 20) & mask<12>) != ~mask<12>) {
+  const uint32_t& cm{data[1]};
+  if (((cm >> 20) & mask<12>) != 0) {
     // bad!
+    std::cout << "  bad common mode leading 12 bits " << std::bitset<12>(cm >> 20) << std::endl;
   }
   adc_cm0 = (cm >> 10) & mask<10>;
   adc_cm1 = cm & mask<10>;
 
   std::size_t i_chan{0};
   for (; i_chan < 18; i_chan++) {
-    r >> channels[i_chan];
+    channels[i_chan].word = data[2 + i_chan];
   }
 
-  r >> calib;
+  calib.word = data[2 + 18];
 
   for (; i_chan < 36; i_chan++) {
-    r >> channels[i_chan];
+    channels[i_chan].word = data[2 + 1 + i_chan];
   }
 
-  r >> crc_sum;
-  r >> idle;
-  return r;
+  [[maybe_unused]] uint32_t crc_sum = data[39];
+}
+
+LinkFrame::LinkFrame(std::span<uint32_t> data) {
+  from(data);
 }
 
 }
