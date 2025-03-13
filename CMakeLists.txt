@@ -24,7 +24,6 @@ project(pflib
 	LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)

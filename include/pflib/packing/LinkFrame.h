@@ -1,12 +1,36 @@
 #pragma once
 
+#include <span>
 #include <array>
+#include <cstdint>
 
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Reader.h"
 
 namespace pflib::packing {
 
+/**
+ * A single DAQ 32-bit sample
+ *
+ * The 32-bit word is stored in memory and then decoded upon
+ * request.
+ */
+struct Sample {
+  uint32_t word;
+  bool Tc();
+  bool Tp();
+  int toa();
+  int adc_tm1();
+  int adc();
+  int tot();
+};
+
+/**
+ * A frame readout from a DAQ Link
+ *
+ * The header and common mode words are unpacked into memory
+ * while the DAQ and Calibration samples are given to Sample
+ */
 struct LinkFrame {
   int bx;
   int event;
@@ -18,20 +42,25 @@ struct LinkFrame {
   int adc_cm0;
   int adc_cm1;
 
-  struct Sample {
-    bool Tc;
-    bool Tp;
-    int toa;
-    int adc_tm1;
-    int adc;
-    int tot;
-
-    Reader& read(Reader& r);
-  };
   std::array<Sample, 36> channels;
   Sample calib;
 
-  Reader& read(Reader& r);
+  /**
+   * Parse into this link frame from a std::span over 32-bit words
+   */
+  void from(std::span<uint32_t> data);
+
+  /**
+   * Construct from a std::span over 32-bit words
+   *
+   * @note
+   * A std::span can be transparently constructed from a std::vector
+   * if that is what is available, but it can also be used to simply
+   * view a subslice of a larger std::vector.
+   */
+  LinkFrame(std::span<uint32_t> data);
+
+  LinkFrame() = default;
 };
 
 }
