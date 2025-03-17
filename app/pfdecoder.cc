@@ -66,8 +66,8 @@ struct SingleROCPacket {
     }
 
     std::vector<uint32_t> link_data;
-    r.read(link_data, total_len);
-    if (!r) {
+    // we already read the total_len word so we read the next total_len-1 words
+    if (!r.read(link_data, total_len-1)) {
       std::cout << "partially transmitted ROC stream" << std::endl;
       return r;
     }
@@ -88,18 +88,29 @@ struct SingleROCPacket {
       if (i_link < 2) {
         daq_links[i_link].from(std::span(link_data.begin() + link_start_offset, link_len));
       } else {
+        std::cout << "trigger link - skip" << std::endl;
+        /*
         for (const auto& word : std::span(link_data.begin() + link_start_offset, link_len)) {
           std::cout << hex(word) << std::endl;
         }
+        */
       }
       link_start_offset += link_len;
     }
 
-    std::cout << "trailer" << std::endl;
-    for (const auto& word: std::span(link_data.begin()+link_start_offset, link_data.end())) {
-      std::cout << hex(word) << std::endl;
+    std::cout << "trailer scan...";
+    prev_word=0;
+    word=0;
+    while (prev_word != 0xd07e2025 or word != 0x12345678) {
+      prev_word = word;
+      if (!(r >> word)) break;
+      std::cout << hex(word) << " ";
     }
-
+    if (!r) {
+      std::cout << "no trailer found" << std::endl;
+      return r;
+    }
+    std::cout << "found trailer" << std::endl;
     return r;
   }
 };
@@ -163,7 +174,8 @@ int main(int argc, char* argv[]) {
   int count{0};
   while (r) {
     r >> ep;
-    if (++count > 2) break;
+    break;
+    //if (++count > 2) break;
   }
 
   return 0;

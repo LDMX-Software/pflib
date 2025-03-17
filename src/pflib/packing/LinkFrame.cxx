@@ -46,7 +46,12 @@ int Sample::tot() {
 
 void LinkFrame::from(std::span<uint32_t> data) {
   if (data.size() != 40) {
-    throw std::runtime_error("LinkFrame provided data words of incorrect length "+std::to_string(data.size()));
+    std::stringstream msg{"LinkFrame provided data words of incorrect length "};
+    msg << data.size() << ".";
+    if (data.size() > 40) {
+      msg << "\nIdle words need to be trimmed."
+    }
+    throw std::runtime_error(msg.str());
   }
 
   const uint32_t& header = data[0];
