@@ -43,7 +43,7 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   std::cout << "header scan...";
   while (prev_word != 0x11888811 or word != 0xbeef2025) {
     prev_word = word;
-    r >> word;
+    if (!(r >> word)) break;
     std::cout << hex(word) << " ";
   }
   if (!r) {
@@ -69,6 +69,19 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   }
 
   from(link_data);
+
+  std::cout << "trailer scan...";
+  while (prev_word != 0xd07e2025 or word != 0x12345678) {
+    prev_word = word;
+    if (!(r >> word)) break;
+    std::cout << hex(word) << " ";
+  }
+  if (!r) {
+    std::cout << "no trailer found" << std::endl;
+    return r;
+  }
+  std::cout << "found trailer" << std::endl;
+
   return r;
 }
 
