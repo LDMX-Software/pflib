@@ -4,52 +4,16 @@
 
 #include <bitset>
 #include <iostream>
+#include <sstream>
 
 namespace pflib::packing {
-
-bool Sample::Tc() {
-  return ((this->word >> 31)&0b1) == 1;
-}
-
-bool Sample::Tp() {
-  return ((this->word >> 30)&0b1) == 1;
-}
-
-int Sample::toa() {
-  return (this->word & mask<10>);
-}
-
-int Sample::adc_tm1() {
-  // weird situation without pre-sample
-  if (Tc() and not Tp()) return -1;
-  // otherwise, just the 10 bits after the two flags
-  return ((this->word >> 20) & mask<10>);
-}
-
-int Sample::adc() {
-  if (not Tc()) {
-    return ((this->word >> 10) & mask<10>);
-  } else if (not Tp()) {
-    return ((this->word >> 20) & mask<10>);
-  } else {
-    return -1;
-  }
-}
-
-int Sample::tot() {
-  if (Tc()) {
-    return ((this->word >> 10) & mask<10>);
-  } else {
-    return -1;
-  }
-}
 
 void LinkFrame::from(std::span<uint32_t> data) {
   if (data.size() != 40) {
     std::stringstream msg{"LinkFrame provided data words of incorrect length "};
     msg << data.size() << ".";
     if (data.size() > 40) {
-      msg << "\nIdle words need to be trimmed."
+      msg << "\nIdle words need to be trimmed.";
     }
     throw std::runtime_error(msg.str());
   }
