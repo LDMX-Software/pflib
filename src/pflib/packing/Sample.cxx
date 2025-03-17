@@ -4,26 +4,26 @@
 
 namespace pflib::packing {
 
-bool Sample::Tc() {
+bool Sample::Tc() const {
   return ((this->word >> 31)&0b1) == 1;
 }
 
-bool Sample::Tp() {
+bool Sample::Tp() const {
   return ((this->word >> 30)&0b1) == 1;
 }
 
-int Sample::toa() {
+int Sample::toa() const {
   return (this->word & mask<10>);
 }
 
-int Sample::adc_tm1() {
+int Sample::adc_tm1() const {
   // weird situation without pre-sample
   if (Tc() and not Tp()) return -1;
   // otherwise, just the 10 bits after the two flags
   return ((this->word >> 20) & mask<10>);
 }
 
-int Sample::adc() {
+int Sample::adc() const {
   if (not Tc()) {
     return ((this->word >> 10) & mask<10>);
   } else if (not Tp()) {
@@ -33,7 +33,7 @@ int Sample::adc() {
   }
 }
 
-int Sample::tot() {
+int Sample::tot() const {
   if (Tc()) {
     return ((this->word >> 10) & mask<10>);
   } else {

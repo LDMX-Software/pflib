@@ -12,12 +12,12 @@ namespace pflib::packing {
  */
 struct Sample {
   uint32_t word;
-  bool Tc();
-  bool Tp();
-  int toa();
-  int adc_tm1();
-  int adc();
-  int tot();
+  bool Tc() const;
+  bool Tp() const;
+  int toa() const;
+  int adc_tm1() const;
+  int adc() const;
+  int tot() const;
 };
 
 }
