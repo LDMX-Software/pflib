@@ -1,4 +1,4 @@
-#include "pflib/packing/LinkFrame.h"
+#include "pflib/packing/DAQLinkFrame.h"
 
 #include "pflib/packing/Hex.h"
 
@@ -8,9 +8,9 @@
 
 namespace pflib::packing {
 
-void LinkFrame::from(std::span<uint32_t> data) {
+void DAQLinkFrame::from(std::span<uint32_t> data) {
   if (data.size() != 40) {
-    std::stringstream msg{"LinkFrame provided data words of incorrect length "};
+    std::stringstream msg{"DAQLinkFrame provided data words of incorrect length "};
     msg << data.size() << ".";
     if (data.size() > 40) {
       msg << "\nIdle words need to be trimmed.";
@@ -60,7 +60,7 @@ void LinkFrame::from(std::span<uint32_t> data) {
   [[maybe_unused]] uint32_t crc_sum = data[39];
 }
 
-LinkFrame::LinkFrame(std::span<uint32_t> data) {
+DAQLinkFrame::DAQLinkFrame(std::span<uint32_t> data) {
   from(data);
 }
 
