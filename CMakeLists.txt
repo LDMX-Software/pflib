@@ -140,6 +140,7 @@ target_link_libraries(test-menu PRIVATE pflib readline)
 add_library(pflib_packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
+  src/pflib/packing/Sample.cxx
   src/pflib/packing/LinkFrame.cxx
 )
 target_include_directories(pflib_packing PUBLIC 
