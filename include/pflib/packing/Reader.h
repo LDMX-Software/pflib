@@ -149,10 +149,10 @@ class Reader {
    * @return *this
    */
   template <typename ContentType>
-  Reader& read(std::vector<ContentType>& vec, std::size_t count) {
-    vec.resize(count);
-    for (auto& w : vec) {
-      if (!(*this >> w)) return *this;
+  Reader& read(std::vector<ContentType>& vec, std::size_t count, std::size_t offset = 0) {
+    vec.resize(count+offset);
+    for (std::size_t i{offset}; i < vec.size(); i++) {
+      if (!(*this >> vec[i])) return *this;
     }
     return *this;
   }

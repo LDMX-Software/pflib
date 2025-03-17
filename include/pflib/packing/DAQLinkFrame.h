@@ -15,7 +15,7 @@ namespace pflib::packing {
  * The header and common mode words are unpacked into memory
  * while the DAQ and Calibration samples are given to Sample
  */
-struct LinkFrame {
+struct DAQLinkFrame {
   int bx;
   int event;
   int orbit;
@@ -42,9 +42,9 @@ struct LinkFrame {
    * if that is what is available, but it can also be used to simply
    * view a subslice of a larger std::vector.
    */
-  LinkFrame(std::span<uint32_t> data);
+  DAQLinkFrame(std::span<uint32_t> data);
 
-  LinkFrame() = default;
+  DAQLinkFrame() = default;
 };
 
 }

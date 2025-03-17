@@ -94,6 +94,18 @@ add_custom_target(register_maps_header DEPENDS include/register_maps/register_ma
 
 configure_file(include/pflib/Version.h.in include/pflib/Version.h)
 
+add_library(pflib_packing SHARED
+  src/pflib/packing/FileReader.cxx
+  src/pflib/packing/BufferReader.cxx
+  src/pflib/packing/Sample.cxx
+  src/pflib/packing/DAQLinkFrame.cxx
+  src/pflib/packing/TriggerLinkFrame.cxx
+  src/pflib/packing/SingleROCEventPacket.cxx
+)
+target_include_directories(pflib_packing PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+
 # Build the pf library
 #
 #  src/pflib/Bias.cxx
@@ -137,15 +149,6 @@ target_link_libraries(pftool PRIVATE pflib readline)
 add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
-add_library(pflib_packing SHARED
-  src/pflib/packing/FileReader.cxx
-  src/pflib/packing/BufferReader.cxx
-  src/pflib/packing/Sample.cxx
-  src/pflib/packing/LinkFrame.cxx
-)
-target_include_directories(pflib_packing PUBLIC 
-  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
 add_executable(pfdecoder app/pfdecoder.cc)
 target_link_libraries(pfdecoder PRIVATE pflib_packing)
 
