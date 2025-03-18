@@ -6,3 +6,6 @@ install**
 *~
 docs/html/**
 tool/test-menu
+
+.denv
+.bash*
