@@ -149,7 +149,7 @@ target_link_libraries(pftool PRIVATE pflib readline)
 add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
-add_executable(pfdecoder app/pfdecoder.cc)
+add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib_packing)
 
 add_executable(pfcompile app/pfcompile.cxx)
