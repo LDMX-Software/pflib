@@ -121,15 +121,15 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp)
 add_dependencies(pflib register_maps_header direct_access)
 
 add_executable(
   test-pflib
   test/main.cxx
-  test/eg.cxx
+  test/compile.cxx
 )
-target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework)
+target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib pflib_packing)
 
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
