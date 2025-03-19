@@ -129,7 +129,7 @@ add_executable(
   test/main.cxx
   test/compile.cxx
 )
-target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib pflib_packing)
+target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib)
 
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
