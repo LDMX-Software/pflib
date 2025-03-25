@@ -15,7 +15,7 @@ namespace pflib {
  */
 class DAQ {
  protected:
-  DAQ(int links) : n_links{links} { }
+  DAQ(int links) : n_links{links},econid_{0xFFF},samples_{1},soi_{0} { }
  public:
   virtual void reset() = 0;
   ///
@@ -30,6 +30,21 @@ class DAQ {
   virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) = 0;
   /// get empty/full status for the given link and stage
   virtual void bufferStatus(int ilink, bool& empty, bool& full) = 0;
+
+  /// setup overall event information for daq channels
+  virtual void setup(int econid, int samples_per_ror, int soi=-1) {
+    econid_=econid;
+    samples_=samples_per_ror;
+    soi_=(soi<0||soi>samples_-1)?(0):soi;
+  }
+  /// get the econid
+  int econid() const { return econid_; }
+  /// get the samples
+  int samples_per_ror() const { return samples_; }
+  /// get the soi
+  int soi() const { return soi_; }
+  
+		     
   /// enable/disable the readout
   virtual void enable(bool enable=true) { enabled_=enable; }
   /// is the readout enabled?
@@ -46,6 +61,8 @@ class DAQ {
   int n_links;
   /// enabled
   bool enabled_;
+  int econid_;
+  int samples_, soi_;
 };      
 
 

@@ -3,7 +3,7 @@
 
 namespace pflib {
 
-  ECOND_Formatter::ECOND_Formatter(int subsys, int contrib) : burn_count_{0}, subsystem_id_{subsys}, contributor_id_{contrib}, sentinel_{0xA5} {
+  ECOND_Formatter::ECOND_Formatter() {
   }
 
   void ECOND_Formatter::startEvent(int bx, int l1a, int orbit) {

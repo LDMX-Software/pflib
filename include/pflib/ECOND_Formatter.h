@@ -8,7 +8,7 @@ namespace pflib {
 
   class ECOND_Formatter {
   public:
-    ECOND_Formatter(int subsystem_id, int contributor_id);
+    ECOND_Formatter();
 
     void startEvent(int bx, int l1a, int orbit);
     void finishEvent();
@@ -22,11 +22,6 @@ namespace pflib {
 
     std::vector<uint32_t> packet_;
     
-    int burn_count_;
-    int subsystem_id_;
-    int contributor_id_;
-    int sentinel_;
-
     bool disable_ZS_;
   };
   

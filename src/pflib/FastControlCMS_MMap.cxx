@@ -180,6 +180,10 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
+  virtual void clear_run() {
+    uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
+  }
+  
   virtual void bufferclear() {
     uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr);
   }

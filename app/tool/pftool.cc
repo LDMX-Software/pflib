@@ -573,6 +573,7 @@ static void fc( const std::string& cmd, Target* pft ) {
 
 
 static int daq_format_mode = 1;
+static int daq_contrib_id = 20;
 
 static const int DAQ_FORMAT_SIMPLEROC = 1;
 static const int DAQ_FORMAT_ECON = 2;
@@ -625,6 +626,13 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
     printf(" (2) ECON with full readout\n");
     printf(" (3) ECON with ZS\n");
     daq_format_mode=BaseMenu::readline_int(" Select one: ",daq_format_mode);
+  }
+  if (cmd=="CONFIG") {
+    daq_contrib_id=BaseMenu::readline_int(" Contributor id for data: ",daq_contrib_id);
+    int econid=BaseMenu::readline_int(" ECON ID: ",daq.econid());
+    int samples=1; // frozen for now
+    int soi=0; // frozen for now
+    daq.setup(econid,samples,soi);
   }
   /*
   if (cmd=="ZS") {
@@ -895,7 +903,7 @@ static void daq( const std::string& cmd, Target* pft ) {
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
     std::string fname=BaseMenu::readline("Filename :  ", fname_def);
     
-    pft->prepareNewRun(run);
+    pft->setup_run(run,daq_format_mode,daq_contrib_id);
 
 #ifdef PFTOOL_ROGUE
     if (dma_enabled) {
@@ -1178,10 +1186,6 @@ static void daq_debug( const std::string& cmd, Target* pft ) {
     pflib::DAQ& daq=pft->hcal().daq();
     daq.advanceLinkReadPtr();
   }
-  if (cmd=="FMTTEST") {
-    pflib::ECOND_Formatter fmt(0x8,10);
-    fmt.test();
-  }
 }
 
 
@@ -1369,6 +1373,7 @@ auto menu_daq_setup = menu_daq->submenu("SETUP","setup the DAQ")
   ->line("FPGA", "Set FPGA id", daq_setup)
   ->line("STANDARD","Do the standard setup for HCAL", daq_setup)
   ->line("FORMAT","Select the output data format", daq_setup)
+  ->line("SETUP","Setup ECON id, contrib id, samples", daq_setup)
 //  ->line("MULTISAMPLE","Setup multisample readout", fc )
 #ifdef PFTOOL_ROGUE
   ->line("DMA", "Enable/disable DMA readout (only available with rogue)", daq_setup)
