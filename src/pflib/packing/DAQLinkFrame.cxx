@@ -19,7 +19,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   const uint32_t& header = data[0];
-  std::cout << "daq link header " << hex(header) << std::endl;
+  //std::cout << "daq link header " << hex(header) << std::endl;
   uint32_t allones = (header >> (12+6+3+1+1+1+4)) & mask<4>;
   if (allones != 0b1111) {
     // bad!
