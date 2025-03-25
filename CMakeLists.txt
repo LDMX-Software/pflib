@@ -139,6 +139,7 @@ add_executable(
   test-pflib
   test/main.cxx
   test/compile.cxx
+  test/decoding.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib pflib_packing)
 
