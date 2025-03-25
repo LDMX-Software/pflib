@@ -22,6 +22,7 @@
 #include "pflib/Hcal.h"
 #include "pflib/Compile.h" // for parameter listing
 #include "pflib/Version.h"
+#include "pflib/ECOND_Formatter.h"
 #ifdef PFTOOL_ROGUE
 #endif
 #include "Menu.h"
@@ -571,6 +572,12 @@ static void fc( const std::string& cmd, Target* pft ) {
 }
 
 
+static int daq_format_mode = 1;
+
+static const int DAQ_FORMAT_SIMPLEROC = 1;
+static const int DAQ_FORMAT_ECON = 2;
+
+
 /**
  * DAQ->SETUP menu commands
  *
@@ -584,6 +591,7 @@ static void fc( const std::string& cmd, Target* pft ) {
  * - ZS : pflib::Target::enableZeroSuppression
  * - L1APARAMS : Use target's wishbone interface to set the L1A delay and capture length
  *   Uses pflib::tgt_DAQ_Inbuffer
+ * - FORMAT : Choose the output format to be used (simple HGCROC, ECON, etc)
  * - DMA : enable DMA readout pflib::rogue::RogueWishboneInterface::daq_dma_enable
  * - FPGA : Set the polarfire FPGA ID number (pflib::DAQ::setIds) and pass this
  *   to DMA setup if it is enabled
@@ -610,6 +618,13 @@ static void daq_setup( const std::string& cmd, Target* pft ) {
   }
   if (cmd=="ENABLE") {
     daq.enable(!daq.enabled());
+  }
+  if (cmd=="FORMAT") {
+    printf("Format options:\n");
+    printf(" (1) ROC with ad-hoc headers as in TB2022\n");
+    printf(" (2) ECON with full readout\n");
+    printf(" (3) ECON with ZS\n");
+    daq_format_mode=BaseMenu::readline_int(" Select one: ",daq_format_mode);
   }
   /*
   if (cmd=="ZS") {
@@ -880,7 +895,7 @@ static void daq( const std::string& cmd, Target* pft ) {
     rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
     std::string fname=BaseMenu::readline("Filename :  ", fname_def);
     
-    //    pft->prepareNewRun();
+    pft->prepareNewRun(run);
 
 #ifdef PFTOOL_ROGUE
     if (dma_enabled) {
@@ -1163,6 +1178,10 @@ static void daq_debug( const std::string& cmd, Target* pft ) {
     pflib::DAQ& daq=pft->hcal().daq();
     daq.advanceLinkReadPtr();
   }
+  if (cmd=="FMTTEST") {
+    pflib::ECOND_Formatter fmt(0x8,10);
+    fmt.test();
+  }
 }
 
 
@@ -1327,6 +1346,7 @@ auto menu_daq_debug = menu_daq->submenu("DEBUG","expert functions for debugging 
   ->line("STATUS","Provide the status", daq_debug )
   ->line("ESPY", "Spy on one elink", daq_debug )
   ->line("ADV", "advance the readout pointers", daq_debug )
+  ->line("FMTTEST","test the formatter", daq_debug )
 /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
@@ -1348,6 +1368,7 @@ auto menu_daq_setup = menu_daq->submenu("SETUP","setup the DAQ")
   ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
   ->line("FPGA", "Set FPGA id", daq_setup)
   ->line("STANDARD","Do the standard setup for HCAL", daq_setup)
+  ->line("FORMAT","Select the output data format", daq_setup)
 //  ->line("MULTISAMPLE","Setup multisample readout", fc )
 #ifdef PFTOOL_ROGUE
   ->line("DMA", "Enable/disable DMA readout (only available with rogue)", daq_setup)

@@ -6,7 +6,26 @@ namespace pflib {
   ECOND_Formatter::ECOND_Formatter(int subsys, int contrib) : burn_count_{0}, subsystem_id_{subsys}, contributor_id_{contrib}, sentinel_{0xA5} {
   }
 
-  std::vector<uint32_t> ECOND_Formatter::format_elink(const std::vector<uint32_t>& src) {
+  void ECOND_Formatter::startEvent(int bx, int l1a, int orbit) {
+    packet_.clear();
+    packet_.push_back((0xAA<<24)|(1<<7)); // header marker, no hamming,  matching
+    packet_.push_back(((bx&0xFFF)<<20)|((l1a&0x3F)<<14)|((orbit&0x7)<<11)); // bx, l1a, orbit, S=0, RR=0, no CRC-8
+  };
+
+  void ECOND_Formatter::add_elink_packet(int ielink, const std::vector<uint32_t>& src) {
+    // format the elink's data
+    std::vector<uint32_t> subpacket=format_elink(ielink,src);
+    // copy in the formatted data
+    packet_.insert(packet_.end(),subpacket.begin(),subpacket.end());
+    // update the length
+    packet_[0]=(packet_[0]&0xFF803FFFu)|(((packet_.size()-2+1)&0x1FF)<<14);
+  }
+
+  void ECOND_Formatter::finishEvent() {
+    packet_.push_back(0xFFFFFFFFu); // CRC, not actually...
+  }
+  
+  std::vector<uint32_t> ECOND_Formatter::format_elink(int ielink, const std::vector<uint32_t>& src) {
     std::vector<uint32_t> dest;
     int n_readout=0;
     // check for right number of words, correct header, etc
@@ -33,7 +52,7 @@ namespace pflib {
       int ic=iw;
       if (ic==18) ic=-1;
       else if (ic>18) ic-=1;
-      int code=zs_process(ic,word);
+      int code=zs_process(ielink,ic,word);
       if (code>=0) {
 	// set the channel map bit
 	if (ic>=32) dest[0]|=(1<<(ic-32));
@@ -83,7 +102,7 @@ namespace pflib {
     
     return dest;
   }
-  int ECOND_Formatter::zs_process(int ic, uint32_t word) {
+  int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
     // eventually, implement detailed code to carry out different classes of ZS with provided
     // parameters.  For now, we just look at the tc/tp code
     int tctp=(word>>30)&0x3;
@@ -91,9 +110,10 @@ namespace pflib {
     if (tctp==0x2) return 8; // is strange
     if (tctp==0x1) return 2; // is invalid due to ongoing TOT
     /// at this point, we have tctp=0, so we can apply zs algorithms
+    if (disable_ZS_) return 4;
     // TOA zs...
     bool no_toa=((word&0x3FF)==0);
-    return 0;
+    if (no_toa) return 0;
     return 4; // assume we just read out everything for now, but easy to add TOA zs logic
   }
 
@@ -108,7 +128,7 @@ namespace pflib {
     0x0cd03403,0x0c701c03,0x0cd07503,0x0c305103,
     0x0c902803,0x0cb03403,0x0c906903,0x0c706503,
     0x0890eb02,0x08f0ff02,0x0};
-
+  /*
   void ECOND_Formatter::test() {
     std::vector<uint32_t> xd;
     for (int i=0; i<40; i++) xd.push_back(data[i]);
@@ -117,5 +137,5 @@ namespace pflib {
       printf("%02d %08x\n",j,ecd[j]);
     
   }
-  
+  */
 }

@@ -20,6 +20,7 @@ class Target {
 
   FastControl& fc() { return *fc_; }
 
+  virtual void setup_run(int irun, int format);
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return hcal().daq().getEventOccupancy()>0; }
   
