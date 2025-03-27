@@ -7,7 +7,14 @@ namespace pflib::packing {
 
 /**
  * @class Reader
- * Reading a raw data stream.
+ * Reading a raw data stream with some underlying backend.
+ *
+ * This abstract base class assumes a derived class defines
+ * how to extract the next byte of data from some input data
+ * stream (e.g. either a in-memory buffer or a binary file).
+ * Then this interface has several templated methods that deduce
+ * how many bytes to extract and calls `read` methods on objects
+ * that are not integral types.
  */
 class Reader {
  public:
