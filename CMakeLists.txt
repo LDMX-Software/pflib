@@ -24,11 +24,13 @@ project(pflib
 	LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)
 message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
+
+# Boost for CRC calculator, Test, and Logging
+find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
 
 # Generate the register map headers for the different supported ROCs
 #  "v2" rocs were manually written so we just copy them into the correct spot
@@ -92,6 +94,19 @@ add_custom_target(register_maps_header DEPENDS include/register_maps/register_ma
 
 configure_file(include/pflib/Version.h.in include/pflib/Version.h)
 
+add_library(packing SHARED
+  src/pflib/packing/FileReader.cxx
+  src/pflib/packing/BufferReader.cxx
+  src/pflib/packing/Sample.cxx
+  src/pflib/packing/DAQLinkFrame.cxx
+  src/pflib/packing/TriggerLinkFrame.cxx
+  src/pflib/packing/SingleROCEventPacket.cxx
+)
+target_include_directories(packing PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+
+
 # Build the pf library
 #
 #  src/pflib/Bias.cxx
@@ -118,63 +133,38 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing)
 add_dependencies(pflib register_maps_header direct_access)
 
-add_executable(pftool tool/pftool.cc tool/Menu.cc tool/Rcfile.cc)
+add_executable(
+  test-pflib
+  test/main.cxx
+  test/compile.cxx
+  test/decoding.cxx
+)
+target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
+
+add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu tool/test_menu.cxx tool/Menu.cc)
+add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
-add_executable(pfdecoder tool/pfdecoder.cc)
+add_executable(pfdecoder app/pfdecoder.cxx)
+target_link_libraries(pfdecoder PRIVATE packing)
 
-add_executable(pfcompile tool/pfcompile.cxx)
+add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
-add_executable(pfdecompile tool/pfdecompile.cxx)
+add_executable(pfdecompile app/pfdecompile.cxx)
 target_link_libraries(pfdecompile pflib)
 
-add_executable(pfdefaults tool/pfdefaults.cxx)
+add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-# Now determine which method of interaction to use for communicating with the polarfire
-#   - if neither are available, fatal cmake error - this library is useless without one
-
-# Rogue
-if (DEFINED ENV{ROGUE_DIR})
-   set(Rogue_DIR $ENV{ROGUE_DIR}/lib)
-else()
-   set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
-endif()
-# issues its own "found Rogue version ___" message
-find_package(Rogue CONFIG)
-
-if (Rogue_FOUND)
-  # the libraries parameter includes the PUBLIC keyword annoyingly
-  list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
-  # define source files this submodule uses
-  add_library(rogue SHARED src/pflib/rogue/RogueWishboneInterface.cxx)
-  # attach rogue as a dependency
-  target_link_libraries(rogue PUBLIC pflib ${ROGUE_LIBRARIES})
-  target_include_directories(rogue PUBLIC ${ROGUE_INCLUDE_DIRS})
-  # let pftool know that rogue is available
-  target_compile_definitions(pftool PRIVATE PFTOOL_ROGUE=1)
-  # link submodule lib to pftool
-  target_link_libraries(pftool PRIVATE rogue)
-  list(APPEND comm_libs rogue)
-else()
-  message(STATUS "Unable to find Rogue, will not compile rogue submodule of pflib.")
-endif()
-
-#if (NOT Rogue_FOUND AND NOT Uhal_FOUND)
-#  message(WARNING "Neither Rogue or Uhal were found. At least one is necessary for a functional polarfire interaction library.")
-#endif()
-
-set_target_properties(pflib ${comm_libs} PROPERTIES PREFIX "libpflib_")
-
-install(TARGETS pflib ${comm_libs} pftool pfdecoder pfdecompile pfcompile pfdefaults
+set_target_properties(pflib packing PROPERTIES PREFIX "libpflib_")
+install(TARGETS pflib packing pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
