@@ -30,41 +30,43 @@ int I2C_Linux::get_bus_speed() {
   return 100; // only as set in the firmware...
 }
 
+/// number of attempts to complete I2C transaction
+static int n_tries = 4;
+
 void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
   ioctl(handle_,0x0703, i2c_dev_addr);
 
-  int rv;
-  int tries=4;
-  do {
-    rv=write(handle_,&data,1);
-
-    if (rv>=0) {
-      //       printf("Wrote %x, read %x\n",data,read_byte(i2c_dev_addr));
-       return;
+  int rv{-1};
+  for (std::size_t i_try{0}; i_try < n_tries; i_try++) {
+    rv = write(handle_, &data, 1);
+    if (rv >= 0) {
+      // printf("Wrote %x, read %x\n", data, read_byte(i2c_dev_addr));
+      // success! lets leave
+      return;
     }
-
-    if (tries==0) {
-      char message[120];
-      snprintf(message,120,"Error %d writing 0x%02x to i2c target 0x%02x",errno,data,i2c_dev_addr);
-      PFEXCEPTION_RAISE("I2CError",message);
-    }
-    tries--;
-  } while (rv<0);
-
+  }
+  // still erroring out (rv < 0) and we ran out of tries
+  char message[120];
+  snprintf(message,120,"Error %d writing 0x%02x to i2c target 0x%02x",errno,data,i2c_dev_addr);
+  PFEXCEPTION_RAISE("I2CError",message);
 }
 
 uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
-  ioctl(handle_,0x0703, i2c_dev_addr);
+  ioctl(handle_, 0x0703, i2c_dev_addr);
   uint8_t buffer[8];
-  int rv=read(handle_,buffer,1);
-
-  if (rv<0) {
-    char message[120];
-    snprintf(message,120,"Error %d reading from i2c target 0x%02x",errno,i2c_dev_addr);
-    PFEXCEPTION_RAISE("I2CError",message);
+  int rv{-1};
+  for (std::size_t i_try{0}; i_try < n_tries; i_try++) {
+    rv = read(handle_, buffer, 1);
+    if (rv >= 0) {
+      return buffer[0];
+    }
   }
-
-  return buffer[0];
+  // got here because rv is in error status (negative) and we ran out of tries
+  char message[120];
+  snprintf(message,120,"Error %d reading from i2c target 0x%02x",errno,i2c_dev_addr);
+  PFEXCEPTION_RAISE("I2CError",message);
+  // won't get to this return because of the exception
+  return 0;
 }
 
   
