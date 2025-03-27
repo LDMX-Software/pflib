@@ -18,7 +18,10 @@ namespace pflib::packing {
  * want the buffer to be read in different size words
  * than single bytes. This class helps in that translation.
  *
- * @tparam[in] WordType type of word user wants to read out from buffer
+ * ```cpp
+ * BufferReader r{data}; // data is some vector of bytes
+ * r >> obj; // obj is some object with a Reader& read(Reader&) method
+ * ```
  */
 class BufferReader : public Reader {
  public:
@@ -27,11 +30,16 @@ class BufferReader : public Reader {
    */
   BufferReader(const std::vector<uint8_t>& b);
 
+  /// default destructor so handle to buffer is given up
   ~BufferReader() = default;
 
+  /// go to the index off in bytes
   void seek(int off) override;
+  /// return where in the word we are in bytes
   int tell() override;
+  /// read the next count bytes into array w and move the index
   Reader& read(char* w, std::size_t count) override;
+
   /**
    * Return state of buffer.
    * false if buffer is done being read,

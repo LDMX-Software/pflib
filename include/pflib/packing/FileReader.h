@@ -16,6 +16,11 @@ namespace pflib::packing {
  * We wrap a basic std::ifstream in order to make the retrieving
  * of specific-width words easier for ourselves.
  * The abstract base Reader implements the templated complexities.
+ *
+ * ```cpp
+ * FileReader r{"file.raw"};
+ * r >> obj; // obj is some object with a Reader& read(Reader&) method
+ * ```
  */
 class FileReader : public Reader {
  public:
