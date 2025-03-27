@@ -94,7 +94,7 @@ add_custom_target(register_maps_header DEPENDS include/register_maps/register_ma
 
 configure_file(include/pflib/Version.h.in include/pflib/Version.h)
 
-add_library(pflib_packing SHARED
+add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
   src/pflib/packing/Sample.cxx
@@ -102,9 +102,10 @@ add_library(pflib_packing SHARED
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
 )
-target_include_directories(pflib_packing PUBLIC 
+target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
+
 
 # Build the pf library
 #
@@ -132,7 +133,7 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing)
 add_dependencies(pflib register_maps_header direct_access)
 
 add_executable(
@@ -141,7 +142,7 @@ add_executable(
   test/compile.cxx
   test/decoding.cxx
 )
-target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib pflib_packing)
+target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
@@ -151,7 +152,7 @@ add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
-target_link_libraries(pfdecoder PRIVATE pflib_packing)
+target_link_libraries(pfdecoder PRIVATE packing)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
@@ -162,7 +163,8 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-install(TARGETS pflib pflib_packing pftool pfdecoder pfdecompile pfcompile pfdefaults
+set_target_properties(pflib packing PROPERTIES PREFIX "libpflib_")
+install(TARGETS pflib packing pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
