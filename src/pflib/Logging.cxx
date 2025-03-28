@@ -6,7 +6,7 @@
 #include <boost/log/sinks/text_ostream_backend.hpp>  //output stream sink backend
 #include <boost/log/sources/global_logger_storage.hpp>  //for global logger default
 #include <boost/log/utility/setup/common_attributes.hpp>
-
+#include <boost/log/utility/formatting_ostream.hpp>
 #include <boost/log/utility/setup/file.hpp>
 
 namespace pflib::logging {
@@ -46,7 +46,64 @@ static level default_level = level::info;
 /// custom levels to apply to specific channels
 static std::unordered_map<std::string, level> custom_levels;
 
-void open() {
+class MessageFormatter {
+  bool color_{false};
+ public:
+  MessageFormatter(bool color) : color_{color} {}
+  void operator()(
+      const boost::log::record_view& view,
+      boost::log::formatting_ostream& os
+  ) {
+    os << "(";
+    if (auto timestamp = boost::log::extract< boost::posix_time::ptime >("TimeStamp", view)) {
+      std::tm ts = boost::posix_time::to_tm(*timestamp);
+      char buf[128];
+      if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ts) > 0) {
+        os << buf;
+      } else {
+        os << "?TIME?";
+      }
+    } else {
+        os << "?TIME?";
+    }
+    os << ") ["
+       << boost::log::extract<std::string>("Channel", view)
+       << "] ";
+    const level msg_level{safe_extract<level>(view["Severity"])};
+    switch (msg_level) {
+      case level::trace:
+        os << "trace";
+        break;
+      case level::debug:
+        os << "debug";
+        break;
+      case level::info:
+        if (color_) os << "\e[0;32m";
+        os << " info";
+        break;  
+      case level::warn:
+        if (color_) os << "\e[0;33m";
+        os << " warn";
+        break;
+      case level::error:
+        if (color_) os << "\e[0;31m";
+        os << "error";
+        break;
+      case level::fatal:
+        if (color_) os << "\e[1;31m";
+        os << "fatal";
+        break;
+      default:
+        if (color_) os << "\e[1;31m";
+        os << "?????";
+        break;
+    }
+    os << ": " << view[boost::log::expressions::smessage];
+    if (color_) os << "\e[0m";
+  }
+};
+
+void open(bool color) {
   using OurSinkBackend = boost::log::sinks::text_ostream_backend;
   using OurSinkFrontend = boost::log::sinks::synchronous_sink<OurSinkBackend>;
 
@@ -62,7 +119,7 @@ void open() {
   // flush to screen **after each message**
   term_back->auto_flush(true);
 
-  auto term_sink = boost::make_shared<OurSinkFrontend>();
+  auto term_sink = boost::make_shared<OurSinkFrontend>(term_back);
   term_sink->set_filter([&](boost::log::attribute_value_set const& attrs) {
         auto it = custom_levels.find(safe_extract<std::string>(attrs["Channel"]));
         if (it != custom_levels.end()) {
@@ -70,56 +127,7 @@ void open() {
         }
         return safe_extract<level>(attrs["Severity"]) >= default_level;
       });
-  term_sink->set_formatter(
-      [](const boost::log::record_view& view, boost::log::formatting_ostream& os) {
-        std::cout 
-          << "i can be seen so i know we are passing the filter "
-          << view[boost::log::expressions::smessage]
-          << std::endl;
-        os << "i cannot be seen so something is wrong";
-        os << "[ "
-           << boost::log::extract<std::string>("Channel", view)
-           << "] ";
-        const level msg_level{safe_extract<level>(view["Severity"])};
-        switch (msg_level) {
-          case level::trace:
-            os << "trace";
-            break;
-          case level::debug:
-            os << "debug";
-            break;
-          case level::info:
-            os << " info";
-            break;  
-          case level::warn:
-            os << " warn";
-            break;
-          case level::error:
-            os << "error";
-            break;
-          case level::fatal:
-            os << "fatal";
-            break;
-          default:
-            os << "?????";
-            break;
-        }
-        os << "(";
-        if (auto timestamp = boost::log::extract< boost::posix_time::ptime >("TimeStamp", view)) {
-          std::tm ts = boost::posix_time::to_tm(*timestamp);
-          char buf[128];
-          if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ts) > 0) {
-            os << buf;
-          } else {
-            os << "?TIME?";
-          }
-        } else {
-            os << "?TIME?";
-        }
-        os << ") " << view[boost::log::expressions::smessage];
-      }
-  );
-
+  term_sink->set_formatter(MessageFormatter(color));
   core->add_sink(term_sink);
 }
 

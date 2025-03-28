@@ -58,8 +58,11 @@ logger get(const std::string& name);
  *
  * This function sets up the sinks for the logs (e.g. terminal output)
  * and sets the format and filtering.
+ *
+ * The formatting is set once and can support coloring the messages
+ * using ANSI escape sequences.
  */
-void open();
+void open(bool color);
 
 /**
  * Change the level for the logs

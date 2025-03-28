@@ -19,11 +19,10 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   const uint32_t& header = data[0];
-  //std::cout << "daq link header " << hex(header) << std::endl;
+  pflib_log(trace) << "daq link header " << hex(header);
   uint32_t allones = (header >> (12+6+3+1+1+1+4)) & mask<4>;
   if (allones != 0b1111) {
-    // bad!
-    std::cout << "  bad leading header bits " << std::bitset<4>(allones) << std::endl;
+    pflib_log(warn) << "bad leading header bits (should be all ones): " << std::bitset<4>(allones);
   }
   bx = (header >> (6+3+1+1+1+4)) & mask<12>;
   event = (header >> (3+1+1+1+4)) & mask<6>;
@@ -34,14 +33,12 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   uint32_t trailflag = (header & mask<4>);
   first_event = (trailflag == 0b0101);
   if (not first_event and trailflag != 0b0010) {
-    // bad!
-    std::cout << "  bad event header flag " << std::bitset<4>(trailflag) << std::endl;
+    pflib_log(warn) << "bad event header flag (0b0101 or 0b0010 for first event): " << std::bitset<4>(trailflag);
   }
 
   const uint32_t& cm{data[1]};
   if (((cm >> 20) & mask<12>) != 0) {
-    // bad!
-    std::cout << "  bad common mode leading 12 bits " << std::bitset<12>(cm >> 20) << std::endl;
+    pflib_log(warn) << "bad common mode leading 12 bits (should be all zero): " << std::bitset<12>(cm >> 20);
   }
   adc_cm0 = (cm >> 10) & mask<10>;
   adc_cm1 = cm & mask<10>;
@@ -58,6 +55,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   [[maybe_unused]] uint32_t crc_sum = data[39];
+  pflib_log(trace) << "CRC Sum from stream: " << crc_sum;
 }
 
 DAQLinkFrame::DAQLinkFrame(std::span<uint32_t> data) {
