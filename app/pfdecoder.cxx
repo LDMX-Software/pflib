@@ -8,6 +8,8 @@
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 
+#include "pflib/Logging.h"
+
 static void usage() {
   std::cout <<
     "\n"
@@ -27,6 +29,10 @@ int main(int argc, char* argv[]) {
     usage();
     return 1;
   }
+
+  auto the_log_{pflib::logging::get("pfdecoder")};
+  pflib::logging::open();
+  pflib_log(trace) << "hello world";
    
   int nevents{-1};
   std::string in_file, out_file;
@@ -39,7 +45,7 @@ int main(int argc, char* argv[]) {
         return 0;
       } else if (arg == "-o" or arg == "--output") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires an argument after it.";
           return 1;
         }
         i_arg++;
