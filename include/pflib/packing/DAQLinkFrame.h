@@ -6,6 +6,7 @@
 
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
+#include "pflib/Logging.h"
 
 namespace pflib::packing {
 
@@ -16,7 +17,9 @@ namespace pflib::packing {
  * while the DAQ and Calibration samples are given to Sample
  * to be unpacked only upon request.
  */
-struct DAQLinkFrame {
+class DAQLinkFrame {
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("DAQLinkFrame")};
+ public:
   /// id number for bunch crossing of this sample
   int bx;
   /// event number for this readout-request

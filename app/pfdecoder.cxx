@@ -20,6 +20,7 @@ static void usage() {
     "  -h,--help    : print this help and exit\n"
     "  -o,--output  : output CSV file to dump samples into (default is input file with extension changed)\n"
     "  -n,--nevents : provide maximum number of events (default is all events possible)\n"
+    "  -l,--log     : logging level to printout (-1: trace up to 4: fatal)\n"
     << std::endl;
 }
 
@@ -30,10 +31,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  pflib::logging::open(isatty(STDOUT_FILENO));
   auto the_log_{pflib::logging::get("pfdecoder")};
-  pflib::logging::open();
-  pflib_log(trace) << "hello world";
-   
+
   int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -52,18 +52,25 @@ int main(int argc, char* argv[]) {
         out_file = argv[i_arg];
       } else if (arg == "-n" or arg == "--nevents") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         nevents = std::stoi(argv[i_arg]);
+      } else if (arg == "-l" or arg == "--log") {
+        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
+          return 1;
+        }
+        i_arg++;
+        pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
       } else {
-        std::cerr << "ERROR: Unrecognized option " << arg << std::endl;
+        pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
       }
     } else {
       if (not in_file.empty()) {
-        std::cerr << "ERROR: Can only decode one file at a time." << std::endl;
+        pflib_log(fatal) << "Can only decode one file at a time.";
         return 1;
       }
       in_file = arg;
@@ -71,7 +78,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (in_file.empty()) {
-    std::cerr << "ERROR: Need to provide a file to decode." << std::endl;
+    pflib_log(fatal) << "Need to provide a file to decode.";
     usage();
     return 1;
   }
@@ -82,13 +89,13 @@ int main(int argc, char* argv[]) {
 
   pflib::packing::FileReader r{in_file};
   if (not r) {
-    std::cerr << "Unable to open file '" << in_file << "'." << std::endl;
+    pflib_log(fatal) << "Unable to open file '" << in_file << "'.";
     return 1;
   }
 
   std::ofstream o{out_file};
   if (not o) {
-    std::cerr << "Unable to open file '" + out_file << "'." << std::endl;
+    pflib_log(fatal) << "Unable to open file '" << out_file << "'.";
     return 1;
   }
 
