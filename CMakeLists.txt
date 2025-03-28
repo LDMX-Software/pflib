@@ -116,6 +116,7 @@ add_library(pflib SHARED
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
   src/pflib/Compile.cxx
+  src/pflib/Logging.cxx
   src/pflib/Hcal.cxx
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
@@ -133,7 +134,7 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log)
 add_dependencies(pflib register_maps_header direct_access)
 
 add_executable(
@@ -152,7 +153,7 @@ add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
 target_link_libraries(test-menu PRIVATE pflib readline)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
-target_link_libraries(pfdecoder PRIVATE packing)
+target_link_libraries(pfdecoder PRIVATE pflib)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
