@@ -81,6 +81,36 @@ void set(level lvl, const std::string& only = "");
  */
 void close();
 
+/**
+ * a "fixture" that opens the logging when it is created
+ * and closes the logging when it is destroyed.
+ *
+ * This is helpful for writing new programs where we want to
+ * open the logging at the beginning and then have the logging
+ * closed automatically when execution is completed.
+ *
+ * ```cpp
+ * int main(int argc, char** argv) {
+ *   pflib::logging::fixture f;
+ *   
+ *   // logging enabled and will be closed when f
+ *   // goes out of scope and is destructed
+ * }
+ * ```
+ */
+struct fixture {
+  /**
+   * constructor to open logging and provide an initial configuration
+   *
+   * The default color is true if we are connected to a terminal (isatty).
+   * The default logging level is info.
+   */
+  fixture();
+
+  /// destructor to close logging
+  ~fixture();
+};
+
 }
 
 
