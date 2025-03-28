@@ -152,5 +152,13 @@ void close() {
   boost::log::core::get()->remove_all_sinks();
 }
 
+fixture::fixture() {
+  open(isatty(STDOUT_FILENO));
+  set(level::info);
+}
+
+fixture::~fixture() {
+  close();
+}
 
 }

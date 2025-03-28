@@ -26,13 +26,13 @@ static void usage() {
 }
 
 int main(int argc, char* argv[]) {
+  pflib::logging::fixture f;
   if (argc == 1) {
     // can't do anything without any arguments
     usage();
     return 1;
   }
 
-  pflib::logging::open(isatty(STDOUT_FILENO));
   auto the_log_{pflib::logging::get("pfdecoder")};
 
   int nevents{-1};
