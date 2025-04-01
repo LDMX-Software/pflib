@@ -28,6 +28,9 @@ set(CMAKE_CXX_STANDARD 20)
 #   optional, build it if we can find the yaml parser we use
 find_package(yaml-cpp REQUIRED)
 message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
+if (NOT TARGET yaml-cpp::yaml-cpp)
+  add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+endif()
 
 # Boost for CRC calculator, Test, and Logging
 find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
