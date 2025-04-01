@@ -42,6 +42,7 @@ class ROC {
   // short-hand for just applying a single parameter
   void applyParameter(const std::string& page, const std::string& param, const int& val);
 
+  void dumpSettings(const std::string& filepath, bool decompile);
 
  private:
   I2C& i2c_;
