@@ -443,8 +443,8 @@ static void roc( const std::string& cmd, Target* pft ) {
     strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
     
     std::string fname = BaseMenu::readline("Filename: ", fname_def);
-	  bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
-          //    pft->dumpSettings(iroc,fname,decompile);
+    bool decompile = BaseMenu::readline_bool("Decompile register values? ",true);
+    roc.dumpSettings(fname,decompile);
   }
 }
 
