@@ -192,4 +192,63 @@ void ROC::applyParameter(const std::string& page, const std::string& param, cons
   this->applyParameters(p);
 }
 
+void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
+  static const int N_REGISTERS_PER_PAGE = 32;
+   if (filename.empty()) { 
+     PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings."); 
+   } 
+   std::ofstream f{filename};
+   if (not f.is_open()) { 
+     PFEXCEPTION_RAISE("File", "Unable to open file "+filename+" in dump roc settings."); 
+   }
+
+  // get number of pages from compiler's knowledge of parameters
+  const int N_PAGES{compiler_.get_n_pages()};
+  
+   if (should_decompile) { 
+     // read all the pages and store them in memory 
+     std::map<int,std::map<int,uint8_t>> register_values; 
+     for (int page{0}; page<N_PAGES; page++) { 
+       // all pages have up to 16 registers 
+       std::vector<uint8_t> v = roc_obj.readPage(page,N_REGISTERS_PER_PAGE); 
+       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) { 
+         register_values[page][reg] = v.at(reg); 
+       } 
+     } 
+  
+     // decompile while being careful 
+     std::map<std::string,std::map<std::string,int>> 
+       parameter_values = compiler_.decompile(register_values,true); 
+  
+     YAML::Emitter out; 
+     out << YAML::BeginMap; 
+     for (const auto& page : parameter_values) { 
+       out << YAML::Key << page.first; 
+       out << YAML::Value << YAML::BeginMap; 
+       for (const auto& param : page.second) { 
+         out << YAML::Key << param.first << YAML::Value << param.second; 
+       } 
+       out << YAML::EndMap; 
+     } 
+     out << YAML::EndMap; 
+  
+     f << out.c_str(); 
+   } else { 
+     // read all the pages and write to CSV while reading 
+     std::map<int,std::map<int,uint8_t>> register_values; 
+     for (int page{0}; page<N_PAGES; page++) { 
+       // all pages have up to 16 registers 
+       std::vector<uint8_t> v = roc_obj.readPage(page,N_REGISTERS_PER_PAGE); 
+       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) { 
+         f << page << ","  
+           << reg << "," 
+           << hex<2>(v.at(reg)) 
+           << '\n'; 
+       } 
+     } 
+   } 
+  
+   f.flush(); 
+}
+
 }
