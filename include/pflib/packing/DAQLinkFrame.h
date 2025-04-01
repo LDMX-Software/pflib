@@ -18,7 +18,7 @@ namespace pflib::packing {
  * to be unpacked only upon request.
  */
 class DAQLinkFrame {
-  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("DAQLinkFrame")};
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
  public:
   /// id number for bunch crossing of this sample
   int bx;
