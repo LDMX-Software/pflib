@@ -6,6 +6,7 @@
 #include "pflib/packing/Reader.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/TriggerLinkFrame.h"
+#include "pflib/Logging.h"
 
 namespace pflib::packing {
 
@@ -19,7 +20,9 @@ namespace pflib::packing {
  * This is the style of readout from the 2021 teastbeam
  * and can be done easily in pflib without much emulation.
  */
-struct SingleROCEventPacket {
+class SingleROCEventPacket {
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+ public:
   /// the two daq links for the connected HGCROC
   std::array<DAQLinkFrame, 2> daq_links;
   /// the four trigger links
