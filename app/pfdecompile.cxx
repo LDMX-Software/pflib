@@ -78,12 +78,12 @@ static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
 }
 
 int main(int argc, char *argv[]) {
+  pflib::logging::fixture f;
   if (argc == 1) {
     usage();
     return 1;
   }
 
-  pflib::logging::open(isatty(STDOUT_FILENO));
   auto the_log_{pflib::logging::get("pfdecompile")};
 
   bool careful{true};

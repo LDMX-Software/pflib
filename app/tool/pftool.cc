@@ -1434,7 +1434,7 @@ void prepareOpts(Rcfile& rcfile) {
  * back after the script is done.
  */
 int main(int argc, char* argv[]) {
-  pflib::logging::open(isatty(STDOUT_FILENO));
+  pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pftool")};
 
   Rcfile options;
