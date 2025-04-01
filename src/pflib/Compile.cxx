@@ -117,6 +117,15 @@ Compiler::compile(const std::map<std::string,std::map<std::string,int>>& setting
   return register_values;
 }
 
+std::vector<int> Compiler::get_known_pages() {
+  std::vector<int> known_pages;
+  known_pages.reserve(parameter_lut_.size());
+  for (const auto& [ page_name, page_spec ]: parameter_lut_) {
+    known_pages.push_back(page_spec.first);
+  }
+  return known_pages;
+}
+
 std::map<std::string,std::map<std::string,int>>
 Compiler::decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, bool be_careful) {
   std::map<std::string,std::map<std::string,int>> settings;
