@@ -9,6 +9,7 @@
 #include "pflib/packing/SingleROCEventPacket.h"
 
 #include "pflib/Logging.h"
+#include "pflib/Version.h"
 
 static void usage() {
   std::cout <<
@@ -76,6 +77,8 @@ int main(int argc, char* argv[]) {
       in_file = arg;
     }
   }
+
+  pflib_log(debug) << PFLIB_VERSION << " (" << GIT_DESCRIBE << ")";
 
   if (in_file.empty()) {
     pflib_log(fatal) << "Need to provide a file to decode.";
