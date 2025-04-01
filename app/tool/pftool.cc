@@ -22,6 +22,7 @@
 #include "pflib/Hcal.h"
 #include "pflib/Compile.h" // for parameter listing
 #include "pflib/Version.h"
+#include "pflib/Logging.h"
 #ifdef PFTOOL_ROGUE
 #endif
 #include "Menu.h"
@@ -1420,6 +1421,9 @@ void prepareOpts(Rcfile& rcfile) {
  * back after the script is done.
  */
 int main(int argc, char* argv[]) {
+  pflib::logging::open(isatty(STDOUT_FILENO));
+  auto the_log_{pflib::logging::get("pftool")};
+
   Rcfile options;
   prepareOpts(options);
 
@@ -1448,16 +1452,21 @@ int main(int argc, char* argv[]) {
   std::string home=getenv("HOME");
   if (getenv("PFTOOLRC")) {
     if (file_exists(getenv("PFTOOLRC"))) {
+      pflib_log(info) << "Loading " << getenv("PFTOOLRC");
       options.load(getenv("PFTOOLRC"));
     } else {
-      std::cerr << "WARNING: PFTOOLRC=" << getenv("PFTOOLRC") 
-        << " is not loaded because it doesn't exist." << std::endl;
+      pflib_log(warn) << "PFTOOLRC=" << getenv("PFTOOLRC") 
+        << " is not loaded because it doesn't exist.";
     }
   }
-  if (file_exists("pftoolrc"))
+  if (file_exists("pftoolrc")) {
+    pflib_log(info) << "Loading ${CWD}/pftoolrc";
     options.load("pftoolrc");
-  if (file_exists(home+"/.pftoolrc"))
+  }
+  if (file_exists(home+"/.pftoolrc")) {
+    pflib_log(info) << "Loading ~/.pftoolrc";
     options.load(home+"/.pftoolrc");
+  }
  
 
   /*****************************************************************************
@@ -1470,13 +1479,13 @@ int main(int argc, char* argv[]) {
     std::string arg(argv[i]);
     if (arg=="-s") {
       if (i+1 == argc or argv[i+1][0] == '-') {
-        std::cerr << "Argument " << arg << " requires a file after it." << std::endl;
+        pflib_log(fatal) << "Argument " << arg << " requires a file after it.";
         return 2;
       }
       i++;
       std::fstream sFile(argv[i]);
       if (!sFile.is_open()) {
-        std::cerr << "Unable to open script file " << argv[i] << std::endl;
+        pflib_log(fatal) << "Unable to open script file " << argv[i];
         return 2;
       }
       
@@ -1506,7 +1515,7 @@ int main(int argc, char* argv[]) {
   if (hostnames.size() == 0 && mode==Rogue) {
     std::string hn = options.contents().getString("default_hostname");
     if (hn.empty()) {
-      std::cerr << "No hostnames to connect to provided on the command line or in RC file" << std::endl;
+      pflib_log(fatal) << "No hostnames to connect to provided on the command line or in RC file";
       return 3;
     } else {
       hostnames.push_back(hn);
@@ -1544,23 +1553,26 @@ int main(int argc, char* argv[]) {
       std::unique_ptr<Target> p_pft;
       try {
         if (mode==Fiberless) {
+          pflib_log(info) << "connecting from ZCU in Fiberless mode";
           p_pft=std::unique_ptr<Target>(pflib::makeTargetFiberless());
         }
 #ifdef PFTOOL_ROGUE
         if (isrogue) {
           // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
+          pflib_log(info) << "connecting over fiber using Rogue Wishbone Interface";
           p_pft=std::make_unique<Target>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
         }
 #endif
 #ifdef PFTOOL_UHAL
         if (isuhal) {
           // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
+          pflib_log(info) << "connecting over fiber using uHAL Wishbone Interface";
           p_pft=std::make_unique<Target>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
                 options.contents().getString("ipbus_map_path")));
         }
 #endif
       } catch (const pflib::Exception& e) {
-        std::cerr << "pflib Init Error [" << e.name() << "] : " << e.message() << std::endl;
+        pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
         return 3;
       }
 
@@ -1572,7 +1584,7 @@ int main(int argc, char* argv[]) {
         status(p_pft.get());
         pftool::run(p_pft.get());
       } else {
-        std::cerr << "No Polarfire Target available to connect with. Not sure how we got here." << std::endl;
+        pflib_log(fatal) << "No Polarfire Target available to connect with. Not sure how we got here.";
         return 126;
       }
 
@@ -1585,7 +1597,7 @@ int main(int argc, char* argv[]) {
       }
     } while(continue_running);
   } catch (const std::exception& e) {
-    std::cerr << " Unrecognized Exception : " << e.what() << std::endl;
+    pflib_log(fatal) << "Unrecognized Exception : " << e.what();
     return 127;
   }
   return 0;
