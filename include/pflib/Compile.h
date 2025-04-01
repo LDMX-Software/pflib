@@ -137,6 +137,13 @@ class Compiler {
    */
   std::map<int,std::map<int,uint8_t>>
   compile(const std::map<std::string,std::map<std::string,int>>& settings);
+
+  /**
+   * Get the known pages from the LUTs
+   *
+   * This is helpful when decompiling.
+   */
+  std::vector<int> get_known_pages();
   
   /**
    * unpack register values into the page names,
