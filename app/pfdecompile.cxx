@@ -12,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "pflib/Exception.h"
+#include "pflib/Logging.h"
 #include "pflib/Compile.h"
 
 static void usage() {
@@ -81,6 +82,9 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  pflib::logging::open(isatty(STDOUT_FILENO));
+  auto the_log_{pflib::logging::get("pfdecompile")};
+
   bool careful{true};
   std::string input_filename;
   std::string output_filename;
@@ -94,14 +98,14 @@ int main(int argc, char *argv[]) {
         return 0;
       } else if (arg == "--roc" or arg == "-r") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
@@ -111,13 +115,13 @@ int main(int argc, char *argv[]) {
       } else if (arg == "--careful") {
         careful = true;
       } else {
-        std::cerr << "ERROR: " << arg << " not a recognized argument." << std::endl;
+        pflib_log(fatal) <<  arg << " not a recognized argument.";
         return 1;
       }
     } else {
       // positional ==> settings file
       if (not input_filename.empty()) {
-        std::cerr << "ERROR: We can only decompile one file with register values." << std::endl;
+        pflib_log(fatal) << "We can only decompile one file with register values.";
         return 1;
       }
       input_filename = arg;
@@ -125,7 +129,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (input_filename.empty()) {
-    std::cerr << "ERROR: We need one file to decompile." << std::endl;
+    pflib_log(fatal) << "We need one file to decompile.";
     return 1;
   }
 
@@ -138,14 +142,14 @@ int main(int argc, char *argv[]) {
 
   std::ifstream inf{input_filename};
   if (not inf.is_open()) {
-    std::cerr << "ERROR: Unable to open input file " << input_filename << std::endl;
+    pflib_log(fatal) << "Unable to open input file " << input_filename;
     return 2;
   }
 
   // try to open file before decompilation to make sure we have access
   std::ofstream of{output_filename};
   if (not of.is_open()) {
-    std::cerr << "ERROR: Unable to open output file " << output_filename << std::endl;
+    pflib_log(fatal) << "Unable to open output file " << output_filename;
     return 3;
   }
 
@@ -154,20 +158,18 @@ int main(int argc, char *argv[]) {
     auto cells = getNextLineAndExtractValues(inf);
     if (cells.empty()) continue;
     if (cells.size() != 3) {
-      std::cerr << "WARNING: Skipping row with exactly three columns." << std::endl;
+      pflib_log(warn) << "Skipping row with exactly three columns.";
       continue;
     }
     settings[cells.at(0)][cells.at(1)] = cells.at(2);
   }
 
-  std::map<std::string,std::map<std::string,int>>
-    parameters;
+  std::map<std::string,std::map<std::string,int>> parameters;
   try {
     // compilation checks parameter/page names
     parameters = pflib::Compiler::get(roc_type_version).decompile(settings,careful);
   } catch (const pflib::Exception& e) {
-    std::cerr << "ERROR: " << "[" << e.name() << "] "
-      << e.message() << std::endl;
+    pflib_log(fatal) <<  "[" << e.name() << "] " << e.message();
     return -1;
   }
 

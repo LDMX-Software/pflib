@@ -14,6 +14,8 @@
 
 #include "register_maps/register_maps_types.h"
 
+#include "pflib/Logging.h"
+
 namespace YAML {
 class Node;
 }
@@ -286,6 +288,7 @@ class Compiler {
  private:
   const ParameterLUT& parameter_lut_;
   const PageLUT& page_lut_;
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("compile")};
 };
 }  // namespace pflib
 
