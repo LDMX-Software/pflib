@@ -1224,6 +1224,19 @@ static void bias( const std::string& cmd, Target* pft ) {
 
 namespace {
 
+auto log_line = pftool::root()
+  ->line("LOG", "Configure logging levels", [](pftool::TargetHandle _tgt) {
+      std::cout
+        << "  Levels range from trace (-1) up to fatal (4)\n"
+        << "  The default logging level is info (2)\n"
+        << "  You can select a specific channel to apply a level to (e.g. decoding)\n"
+        << std::endl;
+
+      int new_level = BaseMenu::readline_int("Level (and above) to print: ", 2);
+      std::string only = BaseMenu::readline("Only apply to this channel (empty applies to all): ");
+      pflib::logging::set(pflib::logging::convert(new_level), only);
+    });
+
 auto menu_expert = pftool::menu("EXPERT", "expert functions");
 
 /*
