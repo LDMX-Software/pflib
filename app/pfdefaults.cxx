@@ -39,7 +39,7 @@ static void usage() {
 }
 
 int main(int argc, char *argv[]) {
-  pflib::logging::open(isatty(STDOUT_FILENO));
+  pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pfdefaults")};
 
   bool default_include{true};
