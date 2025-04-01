@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include "pflib/Exception.h"
+#include "pflib/Logging.h"
 #include "pflib/Compile.h"
 #include "pflib/Version.h"
 
@@ -38,6 +39,9 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  pflib::logging::open(isatty(STDOUT_FILENO));
+  auto the_log_{pflib::logging::get("pfcompile")};
+
   bool prepend_defaults = true;
   std::vector<std::string> setting_files;
   std::string roc_type_version{"sipm_rocv3b"};
@@ -56,20 +60,20 @@ int main(int argc, char *argv[]) {
         return 0;
       } else if (arg == "--roc" or arg == "-r") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         output_filename = argv[i_arg];
       } else {
-        std::cerr << "ERROR: " << arg << " not a recognized argument." << std::endl;
+        pflib_log(fatal) << arg << " not a recognized argument.";
         return 1;
       }
     } else {
@@ -79,7 +83,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (setting_files.empty()) {
-    std::cerr << "ERROR: We need at least one settings YAML file to compile." << std::endl;
+    pflib_log(fatal) << "We need at least one settings YAML file to compile.";
     return 2;
   }
 
@@ -96,7 +100,7 @@ int main(int argc, char *argv[]) {
   // try to open file before compilation to make sure we have access
   std::ofstream f{output_filename};
   if (not f.is_open()) {
-    std::cerr << "ERROR: Unable to open output file " << output_filename << std::endl;
+    pflib_log(fatal) << "Unable to open output file " << output_filename;
     return 3;
   }
 
@@ -105,8 +109,7 @@ int main(int argc, char *argv[]) {
     // compilation checks parameter/page names
     settings = pflib::Compiler::get(roc_type_version).compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
-    std::cerr << "ERROR: " << "[" << e.name() << "] "
-      << e.message() << std::endl;
+    pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;
   }
 

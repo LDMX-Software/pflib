@@ -55,9 +55,11 @@ void Compiler::compile(const std::string& page_name, const std::string& param_na
   const auto& page_id {parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   std::size_t value_curr_min_bit{0};
+  pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((val >> value_curr_min_bit) & location.mask);
+    pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", " << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
     if (register_values[page_id].find(location.reg) == register_values[page_id].end()) {
       // initialize register value to zero if it hasn't been touched before
@@ -135,9 +137,8 @@ Compiler::decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, 
     const auto& page_lut{page.second.second};
     if (compiled_config.find(page_id) == compiled_config.end()) {
       if (be_careful) {
-        std::cerr << "WARNING: Page named " << page_name
-          << " wasn't provided the necessary page " << page_id 
-          << " to be deduced." << std::endl;
+        pflib_log(warn) << "page " << page_name
+          << " wasn't provided the necessary page " << page_id << " to be deduced";
       }
       continue;
     }
@@ -163,8 +164,8 @@ Compiler::decompile(const std::map<int,std::map<int,uint8_t>>& compiled_config, 
       if (n_missing_regs == spec.registers.size() or (be_careful and n_missing_regs > 0)) {
         // skip this parameter
         if (be_careful) {
-          std::cerr << "WARNING: Parameter " << param.first << " in page " << page_name
-            << " wasn't provided the necessary registers to be deduced." << std::endl;
+          pflib_log(warn) << "parameter " << param.first << " in page " << page_name
+            << " wasn't provided the necessary registers to be deduced";
         }
       } else {
         settings[page_name][param.first] = pval;
