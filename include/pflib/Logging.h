@@ -46,7 +46,11 @@ using logger = boost::log::sources::severity_channel_logger_mt<level, std::strin
 /**
  * Gets a logger with the input name for its channel.
  *
- * This should only be called *once* during a run.
+ * We maintain a cache of channel-names to loggers
+ * so that multiple locations can share the same channel;
+ * however, the calls to this function should be minimized
+ * in order to avoid wasting time looking up the logger
+ * in the cache, making copies of a logger, or creating a new one.
  * 
  * @param name name of this logging channel
  * @return logger with the input channel name

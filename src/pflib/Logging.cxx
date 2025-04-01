@@ -1,5 +1,7 @@
 #include "pflib/Logging.h"
 
+#include <unordered_map>
+
 #include <boost/core/null_deleter.hpp>  //to avoid deleting std::cout
 #include <boost/log/expressions.hpp>          //for attributes and expressions
 #include <boost/log/sinks/sync_frontend.hpp>  //syncronous sink frontend
@@ -20,8 +22,14 @@ level convert(int i_lvl) {
 }
 
 logger get(const std::string& name) {
+  static std::unordered_map<std::string,logger> logger_cache;
+  auto cache_it{logger_cache.find(name)};
+  if (cache_it != logger_cache.end()) {
+    return cache_it->second;
+  }
   logger lg(boost::log::keywords::channel = name);
-  return boost::move(lg);
+  logger_cache[name] = lg;
+  return lg;
 }
 
 /**
