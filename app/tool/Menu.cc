@@ -9,11 +9,16 @@
 #include <string> // for stol
 #else
 #include "pflib/Compile.h" // for str_to_int
+#include "pflib/Logging.h"
 #endif
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 std::vector<std::string> BaseMenu::cmd_options_;
 const std::vector<std::string>* BaseMenu::rl_comp_opts_ = &BaseMenu::cmd_options_;
+
+#ifndef PFLIB_TEST_MENU
+::pflib::logging::logger BaseMenu::the_log_ = ::pflib::logging::get("menu");
+#endif
 
 void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
