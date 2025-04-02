@@ -34,7 +34,7 @@ static void usage() {
 }
 
 int main(int argc, char *argv[]) {
-  pflib::logging::fixture f;
+  pflib::logging::fixture _logging_fixture;
   if (argc == 1) {
     usage();
     return 1;
