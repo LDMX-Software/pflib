@@ -1,20 +1,21 @@
 #include "Menu.h"
 
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 
 #include <iostream>
 
 #ifdef PFLIB_TEST_MENU
-#include <string> // for stol
+#include <string>  // for stol
 #else
-#include "pflib/Compile.h" // for str_to_int
+#include "pflib/Compile.h"  // for str_to_int
 #include "pflib/Logging.h"
 #endif
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 std::vector<std::string> BaseMenu::cmd_options_;
-const std::vector<std::string>* BaseMenu::rl_comp_opts_ = &BaseMenu::cmd_options_;
+const std::vector<std::string>* BaseMenu::rl_comp_opts_ =
+    &BaseMenu::cmd_options_;
 
 #ifndef PFLIB_TEST_MENU
 ::pflib::logging::logger BaseMenu::the_log_ = ::pflib::logging::get("menu");
@@ -37,8 +38,8 @@ std::string BaseMenu::readline(const std::string& prompt,
 
   if (!cmdTextQueue_.empty()) {
     retval = cmdTextQueue_.front();
-    if (retval.empty()) retval=defval;
-    printf("%s %s\n", trueprompt.c_str(), retval.c_str());    
+    if (retval.empty()) retval = defval;
+    printf("%s %s\n", trueprompt.c_str(), retval.c_str());
 
     if (!retval.empty() && retval[0] == '~') {
       retval.erase(0, 1);
@@ -104,7 +105,8 @@ std::string BaseMenu::readline(const std::string& prompt) {
   return BaseMenu::readline(prompt, "", false);
 }
 
-std::string BaseMenu::readline(const std::string& prompt, const std::vector<std::string>& opts) {
+std::string BaseMenu::readline(const std::string& prompt,
+                               const std::vector<std::string>& opts) {
   auto old_opts = BaseMenu::rl_comp_opts_;
   BaseMenu::rl_comp_opts_ = &opts;
   rl_completion_entry_function = &BaseMenu::matcher;
@@ -116,7 +118,7 @@ std::string BaseMenu::readline(const std::string& prompt, const std::vector<std:
 
 int BaseMenu::readline_int(const std::string& prompt) {
 #ifdef PFLIB_TEST_MENU
-  return std::stol(BaseMenu::readline(prompt),0,0);
+  return std::stol(BaseMenu::readline(prompt), 0, 0);
 #else
   return pflib::str_to_int(BaseMenu::readline(prompt));
 #endif
@@ -130,9 +132,9 @@ int BaseMenu::readline_int(const std::string& prompt, int aval) {
   char buffer[50];
   sprintf(buffer, "%d", aval);
 #ifdef PFLIB_TEST_MENU
-  return std::stol(BaseMenu::readline(prompt,buffer),0,0);
+  return std::stol(BaseMenu::readline(prompt, buffer), 0, 0);
 #else
-  return pflib::str_to_int(BaseMenu::readline(prompt,buffer));
+  return pflib::str_to_int(BaseMenu::readline(prompt, buffer));
 #endif
 }
 
@@ -146,13 +148,11 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
   return (rv.find_first_of("yY1tT") != std::string::npos);
 }
 
-std::string BaseMenu::readline_cmd() {
-  return readline(" > ", cmd_options_);
-}
+std::string BaseMenu::readline_cmd() { return readline(" > ", cmd_options_); }
 
-char *BaseMenu::matcher(const char* prefix, int state) {
+char* BaseMenu::matcher(const char* prefix, int state) {
   static int list_index, len;
-  char *name; 
+  char* name;
 
   if (state == 0) {
     // first call, reset static variables

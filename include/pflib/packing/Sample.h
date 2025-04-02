@@ -23,4 +23,4 @@ struct Sample {
   int tot() const;
 };
 
-}
+}  // namespace pflib::packing

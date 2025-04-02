@@ -1,7 +1,7 @@
 #pragma once
 
-#include <span>
 #include <cstdint>
+#include <span>
 
 namespace pflib::packing {
 
@@ -32,5 +32,4 @@ struct TriggerLinkFrame {
   TriggerLinkFrame() = default;
 };
 
-}
-
+}  // namespace pflib::packing

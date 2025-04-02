@@ -2,10 +2,10 @@
 
 #define BOOST_LOG_DYN_LINK
 
-#include <boost/log/core.hpp>                 //core logging service
+#include <boost/log/core.hpp>  //core logging service
+#include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/sources/severity_channel_logger.hpp>  //for the severity logger
 #include <boost/log/sources/severity_feature.hpp>  //for the severity feature in a logger
-#include <boost/log/sources/record_ostream.hpp>
 
 /**
  * hold logging infrastructure in namespace
@@ -15,14 +15,7 @@ namespace pflib::logging {
 /**
  * logging severity labels and their corresponding integers
  */
-enum level {
-  trace = -1,
-  debug = 0,
-  info = 1,
-  warn = 2,
-  error = 3,
-  fatal = 4
-};
+enum level { trace = -1, debug = 0, info = 1, warn = 2, error = 3, fatal = 4 };
 
 /**
  * convert an integer to the severity level enum
@@ -41,7 +34,8 @@ level convert(int i_lvl);
  * holds a severity level and a channel name in addition to
  * the other default attributes.
  */
-using logger = boost::log::sources::severity_channel_logger_mt<level, std::string>;
+using logger =
+    boost::log::sources::severity_channel_logger_mt<level, std::string>;
 
 /**
  * Gets a logger with the input name for its channel.
@@ -51,7 +45,7 @@ using logger = boost::log::sources::severity_channel_logger_mt<level, std::strin
  * however, the calls to this function should be minimized
  * in order to avoid wasting time looking up the logger
  * in the cache, making copies of a logger, or creating a new one.
- * 
+ *
  * @param name name of this logging channel
  * @return logger with the input channel name
  */
@@ -92,7 +86,7 @@ void close();
  * ```cpp
  * int main(int argc, char** argv) {
  *   pflib::logging::fixture f;
- *   
+ *
  *   // logging enabled and will be closed when f
  *   // goes out of scope and is destructed
  * }
@@ -111,20 +105,21 @@ struct fixture {
   ~fixture();
 };
 
-}
-
+}  // namespace pflib::logging
 
 /**
  * @macro pflib_log
  *
  * This macro can be used in place of std::cout with the following notes.
- * - A newline is appended to the message so you do not need to end your message with std::endl.
+ * - A newline is appended to the message so you do not need to end your message
+ * with std::endl.
  * - This macro assumes a logger variable named the_log_ is in scope.
  *
- * Use ::pflib::logging::get to create a logger and hold it within your class or namespace.
- * For example, in a class declaration use
+ * Use ::pflib::logging::get to create a logger and hold it within your class or
+ * namespace. For example, in a class declaration use
  * ```cpp
- * mutable ::pflib::logging::logger the_log_{::pflib::logging::logger::get("my_channel")};
+ * mutable ::pflib::logging::logger
+ * the_log_{::pflib::logging::logger::get("my_channel")};
  * ```
  *
  * @param lvl input logging level (without namespace or enum)

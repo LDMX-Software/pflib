@@ -1,12 +1,12 @@
 #pragma once
 
-#include <span>
 #include <array>
 #include <cstdint>
+#include <span>
 
+#include "pflib/Logging.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
-#include "pflib/Logging.h"
 
 namespace pflib::packing {
 
@@ -19,6 +19,7 @@ namespace pflib::packing {
  */
 class DAQLinkFrame {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+
  public:
   /// id number for bunch crossing of this sample
   int bx;
@@ -63,4 +64,4 @@ class DAQLinkFrame {
   DAQLinkFrame() = default;
 };
 
-}
+}  // namespace pflib::packing

@@ -34,8 +34,7 @@ struct RegisterLocation {
    * don't have to calculate it themselves.
    */
   RegisterLocation(int r, int m, int n)
-    : reg{r}, min_bit{m}, n_bits{n},
-      mask{((1 << n_bits) - 1)} {}
+      : reg{r}, min_bit{m}, n_bits{n}, mask{((1 << n_bits) - 1)} {}
 };
 
 /**
@@ -48,26 +47,27 @@ struct Parameter {
   /// the locations that the parameter is split over
   const std::vector<RegisterLocation> registers;
   /// pass locations and default value of parameter
-  Parameter(std::initializer_list<RegisterLocation> r,int def)
-    : def{def}, registers{r} {}
+  Parameter(std::initializer_list<RegisterLocation> r, int def)
+      : def{def}, registers{r} {}
   /// short constructor for single-location parameters
   Parameter(int r, int m, int n, int def)
-    : Parameter({RegisterLocation(r,m,n)},def) {}
+      : Parameter({RegisterLocation(r, m, n)}, def) {}
 };
 
 /**
- * A direct access parameter is used to directly configure the HGCROC I2C connection
- * in a fast but simplified manner.
+ * A direct access parameter is used to directly configure the HGCROC I2C
+ * connection in a fast but simplified manner.
  *
- * Direct access is slightly simpler, none of the direct access parameters spread
- * across more than one register and are all only one bit.
- * The registers that the direct access parameters are in are also different
- * than the registers that the normal configuration parameters are in.
- * They are situated within the I2C circuit and so their register is relative
- * to the root I2C address of the HGCROC.
+ * Direct access is slightly simpler, none of the direct access parameters
+ * spread across more than one register and are all only one bit. The registers
+ * that the direct access parameters are in are also different than the
+ * registers that the normal configuration parameters are in. They are situated
+ * within the I2C circuit and so their register is relative to the root I2C
+ * address of the HGCROC.
  */
 struct DirectAccessParameter {
-  /// the register this parameter is in (relative to the root I2C address of the HGCROC) (4-7)
+  /// the register this parameter is in (relative to the root I2C address of the
+  /// HGCROC) (4-7)
   const int reg;
   /// the bit location within the register that this parameter is in (0-7)
   const int bit_location;
@@ -87,10 +87,10 @@ struct DirectAccessParameter {
  * const auto& my_handle = get_lut();
  * ```
  */
-template<typename Key, typename Val>
+template <typename Key, typename Val>
 class NoCopyMap : public std::map<Key, Val> {
  public:
-  using Mapping = std::map<Key,Val>;
+  using Mapping = std::map<Key, Val>;
   NoCopyMap(const NoCopyMap&) = delete;
   NoCopyMap& operator=(const NoCopyMap&) = delete;
   /**
@@ -113,10 +113,12 @@ class NoCopyMap : public std::map<Key, Val> {
 /// type for hold sets of parameters by name
 using Page = NoCopyMap<std::string, Parameter>;
 
-/// type for holding a set of abstract pages just associating names with specific sets of parameters
+/// type for holding a set of abstract pages just associating names with
+/// specific sets of parameters
 using PageLUT = NoCopyMap<std::string, const Page&>;
 
-/// type for a LUT that holds concrete pages with their address and Page parameters
+/// type for a LUT that holds concrete pages with their address and Page
+/// parameters
 using ParameterLUT = NoCopyMap<std::string, std::pair<int, const Page&>>;
 
 /// direct access parameters LUT

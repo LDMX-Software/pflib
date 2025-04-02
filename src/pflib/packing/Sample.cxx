@@ -1,20 +1,15 @@
 
 #include "pflib/packing/Sample.h"
+
 #include "pflib/packing/Mask.h"
 
 namespace pflib::packing {
 
-bool Sample::Tc() const {
-  return ((this->word >> 31)&0b1) == 1;
-}
+bool Sample::Tc() const { return ((this->word >> 31) & 0b1) == 1; }
 
-bool Sample::Tp() const {
-  return ((this->word >> 30)&0b1) == 1;
-}
+bool Sample::Tp() const { return ((this->word >> 30) & 0b1) == 1; }
 
-int Sample::toa() const {
-  return (this->word & mask<10>);
-}
+int Sample::toa() const { return (this->word & mask<10>); }
 
 int Sample::adc_tm1() const {
   // weird situation without pre-sample
@@ -41,4 +36,4 @@ int Sample::tot() const {
   }
 }
 
-}
+}  // namespace pflib::packing

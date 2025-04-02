@@ -6,4 +6,4 @@
 
 using pflib_logging_fixture = pflib::logging::fixture;
 
-BOOST_GLOBAL_FIXTURE( pflib_logging_fixture );
+BOOST_GLOBAL_FIXTURE(pflib_logging_fixture);
