@@ -6,10 +6,10 @@
 #include <iostream>
 
 #include "pflib/packing/Hex.h"
+#include "pflib/utility.h"
 #include "register_maps/direct_access.h"
 
 namespace pflib {
-
 static const int block_for_chan[] = {261, 260, 259, 258,  // 0-3
                                      265, 264, 263, 262,  // 4-7
                                      269, 268, 267, 266,  // 8-11
@@ -162,6 +162,16 @@ void ROC::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
   }
 }
 
+void ROC::loadRegisters(const std::string& file_name) {
+  loadIntegerCSV(file_name, [this](const std::vector<int>& cells) {
+    if (cells.size() == 3) {
+      setValue(cells.at(0), cells.at(1), cells.at(2));
+    } else {
+      pflib_log(warn) << "Ignoring ROC CSV register settings line without exactly three columns";
+    }
+  });
+}
+
 std::vector<std::string> ROC::parameters(const std::string& page) {
   return compiler_.parameters(page);
 }
@@ -171,10 +181,15 @@ std::map<std::string, std::map<std::string, int>> ROC::defaults() {
 }
 
 void ROC::applyParameters(
-    const std::map<std::string, std::map<std::string, int>>& parameters) {
-  // 1. get registers YAML file contains by compiling without defaults
+    const std::map<std::string, std::map<std::string, int>>& parameters
+) {
+  /**
+   * 1. get registers YAML file contains by compiling without defaults
+   */
   auto touched_registers = compiler_.compile(parameters);
-  // 2. get the current register values on the chip
+  /**
+   * 2. get the current register values on the chip which is
+   */
   std::map<int, std::map<int, uint8_t>> chip_reg;
   for (auto& page : touched_registers) {
     int page_id = page.first;
@@ -185,10 +200,12 @@ void ROC::applyParameters(
       chip_reg[page_id][i] = on_chip_reg_values.at(i);
     }
   }
-  // 3. compile this parameter onto those register values
-  //    we can use the lower-level compile here because the
-  //    compile in step 1 checks that all of the page and param
-  //    names are correct
+  /**
+   * 3. compile this parameter onto those register values
+   *    we can use the lower-level compile here because the
+   *    compile in step 1 checks that all of the page and param
+   *    names are correct
+   */
   for (auto& page : parameters) {
     std::string page_name = upper_cp(page.first);
     for (auto& param : page.second) {
@@ -196,8 +213,32 @@ void ROC::applyParameters(
                         chip_reg);
     }
   }
-  // 4. put these updated values onto the chip
+  /**
+   * 4. put these updated values onto the chip
+   */
   this->setRegisters(chip_reg);
+}
+
+void ROC::loadParameters(const std::string& file_path, bool prepend_defaults) {
+  if (prepend_defaults) {
+    /**
+     * If we prepend defaults, then ALL of the parameters will be
+     * touched and so we do need to bother reading the current
+     * values and overlaying the new ones, instead we jump straight
+     * to setting the registers.
+     */
+    auto settings = compiler_.compile(file_path, true);
+    setRegisters(settings);
+  } else {
+    /**
+     * If we don't prepend the defaults, then we use the other applyParameters
+     * function to overlay the parameters we passed on top of the ones currently
+     * on the chip after extracting them from the YAML file.
+     */
+    std::map<std::string, std::map<std::string, int>> parameters;
+    compiler_.extract(std::vector<std::string>{file_path}, parameters);
+    applyParameters(parameters);
+  }
 }
 
 void ROC::applyParameter(const std::string& page, const std::string& param,
@@ -229,7 +270,10 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
       }
     }
 
-    // decompile while being careful
+    /**
+     * decompile while being careful since we knowingly are attempting
+     * to read ALL of the parameters on the chip
+     */
     std::map<std::string, std::map<std::string, int>> parameter_values =
         compiler_.decompile(register_values, true);
 

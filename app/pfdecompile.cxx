@@ -15,6 +15,7 @@
 #include "pflib/Exception.h"
 #include "pflib/Logging.h"
 #include "pflib/Version.h"
+#include "pflib/utility.h"
 
 static void usage() {
   std::cout << "\n"
@@ -36,49 +37,6 @@ static void usage() {
                "register values with extension\n"
                "                  changed to 'yaml'\n"
             << std::endl;
-}
-
-/**
- * Modern RAII-styled CSV extractor taken from
- * https://stackoverflow.com/a/1120224/17617632
- * this allows us to **discard white space within the cells**
- * making the CSV more human readable.
- */
-static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
-  std::vector<int> result;
-
-  std::string line, cell;
-  std::getline(ss, line);
-
-  if (line.empty() or line[0] == '#') {
-    // empty line or comment, return empty container
-    return result;
-  }
-
-  std::stringstream line_stream(line);
-  while (std::getline(line_stream, cell, ',')) {
-    /**
-     * std stoi has a auto-detect base feature
-     * https://en.cppreference.com/w/cpp/string/basic_string/stol
-     * which we can enable by setting the pre-defined base to 0
-     * (the third parameter) - this auto-detect base feature
-     * can handle hexidecial (prefix == 0x or 0X), octal (prefix == 0),
-     * and decimal (no prefix).
-     *
-     * The second parameter is an address to put the number of characters
-     * processed, which I disregard at this time.
-     *
-     * Do we allow empty cells?
-     */
-    result.push_back(cell.empty() ? 0 : std::stoi(cell, nullptr, 0));
-  }
-  // checks for a trailing comma with no data after it
-  if (!line_stream and cell.empty()) {
-    // trailing comma, put in one more 0
-    result.push_back(0);
-  }
-
-  return result;
 }
 
 int main(int argc, char* argv[]) {
@@ -154,10 +112,20 @@ int main(int argc, char* argv[]) {
     output_filename += ".yaml";
   }
 
-  std::ifstream inf{input_filename};
-  if (not inf.is_open()) {
-    pflib_log(fatal) << "Unable to open input file " << input_filename;
-    return 2;
+  std::map<int, std::map<int, uint8_t>> settings;
+  try {
+    pflib::loadIntegerCSV(
+        input_filename,
+        [&](const std::vector<int> cells) {
+          if (cells.size() != 3) {
+            pflib_log(warn) << "Skipping row with exactly three columns.";
+            return;
+          }
+          settings[cells.at(0)][cells.at(1)] = cells.at(2); 
+        });
+  } catch (const pflib::Exception& e) {
+    pflib_log(fatal) << "[" << e.name() << "] " << e.message();
+    return -1;
   }
 
   // try to open file before decompilation to make sure we have access
@@ -165,17 +133,6 @@ int main(int argc, char* argv[]) {
   if (not of.is_open()) {
     pflib_log(fatal) << "Unable to open output file " << output_filename;
     return 3;
-  }
-
-  std::map<int, std::map<int, uint8_t>> settings;
-  while (inf) {
-    auto cells = getNextLineAndExtractValues(inf);
-    if (cells.empty()) continue;
-    if (cells.size() != 3) {
-      pflib_log(warn) << "Skipping row with exactly three columns.";
-      continue;
-    }
-    settings[cells.at(0)][cells.at(1)] = cells.at(2);
   }
 
   std::map<std::string, std::map<std::string, int>> parameters;
