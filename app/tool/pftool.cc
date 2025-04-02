@@ -23,8 +23,6 @@
 #include "pflib/Compile.h" // for parameter listing
 #include "pflib/Version.h"
 #include "pflib/Logging.h"
-#ifdef PFTOOL_ROGUE
-#endif
 #include "Menu.h"
 #include "Rcfile.h"
 
@@ -1569,21 +1567,6 @@ int main(int argc, char* argv[]) {
           pflib_log(info) << "connecting from ZCU in Fiberless mode";
           p_pft=std::unique_ptr<Target>(pflib::makeTargetFiberless());
         }
-#ifdef PFTOOL_ROGUE
-        if (isrogue) {
-          // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
-          pflib_log(info) << "connecting over fiber using Rogue Wishbone Interface";
-          p_pft=std::make_unique<Target>(new pflib::rogue::RogueWishboneInterface(hostnames.at(i_host),5970));
-        }
-#endif
-#ifdef PFTOOL_UHAL
-        if (isuhal) {
-          // the Target wraps the passed pointers in STL smart pointers so the memory will be handled
-          pflib_log(info) << "connecting over fiber using uHAL Wishbone Interface";
-          p_pft=std::make_unique<Target>(new pflib::uhal::uhalWishboneInterface(hostnames.at(i_host),
-                options.contents().getString("ipbus_map_path")));
-        }
-#endif
       } catch (const pflib::Exception& e) {
         pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
         return 3;
