@@ -1408,6 +1408,8 @@ void prepareOpts(Rcfile& rcfile) {
       "Hostname of polarfire to connect to if none are given on the command line");
   rcfile.declareString("runnumber_file",
                        "Full path to a file which contains the last run number");
+  rcfile.declareInt("log_level",
+      "Level (and above) to print logging for (trace=-1 up to fatal=4, default info=2)");
 }
 
 /**
@@ -1479,6 +1481,10 @@ int main(int argc, char* argv[]) {
     options.load(home+"/.pftoolrc");
   }
  
+  if (options.contents().has_key("log_level")) {
+    int lvl = options.contents().getInt("log_level");
+    pflib::logging::set(pflib::logging::convert(lvl));
+  }
 
   /*****************************************************************************
    * Parse Command Line Parameters
@@ -1521,6 +1527,10 @@ int main(int argc, char* argv[]) {
       // positional argument -> hostname
       hostnames.push_back( arg ) ;
     }
+  }
+
+  if (mode == Unknown) {
+    pflib_log(fatal) << "No running mode selected.";
   }
 
   if (hostnames.size() == 0 && mode==Rogue) {
