@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
+#include "pflib/Logging.h"
 
 namespace pflib {
 
@@ -16,6 +17,7 @@ namespace pflib {
  */
 class I2C {
  protected:
+  mutable logging::logger the_log_{logging::get("I2C")};
   I2C() {}
 
  public:

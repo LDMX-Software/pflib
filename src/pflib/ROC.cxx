@@ -32,7 +32,9 @@ static const int block_for_chan[] = {261, 260, 259, 258,  // 0-3
 ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
     : i2c_{i2c},
       roc_base_{roc_base_addr},
-      compiler_{Compiler::get(type_version)} {}
+      compiler_{Compiler::get(type_version)} {
+  pflib_log(debug) << "base addr " << packing::hex(roc_base_);
+}
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
@@ -54,6 +56,8 @@ uint8_t ROC::getValue(int ipage, int offset) {
 
   // set the address
   uint16_t fulladdr = (ipage << 5) | offset;
+  pflib_log(debug) << "ROC::getValue(" << ipage << ", " << offset
+                   << ") -> full addr " << fulladdr;
   i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
   i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
   // now read
