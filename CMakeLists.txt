@@ -127,6 +127,7 @@ add_library(pflib SHARED
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
+  src/pflib/utility.cxx
   src/pflib/Version.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
@@ -145,6 +146,7 @@ add_executable(
   test/main.cxx
   test/compile.cxx
   test/decoding.cxx
+  test/utility.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
