@@ -1573,9 +1573,20 @@ int main(int argc, char* argv[]) {
       // initialize connection
       std::unique_ptr<Target> p_pft;
       try {
-        if (mode==Fiberless) {
-          pflib_log(info) << "connecting from ZCU in Fiberless mode";
-          p_pft=std::unique_ptr<Target>(pflib::makeTargetFiberless());
+        switch (mode) {
+          case Fiberless:
+            pflib_log(info) << "connecting from ZCU in Fiberless mode";
+            p_pft=std::unique_ptr<Target>(pflib::makeTargetFiberless());
+            break;
+          case Rogue:
+            PFEXCEPTION_RAISE("BadComm", "Rogue communication mode not implemented");
+            break;
+          case UIO_ZCU:
+            PFEXCEPTION_RAISE("BadComm", "UIO_ZCU communcation mode not implemented");
+            break;
+          default:
+            PFEXCEPTION_RAISE("BadComm", "Unknown RunMode configured, not able to connect to HGCROC");
+            break;
         }
       } catch (const pflib::Exception& e) {
         pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
