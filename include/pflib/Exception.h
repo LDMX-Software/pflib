@@ -6,7 +6,7 @@
 
 namespace pflib {
 
-/** 
+/**
  * @class Exception class for PFlib
  */
 class Exception : public std::exception {
@@ -32,8 +32,7 @@ class Exception : public std::exception {
         message_{message},
         module_{module},
         function_{function},
-        line_{line} {
-  }
+        line_{line} {}
 
   /**
    * Class destructor.
@@ -77,7 +76,6 @@ class Exception : public std::exception {
   virtual const char *what() const throw() { return message_.c_str(); }
 
  private:
-
   /** Exception name. */
   std::string name_;
 
@@ -92,10 +90,9 @@ class Exception : public std::exception {
 
   /** Source line number where the exception occurred. */
   int line_{0};
-
 };
 
-}
+}  // namespace pflib
 
 /**
  * @def PFEXCEPTION_RAISE(EXCEPTION, MSG)
@@ -106,8 +103,7 @@ class Exception : public std::exception {
  * necessary file, line, and function information.  The user need only
  * supply the exception name and error message
  */
-#define PFEXCEPTION_RAISE(EXCEPTION, MSG)                    \
-  throw pflib::Exception(EXCEPTION, MSG, __FILE__, __LINE__, \
-                                        __FUNCTION__)
+#define PFEXCEPTION_RAISE(EXCEPTION, MSG) \
+  throw pflib::Exception(EXCEPTION, MSG, __FILE__, __LINE__, __FUNCTION__)
 
-#endif // PFLIB_EXCEPTION_H_
+#endif  // PFLIB_EXCEPTION_H_

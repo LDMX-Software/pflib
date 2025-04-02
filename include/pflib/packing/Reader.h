@@ -99,7 +99,7 @@ class Reader {
   template <typename WordType,
             std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
   Reader& read(WordType* w, std::size_t count) {
-    return read(reinterpret_cast<char*>(w), sizeof(WordType)*count);
+    return read(reinterpret_cast<char*>(w), sizeof(WordType) * count);
   }
 
   /**
@@ -156,8 +156,9 @@ class Reader {
    * @return *this
    */
   template <typename ContentType>
-  Reader& read(std::vector<ContentType>& vec, std::size_t count, std::size_t offset = 0) {
-    vec.resize(count+offset);
+  Reader& read(std::vector<ContentType>& vec, std::size_t count,
+               std::size_t offset = 0) {
+    vec.resize(count + offset);
     for (std::size_t i{offset}; i < vec.size(); i++) {
       if (!(*this >> vec[i])) return *this;
     }
@@ -176,9 +177,7 @@ class Reader {
    *
    * @return bool true if reader is in fail state
    */
-  virtual bool operator!() const {
-    return !good();
-  }
+  virtual bool operator!() const { return !good(); }
 
   /**
    * Check if reader is in good/bad state
@@ -194,9 +193,7 @@ class Reader {
    *
    * @return bool true if reader is in good state
    */
-  virtual operator bool() const {
-    return good();
-  }
+  virtual operator bool() const { return good(); }
 
   /**
    * check if file is done

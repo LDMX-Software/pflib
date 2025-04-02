@@ -14,7 +14,7 @@ namespace pflib::packing {
  */
 template <typename WordType>
 struct hex {
-  static const std::size_t width_{2*sizeof(WordType)};
+  static const std::size_t width_{2 * sizeof(WordType)};
   WordType& word_;
   hex(WordType& w) : word_{w} {}
   friend inline std::ostream& operator<<(
@@ -26,4 +26,3 @@ struct hex {
 };
 
 }  // namespace pflib::packing
-

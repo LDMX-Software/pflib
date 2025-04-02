@@ -70,7 +70,7 @@ class FileReader : public Reader {
 
   /**
    * Read the next `count` bytes into pointer w
-   * 
+   *
    * @param[in] w pointer to array to write data into
    * @param[in] count number of bytes to read
    * @return (*this)

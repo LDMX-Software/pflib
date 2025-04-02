@@ -6,34 +6,38 @@
  * Only compiled and installed if yaml-cpp is found by CMake.
  */
 
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 
+#include "pflib/Compile.h"
 #include "pflib/Exception.h"
 #include "pflib/Logging.h"
-#include "pflib/Compile.h"
 #include "pflib/Version.h"
 
 static void usage() {
-  std::cout <<
-    "\n"
-    " USAGE:\n"
-    "  pfcompile [options] setting_file [setting_file1 [setting_file2 ...]]\n"
-    "\n"
-    " OPTIONS:\n"
-    "  -v,--version  : Print pflib version\n"
-    "  -h,--help     : Print this help and exit\n"
-    "  -r,--roc      : Define the ROC type_version that should be used for compilation\n"
-    "                  By default, we use the sipm_rocv3b register mapping.\n"
-    "  --no-defaults : Don't apply the defaults copied from the documentation before anything else\n"
-    "  --output, -o  : Define the output file.\n"
-    "                  By default, the output file is the last setting file with the extension\n"
-    "                  changed to 'csv'\n"
-    << std::endl;
+  std::cout << "\n"
+               " USAGE:\n"
+               "  pfcompile [options] setting_file [setting_file1 "
+               "[setting_file2 ...]]\n"
+               "\n"
+               " OPTIONS:\n"
+               "  -v,--version  : Print pflib version\n"
+               "  -h,--help     : Print this help and exit\n"
+               "  -r,--roc      : Define the ROC type_version that should be "
+               "used for compilation\n"
+               "                  By default, we use the sipm_rocv3b register "
+               "mapping.\n"
+               "  --no-defaults : Don't apply the defaults copied from the "
+               "documentation before anything else\n"
+               "  --output, -o  : Define the output file.\n"
+               "                  By default, the output file is the last "
+               "setting file with the extension\n"
+               "                  changed to 'csv'\n"
+            << std::endl;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   pflib::logging::fixture _logging_fixture;
   if (argc == 1) {
     usage();
@@ -59,15 +63,17 @@ int main(int argc, char *argv[]) {
         print_version();
         return 0;
       } else if (arg == "--roc" or arg == "-r") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          pflib_log(fatal) << "The " << arg << " parameter requires are argument after it.";
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
@@ -90,9 +96,10 @@ int main(int argc, char *argv[]) {
   if (output_filename.empty()) {
     // deduce a output file name by replace the 'yaml' extenion
     // of the LAST settings file input with 'csv'
-    output_filename = setting_files.at(setting_files.size()-1);
+    output_filename = setting_files.at(setting_files.size() - 1);
     // strip extension
-    output_filename = output_filename.substr(0,output_filename.find_last_of('.'));
+    output_filename =
+        output_filename.substr(0, output_filename.find_last_of('.'));
     // add csv extension
     output_filename += ".csv";
   }
@@ -104,10 +111,11 @@ int main(int argc, char *argv[]) {
     return 3;
   }
 
-  std::map<int,std::map<int,uint8_t>> settings;
+  std::map<int, std::map<int, uint8_t>> settings;
   try {
     // compilation checks parameter/page names
-    settings = pflib::Compiler::get(roc_type_version).compile(setting_files, prepend_defaults);
+    settings = pflib::Compiler::get(roc_type_version)
+                   .compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;
@@ -121,9 +129,8 @@ int main(int argc, char *argv[]) {
     for (const auto& reg : page.second) {
       int i_reg = reg.first;
       uint8_t val = reg.second;
-      f << i_page << ',' << i_reg << ',' 
-        << "0x" << std::setfill('0') << std::setw(2) 
-        << std::hex << static_cast<int>(val) << std::dec
+      f << i_page << ',' << i_reg << ',' << "0x" << std::setfill('0')
+        << std::setw(2) << std::hex << static_cast<int>(val) << std::dec
         << '\n';
     }
   }

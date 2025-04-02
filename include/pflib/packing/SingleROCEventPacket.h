@@ -3,10 +3,10 @@
 #include <array>
 #include <span>
 
-#include "pflib/packing/Reader.h"
-#include "pflib/packing/DAQLinkFrame.h"
-#include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/Logging.h"
+#include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/packing/Reader.h"
+#include "pflib/packing/TriggerLinkFrame.h"
 
 namespace pflib::packing {
 
@@ -22,6 +22,7 @@ namespace pflib::packing {
  */
 class SingleROCEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+
  public:
   /// the two daq links for the connected HGCROC
   std::array<DAQLinkFrame, 2> daq_links;
@@ -43,4 +44,4 @@ class SingleROCEventPacket {
   SingleROCEventPacket() = default;
 };
 
-}
+}  // namespace pflib::packing

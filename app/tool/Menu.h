@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <functional>
+#include <iomanip>
+#include <iostream>
 #include <list>
 #include <string>
 #include <vector>
-#include <functional>
-#include <iostream>
-#include <iomanip>
 
 #ifndef PFLIB_TEST_MENU
 #include "pflib/Exception.h"
@@ -73,7 +73,8 @@ class BaseMenu {
    * @param[in] prompt The informing the user what the parameter is
    * @return value input by user
    */
-  static std::string readline(const std::string& prompt, const std::vector<std::string>& opts);
+  static std::string readline(const std::string& prompt,
+                              const std::vector<std::string>& opts);
 
   /**
    * Read an integer parameter without a default
@@ -127,7 +128,7 @@ class BaseMenu {
   /**
    * Read a command from the menu
    *
-   * We use the prompt ' > ' before the command and we wrap the 
+   * We use the prompt ' > ' before the command and we wrap the
    * underlying readline call with the setup/teardown of the
    * TAB-completion function that readline calls if the user presses
    * TAB.
@@ -136,13 +137,13 @@ class BaseMenu {
    */
   static std::string readline_cmd();
 
-  /** 
-   * Add to the queue of commands to execute automatically 
+  /**
+   * Add to the queue of commands to execute automatically
    *
    * @param[in] str command to add into the queue
    */
   static void add_to_command_queue(const std::string& str);
-  
+
  protected:
   /**
    * Add a command to the history of commands that have been executed.
@@ -156,12 +157,13 @@ class BaseMenu {
   /// the ordered list of commands to be executed from a script file
   static std::list<std::string> cmdTextQueue_;
 
-  /// the current command options (for interfacing with readline's tab completion)
+  /// the current command options (for interfacing with readline's tab
+  /// completion)
   static std::vector<std::string> cmd_options_;
 
   /// a pointer to the list of options when attempting readline completion
   static const std::vector<std::string>* rl_comp_opts_;
- 
+
 #ifndef PFLIB_TEST_MENU
   static ::pflib::logging::logger the_log_;
 #endif
@@ -186,7 +188,7 @@ class BaseMenu {
 /**
  * A menu to execute commands with a specific target
  *
- * Generally, it is a good idea to have a header defining 
+ * Generally, it is a good idea to have a header defining
  * the type of menu you wish to operate for your program.
  * In it, you would have a line like
  * ```cpp
@@ -208,24 +210,22 @@ class BaseMenu {
  * ```
  *
  * @tparam T class to be passed to execution commands
- * @tparam H a handle for T (defaults to T*)
  */
-template <typename T, typename H = T*>
+template <typename T>
 class Menu : public BaseMenu {
  public:
-  /// the type of target this menu points to
-  using TargetType = T;
-  /// the type of handle we use to access the target
-  using TargetHandle = H;
+  /// the type of target this menu will hold and pass around
+  using TargetHandle = T;
   /// type of function which does something with the target
   using SingleTargetCommand = std::function<void(TargetHandle)>;
   /// type of function which does one of several commands with target
-  using MultipleTargetCommands = std::function<void(const std::string&, TargetHandle)>;
+  using MultipleTargetCommands =
+      std::function<void(const std::string&, TargetHandle)>;
 
   /**
    * The type of function used to "render" a menu
    *
-   * "rendering" allows the user to have a handle for when the 
+   * "rendering" allows the user to have a handle for when the
    * menu will be printed to the terminal prompt. Moreover,
    * this can include necessary initiliazation procedures
    * if need be.
@@ -243,7 +243,7 @@ class Menu : public BaseMenu {
    * @return pointer to us
    */
   Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
-    lines_.emplace_back(name,desc,ex);
+    lines_.emplace_back(name, desc, ex);
     return this;
   }
 
@@ -261,7 +261,7 @@ class Menu : public BaseMenu {
    * @return pointer to us
    */
   Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
-    lines_.emplace_back(name,desc,ex);
+    lines_.emplace_back(name, desc, ex);
     return this;
   }
 
@@ -290,7 +290,7 @@ class Menu : public BaseMenu {
    */
   Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
     auto sb = new Menu(f);
-    lines_.emplace_back(name,desc,sb); // Line takes ownership
+    lines_.emplace_back(name, desc, sb);  // Line takes ownership
     return sb;
   }
 
@@ -312,7 +312,7 @@ class Menu : public BaseMenu {
   void render() {
     // go through menu options and add exit
     for (Line& l : lines_) l.render();
-    lines_.emplace_back("EXIT","leave this menu");
+    lines_.emplace_back("EXIT", "leave this menu");
   }
 
   /**
@@ -329,7 +329,7 @@ class Menu : public BaseMenu {
     root()->render();
     root()->steer(tgt);
   }
-  
+
   /// no copying
   Menu(const Menu&) = delete;
   /// no copying
@@ -344,11 +344,10 @@ class Menu : public BaseMenu {
    * Print menu without running it
    */
   void print(std::ostream& s, int indent = 0) const {
-    for (const auto& l: lines_) {
+    for (const auto& l : lines_) {
       l.print(s, indent);
     }
   }
-  
 
   /**
    * give control over the target to this menu
@@ -358,7 +357,7 @@ class Menu : public BaseMenu {
    * follow the procedure below.
    *
    * 1. If we have a render function set, we give the target to it.
-   * 2. If we aren't in batch mode, we print all of our lines and 
+   * 2. If we aren't in batch mode, we print all of our lines and
    *    their descriptions.
    * 3. Use the readline function to get the requested command from
    *    the user
@@ -371,7 +370,7 @@ class Menu : public BaseMenu {
    * @param[in] p_target pointer to the target
    */
   void steer(TargetHandle p_target) const {
-    this->cmd_options_ = this->command_options(); // we are the captain now
+    this->cmd_options_ = this->command_options();  // we are the captain now
     const Line* theMatch = 0;
     do {
       if (render_func_ != 0) {
@@ -380,8 +379,7 @@ class Menu : public BaseMenu {
       // if cmd text queue is empty, then print menu for interactive user
       if (this->cmdTextQueue_.empty()) {
         printf("\n");
-        for (const auto& l : lines_) 
-          std::cout << l << std::endl;
+        for (const auto& l : lines_) std::cout << l << std::endl;
       }
       std::string request = readline_cmd();
       theMatch = 0;
@@ -408,7 +406,7 @@ class Menu : public BaseMenu {
 
   /**
    * Construct a new menu with the root as parent and optional rendering
-   * 
+   *
    * After using submenu to attach ourselves to the input parent,
    * we return a pointer to the newly constructed menu.
    * This is to allow chaining during the declaration of a menu,
@@ -419,7 +417,7 @@ class Menu : public BaseMenu {
    * `one_func` and `two_func` are both functions accessible by this
    * piece of code (either via a header or in this translation unit)
    * and are `void` functions with take a handle to the target type.
-   * `color_func` is similarly accessible but it takes a string and 
+   * `color_func` is similarly accessible but it takes a string and
    * the target handle. The string will be the command that is selected
    * at runtime (e.g. "RED" if it is typed by the user)
    * ```cpp
@@ -427,13 +425,14 @@ class Menu : public BaseMenu {
    * auto sb = Menu<T>::menu("SB","example submenu")
    *   ->line("ONE", "one command in this menu", one_func)
    *   ->line("TWO", "two command in this menu", two_func)
-   *   ->line("RED", "can have multiple lines directed to the same func", color_func)
+   *   ->line("RED", "can have multiple lines directed to the same func",
+   * color_func)
    *   ->line("BLUE", "see?" , color_func)
    * ;
    * }
    * ```
    * The anonymous namespace is used to force the variable within it to
-   * be static and therefore created at library linking time. 
+   * be static and therefore created at library linking time.
    * The dummy variable is (unfortunately) necessary so that the sub
    * menu can maintain existence throughout the runtime of the program.
    *
@@ -443,9 +442,9 @@ class Menu : public BaseMenu {
    * @param[in] render_func function to use to render this sub menu
    * @return pointer to newly created menu
    */
-  static Menu* menu(const char* name, const char* desc, 
-      RenderFuncType render_func = 0) {
-    return root()->submenu(name,desc,render_func);
+  static Menu* menu(const char* name, const char* desc,
+                    RenderFuncType render_func = 0) {
+    return root()->submenu(name, desc, render_func);
   }
 
  private:
@@ -498,15 +497,15 @@ class Menu : public BaseMenu {
         : name_(n), desc_(d), sub_menu_{0}, cmd_(0), mult_cmds_{0} {}
 
     /**
-     * noexcept move constructor allows std::vector to use it when expanding capacity
+     * noexcept move constructor allows std::vector to use it when expanding
+     * capacity
      */
-    Line(Line&& l) noexcept 
-      : name_{l.name_},
-        desc_{l.desc_},
-        sub_menu_{l.sub_menu_},
-        cmd_{l.cmd_},
-        mult_cmds_{l.mult_cmds_}
-    {
+    Line(Line&& l) noexcept
+        : name_{l.name_},
+          desc_{l.desc_},
+          sub_menu_{l.sub_menu_},
+          cmd_{l.cmd_},
+          mult_cmds_{l.mult_cmds_} {
       l.sub_menu_ = 0;
     }
 
@@ -535,13 +534,15 @@ class Menu : public BaseMenu {
         return true;
       } else if (cmd_ or mult_cmds_) {
         try {
-          if (cmd_) cmd_(p);
-          else mult_cmds_(name_,p);
+          if (cmd_)
+            cmd_(p);
+          else
+            mult_cmds_(name_, p);
 #ifndef PFLIB_TEST_MENU
-        } catch(const pflib::Exception& e) {
+        } catch (const pflib::Exception& e) {
           pflib_log(error) << "[" << e.name() << "] : " << e.message();
 #endif
-        } catch(const std::exception& e) {
+        } catch (const std::exception& e) {
 #ifdef PFLIB_TEST_MENU
           std::cerr << " Unknown Exception " << e.what() << std::endl;
 #else
@@ -557,9 +558,7 @@ class Menu : public BaseMenu {
     /**
      * Check if this line is an empty one
      */
-    bool empty() const {
-      return !sub_menu_ and cmd_ == 0 and mult_cmds_ == 0;
-    }
+    bool empty() const { return !sub_menu_ and cmd_ == 0 and mult_cmds_ == 0; }
 
     /**
      * add an exit line if this is a menu, otherwise do nothing
@@ -577,8 +576,8 @@ class Menu : public BaseMenu {
      * Overload output stream operator for easier printing
      */
     friend std::ostream& operator<<(std::ostream& s, const Line& l) {
-      return (s << "  " << std::left << std::setw(12) << l.name() 
-                << " " << l.desc());
+      return (s << "  " << std::left << std::setw(12) << l.name() << " "
+                << l.desc());
     }
 
     /**
@@ -589,7 +588,7 @@ class Menu : public BaseMenu {
       for (std::size_t i{0}; i < indent; i++) s << " ";
       s << *this << "\n";
       if (sub_menu_) {
-        sub_menu_->print(s, indent+2);
+        sub_menu_->print(s, indent + 2);
       }
     }
 
