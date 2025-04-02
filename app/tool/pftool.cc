@@ -422,7 +422,7 @@ static void roc(const std::string& cmd, Target* pft) {
                  "[page,offset,value].\n"
               << std::flush;
     std::string fname = BaseMenu::readline("Filename: ");
-    //    pft->loadROCRegisters(iroc,fname);
+    roc.loadRegisters(fname);
   }
   if (cmd == "LOAD" || cmd == "LOAD_PARAM") {
     std::cout << "\n"
@@ -434,7 +434,7 @@ static void roc(const std::string& cmd, Target* pft) {
         "Update all parameter values on the chip using the defaults in the "
         "manual for any values not provided? ",
         false);
-    //    pft->loadROCParameters(iroc,fname,prepend_defaults);
+    roc.loadParameters(fname,prepend_defaults);
   }
   if (cmd == "DUMP") {
     std::string fname_def_format =
