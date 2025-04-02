@@ -2,6 +2,7 @@
 #define PFLIB_FastControl_H_
 
 #include <vector>
+#include <cstdint>
 
 namespace pflib {
 
