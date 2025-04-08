@@ -32,9 +32,6 @@ class ROC {
   void setDirectAccess(const std::string& name, bool val);
   void setDirectAccess(int reg, int bit, bool val);
 
-  std::vector<uint8_t> getChannelParameters(int ichan);
-  void setChannelParameters(int ichan, std::vector<uint8_t>& values);
-
   /**
    * set registers on the HGCROC to specific values
    *
