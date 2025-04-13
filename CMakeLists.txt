@@ -105,6 +105,8 @@ add_library(pflib SHARED
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
+  src/pflib/lpGBT.cxx
+  src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
@@ -124,6 +126,9 @@ add_dependencies(pflib register_maps_header direct_access)
 
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
+
+add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/Menu.cc app/tool/Rcfile.cc)
+target_link_libraries(pflpgbt PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
 add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
