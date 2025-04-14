@@ -69,8 +69,28 @@ class lpGBT {
   /** Set the full GPIO array */
   void gpio_set(uint16_t values);
   /** Get the full GPIO array */
-  uint16_t gpio_set();
+  uint16_t gpio_get();
+
+  static const int GPIO_IS_OUTPUT    = 0x01;
+  static const int GPIO_IS_PULLUP    = 0x02;
+  static const int GPIO_IS_PULLDOWN  = 0x04;
+  static const int GPIO_IS_STRONG    = 0x08;
   
+  /** Get the GPIO pin configuration */
+  int gpio_cfg_get(int ibit);
+  /** Set the GPIO pin configuration */
+  void gpio_cfg_set(int ibit, int cfg);
+
+  /** Carry out an ADC read for the given pair of channels
+      Valid gain values are 1 or 2, 8, 16, and 32.
+      
+   */
+  uint16_t adc_read(int ipos, int ineg, int gain=1);
+
+  /** Carry out an ADC read for the given channel, using the internal reference voltage for the other side of the measurement, with the current DAC enabled to the given amplitude
+      Valid gain values are 1 or 2, 8, 16, and 32.      
+   */
+  uint16_t adc_resistance_read(int ipos, int current, int gain=1);
   
  private:
   lpGBT_ConfigTransport& tport_;

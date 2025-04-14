@@ -1,4 +1,5 @@
 #include "pflib/lpGBT.h"
+#include <unistd.h>
 
 namespace pflib {
 
@@ -83,10 +84,21 @@ void lpGBT::bit_clr(uint16_t reg, int ibit) {
 
 /// Register constants here are all correct for V1 and V2 lpGBTs
 
-static const uint16_t REG_PIOOUTH         = 0x055;
-static const uint16_t REG_PIOOUTL         = 0x056;
-static const uint16_t REG_PIOINH          = 0x1AF;
-static const uint16_t REG_PIOINL          = 0x1B0;
+static constexpr uint16_t REG_PIOOUTH         = 0x055;
+static constexpr uint16_t REG_PIOOUTL         = 0x056;
+static constexpr uint16_t REG_PIOINH          = 0x1AF;
+static constexpr uint16_t REG_PIOINL          = 0x1B0;
+
+
+static constexpr uint16_t REG_VREFCNTR        = 0x01c;
+static constexpr uint16_t REG_DAC_CONFIG_H    = 0x06a;
+static constexpr uint16_t REG_CURDAC_VALUE    = 0x06c;
+static constexpr uint16_t REG_CURDAC_CHN      = 0x06d;
+static constexpr uint16_t REG_ADC_SELECT      = 0x121;
+static constexpr uint16_t REG_ADCMON          = 0x122;
+static constexpr uint16_t REG_ADC_CONFIG      = 0x123;
+static constexpr uint16_t REG_ADC_STATUS_H    = 0x1ca;
+static constexpr uint16_t REG_ADC_STATUS_L    = 0x1cb;
 
 
 void lpGBT::gpio_set(int ibit, bool high) {
@@ -119,11 +131,69 @@ void lpGBT::gpio_set(uint16_t values) {
   tport_.write_regs(REG_PIOOUTH,vals);
 }
 
-uint16_t lpGBT::gpio_set() {
+uint16_t lpGBT::gpio_get() {
   std::vector<uint8_t> vals = tport_.read_regs(REG_PIOINH,2);
   return uint16_t(vals[1])|((uint16_t(vals[0]))<<8);
 }
-  
 
+uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
+  if (ipos>7) {
+    PFEXCEPTION_RAISE("ADCException","Selected channel out of range for resistance measurement");
+  }
+  static constexpr int CURDAC_ENABLE = 6; // bit 6
+  
+  bit_set(REG_DAC_CONFIG_H,CURDAC_ENABLE);
+  tport_.write_reg(REG_CURDAC_VALUE, current & (0xff));
+  tport_.write_reg(REG_CURDAC_CHN, (1 << ipos));
+
+  uint16_t value=adc_read(ipos,15,gain);
+
+  bit_clr(REG_DAC_CONFIG_H,CURDAC_ENABLE);
+  
+  return value;
+}
+
+uint16_t lpGBT::adc_read(int ipos, int ineg, int gain) {
+  // bit definitions
+  static constexpr uint8_t M_ADC_CONFIG_CONVERT = uint8_t(1)<<7;
+  static constexpr uint8_t M_ADC_CONFIG_ENABLE  = uint8_t(1)<<2;
+  static constexpr uint8_t M_ADC_STATUS_H_DONE  = uint8_t(1)<<6;
+  static constexpr uint8_t M_VREF_ENABLE        = uint8_t(1)<<7;
+
+
+  if (ipos>=10 && ipos<=13) { // must enable the ADCMON
+    tport_.write_reg(REG_ADCMON, 0x1F);
+  }
+  // work out the gain value
+  int gval=0;
+  if (gain==8) gval=1;
+  if (gain==16) gval=2;
+  if (gain==32) gval=3;
+
+  // set up the multiplexers
+  tport_.write_reg(REG_ADC_SELECT,(ipos<<4)|(ineg));
+  // enable the ADC and set the gain
+  tport_.write_reg(REG_ADC_CONFIG,M_ADC_CONFIG_ENABLE | gval);
+  // enable vref
+  tport_.write_reg(REG_VREFCNTR, M_VREF_ENABLE);
+  usleep(1000);
+  // start conversion
+  tport_.write_reg(REG_ADC_CONFIG,M_ADC_CONFIG_CONVERT | M_ADC_CONFIG_ENABLE | gval);
+
+  // wait and check if done
+  while (!(tport_.read_reg(REG_ADC_STATUS_H)&M_ADC_STATUS_H_DONE)) 
+    usleep(1000);
+
+  uint16_t adc_value = ((tport_.read_reg(REG_ADC_STATUS_H)&0x3)<<8)|tport_.read_reg(REG_ADC_STATUS_L);
+
+  // shut things down
+  tport_.write_reg(REG_ADC_CONFIG, M_ADC_CONFIG_ENABLE | gain); 
+
+  if (ipos>=10 && ipos<=13)
+    tport_.write_reg(REG_ADCMON,0);
+  tport_.write_reg(REG_VREFCNTR,0);
+  
+  return adc_value;
+}
 
 }

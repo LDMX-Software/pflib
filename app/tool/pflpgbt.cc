@@ -1,4 +1,5 @@
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
+#include "pflib/lpgbt/lpGBT_Utility.h"
 #include <fstream>
 #include <iostream>
 #include "Menu.h"
@@ -11,7 +12,7 @@ void regs(const std::string& cmd, pflib::lpGBT* target ) {
     addr = BaseMenu::readline_int("Register",addr,true);
     int n  = BaseMenu::readline_int("Number of items",1);
     for (int i=0; i<n; i++) {
-      printf("%03x : %02x",addr+i,target->read(addr+i));
+      printf("   %03x : %02x\n",addr+i,target->read(addr+i));
     }
   }
   if (cmd=="WRITE") {
@@ -20,14 +21,40 @@ void regs(const std::string& cmd, pflib::lpGBT* target ) {
     value = BaseMenu::readline_int("New value",value,true);
     target->write(addr,value);
   }
-  
+  if (cmd=="LOAD") {
+    std::string fname = BaseMenu::readline("File");
+    pflib::lpgbt::applylpGBTCSV(fname,*target);
+  }
+}
+
+void gpio(const std::string& cmd, pflib::lpGBT* target ) {
+  if (cmd=="SET") {
+    int which=BaseMenu::readline_int("Pin");
+    if (which>=0 && which<12) target->gpio_set(which,true);
+  }
+  if (cmd=="CLEAR") {
+    int which=BaseMenu::readline_int("Pin");
+    if (which>=0 && which<12) target->gpio_set(which,false);
+  }
+  if (cmd=="WRITE") {
+    uint16_t value=target->gpio_get();
+    value=BaseMenu::readline_int("Value",value,true);
+    target->gpio_set(value);
+  }
 }
 
 namespace {
 auto direct = tool::menu("REG","Direct Register Actions")
     ->line("READ","Read one or several registers", regs)
     ->line("WRITE","Write a register", regs)
-    ;
+    ->line("LOAD","Load from a CSV file", regs);
+    
+
+auto mgpio = tool::menu("GPIO","GPIO controls")
+    ->line("SET","Set a GPIO pin",gpio)
+    ->line("CLEAR","CLEAR a GPIO pin",gpio)
+    ->line("WRITE","Write all GPIO pins at once",gpio);
+
 }
 
 int main(int argc, char* argv[]) {
