@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <filesystem>
 
 #include "pflib/utility.h"
 
@@ -13,7 +14,9 @@
 struct TempCSV {
   std::string file_path_;
   TempCSV(std::string_view content) {
-    file_path_ = std::tmpnam(nullptr);
+    file_path_ = (
+      std::filesystem::temp_directory_path() / "pflib-test-utility.csv"
+    );
     std::ofstream f{file_path_};
     f << content << std::flush;
   }
