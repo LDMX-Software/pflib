@@ -22,7 +22,7 @@ void regs(const std::string& cmd, pflib::lpGBT* target ) {
     target->write(addr,value);
   }
   if (cmd=="LOAD") {
-    std::string fname = BaseMenu::readline("File");
+    std::string fname = BaseMenu::readline("File: ");
     pflib::lpgbt::applylpGBTCSV(fname,*target);
   }
 }
@@ -43,17 +43,35 @@ void gpio(const std::string& cmd, pflib::lpGBT* target ) {
   }
 }
 
+void adc(const std::string& cmd, pflib::lpGBT* target) {
+  if (cmd=="READ") {
+    int whichp=BaseMenu::readline_int("Channel (pos)");
+    int whichn=BaseMenu::readline_int("Channel (neg)",15);
+    int gain=BaseMenu::readline_int("Gain",1);
+    printf("  ADC = %03x\n",target->adc_read(whichp,whichn,gain));
+  }
+  if (cmd=="ALL") {
+    for (int whichp=0; whichp<15; whichp++) {
+      printf("  ADC chan %d = %03x\n",whichp,target->adc_read(whichp,15,1));
+    }
+  }
+}
+
 namespace {
-auto direct = tool::menu("REG","Direct Register Actions")
+  auto direct = tool::menu("REG","Direct Register Actions")
     ->line("READ","Read one or several registers", regs)
     ->line("WRITE","Write a register", regs)
     ->line("LOAD","Load from a CSV file", regs);
-    
+  
 
-auto mgpio = tool::menu("GPIO","GPIO controls")
+  auto mgpio = tool::menu("GPIO","GPIO controls")
     ->line("SET","Set a GPIO pin",gpio)
     ->line("CLEAR","CLEAR a GPIO pin",gpio)
     ->line("WRITE","Write all GPIO pins at once",gpio);
+  
+  auto madc = tool::menu("ADC","ADC and DAC-related actions")
+    ->line("READ","Read an ADC line",adc)
+    ->line("ALL","Read all ADC lines",adc);
 
 }
 

@@ -12,7 +12,7 @@ typedef std::vector<std::pair<std::string, uint8_t> > CSVDecodedLines;
 static CSVDecodedLines decode_file(const std::string& fname) {
   CSVDecodedLines lines;
   char buffer[1024];
-  
+
   FILE* f=fopen(fname.c_str(),"r");
   if (f==0) {
     snprintf(buffer,1024,"Unable to open CSV file '%s'",fname.c_str());
@@ -22,7 +22,7 @@ static CSVDecodedLines decode_file(const std::string& fname) {
   while (!feof(f)) {
     buffer[0]=0;
     fgets(buffer,1000,f);
-    
+
     // truncate after any hash character
     char* hashpoint=strchr(buffer,'#');
     if (hashpoint) *hashpoint=0;
@@ -32,17 +32,22 @@ static CSVDecodedLines decode_file(const std::string& fname) {
     char* token;
     char* ptr=buffer;
     for (int ifield=0; (token = strsep(&ptr,delimiters)); ifield++) {
-      if (ifield==0) {
-        for (int i=0; token[i]!=0; i++)
-          if (!isspace(token[i])) reg+=token[i];
-      } else if (ifield==1) {
-        std::string sfield(token);
-        val=str_to_int(sfield);
+      std::string str;
+      for (int i=0; token[i]!=0; i++)
+         if (!isspace(token[i])) str+=token[i];
+
+      if (ifield==0) reg=str;
+      else if (ifield==1) {
+        try {
+           val=str_to_int(str);
+        } catch (std::exception& e) {
+           char msg[100];
+           snprintf(msg,100,"Unable to decode string '%s'",str.c_str());
+           PFEXCEPTION_RAISE("DecodeFailure",msg);
+        }
         lines.push_back(std::make_pair(reg,val));
       }
     }
-    
-    
   }
   fclose(f);
   return lines;
