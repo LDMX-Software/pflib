@@ -108,6 +108,7 @@ add_library(pflib SHARED
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
+  src/pflib/lpgbt/lpGBT_Utility.cxx
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
