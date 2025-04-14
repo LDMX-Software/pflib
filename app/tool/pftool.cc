@@ -293,7 +293,6 @@ static void roc_render(Target* pft) { printf(" Active ROC: %d\n", iroc); }
  * - RESYNCLOAD : pflib::Hcal::resyncLoadROC
  * - RUNMODE :
  * - IROC : Change which ROC to focus on
- * - CHAN : pflib::ROC::getChannelParameters
  * - PAGE : pflib::ROC::readPage
  * - PARAM_NAMES : Use pflib::parameters to get list ROC parameter names
  * - POKE_REG : pflib::ROC::setValue
@@ -350,11 +349,6 @@ static void roc(const std::string& cmd, Target* pft) {
     bool isRunMode = roc.isRunMode();
     isRunMode = BaseMenu::readline_bool("Set ROC runmode: ", isRunMode);
     roc.setRunMode(isRunMode);
-  }
-  if (cmd == "CHAN") {
-    int chan = BaseMenu::readline_int("Which channel? ", 0);
-    std::vector<uint8_t> v = roc.getChannelParameters(chan);
-    for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
     for (const auto& name : roc.getDirectAccessParameters()) {
