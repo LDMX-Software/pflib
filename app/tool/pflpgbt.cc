@@ -129,6 +129,9 @@ namespace {
     ->line("READ","Read an ADC line",adc)
     ->line("ALL","Read all ADC lines",adc);
 
+auto mtest = tool::menu("TEST","Mezzanine testing functions")
+    ->line("GPIO","Test the gpio functions",test);
+
 }
 
 int main(int argc, char* argv[]) {
