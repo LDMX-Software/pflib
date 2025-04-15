@@ -95,22 +95,88 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
   if (cmd=="GPIO") {
     // set up the external GPIO to read mode first
     pflib::lpGBT_ConfigTransport_I2C ext(0x21,"/dev/i2c-23");
-    ext.write_raw(0x8,0xff);
-    ext.write_raw(0x9,0x0f);
-    // setup the internal GPIO as write mode
-    for (int i=0; i<12; i++)
-      target->gpio_cfg_set(i,1); // output
-    uint16_t pattern=0x1;
-    for (int i=0; i<12; i++) {
-      target->gpio_set(pattern);
-      ext.write_raw(0x80);
-      uint16_t readback=(ext.read_raw() | (uint16_t(ext.read_raw())<<8))&0xFFF;
-      uint16_t readback2=lcl2gbt(readback);
-      printf("%03x %03x %03x\n",pattern,readback, readback2);
-      pattern<<=1;
-    }
+
+    int errors=0;
+
+    int cycles=10;
+    printf("\n Testing.."); fflush(stdout);
+    do {
+    
+      ext.write_raw(0x8,0xff);
+      ext.write_raw(0x9,0x0f);
+      // setup the internal GPIO as write mode
+      for (int i=0; i<12; i++)
+	target->gpio_cfg_set(i,1); // output
+
+      // walking ones lpgbt->lcl
+      uint16_t pattern=0x1;
+      for (int i=0; i<12; i++) {
+	target->gpio_set(pattern);
+	ext.write_raw(0x80);
+	uint16_t readback=(ext.read_raw() | (uint16_t(ext.read_raw())<<8))&0xFFF;
+	uint16_t readback2=lcl2gbt(readback);
+	if (readback2!=pattern) {	  
+	  printf("Set from lpGBT: %03x Read on I2C: %03x \n",pattern,readback2);
+	  errors++;
+	}
+	pattern<<=1;
+      }
+      // walking zeros lpgbt->lcl
+      pattern=0xFFE;
+      for (int i=0; i<12; i++) {
+	target->gpio_set(pattern);
+	ext.write_raw(0x80);
+	uint16_t readback=(ext.read_raw() | (uint16_t(ext.read_raw())<<8))&0xFFF;
+	uint16_t readback2=lcl2gbt(readback);
+	if (readback2!=pattern) {	  
+	  printf("Set from lpGBT: %03x Read on I2C: %03x \n",pattern,readback2);
+	  errors++;
+	}
+	pattern<<=1;
+	pattern=(pattern&0xFFF)|1;
+      }
+
+      // switch directions
+      // setup the internal GPIO as write mode
+      for (int i=0; i<12; i++)
+	target->gpio_cfg_set(i,0); // input
+      ext.write_raw(0x8,0x00);
+      ext.write_raw(0x9,0x00);
+
+      // walking ones
+      pattern=0x1;
+      for (int i=0; i<12; i++) {
+	uint16_t scrambled=gbt2lcl(pattern);
+	ext.write_raw(0xa,scrambled&0xFF);
+	ext.write_raw(0xb,scrambled>>8);
+	uint16_t readback=target->gpio_get();
+	
+	if (readback!=pattern) {	  
+	  printf("Set from I2C: %03x Read on lpGBT: %03x \n",pattern,readback);
+	  errors++;
+	}
+	pattern<<=1;
+      }
+      // walking zeros
+      pattern=0xFFE;
+      for (int i=0; i<12; i++) {
+	uint16_t scrambled=gbt2lcl(pattern);
+	ext.write_raw(0xa,scrambled&0xFF);
+	ext.write_raw(0xb,scrambled>>8);
+	uint16_t readback=target->gpio_get();
+	
+	if (readback!=pattern) {	  
+	  printf("Set from I2C: %03x Read on lpGBT: %03x \n",pattern,readback);
+	  errors++;
+	}
+	pattern<<=1;
+	pattern=(pattern&0xFFF)|1;
+      }
+      printf("."); fflush(stdout);      
+      cycles--;
+    } while (cycles>0 && errors==0);
+    if (errors==0) printf("\n Test was OK\n");
   }
-  
 }
 
 namespace {

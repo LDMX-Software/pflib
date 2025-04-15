@@ -3,11 +3,15 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-
+#include <sys/ioctl.h>
+#ifndef I2C_SLAVE
+#define I2C_SLAVE 0x0703
+#endif 
 namespace pflib {
 
 lpGBT_ConfigTransport_I2C::lpGBT_ConfigTransport_I2C(uint8_t i2c_addr, const std::string& bus_dev) {
   handle_=open(bus_dev.c_str(), O_RDWR);
+  ioctl(handle_,I2C_SLAVE,i2c_addr);
   if (handle_ < 0) {
     char msg[1000];
     snprintf(msg,1000,"Error %s (%d) opening I2C device file",strerror(errno),errno,bus_dev.c_str());
@@ -19,11 +23,15 @@ lpGBT_ConfigTransport_I2C::~lpGBT_ConfigTransport_I2C() {
 }
 
 void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a) {
-  write(handle_,&a,1);
+  if (write(handle_,&a,1)<0) {
+    printf("Error on raw write %s\n",strerror(errno));
+  }
 }
 void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a, uint8_t b) {
   uint8_t buf[2]={a,b};
-  write(handle_,buf,2);
+  if (write(handle_,buf,2)<0) {
+    printf("Error on raw write %s\n",strerror(errno));
+  }
 }
 void lpGBT_ConfigTransport_I2C::write_raw(const std::vector<uint8_t>& a) {
   write(handle_,&(a[0]),a.size());
@@ -31,7 +39,9 @@ void lpGBT_ConfigTransport_I2C::write_raw(const std::vector<uint8_t>& a) {
 
 uint8_t lpGBT_ConfigTransport_I2C::read_raw() {
     uint8_t buf;
-    read(handle_,&buf,1);
+    if (read(handle_,&buf,1)<0) {
+      printf("Error on raw read %s\n",strerror(errno));
+    }
     return buf;
 }
 
@@ -103,6 +113,7 @@ std::vector<uint8_t> lpGBT_ConfigTransport_I2C::read_regs(uint16_t reg, int n) {
 
     for (int i=0; i<ni; i++)
       retval.push_back(buffer[i]);
+    ptr+=ni;
   }
   return retval;
 }

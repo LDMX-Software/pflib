@@ -111,6 +111,7 @@ void lpGBT::gpio_set(int ibit, bool high) {
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
     PFEXCEPTION_RAISE("OutOfRangeException",msg);
   }
+  if (ibit==3) ibit=15; // yes this is strange
   uint16_t reg=(ibit<8)?(REG_PIOOUTL):(REG_PIOOUTH);
   if (high) bit_set(reg,ibit%8);
   else bit_clr(reg,ibit%8);
@@ -123,6 +124,7 @@ bool lpGBT::gpio_get(int ibit) {
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
     PFEXCEPTION_RAISE("OutOfRangeException",msg);
   }
+  if (ibit==3) ibit=15; // yes this is strange
   uint16_t reg=(ibit<8)?(REG_PIOINL):(REG_PIOINH);
   uint8_t value=tport_.read_reg(reg);
   return (value&(1<<(ibit&8)));
@@ -130,14 +132,16 @@ bool lpGBT::gpio_get(int ibit) {
 
 void lpGBT::gpio_set(uint16_t values) {
   std::vector<uint8_t> vals;
-  vals.push_back(uint8_t(values>>8));
+  vals.push_back(uint8_t(values>>8)|((values&0x8)<<4));
   vals.push_back(uint8_t(values&0xFF));
   tport_.write_regs(REG_PIOOUTH,vals);
 }
 
 uint16_t lpGBT::gpio_get() {
   std::vector<uint8_t> vals = tport_.read_regs(REG_PIOINH,2);
-  return uint16_t(vals[1])|((uint16_t(vals[0]))<<8);
+  uint16_t val=uint16_t(vals[1])|((uint16_t(vals[0]))<<8);
+  val=(val&0xFF7)|(val&0x8000)>>(12);
+  return val;
 }
 
 int lpGBT::gpio_cfg_get(int ibit) {
@@ -147,6 +151,8 @@ int lpGBT::gpio_cfg_get(int ibit) {
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
     PFEXCEPTION_RAISE("OutOfRangeException",msg);
   }
+  if (ibit==3) ibit=15; // yes this is strange
+  
   int offset=(ibit<8)?(1):(0); // fixed relationship between H and L bytes
   if (read(REG_PIODIRH+offset)) cfg|=GPIO_IS_OUTPUT;
   if (read(REG_PIODRIVEH+offset)) cfg|=GPIO_IS_STRONG;
@@ -164,6 +170,7 @@ void lpGBT::gpio_cfg_set(int ibit, int cfg) {
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
     PFEXCEPTION_RAISE("OutOfRangeException",msg);
   }
+  if (ibit==3) ibit=15; // yes this is strange
   int offset=(ibit<8)?(1):(0); // fixed relationship between H and L bytes
   if (cfg & GPIO_IS_OUTPUT) bit_set(REG_PIODIRH+offset,ibit%8);
   else bit_clr(REG_PIODIRH+offset,ibit%8);
