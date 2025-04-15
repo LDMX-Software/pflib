@@ -18,6 +18,31 @@ lpGBT_ConfigTransport_I2C::~lpGBT_ConfigTransport_I2C() {
   if (handle_>0) close(handle_);
 }
 
+void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a) {
+  write(handle_,&a,1);
+}
+void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a, uint8_t b) {
+  uint8_t buf[2]={a,b};
+  write(handle_,buf,2);
+}
+void lpGBT_ConfigTransport_I2C::write_raw(const std::vector<uint8_t>& a) {
+  write(handle_,&(a[0]),a.size());
+}
+
+uint8_t lpGBT_ConfigTransport_I2C::read_raw() {
+    uint8_t buf;
+    read(handle_,&buf,1);
+    return buf;
+}
+
+std::vector<uint8_t> lpGBT_ConfigTransport_I2C::read_raw(int n) {
+  uint8_t buf[120];
+  read(handle_,buf,n);
+  std::vector<uint8_t> b;
+  for (int i=0; i<n; i++) b.push_back(buf[i]);
+  return b;
+}
+
 uint8_t lpGBT_ConfigTransport_I2C::read_reg(uint16_t reg) {
   uint8_t data[2]={uint8_t(reg&0xFF),uint8_t((reg>>8)&0xFF)};
   // write the register address, then read

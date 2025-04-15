@@ -57,6 +57,62 @@ void adc(const std::string& cmd, pflib::lpGBT* target) {
   }
 }
 
+static uint16_t lcl2gbt(uint16_t val) {
+  uint16_t rval=0;
+  if (val&(1<<0)) rval|=(1<<9);
+  if (val&(1<<1)) rval|=(1<<3);
+  if (val&(1<<2)) rval|=(1<<6);
+  if (val&(1<<3)) rval|=(1<<7);
+  if (val&(1<<4)) rval|=(1<<1);
+  if (val&(1<<5)) rval|=(1<<0);
+  if (val&(1<<6)) rval|=(1<<2);
+  if (val&(1<<7)) rval|=(1<<4);
+  if (val&(1<<8)) rval|=(1<<10);
+  if (val&(1<<9)) rval|=(1<<11);
+  if (val&(1<<10)) rval|=(1<<8);
+  if (val&(1<<11)) rval|=(1<<5);
+  return rval;
+}
+static uint16_t gbt2lcl(uint16_t val) {
+  uint16_t rval=0;
+  if (val&(1<<0)) rval|=(1<<5);
+  if (val&(1<<1)) rval|=(1<<4);
+  if (val&(1<<2)) rval|=(1<<6);
+  if (val&(1<<3)) rval|=(1<<1);
+  if (val&(1<<4)) rval|=(1<<7);
+  if (val&(1<<5)) rval|=(1<<11);
+  if (val&(1<<6)) rval|=(1<<2);
+  if (val&(1<<7)) rval|=(1<<3);
+  if (val&(1<<8)) rval|=(1<<10);
+  if (val&(1<<9)) rval|=(1<<0);
+  if (val&(1<<10)) rval|=(1<<8);
+  if (val&(1<<11)) rval|=(1<<9);
+  return rval;
+}
+  
+
+void test(const std::string& cmd, pflib::lpGBT* target) {
+  if (cmd=="GPIO") {
+    // set up the external GPIO to read mode first
+    pflib::lpGBT_ConfigTransport_I2C ext(0x21,"/dev/i2c-23");
+    ext.write_raw(0x8,0xff);
+    ext.write_raw(0x9,0x0f);
+    // setup the internal GPIO as write mode
+    for (int i=0; i<12; i++)
+      target->gpio_cfg_set(i,1); // output
+    uint16_t pattern=0x1;
+    for (int i=0; i<12; i++) {
+      target->gpio_set(pattern);
+      ext.write_raw(0x80);
+      uint16_t readback=(ext.read_raw() | (uint16_t(ext.read_raw())<<8))&0xFFF;
+      uint16_t readback2=lcl2gbt(readback);
+      printf("%03x %03x %03x\n",pattern,readback, readback2);
+      pattern<<=1;
+    }
+  }
+  
+}
+
 namespace {
   auto direct = tool::menu("REG","Direct Register Actions")
     ->line("READ","Read one or several registers", regs)

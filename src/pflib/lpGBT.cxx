@@ -83,6 +83,10 @@ void lpGBT::bit_clr(uint16_t reg, int ibit) {
 }
 
 /// Register constants here are all correct for V1 and V2 lpGBTs
+static constexpr uint16_t REG_PIODIRH         = 0x053;
+static constexpr uint16_t REG_PIOPULLENAH     = 0x057;
+static constexpr uint16_t REG_PIOUPDOWNH      = 0x059;
+static constexpr uint16_t REG_PIODRIVEH       = 0x05b;
 
 static constexpr uint16_t REG_PIOOUTH         = 0x055;
 static constexpr uint16_t REG_PIOOUTL         = 0x056;
@@ -134,6 +138,47 @@ void lpGBT::gpio_set(uint16_t values) {
 uint16_t lpGBT::gpio_get() {
   std::vector<uint8_t> vals = tport_.read_regs(REG_PIOINH,2);
   return uint16_t(vals[1])|((uint16_t(vals[0]))<<8);
+}
+
+int lpGBT::gpio_cfg_get(int ibit) {
+  int cfg=0;
+  if (ibit<0 || ibit>15) {
+    char msg[100];
+    snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
+    PFEXCEPTION_RAISE("OutOfRangeException",msg);
+  }
+  int offset=(ibit<8)?(1):(0); // fixed relationship between H and L bytes
+  if (read(REG_PIODIRH+offset)) cfg|=GPIO_IS_OUTPUT;
+  if (read(REG_PIODRIVEH+offset)) cfg|=GPIO_IS_STRONG;
+  if (read(REG_PIOPULLENAH+offset)) {
+    if (read(REG_PIOUPDOWNH+offset)) cfg|=GPIO_IS_PULLUP;
+    else cfg|=GPIO_IS_PULLDOWN;
+  }
+  return cfg;
+}
+
+
+void lpGBT::gpio_cfg_set(int ibit, int cfg) {
+  if (ibit<0 || ibit>15) {
+    char msg[100];
+    snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
+    PFEXCEPTION_RAISE("OutOfRangeException",msg);
+  }
+  int offset=(ibit<8)?(1):(0); // fixed relationship between H and L bytes
+  if (cfg & GPIO_IS_OUTPUT) bit_set(REG_PIODIRH+offset,ibit%8);
+  else bit_clr(REG_PIODIRH+offset,ibit%8);
+  if (cfg & GPIO_IS_STRONG) bit_set(REG_PIODRIVEH+offset,ibit%8);
+  else bit_clr(REG_PIODRIVEH+offset,ibit%8);
+
+  if ((cfg&0x6)==GPIO_IS_PULLUP) {
+    bit_set(REG_PIOUPDOWNH+offset,ibit%8);
+    bit_set(REG_PIOPULLENAH+offset,ibit%8);
+  } else if ((cfg&0x6)==GPIO_IS_PULLDOWN) {
+    bit_clr(REG_PIOUPDOWNH+offset,ibit%8);
+    bit_set(REG_PIOPULLENAH+offset,ibit%8);
+  } else {
+    bit_clr(REG_PIOPULLENAH+offset,ibit%8);
+  }
 }
 
 uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
