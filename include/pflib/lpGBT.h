@@ -33,9 +33,18 @@ class lpGBT_ConfigTransport {
   virtual void write_regs(uint16_t reg, const std::vector<uint8_t>& value);
 };
 
-/** Class which provides an interface with an lpGBT ASIC.
-    Includes both low-level and medium-level interfaces.
-    Uses an instance of a lpGBT_ConfigTransport for communication.
+/** Class which provides an interface with an lpGBT ASIC **as mounted
+    on an LDMX mezzanine**.  Includes both low-level and medium-level
+    interfaces.  Uses an instance of a lpGBT_ConfigTransport for
+    communication.  
+
+
+    The statement **as mounted on an LDMX mezzanine** indicates that
+    some channel numbers are tuned/adjusted to match the numbers on
+    the mezzanine interface.  For example, the pin labelled GPIO3 on
+    the mezzanine is connected to pin GPIO15 on the lpGBT, which is
+    hidden by this class such that this signal is considered to be
+    GPIO3.
 */
 class lpGBT {
  public:
@@ -53,12 +62,9 @@ class lpGBT {
   /** Read values for set of registers */
   RegisterValueVector read(const std::vector<uint16_t>& registers);
 
-  
   void bit_set(uint16_t reg, int ibit);
   void bit_clr(uint16_t reg, int ibit);
-  
-
-  
+    
   /* -------------------------------------------------------
      Medium-level interfaces
   */
@@ -91,6 +97,14 @@ class lpGBT {
       Valid gain values are 1 or 2, 8, 16, and 32.      
    */
   uint16_t adc_resistance_read(int ipos, int current, int gain=1);
+
+  /** Setup the given eclk 
+      \param ieclk Number of the ECLK on the mezzanine interface 
+      \param rate LHC-nominal clock rate in MHz -- 0/40/80/160/320/640/1280 -- zero disables the driver
+      \param polarity Select the polarity
+      \param strength Values between 1-7
+   */
+  void setup_eclk(int ieclk, int rate, bool polarity=true, int strength=4);
   
  private:
   lpGBT_ConfigTransport& tport_;

@@ -93,7 +93,6 @@ static constexpr uint16_t REG_PIOOUTL         = 0x056;
 static constexpr uint16_t REG_PIOINH          = 0x1AF;
 static constexpr uint16_t REG_PIOINL          = 0x1B0;
 
-
 static constexpr uint16_t REG_VREFCNTR        = 0x01c;
 static constexpr uint16_t REG_DAC_CONFIG_H    = 0x06a;
 static constexpr uint16_t REG_CURDAC_VALUE    = 0x06c;
@@ -104,6 +103,7 @@ static constexpr uint16_t REG_ADC_CONFIG      = 0x123;
 static constexpr uint16_t REG_ADC_STATUS_H    = 0x1ca;
 static constexpr uint16_t REG_ADC_STATUS_L    = 0x1cb;
 
+static constexpr uint16_t REG_ECLK_BASE       = 0x06e;
 
 void lpGBT::gpio_set(int ibit, bool high) {
   if (ibit<0 || ibit>15) {
@@ -248,4 +248,26 @@ uint16_t lpGBT::adc_read(int ipos, int ineg, int gain) {
   return adc_value;
 }
 
+  void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
+    if (ieclk<0 || ieclk>7) return;
+    static constexpr uint8_t MAP_ECLK[8]={28, 6, 4, 1, 19, 21, 27, 25};
+    
+    uint8_t which_clk=MAP_ECLK[ieclk];
+    uint8_t ctl=0;
+    switch (rate) {
+    case(40): ctl=1; break;
+    case(80): ctl=2; break;
+    case(160): ctl=3; break;
+    case(320): ctl=4; break;
+    case(640): ctl=5; break;
+    case(1280): ctl=6; break;
+    default: break;
+    }
+    ctl|=(strength&0x7)<<3;
+    if (!polarity) ctl|=0x40;
+
+    write(REG_ECLK_BASE+which_clk*2,ctl);
+    // currently no ability to mess with pre-emphasis
+  }
+  
 }
