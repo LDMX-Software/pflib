@@ -1,6 +1,7 @@
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
 #include <fstream>
+#include <math.h>
 #include <iostream>
 #include "Menu.h"
 
@@ -182,18 +183,59 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
     for (int i=0; i<4; i++) stim.setup_dac(i);
 
     uint16_t onevolt=uint16_t(0xfff/2.5*1.0);
-    
-    // test matrix
-    for (int pta=0; pta<3; pta++) {
-      for (int ptb=0; ptb<3; ptb++) {
-        stim.dac_write(0,onevolt/2*pta);
-        stim.dac_write(1,onevolt/2*ptb);
-        printf("Setting %d %d\n",pta,ptb);
-        for (int i=0; i<8; i++)
-          printf(" ADC%d \n",target->adc_read(i,15,1));
-      }
+
+    // get the pedestal, DACs set to zero at this point
+    int pedestal=target->adc_read(0,15,1);
+
+    if (pedestal<10 || pedestal>50) {
+      printf("Pedestal of lpGBT ADC (%d) is out of acceptable range",pedestal);
+      return;
     }
     
+    stim.dac_write(0,onevolt);
+    stim.dac_write(1,onevolt);
+    int fullrange=target->adc_read(0,15,1);
+
+    if (fullrange<0x3D0 || fullrange>0x3FD) {
+      printf("One volt range of lpGBT ADC (%d/0x%x) is out of acceptable range",fullrange,fullrange);
+      return;
+    }
+
+    double scale=1.0/(fullrange-pedestal);
+    int errors=0;
+   
+    // test matrix
+    for (int half=0; half<2; half++) {
+      for (int pta=0; pta<3; pta++) {
+	for (int ptb=0; ptb<3; ptb++) {
+	  stim.dac_write(0+2*half,onevolt/2*pta);
+	  stim.dac_write(1+2*half,onevolt/2*ptb);
+	  double Va=pta*1.0/2;
+	  double Vb=ptb*1.0/2;
+	  //	  printf("Setting Half %d %d %d\n",half,pta,ptb);
+	  /// resistor chain pta -> 200 -> ch 0 -> 100 -> ch 1 -> 100 -> ch 2 -> 100 -> ch 3 -> 200 -> ptb
+	  double curr=(Vb-Va)/(200*2+100*3);
+	  //	  for (int i=0+4*half; i<4+4*half; i++) {
+	  for (int i=0+4*half; i<4+4*half; i++) {
+	    double expected=Va+curr*200+curr*100*(i-4*half);
+	    if (half && i==4) { // resistor swap on test board
+	      expected=Va+curr*100+curr*100*(i-4*half);
+	    }
+	    int adc=target->adc_read(i,15,1);
+	    double volts=(adc-pedestal)*scale;
+	    double error=expected-volts;
+	    // due to resistor chain, compliance isn't perfect when current flow is non-trivial.  Allowable error scales with deltaV as a result
+	    double error_ok=5e-3+(15e-3*abs(pta-ptb));
+	    if (fabs(error)>error_ok) {
+	      errors++;
+	      printf(" ADC%d %d %f %f %f %f\n",i,adc,volts,expected,error,error_ok);
+	    }
+	  }
+	}
+      }
+    }
+    if (errors==0) printf(" ADC TEST PASS\n");
+    else printf(" ADC TEST ERRORS : %d\n",errors);
     for (int i=0; i<4; i++) stim.clear_pin(i);
     
   }
@@ -216,7 +258,9 @@ namespace {
     ->line("ALL","Read all ADC lines",adc);
 
 auto mtest = tool::menu("TEST","Mezzanine testing functions")
-    ->line("GPIO","Test the gpio functions",test);
+    ->line("GPIO","Test the gpio functions",test)
+    ->line("ADC","Test the ADC function",test)
+;
 
 }
 
