@@ -177,6 +177,26 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
     } while (cycles>0 && errors==0);
     if (errors==0) printf("\n Test was OK\n");
   }
+  if (cmd=="ADC") {
+    pflib::AD5593R stim("/dev/i2c-23",0x10);
+    for (int i=0; i<4; i++) stim.setup_dac(i);
+
+    uint16_t onevolt=uint16_t(0xfff/2.5*1.0);
+    
+    // test matrix
+    for (int pta=0; pta<3; pta++) {
+      for (int ptb=0; ptb<3; ptb++) {
+        stim.dac_write(0,onevolt/2*pta);
+        stim.dac_write(1,onevolt/2*ptb);
+        printf("Setting %d %d\n",pta,ptb);
+        for (int i=0; i<8; i++)
+          printf(" ADC%d \n",target->adc_read(i,15,1));
+      }
+    }
+    
+    for (int i=0; i<4; i++) stim.clear_pin(i);
+    
+  }
 }
 
 namespace {
