@@ -50,7 +50,6 @@ class lpGBT {
  public:
   lpGBT(lpGBT_ConfigTransport& transport);
 
-
   void write(uint16_t reg, uint8_t value) { tport_.write_reg(reg, value); }
   uint8_t read(uint16_t reg) { return tport_.read_reg(reg); }
   
@@ -105,6 +104,14 @@ class lpGBT {
       \param strength Values between 1-7
    */
   void setup_eclk(int ieclk, int rate, bool polarity=true, int strength=4);
+
+  /** Setup the given elink-rx 
+      \param ierx ERx index (0-5)
+      \param
+      On the LDMX lpGBT mezzanine, each elink-rx is configured with a single active pair.
+   */
+  void setup_erx(int ierx, int speed, bool invert=false, bool term=true, int equalization=0, bool acbias=false);
+
   
  private:
   lpGBT_ConfigTransport& tport_;

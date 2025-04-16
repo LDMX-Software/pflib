@@ -1,5 +1,6 @@
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
+#include "lpgbt_mezz_tester.h"
 #include <fstream>
 #include <math.h>
 #include <iostream>
@@ -239,6 +240,26 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
     for (int i=0; i<4; i++) stim.clear_pin(i);
     
   }
+  if (cmd=="ECLK") {
+    LPGBT_Mezz_Tester mezz;
+    int errors=0;
+    for (int iclk=0; iclk<8; iclk++) {
+      static constexpr int BIN[4]={40,80,160,320};
+      for (int ibin=0; ibin<4; ibin++) {
+	target->setup_eclk(iclk,BIN[ibin]);
+	usleep(100000);
+	std::vector<float> rates=mezz.clock_rates();
+	float measured=rates[iclk];
+	if (fabs(measured-BIN[ibin])>5) {
+	  errors++;
+	  printf("%d set %d measured %f\n",iclk,BIN[ibin],rates[iclk]);
+	}
+	target->setup_eclk(iclk,0);
+      }
+    }
+    if (errors!=0) printf("  ECLK TEST FAILED\n");
+    else printf("  ECLK TEST PASS\n");
+  }
 }
 
 namespace {
@@ -258,8 +279,9 @@ namespace {
     ->line("ALL","Read all ADC lines",adc);
 
 auto mtest = tool::menu("TEST","Mezzanine testing functions")
-    ->line("GPIO","Test the gpio functions",test)
-    ->line("ADC","Test the ADC function",test)
+  ->line("GPIO","Test the gpio functions",test)
+  ->line("ADC","Test the ADC function",test)
+  ->line("ECLK","Test the elocks",test)
 ;
 
 }

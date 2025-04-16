@@ -129,7 +129,7 @@ add_dependencies(pflib register_maps_header direct_access)
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
-add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/Menu.cc app/tool/Rcfile.cc)
+add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/Menu.cc app/tool/Rcfile.cc app/tool/lpgbt_mezz_tester.cc)
 target_link_libraries(pflpgbt PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
