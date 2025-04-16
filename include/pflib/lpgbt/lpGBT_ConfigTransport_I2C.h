@@ -13,6 +13,7 @@ class lpGBT_ConfigTransport_I2C : public lpGBT_ConfigTransport {
 
   void write_raw(uint8_t a);
   void write_raw(uint8_t a, uint8_t b);
+  void write_raw(uint8_t a, uint8_t b, uint8_t c);
   void write_raw(const std::vector<uint8_t>& a);
 
   uint8_t read_raw();

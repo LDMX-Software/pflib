@@ -89,7 +89,7 @@ static uint16_t gbt2lcl(uint16_t val) {
   if (val&(1<<11)) rval|=(1<<9);
   return rval;
 }
-  
+#include "ad5593r.h"
 
 void test(const std::string& cmd, pflib::lpGBT* target) {
   if (cmd=="GPIO") {

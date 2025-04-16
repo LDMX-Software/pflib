@@ -33,6 +33,12 @@ void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a, uint8_t b) {
     printf("Error on raw write %s\n",strerror(errno));
   }
 }
+void lpGBT_ConfigTransport_I2C::write_raw(uint8_t a, uint8_t b, uint8_t c) {
+  uint8_t buf[3]={a,b,c};
+  if (write(handle_,buf,3)<0) {
+    printf("Error on raw write %s\n",strerror(errno));
+  }
+}
 void lpGBT_ConfigTransport_I2C::write_raw(const std::vector<uint8_t>& a) {
   write(handle_,&(a[0]),a.size());
 }
