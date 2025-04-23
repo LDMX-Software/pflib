@@ -117,7 +117,6 @@ int main(int argc, char* argv[]) {
   int count{0};
 
   while (r) {
-    if (!(r >> ep)) break;
     for (std::size_t i_link{0}; i_link < 2; i_link++) {
       const auto& daq_link{ep.daq_links[i_link]};
       o << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
