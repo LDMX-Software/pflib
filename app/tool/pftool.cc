@@ -26,6 +26,8 @@
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
 #include "pflib/Version.h"
+#include "pflib/utility.h"
+#include "pflib/packing/SingleROCEventPacket.h"
 
 /**
  * pull the target of our menu into this source file to reduce code
@@ -681,18 +683,33 @@ static std::string last_run_file = ".last_run_file";
 static std::string start_dma_cmd = "";
 static std::string stop_dma_cmd = "";
 
+/**
+ * Do a DAQ run using the input target
+ *
+ * @param[in] pft target to use
+ * @param[in] cmd PEDESTAL, CHARGE, otherwise no trigger is done
+ * @param[in] run run number not currently used in implementation of daq format
+ * @param[in] nevents number of events to collect
+ * @param[in] rate how fast to collect events, not implemented
+ * @param[in] fname path to write to (appended)
+ */
 static void daq_run(Target* pft,
-                    const std::string& cmd  // PEDESTAL, CHARGE, or no trigger
-                    ,
-                    int run  // not used in this implementation of daq
-                    ,
-                    int nevents  // number of events to collect
-                    ,
-                    int rate  // not used in this implementation of daq
-                    ,
-                    const std::string& fname  // file to write to (appended)
+                    const std::string& cmd,
+                    int run,
+                    int nevents,
+                    int rate,
+                    const std::string& fname
 ) {
+
+  // assume we are decoding if we end with CSV
+  bool decoding{pflib::endsWith(fname, ".csv")};
+  // event packet only used in case of decoding
+  pflib::packing::SingleROCEventPacket ep;
+
   std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(), "a"), &fclose};
+  if (decoding) {
+    fprintf(fp.get(), "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n");
+  }
   timeval tv0, tvi;
 
   gettimeofday(&tv0, 0);
@@ -717,7 +734,31 @@ static void daq_run(Target* pft,
     }
 
     std::vector<uint32_t> event = pft->read_event();
-    fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp.get());
+    if (not decoding) {
+      // dump raw event packet if we are not decoding
+      fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp.get());
+    } else {
+      // parse event packet and write out CSV
+      // first two and last two words are inserted by the target as signal words
+      ep.from(std::span(event.begin()+2, event.end()-2));
+      for (std::size_t i_link{0}; i_link < 2; i_link++) {
+        const auto& daq_link{ep.daq_links[i_link]};
+        fprintf(fp.get(), "%d,%d,%d,%d,calib,%d,%d,%d,%d,%d,%d\n",
+            i_link, daq_link.bx, daq_link.event, daq_link.orbit, daq_link.calib.Tp(),
+            daq_link.calib.Tc(), daq_link.calib.adc_tm1(),
+            daq_link.calib.adc(), daq_link.calib.tot(),
+            daq_link.calib.toa()
+        );
+        for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+          fprintf(fp.get(), "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+              i_link, daq_link.bx, daq_link.event, daq_link.orbit,
+              daq_link.channels[i_ch].Tp(), daq_link.channels[i_ch].Tc(),
+              daq_link.channels[i_ch].adc_tm1(), daq_link.channels[i_ch].adc(),
+              daq_link.channels[i_ch].tot(), daq_link.channels[i_ch].toa()
+          );
+        }
+      }
+    }
   }
 };
 
