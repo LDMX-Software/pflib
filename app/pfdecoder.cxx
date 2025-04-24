@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
   // the output CSV if desired
   int count{0};
 
-  while (r and not r.eof()) {
+  while (r) {
     pflib_log(info) << "popping " << count << " event from stream";
     r >> ep;
     pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof() << " and bool(r): " << bool(r);

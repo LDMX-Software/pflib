@@ -94,11 +94,17 @@ class FileReader : public Reader {
    *
    * @return true if we have reached the end of file.
    */
-  bool eof() override;
+  bool eof() const override;
 
  private:
-  /// file stream we are reading from
-  std::ifstream file_;
+  /**
+   * file stream we are reading from
+   *
+   * Needs to be `mutable` since tellg needs to be
+   * able to set the fail state of the file but we
+   * want to be able to check where we are in the const eof()
+   */
+  mutable std::ifstream file_;
   /// file size in bytes
   std::size_t file_size_;
 };  // Reader

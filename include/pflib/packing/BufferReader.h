@@ -46,6 +46,7 @@ class BufferReader : public Reader {
    * true otherwise.
    */
   bool good() const override;
+  bool eof() const override;
 
  private:
   // current buffer we are reading
