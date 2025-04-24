@@ -116,7 +116,10 @@ int main(int argc, char* argv[]) {
   // the output CSV if desired
   int count{0};
 
-  while (r) {
+  while (r and not r.eof()) {
+    pflib_log(info) << "popping " << count << " event from stream";
+    r >> ep;
+    pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof() << " and bool(r): " << bool(r);
     for (std::size_t i_link{0}; i_link < 2; i_link++) {
       const auto& daq_link{ep.daq_links[i_link]};
       o << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
@@ -134,9 +137,10 @@ int main(int argc, char* argv[]) {
           << daq_link.channels[i_ch].toa() << '\n';
       }
     }
-    if (nevents > 0 and ++count > nevents) {
+    if (nevents > 0 and count > nevents) {
       break;
     }
+    count++;
   }
 
   return 0;
