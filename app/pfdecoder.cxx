@@ -62,7 +62,13 @@ int main(int argc, char* argv[]) {
         i_arg++;
         nevents = std::stoi(argv[i_arg]);
       } else if (arg == "-l" or arg == "--log") {
-        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+        if (i_arg + 1 == argc) {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
+          return 1;
+        }
+        std::string arg_p1{argv[i_arg+1]};
+        if (arg_p1[0] == '-' and arg_p1 != "-1") {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires are argument after it.";
           return 1;
