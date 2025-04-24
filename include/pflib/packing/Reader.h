@@ -166,21 +166,21 @@ class Reader {
   }
 
   /**
-   * Check if reader is in a good state
+   * Check if reader is in a good state (e.g. successfully open)
    *
    * @return bool true if reader is good and can keep reading
    */
   virtual bool good() const = 0;
 
   /**
-   * Check if reader is in a fail state
+   * Check if reader is in a fail or done state
    *
    * @return bool true if reader is in fail state
    */
-  virtual bool operator!() const { return !good(); }
+  virtual bool operator!() const { return !good() or eof(); }
 
   /**
-   * Check if reader is in good/bad state
+   * Check if reader is in good state and is not done reading yet
    *
    * Defining this operator allows us to do the following.
    *
@@ -193,14 +193,14 @@ class Reader {
    *
    * @return bool true if reader is in good state
    */
-  virtual operator bool() const { return good(); }
+  virtual operator bool() const { return good() and not eof(); }
 
   /**
    * check if file is done
    *
    * @return true if we have reached the end of file.
    */
-  virtual bool eof() = 0;
+  virtual bool eof() const = 0;
 };  // Reader
 
 }  // namespace pflib::packing

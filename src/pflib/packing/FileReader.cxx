@@ -26,6 +26,6 @@ Reader& FileReader::read(char* w, std::size_t count) {
 
 bool FileReader::good() const { return !file_.fail(); }
 
-bool FileReader::eof() { return file_.eof() or file_.tellg() == file_size_; }
+bool FileReader::eof() const { return file_.eof() or file_.tellg() == file_size_; }
 
 }  // namespace pflib::packing
