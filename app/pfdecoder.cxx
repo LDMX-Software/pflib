@@ -56,11 +56,17 @@ int main(int argc, char* argv[]) {
       } else if (arg == "-n" or arg == "--nevents") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
-                           << " parameter requires are argument after it.";
+                           << " parameter requires an argument after it.";
           return 1;
         }
         i_arg++;
-        nevents = std::stoi(argv[i_arg]);
+        try {
+          nevents = std::stoi(argv[i_arg]);
+        } catch (const std::invalid_argument& e) {
+          pflib_log(fatal) << "The argument to " << arg << " '"
+                           << argv[i_arg] << "' is not an integer.";
+          return 1;
+        }
       } else if (arg == "-l" or arg == "--log") {
         if (i_arg + 1 == argc) {
           pflib_log(fatal) << "The " << arg
@@ -70,11 +76,17 @@ int main(int argc, char* argv[]) {
         std::string arg_p1{argv[i_arg+1]};
         if (arg_p1[0] == '-' and arg_p1 != "-1") {
           pflib_log(fatal) << "The " << arg
-                           << " parameter requires are argument after it.";
+                           << " parameter requires an argument after it.";
           return 1;
         }
         i_arg++;
-        pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
+        try {
+          pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
+        } catch (const std::invalid_argument& e) {
+          pflib_log(fatal) << "The argument to " << arg << " '"
+                           << argv[i_arg] << "' is not an integer.";
+          return 1;
+        }
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
