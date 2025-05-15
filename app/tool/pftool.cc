@@ -364,10 +364,14 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "GET_DIRECT_ACCESS") {
     auto options = roc.getDirectAccessParameters();
     auto name =
-        BaseMenu::readline("Direct Access Parameter to Read: ", options);
-    bool val = roc.getDirectAccess(name);
-    std::cout << std::boolalpha << "  " << name << " set to " << val
-              << std::endl;
+        BaseMenu::readline("Direct Access Parameter to Read: ", options, "all");
+    if (name == "all") {
+      for (auto name : roc.getDirectAccessParameters()) {
+        printf("  %10s = %d\n", name.c_str(), roc.getDirectAccess(name));
+      }
+    } else {
+      printf("  %10s = %d\n", name.c_str(), roc.getDirectAccess(name));
+    }
   }
   if (cmd == "SET_DIRECT_ACCESS") {
     auto options = roc.getDirectAccessParameters();
