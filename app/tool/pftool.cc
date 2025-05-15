@@ -533,15 +533,11 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
   }
   */
   if (cmd == "STATUS" || do_status) {
-    static const std::vector<std::string> bit_comments = {
-        "orbit requests",
-        "l1a/read requests",
-        "",
-        "",
-        "",
-        "calib pulse requests",
-        "",
-        ""};
+    static const std::map<int,std::string> bit_comments = {
+      {0, "orbit requests"},
+      {1, "l1a/read requests"},
+      {5, "calib pulse requests"},
+    };
     /*
     bool multi;
     int nextra;
@@ -554,14 +550,24 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     */
     std::vector<uint32_t> cnt = pft->fc().getCmdCounters();
-    for (int i = 0; i < 8; i++)
-      printf("  Bit %d count: %20u (%s)\n", i, cnt[i],
-             bit_comments.at(i).c_str());
+    for (int i = 0; i < cnt.size(); i++) {
+      std::string comment{""};
+      if (auto it{bit_comments.find(i)}; it != bit_comments.end()) {
+        comment = it->second;
+      }
+      printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
+    }
+    /**
+     * FastControl::read_counters is default defined to do nothing,
+     * FastControlCMS_MMap does not override this default definition
+     * so nothing interesting happens
+     *
     int spill_count, header_occ, event_count, vetoed_counter;
     pft->fc().read_counters(spill_count, header_occ, event_count,
                             vetoed_counter);
     printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",
            spill_count, event_count, header_occ, vetoed_counter);
+     */
   }
   /*
   if (cmd=="ENABLES") {
