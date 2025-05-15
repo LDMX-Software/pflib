@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
           return 1;
         }
         i_arg++;
-<<<<<<< HEAD
         try {
           pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
         } catch (const std::invalid_argument& e) {
@@ -90,11 +89,8 @@ int main(int argc, char* argv[]) {
                            << argv[i_arg] << "' is not an integer.";
           return 1;
         }
-=======
-        pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
       } else if (arg == "--headers") {
         headers = true;
->>>>>>> 825e0b9f (option to dump deduced counters from link headers)
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
