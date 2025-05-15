@@ -1345,11 +1345,12 @@ auto menu_fc =
         ->line("BUFFER_CLEAR", "Send a buffer clear", fc)
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
-        ->line("FC_RESET", "Reset the fast control", fc)
-        ->line("VETO_SETUP", "Setup the L1 Vetos", fc)
-        ->line("MULTISAMPLE", "Setup multisample readout", fc)
-        ->line("CALIB", "Setup calibration pulse", fc)
-        ->line("ENABLES", "Enable various sources of signal", fc);
+        //->line("FC_RESET", "Reset the fast control", fc)
+        //->line("VETO_SETUP", "Setup the L1 Vetos", fc)
+        //->line("MULTISAMPLE", "Setup multisample readout", fc)
+        //->line("CALIB", "Setup calibration pulse", fc)
+        //->line("ENABLES", "Enable various sources of signal", fc)
+;
 
 auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
