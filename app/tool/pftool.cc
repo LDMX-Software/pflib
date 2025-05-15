@@ -28,6 +28,7 @@
 #include "pflib/Version.h"
 #include "pflib/utility.h"
 #include "pflib/packing/SingleROCEventPacket.h"
+#include "pflib/packing/BufferReader.h"
 
 /**
  * pull the target of our menu into this source file to reduce code
@@ -599,7 +600,6 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
  * @param[in] cmd selected command from DAQ->SETUP menu
  * @param[in] pft active target
  */
-
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->hcal().daq();
   if (cmd == "STATUS") {
@@ -682,6 +682,52 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static std::string last_run_file = ".last_run_file";
 static std::string start_dma_cmd = "";
 static std::string stop_dma_cmd = "";
+static auto the_log_{pflib::logging::get("pftool")};
+
+/**
+ * just copy input event packets to the output file as binary
+ */
+class WriteToBinaryFile {
+  std::string file_name_;
+  FILE* fp_;
+ public:
+  WriteToBinaryFile(const std::string& file_name)
+    : file_name_{file_name},
+      fp_{fopen(file_name.c_str(), "a")} {
+    if (not fp_) {
+      PFEXCEPTION_RAISE("FileOpen", "Unable to open "+file_name_);
+    }
+  }
+  ~WriteToBinaryFile() {
+    fclose(fp_);
+  }
+  void operator()(std::vector<uint32_t>& event) {
+    fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
+  }
+};
+
+/**
+ * decode the input with pflib::packing::SingleROCEventPacket and write to CSV
+ */
+class DecodeAndWriteToCSV {
+  std::ofstream file_;
+  pflib::packing::SingleROCEventPacket ep_;
+ public:
+  DecodeAndWriteToCSV(const std::string& file_name)
+    : file_{file_name} {
+      if (not file_) {
+        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+file_name);
+      }
+      file_ << std::boolalpha;
+      file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+  }
+  void operator()(std::vector<uint32_t>& event) {
+    const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
+    pflib::packing::BufferReader r{buffer};
+    r >> ep_;
+    ep_.to_csv(file_);
+  }
+};
 
 /**
  * Do a DAQ run using the input target
@@ -691,29 +737,19 @@ static std::string stop_dma_cmd = "";
  * @param[in] run run number not currently used in implementation of daq format
  * @param[in] nevents number of events to collect
  * @param[in] rate how fast to collect events, not implemented
- * @param[in] fname path to write to (appended)
+ * @param[in] Action function that consumes the event packets and does something with them
+ * (presumably writes them out to a file)
  */
-static void daq_run(Target* pft,
-                    const std::string& cmd,
-                    int run,
-                    int nevents,
-                    int rate,
-                    const std::string& fname
+static void daq_run(
+  Target* pft,
+  const std::string& cmd,
+  int run,
+  int nevents,
+  int rate,
+  const std::function<void(std::vector<uint32_t>&)>& Action
 ) {
-
-  // assume we are decoding if we end with CSV
-  bool decoding{pflib::endsWith(fname, ".csv")};
-  // event packet only used in case of decoding
-  pflib::packing::SingleROCEventPacket ep;
-
-  std::unique_ptr<FILE, int (*)(FILE*)> fp{fopen(fname.c_str(), "a"), &fclose};
-  if (decoding) {
-    fprintf(fp.get(), "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n");
-  }
   timeval tv0, tvi;
-
   gettimeofday(&tv0, 0);
-
   for (int ievt = 0; ievt < nevents; ievt++) {
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
@@ -734,31 +770,8 @@ static void daq_run(Target* pft,
     }
 
     std::vector<uint32_t> event = pft->read_event();
-    if (not decoding) {
-      // dump raw event packet if we are not decoding
-      fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp.get());
-    } else {
-      // parse event packet and write out CSV
-      // first two and last two words are inserted by the target as signal words
-      ep.from(std::span(event.begin()+2, event.end()-2));
-      for (std::size_t i_link{0}; i_link < 2; i_link++) {
-        const auto& daq_link{ep.daq_links[i_link]};
-        fprintf(fp.get(), "%d,%d,%d,%d,calib,%d,%d,%d,%d,%d,%d\n",
-            i_link, daq_link.bx, daq_link.event, daq_link.orbit, daq_link.calib.Tp(),
-            daq_link.calib.Tc(), daq_link.calib.adc_tm1(),
-            daq_link.calib.adc(), daq_link.calib.tot(),
-            daq_link.calib.toa()
-        );
-        for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
-          fprintf(fp.get(), "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-              i_link, daq_link.bx, daq_link.event, daq_link.orbit,
-              daq_link.channels[i_ch].Tp(), daq_link.channels[i_ch].Tc(),
-              daq_link.channels[i_ch].adc_tm1(), daq_link.channels[i_ch].adc(),
-              daq_link.channels[i_ch].tot(), daq_link.channels[i_ch].toa()
-          );
-        }
-      }
-    }
+    pflib_log(debug) << "event " << ievt << " has " << event.size() << " 32-bit words";
+    Action(event);
   }
 };
 
@@ -917,8 +930,8 @@ Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
   }
   */
   if (cmd == "PEDESTAL" || cmd == "CHARGE") {
-    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S.raw";
-    if (cmd == "CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S.raw";
+    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S";
+    if (cmd == "CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S";
 
     time_t t = time(NULL);
     struct tm* tm = localtime(&t);
@@ -930,19 +943,14 @@ Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     int nevents = BaseMenu::readline_int("How many events? ", 100);
     static int rate = 100;
     rate = BaseMenu::readline_int("Readout rate? (Hz) ", rate);
-    std::string fname = BaseMenu::readline("Filename :  ", fname_def);
-
-    //    pft->prepareNewRun();
-
-#ifdef PFTOOL_ROGUE
-    if (dma_enabled) {
-      rwbi->daq_dma_dest(fname);
-      rwbi->daq_dma_run(cmd, run, nevents, rate);
-      rwbi->daq_dma_close();
-    } else
-#endif
-    {
-      daq_run(pft, cmd, run, nevents, rate, fname);
+    std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
+    bool decoding = BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
+  
+    if (decoding) {
+      DecodeAndWriteToCSV writer{fname+".csv"};
+      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
+    } else {
+      daq_run(pft, cmd, run, nevents, rate, WriteToBinaryFile(fname+".raw"));
     }
   }
 

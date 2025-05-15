@@ -20,4 +20,6 @@ Reader& BufferReader::read(char* w, std::size_t count) {
 bool BufferReader::good() const { return (i_word_ < buffer_.size()); }
 bool BufferReader::eof() const { return (i_word_ == buffer_.size()); }
 
+bool BufferReader::eof() { return i_word_ == buffer_.size(); }
+
 }  // namespace pflib::packing

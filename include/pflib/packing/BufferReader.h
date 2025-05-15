@@ -48,6 +48,11 @@ class BufferReader : public Reader {
   bool good() const override;
   bool eof() const override;
 
+  /**
+   * check if we are at the end of the buffer
+   */
+  bool eof() override;
+
  private:
   // current buffer we are reading
   const std::vector<uint8_t>& buffer_;

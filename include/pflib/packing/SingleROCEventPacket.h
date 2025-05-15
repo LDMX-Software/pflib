@@ -40,6 +40,12 @@ class SingleROCEventPacket {
    * ```
    */
   Reader& read(Reader& r);
+  /**
+   * write current packet into a CSV
+   *
+   * @param[in,out] f file to write CSV to
+   */
+  void to_csv(std::ofstream& f) const;
   /// default constructor that does nothing
   SingleROCEventPacket() = default;
 };

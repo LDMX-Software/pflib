@@ -1,6 +1,7 @@
 #include "pflib/packing/SingleROCEventPacket.h"
 
 #include <iostream>
+#include <fstream>
 
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
@@ -84,6 +85,37 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   pflib_log(trace) << "found trailer";
 
   return r;
+}
+
+void SingleROCEventPacket::to_csv(std::ofstream& f) const {
+  /**
+   * The columns of the output CSV are
+   * ```
+   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * ```
+   *
+   * Since there are two DAQ links each with 36 channels and one calib channel,
+   * there are 2*(36+1)=74 rows written for each call to this function.
+   *
+   * The trigger links are entirely ignored.
+   */
+  for (std::size_t i_link{0}; i_link < 2; i_link++) {
+    const auto& daq_link{daq_links[i_link]};
+    f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+      << daq_link.orbit << ',' << "calib," << daq_link.calib.Tp() << ','
+      << daq_link.calib.Tc() << ',' << daq_link.calib.adc_tm1() << ','
+      << daq_link.calib.adc() << ',' << daq_link.calib.tot() << ','
+      << daq_link.calib.toa() << '\n';
+    for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+      f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+        << daq_link.orbit << ',' << i_ch << ','
+        << daq_link.channels[i_ch].Tp() << ',' << daq_link.channels[i_ch].Tc()
+        << ',' << daq_link.channels[i_ch].adc_tm1() << ','
+        << daq_link.channels[i_ch].adc() << ','
+        << daq_link.channels[i_ch].tot() << ','
+        << daq_link.channels[i_ch].toa() << '\n';
+    }
+  }
 }
 
 }  // namespace pflib::packing
