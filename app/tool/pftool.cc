@@ -722,6 +722,8 @@ class DecodeAndWriteToCSV {
       file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
   }
   void operator()(std::vector<uint32_t>& event) {
+    // reinterpret the 32-bit words into a vector of bytes which is
+    // what is consummed by the BufferReader
     const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
     pflib::packing::BufferReader r{buffer};
     r >> ep_;

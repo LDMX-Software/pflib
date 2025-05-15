@@ -23,6 +23,7 @@ static void usage() {
                "all events possible)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
+               "  --headers    : print header words and decoded value to term\n"
             << std::endl;
 }
 
@@ -36,6 +37,7 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("pfdecoder")};
 
+  bool headers{false};
   int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -80,6 +82,7 @@ int main(int argc, char* argv[]) {
           return 1;
         }
         i_arg++;
+<<<<<<< HEAD
         try {
           pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
         } catch (const std::invalid_argument& e) {
@@ -87,6 +90,11 @@ int main(int argc, char* argv[]) {
                            << argv[i_arg] << "' is not an integer.";
           return 1;
         }
+=======
+        pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
+      } else if (arg == "--headers") {
+        headers = true;
+>>>>>>> 825e0b9f (option to dump deduced counters from link headers)
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -138,6 +146,16 @@ int main(int argc, char* argv[]) {
     pflib_log(info) << "popping " << count << " event from stream";
     r >> ep;
     pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof() << " and bool(r): " << bool(r);
+    if (headers) {
+      for (std::size_t i_link{0}; i_link < 2; i_link++) {
+        const auto& daq_link{ep.daq_links[i_link]};
+        std::cout << "Link " << i_link << " : "
+          << "BX = " << daq_link.bx
+          << " Event = " << daq_link.event
+          << " Orbit = " << daq_link.orbit
+          << std::endl;
+      }
+    }
     ep.to_csv(o);
     if (nevents > 0 and count > nevents) {
       break;
