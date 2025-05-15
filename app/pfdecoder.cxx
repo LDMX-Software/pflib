@@ -23,6 +23,7 @@ static void usage() {
                "all events possible)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
+               "  --headers    : print header words and decoded value to term\n"
             << std::endl;
 }
 
@@ -36,6 +37,7 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("pfdecoder")};
 
+  bool headers{false};
   int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -70,7 +72,7 @@ int main(int argc, char* argv[]) {
       } else if (arg == "-l" or arg == "--log") {
         if (i_arg + 1 == argc) {
           pflib_log(fatal) << "The " << arg
-                           << " parameter requires are argument after it.";
+                           << " parameter requires an argument after it.";
           return 1;
         }
         std::string arg_p1{argv[i_arg+1]};
@@ -87,6 +89,8 @@ int main(int argc, char* argv[]) {
                            << argv[i_arg] << "' is not an integer.";
           return 1;
         }
+      } else if (arg == "--headers") {
+        headers = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -138,23 +142,17 @@ int main(int argc, char* argv[]) {
     pflib_log(info) << "popping " << count << " event from stream";
     r >> ep;
     pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof() << " and bool(r): " << bool(r);
-    for (std::size_t i_link{0}; i_link < 2; i_link++) {
-      const auto& daq_link{ep.daq_links[i_link]};
-      o << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << "calib," << daq_link.calib.Tp() << ','
-        << daq_link.calib.Tc() << ',' << daq_link.calib.adc_tm1() << ','
-        << daq_link.calib.adc() << ',' << daq_link.calib.tot() << ','
-        << daq_link.calib.toa() << '\n';
-      for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
-        o << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-          << daq_link.orbit << ',' << i_ch << ','
-          << daq_link.channels[i_ch].Tp() << ',' << daq_link.channels[i_ch].Tc()
-          << ',' << daq_link.channels[i_ch].adc_tm1() << ','
-          << daq_link.channels[i_ch].adc() << ','
-          << daq_link.channels[i_ch].tot() << ','
-          << daq_link.channels[i_ch].toa() << '\n';
+    if (headers) {
+      for (std::size_t i_link{0}; i_link < 2; i_link++) {
+        const auto& daq_link{ep.daq_links[i_link]};
+        std::cout << "Link " << i_link << " : "
+          << "BX = " << daq_link.bx
+          << " Event = " << daq_link.event
+          << " Orbit = " << daq_link.orbit
+          << std::endl;
       }
     }
+    ep.to_csv(o);
     if (nevents > 0 and count > nevents) {
       break;
     }
