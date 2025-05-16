@@ -981,7 +981,8 @@ Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
       DecodeAndWriteToCSV writer{fname+".csv"};
       daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     } else {
-      daq_run(pft, cmd, run, nevents, rate, WriteToBinaryFile(fname+".raw"));
+      WriteToBinaryFile writer{fname+".raw"};
+      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     }
   }
 
