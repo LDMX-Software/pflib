@@ -65,8 +65,8 @@ int main(int argc, char* argv[]) {
         try {
           nevents = std::stoi(argv[i_arg]);
         } catch (const std::invalid_argument& e) {
-          pflib_log(fatal) << "The argument to " << arg << " '"
-                           << argv[i_arg] << "' is not an integer.";
+          pflib_log(fatal) << "The argument to " << arg << " '" << argv[i_arg]
+                           << "' is not an integer.";
           return 1;
         }
       } else if (arg == "-l" or arg == "--log") {
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
                            << " parameter requires an argument after it.";
           return 1;
         }
-        std::string arg_p1{argv[i_arg+1]};
+        std::string arg_p1{argv[i_arg + 1]};
         if (arg_p1[0] == '-' and arg_p1 != "-1") {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires an argument after it.";
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
         try {
           pflib::logging::set(pflib::logging::convert(std::stoi(argv[i_arg])));
         } catch (const std::invalid_argument& e) {
-          pflib_log(fatal) << "The argument to " << arg << " '"
-                           << argv[i_arg] << "' is not an integer.";
+          pflib_log(fatal) << "The argument to " << arg << " '" << argv[i_arg]
+                           << "' is not an integer.";
           return 1;
         }
       } else if (arg == "--headers") {
@@ -141,15 +141,14 @@ int main(int argc, char* argv[]) {
   while (r) {
     pflib_log(info) << "popping " << count << " event from stream";
     r >> ep;
-    pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof() << " and bool(r): " << bool(r);
+    pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
+                     << " and bool(r): " << bool(r);
     if (headers) {
       for (std::size_t i_link{0}; i_link < 2; i_link++) {
         const auto& daq_link{ep.daq_links[i_link]};
-        std::cout << "Link " << i_link << " : "
-          << "BX = " << daq_link.bx
-          << " Event = " << daq_link.event
-          << " Orbit = " << daq_link.orbit
-          << std::endl;
+        std::cout << "Link " << i_link << " : " << "BX = " << daq_link.bx
+                  << " Event = " << daq_link.event
+                  << " Orbit = " << daq_link.orbit << std::endl;
       }
     }
     ep.to_csv(o);

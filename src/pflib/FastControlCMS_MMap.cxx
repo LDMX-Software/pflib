@@ -145,20 +145,20 @@ class FastControlCMS_MMap : public FastControl {
   virtual void resetCounters() {
     uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
   }
-  
+
   virtual int fc_get_setup_calib() {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    return l1a_charge.bx-charge_inj.bx;
+    return l1a_charge.bx - charge_inj.bx;
   }
 
   virtual void fc_setup_calib(int charge_to_l1a) {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    l1a_charge.bx=charge_inj.bx+charge_to_l1a;
+    l1a_charge.bx = charge_inj.bx + charge_to_l1a;
     l1a_charge.pack();
   }
-  
+
   virtual void sendL1A() { periodic(PEDESTAL_PERIODIC).request(); }
 
   virtual std::vector<uint32_t> getCmdCounters() {
@@ -212,13 +212,9 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
-  virtual void clear_run() {
-    uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
-  }
-  
-  virtual void bufferclear() {
-    uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr);
-  }
+  virtual void clear_run() { uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr); }
+
+  virtual void bufferclear() { uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr); }
 
   virtual void chargepulse() { periodic(CHARGE_PERIODIC).request(); }
 

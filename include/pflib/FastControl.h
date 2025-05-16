@@ -1,8 +1,8 @@
 #ifndef PFLIB_FastControl_H_
 #define PFLIB_FastControl_H_
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace pflib {
 
@@ -19,8 +19,8 @@ class FastControl {
   /**
    * clear the counters
    */
-  virtual void resetCounters() { }
-  
+  virtual void resetCounters() {}
+
   /** send a single L1A */
   virtual void sendL1A() = 0;
 

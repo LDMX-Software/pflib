@@ -130,8 +130,10 @@ double BaseMenu::readline_float(const std::string& prompt) {
 
 int BaseMenu::readline_int(const std::string& prompt, int aval, bool ashex) {
   char buffer[50];
-  if (ashex) sprintf(buffer, "0x%x", aval);
-  else sprintf(buffer, "%d", aval);
+  if (ashex)
+    sprintf(buffer, "0x%x", aval);
+  else
+    sprintf(buffer, "%d", aval);
 #ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt, buffer), 0, 0);
 #else

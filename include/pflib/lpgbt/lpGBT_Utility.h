@@ -1,8 +1,9 @@
 #ifndef pflib_lpGBT_Utility_h_included
 #define pflib_lpGBT_Utility_h_included
 
-#include <string>
 #include <stdint.h>
+
+#include <string>
 
 #include "pflib/lpGBT.h"
 
@@ -24,10 +25,7 @@ lpGBT::RegisterValueVector loadRegisterCSV(const std::string& filename);
  */
 void applylpGBTCSV(const std::string& filename, lpGBT& lpgbt);
 
+}  // namespace lpgbt
+}  // namespace pflib
 
-}
-}
-
-
-
-#endif // pflib_lpGBT_Utility_h_included
+#endif  // pflib_lpGBT_Utility_h_included

@@ -22,14 +22,14 @@
 #include "Menu.h"
 #include "Rcfile.h"
 #include "pflib/Compile.h"  // for parameter listing
+#include "pflib/ECOND_Formatter.h"
 #include "pflib/Hcal.h"
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
 #include "pflib/Version.h"
-#include "pflib/utility.h"
-#include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/packing/BufferReader.h"
-#include "pflib/ECOND_Formatter.h"
+#include "pflib/packing/SingleROCEventPacket.h"
+#include "pflib/utility.h"
 /**
  * pull the target of our menu into this source file to reduce code
  */
@@ -260,9 +260,10 @@ static void elinks(const std::string& cmd, Target* pft) {
       int apt = elinks.scanAlign(alink, false);
       elinks.setAlignPhase(alink, apt);
       int bpt = elinks.scanBitslip(alink);
-      if (bpt>=0) elinks.setBitslip(alink, bpt);
+      if (bpt >= 0) elinks.setBitslip(alink, bpt);
       std::vector<uint32_t> spy = elinks.spy(alink);
-      printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt, bpt, spy[0]);
+      printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
+             bpt, spy[0]);
     }
     for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
       if (running[iroc]) {
@@ -432,7 +433,7 @@ static void roc(const std::string& cmd, Target* pft) {
         "Update all parameter values on the chip using the defaults in the "
         "manual for any values not provided? ",
         false);
-    roc.loadParameters(fname,prepend_defaults);
+    roc.loadParameters(fname, prepend_defaults);
   }
   if (cmd == "DUMP") {
     std::string fname_def_format =
@@ -494,13 +495,13 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().resetCounters();
     do_status = true;
   }
-  
-  if (cmd=="CALIB") {
-    int offset=pft->fc().fc_get_setup_calib();
-    offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
+
+  if (cmd == "CALIB") {
+    int offset = pft->fc().fc_get_setup_calib();
+    offset = BaseMenu::readline_int("Calibration L1A offset?", offset);
     pft->fc().fc_setup_calib(offset);
   }
- 
+
   /*
   if (cmd=="MULTISAMPLE") {
     bool multi;
@@ -524,21 +525,21 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
   }
   */
   if (cmd == "STATUS" || do_status) {
-    static const std::map<int,std::string> bit_comments = {
-      {0, "encoding errors"},
-      {3, "l1a/read requests"},
-      {4, "l1a NZS requests"},
-      {5, "orbit/bcr requests"},
-      {6, "orbit count resets"},
-      {7, "internal calib pulse requests"},
-      {8, "external calib pulse requests"},
-      {9, "chipsync resets"},
-      {10, "event count resets"},
-      {11, "event buffer resets"},
-      {12, "link reset roc-t"},
-      {13, "link reset roc-d"},
-      {14, "link reset econ-t"},
-      {15, "link reset econ-d"},
+    static const std::map<int, std::string> bit_comments = {
+        {0, "encoding errors"},
+        {3, "l1a/read requests"},
+        {4, "l1a NZS requests"},
+        {5, "orbit/bcr requests"},
+        {6, "orbit count resets"},
+        {7, "internal calib pulse requests"},
+        {8, "external calib pulse requests"},
+        {9, "chipsync resets"},
+        {10, "event count resets"},
+        {11, "event buffer resets"},
+        {12, "link reset roc-t"},
+        {13, "link reset roc-d"},
+        {14, "link reset econ-t"},
+        {15, "link reset econ-d"},
     };
     /*
     bool multi;
@@ -632,19 +633,20 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "ENABLE") {
     daq.enable(!daq.enabled());
   }
-  if (cmd=="FORMAT") {
+  if (cmd == "FORMAT") {
     printf("Format options:\n");
     printf(" (1) ROC with ad-hoc headers as in TB2022\n");
     printf(" (2) ECON with full readout\n");
     printf(" (3) ECON with ZS\n");
-    daq_format_mode=BaseMenu::readline_int(" Select one: ",daq_format_mode);
+    daq_format_mode = BaseMenu::readline_int(" Select one: ", daq_format_mode);
   }
-  if (cmd=="CONFIG") {
-    daq_contrib_id=BaseMenu::readline_int(" Contributor id for data: ",daq_contrib_id);
-    int econid=BaseMenu::readline_int(" ECON ID: ",daq.econid());
-    int samples=1; // frozen for now
-    int soi=0; // frozen for now
-    daq.setup(econid,samples,soi);
+  if (cmd == "CONFIG") {
+    daq_contrib_id =
+        BaseMenu::readline_int(" Contributor id for data: ", daq_contrib_id);
+    int econid = BaseMenu::readline_int(" ECON ID: ", daq.econid());
+    int samples = 1;  // frozen for now
+    int soi = 0;      // frozen for now
+    daq.setup(econid, samples, soi);
   }
   /*
   if (cmd=="ZS") {
@@ -718,18 +720,17 @@ static auto the_log_{pflib::logging::get("pftool")};
 class WriteToBinaryFile {
   std::string file_name_;
   FILE* fp_;
+
  public:
   WriteToBinaryFile(const std::string& file_name)
-    : file_name_{file_name},
-      fp_{fopen(file_name.c_str(), "a")} {
+      : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
     if (not fp_) {
-      PFEXCEPTION_RAISE("FileOpen", "Unable to open "+file_name_);
+      PFEXCEPTION_RAISE("FileOpen", "Unable to open " + file_name_);
     }
   }
   ~WriteToBinaryFile() {
-    if (fp_)
-      fclose(fp_);
-    fp_=0;
+    if (fp_) fclose(fp_);
+    fp_ = 0;
   }
   void operator()(std::vector<uint32_t>& event) {
     fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
@@ -742,15 +743,16 @@ class WriteToBinaryFile {
 class DecodeAndWriteToCSV {
   std::ofstream file_;
   pflib::packing::SingleROCEventPacket ep_;
-  mutable ::pflib::logging::logger the_log_{pflib::logging::get("DecodeAndWriteToCSV")};
+  mutable ::pflib::logging::logger the_log_{
+      pflib::logging::get("DecodeAndWriteToCSV")};
+
  public:
-  DecodeAndWriteToCSV(const std::string& file_name)
-    : file_{file_name} {
-      if (not file_) {
-        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+file_name);
-      }
-      file_ << std::boolalpha;
-      file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+  DecodeAndWriteToCSV(const std::string& file_name) : file_{file_name} {
+    if (not file_) {
+      PFEXCEPTION_RAISE("FileOpen", "Unable to open " + file_name);
+    }
+    file_ << std::boolalpha;
+    file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
   }
   void operator()(std::vector<uint32_t>& event) {
     // we have to manually check the size so that we can do the reinterpret_cast
@@ -778,22 +780,16 @@ class DecodeAndWriteToCSV {
  * @param[in] Action function that consumes the event packets and does something with them
  * (presumably writes them out to a file)
  */
-static void daq_run(
-  Target* pft,
-  const std::string& cmd,
-  int run,
-  int nevents,
-  int rate,
-  const std::function<void(std::vector<uint32_t>&)>& Action
-) {
+static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
+                    int rate,
+                    const std::function<void(std::vector<uint32_t>&)>& Action) {
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
-    if (cmd=="CHARGE")
-      pft->fc().chargepulse();
+    if (cmd == "CHARGE") pft->fc().chargepulse();
 
     gettimeofday(&tvi, 0);
     double runsec =
@@ -808,7 +804,8 @@ static void daq_run(
     }
 
     std::vector<uint32_t> event = pft->read_event();
-    pflib_log(debug) << "event " << ievt << " has " << event.size() << " 32-bit words";
+    pflib_log(debug) << "event " << ievt << " has " << event.size()
+                     << " 32-bit words";
     Action(event);
   }
 };
@@ -975,23 +972,25 @@ Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
     struct tm* tm = localtime(&t);
 
     char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm); 
-    
-    int run=BaseMenu::readline_int("Run number? ",run);
-    int nevents=BaseMenu::readline_int("How many events? ", 100);
-    static int rate=100;
-    rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
-    
-    pft->setup_run(run,daq_format_mode,daq_contrib_id);
+    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
 
-    std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
-    bool decoding = BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
-  
+    int run = BaseMenu::readline_int("Run number? ", run);
+    int nevents = BaseMenu::readline_int("How many events? ", 100);
+    static int rate = 100;
+    rate = BaseMenu::readline_int("Readout rate? (Hz) ", rate);
+
+    pft->setup_run(run, daq_format_mode, daq_contrib_id);
+
+    std::string fname =
+        BaseMenu::readline("Filename (no extension):  ", fname_def);
+    bool decoding =
+        BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
+
     if (decoding) {
-      DecodeAndWriteToCSV writer{fname+".csv"};
+      DecodeAndWriteToCSV writer{fname + ".csv"};
       daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     } else {
-      WriteToBinaryFile writer{fname+".raw"};
+      WriteToBinaryFile writer{fname + ".raw"};
       daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     }
   }
@@ -1440,8 +1439,8 @@ auto menu_fc =
         //->line("VETO_SETUP", "Setup the L1 Vetos", fc)
         //->line("MULTISAMPLE", "Setup multisample readout", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
-        //->line("ENABLES", "Enable various sources of signal", fc)
-;
+    //->line("ENABLES", "Enable various sources of signal", fc)
+    ;
 
 auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
@@ -1455,12 +1454,13 @@ auto menu_daq =
     //  parameter", daq)
     ;
 
-auto menu_daq_debug = menu_daq->submenu("DEBUG","expert functions for debugging DAQ")
-  ->line("STATUS","Provide the status", daq_debug )
-  ->line("ESPY", "Spy on one elink", daq_debug )
-  ->line("ADV", "advance the readout pointers", daq_debug )
-  ->line("FMTTEST","test the formatter", daq_debug )
-/*
+auto menu_daq_debug =
+    menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
+        ->line("STATUS", "Provide the status", daq_debug)
+        ->line("ESPY", "Spy on one elink", daq_debug)
+        ->line("ADV", "advance the readout pointers", daq_debug)
+        ->line("FMTTEST", "test the formatter", daq_debug)
+    /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
   ->line("READ", "Read an event", daq)
@@ -1472,17 +1472,18 @@ auto menu_daq_debug = menu_daq->submenu("DEBUG","expert functions for debugging 
   ->line("IBSPY","Spy on an input buffer",  daq_debug )
   ->line("EFSPY","Spy on an event formatter buffer",  daq_debug )
 */
-;
+    ;
 
-auto menu_daq_setup = menu_daq->submenu("SETUP","setup the DAQ")
-  ->line("STATUS", "Status of the DAQ", daq_setup)
-//  ->line("ENABLE", "Toggle enable status", daq_setup)
-//  ->line("ZS", "Toggle ZS status", daq_setup)
-  ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
-  ->line("FPGA", "Set FPGA id", daq_setup)
-  ->line("STANDARD","Do the standard setup for HCAL", daq_setup)
-  ->line("FORMAT","Select the output data format", daq_setup)
-  ->line("SETUP","Setup ECON id, contrib id, samples", daq_setup)
+auto menu_daq_setup =
+    menu_daq->submenu("SETUP", "setup the DAQ")
+        ->line("STATUS", "Status of the DAQ", daq_setup)
+        //  ->line("ENABLE", "Toggle enable status", daq_setup)
+        //  ->line("ZS", "Toggle ZS status", daq_setup)
+        ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
+        ->line("FPGA", "Set FPGA id", daq_setup)
+        ->line("STANDARD", "Do the standard setup for HCAL", daq_setup)
+        ->line("FORMAT", "Select the output data format", daq_setup)
+        ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup)
 //  ->line("MULTISAMPLE","Setup multisample readout", fc )
 #ifdef PFTOOL_ROGUE
         ->line("DMA", "Enable/disable DMA readout (only available with rogue)",
