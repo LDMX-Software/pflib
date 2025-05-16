@@ -12,6 +12,8 @@ namespace pflib {
  */
 class Target {
  public:
+  ~Target() {}
+
   std::vector<std::string> i2c_bus_names();
   I2C& get_i2c_bus(const std::string& name);
 
@@ -19,6 +21,7 @@ class Target {
 
   FastControl& fc() { return *fc_; }
 
+  virtual void setup_run(int irun, int format, int contrib_id = -1) {}
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return hcal().daq().getEventOccupancy() > 0; }
 

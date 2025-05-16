@@ -114,15 +114,13 @@ int main(int argc, char* argv[]) {
 
   std::map<int, std::map<int, uint8_t>> settings;
   try {
-    pflib::loadIntegerCSV(
-        input_filename,
-        [&](const std::vector<int> cells) {
-          if (cells.size() != 3) {
-            pflib_log(warn) << "Skipping row with exactly three columns.";
-            return;
-          }
-          settings[cells.at(0)][cells.at(1)] = cells.at(2); 
-        });
+    pflib::loadIntegerCSV(input_filename, [&](const std::vector<int> cells) {
+      if (cells.size() != 3) {
+        pflib_log(warn) << "Skipping row with exactly three columns.";
+        return;
+      }
+      settings[cells.at(0)][cells.at(1)] = cells.at(2);
+    });
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;

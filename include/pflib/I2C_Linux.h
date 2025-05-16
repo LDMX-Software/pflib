@@ -52,6 +52,7 @@ class I2C_Linux : public I2C {
 
  private:
   void obtain_control(uint8_t i2c_dev_addr);
+
  private:
   int handle_;
   std::string dev_;

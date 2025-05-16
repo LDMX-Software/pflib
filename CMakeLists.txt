@@ -85,6 +85,20 @@ add_custom_target(direct_access DEPENDS include/register_maps/direct_access.h)
 # within the Compiler
 
 add_custom_command(
+  OUTPUT "include/register_maps/lpgbt.h"
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/lpgbt.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
+  COMMENT "Generating C++ lpGBT register LUT from register_maps/lpgbt_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
+
+add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
@@ -124,9 +138,14 @@ add_library(pflib SHARED
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
+  src/pflib/lpGBT.cxx
+  src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
+  src/pflib/lpgbt/lpGBT_Registers.cxx
+  src/pflib/lpgbt/lpGBT_Utility.cxx
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
+  src/pflib/ECOND_Formatter.cxx
   src/pflib/utility.cxx
   src/pflib/Version.cxx
   src/pflib/zcu/UIO.cxx
@@ -139,7 +158,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log)
-add_dependencies(pflib register_maps_header direct_access)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_executable(
   test-pflib
@@ -152,6 +171,9 @@ target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packin
 
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
+
+add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/Menu.cc app/tool/Rcfile.cc app/tool/lpgbt_mezz_tester.cc)
+target_link_libraries(pflpgbt PRIVATE pflib readline)
 
 # don't install test-menu executable! just for Menu developments
 add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)

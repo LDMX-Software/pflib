@@ -97,7 +97,8 @@ class BaseMenu {
    * @param[in] defval default value if user does not provide anything
    * @return value input by user
    */
-  static int readline_int(const std::string& prompt, int aval);
+  static int readline_int(const std::string& prompt, int aval,
+                          bool ashex = false);
 
   /**
    * Read a float parameter with a default

@@ -18,6 +18,7 @@ int Elinks::scanBitslip(int ilink) {
     setBitslip(ilink, islip);
     usleep(10);
     std::vector<uint32_t> sv = spy(ilink);
+    //    printf("%d %d %08x\n",ilink,islip,sv[0]);
     if (sv[0] == ALIGN_PATTERN) return islip;
   }
   return -1;  // nothing found

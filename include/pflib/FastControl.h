@@ -1,8 +1,8 @@
 #ifndef PFLIB_FastControl_H_
 #define PFLIB_FastControl_H_
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace pflib {
 
@@ -15,6 +15,11 @@ class FastControl {
    * Get the counters for all the different fast control commands
    */
   virtual std::vector<uint32_t> getCmdCounters() = 0;
+
+  /**
+   * clear the counters
+   */
+  virtual void resetCounters() {}
 
   /** send a single L1A */
   virtual void sendL1A() = 0;
@@ -35,10 +40,10 @@ class FastControl {
   virtual void clear_run() {}
 
   /** calib pulse setup */
-  virtual void fc_setup_calib(int pulse_len, int l1a_offset) {}
+  virtual void fc_setup_calib(int charge_to_l1a) {}
 
-  /** calib pulse setup */
-  virtual void fc_get_setup_calib(int& pulse_len, int& l1a_offset) {}
+  /** calib pulse setup (charge to l1a time) */
+  virtual int fc_get_setup_calib() { return -1; }
 
   /** read counters from the FC side */
   virtual void read_counters(int& spill_count, int& header_occ,

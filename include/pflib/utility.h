@@ -1,8 +1,8 @@
 /**
  * @file utility.h some random utilities that have been used in more than one place
  */
-#include <string>
 #include <functional>
+#include <string>
 
 namespace pflib {
 
@@ -18,10 +18,8 @@ namespace pflib {
  *
  * @throws Exception if no file is provided or file cannot be opened
  */
-void loadIntegerCSV(
-    const std::string& file_name,
-    const std::function<void(const std::vector<int>&)>& Action
-);
+void loadIntegerCSV(const std::string& file_name,
+                    const std::function<void(const std::vector<int>&)>& Action);
 
 /**
  * Check if a given string has a specific ending
@@ -32,4 +30,4 @@ void loadIntegerCSV(
  */
 bool endsWith(const std::string& full, const std::string& ending);
 
-}
+}  // namespace pflib
