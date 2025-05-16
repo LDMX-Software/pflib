@@ -6,7 +6,6 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('input', help='input yaml file')
 parser.add_argument('output', type=str, help='output file')
-parser.add_argument('--namespace', help='namespace to wrap LUTs with, default is stem of output file') 
 args = parser.parse_args()
 
 fout= open(args.output,"w")

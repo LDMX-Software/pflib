@@ -85,6 +85,20 @@ add_custom_target(direct_access DEPENDS include/register_maps/direct_access.h)
 # within the Compiler
 
 add_custom_command(
+  OUTPUT "include/register_maps/lpgbt.h"
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/lpgbt.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
+  ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
+  COMMENT "Generating C++ lpGBT register LUT from register_maps/lpgbt_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
+
+add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
@@ -144,7 +158,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log)
-add_dependencies(pflib register_maps_header direct_access)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_executable(
   test-pflib

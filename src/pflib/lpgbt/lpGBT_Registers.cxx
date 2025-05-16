@@ -21,7 +21,7 @@ static void def_reg(const std::string& name, uint16_t addr, uint8_t mask = 0xFF,
   g_registers[name] = r;
 }
 
-#include "lpGBT_Registers_def.h"
+#include "register_maps/lpgbt.h"
 
 bool findRegister(const std::string& registerName, uint16_t& addr,
                   uint8_t& mask, uint8_t& offset) {
