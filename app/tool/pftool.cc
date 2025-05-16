@@ -260,8 +260,9 @@ static void elinks(const std::string& cmd, Target* pft) {
       int apt = elinks.scanAlign(alink, false);
       elinks.setAlignPhase(alink, apt);
       int bpt = elinks.scanBitslip(alink);
-      elinks.setBitslip(alink, bpt);
-      printf(" %d Best phase : %d  Bitslip : %d \n", alink, apt, bpt);
+      if (bpt>=0) elinks.setBitslip(alink, bpt);
+      std::vector<uint32_t> spy = elinks.spy(alink);
+      printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt, bpt, spy[0]);
     }
     for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
       if (running[iroc]) {
@@ -490,26 +491,16 @@ static void fc(const std::string& cmd, Target* pft) {
     printf("Sent BUFFER CLEAR\n");
   }
   if (cmd == "COUNTER_RESET") {
-    //    pft->fc().resetCounters();
+    pft->fc().resetCounters();
     do_status = true;
   }
-  /*
+  
   if (cmd=="CALIB") {
-    int len, offset;
-    pft->fc().get_setup_calib(len,offset);
-#ifdef PFTOOL_UHAL
-    std::cout <<
-      "NOTE: A known bug in uMNio firmware which has been patched in later
-versions\n" "      leads to the inability of the firmware to read some
-parameters.\n" "      If you are seeing 0 as the default even after setting
-these parameters,\n" "      you have this (slightly) buggy firmware."
-      << std::endl << std::endl;
-#endif
-    len=BaseMenu::readline_int("Calibration pulse length?",len);
+    int offset=pft->fc().fc_get_setup_calib();
     offset=BaseMenu::readline_int("Calibration L1A offset?",offset);
-    pft->fc().setup_calib(len,offset);
+    pft->fc().fc_setup_calib(offset);
   }
-  */
+ 
   /*
   if (cmd=="MULTISAMPLE") {
     bool multi;
@@ -534,9 +525,20 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
   */
   if (cmd == "STATUS" || do_status) {
     static const std::map<int,std::string> bit_comments = {
-      {0, "orbit requests"},
-      {1, "l1a/read requests"},
-      {5, "calib pulse requests"},
+      {0, "encoding errors"},
+      {3, "l1a/read requests"},
+      {4, "l1a NZS requests"},
+      {5, "orbit/bcr requests"},
+      {6, "orbit count resets"},
+      {7, "internal calib pulse requests"},
+      {8, "external calib pulse requests"},
+      {9, "chipsync resets"},
+      {10, "event count resets"},
+      {11, "event buffer resets"},
+      {12, "link reset roc-t"},
+      {13, "link reset roc-d"},
+      {14, "link reset econ-t"},
+      {15, "link reset econ-d"},
     };
     /*
     bool multi;
@@ -725,7 +727,9 @@ class WriteToBinaryFile {
     }
   }
   ~WriteToBinaryFile() {
-    fclose(fp_);
+    if (fp_)
+      fclose(fp_);
+    fp_=0;
   }
   void operator()(std::vector<uint32_t>& event) {
     fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
@@ -788,8 +792,8 @@ static void daq_run(
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
-    // if (cmd=="CHARGE")
-    //         pft->fc().calibpulse();
+    if (cmd=="CHARGE")
+      pft->fc().chargepulse();
 
     gettimeofday(&tvi, 0);
     double runsec =
@@ -1435,7 +1439,7 @@ auto menu_fc =
         //->line("FC_RESET", "Reset the fast control", fc)
         //->line("VETO_SETUP", "Setup the L1 Vetos", fc)
         //->line("MULTISAMPLE", "Setup multisample readout", fc)
-        //->line("CALIB", "Setup calibration pulse", fc)
+        ->line("CALIB", "Setup calibration pulse", fc)
         //->line("ENABLES", "Enable various sources of signal", fc)
 ;
 

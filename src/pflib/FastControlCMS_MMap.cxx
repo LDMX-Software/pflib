@@ -14,6 +14,7 @@ namespace pflib {
 static const size_t ADDR_CTL_REG = 0;
 static const size_t ADDR_REQUEST = 1;
 
+static const uint32_t REQ_CLEAR_COUNTERS = 0x2;
 static const uint32_t CTL_ENABLE_ORBITSYNC = 0x0004;
 static const uint32_t CTL_ENABLE_L1AS = 0x0008;
 
@@ -63,7 +64,7 @@ class Periodic {
     if (enable) a |= 0x1;
     if (enable_follow) a |= 0x4;
     a |= (flavor & 0x7) << 3;
-    a |= (follow_which * 0xF) << 20;
+    a |= (follow_which & 0xF) << 20;
     a |= (bx & 0xFFF) << 8;
     uio_.write(offset_, a);
     uint32_t b(orbit_prescale & 0xFFFFF);
@@ -141,6 +142,23 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, CTL_ENABLE_L1AS);
   }
 
+  virtual void resetCounters() {
+    uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
+  }
+  
+  virtual int fc_get_setup_calib() {
+    Periodic charge_inj(periodic(CHARGE_PERIODIC));
+    Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
+    return l1a_charge.bx-charge_inj.bx;
+  }
+
+  virtual void fc_setup_calib(int charge_to_l1a) {
+    Periodic charge_inj(periodic(CHARGE_PERIODIC));
+    Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
+    l1a_charge.bx=charge_inj.bx+charge_to_l1a;
+    l1a_charge.pack();
+  }
+  
   virtual void sendL1A() { periodic(PEDESTAL_PERIODIC).request(); }
 
   virtual std::vector<uint32_t> getCmdCounters() {
