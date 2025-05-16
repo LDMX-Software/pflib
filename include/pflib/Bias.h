@@ -1,13 +1,14 @@
 #ifndef PFLIB_MAX5825_H_
 #define PFLIB_MAX5825_H_
 
-#include "pflib/I2C.h"
 #include <vector>
+
+#include "pflib/I2C.h"
 
 namespace pflib {
 
 /**
- * Class representing communication with 
+ * Class representing communication with
  * the Digital-Analog Converter on the HGC ROC.
  * MAX5825
  *
@@ -20,7 +21,7 @@ namespace pflib {
  * The lower-level set and get functions are for chip-wide
  * configuration (e.g. the watch dog WDOG configuration).
  *
- * Use the {set,get}byDAC functions when setting or getting 
+ * Use the {set,get}byDAC functions when setting or getting
  * DAC parameters.
  */
 class MAX5825 {
@@ -38,6 +39,7 @@ class MAX5825 {
   static const uint8_t CODEn_LOADn;
   static const uint8_t REFn;
   static const uint8_t POWERn;
+
  public:
   /**
    * Wrap an I2C class for communicating with the MAX5825.
@@ -79,7 +81,7 @@ class MAX5825 {
    * or if we are requesting all DACs (i_dac > 7).
    *
    * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
-   * to make the DAC selection. Using the commands defined as 
+   * to make the DAC selection. Using the commands defined as
    * static constants in this class, the combination of i_dac and
    * command is simply adding them together, which is done here.
    */
@@ -90,25 +92,24 @@ class MAX5825 {
    *
    * The per-DAC commands expect the 12-bit settings as the 12 MSBs
    * of the two adjacent concatenated data bytes. We do the shifting
-   * inside of this function, so the twelve_bit_setting should be the 
+   * inside of this function, so the twelve_bit_setting should be the
    * value you want the DAC to be set at.
    *
    * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
-   * to make the DAC selection. Using the commands defined as 
+   * to make the DAC selection. Using the commands defined as
    * static constants in this class, the combination of i_dac and
    * command is simply adding them together, which is done here.
    */
   void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
 
-
-  /** Set reference voltage 
+  /** Set reference voltage
    * 0 - external
    * 1 - 2.5V
    * 2 - 2.048V
    * 3 - 4.096V
    */
   void setRefVoltage(int level);
-  
+
  private:
   /// our connection
   I2C& i2c_;
@@ -137,21 +138,22 @@ class Bias {
   static const uint8_t ADDR_LED_1;
   static const uint8_t ADDR_SIPM_0;
   static const uint8_t ADDR_SIPM_1;
+
  public:
   /**
    * Wrap an I2C class for communicating with all the DAC chips.
    *
-   * The bus is 4 + <board-number>, so we set the default to 4 for 
+   * The bus is 4 + <board-number>, so we set the default to 4 for
    * the case where we only have one board with bus number 0.
    */
   Bias(I2C& i2c, int bus = 4);
 
-  /** 
-   * Initialize to standard settings 
+  /**
+   * Initialize to standard settings
    *  Reference voltage - 4.096V
    */
   void initialize();
-  
+
   /**
    * Pass a setting to one LED DAC
    */
@@ -189,6 +191,6 @@ class Bias {
   std::vector<MAX5825> sipm_;
 };  // Bias
 
-}
+}  // namespace pflib
 
-#endif // PFLIB_MAX5825_H_
+#endif  // PFLIB_MAX5825_H_

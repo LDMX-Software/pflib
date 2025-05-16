@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace YAML {
-  class Node;
+class Node;
 }
 
 class Rcmap {
@@ -21,7 +21,6 @@ class Rcmap {
   /** Is this key a vector? */
   bool is_vector(const std::string& keyname) const;
 
-  
   /** Is this key a submap? */
   bool is_map(const std::string& keyname) const;
 
@@ -42,10 +41,10 @@ class Rcmap {
 
   /** get item as scalar bool */
   bool getBool(const std::string& keyname) const;
-  
+
   /** get item as scalar int */
   int getInt(const std::string& keyname) const;
-    
+
  protected:
   std::vector<YAML::Node*> nodes_;
 };
@@ -76,4 +75,4 @@ class Rcfile {
   std::vector<HelpInfo> helpInfo_;
 };
 
-#endif // Rcfile_h_included_
+#endif  // Rcfile_h_included_

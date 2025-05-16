@@ -2,43 +2,56 @@
  * Print the defaults for the HGC ROC stored in pflib
  */
 
-#include <iostream>
-#include <algorithm>
-#include <iomanip>
-#include <fstream>
 #include <strings.h>
-
 #include <yaml-cpp/yaml.h>
 
-#include "pflib/Exception.h"
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
 #include "pflib/Compile.h"
+#include "pflib/Exception.h"
+#include "pflib/Logging.h"
+#include "pflib/Version.h"
 
 static void usage() {
-  std::cout <<
-    "\n"
-    " USAGE:\n"
-    "  pfdefaults [options] [output_file]\n"
-    "\n"
-    " OPTIONS:\n"
-    "  -h,--help     : Print this help and exit\n"
-    "  --def-exlcude : Exclude all pages by default\n"
-    "                  (without this parameter, include all pages by default)\n"
-    "  -r,--roc      : Define the ROC type_version whose defaults should be retrieved\n"
-    "                  By default, we use the sipm_rocv3b register mapping.\n"
-    "  -e,--exclude  : Page name (or substring of page name) to exclude from printing\n"
-    "                  Provide more than once to exclude mutliple pages.\n"
-    "  -i,--include  : Page name (or substring of page name) to include for printing\n"
-    "                  Provide more than once to include mutliple pages.\n"
-    "  output_file   : Name of file to write YAML to (std::cout if no file given)\n"
-    "\n"
-    "  The exclude/include rules are processed in order meaning that the last matching\n"
-    "  rule is what is used to decide on if a page should be printed or not.\n"
-    << std::endl;
+  std::cout
+      << "\n"
+         " USAGE:\n"
+         "  pfdefaults [options] [output_file]\n"
+         "\n"
+         " OPTIONS:\n"
+         "  -h,--help     : Print this help and exit\n"
+         "  --def-exlcude : Exclude all pages by default\n"
+         "                  (without this parameter, include all pages by "
+         "default)\n"
+         "  -r,--roc      : Define the ROC type_version whose defaults should "
+         "be retrieved\n"
+         "                  By default, we use the sipm_rocv3b register "
+         "mapping.\n"
+         "  -e,--exclude  : Page name (or substring of page name) to exclude "
+         "from printing\n"
+         "                  Provide more than once to exclude mutliple pages.\n"
+         "  -i,--include  : Page name (or substring of page name) to include "
+         "for printing\n"
+         "                  Provide more than once to include mutliple pages.\n"
+         "  output_file   : Name of file to write YAML to (std::cout if no "
+         "file given)\n"
+         "\n"
+         "  The exclude/include rules are processed in order meaning that the "
+         "last matching\n"
+         "  rule is what is used to decide on if a page should be printed or "
+         "not.\n"
+      << std::endl;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
+  pflib::logging::fixture f;
+  auto the_log_{pflib::logging::get("pfdefaults")};
+
   bool default_include{true};
-  std::vector<std::pair<std::string,bool>> eirules;
+  std::vector<std::pair<std::string, bool>> eirules;
   std::string output_filename;
   std::stringstream cmd;
   std::string roc_type_version{"sipm_rocv3b"};
@@ -52,54 +65,63 @@ int main(int argc, char *argv[]) {
         usage();
         return 0;
       } else if (arg == "--roc" or arg == "-r") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         roc_type_version = argv[i_arg];
-      } else if (arg == "--exclude" or arg == "-e" or arg == "--include" or arg == "-i") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg 
-            << " parameter requires are argument after it." << std::endl;
+      } else if (arg == "--exclude" or arg == "-e" or arg == "--include" or
+                 arg == "-i") {
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         cmd << " " << argv[i_arg];
-        eirules.emplace_back(argv[i_arg],arg.find("i") != std::string::npos);
+        eirules.emplace_back(argv[i_arg], arg.find("i") != std::string::npos);
       } else if (arg == "--def-exclude") {
         default_include = false;
       } else {
-        std::cerr << "ERROR: " << arg << " not a recognized argument." << std::endl;
+        pflib_log(fatal) << arg << " not a recognized argument.";
         return 1;
       }
     } else {
       // positional ==> settings file
       if (not output_filename.empty()) {
-        std::cerr << "ERROR: We only write defaults to one file at a time." << std::endl;
+        pflib_log(fatal) << "We only write defaults to one file at a time.";
         return 1;
       }
       output_filename = arg;
     }
   }
 
-  std::map<std::string,std::map<std::string,int>> parameters;
+  // storing version message for printing to output file
+  std::stringstream version{PFLIB_VERSION};
+  version << " (" << GIT_DESCRIBE << ")";
+  pflib_log(debug) << version.str();
+
+  std::map<std::string, std::map<std::string, int>> parameters;
   try {
     parameters = pflib::Compiler::get(roc_type_version).defaults();
   } catch (const pflib::Exception& e) {
-    std::cerr << "ERROR: " << "[" << e.name() << "] "
-      << e.message() << std::endl;
+    pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;
   }
 
   YAML::Emitter out;
-  out << YAML::Comment("These YAML settings were generated by "+cmd.str());
+  out << YAML::Comment("These YAML settings were generated by " + cmd.str());
+  out << YAML::Comment(version.str());
   out << YAML::BeginMap;
   for (const auto& page : parameters) {
-    // search through list BACKWARDS, meaning the last rule that applies will be the decision
-    auto rule_it{std::find_if(eirules.rbegin(), eirules.rend(),
-        [&](const auto& rule_pair) {
-          return (strncasecmp(page.first.c_str(), rule_pair.first.c_str(), rule_pair.first.size()) == 0);
+    // search through list BACKWARDS, meaning the last rule that applies will be
+    // the decision
+    auto rule_it{std::find_if(
+        eirules.rbegin(), eirules.rend(), [&](const auto& rule_pair) {
+          return (strncasecmp(page.first.c_str(), rule_pair.first.c_str(),
+                              rule_pair.first.size()) == 0);
         })};
     bool include{default_include};
     if (rule_it != eirules.rend()) include = rule_it->second;
@@ -119,7 +141,7 @@ int main(int argc, char *argv[]) {
   } else {
     std::ofstream of(output_filename);
     if (not of.is_open()) {
-      std::cerr << "ERROR: Unable to open output file " << output_filename << std::endl;
+      pflib_log(fatal) << "Unable to open output file " << output_filename;
       return 2;
     }
     of << out.c_str() << std::endl;
