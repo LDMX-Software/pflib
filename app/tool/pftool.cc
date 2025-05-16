@@ -738,6 +738,7 @@ class WriteToBinaryFile {
 class DecodeAndWriteToCSV {
   std::ofstream file_;
   pflib::packing::SingleROCEventPacket ep_;
+  mutable ::pflib::logging::logger the_log_{pflib::logging::get("DecodeAndWriteToCSV")};
  public:
   DecodeAndWriteToCSV(const std::string& file_name)
     : file_{file_name} {
@@ -748,6 +749,11 @@ class DecodeAndWriteToCSV {
       file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
   }
   void operator()(std::vector<uint32_t>& event) {
+    // we have to manually check the size so that we can do the reinterpret_cast
+    if (event.size() == 0) {
+      pflib_log(warn) << "event with zero words read out, skipping";
+      return;
+    }
     // reinterpret the 32-bit words into a vector of bytes which is
     // what is consummed by the BufferReader
     const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
