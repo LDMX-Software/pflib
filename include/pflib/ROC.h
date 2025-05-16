@@ -1,11 +1,13 @@
 #ifndef PFLIB_ROC_H_INCLUDED
 #define PFLIB_ROC_H_INCLUDED
 
-#include "pflib/I2C.h"
-#include "pflib/Compile.h"
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
+
+#include "pflib/Compile.h"
+#include "pflib/I2C.h"
+#include "pflib/Logging.h"
 
 namespace pflib {
 
@@ -17,9 +19,9 @@ class ROC {
  public:
   ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version);
 
-  void setRunMode(bool active=true);
+  void setRunMode(bool active = true);
   bool isRunMode();
-  
+
   std::vector<uint8_t> readPage(int ipage, int len);
   uint8_t getValue(int page, int offset);
   void setValue(int page, int offset, uint8_t value);
@@ -29,26 +31,90 @@ class ROC {
   bool getDirectAccess(int reg, int bit);
   void setDirectAccess(const std::string& name, bool val);
   void setDirectAccess(int reg, int bit, bool val);
-  
-  std::vector<uint8_t> getChannelParameters(int ichan);
-  void setChannelParameters(int ichan, std::vector<uint8_t>& values);
 
-  void setRegisters(const std::map<int,std::map<int,uint8_t>>& registers);
+  /**
+   * set registers on the HGCROC to specific values
+   *
+   * @param[in] registers The input map has the page as the first key and the register
+   * in the page as the second key and then the 8-bit register value.
+   */
+  void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
+
+  /**
+   * set registers on the HGCROC to specific values
+   *
+   * @param[in] file_path path to CSV file containing register values,
+   * the first column is the page, the second column is the register in that page,
+   * and then the last column is the value of the register
+   */
+  void loadRegisters(const std::string& file_path);
+
+  /**
+   * Retrieve the parameters that correspond to the input page
+   *
+   * @param[in] page name of page to get parameters for
+   */
   std::vector<std::string> parameters(const std::string& page);
-  std::map<std::string,std::map<std::string,int>> defaults();
 
-  void applyParameters(const std::map<std::string,std::map<std::string,int>>& parameters);
+  /**
+   * Retrieve all of the manual-documented defaults for all parameters
+   *
+   * The values are not very interesting (they are all zero in v3 chips),
+   * but this can be helpful for looking through a parameter listing
+   * organized by page.
+   *
+   * @return mapping of page->param->value
+   */
+  std::map<std::string, std::map<std::string, int>> defaults();
 
-  // short-hand for just applying a single parameter
-  void applyParameter(const std::string& page, const std::string& param, const int& val);
+  /**
+   * Apply the input parameter mapping onto the chip
+   *
+   * @param[in] parameters mapping of parameters to apply where the
+   * first key is the page name, the second key is the parameter in
+   * that page and the value is the parameter value
+   */
+  void applyParameters(
+      const std::map<std::string, std::map<std::string, int>>& parameters);
 
+  /**
+   * Load the input parameters onto the chip
+   *
+   * @param[in] file_path path to YAML file containing parameters to load
+   * @param[in] prepend_defaults if true, use the default values for all
+   * parameters before applying the YAML file itself, else only apply
+   * the parameters contained in the YAML file
+   */
+  void loadParameters(const std::string& file_path, bool prepend_defaults);
+
+  /**
+   * Short-hand for applying a single parameter
+   *
+   * We construct a small std::map and use the applyParameters function above.
+   *
+   * @param[in] page name of page
+   * @param[in] param name of parameter in that page
+   * @param[in] val value to set parameter to
+   */
+  void applyParameter(const std::string& page, const std::string& param,
+                      const int& val);
+
+  /**
+   * Dump the settings of the HGCROC into the input filepath
+   *
+   * @param[in] filepath file to which to dump settings into
+   * @param[in] decompile if true, decompile the registers into parameters
+   * and write a YAML file, else just write a CSV file of the registers
+   */
+  void dumpSettings(const std::string& filepath, bool decompile);
 
  private:
   I2C& i2c_;
   uint8_t roc_base_;
   Compiler compiler_;
-};      
-  
-}
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc")};
+};
 
-#endif // PFLIB_ROC_H_INCLUDED
+}  // namespace pflib
+
+#endif  // PFLIB_ROC_H_INCLUDED

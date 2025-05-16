@@ -106,9 +106,11 @@ Rogue | NA
 uHAL | 2.8.1
 
 ## Directory Structure
+- app : executables and supporting source files for executables
 - config : helpful HGC ROC YAML parameter settings to load onto chips
 - docs : documentation generation and helpful PDF manuals
+- env : build context for a container image emulating the ZCU software environment
 - include : header files of pflib library
-- src : implementation files of pflib library
-- app : executables and supporting source files for executables
 - register_maps : files for mapping parameters to their registers on the chip
+- src : implementation files of pflib library
+- test : source files to build a testing executable with Boost.Test

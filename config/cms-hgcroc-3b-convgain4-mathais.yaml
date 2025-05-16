@@ -1,0 +1,105 @@
+DigitalHalf_*:
+  Bx_offset: 2
+  CalibrationSC: 1
+  L1Offset: 10
+GlobalAnalog_*:
+  Cd: 2
+  Cf: 10
+  Cf_comp: 10
+  Dacb_dynran: 3
+  Dacb_vbi_pa: 32
+  dacb_bias_conv: 6
+  Delay40: 2
+  Delay65: 3
+  Delay87: 4
+  Delay9: 4
+  Gain_conv: 0
+  Idac_inv: 7
+  Idac_tot: 7
+  ON_backup: 0
+  ON_conv: 1
+  ON_toa: 1
+  ON_tot: 1
+  Ref_pa_cm: 0
+  Rf: 8
+  SelExtADC: 0
+  SelRisingEdge: 1
+MasterTdc_*:
+  BIAS_I_CTDC_D: 10 # 24 by default
+  FOLLOWER_CTDC_EN: 1 # 1 by default
+  BIAS_FOLLOWER_CAL_P_CTDC_EN: 1 # 0 by default
+  BIAS_FOLLOWER_CAL_P_CTDC_D: 4 # 0 by default
+  GLOBAL_EN_BUFFER_CTDC: 1 # 0 by default
+  BIAS_CAL_DAC_CTDC_P_EN: 1 # 0 by default
+  BIAS_CAL_DAC_CTDC_P_D: 2 # 0 by default
+  BIAS_I_FTDC_D: 10 # 24 by default
+  FOLLOWER_FTDC_EN: 1 # 1 by default
+  BIAS_FOLLOWER_CAL_P_FTDC_EN: 1 # 0 by default
+  BIAS_FOLLOWER_CAL_P_FTDC_D: 4 # 0 by default
+  GLOBAL_EN_BUFFER_FTDC: 1 # 0 by default
+  CTDC_CALIB_FREQUENCY: 2 # 2 by default
+  FTDC_CALIB_FREQUENCY: 2 # 2 by default
+  #New:
+  CTRL_IN_CTDC_P_D: 0 # 0 by default
+  CTRL_IN_CTDC_P_EN: 0 # 0 by default
+  GLOBAL_SYNC_OUT: 1
+  GLOBAL_LATENCY_TIME: 9
+  #New v3b:
+  # EN_MASTER_CTDC_VOUT_INIT: 0
+  # EN_MASTER_FTDC_VOUT_INIT: 0
+  START_COUNTER: 1
+  # VD_CTDC_P_D: 16
+  # VD_CTDC_P_DAC_EN: 1
+  # VD_FTDC_P_D: 16
+  # VD_FTDC_P_DAC_EN: 1
+ReferenceVoltage_*:
+  Vbg_1v: 4 #3 # 5 default, 3
+  Refi: 1 # 3 default, 1
+  choice_cinj: 0 # O default
+  cmd_120p: 0 # 0 default
+  Calib_2V5: 0
+  Calib: 0
+  Inv_vref: 740 # was 650. 550, 530, def 256
+  Noinv_vref: 850 #850, 890, def 316
+  Tot_vref: 260 # was 650
+  Toa_vref: 250 # was 250
+  IntCtest: 0
+  ON_dac: 1
+  dac_aldo: 1810 # was 1350
+  # ExtCtest_2V5: 1 #def 0
+  probe_dc2: 0  # 0 output disabled
+  probe_dc1: 0  # select 0 (off), 1 (set 1) or 2 (VBG set 2)
+  probe_dc: 26  # choose which voltage to be probed. Vbg=26
+  probe_vin: 0  # set to 0 to see preamp output, to 1 to see InputDAC 
+Top:
+  BIAS_I_PLL_D: 63
+  EN_HIGH_CAPA: 1
+  RunL: 1
+  RunR: 1
+  phase_ck: 3
+  enpe: 2
+  s: 1
+calib_*:
+  Gain_conv: 4
+  Inputdac: 31
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 31
+  trim_toa: 31
+  trim_tot: 31
+ch_*:
+  Gain_conv: 4
+  Inputdac: 31
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 31
+  trim_toa: 31
+  trim_tot: 31
+cm_*:
+  Gain_conv: 4
+  Inputdac: 31
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 31
+  trim_toa: 31
+  trim_tot: 31

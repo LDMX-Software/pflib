@@ -6,7 +6,7 @@
 #include <iostream>
 #include "Menu.h"
 
-using tool = Menu<pflib::lpGBT>;
+using tool = Menu<pflib::lpGBT*>;
 
 void regs(const std::string& cmd, pflib::lpGBT* target ) {
   static int addr = 0;

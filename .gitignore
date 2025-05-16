@@ -2,7 +2,9 @@ build**
 install**
 *.raw
 *.root
-.*.swp
 *~
 docs/html/**
 tool/test-menu
+
+# ignore all hidden files
+.*

@@ -52,6 +52,7 @@ dap_lut = {
     for name, node in swamp_lut['DirectAccess'].items()
 }
 
+args.output.parent.mkdir(exist_ok=True, parents=True)
 with open(args.output, 'w') as f:
     f.write(f'/* auto-generated LUT header from {args.input} */\n\n')
     f.write('#pragma once\n\n')

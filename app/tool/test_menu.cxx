@@ -1,32 +1,30 @@
 #include "Menu.h"
 
-void print_cmd(const std::string& cmd, Menu<int>::TargetHandle p) {
+using test_menu = Menu<int*>;
+
+void print_cmd(const std::string& cmd, test_menu::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
   std::cout << " Ran command " << cmd << " with " << *p << std::endl;
 }
 
-void increment(Menu<int>::TargetHandle p) {
+void increment(test_menu::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
   std::cout << " " << *p << " -> ";
   (*p)++;
   std::cout << *p << std::endl;
 }
 
-using test_menu = Menu<int>;
-
 namespace {
 
-auto sb = test_menu::menu("SB","example submenu")
-  ->line("THREE", "third command", print_cmd)
-  ->line("INCSB", "increment the target", increment)
-  ;
+auto sb = test_menu::menu("SB", "example submenu")
+              ->line("THREE", "third command", print_cmd)
+              ->line("INCSB", "increment the target", increment);
 
 auto r = test_menu::root()
-  ->line("INC", "increment the target", increment)
-  ->line("ONE", "one command", print_cmd)
-  ;
+             ->line("INC", "increment the target", increment)
+             ->line("ONE", "one command", print_cmd);
 
-}
+}  // namespace
 
 /**
  * test-menu executable
@@ -41,15 +39,15 @@ auto r = test_menu::root()
  */
 int main(int argc, char* argv[]) {
   if (argc > 1) {
-    Menu<int>::root()->print(std::cout);
+    test_menu::root()->print(std::cout);
     std::cout << std::flush;
     return 0;
   }
   try {
     int i = 3;
-    Menu<int>::run(&i);
+    test_menu::run(&i);
   } catch (std::exception& e) {
-    fprintf(stderr, "Exception!  %s\n",e.what());
+    fprintf(stderr, "Exception!  %s\n", e.what());
     return 1;
   }
   return 0;

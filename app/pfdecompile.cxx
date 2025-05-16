@@ -5,81 +5,48 @@
  * Only compiled and installed if yaml-cpp is found by CMake.
  */
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-
 #include <yaml-cpp/yaml.h>
 
-#include "pflib/Exception.h"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
 #include "pflib/Compile.h"
+#include "pflib/Exception.h"
+#include "pflib/Logging.h"
+#include "pflib/Version.h"
+#include "pflib/utility.h"
 
 static void usage() {
-  std::cout <<
-    "\n"
-    " USAGE:\n"
-    "  pfdecompile [options] register_values\n"
-    "\n"
-    " OPTIONS:\n"
-    "  -h,--help     : Print this help and exit\n"
-    "  --no-careful  : Don't print warnings and use 0 for missing registers\n"
-    "  --careful     : Print warnings and skip parameters with missing registers (default)\n"
-    "  -r,--roc      : Define the ROC type_version that should be used for compilation\n"
-    "                  By default, we use the sipm_rocv3b register mapping.\n"
-    "  --output, -o  : Define the output file.\n"
-    "                  By default, the output file is the file with register values with extension\n"
-    "                  changed to 'yaml'\n"
-    << std::endl;
+  std::cout << "\n"
+               " USAGE:\n"
+               "  pfdecompile [options] register_values\n"
+               "\n"
+               " OPTIONS:\n"
+               "  -h,--help     : Print this help and exit\n"
+               "  --no-careful  : Don't print warnings and use 0 for missing "
+               "registers\n"
+               "  --careful     : Print warnings and skip parameters with "
+               "missing registers (default)\n"
+               "  -r,--roc      : Define the ROC type_version that should be "
+               "used for compilation\n"
+               "                  By default, we use the sipm_rocv3b register "
+               "mapping.\n"
+               "  --output, -o  : Define the output file.\n"
+               "                  By default, the output file is the file with "
+               "register values with extension\n"
+               "                  changed to 'yaml'\n"
+            << std::endl;
 }
 
-/**
- * Modern RAII-styled CSV extractor taken from
- * https://stackoverflow.com/a/1120224/17617632
- * this allows us to **discard white space within the cells**
- * making the CSV more human readable.
- */
-static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
-  std::vector<int> result;
-
-  std::string line, cell;
-  std::getline(ss, line);
-
-  if (line.empty() or line[0] == '#') {
-    // empty line or comment, return empty container
-    return result;
-  }
-
-  std::stringstream line_stream(line);
-  while (std::getline(line_stream, cell, ',')) {
-    /**
-     * std stoi has a auto-detect base feature
-     * https://en.cppreference.com/w/cpp/string/basic_string/stol
-     * which we can enable by setting the pre-defined base to 0
-     * (the third parameter) - this auto-detect base feature
-     * can handle hexidecial (prefix == 0x or 0X), octal (prefix == 0),
-     * and decimal (no prefix).
-     *
-     * The second parameter is an address to put the number of characters processed,
-     * which I disregard at this time.
-     *
-     * Do we allow empty cells?
-     */
-    result.push_back(cell.empty() ? 0 : std::stoi(cell,nullptr,0));
-  }
-  // checks for a trailing comma with no data after it
-  if (!line_stream and cell.empty()) {
-    // trailing comma, put in one more 0
-    result.push_back(0);
-  }
-
-  return result;
-}
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
+  pflib::logging::fixture f;
   if (argc == 1) {
     usage();
     return 1;
   }
+
+  auto the_log_{pflib::logging::get("pfdecompile")};
 
   bool careful{true};
   std::string input_filename;
@@ -93,15 +60,17 @@ int main(int argc, char *argv[]) {
         usage();
         return 0;
       } else if (arg == "--roc" or arg == "-r") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
         roc_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
-        if (i_arg+1 == argc or argv[i_arg+1][0] == '-') {
-          std::cerr << "ERROR: The " << arg << " parameter requires are argument after it." << std::endl;
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
@@ -111,68 +80,74 @@ int main(int argc, char *argv[]) {
       } else if (arg == "--careful") {
         careful = true;
       } else {
-        std::cerr << "ERROR: " << arg << " not a recognized argument." << std::endl;
+        pflib_log(fatal) << arg << " not a recognized argument.";
         return 1;
       }
     } else {
       // positional ==> settings file
       if (not input_filename.empty()) {
-        std::cerr << "ERROR: We can only decompile one file with register values." << std::endl;
+        pflib_log(fatal)
+            << "We can only decompile one file with register values.";
         return 1;
       }
       input_filename = arg;
     }
   }
 
+  // storing version message for printing to output file
+  std::stringstream version{PFLIB_VERSION};
+  version << " (" << GIT_DESCRIBE << ")";
+  pflib_log(debug) << version.str();
+
   if (input_filename.empty()) {
-    std::cerr << "ERROR: We need one file to decompile." << std::endl;
+    pflib_log(fatal) << "We need one file to decompile.";
     return 1;
   }
 
   if (output_filename.empty()) {
     // strip extension
-    output_filename = input_filename.substr(0,input_filename.find_last_of('.'));
+    output_filename =
+        input_filename.substr(0, input_filename.find_last_of('.'));
     // add yaml extension
     output_filename += ".yaml";
   }
 
-  std::ifstream inf{input_filename};
-  if (not inf.is_open()) {
-    std::cerr << "ERROR: Unable to open input file " << input_filename << std::endl;
-    return 2;
+  std::map<int, std::map<int, uint8_t>> settings;
+  try {
+    pflib::loadIntegerCSV(
+        input_filename,
+        [&](const std::vector<int> cells) {
+          if (cells.size() != 3) {
+            pflib_log(warn) << "Skipping row with exactly three columns.";
+            return;
+          }
+          settings[cells.at(0)][cells.at(1)] = cells.at(2); 
+        });
+  } catch (const pflib::Exception& e) {
+    pflib_log(fatal) << "[" << e.name() << "] " << e.message();
+    return -1;
   }
 
   // try to open file before decompilation to make sure we have access
   std::ofstream of{output_filename};
   if (not of.is_open()) {
-    std::cerr << "ERROR: Unable to open output file " << output_filename << std::endl;
+    pflib_log(fatal) << "Unable to open output file " << output_filename;
     return 3;
   }
 
-  std::map<int,std::map<int,uint8_t>> settings;
-  while (inf) {
-    auto cells = getNextLineAndExtractValues(inf);
-    if (cells.empty()) continue;
-    if (cells.size() != 3) {
-      std::cerr << "WARNING: Skipping row with exactly three columns." << std::endl;
-      continue;
-    }
-    settings[cells.at(0)][cells.at(1)] = cells.at(2);
-  }
-
-  std::map<std::string,std::map<std::string,int>>
-    parameters;
+  std::map<std::string, std::map<std::string, int>> parameters;
   try {
     // compilation checks parameter/page names
-    parameters = pflib::Compiler::get(roc_type_version).decompile(settings,careful);
+    parameters =
+        pflib::Compiler::get(roc_type_version).decompile(settings, careful);
   } catch (const pflib::Exception& e) {
-    std::cerr << "ERROR: " << "[" << e.name() << "] "
-      << e.message() << std::endl;
+    pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;
   }
 
   YAML::Emitter out;
   out << YAML::Comment("This YAML settings file was generated by pfdecompile");
+  out << YAML::Comment(version.str());
   out << YAML::BeginMap;
   for (const auto& page : parameters) {
     out << YAML::Key << page.first;

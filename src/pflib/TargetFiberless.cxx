@@ -1,10 +1,12 @@
-#include "pflib/Target.h"
-#include "pflib/I2C_Linux.h"
-#include "pflib/GPIO.h"
-#include <iostream>
 #include <unistd.h>
 #include "pflib/ECOND_Formatter.h"
 #include <memory>
+
+#include <iostream>
+
+#include "pflib/GPIO.h"
+#include "pflib/I2C_Linux.h"
+#include "pflib/Target.h"
 
 namespace pflib {
 
@@ -12,9 +14,10 @@ class HcalFiberless : public Hcal {
  public:
   static const int GPO_HGCROC_RESET_HARD = 2;
   static const int GPO_HGCROC_RESET_SOFT = 1;
-  static const int GPO_HGCROC_RESET_I2C  = 0;
+  static const int GPO_HGCROC_RESET_I2C = 0;
 
-  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c) : Hcal(roc_i2c) {
+  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c)
+      : Hcal(roc_i2c) {
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
     // should already be done, but be SURE
@@ -22,26 +25,28 @@ class HcalFiberless : public Hcal {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);
 
-    elinks_=get_Elinks_zcu();
-    daq_=get_DAQ_zcu();
+    elinks_ = get_Elinks_zcu();
+    daq_ = get_DAQ_zcu();
   }
-  
+
   virtual void hardResetROCs() {
-    gpio_->setGPO(GPO_HGCROC_RESET_HARD, false); // active low
-    gpio_->setGPO(GPO_HGCROC_RESET_I2C, false); // active low
-    usleep(10); printf("HARD\n");
-    gpio_->setGPO(GPO_HGCROC_RESET_HARD, true); // active low
-    gpio_->setGPO(GPO_HGCROC_RESET_I2C, true); // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_HARD, false);  // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_I2C, false);   // active low
+    usleep(10);
+    printf("HARD\n");
+    gpio_->setGPO(GPO_HGCROC_RESET_HARD, true);  // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);   // active low
   }
 
   virtual void softResetROC(int which) {
-    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, false); // active low
-    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true); // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, false);  // active low
+    gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);   // active low
   }
 
   virtual Elinks& elinks() { return *elinks_; }
   virtual DAQ& daq() { return *daq_; }
-private:
+
+ private:
   Elinks* elinks_;
   DAQ* daq_;
 };
@@ -49,19 +54,18 @@ private:
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
-    
-    i2croc_=std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
-    i2cboard_=std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
+    i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
+    i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
 
-    i2c_["HGCROC"]=i2croc_;
-    i2c_["BOARD"]=i2cboard_;
-    i2c_["BIAS"]=i2cboard_;
+    i2c_["HGCROC"] = i2croc_;
+    i2c_["BOARD"] = i2cboard_;
+    i2c_["BIAS"] = i2cboard_;
 
     std::vector<std::shared_ptr<I2C>> roc_i2cs;
     roc_i2cs.push_back(i2croc_);
 
-    hcal_=std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs));
-    fc_=std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs));
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
   virtual void setup_run(int run, int format, int contrib_id);
@@ -154,4 +158,4 @@ std::vector<uint32_t> TargetFiberless::read_event() {
 
 Target* makeTargetFiberless() { return new TargetFiberless(); }
 
-}
+}  // namespace pflib
