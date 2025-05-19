@@ -130,7 +130,7 @@ std::vector<uint32_t> Capture_zcu::getLinkData(int ilink) {
   }
 
   size_t addr = 0x200 | (ilink << 6);
-  printf("%d %d %x\n", ilink, addr, addr);
+  //printf("%d %d %x\n", ilink, addr, addr);
   for (size_t i = 0; i < l1a_capture_width_[ilink]; i++)
     rv.push_back(uio_.read(addr + i));
   return rv;
