@@ -564,6 +564,8 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
       }
       printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
     }
+
+    printf("  ELink Event Occupancy: %d\n", pft->hcal().daq().getEventOccupancy());
     /**
      * FastControl::read_counters is default defined to do nothing,
      * FastControlCMS_MMap does not override this default definition
@@ -790,11 +792,13 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
+    pflib_log(trace) << "daq event occupancy pre-L1A: " << pft->hcal().daq().getEventOccupancy();
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
     if (cmd == "CHARGE") pft->fc().chargepulse();
 
+    pflib_log(trace) << "daq event occupancy post-L1A: " << pft->hcal().daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
         (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tvi.tv_usec) / 1e6;
@@ -808,6 +812,7 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
     }
 
     std::vector<uint32_t> event = pft->read_event();
+    pflib_log(trace) << "daq event occupancy after read_event: " << pft->hcal().daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
     Action(event);
