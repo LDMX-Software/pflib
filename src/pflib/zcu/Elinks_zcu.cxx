@@ -52,7 +52,9 @@ static const uint32_t MASK_RESET_BUFFER = 0x00010000;
 static const uint32_t MASK_ADVANCE_FIFO = 0x00020000;
 static const uint32_t MASK_SOFTWARE_L1A = 0x00040000;
 
-static const uint32_t MASK_OCCUPANCY = 0x000000FF;
+static const uint32_t MASK_OCCUPANCY    = 0x000000FF;
+static const uint32_t MASK_BUFFER_FULL  = 0x00000100;
+static const uint32_t MASK_BUFFER_EMPTY = 0x00000200;
 
 static const size_t ADDR_TOP_CTL = 0x0;
 static const size_t ADDR_LINK_STATUS_BASE = 0x26;
@@ -115,7 +117,14 @@ void Capture_zcu::getLinkSetup(int ilink, int& l1a_delay,
   l1a_delay = uio_.readMasked(ictl, MASK_CAPTURE_DELAY);
   l1a_capture_width = uio_.readMasked(ictl, MASK_CAPTURE_WIDTH);
 }
-void Capture_zcu::bufferStatus(int ilink, bool& empty, bool& full) {}
+void Capture_zcu::bufferStatus(int ilink, bool& empty, bool& full) {
+  empty=true; full=true; // implauible
+  if (ilink < 0 || ilink >= DAQ::nlinks()) return;
+  uint32_t ifl=uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS+ilink*2,MASK_BUFFER_FULL);
+  uint32_t iemp=uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS+ilink*2,MASK_BUFFER_EMPTY);
+  empty=(iemp!=0);
+  full=(ifl!=0);
+}
 
 std::vector<uint32_t> Capture_zcu::getLinkData(int ilink) {
   std::vector<uint32_t> rv;

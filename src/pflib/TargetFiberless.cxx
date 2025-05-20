@@ -91,6 +91,7 @@ void TargetFiberless::setup_run(int run, int format, int contrib_id) {
     contribid_ = contrib_id & 0xFF;
   ievt_ = 0;
   l1a_ = 0;
+  hcal_->daq().reset();
   fc_->clear_run();
 }
 

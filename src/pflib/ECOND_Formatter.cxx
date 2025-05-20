@@ -1,5 +1,4 @@
 #include "pflib/ECOND_Formatter.h"
-
 #include <stdio.h>
 
 namespace pflib {
@@ -130,22 +129,6 @@ int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
   return 4;  // assume we just read out everything for now, but easy to add TOA zs logic
 }
 
-static const uint32_t data[] = {
-    0xf00c9c86u, 0x2012c02,  0x0c601803, 0x08f07d02, 0x08509602, 0x0840d702,
-    0x0c705d03,  0x0c303d03, 0x08f0ff02, 0x0c906d03, 0x0c203d03, 0x0c200c03,
-    0x0ca06503,  0x0c609a03, 0x0ce02c03, 0x0c304903, 0x0c308e03, 0x0c108e03,
-    0x0c508e03,  0x0ce03c03, 0x0c705d03, 0x0cf03c03, 0x0c902403, 0x0cf07d03,
-    0x0cf03c03,  0x0cf07d03, 0x0c409603, 0x0c50d303, 0x0ca0aa03, 0x0cd03403,
-    0x0c701c03,  0x0cd07503, 0x0c305103, 0x0c902803, 0x0cb03403, 0x0c906903,
-    0x0c706503,  0x0890eb02, 0x08f0ff02, 0x0};
-/*
-  void ECOND_Formatter::test() {
-    std::vector<uint32_t> xd;
-    for (int i=0; i<40; i++) xd.push_back(data[i]);
-    std::vector<uint32_t> ecd=format_elink(xd);
-    for (size_t j=0; j<ecd.size(); j++)
-      printf("%02d %08x\n",j,ecd[j]);
-    
-  }
-  */
+
 }  // namespace pflib
+

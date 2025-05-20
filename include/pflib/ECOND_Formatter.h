@@ -2,7 +2,6 @@
 #define pflib_ECOND_Formatter_h_included
 
 #include <stdint.h>
-
 #include <vector>
 
 namespace pflib {
@@ -30,3 +29,4 @@ class ECOND_Formatter {
 }  // namespace pflib
 
 #endif  // pflib_ECOND_Formatter_h_included
+
