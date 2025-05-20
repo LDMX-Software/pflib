@@ -564,6 +564,8 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
       }
       printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
     }
+
+    printf("  ELink Event Occupancy: %d\n", pft->hcal().daq().getEventOccupancy());
     /**
      * FastControl::read_counters is default defined to do nothing,
      * FastControlCMS_MMap does not override this default definition
@@ -622,17 +624,7 @@ static const int DAQ_FORMAT_ECON = 2;
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->hcal().daq();
   if (cmd == "STATUS") {
-    //    pft->daqStatus(std::cout);
-#ifdef PFTOOL_ROGUE
-    auto rwbi = dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      bool enabled;
-      uint8_t samples_per_event, fpgaid_i;
-      rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
-      printf("DMA : %s Status=%08x\n", (enabled) ? ("ENABLED") : ("DISABLED"),
-             rwbi->daq_dma_status());
-    }
-#endif
+    daq("STATUS", pft);
   }
   if (cmd == "ENABLE") {
     daq.enable(!daq.enabled());
@@ -790,11 +782,13 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
+    pflib_log(trace) << "daq event occupancy pre-L1A: " << pft->hcal().daq().getEventOccupancy();
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
     if (cmd == "CHARGE") pft->fc().chargepulse();
 
+    pflib_log(trace) << "daq event occupancy post-L1A: " << pft->hcal().daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
         (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tvi.tv_usec) / 1e6;
@@ -808,6 +802,7 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
     }
 
     std::vector<uint32_t> event = pft->read_event();
+    pflib_log(trace) << "daq event occupancy after read_event: " << pft->hcal().daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
     Action(event);
@@ -821,8 +816,7 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
  * - STATUS : pflib::Target::daqStatus
  *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in
  * that manner
- * - RESET : pflib::Target::daqSoftReset
- * - HARD_RESET : pflib::Target::daqHardReset
+ * - RESET : pflib::DAQ::reset
  * - READ : pflib::Target::daqReadDirect with option to save output to file
  * - PEDESTAL : pflib::Target::prepareNewRun and then send an L1A trigger with
  *   pflib::Backend::fc_sendL1A and collect events with
@@ -848,34 +842,27 @@ static void daq(const std::string& cmd, Target* pft) {
     rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, dma_enabled);
   }
 #endif
-  /*
   if (cmd=="STATUS") {
-    pft->daqStatus(std::cout);
+    std::cout
+      << "          Enabled: " << daq.enabled() << "\n"
+      << "          ECON ID: " << daq.econid() << "\n"
+      << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
+      << "              SoI: " << daq.soi() << "\n"
+      << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
+      << std::endl;
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
     if (rwbi) {
-      printf("DMA : %s
-Status=%08x\n",(dma_enabled)?("ENABLED"):("DISABLED"),rwbi->daq_dma_status());
+      printf(
+        "DMA : %s Status=%08x\n",
+        (dma_enabled)?("ENABLED"):("DISABLED"),
+        rwbi->daq_dma_status()
+      );
     }
 #endif
   }
   if (cmd=="RESET") {
-    pft->daqSoftReset();
-  }
-  if (cmd=="HARD_RESET") {
-    pft->daqHardReset();
-  }
-  */
-  if (cmd == "READ") {
-    /*
-  bool save_to_disk=BaseMenu::readline_bool("Save to disk?  ",false);
-  if (save_to_disk) {
-    std::string fname=BaseMenu::readline("Filename :  ");
-    FILE* f=fopen(fname.c_str(),"w");
-    fwrite(&(buffer[0]),sizeof(uint32_t),buffer.size(),f);
-    fclose(f);
-    }
-    */
+    daq.reset();
   }
   /*
   if (cmd=="EXTERNAL") {
@@ -1230,6 +1217,7 @@ std::vector<uint32_t> read_words_from_file() {
 static void daq_debug(const std::string& cmd, Target* pft) {
   if (cmd == "STATUS") {
     // get the general status
+    daq("STATUS", pft);
     /*
     daq("STATUS", pft);
     uint32_t reg1,reg2;
@@ -1450,10 +1438,9 @@ auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", daq)
         ->line("RESET", "Reset the DAQ", daq)
-        ->line("HARD_RESET", "Reset the DAQ, including all parameters", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
-        ->line("EXTERNAL", "Take an externally-triggered run", daq)
+    //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
     //  ->line("SCAN","Take many charge or pedestal runs while changing a single
     //  parameter", daq)
     ;
@@ -1463,6 +1450,7 @@ auto menu_daq_debug =
         ->line("STATUS", "Provide the status", daq_debug)
         ->line("ESPY", "Spy on one elink", daq_debug)
         ->line("ADV", "advance the readout pointers", daq_debug)
+        ->line("SW_L1A", "send a L1A from software", fc)
         ->line("FMTTEST", "test the formatter", daq_debug)
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
@@ -1481,14 +1469,14 @@ auto menu_daq_debug =
 auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
         ->line("STATUS", "Status of the DAQ", daq_setup)
-        //  ->line("ENABLE", "Toggle enable status", daq_setup)
-        //  ->line("ZS", "Toggle ZS status", daq_setup)
+        ->line("ENABLE", "Toggle enable status", daq_setup)
+    //  ->line("ZS", "Toggle ZS status", daq_setup)
         ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
         ->line("FPGA", "Set FPGA id", daq_setup)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup)
         ->line("FORMAT", "Select the output data format", daq_setup)
         ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup)
-//  ->line("MULTISAMPLE","Setup multisample readout", fc )
+    //  ->line("MULTISAMPLE","Setup multisample readout", fc )
 #ifdef PFTOOL_ROGUE
         ->line("DMA", "Enable/disable DMA readout (only available with rogue)",
                daq_setup)
