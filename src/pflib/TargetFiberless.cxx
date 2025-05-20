@@ -91,6 +91,7 @@ void TargetFiberless::setup_run(int run, int format, int contrib_id) {
     contribid_ = contrib_id & 0xFF;
   ievt_ = 0;
   l1a_ = 0;
+  hcal_->daq().reset();
   fc_->clear_run();
 }
 
@@ -126,6 +127,7 @@ std::vector<uint32_t> TargetFiberless::read_event() {
       buffer[2] |= len_total;
       buffer.push_back(0xd07e2025);
       buffer.push_back(0x12345678);
+      hcal().daq().advanceLinkReadPtr();
     } else if (daqformat_ == 2) {
       const int bc = 0;  // bx number...
       buffer.push_back(0xb33f2025);
