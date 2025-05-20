@@ -596,6 +596,27 @@ static int daq_contrib_id = 20;
 static const int DAQ_FORMAT_SIMPLEROC = 1;
 static const int DAQ_FORMAT_ECON = 2;
 
+static void print_daq_status(Target* pft) {
+  pflib::DAQ& daq = pft->hcal().daq();
+  std::cout
+    << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
+    << "          ECON ID: " << daq.econid() << "\n"
+    << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
+    << "              SoI: " << daq.soi() << "\n"
+    << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
+    << std::endl;
+#ifdef PFTOOL_ROGUE
+    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
+    if (rwbi) {
+      printf(
+        "DMA : %s Status=%08x\n",
+        (dma_enabled)?("ENABLED"):("DISABLED"),
+        rwbi->daq_dma_status()
+      );
+    }
+#endif
+}
+
 /**
  * DAQ->SETUP menu commands
  *
@@ -603,9 +624,6 @@ static const int DAQ_FORMAT_ECON = 2;
  * object via pflib::Hcal::daq.
  *
  * ## Commands
- * - STATUS : pflib::Target::daqStatus
- *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in
- * that manner
  * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and
  * pflib::DAQ::enabled
  * - ZS : pflib::Target::enableZeroSuppression
@@ -623,9 +641,6 @@ static const int DAQ_FORMAT_ECON = 2;
  */
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->hcal().daq();
-  if (cmd == "STATUS") {
-    daq("STATUS", pft);
-  }
   if (cmd == "ENABLE") {
     daq.enable(!daq.enabled());
   }
@@ -813,9 +828,6 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
  * DAQ menu commands, DOES NOT include sub-menu commands
  *
  * ## Commands
- * - STATUS : pflib::Target::daqStatus
- *   and pflib::rogue::RogueWishboneInterface::daq_dma_status if connected in
- * that manner
  * - RESET : pflib::DAQ::reset
  * - READ : pflib::Target::daqReadDirect with option to save output to file
  * - PEDESTAL : pflib::Target::prepareNewRun and then send an L1A trigger with
@@ -842,25 +854,6 @@ static void daq(const std::string& cmd, Target* pft) {
     rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, dma_enabled);
   }
 #endif
-  if (cmd=="STATUS") {
-    std::cout
-      << "          Enabled: " << daq.enabled() << "\n"
-      << "          ECON ID: " << daq.econid() << "\n"
-      << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
-      << "              SoI: " << daq.soi() << "\n"
-      << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
-      << std::endl;
-#ifdef PFTOOL_ROGUE
-    auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
-    if (rwbi) {
-      printf(
-        "DMA : %s Status=%08x\n",
-        (dma_enabled)?("ENABLED"):("DISABLED"),
-        rwbi->daq_dma_status()
-      );
-    }
-#endif
-  }
   if (cmd=="RESET") {
     daq.reset();
   }
@@ -1217,7 +1210,7 @@ std::vector<uint32_t> read_words_from_file() {
 static void daq_debug(const std::string& cmd, Target* pft) {
   if (cmd == "STATUS") {
     // get the general status
-    daq("STATUS", pft);
+    print_daq_status(pft);
     /*
     daq("STATUS", pft);
     uint32_t reg1,reg2;
@@ -1436,7 +1429,7 @@ auto menu_fc =
 
 auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
-        ->line("STATUS", "Status of the DAQ", daq)
+        ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
@@ -1447,7 +1440,7 @@ auto menu_daq =
 
 auto menu_daq_debug =
     menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
-        ->line("STATUS", "Provide the status", daq_debug)
+        ->line("STATUS", "Provide the status", print_daq_status)
         ->line("ESPY", "Spy on one elink", daq_debug)
         ->line("ADV", "advance the readout pointers", daq_debug)
         ->line("SW_L1A", "send a L1A from software", fc)
