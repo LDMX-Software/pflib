@@ -817,10 +817,16 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
     }
 
     std::vector<uint32_t> event = pft->read_event();
-    pflib_log(trace) << "daq event occupancy after read_event: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy after read_event: "
+                     << pft->hcal().daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
-    Action(event);
+    if (event.size() == 0) {
+      pflib_log(warn) << "event " << ievt
+                      << " did not have any words, skipping.";
+    } else {
+      Action(event);
+    }
   }
 };
 
