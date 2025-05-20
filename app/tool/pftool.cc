@@ -1450,6 +1450,7 @@ auto menu_daq_debug =
         ->line("STATUS", "Provide the status", daq_debug)
         ->line("ESPY", "Spy on one elink", daq_debug)
         ->line("ADV", "advance the readout pointers", daq_debug)
+        ->line("SW_L1A", "send a L1A from software", fc)
         ->line("FMTTEST", "test the formatter", daq_debug)
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
