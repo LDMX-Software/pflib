@@ -4,9 +4,8 @@
 
 #pragma once
 
-
-#define PFLIB_VERSION "${pflib_vers}"
-#define GIT_DESCRIBE "${git_describe}"
+#define PFLIB_VERSION "@PFLIB_VERSION@"
+#define GIT_DESCRIBE "@GIT_DESCRIBE_VERSION@"
 
 /**
  * print a two-line version message to stdout

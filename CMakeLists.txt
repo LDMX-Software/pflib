@@ -1,28 +1,19 @@
 # Set the minimum version of CMake that's required
 cmake_minimum_required(VERSION 3.12)
 
-execute_process(
-  COMMAND git describe --tags
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  RESULT_VARIABLE git_rc
-  OUTPUT_VARIABLE git_describe)
-if (NOT ${git_rc} EQUAL 0)
-  set(pflib_vers "0.0")
-  message(WARNING "System cannot deduce git tag, this pflib built is un-versioned.")
-else()
-  string(REGEX REPLACE "\n$" "" git_describe ${git_describe})
-  set(pflib_vers ${git_describe})
-  string(REGEX REPLACE "^v" "" pflib_vers ${pflib_vers})
-  string(REGEX REPLACE "-.*$" "" pflib_vers ${pflib_vers})
-endif()
-message(STATUS "Deduced pflib version ${pflib_vers}")
-
 # Set the project name
 project(pflib
-	VERSION ${pflib_vers}
 	DESCRIPTION "Pretty fine HGCROC configuration library."
 	LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
+
+find_package(Git)
+add_custom_target(version
+  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/include/pflib/Version.h.in
+                   -D DST=${CMAKE_BINARY_DIR}/include/pflib/Version.h
+                   -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
+                   -P ${CMAKE_SOURCE_DIR}/GenerateVersionHeader.cmake
+)
 
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
@@ -109,8 +100,6 @@ add_custom_command(
 )
 add_custom_target(register_maps_header DEPENDS include/register_maps/register_maps.h)
 
-configure_file(include/pflib/Version.h.in include/pflib/Version.h)
-
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
@@ -158,7 +147,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log)
-add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap version)
 
 add_executable(
   test-pflib
@@ -203,18 +192,5 @@ install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h")
 install(EXPORT pflibTargets
   FILE pflibTargets.cmake
   NAMESPACE pflib::
-  DESTINATION lib/cmake/pflib
-  )
-
-include(CMakePackageConfigHelpers)
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfig.cmake"
-  INSTALL_DESTINATION lib/cmake/pflib
-  )
-write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/pflibConfigVersion.cmake"
-  COMPATIBILITY AnyNewerVersion)
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/pflibConfigVersion.cmake"
   DESTINATION lib/cmake/pflib
   )

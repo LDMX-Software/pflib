@@ -1,0 +1,9 @@
+calib_*:
+  mask_toa: 1
+  mask_tot: 1
+ch_*:
+  mask_toa: 1
+  mask_tot: 1
+cm_*:
+  mask_toa: 1
+  mask_tot: 1
