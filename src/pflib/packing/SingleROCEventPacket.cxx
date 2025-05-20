@@ -1,7 +1,7 @@
 #include "pflib/packing/SingleROCEventPacket.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
@@ -108,12 +108,11 @@ void SingleROCEventPacket::to_csv(std::ofstream& f) const {
       << daq_link.calib.toa() << '\n';
     for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
       f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << i_ch << ','
-        << daq_link.channels[i_ch].Tp() << ',' << daq_link.channels[i_ch].Tc()
-        << ',' << daq_link.channels[i_ch].adc_tm1() << ','
-        << daq_link.channels[i_ch].adc() << ','
-        << daq_link.channels[i_ch].tot() << ','
-        << daq_link.channels[i_ch].toa() << '\n';
+        << daq_link.orbit << ',' << i_ch << ',' << daq_link.channels[i_ch].Tp()
+        << ',' << daq_link.channels[i_ch].Tc() << ','
+        << daq_link.channels[i_ch].adc_tm1() << ','
+        << daq_link.channels[i_ch].adc() << ',' << daq_link.channels[i_ch].tot()
+        << ',' << daq_link.channels[i_ch].toa() << '\n';
     }
   }
 }

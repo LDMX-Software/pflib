@@ -106,11 +106,12 @@ std::string BaseMenu::readline(const std::string& prompt) {
 }
 
 std::string BaseMenu::readline(const std::string& prompt,
-                               const std::vector<std::string>& opts) {
+                               const std::vector<std::string>& opts,
+                               const std::string& def) {
   auto old_opts = BaseMenu::rl_comp_opts_;
   BaseMenu::rl_comp_opts_ = &opts;
   rl_completion_entry_function = &BaseMenu::matcher;
-  auto ret = readline(prompt);
+  auto ret = readline(prompt, def);
   rl_completion_entry_function = NULL;
   BaseMenu::rl_comp_opts_ = old_opts;
   return ret;
@@ -128,9 +129,12 @@ double BaseMenu::readline_float(const std::string& prompt) {
   return atof(BaseMenu::readline(prompt).c_str());
 }
 
-int BaseMenu::readline_int(const std::string& prompt, int aval) {
+int BaseMenu::readline_int(const std::string& prompt, int aval, bool ashex) {
   char buffer[50];
-  sprintf(buffer, "%d", aval);
+  if (ashex)
+    sprintf(buffer, "0x%x", aval);
+  else
+    sprintf(buffer, "%d", aval);
 #ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt, buffer), 0, 0);
 #else

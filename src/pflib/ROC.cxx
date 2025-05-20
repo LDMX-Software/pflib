@@ -145,7 +145,8 @@ void ROC::loadRegisters(const std::string& file_name) {
     if (cells.size() == 3) {
       setValue(cells.at(0), cells.at(1), cells.at(2));
     } else {
-      pflib_log(warn) << "Ignoring ROC CSV register settings line without exactly three columns";
+      pflib_log(warn) << "Ignoring ROC CSV register settings line without "
+                         "exactly three columns";
     }
   });
 }
@@ -159,8 +160,7 @@ std::map<std::string, std::map<std::string, int>> ROC::defaults() {
 }
 
 void ROC::applyParameters(
-    const std::map<std::string, std::map<std::string, int>>& parameters
-) {
+    const std::map<std::string, std::map<std::string, int>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
    */

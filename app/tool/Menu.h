@@ -68,13 +68,16 @@ class BaseMenu {
 
   /**
    * Read a string parameter without a default but with the input
-   * list of options for tab-completion (and validation)
+   * list of options for tab-completion
    *
-   * @param[in] prompt The informing the user what the parameter is
-   * @return value input by user
+   * @param[in] prompt Prompt string to the user
+   * @param[in] opts list of options for tab completion of user entry
+   * @param[in] def default value if user provides nothing
+   * @return value chosen by user
    */
   static std::string readline(const std::string& prompt,
-                              const std::vector<std::string>& opts);
+                              const std::vector<std::string>& opts,
+                              const std::string& def = "");
 
   /**
    * Read an integer parameter without a default
@@ -97,7 +100,8 @@ class BaseMenu {
    * @param[in] defval default value if user does not provide anything
    * @return value input by user
    */
-  static int readline_int(const std::string& prompt, int aval);
+  static int readline_int(const std::string& prompt, int aval,
+                          bool ashex = false);
 
   /**
    * Read a float parameter with a default

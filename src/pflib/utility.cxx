@@ -1,10 +1,10 @@
 #include "pflib/utility.h"
 
-#include "pflib/Exception.h"
-
-#include <vector>
 #include <fstream>
 #include <sstream>
+#include <vector>
+
+#include "pflib/Exception.h"
 
 namespace pflib {
 
@@ -53,8 +53,7 @@ static std::vector<int> getNextLineAndExtractValues(std::istream& ss) {
 
 void loadIntegerCSV(
     const std::string& file_name,
-    const std::function<void(const std::vector<int>&)>& Action
-) {
+    const std::function<void(const std::vector<int>&)>& Action) {
   if (file_name.empty()) {
     PFEXCEPTION_RAISE("Filename", "No file provided to load CSV function.");
   }
@@ -77,4 +76,4 @@ bool endsWith(const std::string& full, const std::string& ending) {
                             ending));
 }
 
-}
+}  // namespace pflib

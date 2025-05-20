@@ -1,0 +1,2182 @@
+ADCCAL0:
+  ADCCALGAIN2SEHIGH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x000b'
+ADCCAL1:
+  ADCCALGAIN2SELOW: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x000c'
+ADCCAL10:
+  ADCCALGAIN8DIFLOW: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0015'
+ADCCAL11:
+  ADCCALGAIN8DIFHIGH: {bit_mask: 240, length: 4, offset: 4}
+  ADCCALGAIN8DIRFLOW: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0016'
+ADCCAL12:
+  ADCCALGAIN16DIFHIGH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0017'
+ADCCAL13:
+  ADCCALGAIN16DIFLOW: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0018'
+ADCCAL14:
+  ADCCALGAIN16DIFHIGH: {bit_mask: 240, length: 4, offset: 4}
+  ADCCALGAIN16DIRFLOW: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0019'
+ADCCAL2:
+  ADCCALGAIN2SEHIGH: {bit_mask: 240, length: 4, offset: 4}
+  ADCCALGAIN2SELOW: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x000d'
+ADCCAL3:
+  ADCCALGAIN2DIFHIGH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x000e'
+ADCCAL4:
+  ADCCALGAIN2DIFLOW: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x000f'
+ADCCAL5:
+  ADCCALGAIN2DIFHIGH: {bit_mask: 240, length: 4, offset: 4}
+  ADCCALGAIN2DIRFLOW: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0010'
+ADCCAL6:
+  ADCCALGAIN4DIFHIGH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0011'
+ADCCAL7:
+  ADCCALGAIN4DIFLOW: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0012'
+ADCCAL8:
+  ADCCALGAIN4DIFHIGH: {bit_mask: 240, length: 4, offset: 4}
+  ADCCALGAIN4DIRFLOW: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0013'
+ADCCAL9:
+  ADCCALGAIN8DIFHIGH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0014'
+ADCCONFIG:
+  ADCCONVERT: {bit_mask: 128, length: 1, offset: 7}
+  ADCENABLE: {bit_mask: 4, length: 1, offset: 2}
+  ADCGAINSELECT: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0123'
+ADCMON:
+  TEMPSENSRESET: {bit_mask: 32, length: 1, offset: 5}
+  VDDANMONENA: {bit_mask: 1, length: 1, offset: 0}
+  VDDMONENA: {bit_mask: 16, length: 1, offset: 4}
+  VDDRXMONENA: {bit_mask: 4, length: 1, offset: 2}
+  VDDTXMONENA: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x0122'
+ADCSELECT:
+  ADCINNSELECT: {bit_mask: 15, length: 4, offset: 0}
+  ADCINPSELECT: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0121'
+ADCSTATUSH:
+  ADCBUSY: {bit_mask: 128, length: 1, offset: 7}
+  ADCDONE: {bit_mask: 64, length: 1, offset: 6}
+  ADCVALUE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x01ca'
+ADCSTATUSL:
+  ADCVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01cb'
+BERTCONFIG:
+  BERTMEASTIME: {bit_mask: 240, length: 4, offset: 4}
+  BERTSTART: {bit_mask: 1, length: 1, offset: 0}
+  SKIPDISABLE: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x0137'
+BERTDATAPATTERN0:
+  BERTDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x013b'
+BERTDATAPATTERN1:
+  BERTDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x013a'
+BERTDATAPATTERN2:
+  BERTDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0139'
+BERTDATAPATTERN3:
+  BERTDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0138'
+BERTRESULT0:
+  BERTERRORCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d6'
+BERTRESULT1:
+  BERTERRORCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d5'
+BERTRESULT2:
+  BERTERRORCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d4'
+BERTRESULT3:
+  BERTERRORCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d3'
+BERTRESULT4:
+  BERTERRORCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d2'
+BERTSOURCE:
+  BERTSOURCE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0136'
+BERTSTATUS:
+  BERTBUSY: {bit_mask: 2, length: 1, offset: 1}
+  BERTDONE: {bit_mask: 1, length: 1, offset: 0}
+  BERTPRBSERRORFLAG: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x01d1'
+CHIPCONFIG:
+  CHIPADDRESSBAR: {bit_mask: 7, length: 3, offset: 0}
+  HIGHSPEEDDATAININVERT: {bit_mask: 64, length: 1, offset: 6}
+  HIGHSPEEDDATAOUTINVERT: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0036'
+CHIPID0:
+  CHIPID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0000'
+CHIPID1:
+  CHIPID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0001'
+CHIPID2:
+  CHIPID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0002'
+CHIPID3:
+  CHIPID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0003'
+CLKGCDRFFPROPCUR:
+  CLKGCDRFEEDFORWARDPROPCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGCDRFEEDFORWARDPROPCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0027'
+CLKGCDRINTCUR:
+  CLKGCDRINTCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGCDRINTCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0026'
+CLKGCDRPROPCUR:
+  CLKGCDRPROPCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGCDRPROPCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0025'
+CLKGCNTOVERRIDE:
+  CDRCOCONNECTPLL: {bit_mask: 1, length: 1, offset: 0}
+  CDRCODISDATACOUNTERREF: {bit_mask: 4, length: 1, offset: 2}
+  CDRCODISDESVBIASGEN: {bit_mask: 2, length: 1, offset: 1}
+  CDRCOENABLECDR: {bit_mask: 8, length: 1, offset: 3}
+  CDRCOENABLEFD: {bit_mask: 16, length: 1, offset: 4}
+  CDRCOENABLEPLL: {bit_mask: 32, length: 1, offset: 5}
+  CDRCOREFCLKSEL: {bit_mask: 64, length: 1, offset: 6}
+  CLKGCOOVERRIDEVC: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x002a'
+CLKGCONFIG0:
+  CLKGBIASGENCONFIG: {bit_mask: 15, length: 4, offset: 0}
+  CLKGCALIBRATIONENDOFCOUNT: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0020'
+CLKGCONFIG1:
+  CDRCONTROLOVERRIDEENABLE: {bit_mask: 128, length: 1, offset: 7}
+  CLKGCDRRES: {bit_mask: 32, length: 1, offset: 5}
+  CLKGDISABLEFRAMEALIGNERLOCKCONTROL: {bit_mask: 64, length: 1, offset: 6}
+  CLKGVCODAC: {bit_mask: 15, length: 4, offset: 0}
+  CLKGVCORAILMODE: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x0021'
+CLKGFFCAP:
+  CDRCOCONNECTCDR: {bit_mask: 128, length: 1, offset: 7}
+  CLKGCAPBANKOVERRIDEENABLE: {bit_mask: 64, length: 1, offset: 6}
+  CLKGFEEDFORWARDCAP: {bit_mask: 7, length: 3, offset: 0}
+  CLKGFEEDFORWARDCAPWHENLOCKED: {bit_mask: 56, length: 3, offset: 3}
+  address: '0x0029'
+CLKGFLLINTCUR:
+  CLKGFLLINTCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGFLLINTCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0028'
+CLKGLFCONFIG0:
+  CLKGCAPBANKSELECT: {bit_mask: 16, length: 1, offset: 4}
+  CLKGLOCKFILTERCLKALWAYSON: {bit_mask: 64, length: 1, offset: 6}
+  CLKGLOCKFILTERENABLE: {bit_mask: 128, length: 1, offset: 7}
+  CLKGLOCKFILTERLOCKTHRCOUNTER: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x002d'
+CLKGLFCONFIG1:
+  CLKGLOCKFILTERRELOCKTHRCOUNTER: {bit_mask: 240, length: 4, offset: 4}
+  CLKGLOCKFILTERUNLOCKTHRCOUNTER: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x002e'
+CLKGOVERRIDECAPBANK:
+  CLKGCAPBANKSELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x002b'
+CLKGPLLINTCUR:
+  CLKGPLLINTCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGPLLINTCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0023'
+CLKGPLLPROPCUR:
+  CLKGPLLPROPCUR: {bit_mask: 15, length: 4, offset: 0}
+  CLKGPLLPROPCURWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0024'
+CLKGPLLRES:
+  CLKGPLLRES: {bit_mask: 15, length: 4, offset: 0}
+  CLKGPLLRESWHENLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0022'
+CLKGSTATUS0:
+  CLKG_CONFIG_I_PLL: {bit_mask: 15, length: 4, offset: 0}
+  CLKG_PLL_R_CONFIG: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x01bc'
+CLKGSTATUS1:
+  CLKG_CONFIG_I_CDR: {bit_mask: 15, length: 4, offset: 0}
+  CLKG_CONFIG_I_FLL: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x01bd'
+CLKGSTATUS2:
+  CLKG_CONFIG_P_CDR: {bit_mask: 15, length: 4, offset: 0}
+  CLKG_CONFIG_P_FF_CDR: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x01be'
+CLKGSTATUS3:
+  CLKG_LFLOSSOFLOCKCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01bf'
+CLKGSTATUS4:
+  CLKG_BIASGEN_CONFIG: {bit_mask: 15, length: 4, offset: 0}
+  CLKG_CONFIG_P_PLL: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x01c0'
+CLKGSTATUS5:
+  CLKG_VCOCAPSELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01c1'
+CLKGSTATUS6:
+  CLKG_DATAMUXCFG: {bit_mask: 96, length: 2, offset: 5}
+  CLKG_VCOCAPSELECT: {bit_mask: 128, length: 1, offset: 7}
+  CLKG_VCODAC: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x01c2'
+CLKGSTATUS7:
+  CLKG_CONNECTCDR: {bit_mask: 128, length: 1, offset: 7}
+  CLKG_CONNECTPLL: {bit_mask: 64, length: 1, offset: 6}
+  CLKG_DISDATACOUNTERREF: {bit_mask: 32, length: 1, offset: 5}
+  CLKG_ENABLECDR: {bit_mask: 16, length: 1, offset: 4}
+  CLKG_ENABLEFD: {bit_mask: 8, length: 1, offset: 3}
+  CLKG_ENABLEPLL: {bit_mask: 4, length: 1, offset: 2}
+  CLKG_OVERRIDEVC: {bit_mask: 2, length: 1, offset: 1}
+  CLKG_REFCLKSEL: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x01c3'
+CLKGSTATUS8:
+  CLKG_CONFIG_FF_CAP: {bit_mask: 7, length: 3, offset: 0}
+  CLKG_ENABLE_CDR_R: {bit_mask: 64, length: 1, offset: 6}
+  CLKG_LFINSTLOCK: {bit_mask: 16, length: 1, offset: 4}
+  CLKG_LFLOCKED: {bit_mask: 8, length: 1, offset: 3}
+  CLKG_SMLOCKED: {bit_mask: 32, length: 1, offset: 5}
+  CLKG_VCORAILMODE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x01c4'
+CLKGSTATUS9:
+  CLKG_LFSTATE: {bit_mask: 48, length: 2, offset: 4}
+  CLKG_SMSTATE: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x01c5'
+CLKGWAITTIME:
+  CLKGWAITCDRTIME: {bit_mask: 240, length: 4, offset: 4}
+  CLKGWAITPLLTIME: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x002c'
+CLKTREE:
+  CLKTREEADISABLE: {bit_mask: 1, length: 1, offset: 0}
+  CLKTREEBDISABLE: {bit_mask: 2, length: 1, offset: 1}
+  CLKTREECDISABLE: {bit_mask: 4, length: 1, offset: 2}
+  CLKTREEMAGICNUMBER: {bit_mask: 248, length: 5, offset: 3}
+  address: '0x0141'
+CONFIGERRORCOUNTERH:
+  CONFIGERRORCOUNTER: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ec'
+CONFIGERRORCOUNTERL:
+  CONFIGERRORCOUNTER: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ed'
+CONFIGPINS:
+  BOOTCONFIG: {bit_mask: 12, length: 2, offset: 2}
+  LOCKMODE: {bit_mask: 2, length: 1, offset: 1}
+  LPGBTMODE: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0150'
+CRC0:
+  CRC32: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x00fc'
+CRC1:
+  CRC32: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x00fd'
+CRC2:
+  CRC32: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x00fe'
+CRC3:
+  CRC32: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x00ff'
+CRCVALUE0:
+  CRCVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e1'
+CRCVALUE1:
+  CRCVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e2'
+CRCVALUE2:
+  CRCVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e3'
+CRCVALUE3:
+  CRCVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e4'
+CURDACCALH:
+  CURDACCAL: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x001e'
+CURDACCALL:
+  CURDACCAL: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x001f'
+CURDACCHN:
+  CURDACCHNENABLE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x006d'
+CURDACVALUE:
+  CURDACSELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x006c'
+DACCAL0:
+  DACCALMINCODE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0008'
+DACCAL1:
+  DACCALMAXCODE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0009'
+DACCAL2:
+  DACCALMAXCODE: {bit_mask: 15, length: 4, offset: 0}
+  DACCALMINCODE: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x000a'
+DACCONFIGH:
+  CURDACENABLE: {bit_mask: 64, length: 1, offset: 6}
+  VOLDACENABLE: {bit_mask: 128, length: 1, offset: 7}
+  VOLDACVALUE: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x006a'
+DACCONFIGL:
+  VOLDACVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x006b'
+DATAPATH:
+  DLDPBYPASDEINTERLEVEAR: {bit_mask: 128, length: 1, offset: 7}
+  DLDPBYPASFECDECODER: {bit_mask: 64, length: 1, offset: 6}
+  DLDPBYPASSDESCRAMBLER: {bit_mask: 32, length: 1, offset: 5}
+  DLDPFECCOUNTERENABLE: {bit_mask: 16, length: 1, offset: 4}
+  ULDPBYPASSFECCODER: {bit_mask: 1, length: 1, offset: 0}
+  ULDPBYPASSINTERLEAVER: {bit_mask: 4, length: 1, offset: 2}
+  ULDPBYPASSSCRAMBLER: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x0142'
+DLDPFECCORRECTIONCOUNT0:
+  DLDPFECCORRECTIONCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01c6'
+DLDPFECCORRECTIONCOUNT1:
+  DLDPFECCORRECTIONCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01c7'
+DLDPFECCORRECTIONCOUNT2:
+  DLDPFECCORRECTIONCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01c8'
+DLDPFECCORRECTIONCOUNT3:
+  DLDPFECCORRECTIONCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01c9'
+DPDATAPATTERN0:
+  DPDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0131'
+DPDATAPATTERN1:
+  DPDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0130'
+DPDATAPATTERN2:
+  DPDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x012f'
+DPDATAPATTERN3:
+  DPDATAPATTERN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x012e'
+EOMCONFIGH:
+  EOMBYPASSPHASEINTERPOLATOR: {bit_mask: 4, length: 1, offset: 2}
+  EOMENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EOMENDOFCOUNTSEL: {bit_mask: 240, length: 4, offset: 4}
+  EOMSTART: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x0124'
+EOMCONFIGL:
+  EOMPHASESEL: {bit_mask: 63, length: 6, offset: 0}
+  address: '0x0125'
+EOMCOUNTER40MH:
+  EOMCOUNTER40M: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01cf'
+EOMCOUNTER40ML:
+  EOMCOUNTER40M: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d0'
+EOMCOUTERVALUEH:
+  EOMCOUNTERVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01cd'
+EOMCOUTERVALUEL:
+  EOMCOUNTERVALUE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ce'
+EOMSTATUS:
+  EOMBUSY: {bit_mask: 2, length: 1, offset: 1}
+  EOMEND: {bit_mask: 1, length: 1, offset: 0}
+  EOMSMSTATE: {bit_mask: 12, length: 2, offset: 2}
+  address: '0x01cc'
+EOMVOFSEL:
+  EOMVOFSEL: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x0126'
+EPCLK0CHNCNTRH:
+  EPCLK0DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK0FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK0INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK0LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x006e'
+EPCLK0CHNCNTRL:
+  EPCLK0PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK0PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK0PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x006f'
+EPCLK10CHNCNTRH:
+  EPCLK10DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK10FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK10INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK10LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0082'
+EPCLK10CHNCNTRL:
+  EPCLK10PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK10PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK10PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0083'
+EPCLK11CHNCNTRH:
+  EPCLK11DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK11FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK11INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK11LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0084'
+EPCLK11CHNCNTRL:
+  EPCLK11PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK11PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK11PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0085'
+EPCLK12CHNCNTRH:
+  EPCLK12DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK12FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK12INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK12LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0086'
+EPCLK12CHNCNTRL:
+  EPCLK12PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK12PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK12PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0087'
+EPCLK13CHNCNTRH:
+  EPCLK13DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK13FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK13INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK13LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0088'
+EPCLK13CHNCNTRL:
+  EPCLK13PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK13PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK13PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0089'
+EPCLK14CHNCNTRH:
+  EPCLK14DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK14FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK14INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK14LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x008a'
+EPCLK14CHNCNTRL:
+  EPCLK14PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK14PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK14PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x008b'
+EPCLK15CHNCNTRH:
+  EPCLK15DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK15FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK15INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK15LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x008c'
+EPCLK15CHNCNTRL:
+  EPCLK15PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK15PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK15PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x008d'
+EPCLK16CHNCNTRH:
+  EPCLK16DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK16FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK16INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK16LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x008e'
+EPCLK16CHNCNTRL:
+  EPCLK16PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK16PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK16PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x008f'
+EPCLK17CHNCNTRH:
+  EPCLK17DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK17FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK17INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK17LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0090'
+EPCLK17CHNCNTRL:
+  EPCLK17PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK17PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK17PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0091'
+EPCLK18CHNCNTRH:
+  EPCLK18DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK18FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK18INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK18LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0092'
+EPCLK18CHNCNTRL:
+  EPCLK18PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK18PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK18PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0093'
+EPCLK19CHNCNTRH:
+  EPCLK19DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK19FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK19INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK19LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0094'
+EPCLK19CHNCNTRL:
+  EPCLK19PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK19PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK19PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0095'
+EPCLK1CHNCNTRH:
+  EPCLK1DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK1FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK1INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK1LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0070'
+EPCLK1CHNCNTRL:
+  EPCLK1PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK1PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK1PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0071'
+EPCLK20CHNCNTRH:
+  EPCLK20DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK20FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK20INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK20LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0096'
+EPCLK20CHNCNTRL:
+  EPCLK20PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK20PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK20PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0097'
+EPCLK21CHNCNTRH:
+  EPCLK21DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK21FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK21INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK21LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0098'
+EPCLK21CHNCNTRL:
+  EPCLK21PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK21PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK21PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0099'
+EPCLK22CHNCNTRH:
+  EPCLK22DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK22FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK22INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK22LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x009a'
+EPCLK22CHNCNTRL:
+  EPCLK22PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK22PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK22PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x009b'
+EPCLK23CHNCNTRH:
+  EPCLK23DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK23FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK23INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK23LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x009c'
+EPCLK23CHNCNTRL:
+  EPCLK23PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK23PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK23PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x009d'
+EPCLK24CHNCNTRH:
+  EPCLK24DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK24FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK24INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK24LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x009e'
+EPCLK24CHNCNTRL:
+  EPCLK24PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK24PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK24PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x009f'
+EPCLK25CHNCNTRH:
+  EPCLK25DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK25FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK25INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK25LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00a0'
+EPCLK25CHNCNTRL:
+  EPCLK25PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK25PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK25PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00a1'
+EPCLK26CHNCNTRH:
+  EPCLK26DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK26FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK26INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK26LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00a2'
+EPCLK26CHNCNTRL:
+  EPCLK26PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK26PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK26PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00a3'
+EPCLK27CHNCNTRH:
+  EPCLK27DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK27FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK27INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK27LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00a4'
+EPCLK27CHNCNTRL:
+  EPCLK27PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK27PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK27PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00a5'
+EPCLK28CHNCNTRH:
+  EPCLK28DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK28FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK28INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK28LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00a6'
+EPCLK28CHNCNTRL:
+  EPCLK28PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK28PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK28PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00a7'
+EPCLK2CHNCNTRH:
+  EPCLK2DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK2FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK2INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK2LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0072'
+EPCLK2CHNCNTRL:
+  EPCLK2PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK2PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK2PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0073'
+EPCLK3CHNCNTRH:
+  EPCLK3DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK3FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK3INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK3LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0074'
+EPCLK3CHNCNTRL:
+  EPCLK3PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK3PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK3PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0075'
+EPCLK4CHNCNTRH:
+  EPCLK4DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK4FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK4INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK4LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0076'
+EPCLK4CHNCNTRL:
+  EPCLK4PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK4PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK4PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0077'
+EPCLK5CHNCNTRH:
+  EPCLK5DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK5FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK5INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK5LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0078'
+EPCLK5CHNCNTRL:
+  EPCLK5PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK5PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK5PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0079'
+EPCLK6CHNCNTRH:
+  EPCLK6DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK6FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK6INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK6LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x007a'
+EPCLK6CHNCNTRL:
+  EPCLK6PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK6PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK6PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x007b'
+EPCLK7CHNCNTRH:
+  EPCLK7DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK7FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK7INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK7LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x007c'
+EPCLK7CHNCNTRL:
+  EPCLK7PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK7PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK7PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x007d'
+EPCLK8CHNCNTRH:
+  EPCLK8DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK8FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK8INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK8LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x007e'
+EPCLK8CHNCNTRL:
+  EPCLK8PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK8PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK8PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x007f'
+EPCLK9CHNCNTRH:
+  EPCLK9DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  EPCLK9FREQ: {bit_mask: 7, length: 3, offset: 0}
+  EPCLK9INVERT: {bit_mask: 64, length: 1, offset: 6}
+  EPCLK9LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0080'
+EPCLK9CHNCNTRL:
+  EPCLK9PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPCLK9PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPCLK9PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0081'
+EPRX00CHNCNTR:
+  EPRX00ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX00EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX00INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX00PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX00TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d0'
+EPRX01CHNCNTR:
+  EPRX01ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX01EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX01INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX01PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX01TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d1'
+EPRX02CHNCNTR:
+  EPRX02ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX02EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX02INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX02PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX02TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d2'
+EPRX03CHNCNTR:
+  EPRX03ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX03EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX03INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX03PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX03TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d3'
+EPRX0CONTROL:
+  EPRX00ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX01ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX02ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX03ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX0DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX0TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00c8'
+EPRX0CURRENTPHASE10:
+  EPRX0CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX0CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0153'
+EPRX0CURRENTPHASE32:
+  EPRX0CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX0CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0154'
+EPRX0DLLSTATUS:
+  EPRX0DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX0DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX0DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x0168'
+EPRX0LOCKED:
+  EPRX0CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX0STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0152'
+EPRX10CHNCNTR:
+  EPRX10ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX10EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX10INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX10PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX10TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d4'
+EPRX11CHNCNTR:
+  EPRX11ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX11EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX11INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX11PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX11TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d5'
+EPRX12CHNCNTR:
+  EPRX12ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX12EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX12INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX12PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX12TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d6'
+EPRX13CHNCNTR:
+  EPRX13ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX13EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX13INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX13PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX13TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d7'
+EPRX1CONTROL:
+  EPRX10ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX11ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX12ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX13ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX1DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX1TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00c9'
+EPRX1CURRENTPHASE10:
+  EPRX1CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX1CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0156'
+EPRX1CURRENTPHASE32:
+  EPRX1CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX1CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0157'
+EPRX1DLLSTATUS:
+  EPRX1DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX1DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX1DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x0169'
+EPRX1LOCKED:
+  EPRX1CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX1STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0155'
+EPRX20CHNCNTR:
+  EPRX20ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX20EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX20INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX20PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX20TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d8'
+EPRX21CHNCNTR:
+  EPRX21ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX21EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX21INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX21PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX21TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00d9'
+EPRX22CHNCNTR:
+  EPRX22ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX22EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX22INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX22PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX22TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00da'
+EPRX23CHNCNTR:
+  EPRX23ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX23EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX23INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX23PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX23TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00db'
+EPRX2CONTROL:
+  EPRX20ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX21ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX22ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX23ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX2DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX2TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00ca'
+EPRX2CURRENTPHASE10:
+  EPRX2CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX2CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0159'
+EPRX2CURRENTPHASE32:
+  EPRX2CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX2CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x015a'
+EPRX2DLLSTATUS:
+  EPRX2DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX2DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX2DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x016a'
+EPRX2LOCKED:
+  EPRX2CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX2STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0158'
+EPRX30CHNCNTR:
+  EPRX30ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX30EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX30INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX30PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX30TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00dc'
+EPRX31CHNCNTR:
+  EPRX31ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX31EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX31INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX31PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX31TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00dd'
+EPRX32CHNCNTR:
+  EPRX32ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX32EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX32INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX32PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX32TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00de'
+EPRX33CHNCNTR:
+  EPRX33ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX33EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX33INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX33PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX33TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00df'
+EPRX3CONTROL:
+  EPRX30ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX31ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX32ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX33ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX3DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX3TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00cb'
+EPRX3CURRENTPHASE10:
+  EPRX3CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX3CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x015c'
+EPRX3CURRENTPHASE32:
+  EPRX3CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX3CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x015d'
+EPRX3DLLSTATUS:
+  EPRX3DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX3DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX3DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x016b'
+EPRX3LOCKED:
+  EPRX3CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX3STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x015b'
+EPRX40CHNCNTR:
+  EPRX40ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX40EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX40INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX40PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX40TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e0'
+EPRX41CHNCNTR:
+  EPRX41ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX41EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX41INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX41PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX41TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e1'
+EPRX42CHNCNTR:
+  EPRX42ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX42EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX42INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX42PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX42TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e2'
+EPRX43CHNCNTR:
+  EPRX43ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX43EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX43INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX43PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX43TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e3'
+EPRX4CONTROL:
+  EPRX40ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX41ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX42ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX43ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX4DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX4TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00cc'
+EPRX4CURRENTPHASE10:
+  EPRX4CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX4CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x015f'
+EPRX4CURRENTPHASE32:
+  EPRX4CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX4CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0160'
+EPRX4DLLSTATUS:
+  EPRX4DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX4DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX4DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x016c'
+EPRX4LOCKED:
+  EPRX4CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX4STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x015e'
+EPRX50CHNCNTR:
+  EPRX50ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX50EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX50INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX50PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX50TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e4'
+EPRX51CHNCNTR:
+  EPRX51ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX51EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX51INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX51PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX51TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e5'
+EPRX52CHNCNTR:
+  EPRX52ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX52EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX52INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX52PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX52TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e6'
+EPRX53CHNCNTR:
+  EPRX53ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX53EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX53INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX53PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX53TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e7'
+EPRX5CONTROL:
+  EPRX50ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX51ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX52ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX53ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX5DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX5TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00cd'
+EPRX5CURRENTPHASE10:
+  EPRX5CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX5CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0162'
+EPRX5CURRENTPHASE32:
+  EPRX5CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX5CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0163'
+EPRX5DLLSTATUS:
+  EPRX5DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX5DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX5DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x016d'
+EPRX5LOCKED:
+  EPRX5CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX5STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0161'
+EPRX60CHNCNTR:
+  EPRX60ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX60EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX60INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX60PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX60TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e8'
+EPRX61CHNCNTR:
+  EPRX61ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX61EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX61INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX61PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX61TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00e9'
+EPRX62CHNCNTR:
+  EPRX62ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX62EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX62INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX62PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX62TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00ea'
+EPRX63CHNCNTR:
+  EPRX63ACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRX63EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX63INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRX63PHASESELECT: {bit_mask: 240, length: 4, offset: 4}
+  EPRX63TERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00eb'
+EPRX6CONTROL:
+  EPRX60ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX61ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX62ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX63ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  EPRX6DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPRX6TRACKMODE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x00ce'
+EPRX6CURRENTPHASE10:
+  EPRX6CURRENTPHASE0: {bit_mask: 15, length: 4, offset: 0}
+  EPRX6CURRENTPHASE1: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0165'
+EPRX6CURRENTPHASE32:
+  EPRX6CURRENTPHASE2: {bit_mask: 15, length: 4, offset: 0}
+  EPRX6CURRENTPHASE3: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0166'
+EPRX6DLLSTATUS:
+  EPRX6DLLLFSTATE: {bit_mask: 96, length: 2, offset: 5}
+  EPRX6DLLLOCKED: {bit_mask: 128, length: 1, offset: 7}
+  EPRX6DLLLOLCNT: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x016e'
+EPRX6LOCKED:
+  EPRX6CHNLOCKED: {bit_mask: 240, length: 4, offset: 4}
+  EPRX6STATE: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0164'
+EPRXDLLCONFIG:
+  EPRXDATAGATINGDISABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRXDLLCOARSELOCKDETECTION: {bit_mask: 4, length: 1, offset: 2}
+  EPRXDLLCONFIRMCOUNT: {bit_mask: 48, length: 2, offset: 4}
+  EPRXDLLCURRENT: {bit_mask: 192, length: 2, offset: 6}
+  EPRXDLLFSMCLKALWAYSON: {bit_mask: 8, length: 1, offset: 3}
+  EPRXENABLEREINIT: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00f1'
+EPRXECCHNCNTR:
+  EPRXECACBIAS: {bit_mask: 4, length: 1, offset: 2}
+  EPRXECINVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPRXECPHASESELECT: {bit_mask: 112, length: 3, offset: 4}
+  EPRXECPULLUPENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRXECTERM: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00ec'
+EPRXECCONTROL:
+  EPRXECAUTOPHASERESETDISABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPRXECENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRXECTRACKMODE: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x00cf'
+EPRXECCURRENTPHASE:
+  EPRXECCURRENTPHASE: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0167'
+EPRXEQ10CONTROL:
+  EPRX00EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX01EQ: {bit_mask: 2, length: 1, offset: 1}
+  EPRX02EQ: {bit_mask: 4, length: 1, offset: 2}
+  EPRX03EQ: {bit_mask: 8, length: 1, offset: 3}
+  EPRX10EQ: {bit_mask: 16, length: 1, offset: 4}
+  EPRX11EQ: {bit_mask: 32, length: 1, offset: 5}
+  EPRX12EQ: {bit_mask: 64, length: 1, offset: 6}
+  EPRX13EQ: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00ed'
+EPRXEQ32CONTROL:
+  EPRX20EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX21EQ: {bit_mask: 2, length: 1, offset: 1}
+  EPRX22EQ: {bit_mask: 4, length: 1, offset: 2}
+  EPRX23EQ: {bit_mask: 8, length: 1, offset: 3}
+  EPRX30EQ: {bit_mask: 16, length: 1, offset: 4}
+  EPRX31EQ: {bit_mask: 32, length: 1, offset: 5}
+  EPRX32EQ: {bit_mask: 64, length: 1, offset: 6}
+  EPRX33EQ: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00ee'
+EPRXEQ54CONTROL:
+  EPRX40EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX41EQ: {bit_mask: 2, length: 1, offset: 1}
+  EPRX42EQ: {bit_mask: 4, length: 1, offset: 2}
+  EPRX43EQ: {bit_mask: 8, length: 1, offset: 3}
+  EPRX50EQ: {bit_mask: 16, length: 1, offset: 4}
+  EPRX51EQ: {bit_mask: 32, length: 1, offset: 5}
+  EPRX52EQ: {bit_mask: 64, length: 1, offset: 6}
+  EPRX53EQ: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00ef'
+EPRXEQ6CONTROL:
+  EPRX60EQ: {bit_mask: 1, length: 1, offset: 0}
+  EPRX61EQ: {bit_mask: 2, length: 1, offset: 1}
+  EPRX62EQ: {bit_mask: 4, length: 1, offset: 2}
+  EPRX63EQ: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x00f0'
+EPRXLOCKFILTER:
+  EPRXLOCKTHRESHOLD: {bit_mask: 56, length: 3, offset: 3}
+  EPRXRELOCKTHRESHOLD: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00f2'
+EPRXLOCKFILTER2:
+  EPRXUNLOCKTHRESHOLD: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x00f3'
+EPRXPRBS0:
+  EPRX00PRBSENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRX01PRBSENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPRX02PRBSENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPRX03PRBSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPRX10PRBSENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX11PRBSENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX12PRBSENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX13PRBSENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0135'
+EPRXPRBS1:
+  EPRX20PRBSENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRX21PRBSENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPRX22PRBSENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPRX23PRBSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPRX30PRBSENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX31PRBSENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX32PRBSENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX33PRBSENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0134'
+EPRXPRBS2:
+  EPRX40PRBSENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRX41PRBSENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPRX42PRBSENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPRX43PRBSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPRX50PRBSENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPRX51PRBSENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPRX52PRBSENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPRX53PRBSENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0133'
+EPRXPRBS3:
+  EPRX60PRBSENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPRX61PRBSENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPRX62PRBSENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPRX63PRBSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPRXECPRBSENABLE: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x0132'
+EPRXTRAIN10:
+  EPRX0TRAIN: {bit_mask: 15, length: 4, offset: 0}
+  EPRX1TRAIN: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0115'
+EPRXTRAIN32:
+  EPRX2TRAIN: {bit_mask: 15, length: 4, offset: 0}
+  EPRX3TRAIN: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0116'
+EPRXTRAIN54:
+  EPRX4TRAIN: {bit_mask: 15, length: 4, offset: 0}
+  EPRX5TRAIN: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x0117'
+EPRXTRAINEC6:
+  EPRX6TRAIN: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0118'
+EPTX00CHNCNTR:
+  EPTX00DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX00PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX00PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00ae'
+EPTX01CHNCNTR:
+  EPTX01DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX01PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX01PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00af'
+EPTX01_00CHNCNTR:
+  EPTX00INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX00PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX01INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX01PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00be'
+EPTX02CHNCNTR:
+  EPTX02DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX02PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX02PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b0'
+EPTX03CHNCNTR:
+  EPTX03DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX03PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX03PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b1'
+EPTX03_02CHNCNTR:
+  EPTX02INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX02PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX03INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX03PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00bf'
+EPTX10CHNCNTR:
+  EPTX10DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX10PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX10PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b2'
+EPTX10ENABLE:
+  EPTX00ENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPTX01ENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPTX02ENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPTX03ENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPTX10ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPTX11ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPTX12ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPTX13ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00aa'
+EPTX11CHNCNTR:
+  EPTX11DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX11PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX11PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b3'
+EPTX11_10CHNCNTR:
+  EPTX10INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX10PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX11INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX11PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c0'
+EPTX12CHNCNTR:
+  EPTX12DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX12PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX12PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b4'
+EPTX13CHNCNTR:
+  EPTX13DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX13PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX13PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b5'
+EPTX13_12CHNCNTR:
+  EPTX12INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX12PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX13INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX13PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c1'
+EPTX20CHNCNTR:
+  EPTX20DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX20PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX20PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b6'
+EPTX21CHNCNTR:
+  EPTX21DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX21PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX21PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b7'
+EPTX21_20CHNCNTR:
+  EPTX20INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX20PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX21INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX21PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c2'
+EPTX22CHNCNTR:
+  EPTX22DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX22PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX22PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b8'
+EPTX23CHNCNTR:
+  EPTX23DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX23PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX23PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00b9'
+EPTX23_22CHNCNTR:
+  EPTX22INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX22PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX23INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX23PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c3'
+EPTX30CHNCNTR:
+  EPTX30DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX30PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX30PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00ba'
+EPTX31CHNCNTR:
+  EPTX31DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX31PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX31PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00bb'
+EPTX31_30CHNCNTR:
+  EPTX30INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX30PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX31INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX31PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c4'
+EPTX32CHNCNTR:
+  EPTX32DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX32PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX32PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00bc'
+EPTX32ENABLE:
+  EPTX20ENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPTX21ENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPTX22ENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPTX23ENABLE: {bit_mask: 8, length: 1, offset: 3}
+  EPTX30ENABLE: {bit_mask: 16, length: 1, offset: 4}
+  EPTX31ENABLE: {bit_mask: 32, length: 1, offset: 5}
+  EPTX32ENABLE: {bit_mask: 64, length: 1, offset: 6}
+  EPTX33ENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00ab'
+EPTX33CHNCNTR:
+  EPTX33DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX33PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTX33PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00bd'
+EPTX33_32CHNCNTR:
+  EPTX32INVERT: {bit_mask: 8, length: 1, offset: 3}
+  EPTX32PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTX33INVERT: {bit_mask: 128, length: 1, offset: 7}
+  EPTX33PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x00c5'
+EPTXCONTROL:
+  EPTX0MIRRORENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPTX1MIRRORENABLE: {bit_mask: 2, length: 1, offset: 1}
+  EPTX2MIRRORENABLE: {bit_mask: 4, length: 1, offset: 2}
+  EPTX3MIRRORENABLE: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x00a9'
+EPTXDATARATE:
+  EPTX0DATARATE: {bit_mask: 3, length: 2, offset: 0}
+  EPTX1DATARATE: {bit_mask: 12, length: 2, offset: 2}
+  EPTX2DATARATE: {bit_mask: 48, length: 2, offset: 4}
+  EPTX3DATARATE: {bit_mask: 192, length: 2, offset: 6}
+  address: '0x00a8'
+EPTXECCHNCNTR:
+  EPTXECDRIVESTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  EPTXECENABLE: {bit_mask: 1, length: 1, offset: 0}
+  EPTXECINVERT: {bit_mask: 4, length: 1, offset: 2}
+  EPTXECTRISTATE: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00ac'
+EPTXECCHNCNTR2:
+  EPTXECPREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  EPTXECPREEMPHASISSTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  EPTXECPREEMPHASISWIDTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x00ad'
+EPTXLOWRES0:
+  EPTX00LOWRES: {bit_mask: 1, length: 1, offset: 0}
+  EPTX01LOWRES: {bit_mask: 2, length: 1, offset: 1}
+  EPTX02LOWRES: {bit_mask: 4, length: 1, offset: 2}
+  EPTX03LOWRES: {bit_mask: 8, length: 1, offset: 3}
+  EPTX10LOWRES: {bit_mask: 16, length: 1, offset: 4}
+  EPTX11LOWRES: {bit_mask: 32, length: 1, offset: 5}
+  EPTX12LOWRES: {bit_mask: 64, length: 1, offset: 6}
+  EPTX13LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00c6'
+EPTXLOWRES1:
+  EPTX20LOWRES: {bit_mask: 1, length: 1, offset: 0}
+  EPTX21LOWRES: {bit_mask: 2, length: 1, offset: 1}
+  EPTX22LOWRES: {bit_mask: 4, length: 1, offset: 2}
+  EPTX23LOWRES: {bit_mask: 8, length: 1, offset: 3}
+  EPTX30LOWRES: {bit_mask: 16, length: 1, offset: 4}
+  EPTX31LOWRES: {bit_mask: 32, length: 1, offset: 5}
+  EPTX32LOWRES: {bit_mask: 64, length: 1, offset: 6}
+  EPTX33LOWRES: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x00c7'
+EQCONFIG:
+  EQATTENUATION: {bit_mask: 24, length: 2, offset: 3}
+  EQCAP: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0037'
+EQRES:
+  EQRES0: {bit_mask: 3, length: 2, offset: 0}
+  EQRES1: {bit_mask: 12, length: 2, offset: 2}
+  EQRES2: {bit_mask: 48, length: 2, offset: 4}
+  EQRES3: {bit_mask: 192, length: 2, offset: 6}
+  address: '0x0038'
+FAHEADERFOUNDCOUNT:
+  FAHEADERFOUNDCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e9'
+FAHEADERNOTFOUNDCOUNT:
+  FAHEADERNOTFOUNDCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ea'
+FAILEDCRC:
+  FAILEDCRCCOUNTER: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e5'
+FALOSSOFLOCKCOUNT:
+  FALOSSOFLOCKCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01eb'
+FAMAXHEADERFOUNDCOUNT:
+  FAMAXHEADERFOUNDCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x002f'
+FAMAXHEADERFOUNDCOUNTAFTERNF:
+  FAMAXHEADERFOUNDCOUNTAFTERNF: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0030'
+FAMAXHEADERNOTFOUNDCOUNT:
+  FAMAXHEADERNOTFOUNDCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0031'
+FASTATE:
+  FASTATE: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x01e8'
+FORCEENABLE:
+  FORCERXENABLE: {bit_mask: 64, length: 1, offset: 6}
+  FORCETXENABLE: {bit_mask: 128, length: 1, offset: 7}
+  I2CMCLKALWAYSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  LDFORCEENABLE: {bit_mask: 32, length: 1, offset: 5}
+  PSFSMCLKALWAYSON: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x0035'
+FUSEBLOWADDH:
+  FUSEBLOWADDRESS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011e'
+FUSEBLOWADDL:
+  FUSEBLOWADDRESS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011f'
+FUSEBLOWDATAA:
+  FUSEBLOWDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011a'
+FUSEBLOWDATAB:
+  FUSEBLOWDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011b'
+FUSEBLOWDATAC:
+  FUSEBLOWDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011c'
+FUSEBLOWDATAD:
+  FUSEBLOWDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x011d'
+FUSECONTROL:
+  FUSEBLOW: {bit_mask: 1, length: 1, offset: 0}
+  FUSEBLOWPULSELENGTH: {bit_mask: 240, length: 4, offset: 4}
+  FUSEREAD: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x0119'
+FUSEMAGIC:
+  FUSEMAGICNUMBER: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0120'
+FUSESTATUS:
+  FUSEBLOWBUSY: {bit_mask: 1, length: 1, offset: 0}
+  FUSEBLOWDONE: {bit_mask: 2, length: 1, offset: 1}
+  FUSEBLOWERROR: {bit_mask: 8, length: 1, offset: 3}
+  FUSEDATAVALID: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x01b1'
+FUSEVALUESA:
+  SELECTEDFUSEVALUES: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b2'
+FUSEVALUESB:
+  SELECTEDFUSEVALUES: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b3'
+FUSEVALUESC:
+  SELECTEDFUSEVALUES: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b4'
+FUSEVALUESD:
+  SELECTEDFUSEVALUES: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b5'
+I2CM0ADDRESS:
+  I2CM0ADDRESS: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x0101'
+I2CM0CMD:
+  I2CM0CMD: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0106'
+I2CM0CONFIG:
+  I2CM0ADDRESSEXT: {bit_mask: 7, length: 3, offset: 0}
+  I2CM0SCLDRIVESTRENGTH: {bit_mask: 32, length: 1, offset: 5}
+  I2CM0SCLPULLUPENABLE: {bit_mask: 64, length: 1, offset: 6}
+  I2CM0SDADRIVESTRENGTH: {bit_mask: 8, length: 1, offset: 3}
+  I2CM0SDAPULLUPENABLE: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x0100'
+I2CM0CTRL:
+  I2CM0FREQ: {bit_mask: 3, length: 2, offset: 0}
+  I2CM0NBYTE: {bit_mask: 124, length: 5, offset: 2}
+  I2CM0SCLDRIVEMODE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x016f'
+I2CM0DATA0:
+  I2CM0DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0102'
+I2CM0DATA1:
+  I2CM0DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0103'
+I2CM0DATA2:
+  I2CM0DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0104'
+I2CM0DATA3:
+  I2CM0DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0105'
+I2CM0MASK: {address: '0x0170'}
+I2CM0READ0:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0174'
+I2CM0READ1:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0175'
+I2CM0READ10:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017e'
+I2CM0READ11:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017f'
+I2CM0READ12:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0180'
+I2CM0READ13:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0181'
+I2CM0READ14:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0182'
+I2CM0READ15:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0183'
+I2CM0READ2:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0176'
+I2CM0READ3:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0177'
+I2CM0READ4:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0178'
+I2CM0READ5:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0179'
+I2CM0READ6:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017a'
+I2CM0READ7:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017b'
+I2CM0READ8:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017c'
+I2CM0READ9:
+  I2CM0READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x017d'
+I2CM0READBYTE:
+  I2CM0READBYTE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0173'
+I2CM0STATUS:
+  I2CM0CLOCKDISABLED: {bit_mask: 128, length: 1, offset: 7}
+  I2CM0LEVELERROR: {bit_mask: 8, length: 1, offset: 3}
+  I2CM0NOACK: {bit_mask: 64, length: 1, offset: 6}
+  I2CM0RESERVED0: {bit_mask: 1, length: 1, offset: 0}
+  I2CM0RESERVED1: {bit_mask: 2, length: 1, offset: 1}
+  I2CM0RESERVED2: {bit_mask: 16, length: 1, offset: 4}
+  I2CM0RESERVED3: {bit_mask: 32, length: 1, offset: 5}
+  I2CM0SUCCESS: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x0171'
+I2CM0TRANCNT:
+  I2CM0TRANCNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0172'
+I2CM1ADDRESS:
+  I2CM1ADDRESS: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x0108'
+I2CM1CMD:
+  I2CM1CMD: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x010d'
+I2CM1CONFIG:
+  I2CM1ADDRESSEXT: {bit_mask: 7, length: 3, offset: 0}
+  I2CM1SCLDRIVESTRENGTH: {bit_mask: 32, length: 1, offset: 5}
+  I2CM1SCLPULLUPENABLE: {bit_mask: 64, length: 1, offset: 6}
+  I2CM1SDADRIVESTRENGTH: {bit_mask: 8, length: 1, offset: 3}
+  I2CM1SDAPULLUPENABLE: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x0107'
+I2CM1CTRL:
+  I2CM1FREQ: {bit_mask: 3, length: 2, offset: 0}
+  I2CM1NBYTE: {bit_mask: 124, length: 5, offset: 2}
+  I2CM1SCLDRIVEMODE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0184'
+I2CM1DATA0:
+  I2CM1DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0109'
+I2CM1DATA1:
+  I2CM1DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x010a'
+I2CM1DATA2:
+  I2CM1DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x010b'
+I2CM1DATA3:
+  I2CM1DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x010c'
+I2CM1MASK:
+  I2CM1MASK: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0185'
+I2CM1READ0:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0189'
+I2CM1READ1:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018a'
+I2CM1READ10:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0193'
+I2CM1READ11:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0194'
+I2CM1READ12:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0195'
+I2CM1READ13:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0196'
+I2CM1READ14:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0197'
+I2CM1READ15:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0198'
+I2CM1READ2:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018b'
+I2CM1READ3:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018c'
+I2CM1READ4:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018d'
+I2CM1READ5:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018e'
+I2CM1READ6:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x018f'
+I2CM1READ7:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0190'
+I2CM1READ8:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0191'
+I2CM1READ9:
+  I2CM1READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0192'
+I2CM1READBYTE:
+  I2CM1READBYTE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0188'
+I2CM1STATUS:
+  I2CM1CLOCKDISABLED: {bit_mask: 128, length: 1, offset: 7}
+  I2CM1LEVELERROR: {bit_mask: 8, length: 1, offset: 3}
+  I2CM1NOACK: {bit_mask: 64, length: 1, offset: 6}
+  I2CM1RESERVED0: {bit_mask: 1, length: 1, offset: 0}
+  I2CM1RESERVED1: {bit_mask: 2, length: 1, offset: 1}
+  I2CM1RESERVED2: {bit_mask: 16, length: 1, offset: 4}
+  I2CM1RESERVED3: {bit_mask: 32, length: 1, offset: 5}
+  I2CM1SUCCESS: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x0186'
+I2CM1TRANCNT:
+  I2CM1TRANCNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0187'
+I2CM2ADDRESS:
+  I2CM2ADDRESS: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x010f'
+I2CM2CMD:
+  I2CM2CMD: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0114'
+I2CM2CONFIG:
+  I2CM2ADDRESSEXT: {bit_mask: 7, length: 3, offset: 0}
+  I2CM2SCLDRIVESTRENGTH: {bit_mask: 32, length: 1, offset: 5}
+  I2CM2SCLPULLUPENABLE: {bit_mask: 64, length: 1, offset: 6}
+  I2CM2SDADRIVESTRENGTH: {bit_mask: 8, length: 1, offset: 3}
+  I2CM2SDAPULLUPENABLE: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x010e'
+I2CM2CTRL:
+  I2CM2FREQ: {bit_mask: 3, length: 2, offset: 0}
+  I2CM2NBYTE: {bit_mask: 124, length: 5, offset: 2}
+  I2CM2SCLDRIVEMODE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x0199'
+I2CM2DATA0:
+  I2CM2DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0110'
+I2CM2DATA1:
+  I2CM2DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0111'
+I2CM2DATA2:
+  I2CM2DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0112'
+I2CM2DATA3:
+  I2CM2DATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0113'
+I2CM2MASK:
+  I2CM2MASK: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x019a'
+I2CM2READ0:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x019e'
+I2CM2READ1:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x019f'
+I2CM2READ10:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a8'
+I2CM2READ11:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a9'
+I2CM2READ12:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01aa'
+I2CM2READ13:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ab'
+I2CM2READ14:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ac'
+I2CM2READ15:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ad'
+I2CM2READ2:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a0'
+I2CM2READ3:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a1'
+I2CM2READ4:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a2'
+I2CM2READ5:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a3'
+I2CM2READ6:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a4'
+I2CM2READ7:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a5'
+I2CM2READ8:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a6'
+I2CM2READ9:
+  I2CM2READ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01a7'
+I2CM2READBYTE:
+  I2CM2READBYTE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x019d'
+I2CM2STATUS:
+  I2CM2CLOCKDISABLED: {bit_mask: 128, length: 1, offset: 7}
+  I2CM2LEVELERROR: {bit_mask: 8, length: 1, offset: 3}
+  I2CM2NOACK: {bit_mask: 64, length: 1, offset: 6}
+  I2CM2RESERVED0: {bit_mask: 1, length: 1, offset: 0}
+  I2CM2RESERVED1: {bit_mask: 2, length: 1, offset: 1}
+  I2CM2RESERVED2: {bit_mask: 16, length: 1, offset: 4}
+  I2CM2RESERVED3: {bit_mask: 32, length: 1, offset: 5}
+  I2CM2SUCCESS: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x019b'
+I2CM2TRANCNT:
+  I2CM2TRANCNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x019c'
+I2CMCLKDISABLE:
+  I2CM0CLKDISABLE: {bit_mask: 1, length: 1, offset: 0}
+  I2CM1CLKDISABLE: {bit_mask: 2, length: 1, offset: 1}
+  I2CM2CLKDISABLE: {bit_mask: 4, length: 1, offset: 2}
+  address: '0x0052'
+I2CMTRANSADDRESS:
+  I2CMTRANSADDRESS: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x0040'
+I2CMTRANSCONFIG:
+  I2CMTRANS10BITADDR: {bit_mask: 2, length: 1, offset: 1}
+  I2CMTRANSADDRESSEXT: {bit_mask: 28, length: 3, offset: 2}
+  I2CMTRANSCHANNEL: {bit_mask: 96, length: 2, offset: 5}
+  I2CMTRANSENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x003f'
+I2CMTRANSCTRL:
+  I2CMTRANSCTRL: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0041'
+I2CMTRANSDATA0:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0042'
+I2CMTRANSDATA1:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0043'
+I2CMTRANSDATA10:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004c'
+I2CMTRANSDATA11:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004d'
+I2CMTRANSDATA12:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004e'
+I2CMTRANSDATA13:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004f'
+I2CMTRANSDATA14:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0050'
+I2CMTRANSDATA15:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0051'
+I2CMTRANSDATA2:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0044'
+I2CMTRANSDATA3:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0045'
+I2CMTRANSDATA4:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0046'
+I2CMTRANSDATA5:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0047'
+I2CMTRANSDATA6:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0048'
+I2CMTRANSDATA7:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0049'
+I2CMTRANSDATA8:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004a'
+I2CMTRANSDATA9:
+  I2CMTRANSDATA: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x004b'
+I2CSLAVEADDRESS:
+  ASICCONTROLADR: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x0151'
+LDCONFIGH:
+  LDEMPHASISENABLE: {bit_mask: 128, length: 1, offset: 7}
+  LDMODULATIONCURRENT: {bit_mask: 127, length: 7, offset: 0}
+  address: '0x0039'
+LDCONFIGL:
+  LDEMPHASISAMP: {bit_mask: 127, length: 7, offset: 0}
+  LDEMPHASISSHORT: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x003a'
+PGCONFIG:
+  PGDELAY: {bit_mask: 15, length: 4, offset: 0}
+  PGENABLE: {bit_mask: 128, length: 1, offset: 7}
+  PGLEVEL: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x003e'
+PIODIRH:
+  PIODIR: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0053'
+PIODIRL:
+  PIODIR: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0054'
+PIODRIVESTRENGTHH:
+  PIODRIVESTRENGTH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x005b'
+PIODRIVESTRENGTHL:
+  PIODRIVESTRENGTH: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x005c'
+PIOINH:
+  PIOIN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01af'
+PIOINL:
+  PIOIN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b0'
+PIOOUTH:
+  PIOOUT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0055'
+PIOOUTL:
+  PIOOUT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0056'
+PIOPULLENAH:
+  PIOPULLENABLE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0057'
+PIOPULLENAL:
+  PIOPULLENABLE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0058'
+PIOUPDOWNH:
+  PIOUPDOWN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0059'
+PIOUPDOWNL:
+  PIOUPDOWN: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x005a'
+PMFREQA:
+  PMFREQ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b7'
+PMFREQB:
+  PMFREQ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b8'
+PMFREQC:
+  PMFREQ: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01b9'
+PORBOR:
+  BODA: {bit_mask: 1, length: 1, offset: 0}
+  BODB: {bit_mask: 2, length: 1, offset: 1}
+  BODC: {bit_mask: 4, length: 1, offset: 2}
+  PORA: {bit_mask: 16, length: 1, offset: 4}
+  PORB: {bit_mask: 32, length: 1, offset: 5}
+  PORC: {bit_mask: 64, length: 1, offset: 6}
+  address: '0x01d8'
+POWERUP0:
+  PUSMPLLTIMEOUTCONFIG: {bit_mask: 15, length: 4, offset: 0}
+  PUSMREADYWHENCHNSLOCKED: {bit_mask: 16, length: 1, offset: 4}
+  address: '0x00f9'
+POWERUP1:
+  PUSMCHANNELSTIMEOUTCONFIG: {bit_mask: 15, length: 4, offset: 0}
+  PUSMDLLTIMEOUTCONFIG: {bit_mask: 240, length: 4, offset: 4}
+  address: '0x00fa'
+POWERUP2:
+  DLLCONFIGDONE: {bit_mask: 4, length: 1, offset: 2}
+  PLLCONFIGDONE: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00fb'
+POWERUP3:
+  PUSMFORCESTATE: {bit_mask: 128, length: 1, offset: 7}
+  PUSMSTATEFORCED: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x013f'
+POWERUP4:
+  PUSMFORCEMAGIC: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0140'
+PROCESSANDSEUMONITOR:
+  PMCHANNEL: {bit_mask: 6, length: 2, offset: 1}
+  PMENABLE: {bit_mask: 1, length: 1, offset: 0}
+  SEUENABLE: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x0127'
+PROCESSMONITORSTATUS:
+  PMBUSY: {bit_mask: 1, length: 1, offset: 0}
+  PMDONE: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x01b6'
+PS0CONFIG:
+  PS0DELAY: {bit_mask: 128, length: 1, offset: 7}
+  PS0DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  PS0ENABLEFINETUNE: {bit_mask: 64, length: 1, offset: 6}
+  PS0FREQ: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x005d'
+PS0DELAY:
+  PS0DELAY: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x005e'
+PS0OUTDRIVER:
+  PS0PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  PS0PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  PS0PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x005f'
+PS1CONFIG:
+  PS1DELAY: {bit_mask: 128, length: 1, offset: 7}
+  PS1DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  PS1ENABLEFINETUNE: {bit_mask: 64, length: 1, offset: 6}
+  PS1FREQ: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0060'
+PS1DELAY:
+  PS1DELAY: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0061'
+PS1OUTDRIVER:
+  PS1PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  PS1PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  PS1PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0062'
+PS2CONFIG:
+  PS2DELAY: {bit_mask: 128, length: 1, offset: 7}
+  PS2DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  PS2ENABLEFINETUNE: {bit_mask: 64, length: 1, offset: 6}
+  PS2FREQ: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0063'
+PS2DELAY:
+  PS2DELAY: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0064'
+PS2OUTDRIVER:
+  PS2PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  PS2PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  PS2PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0065'
+PS3CONFIG:
+  PS3DELAY: {bit_mask: 128, length: 1, offset: 7}
+  PS3DRIVESTRENGTH: {bit_mask: 56, length: 3, offset: 3}
+  PS3ENABLEFINETUNE: {bit_mask: 64, length: 1, offset: 6}
+  PS3FREQ: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0066'
+PS3DELAY:
+  PS3DELAY: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0067'
+PS3OUTDRIVER:
+  PS3PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  PS3PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  PS3PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x0068'
+PSDLLCONFIG:
+  PSDLLCONFIRMCOUNT: {bit_mask: 12, length: 2, offset: 2}
+  PSDLLCURRENTSEL: {bit_mask: 3, length: 2, offset: 0}
+  address: '0x0033'
+PSLOWRES:
+  PS0LOWRES: {bit_mask: 1, length: 1, offset: 0}
+  PS1LOWRES: {bit_mask: 2, length: 1, offset: 1}
+  PS2LOWRES: {bit_mask: 4, length: 1, offset: 2}
+  PS3LOWRES: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x0069'
+PSSTATUS:
+  PS0DLLINITSTATE: {bit_mask: 3, length: 2, offset: 0}
+  PS1DLLINITSTATE: {bit_mask: 12, length: 2, offset: 2}
+  PS2DLLINITSTATE: {bit_mask: 48, length: 2, offset: 4}
+  PS3DLLINITSTATE: {bit_mask: 192, length: 2, offset: 6}
+  address: '0x01ae'
+PUSMBROWNOUTWATCHDOG:
+  PUSMBROWNOUTACTIONFLAG: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x01dd'
+PUSMCHANNELSTIMEOUT:
+  PUSMCHANNELSTIMEOUTACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01e0'
+PUSMCSUMWATCHDOG:
+  PUSMCHECKSUMWATCHDOGACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01dc'
+PUSMDLLTIMEOUT:
+  PUSMDLLTIMEOUTACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01df'
+PUSMDLLWATCHDOG:
+  PUSMDLLWATCHDOGACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01db'
+PUSMPLLTIMEOUT:
+  PUSMPLLTIMEOUTACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01de'
+PUSMPLLWATCHDOG:
+  PUSMPLLWATCHDOGACTIONS: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01da'
+PUSMSTATUS:
+  PUSMSTATE: {bit_mask: 31, length: 5, offset: 0}
+  address: '0x01d9'
+READY:
+  READYCHNSENABLE: {bit_mask: 8, length: 1, offset: 3}
+  READYCLKGENABLE: {bit_mask: 2, length: 1, offset: 1}
+  READYDLLSENABLE: {bit_mask: 4, length: 1, offset: 2}
+  READYPUSMDISABLE: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x00f7'
+REFCLK:
+  REFCLKACBIAS: {bit_mask: 2, length: 1, offset: 1}
+  REFCLKFORCEENABLE: {bit_mask: 4, length: 1, offset: 2}
+  REFCLKTERM: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x003b'
+RESERVED1: {address: '0x0032'}
+RESERVED10: {address: '0x014d'}
+RESERVED11: {address: '0x014e'}
+RESERVED12: {address: '0x014f'}
+RESERVED2: {address: '0x0034'}
+RESERVED4: {address: '0x00f4'}
+RESERVED5: {address: '0x00f5'}
+RESERVED6: {address: '0x00f6'}
+RESETCONFIG:
+  BODENABLE: {bit_mask: 8, length: 1, offset: 3}
+  BODLEVEL: {bit_mask: 7, length: 3, offset: 0}
+  address: '0x003d'
+ROM:
+  ROMREG: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01d7'
+RST0:
+  RSTCONFIG: {bit_mask: 32, length: 1, offset: 5}
+  RSTFUSES: {bit_mask: 64, length: 1, offset: 6}
+  RSTI2CM0: {bit_mask: 4, length: 1, offset: 2}
+  RSTI2CM1: {bit_mask: 2, length: 1, offset: 1}
+  RSTI2CM2: {bit_mask: 1, length: 1, offset: 0}
+  RSTPLLDIGITAL: {bit_mask: 128, length: 1, offset: 7}
+  RSTRXLOGIC: {bit_mask: 16, length: 1, offset: 4}
+  RSTTXLOGIC: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x013c'
+RST1:
+  RSTEPRX0DLL: {bit_mask: 1, length: 1, offset: 0}
+  RSTEPRX1DLL: {bit_mask: 2, length: 1, offset: 1}
+  RSTEPRX2DLL: {bit_mask: 4, length: 1, offset: 2}
+  RSTEPRX3DLL: {bit_mask: 8, length: 1, offset: 3}
+  RSTEPRX4DLL: {bit_mask: 16, length: 1, offset: 4}
+  RSTEPRX5DLL: {bit_mask: 32, length: 1, offset: 5}
+  RSTEPRX6DLL: {bit_mask: 64, length: 1, offset: 6}
+  RSTFRAMEALIGNER: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x013d'
+RST2:
+  RESETOUTFORCEACTIVE: {bit_mask: 64, length: 1, offset: 6}
+  RSTPS0DLL: {bit_mask: 1, length: 1, offset: 0}
+  RSTPS1DLL: {bit_mask: 2, length: 1, offset: 1}
+  RSTPS2DLL: {bit_mask: 4, length: 1, offset: 2}
+  RSTPS3DLL: {bit_mask: 8, length: 1, offset: 3}
+  SKIPFORCE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x013e'
+SCCONFIG:
+  SCPARITYCHECKDISABLE: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x003c'
+SCSTATUS:
+  SCPARITYVALID: {bit_mask: 1, length: 1, offset: 0}
+  address: '0x01e7'
+SEUCOUNTH:
+  SEUCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01ba'
+SEUCOUNTL:
+  SEUCOUNT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x01bb'
+TEMPCALH:
+  TEMPCAL: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x001a'
+TEMPCALL:
+  TEMPCAL: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x001b'
+TO0SEL:
+  TO0SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0143'
+TO1SEL:
+  TO1SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0144'
+TO2SEL:
+  TO2SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0145'
+TO3SEL:
+  TO3SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0146'
+TO4DRIVER:
+  TO4DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  TO4PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  TO4PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x014a'
+TO4SEL:
+  TO4SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0147'
+TO5DRIVER:
+  TO5DRIVESTRENGTH: {bit_mask: 7, length: 3, offset: 0}
+  TO5PREEMPHASISMODE: {bit_mask: 24, length: 2, offset: 3}
+  TO5PREEMPHASISSTRENGTH: {bit_mask: 224, length: 3, offset: 5}
+  address: '0x014b'
+TO5SEL:
+  TO5SELECT: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0148'
+TODRIVINGSTRENGTH:
+  TO0DS: {bit_mask: 1, length: 1, offset: 0}
+  TO1DS: {bit_mask: 2, length: 1, offset: 1}
+  TO2DS: {bit_mask: 4, length: 1, offset: 2}
+  TO3DS: {bit_mask: 8, length: 1, offset: 3}
+  address: '0x0149'
+TOPREEMP:
+  TO4INVERT: {bit_mask: 8, length: 1, offset: 3}
+  TO4PREEMPHASISWIDTH: {bit_mask: 7, length: 3, offset: 0}
+  TO5INVERT: {bit_mask: 128, length: 1, offset: 7}
+  TO5PREEMPHASISWIDTH: {bit_mask: 112, length: 3, offset: 4}
+  address: '0x014c'
+TOVALUE:
+  TOVAL: {bit_mask: 63, length: 6, offset: 0}
+  address: '0x01e6'
+ULDATASOURCE0:
+  ULECDATASOURCE: {bit_mask: 224, length: 3, offset: 5}
+  ULSERTESTPATTERN: {bit_mask: 15, length: 4, offset: 0}
+  address: '0x0128'
+ULDATASOURCE1:
+  LDDATASOURCE: {bit_mask: 192, length: 2, offset: 6}
+  ULG0DATASOURCE: {bit_mask: 7, length: 3, offset: 0}
+  ULG1DATASOURCE: {bit_mask: 56, length: 3, offset: 3}
+  address: '0x0129'
+ULDATASOURCE2:
+  ULG2DATASOURCE: {bit_mask: 7, length: 3, offset: 0}
+  ULG3DATASOURCE: {bit_mask: 56, length: 3, offset: 3}
+  address: '0x012a'
+ULDATASOURCE3:
+  ULG4DATASOURCE: {bit_mask: 7, length: 3, offset: 0}
+  ULG5DATASOURCE: {bit_mask: 56, length: 3, offset: 3}
+  address: '0x012b'
+ULDATASOURCE4:
+  DLECDATASOURCE: {bit_mask: 192, length: 2, offset: 6}
+  ULG6DATASOURCE: {bit_mask: 7, length: 3, offset: 0}
+  ULICDATASOURCE: {bit_mask: 56, length: 3, offset: 3}
+  address: '0x012c'
+ULDATASOURCE5:
+  DLG0DATASOURCE: {bit_mask: 3, length: 2, offset: 0}
+  DLG1DATASOURCE: {bit_mask: 12, length: 2, offset: 2}
+  DLG2DATASOURCE: {bit_mask: 48, length: 2, offset: 4}
+  DLG3DATASOURCE: {bit_mask: 192, length: 2, offset: 6}
+  address: '0x012d'
+USERID0:
+  USERID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0004'
+USERID1:
+  USERID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0005'
+USERID2:
+  USERID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0006'
+USERID3:
+  USERID: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x0007'
+VREFCNTR:
+  VREFENABLE: {bit_mask: 128, length: 1, offset: 7}
+  address: '0x001c'
+VREFTUNE:
+  VREFTUNE: {bit_mask: 255, length: 8, offset: 0}
+  address: '0x001d'
+WATCHDOG:
+  PUSMCHECKSUMWDOGENABLE: {bit_mask: 4, length: 1, offset: 2}
+  PUSMDLLWDOGDISABLE: {bit_mask: 1, length: 1, offset: 0}
+  PUSMPLLWDOGDISABLE: {bit_mask: 2, length: 1, offset: 1}
+  address: '0x00f8'

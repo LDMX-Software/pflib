@@ -2,9 +2,13 @@ build**
 install**
 *.raw
 *.root
+*.csv
 *~
 docs/html/**
 tool/test-menu
 
 # ignore all hidden files
 .*
+
+# python venv for lightweight analyses
+venv

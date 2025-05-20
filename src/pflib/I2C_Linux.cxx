@@ -38,7 +38,8 @@ int I2C_Linux::get_bus_speed() {
 
 void I2C_Linux::obtain_control(uint8_t i2c_dev_addr) {
   int ret = ioctl(handle_, 0x0703, i2c_dev_addr);
-  pflib_log(trace) << "ioctl(" << hex(handle_) << ", 0x0703, " << hex(i2c_dev_addr) << ") -> " << ret;
+  pflib_log(trace) << "ioctl(" << hex(handle_) << ", 0x0703, "
+                   << hex(i2c_dev_addr) << ") -> " << ret;
   if (ret < 0) {
     std::stringstream msg{"Unable to obtain control of "};
     msg << hex(i2c_dev_addr) << " on " << dev_ << " errno " << errno;
@@ -53,7 +54,8 @@ void I2C_Linux::obtain_control(uint8_t i2c_dev_addr) {
         msg << " (EINVAL) invalid inputs: 0x0703 or " << hex(i2c_dev_addr);
         break;
       case ENOTTY:
-        msg << " (ENOTTY) operation does not apply to the type " << dev_ << " references";
+        msg << " (ENOTTY) operation does not apply to the type " << dev_
+            << " references";
         break;
       default:
         msg << " unknown error number";
@@ -79,8 +81,8 @@ void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
   }
   // still erroring out (rv < 0) and we ran out of tries
   char message[120];
-  snprintf(message, 120, "Error %d writing 0x%02x to i2c target 0x%02x",
-           errno, data, i2c_dev_addr);
+  snprintf(message, 120, "Error %d writing 0x%02x to i2c target 0x%02x", errno,
+           data, i2c_dev_addr);
   PFEXCEPTION_RAISE("I2CError", message);
 }
 
@@ -90,9 +92,11 @@ uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
   int rv{-1};
   for (std::size_t i_try{0}; i_try < n_tries; i_try++) {
     rv = read(handle_, buffer, 1);
-    pflib_log(trace) << "read(" << hex(handle_) << ", " << hex(buffer) << ", 1) -> " << rv << " errno " << errno;
+    pflib_log(trace) << "read(" << hex(handle_) << ", " << hex(buffer)
+                     << ", 1) -> " << rv << " errno " << errno;
     if (rv >= 0) {
-      pflib_log(trace) << "read " << hex(buffer[0]) << " from " << hex(i2c_dev_addr);
+      pflib_log(trace) << "read " << hex(buffer[0]) << " from "
+                       << hex(i2c_dev_addr);
       // success! let's leave
       return buffer[0];
     }
@@ -101,10 +105,12 @@ uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
   msg << errno;
   switch (errno) {
     case EAGAIN:
-      msg << " (EAGAIN) " << dev_ << "(" << hex(handle_) << ") is marked as non blocking";
+      msg << " (EAGAIN) " << dev_ << "(" << hex(handle_)
+          << ") is marked as non blocking";
       break;
     case EBADF:
-      msg << " (EBADF) " << dev_ << "(" << hex(handle_) << ") is not a valid descriptor or not open for reading";
+      msg << " (EBADF) " << dev_ << "(" << hex(handle_)
+          << ") is not a valid descriptor or not open for reading";
       break;
     case EFAULT:
       msg << " (EFAULT) buffer is outside accessible address space";
@@ -119,7 +125,8 @@ uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
       msg << " (EIO) generic I/O error";
       break;
     case EISDIR:
-      msg << " (EISDIR) " << dev_ << "(" << hex(handle_) << ") refers to a directory";
+      msg << " (EISDIR) " << dev_ << "(" << hex(handle_)
+          << ") refers to a directory";
       break;
   }
   PFEXCEPTION_RAISE("I2CError", msg.str());
