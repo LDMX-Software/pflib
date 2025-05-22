@@ -797,13 +797,15 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
-    pflib_log(trace) << "daq event occupancy pre-L1A: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy pre-L1A    : "
+                     << pft->hcal().daq().getEventOccupancy();
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
     if (cmd == "CHARGE") pft->fc().chargepulse();
 
-    pflib_log(trace) << "daq event occupancy post-L1A: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy post-L1A   : "
+                     << pft->hcal().daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
         (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tvi.tv_usec) / 1e6;
@@ -816,8 +818,11 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
       //        printf("Sleeping %d\n",usec_ahead);
     }
 
+    pflib_log(trace) << "daq event occupancy after pause: "
+                     << pft->hcal().daq().getEventOccupancy();
+
     std::vector<uint32_t> event = pft->read_event();
-    pflib_log(trace) << "daq event occupancy after read_event: "
+    pflib_log(trace) << "daq event occupancy after read : "
                      << pft->hcal().daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
