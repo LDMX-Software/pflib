@@ -808,14 +808,13 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
                      << pft->hcal().daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
-        (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tvi.tv_usec) / 1e6;
-    //      double ratenow=(ievt+1)/runsec;
-    double targettime = (ievt + 1.0) / rate;  // what I'd like the rate to be
+        (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tv0.tv_usec) / 1e6;
+    double targettime = (ievt + 1.0) / rate;
     int usec_ahead = int((targettime - runsec) * 1e6);
-    // printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-    if (usec_ahead > 100) {  // if we are running fast...
+    pflib_log(trace) << " at " << runsec << "s instead of " << targettime
+                     << "s aheady by " << usec_ahead << "us";
+    if (usec_ahead > 100) {
       usleep(usec_ahead);
-      //        printf("Sleeping %d\n",usec_ahead);
     }
 
     pflib_log(trace) << "daq event occupancy after pause: "
