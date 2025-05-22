@@ -797,30 +797,40 @@ static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
-    pflib_log(trace) << "daq event occupancy pre-L1A: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy pre-L1A    : "
+                     << pft->hcal().daq().getEventOccupancy();
     // normally, some other controller would send the L1A
     //  we are sending it so we get data during no signal
     if (cmd == "PEDESTAL") pft->fc().sendL1A();
     if (cmd == "CHARGE") pft->fc().chargepulse();
 
-    pflib_log(trace) << "daq event occupancy post-L1A: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy post-L1A   : "
+                     << pft->hcal().daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
-        (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tvi.tv_usec) / 1e6;
-    //      double ratenow=(ievt+1)/runsec;
-    double targettime = (ievt + 1.0) / rate;  // what I'd like the rate to be
+        (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tv0.tv_usec) / 1e6;
+    double targettime = (ievt + 1.0) / rate;
     int usec_ahead = int((targettime - runsec) * 1e6);
-    // printf("Sleeping %f %f %d\n",runsec,targettime,usec_ahead);
-    if (usec_ahead > 100) {  // if we are running fast...
+    pflib_log(trace) << " at " << runsec << "s instead of " << targettime
+                     << "s aheady by " << usec_ahead << "us";
+    if (usec_ahead > 100) {
       usleep(usec_ahead);
-      //        printf("Sleeping %d\n",usec_ahead);
     }
 
+    pflib_log(trace) << "daq event occupancy after pause: "
+                     << pft->hcal().daq().getEventOccupancy();
+
     std::vector<uint32_t> event = pft->read_event();
-    pflib_log(trace) << "daq event occupancy after read_event: " << pft->hcal().daq().getEventOccupancy();
+    pflib_log(trace) << "daq event occupancy after read : "
+                     << pft->hcal().daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
-    Action(event);
+    if (event.size() == 0) {
+      pflib_log(warn) << "event " << ievt
+                      << " did not have any words, skipping.";
+    } else {
+      Action(event);
+    }
   }
 };
 
