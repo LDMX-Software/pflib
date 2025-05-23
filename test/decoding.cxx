@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_SUITE(daq_link_frame)
 
 std::vector<uint32_t> gen_test_frame() {
   std::vector<uint32_t> test_frame = {
-      0xf00c26a2,  // daq header
+      0xf00c26a5,  // daq header
       0x00022802,  // common mode
   };
   std::size_t i_ch{0};
