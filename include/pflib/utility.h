@@ -3,6 +3,8 @@
  */
 #include <functional>
 #include <string>
+#include <cstdint>
+#include <span>
 
 namespace pflib {
 
@@ -29,5 +31,13 @@ void loadIntegerCSV(const std::string& file_name,
  * @return true if full's last characters match ending
  */
 bool endsWith(const std::string& full, const std::string& ending);
+
+/**
+ * Calculate the CRC checksum
+ *
+ * @param[in] data 32-bit words to calculate CRC for
+ * @return value of CRC
+ */
+uint32_t crc(std::span<uint32_t> data);
 
 }  // namespace pflib

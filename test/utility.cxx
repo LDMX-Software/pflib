@@ -55,4 +55,14 @@ BOOST_AUTO_TEST_CASE(missing_cells) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE(crc);
+
+BOOST_AUTO_TEST_CASE(increment) {
+  std::vector<uint32_t> data = {0x02};
+  auto result = pflib::crc(data);
+  BOOST_CHECK_EQUAL( result, 0x09823b6e );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_SUITE_END()
