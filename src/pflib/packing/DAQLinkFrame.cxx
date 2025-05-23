@@ -35,10 +35,10 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   corruption[3] = ((header >> (1 + 4)) & mask<1>) == 1;
   corruption[4] = ((header >> (4)) & mask<1>) == 1;
   uint32_t trailflag = (header & mask<4>);
-  corruption[5] = (trailflag != 0b0101);
+  corruption[5] = (trailflag != 0b0101 and trailflag != 0b0010 );
   if (corruption[5]) {
     pflib_log(trace)
-        << "bad trailing 4 bits of header (0b0101): "
+        << "bad trailing 4 bits of header (0b0101 or 0b0010): "
         << std::bitset<4>(trailflag);
   }
 
