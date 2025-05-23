@@ -27,8 +27,6 @@ class DAQLinkFrame {
   int event;
   /// orbit id number
   int orbit;
-  /// flag if this is the first event
-  bool first_event;
   /// adc readout from common mode 0
   int adc_cm0;
   /// adc readout from common mode 1
