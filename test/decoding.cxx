@@ -82,8 +82,9 @@ std::vector<uint32_t> gen_test_frame() {
   for (; i_ch < 36; i_ch++) {
     test_frame.push_back(i_ch);
   }
-  // not testing CRC, just put in dummy word
-  test_frame.push_back(0x0f0f0f0f);
+  // CRC word calculated by our own code
+  // just to quiet the testing
+  test_frame.push_back(0xe2378cb3);
   return test_frame;
 }
 
@@ -95,11 +96,11 @@ BOOST_AUTO_TEST_CASE(foo) {
   BOOST_CHECK(f.bx == 12);
   BOOST_CHECK(f.event == 9);
   BOOST_CHECK(f.orbit == 5);
-  BOOST_CHECK(f.corruption[4] == false);
-  BOOST_CHECK(f.corruption[3] == true);
-  BOOST_CHECK(f.corruption[2] == false);
   BOOST_CHECK(f.corruption[0] == false);
-  BOOST_CHECK(f.corruption[1] == true);
+  BOOST_CHECK(f.corruption[1] == false);
+  BOOST_CHECK(f.corruption[2] == false);
+  BOOST_CHECK(f.corruption[3] == true);
+  BOOST_CHECK(f.corruption[4] == false);
   BOOST_CHECK(f.corruption[5] == false);
   BOOST_CHECK(f.adc_cm1 == 2);
   BOOST_CHECK(f.adc_cm0 == 138);

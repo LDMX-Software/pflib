@@ -4,9 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <boost/endian/conversion.hpp>
-#include <boost/crc.hpp>
-
+#include "pflib/utility.h"
 #include "pflib/packing/Hex.h"
 
 namespace pflib::packing {
@@ -65,23 +63,23 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
     channels[i_chan].word = data[2 + 1 + i_chan];
   }
 
-  // CMS hexactrl-sw decoding needed to endian-reverse all the words
-  // prior to calculating the CRC here so we have to copy the data into
-  // a new area so we can change the words before processing them through
-  // the CRC calculator
-  std::vector<uint32_t> crc_inputs{data.begin(), data.end()};
-  std::transform( crc_inputs.begin(), crc_inputs.end(), crc_inputs.begin(),
-    [](uint32_t w) { return boost::endian::endian_reverse(w); });
-  auto input_ptr = reinterpret_cast<const unsigned char*>(crc_inputs.data());
-  // bits, truncation polynomial, initial value, final xor, reflect input, reflect output
-  auto crc32 = boost::crc<32, 0x04c11db7, 0x0, 0x0, false, false>(input_ptr, 39*4);
+  /**
+   * @note This CRC calculation was taken from HGCAL DAQ SW / hexactrl-sw
+   * on CERN's GitLab and matches the single-increment test shown in
+   * the HGCROC spec document (proof that this code matches that test
+   * is in test/utility.cxx), but I am still seeing every daq link
+   * readout in a pedestal run failing the CRC check making me think
+   * the inputs to the CRC calculation should be different than what is
+   * coded here.
+   */
+  // CRC of first 39 words, 40th word is the crc itself
+  auto crcval = crc(std::span(data.begin(), 39));
   uint32_t target = data[39];
-  corruption[1] = (crc32 != target);
-  /* no warning on CRC sum, again like CMS hexactrl-sw
+  corruption[1] = (crcval != target);
+  // no warning on CRC sum, again like CMS hexactrl-sw
   if (corruption[1]) {
-    pflib_log(warn) << "CRC sum don't match " << hex(crc32) << " != " << hex(target);
+    pflib_log(trace) << "CRC sum don't match " << hex(crcval) << " != " << hex(target);
   }
-  */
 }
 
 DAQLinkFrame::DAQLinkFrame(std::span<uint32_t> data) { from(data); }
