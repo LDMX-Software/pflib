@@ -25,8 +25,8 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   uint32_t leading = (header >> (12 + 6 + 3 + 1 + 1 + 1 + 4)) & mask<4>;
   corruption[0] = (leading != 0b1111 and leading != 0b0101);
   if (corruption[0]) {
-    pflib_log(warn) << "bad leading 4-bits of header (0b1111 or 0b0101): "
-                    << std::bitset<4>(leading);
+    pflib_log(trace) << "bad leading 4-bits of header (0b1111 or 0b0101): "
+                     << std::bitset<4>(leading);
   }
   bx = (header >> (6 + 3 + 1 + 1 + 1 + 4)) & mask<12>;
   event = (header >> (3 + 1 + 1 + 1 + 4)) & mask<6>;
@@ -37,7 +37,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   uint32_t trailflag = (header & mask<4>);
   corruption[5] = (trailflag != 0b0101);
   if (corruption[5]) {
-    pflib_log(warn)
+    pflib_log(trace)
         << "bad trailing 4 bits of header (0b0101): "
         << std::bitset<4>(trailflag);
   }
