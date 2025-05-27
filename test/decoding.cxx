@@ -4,8 +4,17 @@
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/Sample.h"
+#include "pflib/packing/Mask.h"
 
 BOOST_AUTO_TEST_SUITE(decoding)
+
+BOOST_AUTO_TEST_SUITE(mask)
+
+BOOST_AUTO_TEST_CASE(ten_bits) {
+  BOOST_CHECK_EQUAL(pflib::packing::mask<10>, 0x3ff);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(sample)
 
@@ -51,6 +60,17 @@ BOOST_AUTO_TEST_CASE(real_word_1) {
   BOOST_CHECK(s.tot() == -1);
   BOOST_CHECK(s.adc_tm1() == 48);
   BOOST_CHECK(s.toa() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(real_word_2) {
+  pflib::packing::Sample s;
+  s.word = 0x08208a02;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK_EQUAL(s.adc(), 34);
+  BOOST_CHECK_EQUAL(s.tot(), -1);
+  BOOST_CHECK_EQUAL(s.adc_tm1(), 130);
+  BOOST_CHECK_EQUAL(s.toa(), 514);
 }
 
 BOOST_AUTO_TEST_CASE(tot_output) {
