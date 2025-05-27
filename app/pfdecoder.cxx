@@ -152,10 +152,10 @@ int main(int argc, char* argv[]) {
       }
     }
     ep.to_csv(o);
-    if (nevents > 0 and count > nevents) {
+    count++;
+    if (nevents > 0 and count >= nevents) {
       break;
     }
-    count++;
   }
 
   return 0;
