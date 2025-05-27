@@ -45,3 +45,6 @@ clean:
 hexdump *args:
     hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
    
+# run the decoder
+decode *args:
+    denv ./build/pfdecoder {{ args }}
