@@ -31,6 +31,28 @@ BOOST_AUTO_TEST_CASE(simple_adc) {
   BOOST_CHECK(s.toa() == 3);
 }
 
+BOOST_AUTO_TEST_CASE(high_bits) {
+  pflib::packing::Sample s;
+  s.word = 0b00100000000110000000101000000011;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 514);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.adc_tm1() == 513);
+  BOOST_CHECK(s.toa() == 515);
+}
+
+BOOST_AUTO_TEST_CASE(real_word_1) {
+  pflib::packing::Sample s;
+  s.word = 0x03012c02;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 75);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.adc_tm1() == 48);
+  BOOST_CHECK(s.toa() == 2);
+}
+
 BOOST_AUTO_TEST_CASE(tot_output) {
   pflib::packing::Sample s;
   s.word = 0b11000000000100000000100000000011;
