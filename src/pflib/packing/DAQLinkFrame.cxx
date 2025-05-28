@@ -21,7 +21,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   const uint32_t& header = data[0];
-  pflib_log(trace) << "daq link header " << hex(header);
+  pflib_log(trace) << hex(header) << " daq link header";
   uint32_t leading = (header >> (12 + 6 + 3 + 1 + 1 + 1 + 4)) & mask<4>;
   corruption[0] = (leading != 0b1111 and leading != 0b0101);
   if (corruption[0]) {
@@ -43,8 +43,9 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   const uint32_t& cm{data[1]};
-  pflib_log(trace) << "common mode " << hex(cm);
-  if (((cm >> 20) & mask<12>) != 0) {
+  pflib_log(trace) << hex(cm) << " common mode word";
+  corruption[6] = (((cm >> 20) & mask<12>) != 0);
+  if (corruption[6]) {
     // these leading bits are ignored in the CMS hexactrl-sw decoding
     // so we are going to ignore them here putting 
     pflib_log(trace) << "bad common mode leading 12 bits (should be all zero): "
@@ -56,12 +57,33 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   std::size_t i_chan{0};
   for (; i_chan < 18; i_chan++) {
     channels[i_chan].word = data[2 + i_chan];
+    pflib_log(trace) << hex(channels[i_chan].word) << " -> ch " << i_chan
+                     << " Tp = " << std::boolalpha << channels[i_chan].Tp()
+                     << " Tc = " << std::boolalpha << channels[i_chan].Tc()
+                     << " adc = " << channels[i_chan].adc()
+                     << " adc_tm1 = " << channels[i_chan].adc_tm1()
+                     << " tot = " << channels[i_chan].tot()
+                     << " toa = " << channels[i_chan].toa();
   }
 
   calib.word = data[2 + 18];
+  pflib_log(trace) << hex(calib.word) << " -> calib"
+                   << " Tp = " << std::boolalpha << calib.Tp()
+                   << " Tc = " << std::boolalpha << calib.Tc()
+                   << " adc = " << calib.adc()
+                   << " adc_tm1 = " << calib.adc_tm1()
+                   << " tot = " << calib.tot()
+                   << " toa = " << calib.toa();
 
   for (; i_chan < 36; i_chan++) {
     channels[i_chan].word = data[2 + 1 + i_chan];
+    pflib_log(trace) << hex(channels[i_chan].word) << " -> ch " << i_chan
+                     << " Tp = " << std::boolalpha << channels[i_chan].Tp()
+                     << " Tc = " << std::boolalpha << channels[i_chan].Tc()
+                     << " adc = " << channels[i_chan].adc()
+                     << " adc_tm1 = " << channels[i_chan].adc_tm1()
+                     << " tot = " << channels[i_chan].tot()
+                     << " toa = " << channels[i_chan].toa();
   }
 
   /**

@@ -43,8 +43,9 @@ class DAQLinkFrame {
    *  3    | error present in first quarter (ch0-17 and cm)
    *  4    | error present in second quarter (calib and ch18-35)
    *  5    | header trailing four bits are wrong
+   *  6    | common mode leading 12 bits are wrong
    */
-  std::array<bool, 6> corruption;
+  std::array<bool, 7> corruption;
 
   /// array of samples from the channels
   std::array<Sample, 36> channels;
@@ -67,7 +68,7 @@ class DAQLinkFrame {
    */
   DAQLinkFrame(std::span<uint32_t> data);
 
-  /// default constructor that does not do anything:w
+  /// default constructor that does not do anything
   DAQLinkFrame() = default;
 };
 
