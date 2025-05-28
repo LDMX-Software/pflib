@@ -277,6 +277,7 @@ static void elinks(const std::string& cmd, Target* pft) {
  * ROC currently being interacted with by user
  */
 static int iroc = 0;
+static std::string type_version = "sipm_rocv3b";
 
 /**
  * Simply print the currently selective ROC so that user is aware
@@ -284,7 +285,9 @@ static int iroc = 0;
  *
  * @param[in] pft active target (not used)
  */
-static void roc_render(Target* pft) { printf(" Active ROC: %d\n", iroc); }
+static void roc_render(Target* pft) {
+  printf(" Active ROC: %d (typ_version = %s)\n", iroc, type_version.c_str());
+}
 
 /**
  * ROC menu commands
@@ -310,7 +313,6 @@ static void roc_render(Target* pft) { printf(" Active ROC: %d\n", iroc); }
  * @param[in] pft active target
  */
 static void roc(const std::string& cmd, Target* pft) {
-  static std::string type_version = "sipm_rocv3b";
   static std::vector<std::string> page_names;
   static std::map<std::string, std::vector<std::string>> param_names;
   if (page_names.empty()) {
@@ -1447,6 +1449,50 @@ auto menu_daq =
         ->line("RESET", "Reset the DAQ", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
+        ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
+          [](Target* tgt) {
+            std::string fname_def_format = "charge-timein-%Y-%m-%d-%H%M%S";
+            time_t t = time(NULL);
+            struct tm* tm = localtime(&t);
+            char fname_def[64];
+            strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+            int nevents = BaseMenu::readline_int("How many events per time offset? ", 100);
+            int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
+            int min_offset = BaseMenu::readline_int("Minimum time offset to test? ", 0);
+            int max_offset = BaseMenu::readline_int("Maximum time offset to test? ", 128);
+            std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
+            static int rate = 100;
+            tgt->setup_run(1, daq_format_mode, daq_contrib_id);
+            WriteToBinaryFile writer{fname+".raw"};
+            pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
+            roc.applyParameters({
+              { "REFERENCEVOLTAGE_1", {
+                {"CALIB", calib},
+                {"INTCTEST", 1}
+              }},
+              { "CH_61", {
+                { "HIGHRANGE", 0 },
+                { "LOWRANGE" , 1 }
+              }}
+            });
+            // upper limit arbitrarily chosen
+            for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+              tgt->fc().fc_setup_calib(toffset);
+              usleep(10);
+              pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
+              daq_run(tgt, "CHARGE", 1, nevents, rate, [&](auto event) { writer(event); });
+            }
+            roc.applyParameters({
+              { "REFERENCEVOLTAGE_1", {
+                {"CALIB", 0},
+                {"INTCTEST", 0}
+              }},
+              { "CH_61", {
+                { "HIGHRANGE", 0 },
+                { "LOWRANGE" , 0 }
+              }}
+            });
+          })
     //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
     //  ->line("SCAN","Take many charge or pedestal runs while changing a single
     //  parameter", daq)
