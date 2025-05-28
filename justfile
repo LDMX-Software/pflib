@@ -40,3 +40,8 @@ test-log-all: (_test "-l all")
 # remove build directory
 clean:
     rm -r build
+
+# dump 32-bit words per line
+hexdump *args:
+    hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
+   
