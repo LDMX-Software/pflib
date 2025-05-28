@@ -43,6 +43,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   const uint32_t& cm{data[1]};
+  pflib_log(trace) << "common mode " << hex(cm);
   if (((cm >> 20) & mask<12>) != 0) {
     // these leading bits are ignored in the CMS hexactrl-sw decoding
     // so we are going to ignore them here putting 
