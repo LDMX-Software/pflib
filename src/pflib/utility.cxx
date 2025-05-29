@@ -4,6 +4,9 @@
 #include <sstream>
 #include <vector>
 
+#include <boost/endian/conversion.hpp>
+#include <boost/crc.hpp>
+
 #include "pflib/Exception.h"
 
 namespace pflib {
@@ -74,6 +77,18 @@ bool endsWith(const std::string& full, const std::string& ending) {
   if (full.length() < ending.length()) return false;
   return (0 == full.compare(full.length() - ending.length(), ending.length(),
                             ending));
+}
+
+uint32_t crc(std::span<uint32_t> data) {
+  /**
+   * We need to flip the endian-ness of the words so we have
+   * to make our own copy of the data words
+   */
+  std::vector<uint32_t> words{data.begin(), data.end()};
+  std::transform( words.begin(), words.end(), words.begin(),
+    [](uint32_t w) { return boost::endian::endian_reverse(w); });
+  auto input_ptr = reinterpret_cast<const unsigned char*>(words.data());
+  return boost::crc<32, 0x04c11db7, 0x0, 0x0, false, false>(input_ptr, words.size()*4);
 }
 
 }  // namespace pflib

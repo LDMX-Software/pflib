@@ -128,34 +128,39 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  o << std::boolalpha;
-  o << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
-
-  pflib::packing::SingleROCEventPacket ep;
-  // count is NOT written into output file,
-  // we use the event number from the links
-  // this is just to allow users to limit the number of entries in
-  // the output CSV if desired
-  int count{0};
-
-  while (r) {
-    pflib_log(info) << "popping " << count << " event from stream";
-    r >> ep;
-    pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
-                     << " and bool(r): " << bool(r);
-    if (headers) {
-      for (std::size_t i_link{0}; i_link < 2; i_link++) {
-        const auto& daq_link{ep.daq_links[i_link]};
-        std::cout << "Link " << i_link << " : " << "BX = " << daq_link.bx
-                  << " Event = " << daq_link.event
-                  << " Orbit = " << daq_link.orbit << std::endl;
+  try {
+    o << std::boolalpha;
+    o << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+  
+    pflib::packing::SingleROCEventPacket ep;
+    // count is NOT written into output file,
+    // we use the event number from the links
+    // this is just to allow users to limit the number of entries in
+    // the output CSV if desired
+    int count{0};
+  
+    while (r) {
+      pflib_log(info) << "popping " << count << " event from stream";
+      r >> ep;
+      pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
+                       << " and bool(r): " << bool(r);
+      if (headers) {
+        for (std::size_t i_link{0}; i_link < 2; i_link++) {
+          const auto& daq_link{ep.daq_links[i_link]};
+          std::cout << "Link " << i_link << " : " << "BX = " << daq_link.bx
+                    << " Event = " << daq_link.event
+                    << " Orbit = " << daq_link.orbit << std::endl;
+        }
+      }
+      ep.to_csv(o);
+      count++;
+      if (nevents > 0 and count >= nevents) {
+        break;
       }
     }
-    ep.to_csv(o);
-    if (nevents > 0 and count > nevents) {
-      break;
-    }
-    count++;
+  } catch (const std::runtime_error& e) {
+    pflib_log(fatal) << e.what();
+    return 1;
   }
 
   return 0;

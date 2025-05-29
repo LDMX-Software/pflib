@@ -4,8 +4,17 @@
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/Sample.h"
+#include "pflib/packing/Mask.h"
 
 BOOST_AUTO_TEST_SUITE(decoding)
+
+BOOST_AUTO_TEST_SUITE(mask)
+
+BOOST_AUTO_TEST_CASE(ten_bits) {
+  BOOST_CHECK_EQUAL(pflib::packing::mask<10>, 0x3ff);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(sample)
 
@@ -29,6 +38,39 @@ BOOST_AUTO_TEST_CASE(simple_adc) {
   BOOST_CHECK(s.tot() == -1);
   BOOST_CHECK(s.adc_tm1() == 1);
   BOOST_CHECK(s.toa() == 3);
+}
+
+BOOST_AUTO_TEST_CASE(high_bits) {
+  pflib::packing::Sample s;
+  s.word = 0b00100000000110000000101000000011;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 514);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.adc_tm1() == 513);
+  BOOST_CHECK(s.toa() == 515);
+}
+
+BOOST_AUTO_TEST_CASE(real_word_1) {
+  pflib::packing::Sample s;
+  s.word = 0x03012c02;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 75);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.adc_tm1() == 48);
+  BOOST_CHECK(s.toa() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(real_word_2) {
+  pflib::packing::Sample s;
+  s.word = 0x08208a02;
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK_EQUAL(s.adc(), 34);
+  BOOST_CHECK_EQUAL(s.tot(), -1);
+  BOOST_CHECK_EQUAL(s.adc_tm1(), 130);
+  BOOST_CHECK_EQUAL(s.toa(), 514);
 }
 
 BOOST_AUTO_TEST_CASE(tot_output) {
@@ -70,7 +112,7 @@ BOOST_AUTO_TEST_SUITE(daq_link_frame)
 
 std::vector<uint32_t> gen_test_frame() {
   std::vector<uint32_t> test_frame = {
-      0xf00c26a2,  // daq header
+      0xf00c26a5,  // daq header
       0x00022802,  // common mode
   };
   std::size_t i_ch{0};
@@ -82,8 +124,9 @@ std::vector<uint32_t> gen_test_frame() {
   for (; i_ch < 36; i_ch++) {
     test_frame.push_back(i_ch);
   }
-  // not testing CRC, just put in dummy word
-  test_frame.push_back(0x0f0f0f0f);
+  // CRC word calculated by our own code
+  // just to quiet the testing
+  test_frame.push_back(0xe2378cb3);
   return test_frame;
 }
 
@@ -95,9 +138,12 @@ BOOST_AUTO_TEST_CASE(foo) {
   BOOST_CHECK(f.bx == 12);
   BOOST_CHECK(f.event == 9);
   BOOST_CHECK(f.orbit == 5);
-  BOOST_CHECK(f.second_quarter_err == false);
-  BOOST_CHECK(f.first_quarter_err == true);
-  BOOST_CHECK(f.counter_err == false);
+  BOOST_CHECK(f.corruption[0] == false);
+  BOOST_CHECK(f.corruption[1] == false);
+  BOOST_CHECK(f.corruption[2] == false);
+  BOOST_CHECK(f.corruption[3] == true);
+  BOOST_CHECK(f.corruption[4] == false);
+  BOOST_CHECK(f.corruption[5] == false);
   BOOST_CHECK(f.adc_cm1 == 2);
   BOOST_CHECK(f.adc_cm0 == 138);
 

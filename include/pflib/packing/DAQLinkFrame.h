@@ -27,21 +27,29 @@ class DAQLinkFrame {
   int event;
   /// orbit id number
   int orbit;
-  /// error present in one of the counters
-  bool counter_err;
-  /// error present in first quarter (ch0-17 and cm)
-  bool first_quarter_err;
-  /// error present in second quarter (calib and ch18-35)
-  bool second_quarter_err;
-  /// flag if this is the first event
-  bool first_event;
   /// adc readout from common mode 0
   int adc_cm0;
   /// adc readout from common mode 1
   int adc_cm1;
 
+  /**
+   * Corruption checks on the data
+   *
+   * Index | Description
+   * ------|-------------
+   *  0    | header leading four bits are wrong
+   *  1    | CRC does not match
+   *  2    | error present in one of the counters
+   *  3    | error present in first quarter (ch0-17 and cm)
+   *  4    | error present in second quarter (calib and ch18-35)
+   *  5    | header trailing four bits are wrong
+   *  6    | common mode leading 12 bits are wrong
+   */
+  std::array<bool, 7> corruption;
+
   /// array of samples from the channels
   std::array<Sample, 36> channels;
+
   /// sample from calibration channel
   Sample calib;
 
@@ -60,7 +68,7 @@ class DAQLinkFrame {
    */
   DAQLinkFrame(std::span<uint32_t> data);
 
-  /// default constructor that does not do anything:w
+  /// default constructor that does not do anything
   DAQLinkFrame() = default;
 };
 
