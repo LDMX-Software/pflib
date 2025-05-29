@@ -697,7 +697,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     for (int i = 0; i < daq.nlinks(); i++) {
       // only correct right now for the single-board readout
       if (i < 2)
-        daq.setupLink(i, 11, 40);  // DAQ link
+        daq.setupLink(i, 12, 40);  // DAQ link
       else
         daq.setupLink(i, 0x80 | 5, 4);  // Trigger link
     }
