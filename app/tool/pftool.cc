@@ -790,7 +790,7 @@ class DecodeAndWriteToCSV {
  * Do a DAQ run using the input target
  *
  * @param[in] pft target to use
- * @param[in] Request function that does the appropriate request given a FastControl object
+ * @param[in] cmd PEDESTAL, CHARGE, or LED (type of trigger to send)
  * @param[in] run run number not currently used in implementation of daq format
  * @param[in] nevents number of events to collect
  * @param[in] rate how fast to collect events, not implemented
@@ -798,15 +798,26 @@ class DecodeAndWriteToCSV {
  * (presumably writes them out to a file)
  */
 static void daq_run(Target* pft,
-                    std::function<void(pflib::FastControl&)> Request,
-                    int run, int nevents, int rate,
+                    const std::string& cmd, int run, int nevents, int rate,
                     std::function<void(std::vector<uint32_t>&)> Action) {
+  static const
+  std::unordered_map<std::string, std::function<void(pflib::FastControl&)>>
+  cmds = {
+    {"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
+    {"CHARGE"  , [](pflib::FastControl& fc) { fc.chargepulse(); }},
+    {"LED"     , [](pflib::FastControl& fc) { fc.ledpulse(); }}
+  };
+  if (cmds.find(cmd) == cmds.end()) {
+    PFEXCEPTION_RAISE("UnknownCMD", "Command "+cmd+" is not one of the daq_run options.");
+  }
+  auto trigger{cmds.at(cmd)};
+
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
     pflib_log(trace) << "daq event occupancy pre-L1A    : "
                      << pft->hcal().daq().getEventOccupancy();
-    Request(pft->fc());
+    trigger(pft->fc());
 
     pflib_log(trace) << "daq event occupancy post-L1A   : "
                      << pft->hcal().daq().getEventOccupancy();
@@ -962,11 +973,6 @@ static void daq(const std::string& cmd, Target* pft) {
 
   }
   */
-  static const std::unordered_map<std::string, std::function<void(pflib::FastControl&)>> cmds = {
-    {"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
-    {"CHARGE"  , [](pflib::FastControl& fc) { fc.chargepulse(); }},
-    {"LED"     , [](pflib::FastControl& fc) { fc.ledpulse(); }}
-  };
   if (cmd == "PEDESTAL" || cmd == "CHARGE" || cmd == "LED") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S";
     if (cmd == "CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S";
@@ -991,10 +997,10 @@ static void daq(const std::string& cmd, Target* pft) {
         
     if (decoding) {
       DecodeAndWriteToCSV writer{fname + ".csv"};
-      daq_run(pft, cmds.at(cmd), run, nevents, rate, [&](auto event) { writer(event); });
+      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     } else {
       WriteToBinaryFile writer{fname + ".raw"};
-      daq_run(pft, cmds.at(cmd), run, nevents, rate, [&](auto event) { writer(event); });
+      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
     }
   }
 
@@ -1494,9 +1500,7 @@ auto menu_daq_debug =
               tgt->fc().fc_setup_calib(toffset);
               usleep(10);
               pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
-              daq_run(tgt,
-                    [](pflib::FastControl& fc) { fc.chargepulse(); },
-                    1, nevents, rate, [&](auto event) { writer(event); });
+              daq_run(tgt, "CHARGE", 1, nevents, rate, [&](auto event) { writer(event); });
             }
             roc.applyParameters({
               { "REFERENCEVOLTAGE_1", {
