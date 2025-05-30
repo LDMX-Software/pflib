@@ -13,7 +13,6 @@ namespace pflib {
 
 /**
  * @class ROC setup
- *
  */
 class ROC {
  public:
@@ -107,6 +106,35 @@ class ROC {
    * and write a YAML file, else just write a CSV file of the registers
    */
   void dumpSettings(const std::string& filepath, bool decompile);
+
+  /**
+   * test certain parameters before setting them back to old values
+   */
+  class TestParameters {
+    mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc::TestParameters")};
+    std::map<std::string, std::map<std::string, int>> set_, unset_;
+    ROC& roc_;
+    TestParameters(ROC& roc): set_{}, unset_{}, roc_{roc} {}
+   public:
+    ~TestParameters() {
+      pflib_log(trace) << "unsetting test parameters";
+      roc.applyParameters(unset_);
+    }
+    TestParameters& add(const std::string& page, const std::string& param, const int& val, const int& reset = 0) {
+      set_[page][param] = val;
+      unset_[page][param] = reset;
+      return *this;
+    }
+    TestParameters& apply() {
+      pflib_log(trace) << "applying test parameters";
+      roc.applyParameters(set_);
+      return *this;
+    }
+  };
+
+  TestParameters test() {
+    return TestParameters(*this);
+  }
 
  private:
   I2C& i2c_;
