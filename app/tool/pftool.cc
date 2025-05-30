@@ -1449,6 +1449,18 @@ auto menu_daq =
         ->line("RESET", "Reset the DAQ", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
+    //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
+    //  ->line("SCAN","Take many charge or pedestal runs while changing a single
+    //  parameter", daq)
+    ;
+
+auto menu_daq_debug =
+    menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
+        ->line("STATUS", "Provide the status", print_daq_status)
+        ->line("ESPY", "Spy on one elink", daq_debug)
+        ->line("ADV", "advance the readout pointers", daq_debug)
+        ->line("SW_L1A", "send a L1A from software", fc)
+        ->line("FMTTEST", "test the formatter", daq_debug)
         ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
           [](Target* tgt) {
             std::string fname_def_format = "charge-timein-%Y-%m-%d-%H%M%S";
@@ -1463,7 +1475,7 @@ auto menu_daq =
             std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
             static int rate = 100;
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
-            WriteToBinaryFile writer{fname+".raw"};
+            DecodeAndWriteToCSV writer{fname+".csv"};
             pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
             roc.applyParameters({
               { "REFERENCEVOLTAGE_1", {
@@ -1475,7 +1487,6 @@ auto menu_daq =
                 { "LOWRANGE" , 1 }
               }}
             });
-            // upper limit arbitrarily chosen
             for (int toffset{min_offset}; toffset < max_offset; toffset++) {
               tgt->fc().fc_setup_calib(toffset);
               usleep(10);
@@ -1493,18 +1504,6 @@ auto menu_daq =
               }}
             });
           })
-    //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
-    //  ->line("SCAN","Take many charge or pedestal runs while changing a single
-    //  parameter", daq)
-    ;
-
-auto menu_daq_debug =
-    menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
-        ->line("STATUS", "Provide the status", print_daq_status)
-        ->line("ESPY", "Spy on one elink", daq_debug)
-        ->line("ADV", "advance the readout pointers", daq_debug)
-        ->line("SW_L1A", "send a L1A from software", fc)
-        ->line("FMTTEST", "test the formatter", daq_debug)
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
