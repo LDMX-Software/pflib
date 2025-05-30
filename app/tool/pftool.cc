@@ -277,6 +277,7 @@ static void elinks(const std::string& cmd, Target* pft) {
  * ROC currently being interacted with by user
  */
 static int iroc = 0;
+static std::string type_version = "sipm_rocv3b";
 
 /**
  * Simply print the currently selective ROC so that user is aware
@@ -284,7 +285,9 @@ static int iroc = 0;
  *
  * @param[in] pft active target (not used)
  */
-static void roc_render(Target* pft) { printf(" Active ROC: %d\n", iroc); }
+static void roc_render(Target* pft) {
+  printf(" Active ROC: %d (typ_version = %s)\n", iroc, type_version.c_str());
+}
 
 /**
  * ROC menu commands
@@ -310,7 +313,6 @@ static void roc_render(Target* pft) { printf(" Active ROC: %d\n", iroc); }
  * @param[in] pft active target
  */
 static void roc(const std::string& cmd, Target* pft) {
-  static std::string type_version = "sipm_rocv3b";
   static std::vector<std::string> page_names;
   static std::map<std::string, std::vector<std::string>> param_names;
   if (page_names.empty()) {
@@ -788,25 +790,34 @@ class DecodeAndWriteToCSV {
  * Do a DAQ run using the input target
  *
  * @param[in] pft target to use
- * @param[in] cmd PEDESTAL, CHARGE, otherwise no trigger is done
+ * @param[in] cmd PEDESTAL, CHARGE, or LED (type of trigger to send)
  * @param[in] run run number not currently used in implementation of daq format
  * @param[in] nevents number of events to collect
  * @param[in] rate how fast to collect events, not implemented
  * @param[in] Action function that consumes the event packets and does something with them
  * (presumably writes them out to a file)
  */
-static void daq_run(Target* pft, const std::string& cmd, int run, int nevents,
-                    int rate,
-                    const std::function<void(std::vector<uint32_t>&)>& Action) {
+static void daq_run(Target* pft,
+                    const std::string& cmd, int run, int nevents, int rate,
+                    std::function<void(std::vector<uint32_t>&)> Action) {
+  static const
+  std::unordered_map<std::string, std::function<void(pflib::FastControl&)>>
+  cmds = {
+    {"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
+    {"CHARGE"  , [](pflib::FastControl& fc) { fc.chargepulse(); }},
+    {"LED"     , [](pflib::FastControl& fc) { fc.ledpulse(); }}
+  };
+  if (cmds.find(cmd) == cmds.end()) {
+    PFEXCEPTION_RAISE("UnknownCMD", "Command "+cmd+" is not one of the daq_run options.");
+  }
+  auto trigger{cmds.at(cmd)};
+
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
     pflib_log(trace) << "daq event occupancy pre-L1A    : "
                      << pft->hcal().daq().getEventOccupancy();
-    // normally, some other controller would send the L1A
-    //  we are sending it so we get data during no signal
-    if (cmd == "PEDESTAL") pft->fc().sendL1A();
-    if (cmd == "CHARGE") pft->fc().chargepulse();
+    trigger(pft->fc());
 
     pflib_log(trace) << "daq event occupancy post-L1A   : "
                      << pft->hcal().daq().getEventOccupancy();
@@ -962,7 +973,7 @@ static void daq(const std::string& cmd, Target* pft) {
 
   }
   */
-  if (cmd == "PEDESTAL" || cmd == "CHARGE") {
+  if (cmd == "PEDESTAL" || cmd == "CHARGE" || cmd == "LED") {
     std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S";
     if (cmd == "CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S";
 
@@ -983,7 +994,7 @@ static void daq(const std::string& cmd, Target* pft) {
         BaseMenu::readline("Filename (no extension):  ", fname_def);
     bool decoding =
         BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
-
+        
     if (decoding) {
       DecodeAndWriteToCSV writer{fname + ".csv"};
       daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
@@ -1459,6 +1470,49 @@ auto menu_daq_debug =
         ->line("ADV", "advance the readout pointers", daq_debug)
         ->line("SW_L1A", "send a L1A from software", fc)
         ->line("FMTTEST", "test the formatter", daq_debug)
+        ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
+          [](Target* tgt) {
+            std::string fname_def_format = "charge-timein-%Y-%m-%d-%H%M%S";
+            time_t t = time(NULL);
+            struct tm* tm = localtime(&t);
+            char fname_def[64];
+            strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+            int nevents = BaseMenu::readline_int("How many events per time offset? ", 100);
+            int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
+            int min_offset = BaseMenu::readline_int("Minimum time offset to test? ", 0);
+            int max_offset = BaseMenu::readline_int("Maximum time offset to test? ", 128);
+            std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
+            static int rate = 100;
+            tgt->setup_run(1, daq_format_mode, daq_contrib_id);
+            DecodeAndWriteToCSV writer{fname+".csv"};
+            pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
+            roc.applyParameters({
+              { "REFERENCEVOLTAGE_1", {
+                {"CALIB", calib},
+                {"INTCTEST", 1}
+              }},
+              { "CH_61", {
+                { "HIGHRANGE", 0 },
+                { "LOWRANGE" , 1 }
+              }}
+            });
+            for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+              tgt->fc().fc_setup_calib(toffset);
+              usleep(10);
+              pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
+              daq_run(tgt, "CHARGE", 1, nevents, rate, [&](auto event) { writer(event); });
+            }
+            roc.applyParameters({
+              { "REFERENCEVOLTAGE_1", {
+                {"CALIB", 0},
+                {"INTCTEST", 0}
+              }},
+              { "CH_61", {
+                { "HIGHRANGE", 0 },
+                { "LOWRANGE" , 0 }
+              }}
+            });
+          })
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
   ->line("DISABLE_ROCLINKS", "Disable ROC links to drive only from SW",  daq_debug )
