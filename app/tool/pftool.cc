@@ -1411,6 +1411,22 @@ auto menu_roc =
         ->line("CHAN", "Dump link status", roc)
         ->line("PAGE", "Dump a page", roc)
         ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
+        ->line("TEMP_POKE", "test TestParameters", [](Target* tgt) {
+          auto roc{tgt->hcal().roc(iroc)};
+          // CH_40 is Page 6
+          // InputDac is register 0
+          auto v = roc.readPage(6, 1);
+          printf("%02x\n", v[0]);
+          {
+            auto tp = roc.testParameters()
+              .add("CH_40", "INPUTDAC", 0x2a)
+              .apply();
+            v = roc.readPage(6, 1);
+            printf("%02x\n", v[0]);
+          }
+          v = roc.readPage(6, 1);
+          printf("%02x\n", v[0]);
+        })
         ->line("POKE_REG", "Change a single register value", roc)
         ->line("POKE_PARAM", "Change a single parameter value", roc)
         ->line("POKE", "Alias for POKE_PARAM", roc)
@@ -1486,32 +1502,18 @@ auto menu_daq_debug =
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
             DecodeAndWriteToCSV writer{fname+".csv"};
             pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
-            roc.applyParameters({
-              { "REFERENCEVOLTAGE_1", {
-                {"CALIB", calib},
-                {"INTCTEST", 1}
-              }},
-              { "CH_61", {
-                { "HIGHRANGE", 0 },
-                { "LOWRANGE" , 1 }
-              }}
-            });
+            auto test_param_handle = roc.testParameters()
+              .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+              .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+              .add("CH_61", "HIGHRANGE", 0)
+              .add("CH_61", "LOWRANGE", 0)
+              .apply();
             for (int toffset{min_offset}; toffset < max_offset; toffset++) {
               tgt->fc().fc_setup_calib(toffset);
               usleep(10);
               pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
               daq_run(tgt, "CHARGE", 1, nevents, rate, [&](auto event) { writer(event); });
             }
-            roc.applyParameters({
-              { "REFERENCEVOLTAGE_1", {
-                {"CALIB", 0},
-                {"INTCTEST", 0}
-              }},
-              { "CH_61", {
-                { "HIGHRANGE", 0 },
-                { "LOWRANGE" , 0 }
-              }}
-            });
           })
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
