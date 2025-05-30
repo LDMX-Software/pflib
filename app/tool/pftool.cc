@@ -696,10 +696,14 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     pflib::Elinks& elinks = pft->hcal().elinks();
     for (int i = 0; i < daq.nlinks(); i++) {
       // only correct right now for the single-board readout
-      if (i < 2)
-        daq.setupLink(i, 12, 40);  // DAQ link
-      else
-        daq.setupLink(i, 0x80 | 5, 4);  // Trigger link
+      if (i < 2) {
+        // DAQ link, timed in with pedestals and idles
+        daq.setupLink(i, 12, 40);
+      } else {
+        // Trigger link
+        // just a guess right now, need charge injection to time in
+        daq.setupLink(i, 0x80 | 5, 4);
+      }
     }
   }
   /*
