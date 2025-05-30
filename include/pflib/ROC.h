@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
@@ -111,30 +112,56 @@ class ROC {
    * test certain parameters before setting them back to old values
    */
   class TestParameters {
-    mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc::TestParameters")};
-    std::map<std::string, std::map<std::string, int>> set_, unset_;
+    std::map<std::string, std::map<std::string, int>> unset_;
     ROC& roc_;
-    TestParameters(ROC& roc): set_{}, unset_{}, roc_{roc} {}
    public:
-    ~TestParameters() {
-      pflib_log(trace) << "unsetting test parameters";
-      roc.applyParameters(unset_);
-    }
-    TestParameters& add(const std::string& page, const std::string& param, const int& val, const int& reset = 0) {
-      set_[page][param] = val;
-      unset_[page][param] = reset;
-      return *this;
-    }
-    TestParameters& apply() {
-      pflib_log(trace) << "applying test parameters";
-      roc.applyParameters(set_);
-      return *this;
-    }
+    /**
+     * Construct a set of test parameters
+     *
+     * Apply the input settings to the roc and store
+     * the unset settings for latter application
+     */
+    TestParameters(
+      ROC& roc,
+      std::map<std::string, std::map<std::string,int>> set,
+      std::map<std::string, std::map<std::string,int>> unset
+    );
+    /// applies the unset parameters to the ROC
+    ~TestParameters();
+    /// cannot copy or assign this lock
+    TestParameters(const TestParameters&) = delete;
+    TestParameters& operator=(const TestParameters&) = delete;
+    /// Build a TestParameters parameter by parameter
+    class Builder {
+      std::map<std::string, std::map<std::string, int>> set_, unset_;
+      ROC& roc_;
+     public:
+      Builder(ROC& roc);
+      Builder& add(const std::string& page, const std::string& param, const int& val, const int& reset = 0);
+      [[nodiscard]] TestParameters apply();
+    };
   };
 
-  TestParameters test() {
-    return TestParameters(*this);
-  }
+  /**
+   * start a set of test parameters
+   *
+   * Use when you want to temporarily set parameters on the
+   * which will then be re-set back to other values later.
+   *
+   * example
+   * ```cpp
+   * // PAGE.PARAM1 and PAGE.PARAM2 have unknown values
+   * {
+   *   auto test_parameter_handle = roc.testParameters()
+   *     .add("PAGE", "PARAM1", 42)
+   *     .add("PAGE", "PARAM2", 32, 67);
+   *     .apply();
+   *   // PAGE.PARAM1 == 42 and PAGE.PARAM2 == 32
+   * }
+   * // PAGE.PARAM1 == 0 and PAGE.PARAM2 == 67
+   * ```
+   */
+  TestParameters::Builder testParameters();
 
  private:
   I2C& i2c_;

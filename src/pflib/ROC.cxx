@@ -283,4 +283,34 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
   f.flush();
 }
 
+ROC::TestParameters::TestParameters(
+  ROC& roc,
+  std::map<std::string, std::map<std::string, int>> set,
+  std::map<std::string, std::map<std::string, int>> unset)
+  : roc_{roc}, unset_{unset} {
+  roc_.applyParameters(set);
+}
+
+ROC::TestParameters::~TestParameters() {
+  roc_.applyParameters(unset_);
+}
+
+ROC::TestParameters::Builder::Builder(ROC& roc)
+  : set_{}, unset_{}, roc_{roc} {}
+
+ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
+  const std::string& page, const std::string& param, const int& val, const int& reset) {
+  set_[page][param] = val;
+  unset_[page][param] = reset;
+  return *this;
+}
+
+ROC::TestParameters ROC::TestParameters::Builder::apply() {
+  return TestParameters(roc_, set_, unset_);
+}
+
+ROC::TestParameters::Builder ROC::testParameters() {
+  return ROC::TestParameters::Builder(*this);
+}
+
 }  // namespace pflib
