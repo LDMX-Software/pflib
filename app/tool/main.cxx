@@ -940,41 +940,6 @@ static void daq(const std::string& cmd, Target* pft) {
       pft->daq_run(cmd, writer, nevents, rate);
     }
   }
-
-  /*
-  if (cmd=="SCAN"){
-    std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
-    std::string valuename=BaseMenu::readline("Value (aka Parameter) name :  ");
-    int iroc=BaseMenu::readline_int("Which ROC :  ");
-    int minvalue=BaseMenu::readline_int("Minimum value :  ");
-    int maxvalue=BaseMenu::readline_int("Maximum value :  ");
-    int step=BaseMenu::readline_int("Step :  ");
-    int nevents=BaseMenu::readline_int("Events per step :  ", 10);
-    int run=BaseMenu::readline_int("Run number? ",run);
-    static int rate=100;
-    rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
-    std::string fname=BaseMenu::readline("Filename :  ");
-    bool charge = BaseMenu::readline_bool("Do a charge injection for each event
-rather than simple L1A?",false); std::string trigtype = "PEDESTAL"; if (charge)
-trigtype = "CHARGE";
-
-    pft->prepareNewRun();
-
-    for(int value = minvalue; value <= maxvalue; value += step){
-      pft->hcal().roc(iroc).applyParameter(pagename, valuename, value);
-#ifdef PFTOOL_ROGUE
-      if (dma_enabled) {
-        rwbi->daq_dma_dest(fname);
-        rwbi->daq_dma_run(trigtype,run,nevents,rate);
-        rwbi->daq_dma_close();
-      } else
-#endif
-      {
-        daq_run(trigtype,run,nevents,rate,fname);
-      }
-    }
-  }
-  */
 }
 
 /**
@@ -1389,6 +1354,85 @@ auto menu_fc =
     //->line("ENABLES", "Enable various sources of signal", fc)
     ;
 
+class WriteSingleChannel {
+  std::ofstream file_;
+  int channel_;
+  int phase_strobe_;
+  int charge_to_l1a_;
+  pflib::packing::SingleROCEventPacket ep_;
+  mutable ::pflib::logging::logger the_log_{
+    pflib::logging::get("WriteSingleChannel")};
+ public:
+  WriteSingleChannel(
+    const std::string& file_name,
+    int channel
+  ) : file_{file_name}, channel_{channel} {
+    if (not file_) {
+      PFEXCEPTION_RAISE("FileOpen", "unable to open "+file_name);
+    }
+    file_ << std::boolalpha;
+    file_ << "# data collected from channel " << channel << "\n";
+    file_ << "charge_to_l1a,phase_strobe,Tp,Tc,adc_tm1,adc,tot,toa\n";
+  }
+  void set_phase_strobe(int phase_strobe) {
+    phase_strobe_ = phase_strobe;
+  }
+  void set_charge_to_l1a(int charge_to_l1a) {
+    charge_to_l1a_ = charge_to_l1a;
+  }
+  void operator()(std::vector<uint32_t>& event) {
+    const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
+    pflib::packing::BufferReader r{buffer};
+    r >> ep_;
+    auto sample{ep_.channel(channel_)};
+    file_ << charge_to_l1a_ << ','
+          << phase_strobe_ << ','
+          << sample.Tp() << ','
+          << sample.Tc() << ','
+          << sample.adc_tm1() << ','
+          << sample.adc() << ','
+          << sample.tot() << ','
+          << sample.toa() << '\n';
+  }
+};
+
+auto menu_task =
+    pftool::menu("TASK", "tasks for studying the chip and tuning its parameters")
+        ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
+          int nevents = BaseMenu::readline_int("How many events per time point? ", 100);
+          int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
+          std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
+          static int rate = 100; // pretty fast without overwhelming chip
+          static int daq_format_mode = 1; // plain hgcroc, no econd emulation
+          static int run = 1; // dummy, not stored
+          pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
+          auto test_param_handle = roc.testParameters()
+            .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+            .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+            .add("CH_61", "HIGHRANGE", 0)
+            .add("CH_61", "LOWRANGE", 1)
+            .apply();
+          WriteSingleChannel writer(fname, 61);
+          tgt->setup_run(run, daq_format_mode, daq_contrib_id);
+          auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+          for (auto charge_to_l1a{central_charge_to_l1a-1};
+               charge_to_l1a < central_charge_to_l1a+2; charge_to_l1a++) {
+            tgt->fc().fc_setup_calib(charge_to_l1a);
+            writer.set_charge_to_l1a(charge_to_l1a);
+            pflib_log(info) << "run with charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+            for (int phase{0}; phase < 16; phase++) {
+              auto phase_test_handle = roc.testParameters()
+                .add("TOP", "PHASE_STROBE", phase)
+                .apply();
+              writer.set_phase_strobe(phase);
+              usleep(10);
+              pflib_log(info) << "run with TOP.PHASE_STROBE = " << phase;
+              daq_run(tgt, "CHARGE", run, nevents, rate, [&](auto event) { writer(event); });
+            }
+          }
+        })
+    ;
+
 auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
@@ -1396,8 +1440,6 @@ auto menu_daq =
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
     //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
-    //  ->line("SCAN","Take many charge or pedestal runs while changing a single
-    //  parameter", daq)
     ;
 
 auto menu_daq_debug =
