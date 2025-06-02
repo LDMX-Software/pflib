@@ -8,6 +8,8 @@ namespace YAML {
 class Node;
 }
 
+namespace pflib::menu {
+
 class Rcmap {
  public:
   Rcmap();
@@ -74,5 +76,7 @@ class Rcfile {
   Rcmap contents_;
   std::vector<HelpInfo> helpInfo_;
 };
+
+}
 
 #endif  // Rcfile_h_included_

@@ -3,12 +3,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "Menu.h"
+#include "pflib/menu/Menu.h"
 #include "lpgbt_mezz_tester.h"
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
 
-using tool = Menu<pflib::lpGBT*>;
+using tool = pflib::menu::Menu<pflib::lpGBT*>;
+using BaseMenu = pflib::menu::BaseMenu;
 
 void regs(const std::string& cmd, pflib::lpGBT* target) {
   static int addr = 0;
