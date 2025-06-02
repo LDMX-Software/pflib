@@ -8,12 +8,20 @@ project(pflib
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(Git)
-add_custom_target(version
-  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/include/pflib/Version.h.in
-                   -D DST=${CMAKE_BINARY_DIR}/include/pflib/Version.h
+add_custom_target(git_version
+  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/pflib/version/cmake_version.h.in
+                   -D DST=${CMAKE_BINARY_DIR}/include/version/cmake_version.h
                    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
                    -P ${CMAKE_SOURCE_DIR}/GenerateVersionHeader.cmake
 )
+add_library(version SHARED src/pflib/version/Version.cxx)
+target_include_directories(version PUBLIC
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_include_directories(version PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/version/>"
+  "$<INSTALL_INTERFACE:include>")
+add_dependencies(version git_version)
 
 # YAML->register value "compiler"
 #   optional, build it if we can find the yaml parser we use
@@ -136,7 +144,6 @@ add_library(pflib SHARED
   src/pflib/FastControlCMS_MMap.cxx
   src/pflib/ECOND_Formatter.cxx
   src/pflib/utility.cxx
-  src/pflib/Version.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
 )
@@ -146,8 +153,8 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log)
-add_dependencies(pflib register_maps_header direct_access lpgbt_regmap version)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_executable(
   test-pflib
@@ -190,7 +197,7 @@ add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 set_target_properties(pflib packing PROPERTIES PREFIX "libpflib_")
-install(TARGETS pflib packing pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib packing version pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

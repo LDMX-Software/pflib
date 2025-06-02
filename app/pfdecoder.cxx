@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "pflib/Logging.h"
-#include "pflib/Version.h"
+#include "pflib/version/Version.h"
 #include "pflib/packing/FileReader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/SingleROCEventPacket.h"
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  pflib_log(debug) << PFLIB_VERSION << " (" << GIT_DESCRIBE << ")";
+  pflib_log(debug) << pflib::version::debug();
 
   if (in_file.empty()) {
     pflib_log(fatal) << "Need to provide a file to decode.";
