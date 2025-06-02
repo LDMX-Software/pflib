@@ -1660,7 +1660,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (options.contents().has_key("timestamp_format")) {
-    BaseMenu::output_directory = options.contents().getString("timestamp_format");
+    BaseMenu::timestamp_format = options.contents().getString("timestamp_format");
   }
 
   /*****************************************************************************
