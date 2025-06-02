@@ -140,6 +140,35 @@ void ROC::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
   }
 }
 
+std::map<int, std::map<int, uint8_t>> ROC::getRegisters(const std::map<int, std::map<int, uint8_t>>& selected) {
+  std::map<int, std::map<int, uint8_t>> chip_reg;
+  if (selected.empty()) {
+    /**
+     * When the input map is empty, then read all registers.
+     */
+    for (int page : compiler_.get_known_pages()) {
+      std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
+      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
+        chip_reg[page][reg] = v.at(reg);
+      }
+    }
+  } else {
+    /**
+     * When the input map is not empty, only read the registers that are within that mapping.
+     */
+    for (auto& page : selected) {
+      int page_id = page.first;
+      std::vector<uint8_t> on_chip_reg_values = readPage(page_id, N_REGISTERS_PER_PAGE);
+      for (int i{0}; i < N_REGISTERS_PER_PAGE; i++) {
+        // skip un-touched registers
+        if (page.second.find(i) == page.second.end()) continue;
+        chip_reg[page_id][i] = on_chip_reg_values.at(i);
+      }
+    }
+  }
+  return chip_reg;
+}
+
 void ROC::loadRegisters(const std::string& file_name) {
   loadIntegerCSV(file_name, [this](const std::vector<int>& cells) {
     if (cells.size() == 3) {
@@ -159,7 +188,8 @@ std::map<std::string, std::map<std::string, int>> ROC::defaults() {
   return compiler_.defaults();
 }
 
-void ROC::applyParameters(
+std::map<int, std::map<int, uint8_t>>
+ROC::applyParameters(
     const std::map<std::string, std::map<std::string, int>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
@@ -168,16 +198,9 @@ void ROC::applyParameters(
   /**
    * 2. get the current register values on the chip which is
    */
-  std::map<int, std::map<int, uint8_t>> chip_reg;
-  for (auto& page : touched_registers) {
-    int page_id = page.first;
-    std::vector<uint8_t> on_chip_reg_values = this->readPage(page_id, 16);
-    for (int i{0}; i < 16; i++) {
-      // skip un-touched registers
-      if (page.second.find(i) == page.second.end()) continue;
-      chip_reg[page_id][i] = on_chip_reg_values.at(i);
-    }
-  }
+  auto chip_reg{getRegisters(touched_registers)};
+  // copy of current chip values to return
+  auto ret_val = chip_reg;
   /**
    * 3. compile this parameter onto those register values
    *    we can use the lower-level compile here because the
@@ -195,6 +218,7 @@ void ROC::applyParameters(
    * 4. put these updated values onto the chip
    */
   this->setRegisters(chip_reg);
+  return ret_val;
 }
 
 void ROC::loadParameters(const std::string& file_path, bool prepend_defaults) {
@@ -227,7 +251,6 @@ void ROC::applyParameter(const std::string& page, const std::string& param,
 }
 
 void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
-  static const int N_REGISTERS_PER_PAGE = 32;
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings.");
   }
@@ -239,14 +262,7 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
 
   if (should_decompile) {
     // read all the pages and store them in memory
-    std::map<int, std::map<int, uint8_t>> register_values;
-    for (int page : compiler_.get_known_pages()) {
-      // all pages have up to 16 registers
-      std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
-      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
-        register_values[page][reg] = v.at(reg);
-      }
-    }
+    std::map<int, std::map<int, uint8_t>> register_values{getRegisters({})};
 
     /**
      * decompile while being careful since we knowingly are attempting
@@ -281,6 +297,34 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
   }
 
   f.flush();
+}
+
+ROC::TestParameters::TestParameters(
+  ROC& roc,
+  std::map<std::string, std::map<std::string, int>> new_params)
+  : roc_{roc} {
+  previous_registers_ = roc_.applyParameters(new_params);
+}
+
+ROC::TestParameters::~TestParameters() {
+  roc_.setRegisters(previous_registers_);
+}
+
+ROC::TestParameters::Builder::Builder(ROC& roc)
+  : parameters_{}, roc_{roc} {}
+
+ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
+  const std::string& page, const std::string& param, const int& val) {
+  parameters_[page][param] = val;
+  return *this;
+}
+
+ROC::TestParameters ROC::TestParameters::Builder::apply() {
+  return TestParameters(roc_, parameters_);
+}
+
+ROC::TestParameters::Builder ROC::testParameters() {
+  return ROC::TestParameters::Builder(*this);
 }
 
 }  // namespace pflib

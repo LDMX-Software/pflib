@@ -158,6 +158,15 @@ add_executable(
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
+add_executable(
+  test-pflib-on-zcu
+  test/on_zcu/main.cxx
+  test/on_zcu/hgcroc_connection.cxx
+  test/on_zcu/test_parameters.cxx
+  test/on_zcu/elinks_aligned.cxx
+)
+target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
+
 add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
 target_link_libraries(pftool PRIVATE pflib readline)
 
