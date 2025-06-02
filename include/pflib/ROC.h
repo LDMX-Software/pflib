@@ -16,6 +16,7 @@ namespace pflib {
  * @class ROC setup
  */
 class ROC {
+  static const int N_REGISTERS_PER_PAGE = 32;
  public:
   ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version);
 
@@ -39,6 +40,14 @@ class ROC {
    * in the page as the second key and then the 8-bit register value.
    */
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
+
+  /**
+   * get registers from the HGCROC
+   *
+   * @param[in] selected registers to get values for, all registers if empty
+   * @return register values currently on the chip
+   */
+  std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected = {});
 
   /**
    * set registers on the HGCROC to specific values
@@ -73,8 +82,11 @@ class ROC {
    * @param[in] parameters mapping of parameters to apply where the
    * first key is the page name, the second key is the parameter in
    * that page and the value is the parameter value
+   * @return chip registers that **were** on the chip before the application
+   * of these parameters, helpful if users want to unset them later with
+   * ROC::TestParameters
    */
-  void applyParameters(
+  std::map<int, std::map<int, uint8_t>> applyParameters(
       const std::map<std::string, std::map<std::string, int>>& parameters);
 
   /**
@@ -112,7 +124,7 @@ class ROC {
    * test certain parameters before setting them back to old values
    */
   class TestParameters {
-    std::map<std::string, std::map<std::string, int>> unset_;
+    std::map<int, std::map<int, uint8_t>> previous_registers_;
     ROC& roc_;
    public:
     /**
@@ -123,8 +135,7 @@ class ROC {
      */
     TestParameters(
       ROC& roc,
-      std::map<std::string, std::map<std::string,int>> set,
-      std::map<std::string, std::map<std::string,int>> unset
+      std::map<std::string, std::map<std::string, int>> new_params
     );
     /// applies the unset parameters to the ROC
     ~TestParameters();
@@ -133,11 +144,11 @@ class ROC {
     TestParameters& operator=(const TestParameters&) = delete;
     /// Build a TestParameters parameter by parameter
     class Builder {
-      std::map<std::string, std::map<std::string, int>> set_, unset_;
+      std::map<std::string, std::map<std::string, int>> parameters_;
       ROC& roc_;
      public:
       Builder(ROC& roc);
-      Builder& add(const std::string& page, const std::string& param, const int& val, const int& reset = 0);
+      Builder& add(const std::string& page, const std::string& param, const int& val);
       [[nodiscard]] TestParameters apply();
     };
   };
@@ -150,15 +161,16 @@ class ROC {
    *
    * example
    * ```cpp
-   * // PAGE.PARAM1 and PAGE.PARAM2 have unknown values
+   * // PAGE.PARAM1 and PAGE.PARAM2 have some values from
+   * // previous settings that were applied
    * {
    *   auto test_parameter_handle = roc.testParameters()
    *     .add("PAGE", "PARAM1", 42)
-   *     .add("PAGE", "PARAM2", 32, 67);
+   *     .add("PAGE", "PARAM2", 32);
    *     .apply();
    *   // PAGE.PARAM1 == 42 and PAGE.PARAM2 == 32
    * }
-   * // PAGE.PARAM1 == 0 and PAGE.PARAM2 == 67
+   * // PAGE.PARAM1 restored to previous settings
    * ```
    */
   TestParameters::Builder testParameters();
