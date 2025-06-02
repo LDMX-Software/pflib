@@ -131,7 +131,7 @@ class ROC {
      * Construct a set of test parameters
      *
      * Apply the input settings to the roc and store
-     * the unset settings for latter application
+     * the previous chip settings to be applied in the destructor
      */
     TestParameters(
       ROC& roc,
@@ -156,8 +156,8 @@ class ROC {
   /**
    * start a set of test parameters
    *
-   * Use when you want to temporarily set parameters on the
-   * which will then be re-set back to other values later.
+   * Use when you want to temporarily set parameters on the chip
+   * which will then be re-set back to their previous values later.
    *
    * example
    * ```cpp
