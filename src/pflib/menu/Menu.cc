@@ -119,6 +119,36 @@ std::string BaseMenu::readline(const std::string& prompt,
   return ret;
 }
 
+std::string BaseMenu::output_directory = "";
+std::string BaseMenu::timestamp_format = "_%Y%m%d_%H%M%S";
+
+std::string BaseMenu::default_path(const std::string& name, const std::string& extension) {
+  time_t t = time(NULL);
+  struct tm* tm = localtime(&t);
+  char timestamp[64];
+  strftime(timestamp, sizeof(timestamp), BaseMenu::timestamp_format.c_str(), tm);
+
+  std::string path_prefix{}; 
+  if (not output_directory.empty()) {
+    if (output_directory[output_directory.size()-1] != '/') {
+      path_prefix = (output_directory + '/');
+    } else {
+      path_prefix = output_directory;
+    }
+  }
+
+  return path_prefix + name + timestamp + extension;
+}
+
+std::string BaseMenu::readline_path(const std::string& name, const std::string& extension) {
+  std::string prompt{"Filename"};
+  if (extension.empty()) {
+    prompt += " (no extension)";
+  }
+  prompt += ": ";
+  return BaseMenu::readline(prompt, BaseMenu::default_path(name, extension));
+}
+
 int BaseMenu::readline_int(const std::string& prompt) {
 #ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt), 0, 0);

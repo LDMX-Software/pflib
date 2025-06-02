@@ -443,18 +443,14 @@ static void roc(const std::string& cmd, Target* pft) {
     roc.loadParameters(fname, prepend_defaults);
   }
   if (cmd == "DUMP") {
-    std::string fname_def_format =
-        "hgcroc_" + std::to_string(iroc) + "_settings_%Y%m%d_%H%M%S.yaml";
-
-    time_t t = time(NULL);
-    struct tm* tm = localtime(&t);
-
-    char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
-
-    std::string fname = BaseMenu::readline("Filename: ", fname_def);
+    std::string fname = BaseMenu::readline_path("hgcroc_"+std::to_string(iroc)+"_settings");
     bool decompile =
         BaseMenu::readline_bool("Decompile register values? ", true);
+    if (decompile) {
+      fname += ".yaml";
+    } else {
+      fname += ".csv";
+    }
     roc.dumpSettings(fname, decompile);
   }
 }
@@ -975,14 +971,14 @@ static void daq(const std::string& cmd, Target* pft) {
   }
   */
   if (cmd == "PEDESTAL" || cmd == "CHARGE" || cmd == "LED") {
-    std::string fname_def_format = "pedestal_%Y%m%d_%H%M%S";
-    if (cmd == "CHARGE") fname_def_format = "charge_%Y%m%d_%H%M%S";
-
-    time_t t = time(NULL);
-    struct tm* tm = localtime(&t);
-
-    char fname_def[64];
-    strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
+    std::string runname{};
+    if (cmd == "PEDESTAL") {
+      runname = "pedestal";
+    } else if (cmd == "CHARGE") {
+      runname = "charge";
+    } else if (cmd == "LED") {
+      runname = "led";
+    }
 
     int run = BaseMenu::readline_int("Run number? ", run);
     int nevents = BaseMenu::readline_int("How many events? ", 100);
@@ -991,8 +987,7 @@ static void daq(const std::string& cmd, Target* pft) {
 
     pft->setup_run(run, daq_format_mode, daq_contrib_id);
 
-    std::string fname =
-        BaseMenu::readline("Filename (no extension):  ", fname_def);
+    std::string fname = BaseMenu::readline_path(runname);
     bool decoding =
         BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
         
@@ -1473,16 +1468,11 @@ auto menu_daq_debug =
         ->line("FMTTEST", "test the formatter", daq_debug)
         ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
           [](Target* tgt) {
-            std::string fname_def_format = "charge-timein-%Y-%m-%d-%H%M%S";
-            time_t t = time(NULL);
-            struct tm* tm = localtime(&t);
-            char fname_def[64];
-            strftime(fname_def, sizeof(fname_def), fname_def_format.c_str(), tm);
             int nevents = BaseMenu::readline_int("How many events per time offset? ", 100);
             int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
             int min_offset = BaseMenu::readline_int("Minimum time offset to test? ", 0);
             int max_offset = BaseMenu::readline_int("Maximum time offset to test? ", 128);
-            std::string fname = BaseMenu::readline("Filename (no extension):  ", fname_def);
+            std::string fname = BaseMenu::readline_path("charge-timein");
             static int rate = 100;
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
             DecodeAndWriteToCSV writer{fname+".csv"};
@@ -1575,6 +1565,10 @@ void prepareOpts(pflib::menu::Rcfile& rcfile) {
   rcfile.declareString("default_hostname",
                        "Hostname of polarfire to connect to if none are given "
                        "on the command line");
+  rcfile.declareString("default_output_directory",
+      "Path to default output directory for creating default output filepaths");
+  rcfile.declareString("timestamp_format",
+      "C format string for creating timestamp appended to default output filepaths");
   rcfile.declareString(
       "runnumber_file",
       "Full path to a file which contains the last run number");
@@ -1659,6 +1653,14 @@ int main(int argc, char* argv[]) {
   if (options.contents().has_key("log_level")) {
     int lvl = options.contents().getInt("log_level");
     pflib::logging::set(pflib::logging::convert(lvl));
+  }
+
+  if (options.contents().has_key("default_output_directory")) {
+    BaseMenu::output_directory = options.contents().getString("default_output_directory");
+  }
+
+  if (options.contents().has_key("timestamp_format")) {
+    BaseMenu::timestamp_format = options.contents().getString("timestamp_format");
   }
 
   /*****************************************************************************

@@ -82,6 +82,40 @@ class BaseMenu {
                               const std::string& def = "");
 
   /**
+   * Create a default path from the output directory and timestamp format
+   * parameters
+   *
+   * @param[in] name name to be included in output filename before timestamp
+   * @param[in] extension extension of file including `.`
+   * @return filepath string that looks like [BaseMenu::output_directory/]{name}{timestamp}[extension]
+   * where {timestamp} is created from the current time and BaseMenu::timestamp_format
+   */
+  static std::string default_path(const std::string& name, const std::string& extension = "");
+
+  /// output directory to include in default path
+  static std::string output_directory;
+
+  /**
+   * Read a path from the user using default_path to generate a default value.
+   *
+   * The prompt is "Filename: " if an extension is given or "Filename (no extension):" if not.
+   * The arguments are then passed on to BaseMenu::default_path to create a default path for
+   * the user to confirm or rewrite if they desire.
+   */
+  static std::string readline_path(const std::string& name, const std::string& extension = "");
+
+  /**
+   * format of timestamp to append to default path
+   *
+   * The maximum size of the resulting timestamp is 64 characters,
+   * which should be more than enough.
+   * A complete specification of time down to the second is 14 characters,
+   * so this gives you the ability to add 50 characters of separators and
+   * other suffix-related things.
+   */
+  static std::string timestamp_format;
+
+  /**
    * Read an integer parameter without a default
    *
    * Uses string readline and then converts the output string
@@ -149,6 +183,7 @@ class BaseMenu {
    * @param[in] str command to add into the queue
    */
   static void add_to_command_queue(const std::string& str);
+
 
  protected:
   /**
