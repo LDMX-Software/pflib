@@ -16,6 +16,8 @@
 #include "pflib/Logging.h"
 #endif
 
+namespace pflib::menu {
+
 /**
  * Type-less menu base for common tasks
  *
@@ -615,5 +617,7 @@ class Menu : public BaseMenu {
   /// function pointer to render the menu prompt
   RenderFuncType render_func_;
 };  // Menu
+
+}
 
 #endif  // PFLIB_TOOL_MENU_H

@@ -1,6 +1,8 @@
-#include "Rcfile.h"
+#include "pflib/menu/Rcfile.h"
 
 #include <yaml-cpp/yaml.h>
+
+namespace pflib::menu {
 
 Rcmap::Rcmap() {}
 
@@ -157,4 +159,6 @@ void Rcfile::help() {
     printf(" %s [%s] : %s\n", ihelp.key.c_str(), ihelp.type.c_str(),
            ihelp.description.c_str());
   }
+}
+
 }

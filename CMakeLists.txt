@@ -156,6 +156,15 @@ target_include_directories(pflib PUBLIC
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version)
 add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
+add_library(menu SHARED
+  src/pflib/menu/Menu.cc
+  src/pflib/menu/Rcfile.cc
+)
+target_link_libraries(menu PUBLIC readline pflib)
+target_include_directories(menu PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+
 add_executable(
   test-pflib
   test/main.cxx
@@ -174,15 +183,15 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
-add_executable(pftool app/tool/pftool.cc app/tool/Menu.cc app/tool/Rcfile.cc)
-target_link_libraries(pftool PRIVATE pflib readline)
+add_executable(pftool app/tool/pftool.cc)
+target_link_libraries(pftool PRIVATE pflib menu)
 
-add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/Menu.cc app/tool/Rcfile.cc app/tool/lpgbt_mezz_tester.cc)
-target_link_libraries(pflpgbt PRIVATE pflib readline)
+add_executable(pflpgbt app/tool/pflpgbt.cc app/tool/lpgbt_mezz_tester.cc)
+target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu app/tool/test_menu.cxx app/tool/Menu.cc)
-target_link_libraries(test-menu PRIVATE pflib readline)
+add_executable(test-menu app/tool/test_menu.cxx)
+target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)

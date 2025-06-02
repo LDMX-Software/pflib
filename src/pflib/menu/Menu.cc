@@ -1,4 +1,4 @@
-#include "Menu.h"
+#include "pflib/menu/Menu.h"
 
 #include <readline/history.h>
 #include <readline/readline.h>
@@ -11,6 +11,8 @@
 #include "pflib/Compile.h"  // for str_to_int
 #include "pflib/Logging.h"
 #endif
+
+namespace pflib::menu {
 
 std::list<std::string> BaseMenu::cmdTextQueue_;
 std::vector<std::string> BaseMenu::cmd_options_;
@@ -171,4 +173,6 @@ char* BaseMenu::matcher(const char* prefix, int state) {
     }
   }
   return NULL;
+}
+
 }

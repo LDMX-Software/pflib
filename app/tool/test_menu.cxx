@@ -1,6 +1,6 @@
-#include "Menu.h"
+#include "pflib/menu/Menu.h"
 
-using test_menu = Menu<int*>;
+using test_menu = pflib::menu::Menu<int*>;
 
 void print_cmd(const std::string& cmd, test_menu::TargetHandle p) {
   std::cout << std::hex << p << std::endl;

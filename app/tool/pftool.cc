@@ -19,8 +19,8 @@
 #include <sstream>
 #include <string>
 
-#include "Menu.h"
-#include "Rcfile.h"
+#include "pflib/menu/Menu.h"
+#include "pflib/menu/Rcfile.h"
 #include "pflib/Compile.h"  // for parameter listing
 #include "pflib/ECOND_Formatter.h"
 #include "pflib/Hcal.h"
@@ -38,7 +38,8 @@ using pflib::Target;
 /**
  * The type of menu we are constructing
  */
-using pftool = Menu<Target*>;
+using pftool = pflib::menu::Menu<Target*>;
+using BaseMenu = pflib::menu::BaseMenu;
 
 /**
  * Main status of menu
@@ -1565,7 +1566,7 @@ bool file_exists(const std::string& fname) {
  *
  * @param[in] rcfile RC file prepare
  */
-void prepareOpts(Rcfile& rcfile) {
+void prepareOpts(pflib::menu::Rcfile& rcfile) {
   rcfile.declareVBool("roclinks",
                       "Vector Bool[8] indicating which roc links are active");
   rcfile.declareString("ipbus_map_path",
@@ -1607,7 +1608,7 @@ int main(int argc, char* argv[]) {
   pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pftool")};
 
-  Rcfile options;
+  pflib::menu::Rcfile options;
   prepareOpts(options);
 
   // print help before attempting to load RC file incase the RC file is broken
