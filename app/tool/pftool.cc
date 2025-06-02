@@ -26,7 +26,7 @@
 #include "pflib/Hcal.h"
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
-#include "pflib/Version.h"
+#include "pflib/version/Version.h"
 #include "pflib/packing/BufferReader.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/utility.h"
@@ -57,7 +57,7 @@ static void status(Target* pft) {
   printf("\n");
   */
 
-  print_version();
+  std::cout << pflib::version::debug() << std::endl;
 }
 
 /**
