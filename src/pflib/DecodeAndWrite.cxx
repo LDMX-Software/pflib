@@ -43,7 +43,8 @@ static void all_channels_write_event(std::ofstream& f, const pflib::packing::Sin
   ep.to_csv(f);
 }
 
-AllChannelsToCSV::AllChannelsToCSV(const std::string& file_name)
-  : DecodeAndWriteToCSV(file_name, all_channels_header, all_channels_write_event) {}
+DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
+  return DecodeAndWriteToCSV(file_name, all_channels_header, all_channels_write_event);
+}
 
 }

@@ -56,10 +56,6 @@ class DecodeAndWriteToCSV : public DecodeAndWrite {
   virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) final;
 };
 
-class AllChannelsToCSV : public DecodeAndWriteToCSV {
- public:
-  AllChannelsToCSV(const std::string& file_name);
-  virtual ~AllChannelsToCSV() = default;
-};
+DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name);
 
 }

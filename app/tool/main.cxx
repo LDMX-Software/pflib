@@ -878,7 +878,7 @@ static void daq(const std::string& cmd, Target* pft) {
         BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
         
     if (decoding) {
-      pflib::AllChannelsToCSV writer{fname + ".csv"};
+      pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
       pft->daq_run(cmd, writer, nevents, rate);
     } else {
       pflib::WriteToBinaryFile writer{fname + ".raw"};
@@ -1361,7 +1361,7 @@ auto menu_daq_debug =
             std::string fname = BaseMenu::readline_path("charge-timein");
             static int rate = 100;
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
-            pflib::AllChannelsToCSV writer{fname+".csv"};
+            pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
             pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
             auto test_param_handle = roc.testParameters()
               .add("REFERENCEVOLTAGE_1", "CALIB", calib)
