@@ -9,8 +9,6 @@ We assume you have the YAML parser yaml-cpp and at least one of the communicatio
 ```
 git clone https://github.com/LDMX-Software/pflib.git
 cd pflib
-git tag # see tags, pick latest
-git checkout v1.11 # or whatever is latest
 cmake -B build -S . # may need to provide paths to dependencies
 cd build
 make
