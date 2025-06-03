@@ -91,4 +91,33 @@ uint32_t crc(std::span<uint32_t> data) {
   return boost::crc<32, 0x04c11db7, 0x0, 0x0, false, false>(input_ptr, words.size()*4);
 }
 
+// exec command shamelessly taken from https://stackoverflow.com/a/478960
+std::string exec(const char* cmd) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+
+const std::string FW_SHORTNAME = "hcal-zcu102";
+
+bool is_fw_active() {
+  static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
+  auto resolved{std::filesystem::read_symlink(active_fw).stem()};
+  return (resolved == FW_SHORTNAME);
+}
+
+std::string fw_version() {
+  static const std::string QUERY_CMD = "rpm -qa '*"+FW_SHORTNAME+"*'";
+  auto output = exec(QUERY_CMD.c_str());
+  output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
+  return output;
+}
+
 }  // namespace pflib

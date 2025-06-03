@@ -43,6 +43,7 @@ using pflib::Target;
  */
 using pftool = pflib::menu::Menu<Target*>;
 using BaseMenu = pflib::menu::BaseMenu;
+static auto the_log_{pflib::logging::get("pftool")};
 
 /**
  * Main status of menu
@@ -52,16 +53,13 @@ using BaseMenu = pflib::menu::BaseMenu;
  * @param[in] pft pointer to active target
  */
 static void status(Target* pft) {
-  /*
-  std::pair<int,int> version = pft->getFirmwareVersion();
-  printf(" Polarfire firmware : %4x.%02x\n",version.first,version.second);
-  printf("  Active DAQ links: ");
-  for (int ilink=0; ilink<pft->hcal().elinks().nlinks(); ilink++)
-    if (pft->hcal().elinks().isActive(ilink)) printf("%d ",ilink);
-  printf("\n");
-  */
-
-  std::cout << pflib::version::debug() << std::endl;
+  pflib_log(info) << " pflib version: " << pflib::version::debug();
+  pflib_log(info) << " fw version   : " << pflib::fw_version();
+  if (pflib::is_fw_active()) {
+    pflib_log(debug) << " fw is active";
+  } else {
+    pflib_log(fatal) << "fw is not active!";
+  }
 }
 
 /**
@@ -729,7 +727,6 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static std::string last_run_file = ".last_run_file";
 static std::string start_dma_cmd = "";
 static std::string stop_dma_cmd = "";
-static auto the_log_{pflib::logging::get("pftool")};
 
 
 /**
