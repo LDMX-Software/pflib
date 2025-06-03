@@ -30,6 +30,9 @@
 #include "pflib/packing/BufferReader.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/utility.h"
+#include "pflib/DecodeAndWrite.h"
+#include "pflib/WriteToBinaryFile.h"
+
 /**
  * pull the target of our menu into this source file to reduce code
  */
@@ -728,123 +731,6 @@ static std::string start_dma_cmd = "";
 static std::string stop_dma_cmd = "";
 static auto the_log_{pflib::logging::get("pftool")};
 
-/**
- * just copy input event packets to the output file as binary
- */
-class WriteToBinaryFile {
-  std::string file_name_;
-  FILE* fp_;
-
- public:
-  WriteToBinaryFile(const std::string& file_name)
-      : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
-    if (not fp_) {
-      PFEXCEPTION_RAISE("FileOpen", "Unable to open " + file_name_);
-    }
-  }
-  ~WriteToBinaryFile() {
-    if (fp_) fclose(fp_);
-    fp_ = 0;
-  }
-  void operator()(std::vector<uint32_t>& event) {
-    fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
-  }
-};
-
-/**
- * decode the input with pflib::packing::SingleROCEventPacket and write to CSV
- */
-class DecodeAndWriteToCSV {
-  std::ofstream file_;
-  pflib::packing::SingleROCEventPacket ep_;
-  mutable ::pflib::logging::logger the_log_{
-      pflib::logging::get("DecodeAndWriteToCSV")};
-
- public:
-  DecodeAndWriteToCSV(const std::string& file_name) : file_{file_name} {
-    if (not file_) {
-      PFEXCEPTION_RAISE("FileOpen", "Unable to open " + file_name);
-    }
-    file_ << std::boolalpha;
-    file_ << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
-  }
-  void operator()(std::vector<uint32_t>& event) {
-    // we have to manually check the size so that we can do the reinterpret_cast
-    if (event.size() == 0) {
-      pflib_log(warn) << "event with zero words read out, skipping";
-      return;
-    }
-    // reinterpret the 32-bit words into a vector of bytes which is
-    // what is consummed by the BufferReader
-    const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
-    pflib::packing::BufferReader r{buffer};
-    r >> ep_;
-    ep_.to_csv(file_);
-  }
-};
-
-/**
- * Do a DAQ run using the input target
- *
- * @param[in] pft target to use
- * @param[in] cmd PEDESTAL, CHARGE, or LED (type of trigger to send)
- * @param[in] run run number not currently used in implementation of daq format
- * @param[in] nevents number of events to collect
- * @param[in] rate how fast to collect events, not implemented
- * @param[in] Action function that consumes the event packets and does something with them
- * (presumably writes them out to a file)
- */
-static void daq_run(Target* pft,
-                    const std::string& cmd, int run, int nevents, int rate,
-                    std::function<void(std::vector<uint32_t>&)> Action) {
-  static const
-  std::unordered_map<std::string, std::function<void(pflib::FastControl&)>>
-  cmds = {
-    {"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
-    {"CHARGE"  , [](pflib::FastControl& fc) { fc.chargepulse(); }},
-    {"LED"     , [](pflib::FastControl& fc) { fc.ledpulse(); }}
-  };
-  if (cmds.find(cmd) == cmds.end()) {
-    PFEXCEPTION_RAISE("UnknownCMD", "Command "+cmd+" is not one of the daq_run options.");
-  }
-  auto trigger{cmds.at(cmd)};
-
-  timeval tv0, tvi;
-  gettimeofday(&tv0, 0);
-  for (int ievt = 0; ievt < nevents; ievt++) {
-    pflib_log(trace) << "daq event occupancy pre-L1A    : "
-                     << pft->hcal().daq().getEventOccupancy();
-    trigger(pft->fc());
-
-    pflib_log(trace) << "daq event occupancy post-L1A   : "
-                     << pft->hcal().daq().getEventOccupancy();
-    gettimeofday(&tvi, 0);
-    double runsec =
-        (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tv0.tv_usec) / 1e6;
-    double targettime = (ievt + 1.0) / rate;
-    int usec_ahead = int((targettime - runsec) * 1e6);
-    pflib_log(trace) << " at " << runsec << "s instead of " << targettime
-                     << "s aheady by " << usec_ahead << "us";
-    if (usec_ahead > 100) {
-      usleep(usec_ahead);
-    }
-
-    pflib_log(trace) << "daq event occupancy after pause: "
-                     << pft->hcal().daq().getEventOccupancy();
-
-    std::vector<uint32_t> event = pft->read_event();
-    pflib_log(trace) << "daq event occupancy after read : "
-                     << pft->hcal().daq().getEventOccupancy();
-    pflib_log(debug) << "event " << ievt << " has " << event.size()
-                     << " 32-bit words";
-    if (event.size() == 0) {
-      pflib_log(warn) << "event " << ievt
-                      << " did not have any words, skipping.";
-    } else {
-      Action(event);
-    }
-  }
-};
 
 /**
  * DAQ menu commands, DOES NOT include sub-menu commands
@@ -992,11 +878,11 @@ static void daq(const std::string& cmd, Target* pft) {
         BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
         
     if (decoding) {
-      DecodeAndWriteToCSV writer{fname + ".csv"};
-      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
+      pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
+      pft->daq_run(cmd, writer, nevents, rate);
     } else {
-      WriteToBinaryFile writer{fname + ".raw"};
-      daq_run(pft, cmd, run, nevents, rate, [&](auto event) { writer(event); });
+      pflib::WriteToBinaryFile writer{fname + ".raw"};
+      pft->daq_run(cmd, writer, nevents, rate);
     }
   }
 
@@ -1475,7 +1361,7 @@ auto menu_daq_debug =
             std::string fname = BaseMenu::readline_path("charge-timein");
             static int rate = 100;
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
-            DecodeAndWriteToCSV writer{fname+".csv"};
+            pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
             pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
             auto test_param_handle = roc.testParameters()
               .add("REFERENCEVOLTAGE_1", "CALIB", calib)
@@ -1487,7 +1373,7 @@ auto menu_daq_debug =
               tgt->fc().fc_setup_calib(toffset);
               usleep(10);
               pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
-              daq_run(tgt, "CHARGE", 1, nevents, rate, [&](auto event) { writer(event); });
+              tgt->daq_run("CHARGE", writer, nevents, rate);
             }
           })
     /*

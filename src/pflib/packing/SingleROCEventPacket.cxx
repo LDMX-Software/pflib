@@ -87,6 +87,9 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   return r;
 }
 
+const std::string SingleROCEventPacket::to_csv_header =
+  "i_link,bx,event,orbit,channel,"+Sample::to_csv_header;
+
 void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   /**
    * The columns of the output CSV are
@@ -102,17 +105,14 @@ void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   for (std::size_t i_link{0}; i_link < 2; i_link++) {
     const auto& daq_link{daq_links[i_link]};
     f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-      << daq_link.orbit << ',' << "calib," << daq_link.calib.Tp() << ','
-      << daq_link.calib.Tc() << ',' << daq_link.calib.adc_tm1() << ','
-      << daq_link.calib.adc() << ',' << daq_link.calib.tot() << ','
-      << daq_link.calib.toa() << '\n';
+      << daq_link.orbit << ',' << "calib,";
+    daq_link.calib.to_csv(f);
+    f << '\n';
     for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
       f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << i_ch << ',' << daq_link.channels[i_ch].Tp()
-        << ',' << daq_link.channels[i_ch].Tc() << ','
-        << daq_link.channels[i_ch].adc_tm1() << ','
-        << daq_link.channels[i_ch].adc() << ',' << daq_link.channels[i_ch].tot()
-        << ',' << daq_link.channels[i_ch].toa() << '\n';
+        << daq_link.orbit << ',' << i_ch << ',';
+      daq_link.channels[i_ch].to_csv(f);
+      f << '\n';
     }
   }
 }
