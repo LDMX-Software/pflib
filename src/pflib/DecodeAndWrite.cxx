@@ -39,7 +39,7 @@ DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
       file_name,
       [](std::ofstream& f) {
         f << std::boolalpha;
-        f << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+        f << packing::SingleROCEventPacket::to_csv_header << '\n';
       },
       [](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
         ep.to_csv(f);

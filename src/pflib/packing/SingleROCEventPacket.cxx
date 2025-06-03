@@ -87,6 +87,9 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   return r;
 }
 
+const std::string SingleROCEventPacket::to_csv_header =
+  "i_link,bx,event,orbit,channel,"+Sample::to_csv_header;
+
 void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   /**
    * The columns of the output CSV are

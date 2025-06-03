@@ -40,6 +40,8 @@ class SingleROCEventPacket {
    * ```
    */
   Reader& read(Reader& r);
+  /// header string if using to_csv
+  static const std::string to_csv_header;
   /**
    * write current packet into a CSV
    *

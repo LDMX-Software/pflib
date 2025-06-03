@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 
   try {
     o << std::boolalpha;
-    o << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+    o << pflib::packing::SingleROCEventPacket::to_csv_header << '\n';
   
     pflib::packing::SingleROCEventPacket ep;
     // count is NOT written into output file,

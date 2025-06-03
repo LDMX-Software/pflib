@@ -22,6 +22,8 @@ struct Sample {
   int adc_tm1() const;
   int adc() const;
   int tot() const;
+  /// header if using to_csv
+  static const std::string to_csv_header;
   /**
    * Write out the Sample as a row in the CSV.
    * ```
