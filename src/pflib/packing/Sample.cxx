@@ -36,4 +36,9 @@ int Sample::tot() const {
   }
 }
 
+void Sample::to_csv(std::ofstream& f) const {
+  f << Tp() << ',' << Tc() << ','
+    << adc_tm1() << ',' << adc() << ',' << tot() << ',' << toa();
+}
+
 }  // namespace pflib::packing
