@@ -1354,48 +1354,6 @@ auto menu_fc =
     //->line("ENABLES", "Enable various sources of signal", fc)
     ;
 
-class WriteSingleChannel {
-  std::ofstream file_;
-  int channel_;
-  int phase_strobe_;
-  int charge_to_l1a_;
-  pflib::packing::SingleROCEventPacket ep_;
-  mutable ::pflib::logging::logger the_log_{
-    pflib::logging::get("WriteSingleChannel")};
- public:
-  WriteSingleChannel(
-    const std::string& file_name,
-    int channel
-  ) : file_{file_name}, channel_{channel} {
-    if (not file_) {
-      PFEXCEPTION_RAISE("FileOpen", "unable to open "+file_name);
-    }
-    file_ << std::boolalpha;
-    file_ << "# data collected from channel " << channel << "\n";
-    file_ << "charge_to_l1a,phase_strobe,Tp,Tc,adc_tm1,adc,tot,toa\n";
-  }
-  void set_phase_strobe(int phase_strobe) {
-    phase_strobe_ = phase_strobe;
-  }
-  void set_charge_to_l1a(int charge_to_l1a) {
-    charge_to_l1a_ = charge_to_l1a;
-  }
-  void operator()(std::vector<uint32_t>& event) {
-    const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
-    pflib::packing::BufferReader r{buffer};
-    r >> ep_;
-    auto sample{ep_.channel(channel_)};
-    file_ << charge_to_l1a_ << ','
-          << phase_strobe_ << ','
-          << sample.Tp() << ','
-          << sample.Tc() << ','
-          << sample.adc_tm1() << ','
-          << sample.adc() << ','
-          << sample.tot() << ','
-          << sample.toa() << '\n';
-  }
-};
-
 auto menu_task =
     pftool::menu("TASK", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
@@ -1403,7 +1361,6 @@ auto menu_task =
           int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
           std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
           static int rate = 100; // pretty fast without overwhelming chip
-          static int daq_format_mode = 1; // plain hgcroc, no econd emulation
           static int run = 1; // dummy, not stored
           pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
           auto test_param_handle = roc.testParameters()
@@ -1412,22 +1369,36 @@ auto menu_task =
             .add("CH_61", "HIGHRANGE", 0)
             .add("CH_61", "LOWRANGE", 1)
             .apply();
-          WriteSingleChannel writer(fname, 61);
-          tgt->setup_run(run, daq_format_mode, daq_contrib_id);
+          int phase_strobe{0};
+          int charge_to_l1a{0};
+          int channel{61};
+          pflib::DecodeAndWriteToCSV writer{
+            fname,
+            [&](std::ofstream& f) {
+              f << std::boolalpha
+                << "# data collected from channel " << channel << "\n"
+                << "charge_to_l1a,phase_strobe,Tp,Tc,adc_tm1,adc,tot,toa\n";
+            },
+            [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+              auto sample{ep.channel(channel)};
+              f << charge_to_l1a << ',' << phase_strobe << ',';
+              sample.to_csv(f);
+              f << '\n';
+            } 
+          };
+          tgt->setup_run(run, DAQ_FORMAT_SIMPLEROC, daq_contrib_id);
           auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-          for (auto charge_to_l1a{central_charge_to_l1a-1};
+          for (charge_to_l1a = central_charge_to_l1a-1;
                charge_to_l1a < central_charge_to_l1a+2; charge_to_l1a++) {
             tgt->fc().fc_setup_calib(charge_to_l1a);
-            writer.set_charge_to_l1a(charge_to_l1a);
             pflib_log(info) << "run with charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-            for (int phase{0}; phase < 16; phase++) {
+            for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
               auto phase_test_handle = roc.testParameters()
-                .add("TOP", "PHASE_STROBE", phase)
+                .add("TOP", "PHASE_STROBE", phase_strobe)
                 .apply();
-              writer.set_phase_strobe(phase);
               usleep(10);
-              pflib_log(info) << "run with TOP.PHASE_STROBE = " << phase;
-              daq_run(tgt, "CHARGE", run, nevents, rate, [&](auto event) { writer(event); });
+              pflib_log(info) << "run with TOP.PHASE_STROBE = " << phase_strobe;
+              tgt->daq_run("CHARGE", writer, nevents, rate);
             }
           }
         })
