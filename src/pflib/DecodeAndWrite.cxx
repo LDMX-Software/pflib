@@ -34,17 +34,17 @@ void DecodeAndWriteToCSV::write_event(const pflib::packing::SingleROCEventPacket
   write_event_(file_, ep);
 }
 
-static void all_channels_header(std::ofstream& f) {
-  f << std::boolalpha;
-  f << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
-}
-
-static void all_channels_write_event(std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-  ep.to_csv(f);
-}
-
 DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
-  return DecodeAndWriteToCSV(file_name, all_channels_header, all_channels_write_event);
+  return DecodeAndWriteToCSV(
+      file_name,
+      [](std::ofstream& f) {
+        f << std::boolalpha;
+        f << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+      },
+      [](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+        ep.to_csv(f);
+      }
+  );
 }
 
 }
