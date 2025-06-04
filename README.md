@@ -38,7 +38,6 @@ with the new structure.
 ## YAML->Register "Compilation"
 The more detailed documentation for this compilation can be found in the pflib/Compile.h file.
 The \hgcrocmanual is also a decent reference since that is where most of the parameter names are pulled from.
-The documentation of \dataformats is helpful for learning how to decode the raw files.
 
 Translating YAML files containing named settings and their values into actual register values that can be written to the chip requires a (you guessed it) YAML parser. 
 I have chosen to use [yaml-cpp](https://github.com/jbeder/yaml-cpp) which is very light and easy to install.

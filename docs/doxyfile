@@ -253,9 +253,7 @@ TAB_SIZE               = 4
 # commands \{ and \} for these it is advised to use the version @{ and @} or use
 # a double escape (\\{ and \\})
 
-ALIASES                = "hgcrocmanual=<a href=HGCROC3b_Working_Document_v1.1.pdf>HGCROC Manual</a>" \
-                         "dataformats=<a href=hgcroc_dataformats.pdf>HGCROC Data Formats</a>" \
-                         "oldhgcrocmanual=<a href=ASIC_parameters_HGCROC_for_SiPM.pdf>Old HGCROC Manual</a>"
+ALIASES                = "hgcrocmanual=<a href=https://indico.fnal.gov/event/69566/contributions/316163/attachments/187982/260505/HGCROC3_Spec_Working_Document_v2.0.pdf>HGCROC Manual</a>"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
@@ -1197,9 +1195,7 @@ HTML_EXTRA_STYLESHEET  = ./docs/doxygen-awesome-css/doxygen-awesome.css
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = ./docs/ASIC_parameters_HGCROC_for_SiPM.pdf \
-                         ./docs/hgcroc_dataformats.pdf \
-                         ./docs/HGCROC3b_Working_Document_v1.1.pdf
+HTML_EXTRA_FILES       = 
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
