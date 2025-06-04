@@ -53,10 +53,10 @@ static auto the_log_{pflib::logging::get("pftool")};
  * @param[in] pft pointer to active target
  */
 static void status(Target* pft) {
-  pflib_log(info) << " pflib version: " << pflib::version::debug();
-  pflib_log(info) << " fw version   : " << pflib::fw_version();
+  pflib_log(info) << "pflib version: " << pflib::version::debug();
+  pflib_log(info) << "fw version   : " << pflib::fw_version();
   if (pflib::is_fw_active()) {
-    pflib_log(debug) << " fw is active";
+    pflib_log(debug) << "fw is active";
   } else {
     pflib_log(fatal) << "fw is not active!";
   }
