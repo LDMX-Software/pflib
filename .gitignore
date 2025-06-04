@@ -12,3 +12,5 @@ tool/test-menu
 
 # python venv for lightweight analyses
 venv
+# python cache files
+__pycache__
