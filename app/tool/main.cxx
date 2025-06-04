@@ -51,6 +51,42 @@ using BaseMenu = pflib::menu::BaseMenu;
 static auto the_log_{pflib::logging::get("pftool")};
 
 /**
+ * Backport of C++20 std::format-like function
+ *
+ * I say "std::format-like" because instead of using curly-braces `{}`
+ * for inserting the arguments like std::format does, this function uses
+ * the C-style (printf-style) percent-characters (e.g. `%s` to insert a string).
+ *
+ * (Supported in GCC-13 and we have GCC-11)
+ *
+ * We basically write to a char* and then conver that to std::string.
+ *
+ * @tparam Args types of arguments passed into snprintf
+ * @param[in] format snprintf format string to use
+ * @param[in] args arguments for snprintf
+ * @return formatted std::string
+ *
+ * Shamelessly taken from https://stackoverflow.com/a/26221725
+ * which has a line-by-line explanation for those who wish to learn more C++!
+ * I've modified it slightly to use our exceptions and longer variable names.
+ */
+template<typename ... Args>
+std::string string_format(const std::string& format, Args ... args) {
+  // length of string without the closing null byte \0
+  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...);
+  if (size_s < 0) {
+    PFEXCEPTION_RAISE("string_format", "error during formating of string "+format);
+  }
+  // need one larger for the closing null byte
+  auto size = static_cast<std::size_t>(size_s + 1);
+  std::unique_ptr<char[]> buffer(new char[size]);
+  // do format again, but this time we know the size and that it works!
+  std::snprintf(buffer.get(), size, format.c_str(), args...);
+  // remove trailing null byte when copying into std::string
+  return std::string(buffer.get(), buffer.get() + size - 1);
+}
+
+/**
  * Execute a command and capture its output into a string
  *
  * The maximum output is 128 characters.
@@ -1359,25 +1395,28 @@ auto menu_task =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
           int nevents = BaseMenu::readline_int("How many events per time point? ", 100);
           int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
+          int channel = BaseMenu::readline_int("Channel to pulse into? ", 61);
           std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
           static int rate = 100; // pretty fast without overwhelming chip
           static int run = 1; // dummy, not stored
           pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
+          auto channel_page = string_format("CH_%d", channel);
           auto test_param_handle = roc.testParameters()
             .add("REFERENCEVOLTAGE_1", "CALIB", calib)
             .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
-            .add("CH_61", "HIGHRANGE", 0)
-            .add("CH_61", "LOWRANGE", 1)
+            .add(channel_page, "HIGHRANGE", 0)
+            .add(channel_page, "LOWRANGE", 1)
             .apply();
           int phase_strobe{0};
           int charge_to_l1a{0};
-          int channel{61};
           pflib::DecodeAndWriteToCSV writer{
             fname,
             [&](std::ofstream& f) {
               f << std::boolalpha
-                << "# data collected from channel " << channel << "\n"
-                << "charge_to_l1a,phase_strobe,Tp,Tc,adc_tm1,adc,tot,toa\n";
+                << "# data collected from channel " << channel << '\n'
+                << "charge_to_l1a,phase_strobe,"
+                << pflib::packing::Sample::to_csv_header
+                << '\n';
             },
             [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
               auto sample{ep.channel(channel)};
