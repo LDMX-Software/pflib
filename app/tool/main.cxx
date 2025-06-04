@@ -1,5 +1,5 @@
 /**
- * @file pftool.cc File defining the pftool menus and their commands.
+ * @file main.cxx File defining the pftool menus and their commands.
  *
  * The commands are written into functions corresponding to the menu's name.
  */
@@ -10,14 +10,19 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <array>
+#include <cstdlib>
+#include <cstdio>
 #include <exception>
 #include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
+
 
 #include "pflib/menu/Menu.h"
 #include "pflib/menu/Rcfile.h"
@@ -46,20 +51,73 @@ using BaseMenu = pflib::menu::BaseMenu;
 static auto the_log_{pflib::logging::get("pftool")};
 
 /**
+ * Execute a command and capture its output into a string
+ *
+ * The maximum output is 128 characters.
+ *
+ * @param[in] cmd command C-string to run
+ * @return up to 128 characters of output by cmd
+ */
+std::string exec(const char* cmd) {
+  /**
+   * shamelessly taken from https://stackoverflow.com/a/478960
+   */
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) {
+    PFEXCEPTION_RAISE("POpen", "popen() failed to run the command given to exec");
+  }
+  while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+
+/// firmware name as it appears as a directory on disk
+const std::string FW_SHORTNAME = "hcal-zcu102";
+
+/**
+ * Check if the firmware supporting the HGCROC is active
+ *
+ * @return true if correct firmware is active
+ */
+bool is_fw_active() {
+  static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
+  auto resolved{std::filesystem::read_symlink(active_fw).stem()};
+  return (resolved == FW_SHORTNAME);
+}
+
+/**
+ * Get the current firmware version
+ *
+ * This takes a moment because we simply retrieve the version
+ * using an rpm query and the exec function.
+ *
+ * @return string holding the full firmware version
+ */
+std::string fw_version() {
+  static const std::string QUERY_CMD = "rpm -qa '*"+FW_SHORTNAME+"*'";
+  auto output = exec(QUERY_CMD.c_str());
+  output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
+  return output;
+}
+
+/**
  * Main status of menu
  *
- * Prints the firmware version and which links are labeled as active.
+ * Prints the firmware and software versions
  *
  * @param[in] pft pointer to active target
  */
 static void status(Target* pft) {
   pflib_log(info) << "pflib version: " << pflib::version::debug();
-  pflib_log(info) << "fw version   : " << pflib::fw_version();
-  if (pflib::is_fw_active()) {
+  if (is_fw_active()) {
     pflib_log(debug) << "fw is active";
   } else {
     pflib_log(fatal) << "fw is not active!";
   }
+  pflib_log(info) << "fw version   : " << fw_version();
 }
 
 /**
