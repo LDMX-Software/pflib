@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 
+#include <boost/json/src.hpp>
 
 #include "pflib/menu/Menu.h"
 #include "pflib/menu/Rcfile.h"
@@ -1393,17 +1394,21 @@ auto menu_fc =
 auto menu_task =
     pftool::menu("TASK", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
-          int nevents = BaseMenu::readline_int("How many events per time point? ", 100);
+          int nevents = BaseMenu::readline_int("How many events per time point? ", 1);
           int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
           int channel = BaseMenu::readline_int("Channel to pulse into? ", 61);
+          int start_bx = BaseMenu::readline_int("Starting BX? ", -1);
+          int n_bx = BaseMenu::readline_int("Number of BX? ", 3);
           std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
           static int rate = 100; // pretty fast without overwhelming chip
           static int run = 1; // dummy, not stored
           pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
           auto channel_page = string_format("CH_%d", channel);
+          int link = (channel / 36);
+          auto refvol_page = string_format("REFERENCEVOLTAGE_%d", link);
           auto test_param_handle = roc.testParameters()
-            .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-            .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+            .add(refvol_page, "CALIB", calib)
+            .add(refvol_page, "INTCTEST", 1)
             .add(channel_page, "HIGHRANGE", 0)
             .add(channel_page, "LOWRANGE", 1)
             .apply();
@@ -1412,34 +1417,39 @@ auto menu_task =
           pflib::DecodeAndWriteToCSV writer{
             fname,
             [&](std::ofstream& f) {
+              boost::json::object header;
+              header["channel"] = channel;
+              header["calib"] = calib;
               f << std::boolalpha
-                << "# data collected from channel " << channel << '\n'
+                << "# " << boost::json::serialize(header) << '\n'
                 << "charge_to_l1a,phase_strobe,"
                 << pflib::packing::Sample::to_csv_header
                 << '\n';
             },
             [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-              auto sample{ep.channel(channel)};
-              f << charge_to_l1a << ',' << phase_strobe << ',';
-              sample.to_csv(f);
+              f << charge_to_l1a << ','
+                << phase_strobe << ',';
+              ep.channel(channel).to_csv(f);
               f << '\n';
             } 
           };
           tgt->setup_run(run, DAQ_FORMAT_SIMPLEROC, daq_contrib_id);
           auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-          for (charge_to_l1a = central_charge_to_l1a-1;
-               charge_to_l1a < central_charge_to_l1a+2; charge_to_l1a++) {
+          for (charge_to_l1a = central_charge_to_l1a+start_bx;
+               charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
             tgt->fc().fc_setup_calib(charge_to_l1a);
-            pflib_log(info) << "run with charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+            pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
             for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
-              auto phase_test_handle = roc.testParameters()
+              auto phase_strobe_test_handle = roc.testParameters()
                 .add("TOP", "PHASE_STROBE", phase_strobe)
                 .apply();
-              usleep(10);
-              pflib_log(info) << "run with TOP.PHASE_STROBE = " << phase_strobe;
+              pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+              usleep(10); // make sure parameters are applied
               tgt->daq_run("CHARGE", writer, nevents, rate);
             }
           }
+          // reset charge_to_l1a to central value
+          tgt->fc().fc_setup_calib(central_charge_to_l1a);
         })
     ;
 
