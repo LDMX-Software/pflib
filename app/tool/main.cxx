@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 
+#include <boost/json/src.hpp>
 
 #include "pflib/menu/Menu.h"
 #include "pflib/menu/Rcfile.h"
@@ -49,6 +50,42 @@ using pflib::Target;
 using pftool = pflib::menu::Menu<Target*>;
 using BaseMenu = pflib::menu::BaseMenu;
 static auto the_log_{pflib::logging::get("pftool")};
+
+/**
+ * Backport of C++20 std::format-like function
+ *
+ * I say "std::format-like" because instead of using curly-braces `{}`
+ * for inserting the arguments like std::format does, this function uses
+ * the C-style (printf-style) percent-characters (e.g. `%s` to insert a string).
+ *
+ * (Supported in GCC-13 and we have GCC-11)
+ *
+ * We basically write to a char* and then conver that to std::string.
+ *
+ * @tparam Args types of arguments passed into snprintf
+ * @param[in] format snprintf format string to use
+ * @param[in] args arguments for snprintf
+ * @return formatted std::string
+ *
+ * Shamelessly taken from https://stackoverflow.com/a/26221725
+ * which has a line-by-line explanation for those who wish to learn more C++!
+ * I've modified it slightly to use our exceptions and longer variable names.
+ */
+template<typename ... Args>
+std::string string_format(const std::string& format, Args ... args) {
+  // length of string without the closing null byte \0
+  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...);
+  if (size_s < 0) {
+    PFEXCEPTION_RAISE("string_format", "error during formating of string "+format);
+  }
+  // need one larger for the closing null byte
+  auto size = static_cast<std::size_t>(size_s + 1);
+  std::unique_ptr<char[]> buffer(new char[size]);
+  // do format again, but this time we know the size and that it works!
+  std::snprintf(buffer.get(), size, format.c_str(), args...);
+  // remove trailing null byte when copying into std::string
+  return std::string(buffer.get(), buffer.get() + size - 1);
+}
 
 /**
  * Execute a command and capture its output into a string
@@ -940,41 +977,6 @@ static void daq(const std::string& cmd, Target* pft) {
       pft->daq_run(cmd, writer, nevents, rate);
     }
   }
-
-  /*
-  if (cmd=="SCAN"){
-    std::string pagename=BaseMenu::readline("Sub-block (aka Page) name :  ");
-    std::string valuename=BaseMenu::readline("Value (aka Parameter) name :  ");
-    int iroc=BaseMenu::readline_int("Which ROC :  ");
-    int minvalue=BaseMenu::readline_int("Minimum value :  ");
-    int maxvalue=BaseMenu::readline_int("Maximum value :  ");
-    int step=BaseMenu::readline_int("Step :  ");
-    int nevents=BaseMenu::readline_int("Events per step :  ", 10);
-    int run=BaseMenu::readline_int("Run number? ",run);
-    static int rate=100;
-    rate=BaseMenu::readline_int("Readout rate? (Hz) ",rate);
-    std::string fname=BaseMenu::readline("Filename :  ");
-    bool charge = BaseMenu::readline_bool("Do a charge injection for each event
-rather than simple L1A?",false); std::string trigtype = "PEDESTAL"; if (charge)
-trigtype = "CHARGE";
-
-    pft->prepareNewRun();
-
-    for(int value = minvalue; value <= maxvalue; value += step){
-      pft->hcal().roc(iroc).applyParameter(pagename, valuename, value);
-#ifdef PFTOOL_ROGUE
-      if (dma_enabled) {
-        rwbi->daq_dma_dest(fname);
-        rwbi->daq_dma_run(trigtype,run,nevents,rate);
-        rwbi->daq_dma_close();
-      } else
-#endif
-      {
-        daq_run(trigtype,run,nevents,rate,fname);
-      }
-    }
-  }
-  */
 }
 
 /**
@@ -1389,6 +1391,68 @@ auto menu_fc =
     //->line("ENABLES", "Enable various sources of signal", fc)
     ;
 
+auto menu_task =
+    pftool::menu("TASK", "tasks for studying the chip and tuning its parameters")
+        ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
+          int nevents = BaseMenu::readline_int("How many events per time point? ", 1);
+          int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
+          int channel = BaseMenu::readline_int("Channel to pulse into? ", 61);
+          int start_bx = BaseMenu::readline_int("Starting BX? ", -1);
+          int n_bx = BaseMenu::readline_int("Number of BX? ", 3);
+          std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
+          static int rate = 100; // pretty fast without overwhelming chip
+          static int run = 1; // dummy, not stored
+          pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
+          auto channel_page = string_format("CH_%d", channel);
+          int link = (channel / 36);
+          auto refvol_page = string_format("REFERENCEVOLTAGE_%d", link);
+          auto test_param_handle = roc.testParameters()
+            .add(refvol_page, "CALIB", calib)
+            .add(refvol_page, "INTCTEST", 1)
+            .add(channel_page, "HIGHRANGE", 0)
+            .add(channel_page, "LOWRANGE", 1)
+            .apply();
+          int phase_strobe{0};
+          int charge_to_l1a{0};
+          pflib::DecodeAndWriteToCSV writer{
+            fname,
+            [&](std::ofstream& f) {
+              boost::json::object header;
+              header["channel"] = channel;
+              header["calib"] = calib;
+              f << std::boolalpha
+                << "# " << boost::json::serialize(header) << '\n'
+                << "charge_to_l1a,phase_strobe,"
+                << pflib::packing::Sample::to_csv_header
+                << '\n';
+            },
+            [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+              f << charge_to_l1a << ','
+                << phase_strobe << ',';
+              ep.channel(channel).to_csv(f);
+              f << '\n';
+            } 
+          };
+          tgt->setup_run(run, DAQ_FORMAT_SIMPLEROC, daq_contrib_id);
+          auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+          for (charge_to_l1a = central_charge_to_l1a+start_bx;
+               charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+            tgt->fc().fc_setup_calib(charge_to_l1a);
+            pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+            for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
+              auto phase_strobe_test_handle = roc.testParameters()
+                .add("TOP", "PHASE_STROBE", phase_strobe)
+                .apply();
+              pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+              usleep(10); // make sure parameters are applied
+              tgt->daq_run("CHARGE", writer, nevents, rate);
+            }
+          }
+          // reset charge_to_l1a to central value
+          tgt->fc().fc_setup_calib(central_charge_to_l1a);
+        })
+    ;
+
 auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
@@ -1396,8 +1460,6 @@ auto menu_daq =
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq)
     //  ->line("EXTERNAL", "Take an externally-triggered run", daq)
-    //  ->line("SCAN","Take many charge or pedestal runs while changing a single
-    //  parameter", daq)
     ;
 
 auto menu_daq_debug =

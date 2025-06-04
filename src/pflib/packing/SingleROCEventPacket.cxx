@@ -117,4 +117,10 @@ void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   }
 }
 
+Sample SingleROCEventPacket::channel(int ch) const {
+  int i_link = (ch / 36);
+  int i_ch_in_link = (ch % 36);
+  return daq_links[i_link].channels[i_ch_in_link];
+}
+
 }  // namespace pflib::packing

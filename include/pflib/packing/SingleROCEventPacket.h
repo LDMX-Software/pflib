@@ -48,6 +48,19 @@ class SingleROCEventPacket {
    * @param[in,out] f file to write CSV to
    */
   void to_csv(std::ofstream& f) const;
+  /**
+   * Get a specific Sample from a channel
+   *
+   * The channel index input here is relative to the ROC
+   * [0,71]. If you have the channel index within a daq
+   * link (or ROC "half"), just access the daq links directly
+   * ```cpp
+   * ep.daq_links[i_link].channels[i_chan]
+   * ```
+   * where `i_link` is the link index 0 or 1 and `i_chan` is
+   * the channel index within the link [0,35].
+   */
+  Sample channel(int ch) const;
   /// default constructor that does nothing
   SingleROCEventPacket() = default;
 };
