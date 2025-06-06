@@ -5,6 +5,8 @@
 #include <readline/readline.h>
 
 #include <iostream>
+#include <filesystem>
+#include <fstream>
 
 #include "pflib/Compile.h"  // for str_to_int
 #include "pflib/Logging.h"
@@ -23,11 +25,34 @@ static void close_history_on_ctrl_C(int s) {
   exit(130);
 }
 
-const char * MENU_HISTORY_FILEPATH = ".pftool-history";
+std::string BaseMenu::history_filepath_ = ".pflib-menu-history";
+
+void BaseMenu::set_history_filepath(std::string fp_str) {
+  if (fp_str.empty()) {
+    PFEXCEPTION_RAISE("BadFile", "History filepath cannot be an empty string.");
+  }
+
+  if (fp_str[0] == '~') {
+    fp_str.erase(0);
+    fp_str.insert(0, getenv("HOME"));
+  }
+
+  std::filesystem::path fp{fp_str};
+  if (std::filesystem::exists(fp) and not std::filesystem::is_regular_file(fp)) {
+    PFEXCEPTION_RAISE("BadFile", "Path "+std::string(fp)+" is already some other non-file object.");
+  }
+
+  if (not std::filesystem::exists(fp)) {
+    // touch it
+    std::ofstream _touch(fp);
+  }
+
+  BaseMenu::history_filepath_ = std::filesystem::canonical(fp);
+}
 
 void BaseMenu::open_history() {
   ::using_history();
-  if (int rc = ::read_history(MENU_HISTORY_FILEPATH); rc != 0) {
+  if (int rc = ::read_history(BaseMenu::history_filepath_.c_str()); rc != 0) {
     // error no 2 is non-existent file which makes sense if it doesn't exist yet
     // so we ignore that error number
     if (rc != 2) {
@@ -43,7 +68,7 @@ void BaseMenu::open_history() {
 }
 
 void BaseMenu::close_history() {
-  if (int rc = ::write_history(MENU_HISTORY_FILEPATH); rc != 0) {
+  if (int rc = ::write_history(BaseMenu::history_filepath_.c_str()); rc != 0) {
     std::cerr << "warn: failure to write history file " << rc << std::endl;
   }
 }

@@ -25,12 +25,18 @@ namespace pflib::menu {
  * history.
  */
 class BaseMenu {
+  static std::string history_filepath_;
  public:
+  /**
+   * Decide where the filepath for reading/writing the history should be
+   */
+  static void set_history_filepath(std::string fp);
+
   /**
    * open history and read from file (if it exists)
    *
-   * The history is stored at `~/.pftool-history` and is
-   * updated when the menu exits (either normally or with Ctrl+C).
+   * The history is stored at a file defined by set_history_filepath
+   * which is updated when the menu exits (either normally or with Ctrl+C).
    */
   static void open_history();
 

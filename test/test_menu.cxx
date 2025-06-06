@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::flush;
     return 0;
   }
+  test_menu::set_history_filepath(".pflib-test-menu-history");
   try {
     int i = 3;
     test_menu::run(&i);

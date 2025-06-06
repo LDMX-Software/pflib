@@ -337,6 +337,7 @@ int main(int argc, char* argv[]) {
 
   pflib::lpGBT_ConfigTransport_I2C tport(0x79, "/dev/i2c-23");
   pflib::lpGBT lpgbt(tport);
+  tool::set_history_filepath("~/.pflpgbt-history");
   tool::run(&lpgbt);
 
   return 0;

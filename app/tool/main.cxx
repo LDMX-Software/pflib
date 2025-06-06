@@ -1786,6 +1786,7 @@ int main(int argc, char* argv[]) {
 
       if (p_pft) {
         // prepare the links
+        pftool::set_history_filepath("~/.pftool-history");
         status(p_pft.get());
         pftool::run(p_pft.get());
       } else {
