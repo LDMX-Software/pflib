@@ -1409,6 +1409,7 @@ auto menu_task =
           auto test_param_handle = roc.testParameters()
             .add(refvol_page, "CALIB", calib)
             .add(refvol_page, "INTCTEST", 1)
+            .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0)
             .add(channel_page, "HIGHRANGE", highrange ? 1 : 0)
             .add(channel_page, "LOWRANGE", highrange ? 0 : 1)
             .apply();
