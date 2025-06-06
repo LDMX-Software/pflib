@@ -27,6 +27,19 @@ namespace pflib::menu {
 class BaseMenu {
  public:
   /**
+   * open history and read from file (if it exists)
+   *
+   * The history is stored at `~/.pftool-history` and is
+   * updated when the menu exits (either normally or with Ctrl+C).
+   */
+  static void open_history();
+
+  /**
+   * close up history
+   */
+  static void close_history();
+
+  /**
    * Read in a parameter using the default value if nothing provided
    *
    * Expands '~' into $HOME within strings.
@@ -363,8 +376,10 @@ class Menu : public BaseMenu {
    * @param[in] tgt TargetHandle to run with
    */
   static void run(TargetHandle tgt) {
+    BaseMenu::open_history();
     root()->render();
     root()->steer(tgt);
+    BaseMenu::close_history();
   }
 
   /// no copying

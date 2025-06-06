@@ -1,5 +1,6 @@
 #include "pflib/menu/Menu.h"
 
+#include <signal.h>
 #include <readline/history.h>
 #include <readline/readline.h>
 
@@ -15,9 +16,37 @@ std::vector<std::string> BaseMenu::cmd_options_;
 const std::vector<std::string>* BaseMenu::rl_comp_opts_ =
     &BaseMenu::cmd_options_;
 
-#ifndef PFLIB_TEST_MENU
 ::pflib::logging::logger BaseMenu::the_log_ = ::pflib::logging::get("menu");
-#endif
+
+static void close_history_on_ctrl_C(int s) {
+  BaseMenu::close_history();
+  exit(130);
+}
+
+const char * MENU_HISTORY_FILEPATH = ".pftool-history";
+
+void BaseMenu::open_history() {
+  ::using_history();
+  if (int rc = ::read_history(MENU_HISTORY_FILEPATH); rc != 0) {
+    // error no 2 is non-existent file which makes sense if it doesn't exist yet
+    // so we ignore that error number
+    if (rc != 2) {
+      std::cerr << "warn: failure to read history file " << rc << std::endl;
+    }
+  }
+
+  struct sigaction sig_int_handler;
+  sig_int_handler.sa_handler = close_history_on_ctrl_C;
+  sigemptyset(&sig_int_handler.sa_mask);
+  sig_int_handler.sa_flags = 0;
+  sigaction(SIGINT, &sig_int_handler, NULL);
+}
+
+void BaseMenu::close_history() {
+  if (int rc = ::write_history(MENU_HISTORY_FILEPATH); rc != 0) {
+    std::cerr << "warn: failure to write history file " << rc << std::endl;
+  }
+}
 
 void BaseMenu::add_to_history(const std::string& cmd) const {
   ::add_history(cmd.c_str());
