@@ -1,4 +1,8 @@
+#define MENU_HISTORY_FILEPATH ".pflib-test-menu-history"
 #include "pflib/menu/Menu.h"
+
+#include <signal.h>
+#include <readline/history.h>
 
 using test_menu = pflib::menu::Menu<int*>;
 
@@ -18,7 +22,16 @@ namespace {
 
 auto sb = test_menu::menu("SB", "example submenu")
               ->line("THREE", "third command", print_cmd)
-              ->line("INCSB", "increment the target", increment);
+              ->line("INCSB", "increment the target", increment)
+              ->line("ADD", "add something to the target",
+                  [](test_menu::TargetHandle p) {
+                    int n = test_menu::readline_int("Number to add: ");
+                    std::cout << " " << *p << " -> ";
+                    (*p) += n;
+                    std::cout << *p << std::endl;
+                  }
+              );
+                
 
 auto r = test_menu::root()
              ->line("INC", "increment the target", increment)
@@ -26,17 +39,14 @@ auto r = test_menu::root()
 
 }  // namespace
 
-/**
- * test-menu executable
- *
- * A light executable that is useful for developing
- * the Menu apparatus. You can compile this executable
- * without the rest of pflib by executing the compiler
- * directly. In the tool directory,
- * ```
- * g++ -DPFLIB_TEST_MENU=1 -o test-menu test_menu.cxx Menu.cc -lreadline
- * ```
- */
+void close_history(int s) {
+  std::cout << "caught signal " << s << std::endl;
+  if (int rc = ::write_history(".pflib-test-menu-history"); rc != 0) {
+    std::cout << "warn: failure to write history file " << rc << std::endl;
+  }
+  exit(1);
+}
+
 int main(int argc, char* argv[]) {
   if (argc > 1) {
     test_menu::root()->print(std::cout);

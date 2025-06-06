@@ -11,10 +11,8 @@
 #include <string>
 #include <vector>
 
-#ifndef PFLIB_TEST_MENU
 #include "pflib/Exception.h"
 #include "pflib/Logging.h"
-#endif
 
 namespace pflib::menu {
 
@@ -205,9 +203,7 @@ class BaseMenu {
   /// a pointer to the list of options when attempting readline completion
   static const std::vector<std::string>* rl_comp_opts_;
 
-#ifndef PFLIB_TEST_MENU
   static ::pflib::logging::logger the_log_;
-#endif
  private:
   /**
    * matcher function following readline's function signature
@@ -579,16 +575,10 @@ class Menu : public BaseMenu {
             cmd_(p);
           else
             mult_cmds_(name_, p);
-#ifndef PFLIB_TEST_MENU
         } catch (const pflib::Exception& e) {
           pflib_log(error) << "[" << e.name() << "] : " << e.message();
-#endif
         } catch (const std::exception& e) {
-#ifdef PFLIB_TEST_MENU
-          std::cerr << " Unknown Exception " << e.what() << std::endl;
-#else
           pflib_log(error) << "Unknown Exception " << e.what();
-#endif
         }
       }
       // empty and command lines don't need the parent menu

@@ -5,12 +5,8 @@
 
 #include <iostream>
 
-#ifdef PFLIB_TEST_MENU
-#include <string>  // for stol
-#else
 #include "pflib/Compile.h"  // for str_to_int
 #include "pflib/Logging.h"
-#endif
 
 namespace pflib::menu {
 
@@ -150,11 +146,7 @@ std::string BaseMenu::readline_path(const std::string& name, const std::string& 
 }
 
 int BaseMenu::readline_int(const std::string& prompt) {
-#ifdef PFLIB_TEST_MENU
   return std::stol(BaseMenu::readline(prompt), 0, 0);
-#else
-  return pflib::str_to_int(BaseMenu::readline(prompt));
-#endif
 }
 
 double BaseMenu::readline_float(const std::string& prompt) {
@@ -167,11 +159,7 @@ int BaseMenu::readline_int(const std::string& prompt, int aval, bool ashex) {
     sprintf(buffer, "0x%x", aval);
   else
     sprintf(buffer, "%d", aval);
-#ifdef PFLIB_TEST_MENU
-  return std::stol(BaseMenu::readline(prompt, buffer), 0, 0);
-#else
   return pflib::str_to_int(BaseMenu::readline(prompt, buffer));
-#endif
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
