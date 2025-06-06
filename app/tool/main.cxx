@@ -1395,7 +1395,7 @@ auto menu_task =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
           int nevents = pftool::readline_int("How many events per time point? ", 1);
           bool highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
-          int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 1024);
+          int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
           int channel = pftool::readline_int("Channel to pulse into? ", 61);
           int start_bx = pftool::readline_int("Starting BX? ", -1);
           int n_bx = pftool::readline_int("Number of BX? ", 3);
