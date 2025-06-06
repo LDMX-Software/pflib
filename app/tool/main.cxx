@@ -48,7 +48,6 @@ using pflib::Target;
  * The type of menu we are constructing
  */
 using pftool = pflib::menu::Menu<Target*>;
-using BaseMenu = pflib::menu::BaseMenu;
 static auto the_log_{pflib::logging::get("pftool")};
 
 /**
@@ -187,55 +186,55 @@ static void i2c(const std::string& cmd, Target* target) {
     std::vector<std::string> busses = target->i2c_bus_names();
     printf("\n\nKnown I2C busses:\n");
     for (auto name : target->i2c_bus_names()) printf(" %s\n", name.c_str());
-    chosen_bus = BaseMenu::readline("Bus to make active: ", chosen_bus);
+    chosen_bus = pftool::readline("Bus to make active: ", chosen_bus);
     if (chosen_bus.size() > 1) target->get_i2c_bus(chosen_bus);
   }
   if (chosen_bus.size() < 2) return;
   pflib::I2C& i2c = target->get_i2c_bus(chosen_bus);
   if (cmd == "WRITE") {
-    i2caddr = BaseMenu::readline_int("I2C Target ", i2caddr);
-    uint32_t val = BaseMenu::readline_int("Value ", 0);
+    i2caddr = pftool::readline_int("I2C Target ", i2caddr);
+    uint32_t val = pftool::readline_int("Value ", 0);
     i2c.set_bus_speed(1000);
     i2c.write_byte(i2caddr, val);
   }
   if (cmd == "READ") {
-    i2caddr = BaseMenu::readline_int("I2C Target", i2caddr);
+    i2caddr = pftool::readline_int("I2C Target", i2caddr);
     i2c.set_bus_speed(100);
     uint8_t val = i2c.read_byte(i2caddr);
     printf("%02x : %02x\n", i2caddr, val);
   }
   if (cmd == "MULTIREAD") {
-    i2caddr = BaseMenu::readline_int("I2C Target", i2caddr);
-    waddrlen = BaseMenu::readline_int("Read address length", waddrlen);
+    i2caddr = pftool::readline_int("I2C Target", i2caddr);
+    waddrlen = pftool::readline_int("Read address length", waddrlen);
     std::vector<uint8_t> waddr;
     if (waddrlen > 0) {
-      addr = BaseMenu::readline_int("Read address", addr);
+      addr = pftool::readline_int("Read address", addr);
       for (int i = 0; i < waddrlen; i++) {
         waddr.push_back(uint8_t(addr & 0xFF));
         addr = (addr >> 8);
       }
     }
-    int len = BaseMenu::readline_int("Read length", 1);
+    int len = pftool::readline_int("Read length", 1);
     std::vector<uint8_t> data = i2c.general_write_read(i2caddr, waddr);
     for (size_t i = 0; i < data.size(); i++)
       printf("%02x : %02x\n", int(i), data[i]);
   }
   if (cmd == "MULTIWRITE") {
-    i2caddr = BaseMenu::readline_int("I2C Target", i2caddr);
-    waddrlen = BaseMenu::readline_int("Write address length", waddrlen);
+    i2caddr = pftool::readline_int("I2C Target", i2caddr);
+    waddrlen = pftool::readline_int("Write address length", waddrlen);
     std::vector<uint8_t> wdata;
     if (waddrlen > 0) {
-      addr = BaseMenu::readline_int("Write address", addr);
+      addr = pftool::readline_int("Write address", addr);
       for (int i = 0; i < waddrlen; i++) {
         wdata.push_back(uint8_t(addr & 0xFF));
         addr = (addr >> 8);
       }
     }
-    int len = BaseMenu::readline_int("Write data length", 1);
+    int len = pftool::readline_int("Write data length", 1);
     for (int j = 0; j < len; j++) {
       char prompt[64];
       sprintf(prompt, "Byte %d: ", j);
-      int id = BaseMenu::readline_int(prompt, 0);
+      int id = pftool::readline_int(prompt, 0);
       wdata.push_back(uint8_t(id));
     }
     i2c.general_write_read(i2caddr, wdata);
@@ -261,16 +260,16 @@ static void link( const std::string& cmd, Target* pft ) {
 %d\n",status,ratetx,raterx,ratek);
   }
   if (cmd=="CONFIG") {
-    bool reset_txpll=BaseMenu::readline_bool("TX-PLL Reset?", false);
-    bool reset_gtxtx=BaseMenu::readline_bool("GTX-TX Reset?", false);
-    bool reset_tx=BaseMenu::readline_bool("TX Reset?", false);
-    bool reset_rx=BaseMenu::readline_bool("RX Reset?", false);
+    bool reset_txpll=pftool::readline_bool("TX-PLL Reset?", false);
+    bool reset_gtxtx=pftool::readline_bool("GTX-TX Reset?", false);
+    bool reset_tx=pftool::readline_bool("TX Reset?", false);
+    bool reset_rx=pftool::readline_bool("RX Reset?", false);
     static bool polarity=false;
-    polarity=BaseMenu::readline_bool("Choose negative TX polarity?",polarity);
+    polarity=pftool::readline_bool("Choose negative TX polarity?",polarity);
     static bool polarity2=false;
-    polarity2=BaseMenu::readline_bool("Choose negative RX polarity?",polarity2);
+    polarity2=pftool::readline_bool("Choose negative RX polarity?",polarity2);
     static bool bypass=false;
-    bypass=BaseMenu::readline_bool("Bypass CRC on receiver?",false);
+    bypass=pftool::readline_bool("Bypass CRC on receiver?",false);
     //    ldmx->link_setup(polarity,polarity2,bypass);
     // ldmx->link_resets(reset_txpll,reset_gtxtx,reset_tx,reset_rx);
   }
@@ -302,15 +301,15 @@ static void elinks(const std::string& cmd, Target* pft) {
   // if (cmd=="RELINK")
   //     pft->elink_relink(2);
   if (cmd == "SPY") {
-    ilink = BaseMenu::readline_int("Which elink? ", ilink);
+    ilink = pftool::readline_int("Which elink? ", ilink);
     std::vector<uint32_t> spy = elinks.spy(ilink);
     for (size_t i = 0; i < spy.size(); i++)
       printf("%02d %08x\n", int(i), spy[i]);
   }
   if (cmd == "BITSLIP") {
-    ilink = BaseMenu::readline_int("Which elink? ", ilink);
+    ilink = pftool::readline_int("Which elink? ", ilink);
     int bitslip =
-        BaseMenu::readline_int("Bitslip value : ", elinks.getBitslip(ilink));
+        pftool::readline_int("Bitslip value : ", elinks.getBitslip(ilink));
     for (int jlink = 0; jlink < 8; jlink++) {
       if (ilink >= 0 && jlink != ilink) continue;
       elinks.setBitslip(jlink, bitslip);
@@ -318,9 +317,9 @@ static void elinks(const std::string& cmd, Target* pft) {
   }
   /*
   if (cmd=="BIGSPY") {
-    int mode=BaseMenu::readline_int("Mode? (0=immediate, 1=L1A) ",0);
-    ilink=BaseMenu::readline_int("Which elink? ",ilink);
-    int presamples=BaseMenu::readline_int("Presamples? ",20);
+    int mode=pftool::readline_int("Mode? (0=immediate, 1=L1A) ",0);
+    ilink=pftool::readline_int("Which elink? ",ilink);
+    int presamples=pftool::readline_int("Presamples? ",20);
     std::vector<uint32_t> words = pft->elinksBigSpy(ilink,presamples,mode==1);
     for (int i=0; i<presamples+100; i++) {
       printf("%03d %08x\n",i,words[i]);
@@ -329,9 +328,9 @@ static void elinks(const std::string& cmd, Target* pft) {
   */
 
   if (cmd == "DELAY") {
-    ilink = BaseMenu::readline_int("Which elink? ", ilink);
+    ilink = pftool::readline_int("Which elink? ", ilink);
     int idelay = elinks.getAlignPhase(ilink);
-    idelay = BaseMenu::readline_int("Phase value: ", idelay);
+    idelay = pftool::readline_int("Phase value: ", idelay);
     elinks.setAlignPhase(ilink, idelay);
   }
 
@@ -340,7 +339,7 @@ static void elinks(const std::string& cmd, Target* pft) {
   }
 
   if (cmd == "SCAN") {
-    ilink = BaseMenu::readline_int("Which elink?", ilink);
+    ilink = pftool::readline_int("Which elink?", ilink);
 
     int bp = elinks.scanAlign(ilink, true);
     printf("\n Best Point: %d\n", bp);
@@ -431,9 +430,9 @@ static void roc(const std::string& cmd, Target* pft) {
     pft->hcal().softResetROC();
   }
   if (cmd == "IROC") {
-    iroc = BaseMenu::readline_int("Which ROC to manage: ", iroc);
+    iroc = pftool::readline_int("Which ROC to manage: ", iroc);
     auto new_tv =
-        BaseMenu::readline("type_version of the HGCROC: ", type_version);
+        pftool::readline("type_version of the HGCROC: ", type_version);
     if (new_tv != type_version) {
       // generate lists of page names and param names for those pages
       // for tab completion
@@ -451,7 +450,7 @@ static void roc(const std::string& cmd, Target* pft) {
   pflib::ROC roc = pft->hcal().roc(iroc, type_version);
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
-    isRunMode = BaseMenu::readline_bool("Set ROC runmode: ", isRunMode);
+    isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
     roc.setRunMode(isRunMode);
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
@@ -463,7 +462,7 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "GET_DIRECT_ACCESS") {
     auto options = roc.getDirectAccessParameters();
     auto name =
-        BaseMenu::readline("Direct Access Parameter to Read: ", options, "all");
+        pftool::readline("Direct Access Parameter to Read: ", options, "all");
     if (name == "all") {
       for (auto name : roc.getDirectAccessParameters()) {
         printf("  %10s = %d\n", name.c_str(), roc.getDirectAccess(name));
@@ -475,13 +474,13 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "SET_DIRECT_ACCESS") {
     auto options = roc.getDirectAccessParameters();
     // TODO filter out the readonly DA parameters on register 7
-    auto name = BaseMenu::readline("Direct Access Parameter to Set: ", options);
-    bool val = BaseMenu::readline_bool("On/Off: ", true);
+    auto name = pftool::readline("Direct Access Parameter to Set: ", options);
+    bool val = pftool::readline_bool("On/Off: ", true);
     roc.setDirectAccess(name, val);
   }
   if (cmd == "PAGE") {
-    int page = BaseMenu::readline_int("Which page? ", 0);
-    int len = BaseMenu::readline_int("Length?", 8);
+    int page = pftool::readline_int("Which page? ", 0);
+    int len = pftool::readline_int("Length?", 8);
     std::vector<uint8_t> v = roc.readPage(page, len);
     for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
   }
@@ -491,7 +490,7 @@ static void roc(const std::string& cmd, Target* pft) {
       std::cout << " - " << page << "\n";
     }
     std::cout << std::endl;
-    std::string p = BaseMenu::readline("Page type? ", page_names);
+    std::string p = pftool::readline("Page type? ", page_names);
     auto param_list_it = param_names.find(p);
     if (param_list_it == param_names.end()) {
       PFEXCEPTION_RAISE("BadPage", "Page name " + p + " not known.");
@@ -502,19 +501,19 @@ static void roc(const std::string& cmd, Target* pft) {
     std::cout << std::endl;
   }
   if (cmd == "POKE_REG") {
-    int page = BaseMenu::readline_int("Which page? ", 0);
-    int entry = BaseMenu::readline_int("Offset: ", 0);
-    int value = BaseMenu::readline_int("New value: ");
+    int page = pftool::readline_int("Which page? ", 0);
+    int entry = pftool::readline_int("Offset: ", 0);
+    int value = pftool::readline_int("New value: ");
 
     roc.setValue(page, entry, value);
   }
   if (cmd == "POKE" || cmd == "POKE_PARAM") {
-    std::string page = BaseMenu::readline("Page: ", page_names);
+    std::string page = pftool::readline("Page: ", page_names);
     if (param_names.find(page) == param_names.end()) {
       PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not recognized.");
     }
-    std::string param = BaseMenu::readline("Parameter: ", param_names.at(page));
-    int val = BaseMenu::readline_int("New value: ");
+    std::string param = pftool::readline("Parameter: ", param_names.at(page));
+    int val = pftool::readline_int("New value: ");
 
     roc.applyParameter(page, param, val);
   }
@@ -523,7 +522,7 @@ static void roc(const std::string& cmd, Target* pft) {
                  " --- This command expects a CSV file with columns "
                  "[page,offset,value].\n"
               << std::flush;
-    std::string fname = BaseMenu::readline("Filename: ");
+    std::string fname = pftool::readline("Filename: ");
     roc.loadRegisters(fname);
   }
   if (cmd == "LOAD" || cmd == "LOAD_PARAM") {
@@ -531,17 +530,17 @@ static void roc(const std::string& cmd, Target* pft) {
                  " --- This command expects a YAML file with page names, "
                  "parameter names and their values.\n"
               << std::flush;
-    std::string fname = BaseMenu::readline("Filename: ");
-    bool prepend_defaults = BaseMenu::readline_bool(
+    std::string fname = pftool::readline("Filename: ");
+    bool prepend_defaults = pftool::readline_bool(
         "Update all parameter values on the chip using the defaults in the "
         "manual for any values not provided? ",
         false);
     roc.loadParameters(fname, prepend_defaults);
   }
   if (cmd == "DUMP") {
-    std::string fname = BaseMenu::readline_path("hgcroc_"+std::to_string(iroc)+"_settings");
+    std::string fname = pftool::readline_path("hgcroc_"+std::to_string(iroc)+"_settings");
     bool decompile =
-        BaseMenu::readline_bool("Decompile register values? ", true);
+        pftool::readline_bool("Decompile register values? ", true);
     if (decompile) {
       fname += ".yaml";
     } else {
@@ -597,7 +596,7 @@ static void fc(const std::string& cmd, Target* pft) {
 
   if (cmd == "CALIB") {
     int offset = pft->fc().fc_get_setup_calib();
-    offset = BaseMenu::readline_int("Calibration L1A offset?", offset);
+    offset = pftool::readline_int("Calibration L1A offset?", offset);
     pft->fc().fc_setup_calib(offset);
   }
 
@@ -606,9 +605,9 @@ static void fc(const std::string& cmd, Target* pft) {
     bool multi;
     int nextra;
     pft->hcal().fc().getMultisampleSetup(multi,nextra);
-    multi=BaseMenu::readline_bool("Enable multisample readout? ",multi);
+    multi=pftool::readline_bool("Enable multisample readout? ",multi);
     if (multi)
-      nextra=BaseMenu::readline_int("Extra samples (total is +1 from this
+      nextra=pftool::readline_int("Extra samples (total is +1 from this
 number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
     // also, DMA needs to know
 #ifdef PFTOOL_ROGUE
@@ -677,9 +676,9 @@ number) : ",nextra); pft->hcal().fc().setupMultisample(multi,nextra);
   if (cmd=="ENABLES") {
     bool ext_l1a, ext_spill, timer_l1a;
     pft->fc().enables_read(ext_l1a, ext_spill, timer_l1a);
-    ext_l1a=BaseMenu::readline_bool("Enable external L1A? ",ext_l1a);
-    ext_spill=BaseMenu::readline_bool("Enable external spill? ",ext_spill);
-    timer_l1a=BaseMenu::readline_bool("Enable timer L1A? ",timer_l1a);
+    ext_l1a=pftool::readline_bool("Enable external L1A? ",ext_l1a);
+    ext_spill=pftool::readline_bool("Enable external spill? ",ext_spill);
+    timer_l1a=pftool::readline_bool("Enable timer L1A? ",timer_l1a);
     pft->fc().enables(ext_l1a, ext_spill, timer_l1a);
   }
   */
@@ -744,30 +743,30 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     printf(" (1) ROC with ad-hoc headers as in TB2022\n");
     printf(" (2) ECON with full readout\n");
     printf(" (3) ECON with ZS\n");
-    daq_format_mode = BaseMenu::readline_int(" Select one: ", daq_format_mode);
+    daq_format_mode = pftool::readline_int(" Select one: ", daq_format_mode);
   }
   if (cmd == "CONFIG") {
     daq_contrib_id =
-        BaseMenu::readline_int(" Contributor id for data: ", daq_contrib_id);
-    int econid = BaseMenu::readline_int(" ECON ID: ", daq.econid());
+        pftool::readline_int(" Contributor id for data: ", daq_contrib_id);
+    int econid = pftool::readline_int(" ECON ID: ", daq.econid());
     int samples = 1;  // frozen for now
     int soi = 0;      // frozen for now
     daq.setup(econid, samples, soi);
   }
   /*
   if (cmd=="ZS") {
-    int jlink=BaseMenu::readline_int("Which link (-1 for all)? ",-1);
-    bool fullSuppress=BaseMenu::readline_bool("Suppress all channels? ",false);
+    int jlink=pftool::readline_int("Which link (-1 for all)? ",-1);
+    bool fullSuppress=pftool::readline_bool("Suppress all channels? ",false);
     pft->enableZeroSuppression(jlink,fullSuppress);
   }
   */
   if (cmd == "L1APARAMS") {
-    int ilink = BaseMenu::readline_int("Which link? ", -1);
+    int ilink = pftool::readline_int("Which link? ", -1);
     if (ilink >= 0) {
       int delay, capture;
       daq.getLinkSetup(ilink, delay, capture);
-      delay = BaseMenu::readline_int("L1A delay? ", delay);
-      capture = BaseMenu::readline_int("L1A capture length? ", capture);
+      delay = pftool::readline_int("L1A delay? ", delay);
+      capture = pftool::readline_int("L1A capture length? ", capture);
       daq.setupLink(ilink, delay, capture);
     }
   }
@@ -778,7 +777,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
       bool enabled;
       uint8_t samples_per_event, fpgaid_i;
       rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, enabled);
-      enabled = BaseMenu::readline_bool("Enable DMA? ", enabled);
+      enabled = pftool::readline_bool("Enable DMA? ", enabled);
       rwbi->daq_dma_enable(enabled);
     } else {
       std::cout << "\nNot connected to chip with RogueWishboneInterface, "
@@ -803,7 +802,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   }
   /*
   if (cmd=="FPGA") {
-    int fpgaid=BaseMenu::readline_int("FPGA id: ",daq.getFPGAid());
+    int fpgaid=pftool::readline_int("FPGA id: ",daq.getFPGAid());
     daq.setIds(fpgaid);
 #ifdef PFTOOL_ROGUE
     auto rwbi=dynamic_cast<pflib::rogue::RogueWishboneInterface*>(pft->wb);
@@ -872,14 +871,14 @@ static void daq(const std::string& cmd, Target* pft) {
     struct tm *tm = localtime(&t);
     struct tm *gmtm = gmtime(&t);
 
-    run=BaseMenu::readline_int("Run number? ",run);
+    run=pftool::readline_int("Run number? ",run);
 
     char fname_def_format[1024];
     sprintf(fname_def_format,"run%06d_%%Y%%m%%d_%%H%%M%%S.raw",run);
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
 
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    std::string fname=pftool::readline("Filename :  ", fname_def);
 
     run_no_file=fopen(last_run_file.c_str(),"w");
     if (run_no_file) {
@@ -890,7 +889,7 @@ static void daq(const std::string& cmd, Target* pft) {
     FILE* f=0;
     if (!dma_enabled) f=fopen(fname.c_str(),"w");
 
-    int event_target=BaseMenu::readline_int("Target events? ",1000);
+    int event_target=pftool::readline_int("Target events? ",1000);
     pft->backend->daq_setup_event_tag(run,gmtm->tm_mday,gmtm->tm_mon+1,gmtm->tm_hour,gmtm->tm_min);
 
     // reset various counters
@@ -958,16 +957,16 @@ static void daq(const std::string& cmd, Target* pft) {
       runname = "led";
     }
 
-    int run = BaseMenu::readline_int("Run number? ", run);
-    int nevents = BaseMenu::readline_int("How many events? ", 100);
+    int run = pftool::readline_int("Run number? ", run);
+    int nevents = pftool::readline_int("How many events? ", 100);
     static int rate = 100;
-    rate = BaseMenu::readline_int("Readout rate? (Hz) ", rate);
+    rate = pftool::readline_int("Readout rate? (Hz) ", rate);
 
     pft->setup_run(run, daq_format_mode, daq_contrib_id);
 
-    std::string fname = BaseMenu::readline_path(runname);
+    std::string fname = pftool::readline_path(runname);
     bool decoding =
-        BaseMenu::readline_bool("Should we decode the packet into CSV?", true);
+        pftool::readline_bool("Should we decode the packet into CSV?", true);
         
     if (decoding) {
       pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
@@ -1011,15 +1010,15 @@ static void tasks( const std::string& cmd, Target* pft ) {
   if (cmd=="SCANCHARGE") {
     valuename="CALIB_DAC";
     pagetemplate="REFERENCE_VOLTAGE_%d";
-    low_value=BaseMenu::readline_int("Smallest value of CALIB_DAC?",low_value);
-    high_value=BaseMenu::readline_int("Largest value of CALIB_DAC?",high_value);
+    low_value=pftool::readline_int("Smallest value of CALIB_DAC?",low_value);
+    high_value=pftool::readline_int("Largest value of CALIB_DAC?",high_value);
   }
   /// common stuff for all scans
   if (cmd=="SCANCHARGE") {
     static const int NUM_ELINK_CHAN=36;
 
-    steps=BaseMenu::readline_int("Number of steps?",steps);
-    events_per_step=BaseMenu::readline_int("Events per step?",events_per_step);
+    steps=pftool::readline_int("Number of steps?",steps);
+    events_per_step=pftool::readline_int("Events per step?",events_per_step);
 
     time_t t=time(NULL);
     struct tm *tm = localtime(&t);
@@ -1028,7 +1027,7 @@ static void tasks( const std::string& cmd, Target* pft ) {
     char fname_def[1024];
     strftime(fname_def, sizeof(fname_def), fname_def_format, tm);
 
-    std::string fname=BaseMenu::readline("Filename :  ", fname_def);
+    std::string fname=pftool::readline("Filename :  ", fname_def);
     std::ofstream csv_out=std::ofstream(fname);
 
     // csv header
@@ -1140,7 +1139,7 @@ std::vector<uint32_t> read_words_from_file() {
   std::vector<uint32_t> data;
   /// load from file
   std::string fname =
-      BaseMenu::readline("Read from text file (line by line hex 32-bit words)");
+      pftool::readline("Read from text file (line by line hex 32-bit words)");
   char buffer[512];
   FILE* f = fopen(fname.c_str(), "r");
   if (f == 0) {
@@ -1206,7 +1205,7 @@ static void daq_debug(const std::string& cmd, Target* pft) {
   }
   if (cmd == "ESPY") {
     static int input = 0;
-    input = BaseMenu::readline_int("Which input?", input);
+    input = pftool::readline_int("Which input?", input);
     pflib::DAQ& daq = pft->hcal().daq();
 
     std::vector<uint32_t> buffer = daq.getLinkData(input);
@@ -1239,21 +1238,21 @@ static void daq_debug(const std::string& cmd, Target* pft) {
 static void bias( const std::string& cmd, Target* pft ) {
   static int iboard=0;
   if (cmd=="STATUS") {
-    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    iboard=pftool::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
   }
 
   if (cmd=="INIT") {
-    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    iboard=pftool::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
     bias.initialize();
   }
   if (cmd=="SET") {
-    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    iboard=pftool::readline_int("Which board? ",iboard);
     static int led_sipm=0;
-    led_sipm=BaseMenu::readline_int(" SiPM(0) or LED(1)? ",led_sipm);
-    int ichan=BaseMenu::readline_int(" Which HDMI connector? ",-1);
-    int dac=BaseMenu::readline_int(" What DAC value? ",0);
+    led_sipm=pftool::readline_int(" SiPM(0) or LED(1)? ",led_sipm);
+    int ichan=pftool::readline_int(" Which HDMI connector? ",-1);
+    int dac=pftool::readline_int(" What DAC value? ",0);
     if (ichan>=0) {
       pft->setBiasSetting(iboard,led_sipm==1,ichan,dac);
     }
@@ -1267,7 +1266,7 @@ static void bias( const std::string& cmd, Target* pft ) {
   if (cmd=="LOAD") {
     printf("\n --- This command expects a CSV file with four columns
 [0=SiPM/1=LED,board,hdmi#,value].\n"); printf(" --- Line starting with # are
-ignored.\n"); std::string fname=BaseMenu::readline("Filename: "); if (not
+ignored.\n"); std::string fname=pftool::readline("Filename: "); if (not
 pft->loadBiasSettings(fname)) { std::cerr << "\n\n  ERROR: Unable to access " <<
 fname << std::endl;
     }
@@ -1285,8 +1284,8 @@ auto log_line = pftool::root()->line(
                    "(e.g. decoding)\n"
                 << std::endl;
 
-      int new_level = BaseMenu::readline_int("Level (and above) to print: ", 2);
-      std::string only = BaseMenu::readline(
+      int new_level = pftool::readline_int("Level (and above) to print: ", 2);
+      std::string only = pftool::readline(
           "Only apply to this channel (empty applies to all): ");
       pflib::logging::set(pflib::logging::convert(new_level), only);
     });
@@ -1394,12 +1393,12 @@ auto menu_fc =
 auto menu_task =
     pftool::menu("TASK", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", [](Target* tgt) {
-          int nevents = BaseMenu::readline_int("How many events per time point? ", 1);
-          int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
-          int channel = BaseMenu::readline_int("Channel to pulse into? ", 61);
-          int start_bx = BaseMenu::readline_int("Starting BX? ", -1);
-          int n_bx = BaseMenu::readline_int("Number of BX? ", 3);
-          std::string fname = BaseMenu::readline_path("charge-time-scan", ".csv");
+          int nevents = pftool::readline_int("How many events per time point? ", 1);
+          int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 1024);
+          int channel = pftool::readline_int("Channel to pulse into? ", 61);
+          int start_bx = pftool::readline_int("Starting BX? ", -1);
+          int n_bx = pftool::readline_int("Number of BX? ", 3);
+          std::string fname = pftool::readline_path("charge-time-scan", ".csv");
           static int rate = 100; // pretty fast without overwhelming chip
           static int run = 1; // dummy, not stored
           pflib::ROC roc{tgt->hcal().roc(iroc, type_version)};
@@ -1471,11 +1470,11 @@ auto menu_daq_debug =
         ->line("FMTTEST", "test the formatter", daq_debug)
         ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
           [](Target* tgt) {
-            int nevents = BaseMenu::readline_int("How many events per time offset? ", 100);
-            int calib = BaseMenu::readline_int("Setting for calib pulse amplitude? ", 1024);
-            int min_offset = BaseMenu::readline_int("Minimum time offset to test? ", 0);
-            int max_offset = BaseMenu::readline_int("Maximum time offset to test? ", 128);
-            std::string fname = BaseMenu::readline_path("charge-timein");
+            int nevents = pftool::readline_int("How many events per time offset? ", 100);
+            int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 1024);
+            int min_offset = pftool::readline_int("Minimum time offset to test? ", 0);
+            int max_offset = pftool::readline_int("Maximum time offset to test? ", 128);
+            std::string fname = pftool::readline_path("charge-timein");
             static int rate = 100;
             tgt->setup_run(1, daq_format_mode, daq_contrib_id);
             pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
@@ -1659,11 +1658,11 @@ int main(int argc, char* argv[]) {
   }
 
   if (options.contents().has_key("default_output_directory")) {
-    BaseMenu::output_directory = options.contents().getString("default_output_directory");
+    pftool::output_directory = options.contents().getString("default_output_directory");
   }
 
   if (options.contents().has_key("timestamp_format")) {
-    BaseMenu::timestamp_format = options.contents().getString("timestamp_format");
+    pftool::timestamp_format = options.contents().getString("timestamp_format");
   }
 
   /*****************************************************************************
@@ -1693,7 +1692,7 @@ int main(int argc, char* argv[]) {
         // skip empty lines or ones whose first character is #
         if (!line.empty() && line[0] == '#') continue;
         // add to command queue
-        BaseMenu::add_to_command_queue(line);
+        pftool::add_to_command_queue(line);
       }
       sFile.close();
     } else if (arg == "-z") {
@@ -1738,7 +1737,7 @@ int main(int argc, char* argv[]) {
             std::cout << std::setw(2) << k << " - " << hostnames.at(k)
                       << std::endl;
           }
-          i_host = BaseMenu::readline_int(
+          i_host = pftool::readline_int(
               " ID of Polarfire Hostname (-1 to exit) : ", i_host);
           if (i_host == -1 or (i_host >= 0 and i_host < hostnames.size())) {
             // valid choice, let's leave
@@ -1798,7 +1797,7 @@ int main(int argc, char* argv[]) {
       if (hostnames.size() > 1) {
         // menu for that target has been exited, check if user wants to choose
         // another host
-        continue_running = BaseMenu::readline_bool(
+        continue_running = pftool::readline_bool(
             " Choose a new card/host to connect to ? ", true);
       } else {
         // no other hosts, leave

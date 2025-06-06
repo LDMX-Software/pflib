@@ -9,50 +9,49 @@
 #include "pflib/lpgbt/lpGBT_Utility.h"
 
 using tool = pflib::menu::Menu<pflib::lpGBT*>;
-using BaseMenu = pflib::menu::BaseMenu;
 
 void regs(const std::string& cmd, pflib::lpGBT* target) {
   static int addr = 0;
   if (cmd == "READ") {
-    addr = BaseMenu::readline_int("Register", addr, true);
-    int n = BaseMenu::readline_int("Number of items", 1);
+    addr = tool::readline_int("Register", addr, true);
+    int n = tool::readline_int("Number of items", 1);
     for (int i = 0; i < n; i++) {
       printf("   %03x : %02x\n", addr + i, target->read(addr + i));
     }
   }
   if (cmd == "WRITE") {
-    addr = BaseMenu::readline_int("Register", addr, true);
+    addr = tool::readline_int("Register", addr, true);
     int value = target->read(addr);
-    value = BaseMenu::readline_int("New value", value, true);
+    value = tool::readline_int("New value", value, true);
     target->write(addr, value);
   }
   if (cmd == "LOAD") {
-    std::string fname = BaseMenu::readline("File: ");
+    std::string fname = tool::readline("File: ");
     pflib::lpgbt::applylpGBTCSV(fname, *target);
   }
 }
 
 void gpio(const std::string& cmd, pflib::lpGBT* target) {
   if (cmd == "SET") {
-    int which = BaseMenu::readline_int("Pin");
+    int which = tool::readline_int("Pin");
     if (which >= 0 && which < 12) target->gpio_set(which, true);
   }
   if (cmd == "CLEAR") {
-    int which = BaseMenu::readline_int("Pin");
+    int which = tool::readline_int("Pin");
     if (which >= 0 && which < 12) target->gpio_set(which, false);
   }
   if (cmd == "WRITE") {
     uint16_t value = target->gpio_get();
-    value = BaseMenu::readline_int("Value", value, true);
+    value = tool::readline_int("Value", value, true);
     target->gpio_set(value);
   }
 }
 
 void adc(const std::string& cmd, pflib::lpGBT* target) {
   if (cmd == "READ") {
-    int whichp = BaseMenu::readline_int("Channel (pos)");
-    int whichn = BaseMenu::readline_int("Channel (neg)", 15);
-    int gain = BaseMenu::readline_int("Gain", 1);
+    int whichp = tool::readline_int("Channel (pos)");
+    int whichn = tool::readline_int("Channel (neg)", 15);
+    int gain = tool::readline_int("Gain", 1);
     printf("  ADC = %03x\n", target->adc_read(whichp, whichn, gain));
   }
   if (cmd == "ALL") {
@@ -329,7 +328,7 @@ int main(int argc, char* argv[]) {
         // skip empty lines or ones whose first character is #
         if (!line.empty() && line[0] == '#') continue;
         // add to command queue
-        BaseMenu::add_to_command_queue(line);
+        tool::add_to_command_queue(line);
       }
       sFile.close();
     }
