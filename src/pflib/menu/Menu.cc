@@ -33,7 +33,7 @@ void BaseMenu::set_history_filepath(std::string fp_str) {
   }
 
   if (fp_str[0] == '~') {
-    fp_str.erase(0);
+    fp_str.erase(0, 1);
     fp_str.insert(0, getenv("HOME"));
   }
 
