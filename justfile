@@ -48,3 +48,7 @@ hexdump *args:
 # run the decoder
 decode *args:
     denv ./build/pfdecoder {{ args }}
+
+# open the test menu
+test-menu:
+    denv ./build/test-menu
