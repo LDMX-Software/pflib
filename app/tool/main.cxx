@@ -346,9 +346,11 @@ static void elinks(const std::string& cmd, Target* pft) {
     printf("\n Best Point: %d\n", bp);
   }
   if (cmd == "AUTO") {
-    std::cout << "In order to align the ELinks, we need to hard reset the ROC\n"
+    std::cout << "In order to align the ELinks, we need to hard reset the HGCROC\n"
                  "to force the trigger links to return idles.\n"
-                 "This will reset all parameters on the HGCROC to their defaults.\n";
+                 "This will reset all parameters on the HGCROC to their defaults.\n"
+                 "You can use ROC.DUMP to write out the current HGCROC settings to\n"
+                 "a YAML file for later loading.\n";
 
     if (not pftool::readline_bool("Continue? ", false)) {
       return;
