@@ -346,13 +346,23 @@ static void elinks(const std::string& cmd, Target* pft) {
     printf("\n Best Point: %d\n", bp);
   }
   if (cmd == "AUTO") {
-    std::vector<bool> running;
-    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      running.push_back(pft->hcal().roc(iroc).isRunMode());
-      if (running[iroc]) {
-        pft->hcal().roc(iroc).setRunMode(false);
-      }
+    std::cout << "In order to align the ELinks, we need to hard reset the ROC\n"
+                 "to force the trigger links to return idles.\n"
+                 "This will reset all parameters on the HGCROC to their defaults.\n";
+
+    if (not pftool::readline_bool("Continue? ", false)) {
+      return;
     }
+
+    // store run mode _before_ hard reset
+    // (hard reset sets run mode to off)
+    std::vector<bool> running(pft->hcal().nrocs());
+    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
+      running[iroc] = pft->hcal().roc(iroc).isRunMode();
+    }
+
+    pft->hcal().hardResetROCs();
+
     for (int alink = 0; alink < elinks.nlinks(); alink++) {
       int apt = elinks.scanAlign(alink, false);
       elinks.setAlignPhase(alink, apt);
@@ -362,10 +372,10 @@ static void elinks(const std::string& cmd, Target* pft) {
       printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
              bpt, spy[0]);
     }
+
+    // reset runmode to what it was before alignment attempt
     for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      if (running[iroc]) {
-        pft->hcal().roc(iroc).setRunMode(true);
-      }
+      pft->hcal().roc(iroc).setRunMode(running[iroc]);
     }
   }
 }
@@ -1522,7 +1532,7 @@ auto menu_daq_debug =
             }
             tgt->hcal().daq().advanceLinkReadPtr();
 
-            pflib_log(info) << "charge injectin run to see non-zero trigger sums in specific places";
+            pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
             // charge run to see excess
             tgt->fc().chargepulse();
             usleep(10000); // one 100Hz cycle later
