@@ -805,9 +805,8 @@ static void daq_setup(const std::string& cmd, Target* pft) {
         // DAQ link, timed in with pedestals and idles
         daq.setupLink(i, 12, 40);
       } else {
-        // Trigger link
-        // just a guess right now, need charge injection to time in
-        daq.setupLink(i, 0x80 | 5, 4);
+        // Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
+        daq.setupLink(i, 0, 1);
       }
     }
   }
