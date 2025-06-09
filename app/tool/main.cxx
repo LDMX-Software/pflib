@@ -1472,11 +1472,17 @@ auto menu_daq_debug =
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
         ->line("TRIGGER_TIMEIN", "look for canidate trigger delays",
           [](Target* tgt) {
+            /**
+             * This command attempts to deduce the capture delay for the trigger
+             * links by taking two runs after setting some parameters on the chip.
+             *
+             * Assuming the pedestal values on the chip are all ~200 (as is the case
+             * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
+             * their maxima (255 and 31 respectively) forces the trigger sums to be
+             * zero for pedestals. Including the 4-bit sync header, this means the
+             * trigger link zero-word is 0xa0000000.
+             */
             static const uint32_t ZERO = 0xa0000000;
-            static const uint32_t TC_0 = 0xafe00000;
-            static const uint32_t TC_1 = 0xa01fc000;
-            static const uint32_t TC_2 = 0xa0003f80;
-            static const uint32_t TC_3 = 0xa000007f;
 
             auto& daq{tgt->hcal().daq()};
             auto roc{tgt->hcal().roc(iroc)};
@@ -1503,6 +1509,24 @@ auto menu_daq_debug =
               test_param_builder.add(refvol_page, "INTCTEST", 1);
             }
 
+            /**
+             * We then enable charge injection within certain channels.
+             * Each trigger link produces a single 32-bit word cut up into a 4-bit
+             * sync header and 4 7-bit trigger sums.
+             *
+             *   0b1010 | TCX_0 | TCX_1 | TCX_2 | TCX_3
+             *
+             * We choose channels to inject charge such that each link
+             * has a different trigger sum that should be non-zero.
+             * - CH_0 -> TC0_0 non-zero
+             * - CH_29 -> TC1_2 non-zero
+             * - CH_42 -> TC2_1 non-zero
+             * - CH_70 -> TC3_3 non-zero
+             */
+            static const uint32_t TC_0 = 0xafe00000;
+            static const uint32_t TC_1 = 0xa01fc000;
+            static const uint32_t TC_2 = 0xa0003f80;
+            static const uint32_t TC_3 = 0xa000007f;
             auto test_param_handle = test_param_builder
               .add("CH_0" , "LOWRANGE", 1) // TC0_0
               .add("CH_29", "LOWRANGE", 1) // TC1_2
@@ -1534,7 +1558,6 @@ auto menu_daq_debug =
             tgt->hcal().daq().advanceLinkReadPtr();
 
             pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
-            // charge run to see excess
             tgt->fc().chargepulse();
             usleep(10000); // one 100Hz cycle later
             std::array<std::vector<uint32_t>, 4> charge_sums;
@@ -1561,6 +1584,14 @@ auto menu_daq_debug =
               for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
                 uint32_t pedestal{pedestals.at(i_delay)},
                          charge{charges.at(i_delay)};
+                /**
+                 * The pedestal run producing trigger-zero words filters out words
+                 * that can be captured by this link but "belong" to a different link.
+                 * We can then check which words are different between the charge and
+                 * pedestal runs, printing the word indices (delays) for them.
+                 * The last step is checking if the word from the charge run is zero
+                 * everywhere except the expected bits.
+                 */
                 if (pedestal == ZERO and pedestal != charge) {
                   bool match_expected = ((charge & ~expected_charge) == 0 && (charge & ZERO) == ZERO);
                   if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
@@ -1574,6 +1605,9 @@ auto menu_daq_debug =
               }
             }
 
+            /**
+             * Finally, report the delays where we found the expected bits to be non-zero
+             */
             std::cout << "Link : Delay\n";
             for (int ilink{2}; ilink < 6; ilink++) {
               std::cout << "   " << ilink << " : " << delays.at(ilink-2) << '\n';
