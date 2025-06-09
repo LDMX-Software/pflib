@@ -185,7 +185,7 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
-add_executable(pftool app/tool/main.cxx)
+add_executable(pftool app/tool/main.cxx app/tool/expert.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
