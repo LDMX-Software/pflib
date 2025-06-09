@@ -35,6 +35,7 @@
 #include "pflib/version/Version.h"
 #include "pflib/packing/BufferReader.h"
 #include "pflib/packing/SingleROCEventPacket.h"
+#include "pflib/packing/Hex.h"
 #include "pflib/utility.h"
 #include "pflib/DecodeAndWrite.h"
 #include "pflib/WriteToBinaryFile.h"
@@ -345,13 +346,25 @@ static void elinks(const std::string& cmd, Target* pft) {
     printf("\n Best Point: %d\n", bp);
   }
   if (cmd == "AUTO") {
-    std::vector<bool> running;
-    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      running.push_back(pft->hcal().roc(iroc).isRunMode());
-      if (running[iroc]) {
-        pft->hcal().roc(iroc).setRunMode(false);
-      }
+    std::cout << "In order to align the ELinks, we need to hard reset the HGCROC\n"
+                 "to force the trigger links to return idles.\n"
+                 "This will reset all parameters on the HGCROC to their defaults.\n"
+                 "You can use ROC.DUMP to write out the current HGCROC settings to\n"
+                 "a YAML file for later loading.\n";
+
+    if (not pftool::readline_bool("Continue? ", false)) {
+      return;
     }
+
+    // store run mode _before_ hard reset
+    // (hard reset sets run mode to off)
+    std::vector<bool> running(pft->hcal().nrocs());
+    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
+      running[iroc] = pft->hcal().roc(iroc).isRunMode();
+    }
+
+    pft->hcal().hardResetROCs();
+
     for (int alink = 0; alink < elinks.nlinks(); alink++) {
       int apt = elinks.scanAlign(alink, false);
       elinks.setAlignPhase(alink, apt);
@@ -361,10 +374,10 @@ static void elinks(const std::string& cmd, Target* pft) {
       printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
              bpt, spy[0]);
     }
+
+    // reset runmode to what it was before alignment attempt
     for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      if (running[iroc]) {
-        pft->hcal().roc(iroc).setRunMode(true);
-      }
+      pft->hcal().roc(iroc).setRunMode(running[iroc]);
     }
   }
 }
@@ -794,9 +807,10 @@ static void daq_setup(const std::string& cmd, Target* pft) {
         // DAQ link, timed in with pedestals and idles
         daq.setupLink(i, 12, 40);
       } else {
-        // Trigger link
-        // just a guess right now, need charge injection to time in
-        daq.setupLink(i, 0x80 | 5, 4);
+        // Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
+        // The manual only reports one word per crossing per trigger link,
+        // but we capture four just in case I guess?
+        daq.setupLink(i, 0, 4);
       }
     }
   }
@@ -1160,66 +1174,6 @@ std::vector<uint32_t> read_words_from_file() {
 }
 
 /**
- * DAQ->DEBUG menu commands
- *
- * @note These commands have been archived since further development of pflib
- * has progressed. They are still available in this submenu; however,
- * they should only be used by an expert who is familiar with the chip
- * and has looked at what the commands do in the code.
- *
- * @param[in] cmd selected command from menu
- * @param[in] pft active target
- */
-static void daq_debug(const std::string& cmd, Target* pft) {
-  if (cmd == "STATUS") {
-    // get the general status
-    print_daq_status(pft);
-    /*
-    daq("STATUS", pft);
-    uint32_t reg1,reg2;
-    printf("-----Per-ROC Controls-----\n");
-    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,1);
-    printf(" Disable ROC links: %s\n",(reg1&0x80000000u)?("TRUE"):("FALSE"));
-
-    printf(" Link  F E RP WP \n");
-    for (int ilink=0; ilink<Target::NLINKS; ilink++) {
-      uint32_t reg=pft->wb->wb_read(pflib::tgt_DAQ_Inbuffer,(ilink<<7)|3);
-      printf("   %2d  %d %d %2d %2d
-    %08x\n",ilink,(reg>>26)&1,(reg>>27)&1,(reg>>16)&0xf,(reg>>12)&0xf,reg);
-    }
-    printf("-----Event builder    -----\n");
-    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Control,6);
-    printf(" EVB Debug word: %08x\n",reg1);
-    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
-    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,4);
-    printf(" Event buffer Debug word: %08x %08x\n",reg1,reg2);
-
-    printf("-----Full event buffer-----\n");
-    reg1=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,1);
-    reg2=pft->wb->wb_read(pflib::tgt_DAQ_Outbuffer,2);    printf(" Read Page: %d
-    Write Page : %d   Full: %d  Empty: %d   Evt Length on current page:
-    %d\n",(reg1>>13)&0x1,(reg1>>12)&0x1,(reg1>>15)&0x1,(reg1>>14)&0x1,(reg1>>0)&0xFFF);
-    printf(" Spy page : %d  Spy-as-source : %d  Length-of-spy-injected-event :
-    %d\n",reg2&0x1,(reg2>>1)&0x1,(reg2>>16)&0xFFF);
-    */
-  }
-  if (cmd == "ESPY") {
-    static int input = 0;
-    input = pftool::readline_int("Which input?", input);
-    pflib::DAQ& daq = pft->hcal().daq();
-
-    std::vector<uint32_t> buffer = daq.getLinkData(input);
-    for (size_t i = 0; i < buffer.size(); i++) {
-      printf(" %04d %08x\n", int(i), buffer[i]);
-    }
-  }
-  if (cmd == "ADV") {
-    pflib::DAQ& daq = pft->hcal().daq();
-    daq.advanceLinkReadPtr();
-  }
-}
-
-/**
  * BIAS menu commands
  *
  * @note This menu has not been explored thoroughly so some of these commands
@@ -1467,10 +1421,28 @@ auto menu_daq =
 auto menu_daq_debug =
     menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
         ->line("STATUS", "Provide the status", print_daq_status)
-        ->line("ESPY", "Spy on one elink", daq_debug)
-        ->line("ADV", "advance the readout pointers", daq_debug)
+        ->line("ESPY", "Spy on one elink",
+          [](Target* tgt) {
+            static int input = 0;
+            input = pftool::readline_int("Which input?", input);
+            pflib::DAQ& daq = tgt->hcal().daq();
+        
+            std::vector<uint32_t> buffer = daq.getLinkData(input);
+            int delay{}, capture{};
+            daq.getLinkSetup(input, delay, capture);
+            for (size_t i = 0; i < buffer.size(); i++) {
+              if (i == 0) {
+                printf(" %04d %08x <- %d delay\n", int(i), buffer[i], delay);
+              } else {
+                printf(" %04d %08x\n", int(i), buffer[i]);
+              }
+            }
+          })
+        ->line("ADV", "advance the readout pointers",
+          [](Target* tgt) {
+            tgt->hcal().daq().advanceLinkReadPtr();
+          })
         ->line("SW_L1A", "send a L1A from software", fc)
-        ->line("FMTTEST", "test the formatter", daq_debug)
         ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
           [](Target* tgt) {
             int nevents = pftool::readline_int("How many events per time offset? ", 100);
@@ -1494,6 +1466,155 @@ auto menu_daq_debug =
               pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
               tgt->daq_run("CHARGE", writer, nevents, rate);
             }
+          })
+        ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
+          [](Target* tgt) {
+            tgt->fc().chargepulse();
+          })
+        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
+        ->line("TRIGGER_TIMEIN", "look for canidate trigger delays",
+          [](Target* tgt) {
+            /**
+             * This command attempts to deduce the capture delay for the trigger
+             * links by taking two runs after setting some parameters on the chip.
+             *
+             * Assuming the pedestal values on the chip are all ~200 (as is the case
+             * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
+             * their maxima (255 and 31 respectively) forces the trigger sums to be
+             * zero for pedestals. Including the 4-bit sync header, this means the
+             * trigger link zero-word is 0xa0000000.
+             */
+            static const uint32_t ZERO = 0xa0000000;
+
+            auto& daq{tgt->hcal().daq()};
+            auto roc{tgt->hcal().roc(iroc)};
+
+            pflib_log(info) << "setting up parameters for trigger link testing";
+
+            auto test_param_builder = roc.testParameters();
+            for (int ch{0}; ch < 72; ch++) {
+              test_param_builder.add(
+                string_format("CH_%d", ch),
+                "ADC_PEDESTAL",
+                255
+              );
+            }
+
+            for (int half{0}; half < 2; half++) {
+              test_param_builder.add(
+                string_format("DIGITALHALF_%d", half),
+                "ADC_TH",
+                31
+              );
+              auto refvol_page{string_format("REFERENCEVOLTAGE_%d", half)};
+              test_param_builder.add(refvol_page, "CALIB", 3000);
+              test_param_builder.add(refvol_page, "INTCTEST", 1);
+            }
+
+            /**
+             * We then enable charge injection within certain channels.
+             * Each trigger link produces a single 32-bit word cut up into a 4-bit
+             * sync header and 4 7-bit trigger sums.
+             *
+             *   0b1010 | TCX_0 | TCX_1 | TCX_2 | TCX_3
+             *
+             * We choose channels to inject charge such that each link
+             * has a different trigger sum that should be non-zero.
+             * - CH_0 -> TC0_0 non-zero
+             * - CH_29 -> TC1_2 non-zero
+             * - CH_42 -> TC2_1 non-zero
+             * - CH_70 -> TC3_3 non-zero
+             */
+            static const uint32_t TC_0 = 0xafe00000;
+            static const uint32_t TC_1 = 0xa01fc000;
+            static const uint32_t TC_2 = 0xa0003f80;
+            static const uint32_t TC_3 = 0xa000007f;
+            auto test_param_handle = test_param_builder
+              .add("CH_0" , "LOWRANGE", 1) // TC0_0
+              .add("CH_29", "LOWRANGE", 1) // TC1_2
+              .add("CH_42", "LOWRANGE", 1) // TC2_1
+              .add("CH_70", "LOWRANGE", 1) // TC3_3
+              .apply();
+            std::array<uint32_t, 4> expected_charge_mask = {
+              TC_0,
+              TC_2,
+              TC_1,
+              TC_3
+            };
+
+            pflib_log(info) << "storing link settings and expanding capture window";
+            int max_delay = 1024;
+            std::array<int, 4> og_delay{}, og_capture{};
+            for (int ilink{2}; ilink < 6; ilink++) {
+              daq.getLinkSetup(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+              daq.setupLink(ilink, 0, max_delay);
+            }
+
+            pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
+            tgt->fc().sendL1A();
+            usleep(10000); // one 100Hz cycle later
+            std::array<std::vector<uint32_t>, 4> pedestal_sums;
+            for (int ilink{2}; ilink < 6; ilink++) {
+              pedestal_sums[ilink-2] = daq.getLinkData(ilink);
+            }
+            tgt->hcal().daq().advanceLinkReadPtr();
+
+            pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
+            tgt->fc().chargepulse();
+            usleep(10000); // one 100Hz cycle later
+            std::array<std::vector<uint32_t>, 4> charge_sums;
+            for (int ilink{2}; ilink < 6; ilink++) {
+              charge_sums[ilink-2] = daq.getLinkData(ilink);
+            }
+            tgt->hcal().daq().advanceLinkReadPtr();
+
+            for (int ilink{2}; ilink < 6; ilink++) {
+              pflib_log(debug) << "reset link " << ilink
+                               << " to delay " << og_delay[ilink-2]
+                               << " and capture " << og_capture[ilink-2];
+              daq.setupLink(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+            }
+
+            pflib_log(info) << "analyze words readout from links";
+            std::cout << "delay : pedestal -> charge" << std::endl;
+            std::array<int, 4> delays{-1};
+            for (int ilink{2}; ilink < 6; ilink++) {
+              std::cout << "Link " << ilink << " (TC" << ilink-2 << ")" << std::endl;
+              const auto& pedestals{pedestal_sums.at(ilink-2)};
+              const auto& charges{charge_sums.at(ilink-2)};
+              const auto& expected_charge{expected_charge_mask.at(ilink-2)};
+              for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
+                uint32_t pedestal{pedestals.at(i_delay)},
+                         charge{charges.at(i_delay)};
+                /**
+                 * The pedestal run producing trigger-zero words filters out words
+                 * that can be captured by this link but "belong" to a different link.
+                 * We can then check which words are different between the charge and
+                 * pedestal runs, printing the word indices (delays) for them.
+                 * The last step is checking if the word from the charge run is zero
+                 * everywhere except the expected bits.
+                 */
+                if (pedestal == ZERO and pedestal != charge) {
+                  bool match_expected = ((charge & ~expected_charge) == 0 && (charge & ZERO) == ZERO);
+                  if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
+                  printf("%04d : 0x%08x -> 0x%08x %s\n",
+                    static_cast<int>(i_delay),
+                    pedestal,
+                    charge,
+                    match_expected ? "(expected)" : ""
+                  );
+                }
+              }
+            }
+
+            /**
+             * Finally, report the delays where we found the expected bits to be non-zero
+             */
+            std::cout << "Link : Delay\n";
+            for (int ilink{2}; ilink < 6; ilink++) {
+              std::cout << "   " << ilink << " : " << delays.at(ilink-2) << '\n';
+            }
+            std::cout << std::flush;
           })
     /*
   ->line("FULL_DEBUG", "Toggle debug mode for full-event buffer",  daq_debug )
