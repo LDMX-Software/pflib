@@ -808,7 +808,9 @@ static void daq_setup(const std::string& cmd, Target* pft) {
         daq.setupLink(i, 12, 40);
       } else {
         // Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
-        daq.setupLink(i, 0, 1);
+        // The manual only reports one word per crossing per trigger link,
+        // but we capture four just in case I guess?
+        daq.setupLink(i, 0, 4);
       }
     }
   }
