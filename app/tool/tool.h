@@ -13,7 +13,7 @@
  * Enable logging using the file name as the channel name
  */
 #define ENABLE_LOGGING() \
-  static auto the_log_{::pflib::logging::get("pftool." __FILE__)};
+  static auto the_log_{::pflib::logging::get_by_file("pftool.", __FILE__)};
 
 /**
  * pull the target of our menu into this source file to reduce code
