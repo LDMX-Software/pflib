@@ -1,4 +1,8 @@
-#include "tool.h"
+/**
+ * @file daq.cxx
+ * DAQ menu (and submenus) command definitions
+ */
+#include "pftool.h"
 
 #include "pflib/WriteToBinaryFile.h"
 #include "pflib/DecodeAndWrite.h"

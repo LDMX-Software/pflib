@@ -1,4 +1,8 @@
-#include "tool.h"
+/**
+ * @file expert.cxx
+ * EXPERT menu commands
+ */
+#include "pftool.h"
 
 /**
  * Direct I2C commands

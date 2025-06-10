@@ -2,7 +2,7 @@
  * @file roc.cxx
  * ROC menu commands and support functions
  */
-#include "tool.h"
+#include "pftool.h"
 
 /**
  * Simply print the currently selective ROC so that user is aware

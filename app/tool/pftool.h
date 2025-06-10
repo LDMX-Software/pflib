@@ -1,5 +1,5 @@
 /**
- * @file tool.h
+ * @file pftool.h
  * Shared declarations for all pftool menu commands
  */
 

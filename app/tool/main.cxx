@@ -1,9 +1,8 @@
 /**
- * @file main.cxx File defining the pftool menus and their commands.
+ * @file main.cxx File defining the pftool entrypoint
  *
- * The commands are written into functions corresponding to the menu's name.
+ * The commands are written into files corresponding to the menu's name.
  */
-
 
 #include <filesystem>
 #include <fstream>
@@ -11,8 +10,7 @@
 #include "pflib/menu/Rcfile.h"
 #include "pflib/version/Version.h"
 
-
-#include "tool.h"
+#include "pftool.h"
 
 /// initial definition of the menu state
 pftool::State pftool::state{};
