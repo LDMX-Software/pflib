@@ -11,6 +11,12 @@ ENABLE_LOGGING();
 #include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
 
+/**
+ * TASKS.CHARGE_TIMESCAN
+ *
+ * Scan a internal calibration pulse in time by varying the charge_to_l1a
+ * and top.phase_strobe parameters
+ */
 static void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
   bool highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
@@ -69,6 +75,63 @@ static void charge_timescan(Target* tgt) {
   }
   // reset charge_to_l1a to central value
   tgt->fc().fc_setup_calib(central_charge_to_l1a);
+}
+
+/**
+ * TASKS.GEN_SCAN
+ *
+ * Generalized scan where the parameter points to test are input by file
+ */
+static void gen_scan(Target* tgt) {
+  static const std::vector<std::string> trigger_types = {
+    "PEDESTAL", "CHARGE" //, "LED"
+  };
+  int nevents = pftool::readline_int("Number of events per parameter point: ", 1);
+  std::string trigger = pftool::readling("Trigger type: ", trigger_types);
+  std::filesystem::path parameter_points_file =
+    pftool::readline("File of parameter points: ");
+  std::string output_filepath =
+    pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
+  std::vector<std::pair<std::string,std::string>> param_names;
+  std::vector<std::vector<int>> param_values;
+  std::size_t i_param_point{0};
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["parameter_points_file"] = std::string(parameter_points_file);
+      header["channel"] = channel;
+      header["nevents_per_point"] = nevents;
+      header["trigger"] = trigger;
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n';
+      for (const auto& [ page, paramer ] : param_names) {
+        f << page << '.' << parameter << ',';
+      }
+      f << pflib::packign::Sample::to_csv_header
+        << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      for (const auto& val : param_values[i_param_point]) {
+        f << val << ',';
+      }
+      ep.channel(channel).to_csv(f);
+      f << '\n';
+    }
+  };
+  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version)};
+  for (; i_param_point < param_values.size(); i_param_point++) {
+    auto test_param_builder = roc.testParameters();
+    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+      test_param_builder.add(
+          param_names[i_param].first,
+          param_names[i_param].second,
+          param_values[i_param_point][i_param]
+      );
+    }
+    auto test_param = test_param_builder.apply();
+    tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
+  }
 }
 
 namespace {
