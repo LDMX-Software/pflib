@@ -664,15 +664,6 @@ class Menu : public BaseMenu {
   RenderFuncType render_func_;
 };  // Menu
 
-template<typename Handle, typename State>
-class MenuWithState : public Menu<Handle> {
- public:
-  static State state;
-};
-
-template<typename H, typename S>
-S MenuWithState<H, S>::state = {};
-
 }
 
 #endif  // PFLIB_TOOL_MENU_H

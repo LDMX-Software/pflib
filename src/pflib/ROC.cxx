@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "pflib/packing/Hex.h"
-#include "pflib/utility.h"
+#include "pflib/utility/load_integer_csv.h"
 #include "register_maps/direct_access.h"
 
 namespace pflib {
@@ -170,7 +170,7 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(const std::map<int, std:
 }
 
 void ROC::loadRegisters(const std::string& file_name) {
-  loadIntegerCSV(file_name, [this](const std::vector<int>& cells) {
+  utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
     if (cells.size() == 3) {
       setValue(cells.at(0), cells.at(1), cells.at(2));
     } else {

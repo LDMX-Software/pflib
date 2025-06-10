@@ -108,6 +108,16 @@ add_custom_command(
 )
 add_custom_target(register_maps_header DEPENDS include/register_maps/register_maps.h)
 
+add_library(utility SHARED
+  src/pflib/utility/crc.cxx
+  src/pflib/utility/ends_with.cxx
+  src/pflib/utility/load_integer_csv.cxx
+  src/pflib/utility/json.cxx
+)
+target_include_directories(utility PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
@@ -119,7 +129,7 @@ add_library(packing SHARED
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-
+target_link_libraries(packing PUBLIC utility)
 
 # Build the pf library
 #
@@ -145,7 +155,6 @@ add_library(pflib SHARED
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
   src/pflib/ECOND_Formatter.cxx
-  src/pflib/utility.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
 )
@@ -155,7 +164,7 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility)
 add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_library(menu SHARED
@@ -185,7 +194,12 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
-add_executable(pftool app/tool/main.cxx app/tool/expert.cxx)
+add_executable(pftool
+  app/tool/main.cxx
+  app/tool/expert.cxx
+  app/tool/roc.cxx
+  app/tool/daq.cxx
+  app/tool/tasks.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
@@ -207,8 +221,8 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-set_target_properties(pflib packing PROPERTIES PREFIX "libpflib_")
-install(TARGETS pflib packing version pftool pfdecoder pfdecompile pfcompile pfdefaults
+set_target_properties(pflib packing version utility PROPERTIES PREFIX "libpflib_")
+install(TARGETS pflib packing version utility pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

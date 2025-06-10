@@ -4,11 +4,15 @@
 #include <signal.h>
 #include <readline/history.h>
 
-struct State {
-  int p;
+class test_menu : public pflib::menu::Menu<int*> {
+ public:
+  struct State {
+    int p;
+  };
+  static State state;
 };
 
-using test_menu = pflib::menu::MenuWithState<int*, State>;
+test_menu::State test_menu::state{};
 
 void print_cmd(const std::string& cmd, test_menu::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
