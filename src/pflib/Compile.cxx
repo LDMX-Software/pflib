@@ -195,23 +195,17 @@ std::map<std::string, std::map<std::string, int>> Compiler::decompile(
   return settings;
 }
 
-std::vector<std::string> Compiler::parameters(const std::string& page) {
-  static auto get_parameter_names =
-      [&](const std::map<std::string, Parameter>& lut)
-      -> std::vector<std::string> {
-    std::vector<std::string> names;
-    for (const auto& param : lut) names.push_back(param.first);
-    return names;
-  };
-
+std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(const std::string& page) {
   std::string PAGE{upper_cp(page)};
-  auto page_it{page_lut_.find(PAGE)};
-  if (page_it == page_lut_.end()) {
-    PFEXCEPTION_RAISE("BadName", "Input page name " + page +
-                                     " does not match a page or type of page.");
+  auto page_it{parameter_lut_.find(PAGE)};
+  if (page_it == parameter_lut_.end()) {
+    PFEXCEPTION_RAISE("BadPage", "Input page "+page+" is not present in the look up table.");
   }
-
-  return get_parameter_names(page_it->second);
+  std::map<int, std::map<int,uint8_t>> registers;
+  for (const auto& param : page_it->second.second) {
+    compile(page, param.first, 0, registers);
+  }
+  return registers;
 }
 
 std::map<std::string, std::map<std::string, int>> Compiler::defaults() {

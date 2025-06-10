@@ -351,8 +351,8 @@ void PolarfireTarget::setBiasSetting(int board, bool led, int hdmi, int val) {
 }
 
 bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
-  if (endsWith(file_name, ".csv")) {
-    loadIntegerCSV(file_name, [&](const std::vector<int>& cells) {
+  if (utility::ends_with(file_name, ".csv")) {
+    load_integer_csv(file_name, [&](const std::vector<int>& cells) {
       if (cells.size() == 4) {
         setBiasSetting(cells.at(0), cells.at(1) == 1, cells.at(2), cells.at(3));
       } else {
@@ -363,7 +363,7 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
       }
     });
     return true;
-  } else if (endsWith(file_name, ".yaml") or endsWith(file_name, ".yml")) {
+  } else if (utility::ends_with(file_name, ".yaml") or utility::ends_with(file_name, ".yml")) {
     std::cerr << "Loading settings from YAML not implemented here yet."
               << std::endl;
     return false;

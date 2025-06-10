@@ -4,7 +4,15 @@
 #include <signal.h>
 #include <readline/history.h>
 
-using test_menu = pflib::menu::Menu<int*>;
+class test_menu : public pflib::menu::Menu<int*> {
+ public:
+  struct State {
+    int p;
+  };
+  static State state;
+};
+
+test_menu::State test_menu::state{};
 
 void print_cmd(const std::string& cmd, test_menu::TargetHandle p) {
   std::cout << std::hex << p << std::endl;
@@ -20,7 +28,9 @@ void increment(test_menu::TargetHandle p) {
 
 namespace {
 
-auto sb = test_menu::menu("SB", "example submenu")
+auto sb = test_menu::menu("SB", "example submenu", [](test_menu::TargetHandle p) {
+                std::cout << test_menu::state.p << std::endl;
+                })
               ->line("THREE", "third command", print_cmd)
               ->line("INCSB", "increment the target", increment)
               ->line("ADD", "add something to the target",

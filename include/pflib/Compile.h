@@ -180,20 +180,11 @@ class Compiler {
       bool be_careful);
 
   /**
-   * get the parameter names for the input page-type
+   * get the registers corresponding to the input page
    *
-   * The page-types are as specified in the HGC ROC manual without spaces
-   * and case insensitive.
-   * - DigitalHalf
-   * - ChannelWise
-   * - Top
-   * - MasterTDC
-   * - ReferenceVoltage
-   * - GlobalAnalog
-   *
-   * @return vector of parameter names for that page type
+   * @return dummy register mapping to help with selecting
    */
-  std::vector<std::string> parameters(const std::string& page);
+  std::map<int, std::map<int, uint8_t>> getRegisters(const std::string& page);
 
   /**
    * get the default parameter values as specified in the manual

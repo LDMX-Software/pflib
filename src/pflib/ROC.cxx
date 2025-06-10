@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "pflib/packing/Hex.h"
-#include "pflib/utility.h"
+#include "pflib/utility/load_integer_csv.h"
 #include "register_maps/direct_access.h"
 
 namespace pflib {
@@ -170,7 +170,7 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(const std::map<int, std:
 }
 
 void ROC::loadRegisters(const std::string& file_name) {
-  loadIntegerCSV(file_name, [this](const std::vector<int>& cells) {
+  utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
     if (cells.size() == 3) {
       setValue(cells.at(0), cells.at(1), cells.at(2));
     } else {
@@ -180,8 +180,22 @@ void ROC::loadRegisters(const std::string& file_name) {
   });
 }
 
-std::vector<std::string> ROC::parameters(const std::string& page) {
-  return compiler_.parameters(page);
+std::map<std::string, int> ROC::getParameters(const std::string& page) {
+  /**
+   * get registers corresponding to a page
+   */
+  auto registers = compiler_.getRegisters(page);
+  /**
+   * Get the values of these registers from the chip
+   */
+  auto chip_reg = getRegisters(registers);
+  /**
+   * De-compile the registers back into the parameter mapping
+   *
+   * We don't be careful here since we are skipping pages
+   */
+  auto chip_params = compiler_.decompile(chip_reg, false);
+  return chip_params[page];
 }
 
 std::map<std::string, std::map<std::string, int>> ROC::defaults() {
