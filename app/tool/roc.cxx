@@ -15,6 +15,15 @@ static void roc_render(Target* pft) {
 }
 
 /**
+ * Extra instructsion for user
+ */
+static void roc_expert_render(Target* tgt) {
+  roc_render(tgt);
+  std::cout << "This menu avoids using the 'compiler' to translate parameter names into\n"
+               "register values and instead allows you to read/write registers directly.\n";
+}
+
+/**
  * ROC.EXPERT menu commands
  *
  * Detailed interaction with ROC doing things like interacting
@@ -150,18 +159,14 @@ static void roc(const std::string& cmd, Target* pft) {
     roc.setRunMode(isRunMode);
   }
   if (cmd == "PAGE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int len = pftool::readline_int("Length?", 8);
-    std::vector<uint8_t> v = roc.readPage(page, len);
-    for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
+    std::string page = pftool::readline("Page? ", page_names);
+    for (const auto& [ name, val ]: roc.getParameters(page)) {
+      std::cout << name << ": " << val << '\n';
+    }
+    std::cout << std::flush;
   }
   if (cmd == "PARAM_NAMES") {
-    std::cout << "Select a page type from the following list:\n";
-    for (const auto& page : page_names) {
-      std::cout << " - " << page << "\n";
-    }
-    std::cout << std::endl;
-    std::string p = pftool::readline("Page type? ", page_names);
+    std::string p = pftool::readline("Page? ", page_names);
     auto param_list_it = param_names.find(p);
     if (param_list_it == param_names.end()) {
       PFEXCEPTION_RAISE("BadPage", "Page name " + p + " not known.");
@@ -216,11 +221,7 @@ auto menu_roc =
     ;
 
 auto menu_roc_expert =
-    menu_roc->submenu("EXPERT", "expert interaction with ROC", [](Target* tgt) {
-          std::cout
-            << "This menu avoids using the 'compiler' to translate parameter names into\n"
-               "register values and instead allows you to read/write registers directly.\n";
-        })
+    menu_roc->submenu("EXPERT", "expert interaction with ROC", roc_expert_render)
         ->line("PAGE", "view a page of register values", roc_expert)
         ->line("POKE", "change a single register's value", roc_expert)
         ->line("LOAD", "load many register values from a CSV", roc_expert)
