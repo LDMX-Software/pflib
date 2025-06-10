@@ -11,7 +11,7 @@
  * @param[in] pft active target (not used)
  */
 static void roc_render(Target* pft) {
-  printf(" Active ROC: %d (typ_version = %s)\n", pftool::state.iroc, pftool::state.type_version.c_str());
+  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc, pftool::state.type_version.c_str());
 }
 
 /**
@@ -86,7 +86,6 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
   }
   if (cmd == "SET_DIRECT_ACCESS") {
     auto options = roc.getDirectAccessParameters();
-    // TODO filter out the readonly DA parameters on register 7
     auto name = pftool::readline("Direct Access Parameter to Set: ", options);
     bool val = pftool::readline_bool("On/Off: ", true);
     roc.setDirectAccess(name, val);
@@ -160,7 +159,13 @@ static void roc(const std::string& cmd, Target* pft) {
   }
   if (cmd == "PAGE") {
     std::string page = pftool::readline("Page? ", page_names);
-    for (const auto& [ name, val ]: roc.getParameters(page)) {
+    auto param_list_it = param_names.find(page);
+    if (param_list_it == param_names.end()) {
+      PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not known.");
+    }
+    auto params{roc.getParameters(page)};
+    std::cout << "got parameters" << std::endl;
+    for (const auto& [ name, val ]: params) {
       std::cout << name << ": " << val << '\n';
     }
     std::cout << std::flush;

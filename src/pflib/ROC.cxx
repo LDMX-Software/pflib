@@ -180,33 +180,22 @@ void ROC::loadRegisters(const std::string& file_name) {
   });
 }
 
-std::vector<std::string> ROC::parameters(const std::string& page) {
-  return compiler_.parameters(page);
-}
-
 std::map<std::string, int> ROC::getParameters(const std::string& page) {
   /**
-   * Construct a parameter mapping of all the parameters in this page
+   * get registers corresponding to a page
    */
-  std::map<std::string, std::map<std::string, int>> poker;
-  for (auto param_name : parameters(page)) {
-    poker[page][param_name] = 0;
-  }
-  /**
-   * Compile these parameters into their registers
-   */
-  auto registers = compiler_.compile(poker);
+  auto registers = compiler_.getRegisters(page);
   /**
    * Get the values of these registers from the chip
    */
-  registers = getRegisters(registers);
+  auto chip_reg = getRegisters(registers);
   /**
    * De-compile the registers back into the parameter mapping
    *
    * We don't be careful here since we are skipping pages
    */
-  poker = compiler_.decompile(registers, false);
-  return poker[page];
+  auto chip_params = compiler_.decompile(chip_reg, false);
+  return chip_params[page];
 }
 
 std::map<std::string, std::map<std::string, int>> ROC::defaults() {

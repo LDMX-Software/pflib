@@ -59,13 +59,6 @@ class ROC {
   void loadRegisters(const std::string& file_path);
 
   /**
-   * Retrieve the parameter names that correspond to the input page
-   *
-   * @param[in] page name of page to get parameter names for
-   */
-  std::vector<std::string> parameters(const std::string& page);
-
-  /**
    * Get the parameters for the input page
    *
    * @param[in] page name of page to get parameters for
