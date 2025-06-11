@@ -92,6 +92,17 @@ static void gen_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per parameter point: ", 1);
   int channel = pftool::readline_int("Channel to select: ", 42);
   std::string trigger = pftool::readline("Trigger type: ", trigger_types);
+
+  std::vector<std::tuple<std::string,std::string,int>> scan_wide_params;
+  if (pftool::readline_bool("Are there parameters to set constant for the whole scan? ", false)) {
+    do {
+      auto page = pftool::readline("Page: ", pftool::state.page_names());
+      auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
+      auto val = pftool::readline_int("Value: ");
+      scan_wide_params.emplace_back(page, param, val);
+    } while (not pftool::readline_bool("Done? ", false));
+  }
+
   std::filesystem::path parameter_points_file =
     pftool::readline("File of parameter points: ");
 
@@ -149,15 +160,24 @@ static void gen_scan(Target* tgt) {
 
   std::string output_filepath =
     pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
+
+  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  boost::json::object header;
+  header["parameter_points_file"] = std::string(parameter_points_file);
+  header["channel"] = channel;
+  header["nevents_per_point"] = nevents;
+  header["trigger"] = trigger;
+  auto scan_wide_param_builder = roc.testParameters();
+  for (const auto& [page, param, val] : scan_wide_params) {
+    header[page+"."+param] = val;
+    scan_wide_param_builder.add(page, param, val);
+  }
+  auto scan_wide_param_hold = scan_wide_param_builder.apply();
+
   std::size_t i_param_point{0};
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
     [&](std::ofstream& f) {
-      boost::json::object header;
-      header["parameter_points_file"] = std::string(parameter_points_file);
-      header["channel"] = channel;
-      header["nevents_per_point"] = nevents;
-      header["trigger"] = trigger;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n';
       for (const auto& [ page, parameter ] : param_names) {
@@ -174,7 +194,7 @@ static void gen_scan(Target* tgt) {
       f << '\n';
     }
   };
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version)};
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
