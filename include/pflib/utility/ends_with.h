@@ -1,9 +1,12 @@
+/**
+ * @file ends_with.h
+ */
 #pragma once
 
 #include <string>
 
 /**
- * @namespace utility
+ * @namespace pflib::utility
  *
  * Dumping ground for various functions that are used in many places
  */
