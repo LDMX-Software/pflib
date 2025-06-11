@@ -10,6 +10,7 @@ ENABLE_LOGGING();
 #include <filesystem>
 
 #include "pflib/utility/string_format.h"
+#include "pflib/utility/load_integer_csv.h"
 #include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
 
@@ -89,14 +90,63 @@ static void gen_scan(Target* tgt) {
     "PEDESTAL", "CHARGE" //, "LED"
   };
   int nevents = pftool::readline_int("Number of events per parameter point: ", 1);
-  int channel{42};
+  int channel = pftool::readline_int("Channel to select: ", 42);
   std::string trigger = pftool::readline("Trigger type: ", trigger_types);
   std::filesystem::path parameter_points_file =
     pftool::readline("File of parameter points: ");
-  std::string output_filepath =
-    pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
+
+  pflib_log(info) << "loading parameter points file...";
+  /**
+   * The input parameter points file is just a CSV where the header
+   * is used to define the parameters that will be set and the rows
+   * are the values of those parameters.
+   *
+   * For example, the CSV
+   * ```csv
+   * page.param1,page.param2
+   * 1,2
+   * 3,4
+   * ```
+   * would produce two runs with this command where the parameter settings are
+   * 1. page.param1 = 1 and page.param2 = 2
+   * 2. page.param1 = 3 and page.param2 = 4
+   */
   std::vector<std::pair<std::string,std::string>> param_names;
   std::vector<std::vector<int>> param_values;
+  pflib::utility::load_integer_csv(
+      parameter_points_file,
+      [&param_names,&param_values,&parameter_points_file]
+      (const std::vector<int>& row) {
+        if (row.size() != param_names.size()) {
+          PFEXCEPTION_RAISE("BadRow",
+              "A row in "+std::string(parameter_points_file)
+              +" does not contain the same number of cells as the header.");
+        }
+        param_values.push_back(row);
+      },
+      [&param_names](const std::vector<std::string>& header) {
+        param_names.resize(header.size());
+        for (std::size_t i{0}; i < header.size(); i++) {
+          const auto& param_fullname = header[i];
+          auto dot = param_fullname.find(".");
+          if (dot == std::string::npos) {
+            PFEXCEPTION_RAISE("BadParam",
+                "Header cell "+param_fullname+" does not contain a '.' "
+                "separating the page and parameter names.");
+          }
+          param_names[i] = {
+            param_fullname.substr(0, dot),
+            param_fullname.substr(dot+1)
+          };
+          pflib_log(debug) << "parameter " << i << " is "
+            << param_names[i].first << "." << param_names[i].second;
+        }
+      }
+  );
+  pflib_log(info) << "successfully loaded parameter points";
+
+  std::string output_filepath =
+    pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
   std::size_t i_param_point{0};
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
@@ -140,5 +190,7 @@ static void gen_scan(Target* tgt) {
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
-        ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan);
+        ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
+        ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
+;
 }
