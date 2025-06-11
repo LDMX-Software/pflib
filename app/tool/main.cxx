@@ -1235,9 +1235,16 @@ static void daq_debug(const std::string& cmd, Target* pft) {
  * @param[in] cmd selected menu command
  * @param[in] pft active target
  */
-/*
+
 static void bias( const std::string& cmd, Target* pft ) {
   static int iboard=0;
+  if (cmd=="READSIPM"){
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
+    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    bias.readSiPM(ich);
+  }
+  /*
   if (cmd=="STATUS") {
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
@@ -1272,8 +1279,9 @@ pft->loadBiasSettings(fname)) { std::cerr << "\n\n  ERROR: Unable to access " <<
 fname << std::endl;
     }
   }
+  */
 }
-*/
+
 
 namespace {
 
@@ -1366,15 +1374,16 @@ auto menu_roc =
     //->line("DEFAULT_PARAMS", "Load default YAML files", roc)
     ;
 
-/*
+
 auto menu_bias = pftool::menu("BIAS","bias voltage settings")
   //->line("STATUS","Read the bias line settings", bias )
-  ->line("INIT","Initialize a board", bias )
-  ->line("SET","Set a specific bias line setting", bias )
-  ->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
-  ->line("LOAD","Load bias values from file", bias )
+  ->line("READSIPM","test", bias )
+  //->line("INIT","Initialize a board", bias )
+  //->line("SET","Set a specific bias line setting", bias )
+  //->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
+  //->line("LOAD","Load bias values from file", bias )
 ;
-*/
+
 
 auto menu_fc =
     pftool::menu("FAST_CONTROL", "configuration and testing of fast control")

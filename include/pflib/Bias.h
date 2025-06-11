@@ -45,7 +45,7 @@ class MAX5825 {
    * Wrap an I2C class for communicating with the MAX5825.
    * The bus we are on is the same as the ROC's bus.
    */
-  MAX5825(I2C& i2c, uint8_t max_addr, int bus = 4);
+  MAX5825(std::shared_ptr<I2C>& i2c, uint8_t max_addr);
 
   /**
    * Get the settings for the DACs on this MAX
@@ -69,7 +69,7 @@ class MAX5825 {
    * Since the chip expects the 12-bit settings to be the 12 MSBs
    * from these two concatenated data words.
    */
-  void set(uint8_t cmd, uint16_t data_bytes);
+  //void set(uint8_t cmd, uint16_t data_bytes);
 
   /**
    * get by DAC index
@@ -85,7 +85,7 @@ class MAX5825 {
    * static constants in this class, the combination of i_dac and
    * command is simply adding them together, which is done here.
    */
-  std::vector<uint16_t> getByDAC(uint8_t i_dac, uint8_t cmd);
+  //std::vector<uint16_t> getByDAC(uint8_t i_dac, uint8_t cmd);
 
   /**
    * set by DAC index
@@ -100,7 +100,7 @@ class MAX5825 {
    * static constants in this class, the combination of i_dac and
    * command is simply adding them together, which is done here.
    */
-  void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
+  //void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
 
   /** Set reference voltage
    * 0 - external
@@ -108,15 +108,15 @@ class MAX5825 {
    * 2 - 2.048V
    * 3 - 4.096V
    */
-  void setRefVoltage(int level);
+  //void setRefVoltage(int level);
 
  private:
   /// our connection
-  I2C& i2c_;
+  std::shared_ptr<I2C>& i2c_;
   /// our addr on the chip
   uint8_t our_addr_;
   /// our bus
-  int bus_;
+  //int bus_;
 };  // MAX5825
 
 /**
@@ -146,23 +146,25 @@ class Bias {
    * The bus is 4 + <board-number>, so we set the default to 4 for
    * the case where we only have one board with bus number 0.
    */
-  Bias(I2C& i2c, int bus = 4);
+  Bias(std::shared_ptr<I2C>& i2c);
 
   /**
    * Initialize to standard settings
    *  Reference voltage - 4.096V
    */
-  void initialize();
+  //void initialize();
 
   /**
    * Pass a setting to one LED DAC
    */
-  void cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
+  //void cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
 
   /**
    * Pass a setting to one SiPM DAC
    */
   void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+
+  void readSiPM(uint8_t i_sipm);
 
   /**
    * Set and load the passed CODE for an LED bias
@@ -172,7 +174,7 @@ class Bias {
    * This is a common procedure and operates as an example
    * of how to use setLED.
    */
-  void setLED(uint8_t i_led, uint16_t code);
+  //void setLED(uint8_t i_led, uint16_t code);
 
   /**
    * Set and load the passed CODE for an SiPM bias
@@ -182,7 +184,7 @@ class Bias {
    * This is a common procedure and operates as an example
    * of how to use setSiPM.
    */
-  void setSiPM(uint8_t i_sipm, uint16_t code);
+  //void setSiPM(uint8_t i_sipm, uint16_t code);
 
  private:
   /// LED bias chips

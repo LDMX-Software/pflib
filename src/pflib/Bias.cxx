@@ -19,26 +19,25 @@ const uint8_t MAX5825::CODEn_LOADn = 11 << 4;
 const uint8_t MAX5825::REFn = 2 << 4;
 const uint8_t MAX5825::POWERn = 4 << 4;
 
-MAX5825::MAX5825(I2C& i2c, uint8_t addr, int bus)
-    : i2c_{i2c}, our_addr_{addr}, bus_{bus} {}
+
+MAX5825::MAX5825(std::shared_ptr<I2C>& i2c, uint8_t addr)
+    : i2c_{i2c}, our_addr_{addr} {
+    
+      std::cout << "MAX5825::MAX5825" << std::endl;
+    }
+
+
 
 std::vector<uint8_t> MAX5825::get(uint8_t cmd, int n_return_bytes) {
-  int savebus = i2c_.get_active_bus();
-  int savespeed = i2c_.get_bus_speed();
-  i2c_.set_active_bus(bus_);
-  i2c_.set_bus_speed(100);
-  i2c_.backplane_hack(true);
-
+  
   std::vector<uint8_t> retval =
-      i2c_.general_write_read(our_addr_, {cmd}, n_return_bytes);
-
-  i2c_.set_active_bus(savebus);
-  i2c_.set_bus_speed(savespeed);
-  i2c_.backplane_hack(false);
+      i2c_->general_write_read(our_addr_, {cmd}, n_return_bytes);
 
   return retval;
 }
 
+
+/*
 void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
   int savebus = i2c_.get_active_bus();
   int savespeed = i2c_.get_bus_speed();
@@ -59,12 +58,16 @@ void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
   i2c_.backplane_hack(false);
   return;
 }
+*/
 
+/*
 void MAX5825::setRefVoltage(int level) {
   uint8_t cmd = REFn | 0x4 | (level & 0x3);
   set(cmd, 0);
 }
+*/
 
+/*
 std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
   uint8_t num_dacs = 1;
   if (i_dac > 7) {
@@ -78,7 +81,9 @@ std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
   }
   return vals;
 }
+*/
 
+/*
 void MAX5825::setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes) {
   if (i_dac > 7) i_dac = 8;
   // for the MAX5825, the voltages are 12-bits,
@@ -86,6 +91,7 @@ void MAX5825::setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes) {
   data_bytes <<= 4;
   set(cmd + i_dac, data_bytes);
 }
+*/
 
 /// DAC chip addresses taken from HGCROC specs
 const uint8_t Bias::ADDR_LED_0 = 0x18;
@@ -93,13 +99,17 @@ const uint8_t Bias::ADDR_LED_1 = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
-Bias::Bias(I2C& i2c, int bus) {
-  led_.emplace_back(i2c, Bias::ADDR_LED_0, bus);
-  led_.emplace_back(i2c, Bias::ADDR_LED_1, bus);
-  sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0, bus);
-  sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1, bus);
+
+Bias::Bias(std::shared_ptr<I2C>& i2c) {
+  std::cout << "Bias::Bias" << std::endl;
+  led_.emplace_back(i2c, Bias::ADDR_LED_0);
+  led_.emplace_back(i2c, Bias::ADDR_LED_1);
+  sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0);
+  sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1);
 }
 
+
+/*
 void Bias::initialize() {
   led_[0].setRefVoltage(3);
   led_[1].setRefVoltage(3);
@@ -108,23 +118,46 @@ void Bias::initialize() {
 
   led_[0].set(MAX5825::POWERn, 0xFF00);
 }
+*/
 
+/*
 void Bias::cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
   int i_chip = (i_led > 7);
   led_.at(i_chip).setByDAC(i_led - i_chip * 8, cmd, twelve_bit_setting);
 }
+*/
 
+/*
 void Bias::cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
+  std::cout << "Bias::cmdSiPM i_sipm " << i_sipm << " cmd " << cmd << std::endl;
   int i_chip = (i_sipm > 7);
+  std::cout << "i_chip " << i_chip << std::endl;
   sipm_.at(i_chip).setByDAC(i_sipm - i_chip * 8, cmd, twelve_bit_setting);
 }
+*/
 
+void Bias::readSiPM(uint8_t channel){
+  std::cout << "Bias::readSiPM" << std::endl;
+  int i_chip = (channel > 7);
+  uint8_t cmd = (uint8_t)(MAX5825::CODEn | (channel & 0x07));
+  std::vector<uint8_t> data = sipm_.at(i_chip).get(cmd, 2);
+  std::cout << "returned:" << std::endl;
+  for(int i = 0; i<data.size(); i++){
+    std::cout << int(data.at(i)) << std::endl; 
+  }
+}
+
+
+/*
 void Bias::setLED(uint8_t i_led, uint16_t code) {
   cmdLED(i_led, MAX5825::CODEn_LOADn, code);
 }
+*/
 
+/*
 void Bias::setSiPM(uint8_t i_sipm, uint16_t code) {
   cmdSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
 }
+*/
 
 }  // namespace pflib

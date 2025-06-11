@@ -2,8 +2,8 @@
 
 namespace pflib {
 
-Hcal::Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c)
-    : roc_i2c_{roc_i2c} {
+Hcal::Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c)
+    : roc_i2c_{roc_i2c}, bias_i2c_{bias_i2c} {
   nhgcroc_ = int(roc_i2c.size());
 }
 
@@ -14,14 +14,16 @@ ROC Hcal::roc(int which, const std::string& roc_type_version) {
   return ROC(*roc_i2c_[which], 0x20 | (which * 8), roc_type_version);
 }
 
-/*
 Bias Hcal::bias(int which) {
-    if (which<0 || which>=N_ROC) {
-      PFEXCEPTION_RAISE("InvalidBoardId","Requested out-of-range Board id");
-    }
-    return Bias(i2c_,which+4);
+  if (which<0 || which>=nhgcroc_) {
+    PFEXCEPTION_RAISE("InvalidBoardId","Requested out-of-range Board id");
   }
-*/
+
+  std::cout << "Hcal::bias" << std::endl;
+
+  return Bias(bias_i2c_.at(which));
+}
+
 
 void Hcal::hardResetROCs() {}
 

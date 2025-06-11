@@ -135,7 +135,8 @@ uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
 
 std::vector<uint8_t> I2C_Linux::general_write_read(
     uint8_t i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread) {
-  ioctl(handle_, 0x0703, i2c_dev_addr);
+  //ioctl(handle_, 0x0706, i2c_dev_addr);
+  obtain_control(i2c_dev_addr);
 
   if (wdata.size() > 0) {
     int ret = write(handle_, &(wdata[0]), wdata.size());

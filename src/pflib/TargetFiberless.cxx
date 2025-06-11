@@ -16,8 +16,11 @@ class HcalFiberless : public Hcal {
   static const int GPO_HGCROC_RESET_SOFT = 1;
   static const int GPO_HGCROC_RESET_I2C = 0;
 
-  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c)
-      : Hcal(roc_i2c) {
+  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c)
+      : Hcal(roc_i2c, bias_i2c) {
+    
+    std::cout << "HcaFiberless::HcalFiberless" << std::endl;
+
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
     // should already be done, but be SURE
@@ -54,6 +57,8 @@ class HcalFiberless : public Hcal {
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
+    std::cout << "TargetFiberless::TargetFiberless" << std::endl;
+    
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
 
@@ -64,7 +69,10 @@ class TargetFiberless : public Target {
     std::vector<std::shared_ptr<I2C>> roc_i2cs;
     roc_i2cs.push_back(i2croc_);
 
-    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs));
+    std::vector<std::shared_ptr<I2C>> bias_i2cs;
+    bias_i2cs.push_back(i2cboard_);
+
+    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs, bias_i2cs));
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 

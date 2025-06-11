@@ -123,7 +123,6 @@ target_include_directories(packing PUBLIC
 
 # Build the pf library
 #
-#  src/pflib/Bias.cxx
 #  src/pflib/FastControl.cxx
   
 add_library(pflib SHARED 
@@ -148,6 +147,7 @@ add_library(pflib SHARED
   src/pflib/utility.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
+  src/pflib/Bias.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
