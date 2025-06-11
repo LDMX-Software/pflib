@@ -7,6 +7,8 @@
 
 ENABLE_LOGGING();
 
+#include <filesystem>
+
 #include "pflib/utility/string_format.h"
 #include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
@@ -87,7 +89,8 @@ static void gen_scan(Target* tgt) {
     "PEDESTAL", "CHARGE" //, "LED"
   };
   int nevents = pftool::readline_int("Number of events per parameter point: ", 1);
-  std::string trigger = pftool::readling("Trigger type: ", trigger_types);
+  int channel{42};
+  std::string trigger = pftool::readline("Trigger type: ", trigger_types);
   std::filesystem::path parameter_points_file =
     pftool::readline("File of parameter points: ");
   std::string output_filepath =
@@ -105,10 +108,10 @@ static void gen_scan(Target* tgt) {
       header["trigger"] = trigger;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n';
-      for (const auto& [ page, paramer ] : param_names) {
+      for (const auto& [ page, parameter ] : param_names) {
         f << page << '.' << parameter << ',';
       }
-      f << pflib::packign::Sample::to_csv_header
+      f << pflib::packing::Sample::to_csv_header
         << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
