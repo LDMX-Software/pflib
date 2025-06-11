@@ -93,13 +93,13 @@ static void gen_scan(Target* tgt) {
   int channel = pftool::readline_int("Channel to select: ", 42);
   std::string trigger = pftool::readline("Trigger type: ", trigger_types);
 
-  std::vector<std::tuple<std::string,std::string,int>> scan_wide_params;
+  std::map<std::string, std::map<std::string, int>> scan_wide_params;
   if (pftool::readline_bool("Are there parameters to set constant for the whole scan? ", false)) {
     do {
       auto page = pftool::readline("Page: ", pftool::state.page_names());
       auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
       auto val = pftool::readline_int("Value: ");
-      scan_wide_params.emplace_back(page, param, val);
+      scan_wide_params[page][param] = val;
     } while (not pftool::readline_bool("Done? ", false));
   }
 
@@ -167,12 +167,19 @@ static void gen_scan(Target* tgt) {
   header["channel"] = channel;
   header["nevents_per_point"] = nevents;
   header["trigger"] = trigger;
-  auto scan_wide_param_builder = roc.testParameters();
-  for (const auto& [page, param, val] : scan_wide_params) {
-    header[page+"."+param] = val;
-    scan_wide_param_builder.add(page, param, val);
+  boost::json::object swp;
+  for (const auto& [page, params]: scan_wide_params) {
+    boost::json::object page_json;
+    for (const auto& [name, val] : params) {
+      page_json[name] = val;
+    }
+    swp[page] = page_json;
   }
-  auto scan_wide_param_hold = scan_wide_param_builder.apply();
+  header["scan_wide_params"] = swp;
+  auto scan_wide_param_hold = pflib::ROC::TestParameters(
+    roc,
+    scan_wide_params
+  );
 
   std::size_t i_param_point{0};
   pflib::DecodeAndWriteToCSV writer{
