@@ -54,6 +54,48 @@ BOOST_AUTO_TEST_CASE(missing_cells) {
   });
 }
 
+BOOST_AUTO_TEST_CASE(parse_header) {
+  TempCSV t("header, row,uncommented\n1,2,3\n4,5,6");
+  int val = 0;
+  pflib::utility::load_integer_csv(
+      t.file_path_,
+      [&val](const std::vector<int>& row) {
+        BOOST_CHECK(row.size() == 3);
+        for (const int& cell : row) {
+          val++;
+          BOOST_CHECK(cell == val);
+        } 
+      },
+      [](const std::vector<std::string>& row) {
+        BOOST_CHECK(row.size() == 3);
+        BOOST_CHECK(row[0] == "header");
+        BOOST_CHECK(row[1] == " row");
+        BOOST_CHECK(row[2] == "uncommented");
+      }
+  );
+}
+
+BOOST_AUTO_TEST_CASE(multiline_header) {
+  TempCSV t("# some extra comment\nheader, row,uncommented\n1,2,3\n4,5,6");
+  int val = 0;
+  pflib::utility::load_integer_csv(
+      t.file_path_,
+      [&val](const std::vector<int>& row) {
+        BOOST_CHECK(row.size() == 3);
+        for (const int& cell : row) {
+          val++;
+          BOOST_CHECK(cell == val);
+        } 
+      },
+      [](const std::vector<std::string>& row) {
+        BOOST_CHECK(row.size() == 3);
+        BOOST_CHECK(row[0] == "header");
+        BOOST_CHECK(row[1] == " row");
+        BOOST_CHECK(row[2] == "uncommented");
+      }
+  );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(crc);
