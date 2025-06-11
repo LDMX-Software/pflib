@@ -11,7 +11,7 @@
  * @param[in] pft active target (not used)
  */
 static void roc_render(Target* pft) {
-  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc, pftool::state.type_version.c_str());
+  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc, pftool::state.type_version().c_str());
 }
 
 /**
@@ -40,7 +40,7 @@ static void roc_expert_render(Target* tgt) {
  * - SET_DIRECT_ACCESS : set direct access parameter to specific value
  */
 static void roc_expert(const std::string& cmd, Target* tgt) {
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version);
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
   if (cmd == "PAGE") {
     int page = pftool::readline_int("Which page? ", 0);
     int len = pftool::readline_int("Length?", 8);
@@ -113,20 +113,6 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * @param[in] pft active target
  */
 static void roc(const std::string& cmd, Target* pft) {
-  static std::vector<std::string> page_names;
-  static std::map<std::string, std::vector<std::string>> param_names;
-  if (page_names.empty()) {
-    // generate lists of page names and param names for those pages
-    // for tab completion
-    // only need to do this if the ROC changes pftool::state.type_version
-    auto defs = pflib::Compiler::get(pftool::state.type_version).defaults();
-    for (const auto& page : defs) {
-      page_names.push_back(page.first);
-      for (const auto& param : page.second) {
-        param_names[page.first].push_back(param.first);
-      }
-    }
-  }
   if (cmd == "HARDRESET") {
     pft->hcal().hardResetROCs();
   }
@@ -135,60 +121,35 @@ static void roc(const std::string& cmd, Target* pft) {
   }
   if (cmd == "IROC") {
     pftool::state.iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-    auto new_tv =
-        pftool::readline("type_version of the HGCROC: ", pftool::state.type_version);
-    if (new_tv != pftool::state.type_version) {
-      // generate lists of page names and param names for those pages
-      // for tab completion
-      // only need to do this if the ROC changes type_version
-      auto defs = pflib::Compiler::get(new_tv).defaults();
-      for (const auto& page : defs) {
-        page_names.push_back(page.first);
-        for (const auto& param : page.second) {
-          param_names[page.first].push_back(param.first);
-        }
-      }
-    }
-    pftool::state.type_version = new_tv;
+    pftool::state.update_type_version(
+        pftool::readline("type_version of the HGCROC: ", pftool::state.type_version())
+    );
   }
-  pflib::ROC roc = pft->hcal().roc(pftool::state.iroc, pftool::state.type_version);
+  pflib::ROC roc = pft->hcal().roc(pftool::state.iroc, pftool::state.type_version());
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
     roc.setRunMode(isRunMode);
   }
   if (cmd == "PAGE") {
-    std::string page = pftool::readline("Page? ", page_names);
-    auto param_list_it = param_names.find(page);
-    if (param_list_it == param_names.end()) {
-      PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not known.");
-    }
+    auto page = pftool::readline("Page? ", pftool::state.page_names());
     auto params{roc.getParameters(page)};
-    std::cout << "got parameters" << std::endl;
     for (const auto& [ name, val ]: params) {
       std::cout << name << ": " << val << '\n';
     }
     std::cout << std::flush;
   }
   if (cmd == "PARAM_NAMES") {
-    std::string p = pftool::readline("Page? ", page_names);
-    auto param_list_it = param_names.find(p);
-    if (param_list_it == param_names.end()) {
-      PFEXCEPTION_RAISE("BadPage", "Page name " + p + " not known.");
-    }
-    for (const std::string& pn : param_list_it->second) {
+    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    for (const std::string& pn : pftool::state.param_names(page)) {
       std::cout << pn << "\n";
     }
     std::cout << std::endl;
   }
   if (cmd == "POKE") {
-    std::string page = pftool::readline("Page: ", page_names);
-    if (param_names.find(page) == param_names.end()) {
-      PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not recognized.");
-    }
-    std::string param = pftool::readline("Parameter: ", param_names.at(page));
+    auto page = pftool::readline("Page: ", pftool::state.page_names());
+    auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
     int val = pftool::readline_int("New value: ");
-
     roc.applyParameter(page, param, val);
   }
   if (cmd == "LOAD") {

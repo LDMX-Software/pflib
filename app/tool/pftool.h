@@ -34,11 +34,26 @@ static const int DAQ_FORMAT_ECON = 2;
 class pftool : public pflib::menu::Menu<Target*> {
  public:
   /// static variables to share across menu
-  struct State {
+  class State {
+    /// type_version of HGCROC currently being interacted with
+    std::string type_version_;
+    /// list of page names for tab completion
+    std::vector<std::string> page_names_;
+    /// list of parameter names for tab-completion
+    std::map<std::string, std::vector<std::string>> param_names_;
+   public:
+    /// default constructor which sets default type_version
+    State();
+    /// update roc type version, regenerating tab completion lists if needed
+    void update_type_version(const std::string& type_version);
+    /// get the type_version of the HGCROC currently being interacted with
+    const std::string& type_version() const;
+    /// get page names for tab completion
+    const std::vector<std::string>& page_names() const;
+    /// get the parameter names for tab completion
+    const std::vector<std::string>& param_names(const std::string& page) const;
     /// index of HGCROC currently being interacted with
     int iroc{0};
-    /// type_version of HGCROC currently being interacted with
-    std::string type_version{"sipm_rocv3b"};
     /// index of link currently being interacted with
     int ilink{0};
     /// current format mode to use

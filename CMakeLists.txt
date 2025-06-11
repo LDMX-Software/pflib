@@ -113,6 +113,7 @@ add_library(utility SHARED
   src/pflib/utility/ends_with.cxx
   src/pflib/utility/load_integer_csv.cxx
   src/pflib/utility/json.cxx
+  src/pflib/utility/str_to_int.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

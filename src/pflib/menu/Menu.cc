@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "pflib/Compile.h"  // for str_to_int
+#include "pflib/utility/str_to_int.h"
 #include "pflib/Logging.h"
 
 namespace pflib::menu {
@@ -213,7 +213,7 @@ int BaseMenu::readline_int(const std::string& prompt, int aval, bool ashex) {
     sprintf(buffer, "0x%x", aval);
   else
     sprintf(buffer, "%d", aval);
-  return pflib::str_to_int(BaseMenu::readline(prompt, buffer));
+  return pflib::utility::str_to_int(BaseMenu::readline(prompt, buffer));
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {

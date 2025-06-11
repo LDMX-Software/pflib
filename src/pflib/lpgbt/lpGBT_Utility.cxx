@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pflib/Compile.h"
+#include "pflib/utility/str_to_int.h"
 #include "pflib/lpgbt/lpGBT_Registers.h"
 
 namespace pflib {
@@ -42,7 +42,7 @@ static CSVDecodedLines decode_file(const std::string& fname) {
         reg = str;
       else if (ifield == 1) {
         try {
-          val = str_to_int(str);
+          val = utility::str_to_int(str);
         } catch (std::exception& e) {
           char msg[100];
           snprintf(msg, 100, "Unable to decode string '%s'", str.c_str());
@@ -65,7 +65,7 @@ lpGBT::RegisterValueVector loadRegisterCSV(const std::string& filename) {
     uint16_t addr;
     if (line.first.find("0x") == 0 || line.first.find("0b") == 0 ||
         line.first.find_first_not_of("0123456789") == std::string::npos) {
-      addr = str_to_int(line.first);
+      addr = utility::str_to_int(line.first);
     } else {
       uint8_t mask, offset;
       if (!findRegister(line.first, addr, mask, offset)) {
@@ -95,7 +95,7 @@ void applylpGBTCSV(const std::string& filename, lpGBT& lpgbt) {
     uint8_t mask = 0xff, offset = 0;
     if (line.first.find("0x") == 0 || line.first.find("0b") == 0 ||
         line.first.find_first_not_of("0123456789") == std::string::npos) {
-      addr = str_to_int(line.first);
+      addr = utility::str_to_int(line.first);
     } else {
       if (!findRegister(line.first, addr, mask, offset)) {
         snprintf(mesg, 120, "Unknown register '%s'", line.first.c_str());

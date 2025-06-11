@@ -326,7 +326,7 @@ auto menu_daq_debug =
             std::string fname = pftool::readline_path("charge-timein");
             tgt->setup_run(1, DAQ_FORMAT_SIMPLEROC, pftool::state.daq_contrib_id);
             pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
-            pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version)};
+            pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
             auto test_param_handle = roc.testParameters()
               .add("REFERENCEVOLTAGE_1", "CALIB", calib)
               .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
