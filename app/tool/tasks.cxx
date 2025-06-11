@@ -96,11 +96,16 @@ static void gen_scan(Target* tgt) {
   std::map<std::string, std::map<std::string, int>> scan_wide_params;
   if (pftool::readline_bool("Are there parameters to set constant for the whole scan? ", false)) {
     do {
-      auto page = pftool::readline("Page: ", pftool::state.page_names());
-      auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
-      auto val = pftool::readline_int("Value: ");
-      scan_wide_params[page][param] = val;
-    } while (not pftool::readline_bool("Done? ", false));
+      std::cout << "Adding a scan-wide parameter..." << std::endl;
+      try {
+        auto page = pftool::readline("  Page: ", pftool::state.page_names());
+        auto param = pftool::readline("  Parameter: ", pftool::state.param_names(page));
+        auto val = pftool::readline_int("  Value: ");
+        scan_wide_params[page][param] = val;
+      } catch (const pflib::Exception& e) {
+        pflib_log(error) << "[" << e.name() << "] : " << e.message();
+      }
+    } while (not pftool::readline_bool("done adding more scan-wide parameters? ", false));
   }
 
   std::filesystem::path parameter_points_file =
@@ -212,6 +217,7 @@ static void gen_scan(Target* tgt) {
       );
     }
     auto test_param = test_param_builder.apply();
+    pflib_log(info) << "running test parameter point " << i_param_point << " / " << param_values.size();
     tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
   }
 }
