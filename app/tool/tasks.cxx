@@ -28,7 +28,7 @@ static void charge_timescan(Target* tgt) {
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   std::string fname = pftool::readline_path("charge-time-scan", ".csv");
-  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version)};
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
@@ -120,7 +120,9 @@ static void gen_scan(Target* tgt) {
         if (row.size() != param_names.size()) {
           PFEXCEPTION_RAISE("BadRow",
               "A row in "+std::string(parameter_points_file)
-              +" does not contain the same number of cells as the header.");
+              +" contains "+std::to_string(row.size())
+              +" cells which is not "+std::to_string(param_names.size())
+              +" the number of parameters defined in the header.");
         }
         param_values.push_back(row);
       },

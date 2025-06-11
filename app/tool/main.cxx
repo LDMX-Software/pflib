@@ -9,8 +9,45 @@
 
 #include "pflib/menu/Rcfile.h"
 #include "pflib/version/Version.h"
+#include "pflib/Compile.h"
 
 #include "pftool.h"
+
+pftool::State::State() {
+  update_type_version("sipm_rocv3b");
+}
+
+void pftool::State::update_type_version(const std::string& type_version) {
+  if (type_version != type_version_) {
+    page_names_.clear();
+    param_names_.clear();
+    auto defs = pflib::Compiler::get(type_version).defaults();
+    for (const auto& page : defs) {
+      page_names_.push_back(page.first);
+      for (const auto& param : page.second) {
+        param_names_[page.first].push_back(param.first);
+      }
+    }
+  }
+  type_version_ = type_version;
+}
+
+const std::string& pftool::State::type_version() const {
+  return type_version_;
+}
+
+const std::vector<std::string>& pftool::State::page_names() const {
+  return page_names_;
+}
+
+const std::vector<std::string>& pftool::State::param_names(const std::string& page) const {
+  auto PAGE{pflib::upper_cp(page)};
+  auto param_list_it = param_names_.find(PAGE);
+  if (param_list_it == param_names_.end()) {
+    PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
+  }
+  return param_list_it->second;
+}
 
 /// initial definition of the menu state
 pftool::State pftool::state{};
