@@ -93,6 +93,13 @@ static void gen_scan(Target* tgt) {
   int channel = pftool::readline_int("Channel to select: ", 42);
   std::string trigger = pftool::readline("Trigger type: ", trigger_types);
 
+  /**
+   * The user can define "scan wide" parameters which are just parameters that
+   * are set for the entire scan (and then reset to their values before this command).
+   *
+   * These scan wide parameters are written into the JSON header of the output CSV file
+   * along with the other inputs to this function.
+   */
   std::map<std::string, std::map<std::string, int>> scan_wide_params;
   if (pftool::readline_bool("Are there parameters to set constant for the whole scan? ", false)) {
     do {
