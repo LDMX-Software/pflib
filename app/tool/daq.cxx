@@ -282,6 +282,156 @@ static void daq(const std::string& cmd, Target* pft) {
     }
   }
 }
+
+/**
+ * DAQ.DEBUG.TRIGGER_TIMEIN
+ */
+static void daq_debug_trigger_timein(Target* tgt) {
+  /**
+   * This command attempts to deduce the capture delay for the trigger
+   * links by taking two runs after setting some parameters on the chip.
+   *
+   * Assuming the pedestal values on the chip are all ~200 (as is the case
+   * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
+   * their maxima (255 and 31 respectively) forces the trigger sums to be
+   * zero for pedestals. Including the 4-bit sync header, this means the
+   * trigger link zero-word is 0xa0000000.
+   */
+  static const uint32_t ZERO = 0xa0000000;
+
+  auto& daq{tgt->hcal().daq()};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
+
+  pflib_log(info) << "setting up parameters for trigger link testing";
+
+  auto test_param_builder = roc.testParameters();
+  for (int ch{0}; ch < 72; ch++) {
+    test_param_builder.add(
+      pflib::utility::string_format("CH_%d", ch),
+      "ADC_PEDESTAL",
+      255
+    );
+  }
+
+  for (int half{0}; half < 2; half++) {
+    test_param_builder.add(
+      pflib::utility::string_format("DIGITALHALF_%d", half),
+      "ADC_TH",
+      31
+    );
+    auto refvol_page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
+    test_param_builder.add(refvol_page, "CALIB", 3000);
+    test_param_builder.add(refvol_page, "INTCTEST", 1);
+  }
+
+  /**
+   * We then enable charge injection within certain channels.
+   * Each trigger link produces a single 32-bit word cut up into a 4-bit
+   * sync header and 4 7-bit trigger sums.
+   *
+   *   0b1010 | TCX_0 | TCX_1 | TCX_2 | TCX_3
+   *
+   * We choose channels to inject charge such that each link
+   * has a different trigger sum that should be non-zero.
+   * - CH_0 -> TC0_0 non-zero
+   * - CH_29 -> TC1_2 non-zero
+   * - CH_42 -> TC2_1 non-zero
+   * - CH_70 -> TC3_3 non-zero
+   */
+  static const uint32_t TC_0 = 0xafe00000;
+  static const uint32_t TC_1 = 0xa01fc000;
+  static const uint32_t TC_2 = 0xa0003f80;
+  static const uint32_t TC_3 = 0xa000007f;
+  auto test_param_handle = test_param_builder
+    .add("CH_0" , "LOWRANGE", 1) // TC0_0
+    .add("CH_29", "LOWRANGE", 1) // TC1_2
+    .add("CH_42", "LOWRANGE", 1) // TC2_1
+    .add("CH_70", "LOWRANGE", 1) // TC3_3
+    .apply();
+  std::array<uint32_t, 4> expected_charge_mask = {
+    TC_0,
+    TC_2,
+    TC_1,
+    TC_3
+  };
+
+  pflib_log(info) << "storing link settings and expanding capture window";
+
+  /// maximum window set in firmware is 64 words
+  int max_delay = 64;
+  std::array<int, 4> og_delay{}, og_capture{};
+  for (int ilink{2}; ilink < 6; ilink++) {
+    daq.getLinkSetup(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+    daq.setupLink(ilink, 0, max_delay);
+  }
+
+  pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
+  tgt->fc().sendL1A();
+  usleep(10000); // one 100Hz cycle later
+  std::array<std::vector<uint32_t>, 4> pedestal_sums;
+  for (int ilink{2}; ilink < 6; ilink++) {
+    pedestal_sums[ilink-2] = daq.getLinkData(ilink);
+  }
+  tgt->hcal().daq().advanceLinkReadPtr();
+
+  pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
+  tgt->fc().chargepulse();
+  usleep(10000); // one 100Hz cycle later
+  std::array<std::vector<uint32_t>, 4> charge_sums;
+  for (int ilink{2}; ilink < 6; ilink++) {
+    charge_sums[ilink-2] = daq.getLinkData(ilink);
+  }
+  tgt->hcal().daq().advanceLinkReadPtr();
+
+  for (int ilink{2}; ilink < 6; ilink++) {
+    pflib_log(debug) << "reset link " << ilink
+                     << " to delay " << og_delay[ilink-2]
+                     << " and capture " << og_capture[ilink-2];
+    daq.setupLink(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+  }
+
+  pflib_log(info) << "analyze words readout from links";
+  std::cout << "delay : pedestal -> charge" << std::endl;
+  std::array<int, 4> delays{-1};
+  for (int ilink{2}; ilink < 6; ilink++) {
+    std::cout << "Link " << ilink << " (TC" << ilink-2 << ")" << std::endl;
+    const auto& pedestals{pedestal_sums.at(ilink-2)};
+    const auto& charges{charge_sums.at(ilink-2)};
+    const auto& expected_charge{expected_charge_mask.at(ilink-2)};
+    for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
+      uint32_t pedestal{pedestals.at(i_delay)},
+               charge{charges.at(i_delay)};
+      /**
+       * The pedestal run producing trigger-zero words filters out words
+       * that can be captured by this link but "belong" to a different link.
+       * We can then check which words are different between the charge and
+       * pedestal runs, printing the word indices (delays) for them.
+       * The last step is checking if the word from the charge run is zero
+       * everywhere except the expected bits.
+       */
+      if (pedestal == ZERO and pedestal != charge) {
+        bool match_expected = ((charge & ~expected_charge) == 0 && (charge & ZERO) == ZERO);
+        if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
+        printf("%04d : 0x%08x -> 0x%08x %s\n",
+          static_cast<int>(i_delay),
+          pedestal,
+          charge,
+          match_expected ? "(expected)" : ""
+        );
+      }
+    }
+  }
+
+  /**
+   * Finally, report the delays where we found the expected bits to be non-zero
+   */
+  std::cout << "Link : Delay\n";
+  for (int ilink{2}; ilink < 6; ilink++) {
+    std::cout << "   " << ilink << " : " << delays.at(ilink-2) << '\n';
+  }
+  std::cout << std::flush;
+}
+
 namespace {
 
 auto menu_daq =
@@ -345,152 +495,7 @@ auto menu_daq_debug =
             tgt->fc().chargepulse();
           })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
-        ->line("TRIGGER_TIMEIN", "look for canidate trigger delays",
-          [](Target* tgt) {
-            /**
-             * This command attempts to deduce the capture delay for the trigger
-             * links by taking two runs after setting some parameters on the chip.
-             *
-             * Assuming the pedestal values on the chip are all ~200 (as is the case
-             * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
-             * their maxima (255 and 31 respectively) forces the trigger sums to be
-             * zero for pedestals. Including the 4-bit sync header, this means the
-             * trigger link zero-word is 0xa0000000.
-             */
-            static const uint32_t ZERO = 0xa0000000;
-
-            auto& daq{tgt->hcal().daq()};
-            auto roc{tgt->hcal().roc(pftool::state.iroc)};
-
-            pflib_log(info) << "setting up parameters for trigger link testing";
-
-            auto test_param_builder = roc.testParameters();
-            for (int ch{0}; ch < 72; ch++) {
-              test_param_builder.add(
-                pflib::utility::string_format("CH_%d", ch),
-                "ADC_PEDESTAL",
-                255
-              );
-            }
-
-            for (int half{0}; half < 2; half++) {
-              test_param_builder.add(
-                pflib::utility::string_format("DIGITALHALF_%d", half),
-                "ADC_TH",
-                31
-              );
-              auto refvol_page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
-              test_param_builder.add(refvol_page, "CALIB", 3000);
-              test_param_builder.add(refvol_page, "INTCTEST", 1);
-            }
-
-            /**
-             * We then enable charge injection within certain channels.
-             * Each trigger link produces a single 32-bit word cut up into a 4-bit
-             * sync header and 4 7-bit trigger sums.
-             *
-             *   0b1010 | TCX_0 | TCX_1 | TCX_2 | TCX_3
-             *
-             * We choose channels to inject charge such that each link
-             * has a different trigger sum that should be non-zero.
-             * - CH_0 -> TC0_0 non-zero
-             * - CH_29 -> TC1_2 non-zero
-             * - CH_42 -> TC2_1 non-zero
-             * - CH_70 -> TC3_3 non-zero
-             */
-            static const uint32_t TC_0 = 0xafe00000;
-            static const uint32_t TC_1 = 0xa01fc000;
-            static const uint32_t TC_2 = 0xa0003f80;
-            static const uint32_t TC_3 = 0xa000007f;
-            auto test_param_handle = test_param_builder
-              .add("CH_0" , "LOWRANGE", 1) // TC0_0
-              .add("CH_29", "LOWRANGE", 1) // TC1_2
-              .add("CH_42", "LOWRANGE", 1) // TC2_1
-              .add("CH_70", "LOWRANGE", 1) // TC3_3
-              .apply();
-            std::array<uint32_t, 4> expected_charge_mask = {
-              TC_0,
-              TC_2,
-              TC_1,
-              TC_3
-            };
-
-            pflib_log(info) << "storing link settings and expanding capture window";
-
-            /// maximum window set in firmware is 64 words
-            int max_delay = 64;
-            std::array<int, 4> og_delay{}, og_capture{};
-            for (int ilink{2}; ilink < 6; ilink++) {
-              daq.getLinkSetup(ilink, og_delay[ilink-2], og_capture[ilink-2]);
-              daq.setupLink(ilink, 0, max_delay);
-            }
-
-            pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
-            tgt->fc().sendL1A();
-            usleep(10000); // one 100Hz cycle later
-            std::array<std::vector<uint32_t>, 4> pedestal_sums;
-            for (int ilink{2}; ilink < 6; ilink++) {
-              pedestal_sums[ilink-2] = daq.getLinkData(ilink);
-            }
-            tgt->hcal().daq().advanceLinkReadPtr();
-
-            pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
-            tgt->fc().chargepulse();
-            usleep(10000); // one 100Hz cycle later
-            std::array<std::vector<uint32_t>, 4> charge_sums;
-            for (int ilink{2}; ilink < 6; ilink++) {
-              charge_sums[ilink-2] = daq.getLinkData(ilink);
-            }
-            tgt->hcal().daq().advanceLinkReadPtr();
-
-            for (int ilink{2}; ilink < 6; ilink++) {
-              pflib_log(debug) << "reset link " << ilink
-                               << " to delay " << og_delay[ilink-2]
-                               << " and capture " << og_capture[ilink-2];
-              daq.setupLink(ilink, og_delay[ilink-2], og_capture[ilink-2]);
-            }
-
-            pflib_log(info) << "analyze words readout from links";
-            std::cout << "delay : pedestal -> charge" << std::endl;
-            std::array<int, 4> delays{-1};
-            for (int ilink{2}; ilink < 6; ilink++) {
-              std::cout << "Link " << ilink << " (TC" << ilink-2 << ")" << std::endl;
-              const auto& pedestals{pedestal_sums.at(ilink-2)};
-              const auto& charges{charge_sums.at(ilink-2)};
-              const auto& expected_charge{expected_charge_mask.at(ilink-2)};
-              for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
-                uint32_t pedestal{pedestals.at(i_delay)},
-                         charge{charges.at(i_delay)};
-                /**
-                 * The pedestal run producing trigger-zero words filters out words
-                 * that can be captured by this link but "belong" to a different link.
-                 * We can then check which words are different between the charge and
-                 * pedestal runs, printing the word indices (delays) for them.
-                 * The last step is checking if the word from the charge run is zero
-                 * everywhere except the expected bits.
-                 */
-                if (pedestal == ZERO and pedestal != charge) {
-                  bool match_expected = ((charge & ~expected_charge) == 0 && (charge & ZERO) == ZERO);
-                  if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
-                  printf("%04d : 0x%08x -> 0x%08x %s\n",
-                    static_cast<int>(i_delay),
-                    pedestal,
-                    charge,
-                    match_expected ? "(expected)" : ""
-                  );
-                }
-              }
-            }
-
-            /**
-             * Finally, report the delays where we found the expected bits to be non-zero
-             */
-            std::cout << "Link : Delay\n";
-            for (int ilink{2}; ilink < 6; ilink++) {
-              std::cout << "   " << ilink << " : " << delays.at(ilink-2) << '\n';
-            }
-            std::cout << std::flush;
-          })
+        ->line("TRIGGER_TIMEIN", "look for canidate trigger delays", daq_debug_trigger_timein)
     ;
 
 auto menu_daq_setup =
