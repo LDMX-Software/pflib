@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
 
 #include "pflib/packing/Hex.h"
 
@@ -163,6 +165,58 @@ std::vector<uint8_t> I2C_Linux::general_write_read(
   }
 
   return rv;
+}
+
+std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread){
+  
+  int nmsgs = 0, nmsgs_sent;
+  
+  __u8 *buf;
+  
+  struct i2c_msg msgs[I2C_RDRW_IOCTL_MAX_MSGS];
+  for (int i = 0; i < I2C_RDRW_IOCTL_MAX_MSGS; i++)
+    msgs[i].buf = NULL;
+  struct i2c_rdwr_ioctl_data rdwr;
+
+  msgs[nmsgs].addr = i2c_dev_addr;
+  msgs[nmsgs].flags = 0;
+  msgs[nmsgs].len = wdata.size();
+  buf = (__u8*)malloc(wdata.size());
+  memset(buf, 0, wdata.size());
+  msgs[nmsgs].buf = buf;
+  unsigned buf_idx = 0;
+  buf_idx = 0;
+  while (buf_idx < wdata.size()) {
+    __u8 data = wdata.at(buf_idx);
+    msgs[nmsgs].buf[buf_idx++] = data;
+  }
+  nmsgs++;
+
+  unsigned long r_len = nread;
+  msgs[nmsgs].addr = i2c_dev_addr;
+  msgs[nmsgs].flags = I2C_M_RD;
+  msgs[nmsgs].len = r_len;
+  buf = (__u8*)malloc(r_len);
+  memset(buf, 0, r_len);
+  msgs[nmsgs].buf = buf;
+  nmsgs++;
+
+  rdwr.msgs = msgs;
+  rdwr.nmsgs = nmsgs;
+  nmsgs_sent = ioctl(handle_, I2C_RDWR, &rdwr);
+
+  std::vector<uint8_t> ret;
+  int read = !!(msgs[1].flags & I2C_M_RD);
+  if (msgs[1].len && read) {
+    for (int j = 0; j < msgs[1].len; j++){
+      ret.push_back(msgs[1].buf[j]);
+    }
+  }
+
+  for (int i = 0; i <= nmsgs_sent; i++)
+    free(msgs[i].buf);
+ 
+  return ret; 
 }
 
 }  // namespace pflib

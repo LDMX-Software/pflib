@@ -55,7 +55,9 @@ class MAX5825 {
    * the settings are the twelve MSBs from two concatenated
    * returned bytes.
    */
-  std::vector<uint8_t> get(uint8_t cmd, int n_return_bytes = 2);
+  std::vector<uint8_t> get(uint8_t channel);
+  
+  void set(uint8_t channel, uint16_t data_bytes);
 
   /**
    * Write a setting for the DACs on this MAX
@@ -162,9 +164,12 @@ class Bias {
   /**
    * Pass a setting to one SiPM DAC
    */
-  void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+  //void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
 
-  void readSiPM(uint8_t i_sipm);
+  int readSiPM(uint8_t i_sipm);
+  int readLED(uint8_t i_led);
+  void setSiPM(uint8_t i_sipm, uint16_t code);
+  void setLED(uint8_t i_led, uint16_t code);
 
   /**
    * Set and load the passed CODE for an LED bias

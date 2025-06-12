@@ -18,8 +18,6 @@ class HcalFiberless : public Hcal {
 
   HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c)
       : Hcal(roc_i2c, bias_i2c) {
-    
-    std::cout << "HcaFiberless::HcalFiberless" << std::endl;
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
@@ -57,7 +55,6 @@ class HcalFiberless : public Hcal {
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
-    std::cout << "TargetFiberless::TargetFiberless" << std::endl;
     
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));

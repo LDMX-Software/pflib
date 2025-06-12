@@ -1238,11 +1238,31 @@ static void daq_debug(const std::string& cmd, Target* pft) {
 
 static void bias( const std::string& cmd, Target* pft ) {
   static int iboard=0;
-  if (cmd=="READSIPM"){
+  if (cmd=="READ_SIPM"){
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
     uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
-    bias.readSiPM(ich);
+    std::cout << "DAC: " << bias.readSiPM(ich) << std::endl;
+  }
+  if (cmd=="READ_LED"){
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
+    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    std::cout << "DAC: " << bias.readLED(ich) << std::endl;
+  }
+  if (cmd=="SET_SIPM"){
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
+    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    uint16_t dac=BaseMenu::readline_int("Which DAC value? ", 0);
+    bias.setSiPM(ich, dac);
+  }
+  if (cmd=="SET_LED"){
+    iboard=BaseMenu::readline_int("Which board? ",iboard);
+    pflib::Bias bias=pft->hcal().bias(iboard);
+    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    uint16_t dac=BaseMenu::readline_int("Which DAC value? ", 0);
+    bias.setLED(ich, dac);
   }
   /*
   if (cmd=="STATUS") {
@@ -1377,7 +1397,10 @@ auto menu_roc =
 
 auto menu_bias = pftool::menu("BIAS","bias voltage settings")
   //->line("STATUS","Read the bias line settings", bias )
-  ->line("READSIPM","test", bias )
+  ->line("READ_SIPM","test", bias )
+  ->line("READ_LED","test", bias )
+  ->line("SET_SIPM","test", bias )
+  ->line("SET_LED","test", bias )
   //->line("INIT","Initialize a board", bias )
   //->line("SET","Set a specific bias line setting", bias )
   //->line("SET_ALL", "Set a specific bias line setting to every connector", bias)

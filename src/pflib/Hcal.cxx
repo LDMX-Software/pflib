@@ -19,8 +19,6 @@ Bias Hcal::bias(int which) {
     PFEXCEPTION_RAISE("InvalidBoardId","Requested out-of-range Board id");
   }
 
-  std::cout << "Hcal::bias" << std::endl;
-
   return Bias(bias_i2c_.at(which));
 }
 
