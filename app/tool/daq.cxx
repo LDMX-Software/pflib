@@ -416,7 +416,9 @@ auto menu_daq_debug =
             };
 
             pflib_log(info) << "storing link settings and expanding capture window";
-            int max_delay = 1024;
+
+            /// maximum window set in firmware is 64 words
+            int max_delay = 64;
             std::array<int, 4> og_delay{}, og_capture{};
             for (int ilink{2}; ilink < 6; ilink++) {
               daq.getLinkSetup(ilink, og_delay[ilink-2], og_capture[ilink-2]);
