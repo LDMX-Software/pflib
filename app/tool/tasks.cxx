@@ -449,7 +449,5 @@ auto menu_tasks =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
         ->line("SIX_CHARGE_TIMESCAN", "scan charge/calib pulse over time, 6 channels", six_charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
-        ->line("TRIM_INV_SCAN", "scan trim_inv over a range of channels", trim_inv_scan)
-        ->line("TWENTY_CHARGE_TIMESCAN", "scan charge/calib pulse over time, first 20 channels in link", twenty_charge_timescan)
 ;
 }
