@@ -81,6 +81,166 @@ static void charge_timescan(Target* tgt) {
 }
 
 /**
+ * TASKS.SIX_CHARGE_TIMESCAN
+ * 
+ * Scan an internal calibration pulse, just like CHARGE_TIMESCAN, but with multiple channels instead.
+ * Currently does 6 channels in link 1.
+ */
+static void six_charge_timescan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 1);
+  bool highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
+  int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  // int n_channel = pftool::readline_int("Number of channels to charge? ", 5);
+  int start_bx = pftool::readline_int("Starting BX? ", -1);
+  int n_bx = pftool::readline_int("Number of BX? ", 4);
+  std::string fname = pftool::readline_path("multi-charge-time-scan", ".csv");
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto test_param_handle = roc.testParameters()
+    .add(refvol_page, "CALIB", calib)
+    .add(refvol_page, "INTCTEST", 1)
+    .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0)
+    .add(channel_page, "HIGHRANGE", highrange ? 1 : 0)
+    .add(channel_page, "LOWRANGE", highrange ? 0 : 1)
+    // for (int val=62; val <=66; ++val) {
+    //   .add(pflib::utility::string_format("CH_%d", val), "LOWRANGE", highrange ? 0 : 1)
+    //   .add(pflib::utility::string_format("CH_%d", val), "HIGHRANGE", highrange ? 1 : 0)
+    // })
+    .add(pflib::utility::string_format("CH_%d", 62), "LOWRANGE", highrange ? 0 : 1)
+    .add(pflib::utility::string_format("CH_%d", 62), "HIGHRANGE", highrange ? 1 : 0)
+    .add(pflib::utility::string_format("CH_%d", 63), "LOWRANGE", highrange ? 0 : 1)
+    .add(pflib::utility::string_format("CH_%d", 63), "HIGHRANGE", highrange ? 1 : 0)
+    .add(pflib::utility::string_format("CH_%d", 64), "LOWRANGE", highrange ? 0 : 1)
+    .add(pflib::utility::string_format("CH_%d", 64), "HIGHRANGE", highrange ? 1 : 0)
+    .add(pflib::utility::string_format("CH_%d", 65), "LOWRANGE", highrange ? 0 : 1)
+    .add(pflib::utility::string_format("CH_%d", 65), "HIGHRANGE", highrange ? 1 : 0)
+    .add(pflib::utility::string_format("CH_%d", 66), "LOWRANGE", highrange ? 0 : 1)
+    .add(pflib::utility::string_format("CH_%d", 66), "HIGHRANGE", highrange ? 1 : 0)
+    .apply();
+  int phase_strobe{0};
+  int charge_to_l1a{0};
+  pflib::DecodeAndWriteToCSV writer{
+    fname,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["channel"] = channel;
+      header["calib"] = calib;
+      header["highrange"] = highrange;
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n'
+        << "charge_to_l1a,phase_strobe,"
+        << pflib::packing::Sample::to_csv_header
+        << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      f << charge_to_l1a << ','
+        << phase_strobe << ',';
+      ep.channel(channel).to_csv(f);
+      f << '\n';
+    } 
+  };
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  for (charge_to_l1a = central_charge_to_l1a+start_bx;
+       charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+    tgt->fc().fc_setup_calib(charge_to_l1a);
+    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+    for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
+      auto phase_strobe_test_handle = roc.testParameters()
+        .add("TOP", "PHASE_STROBE", phase_strobe)
+        .apply();
+      pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+      usleep(10); // make sure parameters are applied
+      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+    }
+  }
+  // reset charge_to_l1a to central value
+  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+}
+
+/**
+ * TASKS.TWENTY_CHARGE_TIMESCAN
+ * 
+ * Scan an internal calibration pulse, just like CHARGE_TIMESCAN, but with multiple channels instead.
+ * Currently does 20 channels in link 1.
+ */
+static void twenty_charge_timescan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 1);
+  bool highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
+  int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  int start_bx = pftool::readline_int("Starting BX? ", -1);
+  int n_bx = pftool::readline_int("Number of BX? ", 4);
+  std::string fname = pftool::readline_path("twenty-charge-time-scan", ".csv");
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto test_param_builder = roc.testParameters()
+    .add(refvol_page, "CALIB", calib)
+    .add(refvol_page, "INTCTEST", 1)
+    .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0)
+    .add(channel_page, "HIGHRANGE", highrange ? 1 : 0)
+    .add(channel_page, "LOWRANGE", highrange ? 0 : 1);
+  // Ensure added channels are on the same link. Then loop over them.
+  if (link == 0) {
+    for (int val = 0; val <= 20; ++val) {
+      test_param_builder.add(pflib::utility::string_format("CH_%d", val), "LOWRANGE", highrange ? 0 : 1)
+                        .add(pflib::utility::string_format("CH_%d", val), "HIGHRANGE", highrange ? 1 : 0);
+    }
+  }
+  else if (link == 1) {
+    for (int val = 36; val <= 56; ++val) {
+      test_param_builder.add(pflib::utility::string_format("CH_%d", val), "LOWRANGE", highrange ? 0 : 1)
+                        .add(pflib::utility::string_format("CH_%d", val), "HIGHRANGE", highrange ? 1 : 0);
+    }
+  }
+  auto test_param_handle = test_param_builder.apply();
+  int phase_strobe{0};
+  int charge_to_l1a{0};
+  pflib::DecodeAndWriteToCSV writer{
+    fname,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["channel"] = channel;
+      header["calib"] = calib;
+      header["highrange"] = highrange;
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n'
+        << "charge_to_l1a,phase_strobe,"
+        << pflib::packing::Sample::to_csv_header
+        << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      f << charge_to_l1a << ','
+        << phase_strobe << ',';
+      ep.channel(channel).to_csv(f);
+      f << '\n';
+    } 
+  };
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  for (charge_to_l1a = central_charge_to_l1a+start_bx;
+       charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+    tgt->fc().fc_setup_calib(charge_to_l1a);
+    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+    for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
+      auto phase_strobe_test_handle = roc.testParameters()
+        .add("TOP", "PHASE_STROBE", phase_strobe)
+        .apply();
+      pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+      usleep(10); // make sure parameters are applied
+      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+    }
+  }
+  // reset charge_to_l1a to central value
+  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+}
+
+/**
  * TASKS.GEN_SCAN
  *
  * Generalized scan where the parameter points to test are input by file
@@ -229,10 +389,67 @@ static void gen_scan(Target* tgt) {
   }
 }
 
+static void trim_inv_scan(Target* tgt) {
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+  int ch_start = pftool::readline_int("Start channel (m): ", 0);
+  int ch_end   = pftool::readline_int("End channel (n): ", 71);
+  std::vector<std::string> trigger_types = { "PEDESTAL", "CHARGE" };
+  std::string trigger = pftool::readline("Trigger type: ", trigger_types);
+
+  std::string output_filepath = pftool::readline_path("trim_inv_scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  boost::json::object header;
+  header["scan_type"] = "CH_#.TRIM_INV sweep";
+  header["trigger"] = trigger;
+  header["nevents_per_point"] = nevents;
+  header["channel_range"] = std::to_string(ch_start) + "-" + std::to_string(ch_end);
+
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n';
+      f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      // Only write data from the current channel
+      f << header["current_channel"].as_int64() << ',' << header["current_trim_inv"].as_int64() << ',';
+      ep.channel(header["current_channel"].as_int64()).to_csv(f);
+      f << '\n';
+    }
+  };
+
+  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+  for (int ch = ch_start; ch <= ch_end; ++ch) {
+    for (int trim = 0; trim <= 53; ++trim) {
+      pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
+
+      // Set the test parameter
+      auto test_param = roc.testParameters()
+        .add("CH_" + std::to_string(ch), "TRIM_INV", trim)
+        .apply();
+
+      // Store current scan state in header for writer access
+      header["current_channel"] = ch;
+      header["current_trim_inv"] = trim;
+
+      tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
+    }
+  }
+}
+
+
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
+        ->line("SIX_CHARGE_TIMESCAN", "scan charge/calib pulse over time, 6 channels", six_charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
+        ->line("TRIM_INV_SCAN", "scan trim_inv over a range of channels", trim_inv_scan)
+        ->line("TWENTY_CHARGE_TIMESCAN", "scan charge/calib pulse over time, first 20 channels in link", twenty_charge_timescan)
 ;
 }
