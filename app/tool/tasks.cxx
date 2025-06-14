@@ -424,8 +424,9 @@ static void trim_inv_scan(Target* tgt) {
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
   for (int ch = ch_start; ch <= ch_end; ++ch) {
+    pflib_log(info) << "Running CH_" << ch;
     for (int trim = 0; trim <= 53; ++trim) {
-      pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
+      //pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
 
       // Set the test parameter
       auto test_param = roc.testParameters()
