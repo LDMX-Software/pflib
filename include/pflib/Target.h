@@ -30,6 +30,8 @@ class Target {
    */
   class DAQRunConsumer {
    public:
+    virtual void start_run() {}
+    virtual void end_run() {}
     virtual void consume(std::vector<uint32_t>& event) = 0;
     virtual ~DAQRunConsumer() = default;
   };
