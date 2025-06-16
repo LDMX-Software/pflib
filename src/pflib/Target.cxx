@@ -30,6 +30,8 @@ void Target::daq_run(
   }
   auto trigger{cmds.at(cmd)};
 
+  consumer.start_run();
+
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
@@ -65,6 +67,8 @@ void Target::daq_run(
       consumer.consume(event);
     }
   }
+
+  consumer.end_run();
 }
 
 }  // namespace pflib
