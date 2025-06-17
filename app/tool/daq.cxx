@@ -299,6 +299,8 @@ static void daq_debug_trigger_timein(Target* tgt) {
    */
   static const uint32_t ZERO = 0xa0000000;
 
+  static const uint32_t DAQ_HEADER_PATTERN = 0xf0000005;
+
   auto& daq{tgt->hcal().daq()};
   auto roc{tgt->hcal().roc(pftool::state.iroc)};
 
@@ -342,18 +344,22 @@ static void daq_debug_trigger_timein(Target* tgt) {
   static const uint32_t TC_1 = 0xa01fc000;
   static const uint32_t TC_2 = 0xa0003f80;
   static const uint32_t TC_3 = 0xa000007f;
-  auto test_param_handle = test_param_builder
-    .add("CH_0" , "LOWRANGE", 1) // TC0_0
-    .add("CH_29", "LOWRANGE", 1) // TC1_2
-    .add("CH_42", "LOWRANGE", 1) // TC2_1
-    .add("CH_70", "LOWRANGE", 1) // TC3_3
-    .apply();
+  std::array<int, 4> injected_channels{0, 29, 42, 70};
   std::array<uint32_t, 4> expected_charge_mask = {
     TC_0,
     TC_2,
     TC_1,
     TC_3
   };
+  for (const int& ch: injected_channels) {
+    test_param_builder.add(
+      pflib::utility::string_format("CH_%d", ch),
+      "LOWRANGE",
+      1
+    );
+  }
+  pflib_log(info) << "applying setup parameters";
+  auto test_param_handle = test_param_builder.apply();
 
   int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
   int charge_to_l1a = pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
@@ -375,63 +381,99 @@ static void daq_debug_trigger_timein(Target* tgt) {
 
   pflib_log(info) << "storing link settings and expanding capture window";
 
-  /// maximum window set in firmware is 64 words
-  int max_delay = 64;
-  std::array<int, 4> og_delay{}, og_capture{};
-  for (int ilink{2}; ilink < 6; ilink++) {
-    daq.getLinkSetup(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+  /**
+   * The window size in the firmware is stored in 6 bits,
+   * so the maximum capture window (and therefore maximum delay)
+   * is 63 (2^6 - 1).
+   *
+   * @note Capture windows larger than 63 seem to be naively trimmed
+   * without warning or notice.
+   */
+  int max_delay = 63;
+  std::array<int, 6> og_delay{}, og_capture{};
+  for (int ilink{0}; ilink < 6; ilink++) {
+    daq.getLinkSetup(ilink, og_delay[ilink], og_capture[ilink]);
     daq.setupLink(ilink, 0, max_delay);
   }
 
   pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
   tgt->fc().sendL1A();
   usleep(10000); // one 100Hz cycle later
-  std::array<std::vector<uint32_t>, 4> pedestal_sums;
-  for (int ilink{2}; ilink < 6; ilink++) {
-    pedestal_sums[ilink-2] = daq.getLinkData(ilink);
+  std::array<std::vector<uint32_t>, 6> pedestal_sums;
+  for (int ilink{0}; ilink < 6; ilink++) {
+    pedestal_sums[ilink] = daq.getLinkData(ilink);
   }
   tgt->hcal().daq().advanceLinkReadPtr();
 
   pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
   tgt->fc().chargepulse();
   usleep(10000); // one 100Hz cycle later
-  std::array<std::vector<uint32_t>, 4> charge_sums;
-  for (int ilink{2}; ilink < 6; ilink++) {
-    charge_sums[ilink-2] = daq.getLinkData(ilink);
+  std::array<std::vector<uint32_t>, 6> charge_sums;
+  for (int ilink{0}; ilink < 6; ilink++) {
+    charge_sums[ilink] = daq.getLinkData(ilink);
   }
   tgt->hcal().daq().advanceLinkReadPtr();
 
-  for (int ilink{2}; ilink < 6; ilink++) {
+  for (int ilink{0}; ilink < 6; ilink++) {
     pflib_log(debug) << "reset link " << ilink
-                     << " to delay " << og_delay[ilink-2]
-                     << " and capture " << og_capture[ilink-2];
-    daq.setupLink(ilink, og_delay[ilink-2], og_capture[ilink-2]);
+                     << " to delay " << og_delay[ilink]
+                     << " and capture " << og_capture[ilink];
+    daq.setupLink(ilink, og_delay[ilink], og_capture[ilink]);
   }
   pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
   tgt->fc().fc_setup_calib(og_charge_to_l1a);
 
   pflib_log(info) << "analyze words readout from links";
   std::cout << "delay : pedestal -> charge" << std::endl;
-  std::array<int, 4> delays{-1,-1,-1,-1};
-  for (int ilink{2}; ilink < 6; ilink++) {
-    std::cout << "Link " << ilink << " (TC" << ilink-2 << ")" << std::endl;
-    const auto& pedestals{pedestal_sums.at(ilink-2)};
-    const auto& charges{charge_sums.at(ilink-2)};
-    const auto& expected_charge{expected_charge_mask.at(ilink-2)};
-    for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
-      uint32_t pedestal{pedestals.at(i_delay)},
-               charge{charges.at(i_delay)};
-      /**
-       * The pedestal run producing trigger-zero words filters out words
-       * that can be captured by this link but "belong" to a different link.
-       * We can then check which words are different between the charge and
-       * pedestal runs, printing the word indices (delays) for them.
-       * The last step is checking if the word from the charge run is zero
-       * everywhere except the expected bits.
-       */
-      if (pedestal == ZERO and pedestal != charge and (charge & ZERO) == ZERO) {
-        bool match_expected = ((charge & ~expected_charge) == 0);
-        if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
+  std::array<int, 6> delays{-1,-1,-1,-1,-1,-1};
+  for (int ilink{0}; ilink < 6; ilink++) {
+    std::cout << "Link " << ilink;
+    if (ilink < 2) {
+      std::cout << " (DAQ Link " << ilink << ")";
+    } else {
+      std::cout << " (TC" << ilink-2 << ")";
+    }
+    std::cout << std::endl;
+    const auto& pedestals{pedestal_sums.at(ilink)};
+    const auto& charges{charge_sums.at(ilink)};
+    if (ilink < 2) {
+      // daq link analysis
+      for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
+        uint32_t pedestal{pedestals.at(i_delay)},
+                 charge{charges.at(i_delay)};
+        bool is_header{false};
+        if (
+          (pedestal & DAQ_HEADER_PATTERN)==DAQ_HEADER_PATTERN and
+          (charge & DAQ_HEADER_PATTERN)==DAQ_HEADER_PATTERN) {
+          is_header = true;
+          delays[ilink] = i_delay;
+        }
+        printf("%04d : 0x%08x -> 0x%08x %s\n",
+          static_cast<int>(i_delay),
+          pedestal,
+          charge,
+          is_header ? " <- header" : ""
+        );
+      }
+    } else {
+      // trig link analysis
+      const auto& expected_charge{expected_charge_mask.at(ilink-2)};
+      for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
+        uint32_t pedestal{pedestals.at(i_delay)},
+                 charge{charges.at(i_delay)};
+        /**
+         * The pedestal run producing trigger-zero words filters out words
+         * that can be captured by this link but "belong" to a different link.
+         * We can then check which words are different between the charge and
+         * pedestal runs, printing the word indices (delays) for them.
+         * The last step is checking if the word from the charge run is zero
+         * everywhere except the expected bits.
+         */
+        bool match_expected = false;
+        if (pedestal == ZERO and pedestal != charge and (charge & ZERO) == ZERO) {
+          match_expected = ((charge & ~expected_charge) == 0);
+          if (match_expected) delays[ilink] = static_cast<int>(i_delay);
+        }
         printf("%04d : 0x%08x -> 0x%08x %s\n",
           static_cast<int>(i_delay),
           pedestal,
@@ -446,12 +488,12 @@ static void daq_debug_trigger_timein(Target* tgt) {
    * Finally, report the delays where we found the expected bits to be non-zero
    */
   std::cout << "Link : Delay\n";
-  for (int ilink{2}; ilink < 6; ilink++) {
+  for (int ilink{0}; ilink < 6; ilink++) {
     std::cout << "   " << ilink << " : ";
-    if (delays.at(ilink-2) < 0) {
+    if (delays.at(ilink) < 0) {
       std::cout << "not found";
     } else {
-      std::cout << delays.at(ilink-2);
+      std::cout << delays.at(ilink);
     }
     std::cout << '\n';
   }
