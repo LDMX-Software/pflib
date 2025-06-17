@@ -355,6 +355,24 @@ static void daq_debug_trigger_timein(Target* tgt) {
     TC_3
   };
 
+  int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  int charge_to_l1a = pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+  tgt->fc().fc_setup_calib(charge_to_l1a);
+
+  int default_l1offset = 16;
+  int l1offset = pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
+  auto test_l1offset_handle = roc.testParameters()
+    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
+    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
+    .apply();
+
+  int default_global_latency_time = 10;
+  int global_latency_time = pftool::readline_int("Global latency time on the HGCROC?", default_global_latency_time);
+  auto test_latency_time = roc.testParameters()
+    .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
+    .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
+    .apply();
+
   pflib_log(info) << "storing link settings and expanding capture window";
 
   /// maximum window set in firmware is 64 words
@@ -389,10 +407,12 @@ static void daq_debug_trigger_timein(Target* tgt) {
                      << " and capture " << og_capture[ilink-2];
     daq.setupLink(ilink, og_delay[ilink-2], og_capture[ilink-2]);
   }
+  pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
+  tgt->fc().fc_setup_calib(og_charge_to_l1a);
 
   pflib_log(info) << "analyze words readout from links";
   std::cout << "delay : pedestal -> charge" << std::endl;
-  std::array<int, 4> delays{-1};
+  std::array<int, 4> delays{-1,-1,-1,-1};
   for (int ilink{2}; ilink < 6; ilink++) {
     std::cout << "Link " << ilink << " (TC" << ilink-2 << ")" << std::endl;
     const auto& pedestals{pedestal_sums.at(ilink-2)};
@@ -409,8 +429,8 @@ static void daq_debug_trigger_timein(Target* tgt) {
        * The last step is checking if the word from the charge run is zero
        * everywhere except the expected bits.
        */
-      if (pedestal == ZERO and pedestal != charge) {
-        bool match_expected = ((charge & ~expected_charge) == 0 && (charge & ZERO) == ZERO);
+      if (pedestal == ZERO and pedestal != charge and (charge & ZERO) == ZERO) {
+        bool match_expected = ((charge & ~expected_charge) == 0);
         if (match_expected) delays[ilink-2] = static_cast<int>(i_delay);
         printf("%04d : 0x%08x -> 0x%08x %s\n",
           static_cast<int>(i_delay),
@@ -427,7 +447,13 @@ static void daq_debug_trigger_timein(Target* tgt) {
    */
   std::cout << "Link : Delay\n";
   for (int ilink{2}; ilink < 6; ilink++) {
-    std::cout << "   " << ilink << " : " << delays.at(ilink-2) << '\n';
+    std::cout << "   " << ilink << " : ";
+    if (delays.at(ilink-2) < 0) {
+      std::cout << "not found";
+    } else {
+      std::cout << delays.at(ilink-2);
+    }
+    std::cout << '\n';
   }
   std::cout << std::flush;
 }
