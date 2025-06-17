@@ -22,7 +22,9 @@ ENABLE_LOGGING();
  */
 static void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  bool highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
+  bool highrange = false;
+  if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
@@ -33,10 +35,11 @@ static void charge_timescan(Target* tgt) {
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto test_param_handle = roc.testParameters()
-    .add(refvol_page, "CALIB", calib)
+    .add(refvol_page, "CALIB", preCC ? 0 : calib)
+    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
     .add(refvol_page, "INTCTEST", 1)
-    .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0)
-    .add(channel_page, "HIGHRANGE", highrange ? 1 : 0)
+    .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+    .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
     .add(channel_page, "LOWRANGE", highrange ? 0 : 1)
     .apply();
   int phase_strobe{0};
