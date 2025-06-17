@@ -35,8 +35,8 @@ static void charge_timescan(Target* tgt) {
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto test_param_handle = roc.testParameters()
-    .add(refvol_page, "CALIB", calib)
-    .add(refvol_page, "CALIB_2V5", calib)
+    .add(refvol_page, "CALIB", preCC ? 0 : calib)
+    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
     .add(refvol_page, "INTCTEST", 1)
     .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
     .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
