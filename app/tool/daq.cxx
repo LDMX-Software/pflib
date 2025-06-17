@@ -399,18 +399,18 @@ static void daq_debug_trigger_timein(Target* tgt) {
   pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
   tgt->fc().sendL1A();
   usleep(10000); // one 100Hz cycle later
-  std::array<std::vector<uint32_t>, 6> pedestal_sums;
+  std::array<std::vector<uint32_t>, 6> pedestal_link_data;
   for (int ilink{0}; ilink < 6; ilink++) {
-    pedestal_sums[ilink] = daq.getLinkData(ilink);
+    pedestal_link_data[ilink] = daq.getLinkData(ilink);
   }
   tgt->hcal().daq().advanceLinkReadPtr();
 
   pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
   tgt->fc().chargepulse();
   usleep(10000); // one 100Hz cycle later
-  std::array<std::vector<uint32_t>, 6> charge_sums;
+  std::array<std::vector<uint32_t>, 6> charge_link_data;
   for (int ilink{0}; ilink < 6; ilink++) {
-    charge_sums[ilink] = daq.getLinkData(ilink);
+    charge_link_data[ilink] = daq.getLinkData(ilink);
   }
   tgt->hcal().daq().advanceLinkReadPtr();
 
@@ -434,13 +434,11 @@ static void daq_debug_trigger_timein(Target* tgt) {
       std::cout << " (TC" << ilink-2 << ")";
     }
     std::cout << std::endl;
-    const auto& pedestals{pedestal_sums.at(ilink)};
-    const auto& charges{charge_sums.at(ilink)};
     if (ilink < 2) {
       // daq link analysis
       for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
-        uint32_t pedestal{pedestals.at(i_delay)},
-                 charge{charges.at(i_delay)};
+        uint32_t pedestal{pedestal_link_data.at(ilink).at(i_delay)},
+                 charge{charge_link_data.at(ilink).at(i_delay)};
         bool is_header{false};
         if (
           (pedestal & DAQ_HEADER_PATTERN)==DAQ_HEADER_PATTERN and
@@ -455,12 +453,27 @@ static void daq_debug_trigger_timein(Target* tgt) {
           is_header ? " <- header" : ""
         );
       }
+
+      // check if we found the injected charge pulses
+      pflib::packing::DAQLinkFrame pedestal{std::span(pedestal_link_data.at(ilink).begin()+delays[ilink], 40)};
+      pflib::packing::DAQLinkFrame charge{std::span(charge_link_data.at(ilink).begin()+delays[ilink], 40)};
+      for (const int& ch : injected_channels) {
+        int i_link = (ch / 36);
+        int i_ch_in_link = (ch % 36);
+        if (i_link == ilink) {
+          printf("ch_%d : %d -> %d\n",
+            ch,
+            pedestal.channels[i_ch_in_link].adc(),
+            charge.channels[i_ch_in_link].adc()
+          );
+        }
+      }
     } else {
       // trig link analysis
       const auto& expected_charge{expected_charge_mask.at(ilink-2)};
       for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
-        uint32_t pedestal{pedestals.at(i_delay)},
-                 charge{charges.at(i_delay)};
+        uint32_t pedestal{pedestal_link_data.at(ilink).at(i_delay)},
+                 charge{charge_link_data.at(ilink).at(i_delay)};
         /**
          * The pedestal run producing trigger-zero words filters out words
          * that can be captured by this link but "belong" to a different link.
