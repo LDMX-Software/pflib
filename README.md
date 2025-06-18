@@ -28,9 +28,7 @@ make
 
 ## Maintainer
 
-<a href="https://github.com/tomeichlersmith">
-  <img src="https://avatars.githubusercontent.com/u/31970302?v=4" />
-</a>
+[@tomeichlersmith](https://github.com/tomeichlersmith)
 
 ## Contributors
 
