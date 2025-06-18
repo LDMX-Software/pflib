@@ -32,4 +32,6 @@ make
 
 ## Contributors
 
-<img src="https://contrib.rocks/image?repo=LDMX-Software/pflib&anon=1" />
+<a href="https://github.com/LDMX-Software/pflib/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=LDMX-Software/pflib&anon=1" />
+</a>
