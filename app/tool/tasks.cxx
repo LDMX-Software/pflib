@@ -5,8 +5,6 @@
  */
 #include "pftool.h"
 
-#include <iostream>
-
 ENABLE_LOGGING();
 
 #include <filesystem>
