@@ -7,6 +7,7 @@
 #include "pflib/WriteToBinaryFile.h"
 #include "pflib/DecodeAndWrite.h"
 #include "pflib/utility/string_format.h"
+#include "pflib/packing/Hex.h"
 
 ENABLE_LOGGING();
 
@@ -424,17 +425,13 @@ static void daq_debug_trigger_timein(Target* tgt) {
   tgt->fc().fc_setup_calib(og_charge_to_l1a);
 
   pflib_log(info) << "analyze words readout from links";
-  std::cout << "delay : pedestal -> charge" << std::endl;
+  pflib_log(debug) << "delay : pedestal -> charge";
   std::array<int, 6> delays{-1,-1,-1,-1,-1,-1};
+  std::array<std::pair<int,int>, 4> daq_pedestal_charge_adc;
   for (int ilink{0}; ilink < 6; ilink++) {
-    std::cout << "Link " << ilink;
+    pflib_log(debug) << "Link " << ilink;
     if (ilink < 2) {
-      std::cout << " (DAQ Link " << ilink << ")";
-    } else {
-      std::cout << " (TC" << ilink-2 << ")";
-    }
-    std::cout << std::endl;
-    if (ilink < 2) {
+      pflib_log(debug) << "DAQ Link " << ilink;
       // daq link analysis
       for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
         uint32_t pedestal{pedestal_link_data.at(ilink).at(i_delay)},
@@ -446,26 +443,24 @@ static void daq_debug_trigger_timein(Target* tgt) {
           is_header = true;
           delays[ilink] = i_delay;
         }
-        printf("%04d : 0x%08x -> 0x%08x %s\n",
-          static_cast<int>(i_delay),
-          pedestal,
-          charge,
-          is_header ? " <- header" : ""
-        );
+        pflib_log(debug) << std::setw(2) << i_delay
+                         << " : " << pflib::packing::hex(pedestal)
+                         << " -> " << pflib::packing::hex(charge)
+                         << (is_header ? " <- header" : "");
       }
 
       // check if we found the injected charge pulses
       pflib::packing::DAQLinkFrame pedestal{std::span(pedestal_link_data.at(ilink).begin()+delays[ilink], 40)};
       pflib::packing::DAQLinkFrame charge{std::span(charge_link_data.at(ilink).begin()+delays[ilink], 40)};
-      for (const int& ch : injected_channels) {
+      for (std::size_t i_ch{0}; i_ch < injected_channels.size(); i_ch++) {
+        const int& ch{injected_channels[i_ch]};
         int i_link = (ch / 36);
         int i_ch_in_link = (ch % 36);
         if (i_link == ilink) {
-          printf("ch_%d : %d -> %d\n",
-            ch,
+          daq_pedestal_charge_adc[i_ch] = {
             pedestal.channels[i_ch_in_link].adc(),
             charge.channels[i_ch_in_link].adc()
-          );
+          };
         }
       }
     } else {
@@ -487,12 +482,10 @@ static void daq_debug_trigger_timein(Target* tgt) {
           match_expected = ((charge & ~expected_charge) == 0);
           if (match_expected) delays[ilink] = static_cast<int>(i_delay);
         }
-        printf("%04d : 0x%08x -> 0x%08x %s\n",
-          static_cast<int>(i_delay),
-          pedestal,
-          charge,
-          match_expected ? "(expected)" : ""
-        );
+        pflib_log(debug) << std::setw(2) << i_delay
+                         << " : " << pflib::packing::hex(pedestal)
+                         << " -> " << pflib::packing::hex(charge)
+                         << (match_expected ? "(expected)" : "");
       }
     }
   }
@@ -501,12 +494,22 @@ static void daq_debug_trigger_timein(Target* tgt) {
    * Finally, report the delays where we found the expected bits to be non-zero
    */
   std::cout << "Link : Delay\n";
-  for (int ilink{0}; ilink < 6; ilink++) {
+  for (std::size_t ilink{0}; ilink < 6; ilink++) {
     std::cout << "   " << ilink << " : ";
     if (delays.at(ilink) < 0) {
       std::cout << "not found";
     } else {
       std::cout << delays.at(ilink);
+    }
+    if (ilink < 2) {
+      for (std::size_t i_ch{2*ilink}; i_ch < 2*ilink+2; i_ch++) {
+        const auto& [p, c] = daq_pedestal_charge_adc.at(i_ch);
+        const auto& ch = injected_channels.at(i_ch);
+        std::cout
+          << " ch_" << ch
+          << ": " << p
+          << " -> " << c;
+      }
     }
     std::cout << '\n';
   }
