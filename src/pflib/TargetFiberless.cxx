@@ -57,7 +57,9 @@ class TargetFiberless : public Target {
   TargetFiberless() : Target() {
     
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
+    if(i2croc_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");}
     i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
+    if(i2cboard_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");}
 
     i2c_["HGCROC"] = i2croc_;
     i2c_["BOARD"] = i2cboard_;

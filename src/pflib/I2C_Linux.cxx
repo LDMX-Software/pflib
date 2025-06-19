@@ -169,41 +169,41 @@ std::vector<uint8_t> I2C_Linux::general_write_read(
 
 std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread){
   
-  int nmsgs = 0, nmsgs_sent;
-  
-  __u8 *buf;
+  __u8* buf; //Linux specific type-def that is not necessarily uint8_t
   
   struct i2c_msg msgs[I2C_RDRW_IOCTL_MAX_MSGS];
   for (int i = 0; i < I2C_RDRW_IOCTL_MAX_MSGS; i++)
     msgs[i].buf = NULL;
   struct i2c_rdwr_ioctl_data rdwr;
 
-  msgs[nmsgs].addr = i2c_dev_addr;
-  msgs[nmsgs].flags = 0;
-  msgs[nmsgs].len = wdata.size();
+  msgs[0].addr = i2c_dev_addr;
+  msgs[0].flags = 0;
+  msgs[0].len = wdata.size();
   buf = (__u8*)malloc(wdata.size());
+  if(buf == NULL){
+    PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
+  }
   memset(buf, 0, wdata.size());
-  msgs[nmsgs].buf = buf;
+  msgs[0].buf = buf;
   unsigned buf_idx = 0;
-  buf_idx = 0;
   while (buf_idx < wdata.size()) {
     __u8 data = wdata.at(buf_idx);
-    msgs[nmsgs].buf[buf_idx++] = data;
+    msgs[0].buf[buf_idx++] = data;
   }
-  nmsgs++;
 
-  unsigned long r_len = nread;
-  msgs[nmsgs].addr = i2c_dev_addr;
-  msgs[nmsgs].flags = I2C_M_RD;
-  msgs[nmsgs].len = r_len;
-  buf = (__u8*)malloc(r_len);
-  memset(buf, 0, r_len);
-  msgs[nmsgs].buf = buf;
-  nmsgs++;
+  msgs[1].addr = i2c_dev_addr;
+  msgs[1].flags = I2C_M_RD;
+  msgs[1].len = nread;
+  buf = (__u8*)malloc(nread);
+  if(buf == NULL){
+    PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
+  }
+  memset(buf, 0, nread);
+  msgs[1].buf = buf;
 
   rdwr.msgs = msgs;
-  rdwr.nmsgs = nmsgs;
-  nmsgs_sent = ioctl(handle_, I2C_RDWR, &rdwr);
+  rdwr.nmsgs = 2;
+  int nmsgs_sent = ioctl(handle_, I2C_RDWR, &rdwr);
 
   std::vector<uint8_t> ret;
   int read = !!(msgs[1].flags & I2C_M_RD);
