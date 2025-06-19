@@ -1241,28 +1241,52 @@ static void bias( const std::string& cmd, Target* pft ) {
   if (cmd=="READ_SIPM"){
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
-    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
-    std::cout << "DAC: " << bias.readSiPM(ich) << std::endl;
+    int ich=BaseMenu::readline_int("Which (zero-indexed) channel? (-1 for all) ",iboard);
+    if(ich == -1){
+      for(int i = 0; i < 16; i++){
+        std::cout << "Channel " << i << ": " << bias.readSiPM(i) << std::endl;
+      }
+    } else {
+      std::cout << "Channel " << ich << ": " << bias.readSiPM(ich) << std::endl;
+    }
   }
   if (cmd=="READ_LED"){
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
-    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
-    std::cout << "DAC: " << bias.readLED(ich) << std::endl;
+    int ich=BaseMenu::readline_int("Which (zero-indexed) channel? (-1 for all) ",iboard);
+    if(ich == -1){
+      for(int i = 0; i < 16; i++){
+        std::cout << "Channel " << i << ": " << bias.readLED(i) << std::endl;
+      }
+    } else {
+      std::cout << "Channel " << ich << ": " << bias.readLED(ich) << std::endl;
+    }
   }
   if (cmd=="SET_SIPM"){
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
-    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    int ich=BaseMenu::readline_int("Which (zero-indexed) channel? (-1 for all) ",iboard);
     uint16_t dac=BaseMenu::readline_int("Which DAC value? ", 0);
-    bias.setSiPM(ich, dac);
+    if(ich == -1){
+      for(int i = 0; i < 16; i++){
+        bias.setSiPM(i, dac);
+      }
+    } else {
+      bias.setSiPM(ich, dac);
+    }
   }
   if (cmd=="SET_LED"){
     iboard=BaseMenu::readline_int("Which board? ",iboard);
     pflib::Bias bias=pft->hcal().bias(iboard);
-    uint8_t ich=BaseMenu::readline_int("Which (zero-indexed) channel? ",iboard);
+    int ich=BaseMenu::readline_int("Which (zero-indexed) channel? (-1 for all) ",iboard);
     uint16_t dac=BaseMenu::readline_int("Which DAC value? ", 0);
-    bias.setLED(ich, dac);
+    if(ich == -1){
+      for(int i = 0; i < 16; i++){
+        bias.setLED(i, dac);
+      }
+    } else {
+      bias.setLED(ich, dac);
+    }
   }
   /*
   if (cmd=="STATUS") {
@@ -1397,10 +1421,10 @@ auto menu_roc =
 
 auto menu_bias = pftool::menu("BIAS","bias voltage settings")
   //->line("STATUS","Read the bias line settings", bias )
-  ->line("READ_SIPM","test", bias )
-  ->line("READ_LED","test", bias )
-  ->line("SET_SIPM","test", bias )
-  ->line("SET_LED","test", bias )
+  ->line("READ_SIPM","Read SiPM DAC values", bias )
+  ->line("READ_LED","Read LED DAC values", bias )
+  ->line("SET_SIPM","Set SiPM DAC values", bias )
+  ->line("SET_LED","Set LED DAC values", bias )
   //->line("INIT","Initialize a board", bias )
   //->line("SET","Set a specific bias line setting", bias )
   //->line("SET_ALL", "Set a specific bias line setting to every connector", bias)
