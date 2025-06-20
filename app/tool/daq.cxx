@@ -38,8 +38,6 @@ static void print_daq_status(Target* pft) {
  * - DMA : enable DMA readout pflib::rogue::RogueWishboneInterface::daq_dma_enable
  * - FPGA : Set the polarfire FPGA ID number (pflib::DAQ::setIds) and pass this
  *   to DMA setup if it is enabled
- * - STANDARD : Do FPGA command and setup links that are
- *   labeled as active (pflib::DAQ::setupLink)
  *
  * @param[in] cmd selected command from DAQ->SETUP menu
  * @param[in] pft active target
@@ -97,21 +95,6 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     }
 #endif
   }
-  if (cmd == "STANDARD") {
-    pflib::Elinks& elinks = pft->hcal().elinks();
-    for (int i = 0; i < daq.nlinks(); i++) {
-      // only correct right now for the single-board readout
-      if (i < 2) {
-        // DAQ link, timed in with pedestals and idles
-        daq.setupLink(i, 12, 40);
-      } else {
-        // Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
-        // The manual only reports one word per crossing per trigger link,
-        // but we capture four just in case I guess?
-        daq.setupLink(i, 0, 4);
-      }
-    }
-  }
   /*
   if (cmd=="FPGA") {
     int fpgaid=pftool::readline_int("FPGA id: ",daq.getFPGAid());
@@ -128,6 +111,47 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 #endif
   }
   */
+}
+
+/**
+ * DAQ.SETUP.STANDARD
+ *
+ * Do the standard setup for the HGCROC
+ * (i.e. the setup everyone should use unless you are
+ * looking at changing L1OFFSET or fast control command timing).
+ */
+static void daq_setup_standard(Target* tgt) {
+  /**
+   * In order to be able to shift the trigger link delay
+   * away from zero and allow us to capture a pre-sample
+   * in the trigger path, we need to bring the L1A closer
+   * in time to the injected charge pulse.
+   */
+  tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
+  /// this then requires us to lower the L1OFFSET as well
+  std::map<std::string,std::map<std::string, int>> l1offsets;
+  l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
+  l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
+  /// @note only correct right now for the single-board readout
+  tgt->hcal()
+    .roc(pftool::state.iroc, pftool::state.type_version())
+    .applyParameters(l1offsets);
+  pflib::Elinks& elinks = tgt->hcal().elinks();
+  auto& daq{tgt->hcal().daq()};
+  for (int i = 0; i < daq.nlinks(); i++) {
+    if (i < 2) {
+      /// DAQ link, timed in with pedestals and idles
+      daq.setupLink(i, 12, 40);
+    } else {
+      /**
+       * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
+       *
+       * There is only one word per crossing per trigger link,
+       * but we capture four (one pre-sample and 2 following samples).
+       */
+      daq.setupLink(i, 3, 4);
+    }
+  }
 }
 
 /**
@@ -591,7 +615,7 @@ auto menu_daq_debug =
             tgt->fc().chargepulse();
           })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
-        ->line("TRIGGER_TIMEIN", "look for canidate trigger delays", daq_debug_trigger_timein)
+        ->line("TRIGGER_TIMEIN", "look for candidate trigger delays", daq_debug_trigger_timein)
     ;
 
 auto menu_daq_setup =
@@ -600,7 +624,7 @@ auto menu_daq_setup =
         ->line("ENABLE", "Toggle enable status", daq_setup)
         ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
         ->line("FPGA", "Set FPGA id", daq_setup)
-        ->line("STANDARD", "Do the standard setup for HCAL", daq_setup)
+        ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)
         ->line("FORMAT", "Select the output data format", daq_setup)
         ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup)
     ;
