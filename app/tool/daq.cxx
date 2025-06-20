@@ -429,6 +429,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
     pflib_log(debug) << "delay : pedestal -> charge";
     std::array<int, 6> delays{-1,-1,-1,-1,-1,-1};
     std::array<std::pair<int,int>, 4> daq_pedestal_charge_adc;
+    std::array<std::pair<int,int>, 2> daq_ev;
     for (int ilink{0}; ilink < 6; ilink++) {
       pflib_log(debug) << "Link " << ilink;
       if (ilink < 2) {
@@ -449,10 +450,19 @@ static void daq_debug_trigger_timein(Target* tgt) {
                            << " -> " << pflib::packing::hex(charge)
                            << (is_header ? " <- header" : "");
         }
+
+        if (delays[ilink] < 0) {
+          // could not find the header
+          continue;
+        }
   
         // check if we found the injected charge pulses
         pflib::packing::DAQLinkFrame pedestal{std::span(pedestal_link_data.at(ilink).begin()+delays[ilink], 40)};
         pflib::packing::DAQLinkFrame charge{std::span(charge_link_data.at(ilink).begin()+delays[ilink], 40)};
+        daq_ev[ilink] = {
+          pedestal.event,
+          charge.event
+        };
         for (std::size_t i_ch{0}; i_ch < injected_channels.size(); i_ch++) {
           const int& ch{injected_channels[i_ch]};
           int i_link = (ch / 36);
@@ -503,13 +513,13 @@ static void daq_debug_trigger_timein(Target* tgt) {
         std::cout << delays.at(ilink);
       }
       if (ilink < 2) {
+        const auto& [evp, evc] = daq_ev.at(ilink);
+        std::cout << " event: " << evp << " -> " << evc;
         for (std::size_t i_ch{2*ilink}; i_ch < 2*ilink+2; i_ch++) {
           const auto& [p, c] = daq_pedestal_charge_adc.at(i_ch);
           const auto& ch = injected_channels.at(i_ch);
-          std::cout
-            << " ch_" << ch
-            << ": " << p
-            << " -> " << c;
+          std::cout << " ch_" << ch << (ch < 10 ? " " : "")
+                    << ": " << p << " -> " << c;
         }
       }
       std::cout << '\n';
