@@ -39,7 +39,6 @@ def plt_pulse(
     return art
 
 samples, run_params = read_pflib_csv(args.time_scan)
-samples['time'] = (samples.charge_to_l1a - 20 + 1)*25 - samples.phase_strobe*25/16
 plt_pulse(samples, label='ADC')
 plt.xlabel('time / ns = (charge_to_l1a - 20 + 1)*25 - samples.phase_strobe*25/16')
 plt.ylabel('ADC')
