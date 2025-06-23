@@ -52,22 +52,6 @@ def plt_pulse(
     return art
 
 samples, run_params = read_pflib_csv(args.time_scan)
-#print(samples)
-#samples['time'] = (samples.charge_to_l1a - 20)*25 + samples.phase_strobe*25/16
-#print(samples['time'] - (samples.charge_to_l1a - 20 + 1)*25 - samples.phase_strobe*25/16)
-
-times = []
-for samp in samples['time']:
-    times.append(samp)
-charge = []
-for samp in samples['charge_to_l1a']:
-    charge.append(samp)
-phase = []
-for samp in samples['phase_strobe']:
-    phase.append(samp)
-
-#for i in range(len(times)):
-    #print("time: ", times[i], " calc time: ", (charge[i] - 20)*25.0 - phase[i]*25.0/16)
 
 parameter_names = []
 

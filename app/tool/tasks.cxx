@@ -102,6 +102,7 @@ static void charge_timescan(Target* tgt) {
   int time{0};
   double clock_cycle{25.0};
   int n_phase_strobe{16};
+  int offset{1};
   pflib::DecodeAndWriteToCSV writer{
     fname,
     [&](std::ofstream& f) {
@@ -111,14 +112,12 @@ static void charge_timescan(Target* tgt) {
       header["highrange"] = highrange;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "time,charge_to_l1a,phase_strobe,"
+        << "time"
         << pflib::packing::Sample::to_csv_header
         << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << time << ','
-        << charge_to_l1a << ','
-        << phase_strobe << ',';
+      f << time << ',';
       ep.channel(channel).to_csv(f);
       f << '\n';
     } 
@@ -129,14 +128,14 @@ static void charge_timescan(Target* tgt) {
        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
     tgt->fc().fc_setup_calib(charge_to_l1a);
     pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-    for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
+    for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
       auto phase_strobe_test_handle = roc.testParameters()
         .add("TOP", "PHASE_STROBE", phase_strobe)
         .apply();
       pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
       usleep(10); // make sure parameters are applied
       time = 
-        (charge_to_l1a - central_charge_to_l1a) * clock_cycle
+        (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
         + phase_strobe * clock_cycle/n_phase_strobe;
       tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
@@ -144,7 +143,6 @@ static void charge_timescan(Target* tgt) {
   // reset charge_to_l1a to central value
   tgt->fc().fc_setup_calib(central_charge_to_l1a);
 }
-
 
 /**
  * TASKS.GEN_SCAN
@@ -302,17 +300,15 @@ static void parameter_timescan(Target* tgt) {
       header["preCC"] = preCC;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "time,charge_to_l1a,phase_strobe,";
+        << "time";
       for (const auto& [ page, parameter ] : param_names) {
-      	f << page << '.' << parameter << ',';
+        f << page << '.' << parameter << ',';
       }
       f << pflib::packing::Sample::to_csv_header
         << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << time << ','
-	      << charge_to_l1a << ','
-	      << phase_strobe << ',';
+      f << time << ',';
       for (const auto& val : param_values[i_param_point]) {
         f << val << ',';
       }
@@ -336,7 +332,7 @@ static void parameter_timescan(Target* tgt) {
 	  }
 	  auto test_param = test_param_builder.apply();
 	  // timescan
-          auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
 	  for (charge_to_l1a = central_charge_to_l1a+start_bx;
 	    charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
 	    tgt->fc().fc_setup_calib(charge_to_l1a);
@@ -344,7 +340,7 @@ static void parameter_timescan(Target* tgt) {
 	    for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
 	      auto phase_strobe_test_handle = roc.testParameters()
 	          .add("TOP", "PHASE_STROBE", phase_strobe)
-		  .apply();
+		        .apply();
 	      pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
 	      usleep(10); // make sure parameters are applied
 	      time = 
@@ -366,148 +362,3 @@ auto menu_tasks =
 	->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
 ;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
