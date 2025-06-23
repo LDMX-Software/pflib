@@ -31,10 +31,7 @@ void SingleROCEventPacket::from(std::span<uint32_t> data) {
     if (i_link < 2) {
       daq_links[i_link].from(data.subspan(link_start_offset, link_len));
     } else {
-      pflib_log(trace) << "trigger link - skip";
-      /*
       trigger_links[i_link-2].from(data.subspan(link_start_offset, link_len));
-      */
     }
     link_start_offset += link_len;
   }

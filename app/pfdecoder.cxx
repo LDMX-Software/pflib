@@ -24,6 +24,7 @@ static void usage() {
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
                "  --headers    : print header words and decoded value to term\n"
+               "  --trigger    : write out trigger links to term\n"
             << std::endl;
 }
 
@@ -37,6 +38,7 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("pfdecoder")};
 
+  bool trigger{false};
   bool headers{false};
   int nevents{-1};
   std::string in_file, out_file;
@@ -91,6 +93,8 @@ int main(int argc, char* argv[]) {
         }
       } else if (arg == "--headers") {
         headers = true;
+      } else if (arg == "--trigger") {
+        trigger = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -152,6 +156,20 @@ int main(int argc, char* argv[]) {
                     << " Orbit = " << daq_link.orbit << std::endl;
         }
       }
+
+      if (trigger) {
+        for (std::size_t i_link{0}; i_link < 4; i_link++) {
+          const auto& trig_link{ep.trigger_links[i_link]};
+          std::cout << "Link " << i_link+2 << " : TC" << trig_link.i_link << std::endl;
+          std::cout << " " << pflib::packing::hex(trig_link.data_words[1]) << std::endl;
+          for (std::size_t i_sum{0}; i_sum < 4; i_sum++) {
+            std::cout << "  Sum " << i_sum
+              << " = " << static_cast<int>(trig_link.compressed_sum(i_sum)) << " (compressed)" 
+              << " = " << trig_link.linearized_sum(i_sum) << " (linearized)" << std::endl;
+          }
+        }
+      }
+
       ep.to_csv(o);
       count++;
       if (nevents > 0 and count >= nevents) {
