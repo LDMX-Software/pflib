@@ -112,7 +112,7 @@ static void charge_timescan(Target* tgt) {
       header["highrange"] = highrange;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "time"
+        << "time,"
         << pflib::packing::Sample::to_csv_header
         << '\n';
     },
@@ -300,7 +300,7 @@ static void parameter_timescan(Target* tgt) {
       header["preCC"] = preCC;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "time";
+        << "time,";
       for (const auto& [ page, parameter ] : param_names) {
         f << page << '.' << parameter << ',';
       }
