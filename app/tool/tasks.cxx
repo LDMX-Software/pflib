@@ -14,6 +14,61 @@ ENABLE_LOGGING();
 #include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
 
+static
+std::tuple<std::vector<std::pair<std::string,std::string>>, std::vector<std::vector<int>>>
+load_parameter_points(const std::string& filepath) {
+  /**
+   * The input parameter points file is just a CSV where the header
+   * is used to define the parameters that will be set and the rows
+   * are the values of those parameters.
+   *
+   * For example, the CSV
+   * ```csv
+   * page.param1,page.param2
+   * 1,2
+   * 3,4
+   * ```
+   * would produce two runs with this command where the parameter settings are
+   * 1. page.param1 = 1 and page.param2 = 2
+   * 2. page.param1 = 3 and page.param2 = 4
+   */
+  std::vector<std::pair<std::string,std::string>> param_names;
+  std::vector<std::vector<int>> param_values;
+  pflib::utility::load_integer_csv(
+    filepath,
+    [&param_names,&param_values,&filepath]
+    (const std::vector<int>& row) {
+      if (row.size() != param_names.size()) {
+        PFEXCEPTION_RAISE("BadRow",
+            "A row in "+std::string(filepath)
+            +" contains "+std::to_string(row.size())
+            +" cells which is not "+std::to_string(param_names.size())
+            +" the number of parameters defined in the header.");
+      }
+      param_values.push_back(row);
+    },
+    [&param_names](const std::vector<std::string>& header) {
+      param_names.resize(header.size());
+      for (std::size_t i{0}; i < header.size(); i++) {
+        const auto& param_fullname = header[i];
+        auto dot = param_fullname.find(".");
+        if (dot == std::string::npos) {
+          PFEXCEPTION_RAISE("BadParam",
+              "Header cell "+param_fullname+" does not contain a '.' "
+              "separating the page and parameter names.");
+        }
+        param_names[i] = {
+          param_fullname.substr(0, dot),
+          param_fullname.substr(dot+1)
+        };
+        pflib_log(debug) << "parameter " << i << " is "
+          << param_names[i].first << "." << param_names[i].second;
+      }
+    }
+  ); 
+  return std::make_tuple(param_names, param_values);
+}
+
 /**
  * TASKS.CHARGE_TIMESCAN
  *
@@ -44,6 +99,9 @@ static void charge_timescan(Target* tgt) {
     .apply();
   int phase_strobe{0};
   int charge_to_l1a{0};
+  int time{0};
+  double clock_cycle{25.0};
+  int n_phase_strobe{16};
   pflib::DecodeAndWriteToCSV writer{
     fname,
     [&](std::ofstream& f) {
@@ -53,12 +111,13 @@ static void charge_timescan(Target* tgt) {
       header["highrange"] = highrange;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "charge_to_l1a,phase_strobe,"
+        << "time,charge_to_l1a,phase_strobe,"
         << pflib::packing::Sample::to_csv_header
         << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << charge_to_l1a << ','
+      f << time << ','
+        << charge_to_l1a << ','
         << phase_strobe << ',';
       ep.channel(channel).to_csv(f);
       f << '\n';
@@ -76,12 +135,16 @@ static void charge_timescan(Target* tgt) {
         .apply();
       pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
       usleep(10); // make sure parameters are applied
+      time = 
+        (charge_to_l1a - central_charge_to_l1a) * clock_cycle
+        + phase_strobe * clock_cycle/n_phase_strobe;
       tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
   }
   // reset charge_to_l1a to central value
   tgt->fc().fc_setup_calib(central_charge_to_l1a);
 }
+
 
 /**
  * TASKS.GEN_SCAN
@@ -122,55 +185,7 @@ static void gen_scan(Target* tgt) {
     pftool::readline("File of parameter points: ");
 
   pflib_log(info) << "loading parameter points file...";
-  /**
-   * The input parameter points file is just a CSV where the header
-   * is used to define the parameters that will be set and the rows
-   * are the values of those parameters.
-   *
-   * For example, the CSV
-   * ```csv
-   * page.param1,page.param2
-   * 1,2
-   * 3,4
-   * ```
-   * would produce two runs with this command where the parameter settings are
-   * 1. page.param1 = 1 and page.param2 = 2
-   * 2. page.param1 = 3 and page.param2 = 4
-   */
-  std::vector<std::pair<std::string,std::string>> param_names;
-  std::vector<std::vector<int>> param_values;
-  pflib::utility::load_integer_csv(
-      parameter_points_file,
-      [&param_names,&param_values,&parameter_points_file]
-      (const std::vector<int>& row) {
-        if (row.size() != param_names.size()) {
-          PFEXCEPTION_RAISE("BadRow",
-              "A row in "+std::string(parameter_points_file)
-              +" contains "+std::to_string(row.size())
-              +" cells which is not "+std::to_string(param_names.size())
-              +" the number of parameters defined in the header.");
-        }
-        param_values.push_back(row);
-      },
-      [&param_names](const std::vector<std::string>& header) {
-        param_names.resize(header.size());
-        for (std::size_t i{0}; i < header.size(); i++) {
-          const auto& param_fullname = header[i];
-          auto dot = param_fullname.find(".");
-          if (dot == std::string::npos) {
-            PFEXCEPTION_RAISE("BadParam",
-                "Header cell "+param_fullname+" does not contain a '.' "
-                "separating the page and parameter names.");
-          }
-          param_names[i] = {
-            param_fullname.substr(0, dot),
-            param_fullname.substr(dot+1)
-          };
-          pflib_log(debug) << "parameter " << i << " is "
-            << param_names[i].first << "." << param_names[i].second;
-        }
-      }
-  );
+  auto [param_names, param_values ] = load_parameter_points(parameter_points_file);
   pflib_log(info) << "successfully loaded parameter points";
 
   std::string output_filepath =
@@ -240,10 +255,6 @@ static void gen_scan(Target* tgt) {
  * In essence, an implementation of gen_scan into charge_timescan, to see how pulse shapes
  * transform with varying parameters.
  *
- * todo:
- * currently the time conversion implemented in this function does not work.
- * The sample gets shifted somehow. Maybe it's a int to double conversion error?
- *
  */
 static void parameter_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
@@ -272,61 +283,15 @@ static void parameter_timescan(Target* tgt) {
     pftool::readline("File of parameter points: ");
 
   pflib_log(info) << "loading parameter points file...";
-  /**
-   * The input parameter points file is just a CSV where the header
-   * is used to define the parameters that will be set and the rows
-   * are the values of those parameters.
-   *
-   * For example, the CSV
-   * ```csv
-   * page.param1,page.param2
-   * 1,2
-   * 3,4
-   * ```
-   * would produce two runs with this command where the parameter settings are
-   * 1. page.param1 = 1 and page.param2 = 2
-   * 2. page.param1 = 3 and page.param2 = 4
-   */
-  std::vector<std::pair<std::string,std::string>> param_names;
-  std::vector<std::vector<int>> param_values;
-  pflib::utility::load_integer_csv(
-      parameter_points_file,
-      [&param_names,&param_values,&parameter_points_file]
-      (const std::vector<int>& row) {
-        if (row.size() != param_names.size()) {
-          PFEXCEPTION_RAISE("BadRow",
-              "A row in "+std::string(parameter_points_file)
-              +" contains "+std::to_string(row.size())
-              +" cells which is not "+std::to_string(param_names.size())
-              +" the number of parameters defined in the header.");
-        }
-        param_values.push_back(row);
-      },
-      [&param_names](const std::vector<std::string>& header) {
-        param_names.resize(header.size());
-        for (std::size_t i{0}; i < header.size(); i++) {
-          const auto& param_fullname = header[i];
-          auto dot = param_fullname.find(".");
-          if (dot == std::string::npos) {
-            PFEXCEPTION_RAISE("BadParam",
-                "Header cell "+param_fullname+" does not contain a '.' "
-                "separating the page and parameter names.");
-          }
-          param_names[i] = {
-            param_fullname.substr(0, dot),
-            param_fullname.substr(dot+1)
-          };
-          pflib_log(debug) << "parameter " << i << " is "
-            << param_names[i].first << "." << param_names[i].second;
-        }
-      }
-  );
+  auto [param_names, param_values ] = load_parameter_points(parameter_points_file);
   pflib_log(info) << "successfully loaded parameter points";
 
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
-
+  double clock_cycle{25.0};
+  int n_phase_strobe{16};
+  int offset{1};
   std::size_t i_param_point{0};
   pflib::DecodeAndWriteToCSV writer{
     fname,
@@ -346,8 +311,8 @@ static void parameter_timescan(Target* tgt) {
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
       f << time << ','
-	<< charge_to_l1a << ','
-	<< phase_strobe << ',';
+	      << charge_to_l1a << ','
+	      << phase_strobe << ',';
       for (const auto& val : param_values[i_param_point]) {
         f << val << ',';
       }
@@ -355,11 +320,9 @@ static void parameter_timescan(Target* tgt) {
       f << '\n';
     } 
   };
-
-
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
-	  // set parameters
+    // set parameters
 	  auto test_param_builder = roc.testParameters();
 	  // Add implementation for other pages as well
 	  for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
@@ -373,18 +336,20 @@ static void parameter_timescan(Target* tgt) {
 	  }
 	  auto test_param = test_param_builder.apply();
 	  // timescan
-  	  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+          auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
 	  for (charge_to_l1a = central_charge_to_l1a+start_bx;
-	       charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+	    charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
 	    tgt->fc().fc_setup_calib(charge_to_l1a);
 	    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-	    for (phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
+	    for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
 	      auto phase_strobe_test_handle = roc.testParameters()
-		.add("TOP", "PHASE_STROBE", phase_strobe)
-		.apply();
+	          .add("TOP", "PHASE_STROBE", phase_strobe)
+		  .apply();
 	      pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
 	      usleep(10); // make sure parameters are applied
-	      time = (charge_to_l1a - 20 + 1) * 25.0 + phase_strobe * 25.0/16.0;
+	      time = 
+          (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
+          - phase_strobe * clock_cycle/n_phase_strobe;
 	      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
 	    }
 	  }
@@ -401,4 +366,148 @@ auto menu_tasks =
 	->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
 ;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
