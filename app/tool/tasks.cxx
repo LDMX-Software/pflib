@@ -329,6 +329,7 @@ static void parameter_timescan(Target* tgt) {
       param_names[i_param].second,
       param_values[i_param_point][i_param]
       );
+      pflib_log(info) << param_names[i_param].second << " = " << param_values[i_param_point][i_param];
     }
     auto test_param = test_param_builder.apply();
     // timescan
