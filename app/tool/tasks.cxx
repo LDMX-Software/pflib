@@ -319,38 +319,38 @@ static void parameter_timescan(Target* tgt) {
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     // set parameters
-	  auto test_param_builder = roc.testParameters();
-	  // Add implementation for other pages as well
-	  for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
-		  test_param_builder.add(
-			(param_names[i_param].first == "REFERENCEVOLTAGE_0" ? refvol_page : 
-			 param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
-			 param_names[i_param].first),
-			param_names[i_param].second,
-			param_values[i_param_point][i_param]
-		  );
-	  }
-	  auto test_param = test_param_builder.apply();
-	  // timescan
+    auto test_param_builder = roc.testParameters();
+    // Add implementation for other pages as well
+    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+      test_param_builder.add(
+      (param_names[i_param].first == "REFERENCEVOLTAGE_0" ? refvol_page : 
+       param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
+       param_names[i_param].first),
+      param_names[i_param].second,
+      param_values[i_param_point][i_param]
+      );
+    }
+    auto test_param = test_param_builder.apply();
+    // timescan
     auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-	  for (charge_to_l1a = central_charge_to_l1a+start_bx;
-	    charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
-	    tgt->fc().fc_setup_calib(charge_to_l1a);
-	    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-	    for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
-	      auto phase_strobe_test_handle = roc.testParameters()
-	          .add("TOP", "PHASE_STROBE", phase_strobe)
-		        .apply();
-	      pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
-	      usleep(10); // make sure parameters are applied
-	      time = 
+    for (charge_to_l1a = central_charge_to_l1a+start_bx;
+      charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+      tgt->fc().fc_setup_calib(charge_to_l1a);
+      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+      for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+        auto phase_strobe_test_handle = roc.testParameters()
+            .add("TOP", "PHASE_STROBE", phase_strobe)
+            .apply();
+        pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+        usleep(10); // make sure parameters are applied
+        time = 
           (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
           - phase_strobe * clock_cycle/n_phase_strobe;
-	      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
-	    }
-	  }
-	  // reset charge_to_l1a to central value
-	  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+      }
+    }
+    // reset charge_to_l1a to central value
+    tgt->fc().fc_setup_calib(central_charge_to_l1a);
   }
 }
 
@@ -359,6 +359,6 @@ auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
-	->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
+        ->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
 ;
 }
