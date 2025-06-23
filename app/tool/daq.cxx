@@ -119,6 +119,28 @@ static void daq_setup(const std::string& cmd, Target* pft) {
  * Do the standard setup for the HGCROC
  * (i.e. the setup everyone should use unless you are
  * looking at changing L1OFFSET or fast control command timing).
+ *
+ * ## What Do
+ * - Setup fast control so that the calib-pulse and l1a are timed in
+ *   and the trigger links are delayed slightly so we can gather a
+ *   pre-sample (see Issue #140 and PR #151 for context)
+ * - Configure ROC to have L1OFFSET corresponding to this FC timing
+ * - Put ROC into Running Mode
+ * - Set delays and captures on the elinks
+ *
+ * ## When to Call
+ * This command is designed to set up this configuration on other
+ * (non software memory) places so that it does not need to be
+ * called often. Specifically, we store things in
+ * - the firmware's memory block via UIO for link capture and
+ *   fast command settings
+ * - the HGCROC's parameter registers
+ * This means if either the firmware is reset/reloaded or the HGCROC
+ * is reset/power-cycled, this function needs to be called.
+ *
+ * @note If the firmware was changed or the HGCROC was power-cycled,
+ * make sure to align the elinks before calling this function
+ * (e.g. with EXPERT.ELINKS.AUTO which has been pretty stable).
  */
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
@@ -135,9 +157,11 @@ static void daq_setup_standard(Target* tgt) {
   l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
   l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
   /// @note only correct right now for the single-board readout
-  tgt->hcal()
-    .roc(pftool::state.iroc, pftool::state.type_version())
-    .applyParameters(l1offsets);
+  auto roc{
+    tgt->hcal()
+      .roc(pftool::state.iroc, pftool::state.type_version())};
+  roc.applyParameters(l1offsets);
+  roc.setRunMode(true);
   pflib::Elinks& elinks = tgt->hcal().elinks();
   auto& daq{tgt->hcal().daq()};
   for (int i = 0; i < daq.nlinks(); i++) {
