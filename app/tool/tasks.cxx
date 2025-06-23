@@ -425,7 +425,7 @@ static void trim_inv_scan(Target* tgt) {
 
   for (int ch = ch_start; ch <= ch_end; ++ch) {
     pflib_log(info) << "Running CH_" << ch;
-    for (int trim = 0; trim <= 53; ++trim) {
+    for (int trim = 0; trim <= 128; ++trim) {
       //pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
 
       // Set the test parameter
@@ -442,6 +442,125 @@ static void trim_inv_scan(Target* tgt) {
   }
 }
 
+/**
+ * TASKS.SAMPLING_PHASE_SCAN
+ * 
+ * Scan over phase_ck, check pedestal 16 times for each.
+ */
+static void sampling_phase_scan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 1);
+  int channel = pftool::readline_int("First channel to pedestal? ", 0);
+  // std::vector<std::string> trigger_types = { "PEDESTAL", "CHARGE" };
+  // std::string trigger = pftool::readline("Trigger type: ", trigger_types);
+  std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+
+  boost::json::object header;
+  header["scan_type"] = "CH_#.phase_ck scan";
+  header["trigger"] = "PEDESTAL"; // hardcoded for now
+  header["nevents_per_point"] = nevents;
+  header["channel"] = channel;
+
+  pflib::DecodeAndWriteToCSV writer{
+    fname, //output file name
+    [&](std::ofstream& f) {
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n'
+        << "channel,phase_ck,"
+        << pflib::packing::Sample::to_csv_header
+        << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      // Writing channels and phase_ck to the CSV
+      f << header["current_channel"].as_int64() << ',' << header["current_phase_ck"].as_int64() << ',';
+      ep.channel(header["current_channel"].as_int64()).to_csv(f);
+      f << '\n';
+    } 
+  };
+
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  
+  // Loop over phases, then loop over channels and do pedestals.
+  for (int phase = 0; phase <= 15; ++phase) {
+    pflib_log(info) << "Scanning phase_ck = " << phase;
+    auto phase_test_handle = roc.testParameters()
+      .add("TOP", "PHASE_CK", phase)
+      .apply();
+    for (int ch = channel; ch < channel + 2; ++ch) {
+      pflib_log(info) << "Running channel " << ch;
+      for (int pedestal = 0; pedestal < 16; ++pedestal) {
+        pflib_log(info) << "Pedestal # = " << pedestal;
+        // Store current scan state in header for writer access
+        header["current_channel"] = ch;
+        header["current_phase_ck"] = phase;
+      
+        tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+      }
+    }
+  }
+}
+
+static void trim_inv_align(Target* tgt){
+  //run a trim_inv_scan that we're going to use to find our optimal values
+  //reused code from trim_inv_scan with hardcoded values
+  int minLink = pftool::readline_int("Minimum elink to be aligned?", 0);
+  int maxLink = pftool::readline_int("Maximum elink to be aligned?", 1);
+  int nevents = 1;
+  int ch_start = minLink *36;
+  int ch_end   = maxLink * 36 + 35;
+  std::string trigger = "PEDESTAL";
+
+  std::string output_filepath = "temp_trim_inv_scan.csv";
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  boost::json::object header;
+  header["scan_type"] = "CH_#.TRIM_INV sweep";
+  header["trigger"] = trigger;
+  header["nevents_per_point"] = nevents;
+  header["channel_range"] = std::to_string(ch_start) + "-" + std::to_string(ch_end);
+
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n';
+      f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      // Only write data from the current channel
+      f << header["current_channel"].as_int64() << ',' << header["current_trim_inv"].as_int64() << ',';
+      ep.channel(header["current_channel"].as_int64()).to_csv(f);
+      f << '\n';
+    }
+
+    
+  };
+
+  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+  for (int ch = ch_start; ch <= ch_end; ++ch) {
+    pflib_log(info) << "Running CH_" << ch;
+    for (int trim = 0; trim <= 128; ++trim) {
+      //pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
+
+      // Set the test parameter
+      auto test_param = roc.testParameters()
+        .add("CH_" + std::to_string(ch), "TRIM_INV", trim)
+        .apply();
+
+      // Store current scan state in header for writer access
+      header["current_channel"] = ch;
+      header["current_trim_inv"] = trim;
+
+      tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
+    }
+  }
+
+}
+
+
+
 
 
 namespace {
@@ -452,6 +571,7 @@ auto menu_tasks =
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("TRIM_INV_SCAN", "scan trim_inv over a range of channels", trim_inv_scan)
         ->line("TWENTY_CHARGE_TIMESCAN", "scan charge/calib pulse over time, first 20 channels in link", twenty_charge_timescan)
-
+        ->line("SAMPLING_PHASE_SCAN", "scan over phase_ck, pedestal trigger 16 times", sampling_phase_scan)
+        ->line("TRIM_INV_ALIGN", "align adc pedestals in each channel by changing trim_inv to optimal values", trim_inv_align)
 ;
 }
