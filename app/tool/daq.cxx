@@ -121,6 +121,8 @@ static void daq_setup(const std::string& cmd, Target* pft) {
  * looking at changing L1OFFSET or fast control command timing).
  */
 static void daq_setup_standard(Target* tgt) {
+  /// do a standard fast control setup before tuning it below
+  tgt->fc().standard_setup();
   /**
    * In order to be able to shift the trigger link delay
    * away from zero and allow us to capture a pre-sample
