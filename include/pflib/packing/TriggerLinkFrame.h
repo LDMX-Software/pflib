@@ -102,7 +102,11 @@ struct TriggerLinkFrame {
    * view a subslice of a larger std::vector.
    */
   TriggerLinkFrame(std::span<uint32_t> data);
+
+  /// default constructor which does nothing
   TriggerLinkFrame() = default;
+
+  /// handle to logging for decoding warnings
   mutable logging::logger the_log_{logging::get("decoding")};
 };
 

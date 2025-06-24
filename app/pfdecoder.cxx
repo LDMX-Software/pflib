@@ -159,13 +159,9 @@ int main(int argc, char* argv[]) {
 
       if (trigger) {
         for (std::size_t i_link{0}; i_link < 4; i_link++) {
-          const auto& trig_link{ep.trigger_links[i_link]};
-          std::cout << "Link " << i_link+2 << " : TC" << trig_link.i_link << std::endl;
-          std::cout << " " << pflib::packing::hex(trig_link.data_words[1]) << std::endl;
           for (std::size_t i_sum{0}; i_sum < 4; i_sum++) {
-            std::cout << "  Sum " << i_sum
-              << " = " << static_cast<int>(trig_link.compressed_sum(i_sum)) << " (compressed)" 
-              << " = " << trig_link.linearized_sum(i_sum) << " (linearized)" << std::endl;
+            std::cout << "TC" << i_link << "_" << i_sum
+              << " = " << ep.trigsum(i_link, i_sum) << std::endl;
           }
         }
       }
