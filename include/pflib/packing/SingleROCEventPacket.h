@@ -61,6 +61,21 @@ class SingleROCEventPacket {
    * the channel index within the link [0,35].
    */
   Sample channel(int ch) const;
+
+  /**
+   * Get a trigger cell sum
+   *
+   * We do not have a unified ID number for trigger cells
+   * defined at the moment, so you need to specify both
+   * which trigger link it comes from and the index of the
+   * sum within that trigger link.
+   *
+   * @param[in] i_link trigger link 0-3
+   * @param[in] i_sum index of sum within the link 0-3
+   * @param[in] i_bx index of BX relative to in-time sample,
+   * default is 0 (the in-time sample)
+   */
+  uint32_t trigsum(int i_link, int i_sum, int i_bx = 0) const;
   /// default constructor that does nothing
   SingleROCEventPacket() = default;
 };

@@ -24,6 +24,7 @@ static void usage() {
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
                "  --headers    : print header words and decoded value to term\n"
+               "  --trigger    : write out trigger links to term\n"
             << std::endl;
 }
 
@@ -37,6 +38,7 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("pfdecoder")};
 
+  bool trigger{false};
   bool headers{false};
   int nevents{-1};
   std::string in_file, out_file;
@@ -91,6 +93,8 @@ int main(int argc, char* argv[]) {
         }
       } else if (arg == "--headers") {
         headers = true;
+      } else if (arg == "--trigger") {
+        trigger = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -152,6 +156,16 @@ int main(int argc, char* argv[]) {
                     << " Orbit = " << daq_link.orbit << std::endl;
         }
       }
+
+      if (trigger) {
+        for (std::size_t i_link{0}; i_link < 4; i_link++) {
+          for (std::size_t i_sum{0}; i_sum < 4; i_sum++) {
+            std::cout << "TC" << i_link << "_" << i_sum
+              << " = " << ep.trigsum(i_link, i_sum) << std::endl;
+          }
+        }
+      }
+
       ep.to_csv(o);
       count++;
       if (nevents > 0 and count >= nevents) {
