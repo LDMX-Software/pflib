@@ -16,14 +16,8 @@ from read import read_pflib_csv
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
-parser.add_argument('-pt','--plot_type', nargs='?', const='SCATTER', default='SCATTER', type=str, help='which type to plot with. Options: SCATTER, HEATMAP')
-
-args = parser.parse_args()
-
 plot_types = ['SCATTER', 'HEATMAP']
-
-if args.plot_type not in plot_types:
-    raise ValueError(str(args.plot_type) + ' is not a valid plot type. Options: SCATTER, HEATMAP')
+parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'which type to plot with. Options: {','.join(plot_types)}')
 
 if args.output is None:
     args.output = args.time_scan.with_suffix(".png")
