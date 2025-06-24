@@ -142,7 +142,7 @@ static void charge_timescan(Target* tgt) {
       usleep(10); // make sure parameters are applied
       time = 
         (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
-        + phase_strobe * clock_cycle/n_phase_strobe;
+        - phase_strobe * clock_cycle/n_phase_strobe;
       tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
   }
