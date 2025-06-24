@@ -105,7 +105,7 @@ static void charge_timescan(Target* tgt) {
     .apply();
   int phase_strobe{0};
   int charge_to_l1a{0};
-  int time{0};
+  double time{0};
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
