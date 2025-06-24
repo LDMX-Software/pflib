@@ -173,21 +173,21 @@ BOOST_AUTO_TEST_SUITE(trigger)
 BOOST_AUTO_TEST_CASE(example_decompression) {
   uint8_t compressed = 0b0100111;
   uint32_t decomp = 0b1111000;
-  BOOST_CHECK_EQUAL(decomp, pflib::packing::compressed_to_linearized(compressed));
+  BOOST_CHECK_EQUAL(decomp, pflib::packing::TriggerLinkFrame::compressed_to_linearized(compressed));
 }
 
 BOOST_AUTO_TEST_CASE(decompress_zero) {
-  BOOST_CHECK_EQUAL(0, pflib::packing::compressed_to_linearized(0));
+  BOOST_CHECK_EQUAL(0, pflib::packing::TriggerLinkFrame::compressed_to_linearized(0));
 }
 
 BOOST_AUTO_TEST_CASE(decompress_small) {
-  BOOST_CHECK_EQUAL(5, pflib::packing::compressed_to_linearized(5));
+  BOOST_CHECK_EQUAL(5, pflib::packing::TriggerLinkFrame::compressed_to_linearized(5));
 }
 
 BOOST_AUTO_TEST_CASE(decompress_large) {
   uint8_t compressed = 0b1111011;
   uint32_t decomp = 0b101100000000000000;
-  BOOST_CHECK_EQUAL(decomp, pflib::packing::compressed_to_linearized(compressed));
+  BOOST_CHECK_EQUAL(decomp, pflib::packing::TriggerLinkFrame::compressed_to_linearized(compressed));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

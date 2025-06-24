@@ -7,7 +7,7 @@
 
 namespace pflib::packing {
 
-uint32_t compressed_to_linearized(uint8_t cs) {
+uint32_t TriggerLinkFrame::compressed_to_linearized(uint8_t cs) {
   auto pos = (cs >> 3) & 0xf;
   if (pos < 1) {
     // no position stored (i.e. compressed value is < 8)

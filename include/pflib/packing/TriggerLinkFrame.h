@@ -8,36 +8,36 @@
 namespace pflib::packing {
 
 /**
- * Convert a compressed trigger sum into its linearized equivalent
- *
- * The chip lossy compresses its trigger sums into seven bits
- * and this function decompresses the sum into our best estimate
- * of what the on-chip trigger sum was.
- *
- * @note This function undoes the wacky compression algorithm, but
- * the scale of the linearized sum is not quite correct.
- * If SelTC4 = 1 on the chip (sums of 4 channels), then this result
- * needs to be multiplied by 2 (or left-bit-shift by one).
- * If SelTC4 = 0 on the chip (sums of 9 channels), then this result
- * needs to be multiplied by 8 (or left-bit-shift by three)
- *
- * If SelTC4 stores the setting on the chip when the data was collected,
- * ```cpp
- * uint32_t ts = compressed_to_linearized(cs) << (SelTC4 ? 1 : 3);
- * ```
- *
- * @param[in] cs compressed sum to unpack
- * @return unpacked linearized sum
- */
-uint32_t compressed_to_linearized(uint8_t cs);
-
-/**
  * Without a trigger link set up, the decoding cannot be fuctionally tested.
  *
  * This class is merely a skeleton of how unpacking could be done for these
  * trigger link frames.
  */
 struct TriggerLinkFrame {
+  /**
+   * Convert a compressed trigger sum into its linearized equivalent
+   *
+   * The chip lossy compresses its trigger sums into seven bits
+   * and this function decompresses the sum into our best estimate
+   * of what the on-chip trigger sum was.
+   *
+   * @note This function undoes the wacky compression algorithm, but
+   * the scale of the linearized sum is not quite correct.
+   * If SelTC4 = 1 on the chip (sums of 4 channels), then this result
+   * needs to be multiplied by 2 (or left-bit-shift by one).
+   * If SelTC4 = 0 on the chip (sums of 9 channels), then this result
+   * needs to be multiplied by 8 (or left-bit-shift by three)
+   *
+   * If SelTC4 stores the setting on the chip when the data was collected,
+   * ```cpp
+   * uint32_t ts = compressed_to_linearized(cs) << (SelTC4 ? 1 : 3);
+   * ```
+   *
+   * @param[in] cs compressed sum to unpack
+   * @return unpacked linearized sum
+   */
+  static uint32_t compressed_to_linearized(uint8_t cs);
+
   /// index of data words containg sample of interest
   static const int i_soi_ = 1;
 
