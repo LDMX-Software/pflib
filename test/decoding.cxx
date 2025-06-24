@@ -190,6 +190,27 @@ BOOST_AUTO_TEST_CASE(decompress_large) {
   BOOST_CHECK_EQUAL(decomp, pflib::packing::TriggerLinkFrame::compressed_to_linearized(compressed));
 }
 
+BOOST_AUTO_TEST_CASE(full_frame) {
+  std::vector<uint32_t> frame = {
+    0x300000f0, // sw header
+    0xafe00000, // i_sum=0 is full at i_bx=-1
+    0xa01fc000, // i_sum=1 is full at i_bx=0
+    0xa0003f80, // i_sum=2 is full at i_bx=1
+    0xa000007f  // i_sum=3 is full at i_bx=2
+  };
+  pflib::packing::TriggerLinkFrame tlf(frame);
+  BOOST_CHECK_EQUAL(tlf.i_link, 0xf0);
+  for (int i_bx{-1}; i_bx < 3; i_bx++) {
+    for (int i_sum{0}; i_sum < 4; i_sum++) {
+      BOOST_TEST_INFO("checking compressed sum " << i_sum << " in BX " << i_bx);
+      BOOST_CHECK_EQUAL(
+        tlf.compressed_sum(i_sum, i_bx),
+        (i_sum-1 == i_bx) ? 0x7f : 0
+      );
+    }
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

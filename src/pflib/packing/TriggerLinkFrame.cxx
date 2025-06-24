@@ -52,7 +52,7 @@ uint8_t TriggerLinkFrame::compressed_sum(int i_sum, int i_bx) const {
         +" is outside the allow range of 0 to 3");
   }
   uint32_t w = data_words[i_soi_+i_bx];
-  return ((w >> (i_sum*7)) & mask<7>);
+  return ((w >> ((3-i_sum)*7)) & mask<7>);
 }
 
 uint32_t TriggerLinkFrame::linearized_sum(int i_sum, int i_bx) const {
