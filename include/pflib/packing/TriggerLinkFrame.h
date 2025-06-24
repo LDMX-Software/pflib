@@ -28,10 +28,13 @@ struct TriggerLinkFrame {
    * If SelTC4 = 0 on the chip (sums of 9 channels), then this result
    * needs to be multiplied by 8 (or left-bit-shift by three)
    *
-   * If SelTC4 stores the setting on the chip when the data was collected,
+   * If `SelTC4` stores the setting on the chip when the data was collected
+   * and `lin_val` is the value returned by this function, then
    * ```cpp
-   * uint32_t ts = compressed_to_linearized(cs) << (SelTC4 ? 1 : 3);
+   * lin_val << (SelTC4 ? 1 : 3)
    * ```
+   * is the integer value pertaining to the correct scale of the sums as
+   * determined on the chip.
    *
    * @param[in] cs compressed sum to unpack
    * @return unpacked linearized sum
