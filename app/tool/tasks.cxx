@@ -101,7 +101,7 @@ static void charge_timescan(Target* tgt) {
     .add(refvol_page, "INTCTEST", 1)
     .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
     .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-    .add(channel_page, "LOWRANGE", highrange ? 0 : 1)
+    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
   int phase_strobe{0};
   int charge_to_l1a{0};
@@ -280,7 +280,7 @@ static void parameter_timescan(Target* tgt) {
     .add(refvol_page, "INTCTEST", 1)
     .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
     .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-    .add(channel_page, "LOWRANGE", highrange ? 0 : 1)
+    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
 
   std::filesystem::path parameter_points_file =
