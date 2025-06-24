@@ -26,14 +26,16 @@ void TriggerLinkFrame::from(std::span<uint32_t> data) {
         std::to_string(data.size()));
   }
 
-  if ((data[0] >> 28) != 0x3) {
+  corruption[0] = ((data[0] >> 28) != 0x3);
+  if (corruption[0]) {
     pflib_log(warn) << "bad link frame header inserted by software, probably software bug";
   }
 
   i_link = (data[0] & mask<8>);
   for (std::size_t i_word{0}; i_word < 4; i_word++) {
     auto head{data[i_word + 1] >> 28};
-    if (head != 0xa and head != 0x6) {
+    corruption[i_word+1] = (head != 0xa and head != 0x9);
+    if (corruption[i_word+1]) {
       pflib_log(warn) << "bad leading-four bits inserted by chip, probably link misalignment";
     }
     data_words[i_word] = data[i_word + 1];
