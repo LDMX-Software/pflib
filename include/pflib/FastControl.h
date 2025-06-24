@@ -21,6 +21,12 @@ class FastControl {
    */
   virtual void resetCounters() {}
 
+  /**
+   * Do standard setup for FastControl interface
+   * e.g. constructing fast control commands for requesting later
+   */
+  virtual void standard_setup() {}
+
   /** send a single L1A */
   virtual void sendL1A() = 0;
 
