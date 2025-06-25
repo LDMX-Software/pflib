@@ -99,6 +99,7 @@ class FastControlCMS_MMap : public FastControl {
     pflib_log(debug) << "charge-l1a fast command: " << periodic(CHARGE_L1A_PERIODIC);
     pflib_log(debug) << "led fast command: " << periodic(LED_PERIODIC);
     pflib_log(debug) << "led-l1a fast command: " << periodic(LED_L1A_PERIODIC);
+    pflib_log(debug) << "l1a-l1a fast command: " << periodic(L1A_L1A_PERIODIC);
   }
 
   ~FastControlCMS_MMap() = default;
@@ -110,6 +111,7 @@ class FastControlCMS_MMap : public FastControl {
   static const int CHARGE_L1A_PERIODIC = 4;
   static const int LED_PERIODIC = 5;
   static const int LED_L1A_PERIODIC = 6;
+  static const int L1A_L1A_PERIODIC = 7;
 
   void standard_setup() override {
     Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
@@ -155,6 +157,15 @@ class FastControlCMS_MMap : public FastControl {
     l1a_led.orbit_prescale = 0;
     l1a_led.enable = true;
     l1a_led.pack();
+
+    Periodic l1a_l1a(periodic(L1A_L1A_PERIODIC));
+    l1a_l1a.bx = std_l1a.bx + 1;
+    l1a_l1a.flavor = 0;
+    l1a_l1a.enable_follow = true;
+    l1a_l1a.follow_which = PEDESTAL_PERIODIC;
+    l1a_l1a.orbit_prescale = 0;
+    l1a_l1a.enable = true;
+    l1a_l1a.pack();
 
     // enable the BCR, L1As (in general)
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_ORBITSYNC, CTL_ENABLE_ORBITSYNC);
