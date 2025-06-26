@@ -20,6 +20,8 @@ plot_types = ['SCATTER', 'HEATMAP']
 plot_funcs = ['TIME', 'PARAMS']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'which type to plot with. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'which function to plot with. Options: {", ".join(plot_types)}')
+parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
+parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to label the y-axis with.')
 
 args = parser.parse_args()
 
@@ -45,8 +47,8 @@ def plt_gen(
     samples,
     set_xticks = True,
     ax = None,
-    xlabel = 'time [ns]',
-    ylabel = 'ADC',
+    xlabel = args.xlabel,
+    ylabel = args.ylabel,
     **kwargs
 ):
     plt.figure()
@@ -115,6 +117,8 @@ def plt_param(
 if args.plot_function == 'PARAMS':
     plt_gen(plt_param, samples)
 
+
+
 """
     Two options for heatmaps, when having multiple events per timepoint.
     The first is creating a heatmap for each individual CALIB voltage, 
@@ -124,6 +128,8 @@ if args.plot_function == 'PARAMS':
 """
 
 if args.plot_type == 'HEATMAP':
+    groups, param_name = get_params(samples)
+
     x_min = min(group_df['time'].min() for _, group_df in groups)
     x_max = max(group_df['time'].max() for _, group_df in groups)
     y_min = min(group_df['adc'].min() for _, group_df in groups) - 50
@@ -148,7 +154,7 @@ if args.plot_type == 'HEATMAP':
 
     #individual heatmap for each CALIB
     for group_id, group_df in groups:
-        val = group_df[parameter_names[0]].iloc[0]
+        val = group_df[param_name].iloc[0]
         H_norm = norm_heatmap(group_df['time'], group_df['adc'], x_edges, y_edges)
 
         plt.figure()
@@ -173,7 +179,7 @@ if args.plot_type == 'HEATMAP':
     H_combined = np.zeros((len(x_edges) - 1, len(y_edges) - 1))
 
     for group_id, group_df in groups:
-        val = group_df[parameter_names[0]].iloc[0] 
+        val = group_df[param_name].iloc[0] 
         H_norm = norm_heatmap(group_df['time'], group_df['adc'], x_edges, y_edges)
         H_combined += H_norm
 
@@ -188,7 +194,7 @@ if args.plot_type == 'HEATMAP':
         vmax=1
     )
 
-    calib_vals = [group_df[parameter_names[0]].iloc[0] for _, group_df in groups]
+    calib_vals = [group_df[param_name].iloc[0] for _, group_df in groups]
     calib_str = ", ".join(str(v) for v in calib_vals)
 
     plt.colorbar(label='Normalized Counts')
