@@ -34,9 +34,11 @@ for column in samples:
 
 groups = samples.groupby(parameter_names[0])
 
+print(type(groups))
+
 plt.figure()
-plt.xlabel('time [ns]')
-plt.ylabel('ADC')
+#plt.xlabel('time [ns]')
+#plt.ylabel('ADC')
 plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]))
 plt.grid()
 
@@ -46,9 +48,27 @@ n = len(groups)
 for i, (group_id, group_df) in enumerate(groups):
     val = group_df[parameter_names[0]].iloc[0]
     color = cmap(i/n)
-    plt.scatter(group_df['time'], group_df['adc'], label=f'CALIB = {val}', s=5, color=color)
+    #plt.scatter(group_df['time'], group_df['adc'], label=f'CALIB = {val}', s=5, color=color)
     if (n < 10):
         plt.legend()
 
+#plt.savefig(args.output, bbox_inches='tight')
+#plt.clf()
+
+# Seperate function here for plotting max ADC vs calib
+
+x = []
+y = []
+
+for _, group_df in groups:
+    y.append(group_df['adc'].max())
+    val = group_df[parameter_names[0]].iloc[0]
+    x.append(val)
+
+
+plt.xlabel('calib')
+plt.ylabel('ADC')
+plt.scatter(x,y)
 plt.savefig(args.output, bbox_inches='tight')
 plt.clf()
+
