@@ -231,7 +231,7 @@ if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
     If we want to plot multiple csv files!
 """
 
-def multiparams:
+def multiparams(
     samples_collection,
     ax
 ):
