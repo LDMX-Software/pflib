@@ -24,29 +24,6 @@ args = parser.parse_args()
 if args.output is None:
     args.output = args.time_scan.with_suffix(".png")
 
-def plt_pulse(
-    samples,
-    time = 'time',
-    amplitude = 'adc',
-    set_xticks = True,
-    ax = None,
-    **kwargs
-):
-    df = samples.samples.sort_values(by=time)
-    if ax is None:
-        ax = plt.gca()
-    if args.plot_type == 'SCATTER':
-        art = ax.plot(df[time], df[amplitude], **kwargs, s=4,)
-    elif args.plot_type == 'HEATMAP':
-        art = ax.imshow(df[time], df[amplitude], **kwargs)
-    if set_xticks:
-        xmin, xmax = df[time].min(), df[time].max()
-        xmin = 25*np.floor(xmin/25)
-        xmax = 25*np.ceil(xmax/25)
-        ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
-        ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True)
-    return art
-
 samples, run_params = read_pflib_csv(args.time_scan)
 
 parameter_names = []
@@ -70,7 +47,8 @@ for i, (group_id, group_df) in enumerate(groups):
     val = group_df[parameter_names[0]].iloc[0]
     color = cmap(i/n)
     plt.scatter(group_df['time'], group_df['adc'], label=f'CALIB = {val}', s=5, color=color)
-    plt.legend()
+    if (n < 10):
+        plt.legend()
 
 plt.savefig(args.output, bbox_inches='tight')
 plt.clf()
