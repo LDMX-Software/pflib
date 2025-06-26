@@ -33,10 +33,11 @@ multicsv = bool(args.extra_csv_files)
 
 samples, run_params = read_pflib_csv(args.time_scan)
 if multicsv:
-    sample_collection = [samples]
+    samples_collection = [samples]
     run_params_collection = [run_params]
-    for samples, run_params in read_pflib_csv(args.extra_csv_files):
-        sample_collection.append(samples)
+    for csv in args.extra_csv_files:
+        samples, run_params = read_pflib_csv(csv)
+        samples_collection.append(samples)
         run_params_collection.append(run_params)
 
 #################### FUNCS ########################
@@ -54,7 +55,7 @@ def set_xticks (
 def plt_gen(
     plotting_func,
     samples,
-    multicsv = False,
+    run_params,
     xticks = True,
     ax = None,
     xlabel = args.xlabel,
@@ -64,11 +65,14 @@ def plt_gen(
     plt.figure()
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]))
+    if multicsv:
+        plt.title('Data from multiple csv files')
+    else:
+        plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]))
     plt.grid()
     #Run the specified plot
     ax = plt.gca()
-    plotting_func(samples, ax)
+    plotting_func(samples, run_params, ax)
     plt.savefig(args.output, bbox_inches='tight')
     plt.clf()
 
@@ -91,6 +95,7 @@ def get_params(
 
 def time(
     samples,
+    run_params,
     ax,
     xticks = True
 ):
@@ -106,7 +111,7 @@ def time(
         plt.legend()
 
 if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
-    plt_gen(plt_time, samples)
+    plt_gen(time, samples, run_params)
 
 """
     Plot the ADC vs a requested parameter
@@ -116,6 +121,7 @@ if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
 
 def param(
     samples,
+    run_params,
     ax
 ):
     groups, param_name = get_params(samples)
@@ -125,10 +131,11 @@ def param(
         y.append(group_df['adc'].max())
         val = group_df[param_name].iloc[0]
         x.append(val)
-    ax.scatter(x,y)
+    ax.scatter(x,y,label=(' '.join([f'{key} = {val}' for key, val in run_params.items()])))
+    ax.legend()
 
 if args.plot_function == 'PARAMS':
-    plt_gen(plt_param, samples)
+    plt_gen(param, samples, run_params)
 
 
 
@@ -142,6 +149,7 @@ if args.plot_function == 'PARAMS':
 
 def heatmaps(
     samples,
+    run_params,
     ax
 ):
     groups, param_name = get_params(samples)
@@ -222,7 +230,7 @@ def heatmaps(
     plt.close()
 
 if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-    plt_gen(heatmap, samples)
+    plt_gen(heatmap, samples, run_params)
 
 """
     If we want to plot multiple csv files!
@@ -230,15 +238,16 @@ if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
 
 def multiparams(
     samples_collection,
+    run_params_collection,
     ax
 ):
-    for samples in samples_collection:
+    for i in range(len(samples_collection)):
         if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
-            plt_time(samples, ax)
+            time(samples_collection[i], run_params_collection[i], ax)
         elif args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-            plt_heatmap(samples, ax)
+            heatmap(samples_collection[i], run_params_collection[i], ax)
         elif args.plot_function == 'PARAMS':
-            plt_param(samples, ax)
+            param(samples_collection[i], run_params_collection[i], ax)
 
 if multicsv:
-    plt_gen(multiparams)
+    plt_gen(multiparams, samples_collection, run_params_collection)
