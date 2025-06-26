@@ -571,7 +571,69 @@ static void sampling_phase_scan(Target* tgt) {
   }
 
 
+/**
+   * TASKS.NOINV_VREF_SCAN
+   * 
+   * Perform NOINV_VREF scan for each link 
+   * used to trim adc pedestals between two links
+   * same as inv_vref_scan with noinv_vref parameter instead
+   */
+  static void noinv_vref_scan(Target* tgt) {
+    int nevents = pftool::readline_int("Number of events per point: ", 1);
 
+    std::string output_filepath = pftool::readline_path("noinv_vref_scan", ".csv");
+
+    auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+    boost::json::object header;
+    header["scan_type"] = "CH_#.noinv_vref_scan";
+    header["trigger"] = "PEDESTAL";
+    header["nevents_per_point"] = nevents;
+    header["channel"] = 0;
+
+    pflib::DecodeAndWriteToCSV writer{
+      output_filepath,
+      [&](std::ofstream& f) {
+        f << std::boolalpha
+          << "# " << boost::json::serialize(header) << '\n';
+        f << "channel,NOINV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
+      },
+      [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+        // Only write data from the current channel
+        f << header["channel"].as_int64() << ',' << header["noinv_vref"].as_int64() << ',';
+        ep.channel(header["channel"].as_int64()).to_csv(f);
+        f << '\n';
+      }
+    };
+
+    tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+    //set global params HZ_noinv on each link (arbitrary channel on each)
+     auto test_param = roc.testParameters()
+       .add("CH_17", "HZ_NOINV", 1)
+       .add("CH_53", "HZ_NOINV", 1)
+       .apply();
+
+    //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+    for (int noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
+      pflib_log(info) << "Running NOINV_VREF = " << noinv_vref;
+      //set inv_vref simultaneously for both links
+      auto test_param = roc.testParameters()
+        .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
+        .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
+        .apply();
+        // Store current scan state in header for writer access
+        header["noinv_vref"] = noinv_vref;
+        
+        //do adc pedestal run for each channel; definitley not coded correctly but unsure how to rewrite
+        //scan to take scan over all channels at same time (since i'm only changing a link-wide parameter)
+        for (int ch = 0; ch < 72; ++ch){
+          header["channel"] = ch;
+      
+          tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+        }
+    }
+  }
 
 
 
@@ -585,5 +647,7 @@ auto menu_tasks =
         ->line("TRIM_INV_SCAN", "scan trim_inv over a range of channels", trim_inv_scan)
         ->line("TWENTY_CHARGE_TIMESCAN", "scan charge/calib pulse over time, first 20 channels in link", twenty_charge_timescan)
         ->line("SAMPLING_PHASE_SCAN", "scan over phase_ck, pedestal trigger 16 times", sampling_phase_scan)
-        ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan);
+        ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
+        ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan);
+
 }
