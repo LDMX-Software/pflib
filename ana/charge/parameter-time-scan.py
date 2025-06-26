@@ -15,15 +15,14 @@ from read import read_pflib_csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
-parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files')
+parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
 plot_funcs = ['TIME', 'PARAMS']
-parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'which type to plot with. Options: {", ".join(plot_types)}')
-parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'which function to plot with. Options: {", ".join(plot_types)}')
+parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
+parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
 parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to label the y-axis with.')
-
 args = parser.parse_args()
 
 if args.output is None:
@@ -41,7 +40,9 @@ if multicsv:
         run_params_collection.append(run_params)
 
 #################### FUNCS ########################
-
+"""
+    Set xticks
+"""
 def set_xticks (
     xvar,
     ax
@@ -51,6 +52,11 @@ def set_xticks (
     xmax = 25*np.ceil(xmax/25)
     ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
     ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True) 
+
+"""
+    General function that defines the plotting canvas, runs the selected plotting function
+    and saves it to the output
+"""
 
 def plt_gen(
     plotting_func,
@@ -88,9 +94,7 @@ def get_params(
 
 
 """
-    Plot the requested parameter vs time.
-
-    Takes input csv from tasks.parameter_timescan
+    Plot a selected parameter vs time.
 """
 
 def time(
@@ -110,13 +114,9 @@ def time(
         plt.scatter(group_df['time'], group_df['adc'], label=f'CALIB = {val}', s=5, color=color)
         plt.legend()
 
-if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
-    plt_gen(time, samples, run_params)
-
 """
-    Plot the ADC vs a requested parameter
-
-    Takes input csv from tasks.parameter_timescan
+    Plot the ADC vs a selected parameter on a scatter plot. 
+    If multicsv, then the legend is set to the params for the given csv file.
 """
 
 def param(
@@ -133,14 +133,9 @@ def param(
         x.append(val)
     if multicsv:
         ax.scatter(x,y,label=(' '.join([f'{key} = {val}' for key, val in run_params.items()])))
+        ax.legend()
     else:
         ax.scatter(x,y)
-    ax.legend()
-
-if args.plot_function == 'PARAMS':
-    plt_gen(param, samples, run_params)
-
-
 
 """
     Two options for heatmaps, when having multiple events per timepoint.
@@ -232,11 +227,13 @@ def heatmaps(
     plt.savefig(f'{args.output}_CombinedHeatmap.png', dpi=200)
     plt.close()
 
-if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-    plt_gen(heatmap, samples, run_params)
-
 """
     If we want to plot multiple csv files!
+
+    Takes collections (lists) instead of single sample, run_params, and loops over them
+    for a given plot function. 
+
+    So far only tested for PARAMS.
 """
 
 def multiparams(
@@ -251,6 +248,17 @@ def multiparams(
             heatmap(samples_collection[i], run_params_collection[i], ax)
         elif args.plot_function == 'PARAMS':
             param(samples_collection[i], run_params_collection[i], ax)
+
+############################## MAIN ###################################
+
+if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
+    plt_gen(time, samples, run_params)
+
+if args.plot_function == 'PARAMS':
+    plt_gen(param, samples, run_params)
+
+if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
+    plt_gen(heatmap, samples, run_params)
 
 if multicsv:
     plt_gen(multiparams, samples_collection, run_params_collection)
