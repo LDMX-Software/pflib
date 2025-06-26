@@ -131,7 +131,10 @@ def param(
         y.append(group_df['adc'].max())
         val = group_df[param_name].iloc[0]
         x.append(val)
-    ax.scatter(x,y,label=(' '.join([f'{key} = {val}' for key, val in run_params.items()])))
+    if multicsv:
+        ax.scatter(x,y,label=(' '.join([f'{key} = {val}' for key, val in run_params.items()])))
+    else:
+        ax.scatter(x,y)
     ax.legend()
 
 if args.plot_function == 'PARAMS':
