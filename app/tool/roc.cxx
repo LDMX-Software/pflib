@@ -181,7 +181,7 @@ auto menu_roc =
         ->line("PAGE", "a page of the parameters on the chip", roc)
         ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
         ->line("POKE", "change a single parameter value", roc)
-        ->line("LOAD", "Alias for LOAD_PARAM", roc)
+        ->line("LOAD", "Load parameter values onto the chip from a YAML file", roc)
         ->line("DUMP", "Dump hgcroc settings to a file", roc)
     ;
 
