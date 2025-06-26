@@ -15,6 +15,7 @@ from read import read_pflib_csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
+parser.add_argument('-ex', '--extra_csv_files', type=Path, help='time scan data, if you want to plot data from multiple csv files')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
 plot_funcs = ['TIME', 'PARAMS']
@@ -28,7 +29,18 @@ args = parser.parse_args()
 if args.output is None:
     args.output = args.time_scan.with_suffix(".png")
 
+multicsv = False
+if len(args.extra_csv_files) > 0:
+    multicsv = True
+
+
 samples, run_params = read_pflib_csv(args.time_scan)
+if multicsv:
+    sample_collection = [samples]
+    run_params_collection = [run_params]
+    for samples, run_params in read_pflib_csv(args.extra_csv_files)
+        sample_collection.append(samples)
+        run_params_collection.append(run_params)
 
 #################### FUNCS ########################
 
@@ -45,6 +57,7 @@ def set_xticks (
 def plt_gen(
     plotting_func,
     samples,
+    multicsv = False,
     xticks = True,
     ax = None,
     xlabel = args.xlabel,
@@ -79,7 +92,7 @@ def get_params(
     Takes input csv from tasks.parameter_timescan
 """
 
-def plt_time(
+def time(
     samples,
     ax,
     xticks = True
@@ -104,7 +117,7 @@ if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
     Takes input csv from tasks.parameter_timescan
 """
 
-def plt_param(
+def param(
     samples,
     ax
 ):
@@ -130,7 +143,10 @@ if args.plot_function == 'PARAMS':
     Takes input csv from tasks.parameter_timescan
 """
 
-if args.plot_type == 'HEATMAP':
+def heatmaps(
+    samples,
+    ax
+):
     groups, param_name = get_params(samples)
 
     x_min = min(group_df['time'].min() for _, group_df in groups)
@@ -209,4 +225,23 @@ if args.plot_type == 'HEATMAP':
     plt.close()
 
 if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-    plt_gen(plt_heatmap, samples)
+    plt_gen(heatmap, samples)
+
+"""
+    If we want to plot multiple csv files!
+"""
+
+def multiparams:
+    samples_collection,
+    ax
+):
+    for samples in samples_collection:
+        if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
+            plt_time(samples, ax)
+        elif args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
+            plt_heatmap(samples, ax)
+        elif args.plot_function == 'PARAMS':
+            plt_param(samples, ax)
+
+if multicsv:
+    plt_gen(multiparams)
