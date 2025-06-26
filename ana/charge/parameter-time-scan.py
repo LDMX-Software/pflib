@@ -32,11 +32,11 @@ samples, run_params = read_pflib_csv(args.time_scan)
 
 #################### FUNCS ########################
 
-def set_xtix (
-    samples,
+def set_xticks (
+    xvar,
     ax
 ):
-    xmin, xmax = df[time].min(), df[time].max()
+    xmin, xmax = xvar.min(), xvar.max()
     xmin = 25*np.floor(xmin/25)
     xmax = 25*np.ceil(xmax/25)
     ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
@@ -45,7 +45,7 @@ def set_xtix (
 def plt_gen(
     plotting_func,
     samples,
-    set_xticks = True,
+    xticks = True,
     ax = None,
     xlabel = args.xlabel,
     ylabel = args.ylabel,
@@ -63,7 +63,7 @@ def plt_gen(
     plt.clf()
 
 def get_params(
-    samples,
+    samples
 ):
     parameter_names = []
     for column in samples:
@@ -81,8 +81,11 @@ def get_params(
 
 def plt_time(
     samples,
-    ax
+    ax,
+    xticks = True
 ):
+    if xticks:
+        set_xticks(samples['time'], ax)
     groups, param_name = get_params(samples)
     cmap = plt.get_cmap('viridis')
     n = len(groups)
