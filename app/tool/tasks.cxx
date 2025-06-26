@@ -545,8 +545,8 @@ static void sampling_phase_scan(Target* tgt) {
 
     //set global params HZ_noinv on each link (arbitrary channel on each)
      auto test_param = roc.testParameters()
-       .add("CH_17", "HZ_INV", 1)
-       .add("CH_53", "HZ_INV", 1)
+       .add("CH_17", "HZ_NOINV", 1)
+       .add("CH_53", "HZ_NOINV", 1)
        .apply();
 
     //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
