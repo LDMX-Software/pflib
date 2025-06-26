@@ -15,7 +15,7 @@ from read import read_pflib_csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
-parser.add_argument('-ex', '--extra_csv_files', type=Path, help='time scan data, if you want to plot data from multiple csv files')
+parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
 plot_funcs = ['TIME', 'PARAMS']
@@ -29,16 +29,13 @@ args = parser.parse_args()
 if args.output is None:
     args.output = args.time_scan.with_suffix(".png")
 
-multicsv = False
-if len(args.extra_csv_files) > 0:
-    multicsv = True
-
+multicsv = bool(args.extra_csv_files)
 
 samples, run_params = read_pflib_csv(args.time_scan)
 if multicsv:
     sample_collection = [samples]
     run_params_collection = [run_params]
-    for samples, run_params in read_pflib_csv(args.extra_csv_files)
+    for samples, run_params in read_pflib_csv(args.extra_csv_files):
         sample_collection.append(samples)
         run_params_collection.append(run_params)
 
