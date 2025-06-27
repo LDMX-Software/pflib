@@ -283,7 +283,6 @@ static void trim_inv_scan(Target* tgt) {
       f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      // Only write data from the current channel
       f << header["current_channel"].as_int64() << ',' << header["current_trim_inv"].as_int64() << ',';
       ep.channel(header["current_channel"].as_int64()).to_csv(f);
       f << '\n';
@@ -294,15 +293,14 @@ static void trim_inv_scan(Target* tgt) {
 
   for (int ch = ch_start; ch <= ch_end; ++ch) {
     pflib_log(info) << "Running CH_" << ch;
+    //increments of 4
     for (int trim = 0; trim <= 63; trim+=4) {
       //pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
 
-      // Set the test parameter
       auto test_param = roc.testParameters()
         .add("CH_" + std::to_string(ch), "TRIM_INV", trim)
         .apply();
 
-      // Store current scan state in header for writer access
       header["current_channel"] = ch;
       header["current_trim_inv"] = trim;
 
@@ -338,7 +336,6 @@ static void inv_vref_scan(Target* tgt) {
       f << "channel,INV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      // Only write data from the current channel
       f << header["channel"].as_int64() << ',' << header["inv_vref"].as_int64() << ',';
       ep.channel(header["channel"].as_int64()).to_csv(f);
       f << '\n';
@@ -403,7 +400,6 @@ static void noinv_vref_scan(Target* tgt) {
       f << "channel,NOINV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      // Only write data from the current channel
       f << header["channel"].as_int64() << ',' << header["noinv_vref"].as_int64() << ',';
       ep.channel(header["channel"].as_int64()).to_csv(f);
       f << '\n';
@@ -426,7 +422,6 @@ static void noinv_vref_scan(Target* tgt) {
       .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
       .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
       .apply();
-      //Store current scan state in header for writer access
       header["noinv_vref"] = noinv_vref;
       
       //do adc pedestal run for each channel; definitley not coded correctly but unsure how to rewrite
