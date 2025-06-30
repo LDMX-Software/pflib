@@ -200,7 +200,8 @@ add_executable(pftool
   app/tool/expert.cxx
   app/tool/roc.cxx
   app/tool/daq.cxx
-  app/tool/tasks.cxx)
+  app/tool/tasks.cxx
+  app/tool/bias.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
