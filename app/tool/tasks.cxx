@@ -83,7 +83,7 @@ load_parameter_points(const std::string& filepath) {
  */
 static void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  bool isLED = pftool::readline_int("Flash LED?", true);
+  bool isLED = pftool::readline_bool("Flash LED instead of the internal calibration pulse?", true);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int link = (channel / 36);
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
