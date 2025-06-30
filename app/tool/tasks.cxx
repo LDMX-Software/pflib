@@ -260,10 +260,6 @@ static void gen_scan(Target* tgt) {
  */
 static void trim_inv_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
-  int ch_start = pftool::readline_int("Start channel (m): ", 0);
-  int ch_end   = pftool::readline_int("End channel (n): ", 71);
-  std::vector<std::string> trigger_types = { "PEDESTAL", "CHARGE" };
-  std::string trigger = pftool::readline("Trigger type: ", trigger_types);
 
   std::string output_filepath = pftool::readline_path("trim_inv_scan", ".csv");
 
@@ -271,9 +267,8 @@ static void trim_inv_scan(Target* tgt) {
 
   boost::json::object header;
   header["scan_type"] = "CH_#.TRIM_INV sweep";
-  header["trigger"] = trigger;
+  header["trigger"] = "PEDESTAL";
   header["nevents_per_point"] = nevents;
-  header["channel_range"] = std::to_string(ch_start) + "-" + std::to_string(ch_end);
 
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
@@ -283,29 +278,28 @@ static void trim_inv_scan(Target* tgt) {
       f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << header["current_channel"].as_int64() << ',' << header["current_trim_inv"].as_int64() << ',';
-      ep.channel(header["current_channel"].as_int64()).to_csv(f);
+    int trim_inv = header["current_trim_inv"].as_int64();  // Still valid
+    for (int ch = 0; ch < 72; ++ch) {
+      f << ch << ',' << trim_inv << ',';
+      ep.channel(ch).to_csv(f);
       f << '\n';
     }
+}
   };
 
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
-  for (int ch = ch_start; ch <= ch_end; ++ch) {
-    pflib_log(info) << "Running CH_" << ch;
-    //increments of 4
-    for (int trim = 0; trim <= 63; trim+=4) {
-      //pflib_log(info) << "Running CH_" << ch << ".TRIM_INV = " << trim;
-
-      auto test_param = roc.testParameters()
-        .add("CH_" + std::to_string(ch), "TRIM_INV", trim)
-        .apply();
-
-      header["current_channel"] = ch;
-      header["current_trim_inv"] = trim;
-
-      tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
+  //take pedestal run on each parameter point
+  for (int trim = 0; trim <= 63; trim+=4) {
+    pflib_log(info) << "Running TRIM_INV = " << trim;
+    auto trim_inv_test_builder = roc.testParameters();
+    for (int ch{0}; ch < 72; ch++) {
+      trim_inv_test_builder.add("CH_"+std::to_string(ch), "TRIM_INV", trim);
     }
+    auto trim_inv_test = trim_inv_test_builder.apply();
+    header["current_trim_inv"] = trim;
+    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    
   }
 }
 
@@ -335,10 +329,12 @@ static void inv_vref_scan(Target* tgt) {
         << "# " << boost::json::serialize(header) << '\n';
       f << "channel,INV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
     },
-    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << header["channel"].as_int64() << ',' << header["inv_vref"].as_int64() << ',';
-      ep.channel(header["channel"].as_int64()).to_csv(f);
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+    for (int ch{0}; ch < 72; ch++) {
+      f << ch << ',' << header["inv_vref"].as_int64() << ',';
+      ep.channel(ch).to_csv(f);
       f << '\n';
+    }
     }
   };
 
@@ -360,14 +356,7 @@ static void inv_vref_scan(Target* tgt) {
       .apply();
       //store current scan state in header for writer access
       header["inv_vref"] = inv_vref;
-      
-      //do adc pedestal run for each channel; definitley not coded correctly but unsure how to rewrite
-      //scan to take scan over all channels at same time (since i'm only changing a link-wide parameter)
-      for (int ch = 0; ch < 72; ++ch){
-        header["channel"] = ch;
-    
-        tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
-      }
+      tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
 
@@ -399,12 +388,15 @@ static void noinv_vref_scan(Target* tgt) {
         << "# " << boost::json::serialize(header) << '\n';
       f << "channel,NOINV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
     },
-    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << header["channel"].as_int64() << ',' << header["noinv_vref"].as_int64() << ',';
-      ep.channel(header["channel"].as_int64()).to_csv(f);
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+    for (int ch{0}; ch < 72; ch++) {
+      f << ch << ',' << header["noinv_vref"].as_int64() << ',';
+      ep.channel(ch).to_csv(f);
       f << '\n';
     }
+    }
   };
+
 
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
@@ -424,13 +416,7 @@ static void noinv_vref_scan(Target* tgt) {
       .apply();
       header["noinv_vref"] = noinv_vref;
       
-      //do adc pedestal run for each channel; definitley not coded correctly but unsure how to rewrite
-      //scan to take scan over all channels at same time (since i'm only changing a link-wide parameter)
-      for (int ch = 0; ch < 72; ++ch){
-        header["channel"] = ch;
-    
-        tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
-      }
+      tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
 
