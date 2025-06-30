@@ -277,14 +277,13 @@ static void trim_inv_scan(Target* tgt) {
         << "# " << boost::json::serialize(header) << '\n';
       f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
     },
-    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-    int trim_inv = header["current_trim_inv"].as_int64();  // Still valid
-    for (int ch = 0; ch < 72; ++ch) {
-      f << ch << ',' << trim_inv << ',';
-      ep.channel(ch).to_csv(f);
-      f << '\n';
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+      for (int ch{0}; ch < 72; ch++) {
+        f << ch << ',' << header["trim_inv"].as_int64() << ',';
+        ep.channel(ch).to_csv(f);
+        f << '\n';
+      }
     }
-}
   };
 
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
@@ -297,7 +296,7 @@ static void trim_inv_scan(Target* tgt) {
       trim_inv_test_builder.add("CH_"+std::to_string(ch), "TRIM_INV", trim);
     }
     auto trim_inv_test = trim_inv_test_builder.apply();
-    header["current_trim_inv"] = trim;
+    header["trim_inv"] = trim;
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
     
   }
