@@ -134,7 +134,6 @@ target_link_libraries(packing PUBLIC utility)
 
 # Build the pf library
 #
-#  src/pflib/Bias.cxx
 #  src/pflib/FastControl.cxx
   
 add_library(pflib SHARED 
@@ -158,6 +157,7 @@ add_library(pflib SHARED
   src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
+  src/pflib/Bias.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
