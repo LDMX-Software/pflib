@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
+#include <errno.h>
 
 #include "pflib/packing/Hex.h"
 
@@ -176,34 +177,46 @@ std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(int i2c_dev_addr, const
     msgs[i].buf = NULL;
   struct i2c_rdwr_ioctl_data rdwr;
 
-  msgs[0].addr = i2c_dev_addr;
-  msgs[0].flags = 0;
-  msgs[0].len = wdata.size();
-  buf = (__u8*)malloc(wdata.size());
-  if(buf == NULL){
-    PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
-  }
-  memset(buf, 0, wdata.size());
-  msgs[0].buf = buf;
-  unsigned buf_idx = 0;
-  while (buf_idx < wdata.size()) {
-    __u8 data = wdata.at(buf_idx);
-    msgs[0].buf[buf_idx++] = data;
+  int msg_i = 0;
+
+  if(wdata.size() > 0){
+    msgs[msg_i].addr = i2c_dev_addr;
+    msgs[msg_i].flags = 0;
+    msgs[msg_i].len = wdata.size();
+    buf = (__u8*)malloc(wdata.size());
+    if(buf == NULL){
+      PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
+    }
+    memset(buf, 0, wdata.size());
+    msgs[msg_i].buf = buf;
+    unsigned buf_idx = 0;
+    while (buf_idx < wdata.size()) {
+      __u8 data = wdata.at(buf_idx);
+      msgs[msg_i].buf[buf_idx++] = data;
+    }
+    msg_i++;
   }
 
-  msgs[1].addr = i2c_dev_addr;
-  msgs[1].flags = I2C_M_RD;
-  msgs[1].len = nread;
-  buf = (__u8*)malloc(nread);
-  if(buf == NULL){
-    PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
+  if(nread > 0){
+    msgs[msg_i].addr = i2c_dev_addr;
+    msgs[msg_i].flags = I2C_M_RD;
+    msgs[msg_i].len = nread;
+    buf = (__u8*)malloc(nread);
+    if(buf == NULL){
+      PFEXCEPTION_RAISE("I2CError", "Could not malloc buffer");
+    }
+    memset(buf, 0, nread);
+    msgs[msg_i].buf = buf;
+    msg_i++;
   }
-  memset(buf, 0, nread);
-  msgs[1].buf = buf;
 
   rdwr.msgs = msgs;
-  rdwr.nmsgs = 2;
+  rdwr.nmsgs = msg_i;
   int nmsgs_sent = ioctl(handle_, I2C_RDWR, &rdwr);
+
+  if(nmsgs_sent < 0){
+    PFEXCEPTION_RAISE("I2CError", strerror(errno));
+  }
 
   std::vector<uint8_t> ret;
   int read = !!(msgs[1].flags & I2C_M_RD);
@@ -213,7 +226,7 @@ std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(int i2c_dev_addr, const
     }
   }
 
-  for (int i = 0; i <= nmsgs_sent; i++)
+  for (int i = 0; i <= msg_i; i++)
     free(msgs[i].buf);
  
   return ret; 
