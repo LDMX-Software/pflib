@@ -192,6 +192,7 @@ add_executable(
   test/on_zcu/hgcroc_connection.cxx
   test/on_zcu/test_parameters.cxx
   test/on_zcu/elinks_aligned.cxx
+  test/on_zcu/read_bias.cxx
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
