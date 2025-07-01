@@ -150,15 +150,21 @@ static void charge_timescan(Target* tgt) {
     } 
   };
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  int central_charge_to_l1a;
+  if(isLED){
+    central_charge_to_l1a = tgt->fc().fc_get_setup_led();
+  } else {
+    central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  }
   for (charge_to_l1a = central_charge_to_l1a+start_bx;
        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
     if(isLED){
       tgt->fc().fc_setup_led(charge_to_l1a);
+      pflib_log(info) << "led_to_l1a = " << tgt->fc().fc_get_setup_led();
     } else {
       tgt->fc().fc_setup_calib(charge_to_l1a);
+      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
     }
-    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
     for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
       auto phase_strobe_test_handle = roc.testParameters()
         .add("TOP", "PHASE_STROBE", phase_strobe)
@@ -176,7 +182,11 @@ static void charge_timescan(Target* tgt) {
     }
   }
   // reset charge_to_l1a to central value
-  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  if(isLED){
+    tgt->fc().fc_setup_led(central_charge_to_l1a);
+  } else {
+    tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  }
 }
 
 /**

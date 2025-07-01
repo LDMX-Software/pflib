@@ -140,7 +140,7 @@ class FastControlCMS_MMap : public FastControl {
     l1a_charge.pack();
 
     Periodic pled(periodic(LED_PERIODIC));
-    pled.bx = 10;     // needs tuning
+    pled.bx = 12;     // needs tuning
     pled.flavor = 3;  // external calibration pulse
     pled.enable_follow = false;
     pled.orbit_prescale = 1000;
