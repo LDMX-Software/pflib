@@ -219,10 +219,12 @@ std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(int i2c_dev_addr, const
   }
 
   std::vector<uint8_t> ret;
-  int read = !!(msgs[1].flags & I2C_M_RD);
-  if (msgs[1].len && read) {
-    for (int j = 0; j < msgs[1].len; j++){
-      ret.push_back(msgs[1].buf[j]);
+  for(int i = 0; i < msg_i; i++){
+    int read = !!(msgs[i].flags & I2C_M_RD);
+    if (msgs[i].len && read) {
+      for (int j = 0; j < msgs[i].len; j++){
+        ret.push_back(msgs[i].buf[j]);
+      }
     }
   }
 
