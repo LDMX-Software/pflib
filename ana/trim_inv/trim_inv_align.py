@@ -41,10 +41,10 @@ stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 #find slope, offset of each channel doing a fit of trim_inv vs adc
 #hardcoded with channel ranges as of now, in future add i_link to csv in tasks.trim_inv_scan
 for channel in range(min_link * 36, max_link * 36 + 36):
-    if df.loc[df['channel'] == channel].empty:
+    if df[str(channel)].empty:
         continue
-    adc = (df.loc[df['channel'] == channel, 'adc']).to_numpy()
-    trim_inv = (df.loc[df['channel'] == channel, 'TRIM_INV']).to_numpy()
+    adc = (df[str(channel)].to_numpy())
+    trim_inv = (df['TRIM_INV']).to_numpy()
     slope, offset, r_value, p_value, slope_err = lr(trim_inv, adc)
     stats.loc[len(stats)] = [channel, slope, offset]
 
@@ -64,7 +64,7 @@ for i in range (min_link, max_link + 1):
 
     #optimal trim_inv value for channel using fit and target offset
     for channel in range(mCH, nCH):
-        if df.loc[df['channel'] == channel].empty:
+        if df[str(channel)].empty:
             continue
         offset = link.loc[link['channel'] == channel, 'offset'].values[0]
         slope = link.loc[link['channel'] == channel, 'slope'].values[0]

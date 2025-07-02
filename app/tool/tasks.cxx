@@ -274,16 +274,19 @@ static void trim_inv_scan(Target* tgt) {
       header["scan_type"] = "CH_#.TRIM_INV sweep";
       header["trigger"] = "PEDESTAL";
       header["nevents_per_point"] = nevents;
-      f << std::boolalpha
-        << "# " << boost::json::serialize(header) << '\n';
-      f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "TRIM_INV";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+      f << trim_inv;
       for (int ch{0}; ch < 72; ch++) {
-        f << ch << ',' << trim_inv << ',';
-        ep.channel(ch).to_csv(f);
-        f << '\n';
+        f << ',' << ep.channel(ch).adc();
       }
+      f << '\n';
     }
   };
 
