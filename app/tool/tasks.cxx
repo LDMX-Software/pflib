@@ -318,25 +318,28 @@ static void inv_vref_scan(Target* tgt) {
 
   auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
 
-  boost::json::object header;
-  header["scan_type"] = "CH_#.inv_vref_scan";
-  header["trigger"] = "PEDESTAL";
-  header["nevents_per_point"] = nevents;
-  header["channel"] = 0;
+  int inv_vref = 0;
 
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
     [&](std::ofstream& f) {
-      f << std::boolalpha
-        << "# " << boost::json::serialize(header) << '\n';
-      f << "channel,INV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
+      boost::json::object header;
+      header["scan_type"] = "CH_#.INV_VREF sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "INV_VREF";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
-    for (int ch{0}; ch < 72; ch++) {
-      f << ch << ',' << header["inv_vref"].as_int64() << ',';
-      ep.channel(ch).to_csv(f);
+      f << inv_vref;
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ep.channel(ch).adc();
+      }
       f << '\n';
-    }
     }
   };
 
@@ -349,7 +352,7 @@ static void inv_vref_scan(Target* tgt) {
       .apply();
 
   //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
-  for (int inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
+  for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
     //set inv_vref simultaneously for both links
     auto test_param = roc.testParameters()
@@ -357,7 +360,6 @@ static void inv_vref_scan(Target* tgt) {
       .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
       .apply();
       //store current scan state in header for writer access
-      header["inv_vref"] = inv_vref;
       tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
@@ -373,51 +375,52 @@ static void inv_vref_scan(Target* tgt) {
 static void noinv_vref_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
 
-  std::string output_filepath = pftool::readline_path("noinv_vref_scan", ".csv");
+  std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
 
   auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
 
-  boost::json::object header;
-  header["scan_type"] = "CH_#.noinv_vref_scan";
-  header["trigger"] = "PEDESTAL";
-  header["nevents_per_point"] = nevents;
-  header["channel"] = 0;
+  int noinv_vref = 0;
 
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
     [&](std::ofstream& f) {
-      f << std::boolalpha
-        << "# " << boost::json::serialize(header) << '\n';
-      f << "channel,NOINV_VREF," << pflib::packing::Sample::to_csv_header << '\n';
+      boost::json::object header;
+      header["scan_type"] = "CH_#.NOINV_VREF sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "NOINV_VREF";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
-    for (int ch{0}; ch < 72; ch++) {
-      f << ch << ',' << header["noinv_vref"].as_int64() << ',';
-      ep.channel(ch).to_csv(f);
+      f << noinv_vref;
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ep.channel(ch).adc();
+      }
       f << '\n';
-    }
     }
   };
 
-
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
-  //set global params HZ_INV on each link (arbitrary channel on each)
+  //set global params HZ_noinv on each link (arbitrary channel on each)
     auto test_param = roc.testParameters()
       .add("CH_17", "HZ_INV", 1)
       .add("CH_53", "HZ_INV", 1)
       .apply();
 
-  //increment noinv_vref in increments of 20. 10 bit value but only scanning to 600
-  for (int noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
+  //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+  for (noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
     pflib_log(info) << "Running NOINV_VREF = " << noinv_vref;
     //set noinv_vref simultaneously for both links
     auto test_param = roc.testParameters()
       .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
       .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
       .apply();
-      header["noinv_vref"] = noinv_vref;
-      
+      //store current scan state in header for writer access
       tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }

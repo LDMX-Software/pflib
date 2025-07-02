@@ -6,6 +6,10 @@ import numpy as np
 import argparse
 import os
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from read import read_pflib_csv
 
 
 #runtime arguments
@@ -20,12 +24,11 @@ parser.add_argument('--max', type = int, help='maximum elink to be trimmed', def
 parser.add_argument('--target', type = float, help='number of standard deviations that target offset can be from median; play around with this value to find ideal pedestal trimming', default = 1)
 args = parser.parse_args()
 
-f = args.f
-if not os.path.isfile(f):
-    print(f + ' does not exist')
+if not os.path.isfile(args.f):
+    print(args.f + ' does not exist')
     sys.exit()
-if not f.lower().endswith('csv'):
-    print(f + ' is not a csv file')
+if not args.f.lower().endswith('csv'):
+    print(args.f + ' is not a csv file')
     sys.exit()
 output = args.output
 if not output.lower().endswith('yaml'):
@@ -33,7 +36,7 @@ if not output.lower().endswith('yaml'):
 min_link = args.min
 max_link = args.max
 t_std = args.target
-df = pd.read_csv(args.f, skiprows = 1)
+df, head = read_pflib_csv(args.f)
 
 #only 1 event per parameter value per channel
 stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
