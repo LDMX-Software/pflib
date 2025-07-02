@@ -15,7 +15,7 @@ void read_biases(){
 
 BOOST_AUTO_TEST_CASE(read_bias) {
 
-  BOOST_CHECK_NO_THROW(read_biases);
+  BOOST_REQUIRE_NO_THROW(read_biases());
 
 }
 
