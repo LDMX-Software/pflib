@@ -140,7 +140,7 @@ class FastControlCMS_MMap : public FastControl {
     l1a_charge.pack();
 
     Periodic pled(periodic(LED_PERIODIC));
-    pled.bx = 30;     // needs tuning
+    pled.bx = 12;     // needs tuning
     pled.flavor = 3;  // external calibration pulse
     pled.enable_follow = false;
     pled.orbit_prescale = 1000;
@@ -148,7 +148,7 @@ class FastControlCMS_MMap : public FastControl {
     pled.pack();
 
     Periodic l1a_led(periodic(LED_L1A_PERIODIC));
-    l1a_led.bx = 100;  // needs tuning
+    l1a_led.bx = 30;  // needs tuning
     l1a_led.flavor = 0;
     l1a_led.enable_follow = true;
     l1a_led.follow_which = LED_PERIODIC;
@@ -176,6 +176,19 @@ class FastControlCMS_MMap : public FastControl {
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     l1a_charge.bx = charge_inj.bx + charge_to_l1a;
     l1a_charge.pack();
+  }
+
+  virtual int fc_get_setup_led() override {
+    Periodic led_flash(periodic(LED_PERIODIC));
+    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
+    return l1a_led.bx - led_flash.bx;
+  }
+
+  virtual void fc_setup_led(int led_to_l1a) override {
+    Periodic led_flash(periodic(LED_PERIODIC));
+    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
+    l1a_led.bx = led_flash.bx + led_to_l1a;
+    l1a_led.pack();
   }
 
   virtual void sendL1A() override { periodic(PEDESTAL_PERIODIC).request(); }

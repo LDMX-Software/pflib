@@ -18,7 +18,7 @@ namespace pflib {
  */
 class Hcal {
  public:
-  Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c);
+  Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c);
 
   /** number of boards */
   int nrocs() { return nhgcroc_; }
@@ -27,7 +27,7 @@ class Hcal {
   ROC roc(int which, const std::string& roc_type_version = "sipm_rocv3b");
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
-  //  Bias bias(int which);
+  Bias bias(int which);
 
   /** Generate a hard reset to all the HGCROC boards */
   virtual void hardResetROCs();
@@ -59,6 +59,8 @@ class Hcal {
 
   /** The ROC I2C interfaces */
   std::vector<std::shared_ptr<I2C>> roc_i2c_;
+  std::vector<std::shared_ptr<I2C>> bias_i2c_;
+
 };
 
 }  // namespace pflib
