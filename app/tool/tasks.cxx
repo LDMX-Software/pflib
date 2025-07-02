@@ -265,21 +265,22 @@ static void trim_inv_scan(Target* tgt) {
 
   auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
 
-  boost::json::object header;
-  header["scan_type"] = "CH_#.TRIM_INV sweep";
-  header["trigger"] = "PEDESTAL";
-  header["nevents_per_point"] = nevents;
+  int trim_inv =0;
 
   pflib::DecodeAndWriteToCSV writer{
     output_filepath,
     [&](std::ofstream& f) {
+      boost::json::object header;
+      header["scan_type"] = "CH_#.TRIM_INV sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n';
       f << "channel,TRIM_INV," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
       for (int ch{0}; ch < 72; ch++) {
-        f << ch << ',' << header["trim_inv"].as_int64() << ',';
+        f << ch << ',' << trim_inv << ',';
         ep.channel(ch).to_csv(f);
         f << '\n';
       }
@@ -289,14 +290,13 @@ static void trim_inv_scan(Target* tgt) {
   tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
   //take pedestal run on each parameter point
-  for (int trim = 0; trim <= 63; trim+=4) {
-    pflib_log(info) << "Running TRIM_INV = " << trim;
+  for (trim_inv = 0; trim_inv < 64; trim_inv += 4) {
+    pflib_log(info) << "Running TRIM_INV = " << trim_inv;
     auto trim_inv_test_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
-      trim_inv_test_builder.add("CH_"+std::to_string(ch), "TRIM_INV", trim);
+      trim_inv_test_builder.add("CH_"+std::to_string(ch), "TRIM_INV", trim_inv);
     }
     auto trim_inv_test = trim_inv_test_builder.apply();
-    header["trim_inv"] = trim;
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
     
   }
