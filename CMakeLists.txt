@@ -213,7 +213,7 @@ add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu test/test_menu.cxx)
+add_executable(test-menu test/test_menu/main.cxx test/test_menu/sub/sub.cxx test/test_menu/sub/three.cxx)
 target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)

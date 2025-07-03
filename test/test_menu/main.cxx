@@ -1,16 +1,4 @@
-#define MENU_HISTORY_FILEPATH ".pflib-test-menu-history"
-#include "pflib/menu/Menu.h"
-
-#include <signal.h>
-#include <readline/history.h>
-
-class test_menu : public pflib::menu::Menu<int*> {
- public:
-  struct State {
-    int p;
-  };
-  static State state;
-};
+#include "test_menu.h"
 
 test_menu::State test_menu::state{};
 
@@ -28,10 +16,11 @@ void increment(test_menu::TargetHandle p) {
 
 namespace {
 
+  /*
 auto sb = test_menu::menu("SB", "example submenu", [](test_menu::TargetHandle p) {
                 std::cout << test_menu::state.p << std::endl;
                 })
-              ->line("THREE", "third command", print_cmd)
+              ->line("PRINT", "print target", print_cmd)
               ->line("INCSB", "increment the target", increment)
               ->line("ADD", "add something to the target",
                   [](test_menu::TargetHandle p) {
@@ -42,20 +31,13 @@ auto sb = test_menu::menu("SB", "example submenu", [](test_menu::TargetHandle p)
                   }
               );
                 
+              */
 
 auto r = test_menu::root()
              ->line("INC", "increment the target", increment)
              ->line("ONE", "one command", print_cmd);
 
 }  // namespace
-
-void close_history(int s) {
-  std::cout << "caught signal " << s << std::endl;
-  if (int rc = ::write_history(".pflib-test-menu-history"); rc != 0) {
-    std::cout << "warn: failure to write history file " << rc << std::endl;
-  }
-  exit(1);
-}
 
 int main(int argc, char* argv[]) {
   if (argc > 1) {
