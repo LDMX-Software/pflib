@@ -83,26 +83,46 @@ load_parameter_points(const std::string& filepath) {
  */
 static void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
-  bool highrange = false;
-  if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
-  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
+  bool isLED = pftool::readline_bool("Flash LED instead of the internal calibration pulse?", true);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  int link = (channel / 36);
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
-  std::string fname = pftool::readline_path("charge-time-scan", ".csv");
   pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-  auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  int link = (channel / 36);
-  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
-  auto test_param_handle = roc.testParameters()
-    .add(refvol_page, "CALIB", preCC ? 0 : calib)
-    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
-    .add(refvol_page, "INTCTEST", 1)
-    .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-    .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
-    .apply();
+  std::string fname;
+  bool preCC = false;
+  bool highrange = false;
+  int calib = 0;
+  
+  if(isLED){
+    fname = pftool::readline_path("led-time-scan", ".csv");
+    //Makes sure charge injections are turned off (in this ch at least)
+    auto test_param_handle = roc.testParameters()
+      .add(refvol_page, "CALIB", 0)
+      .add(refvol_page, "CALIB_2V5", 0)
+      .add(refvol_page, "INTCTEST", 1)
+      .add(refvol_page, "CHOICE_CINJ", 0)
+      .add(channel_page, "HIGHRANGE", 0)
+      .add(channel_page, "LOWRANGE", 0)
+      .apply();
+  }
+  else{
+    preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
+    highrange = false;
+    if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+    calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
+    fname = pftool::readline_path("charge-time-scan", ".csv");
+    auto test_param_handle = roc.testParameters()
+      .add(refvol_page, "CALIB", preCC ? 0 : calib)
+      .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
+      .add(refvol_page, "INTCTEST", 1)
+      .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+      .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+      .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
+      .apply();
+  }
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -116,6 +136,7 @@ static void charge_timescan(Target* tgt) {
       header["channel"] = channel;
       header["calib"] = calib;
       header["highrange"] = highrange;
+      header["ledflash"] = isLED;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
         << "time,"
@@ -129,11 +150,21 @@ static void charge_timescan(Target* tgt) {
     } 
   };
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  int central_charge_to_l1a;
+  if(isLED){
+    central_charge_to_l1a = tgt->fc().fc_get_setup_led();
+  } else {
+    central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  }
   for (charge_to_l1a = central_charge_to_l1a+start_bx;
        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
-    tgt->fc().fc_setup_calib(charge_to_l1a);
-    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+    if(isLED){
+      tgt->fc().fc_setup_led(charge_to_l1a);
+      pflib_log(info) << "led_to_l1a = " << tgt->fc().fc_get_setup_led();
+    } else {
+      tgt->fc().fc_setup_calib(charge_to_l1a);
+      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+    }
     for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
       auto phase_strobe_test_handle = roc.testParameters()
         .add("TOP", "PHASE_STROBE", phase_strobe)
@@ -143,11 +174,19 @@ static void charge_timescan(Target* tgt) {
       time = 
         (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
         - phase_strobe * clock_cycle/n_phase_strobe;
-      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+      if(isLED){
+        tgt->daq_run("LED", writer, nevents, pftool::state.daq_rate);
+      } else {
+        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+      }
     }
   }
   // reset charge_to_l1a to central value
-  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  if(isLED){
+    tgt->fc().fc_setup_led(central_charge_to_l1a);
+  } else {
+    tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  }
 }
 
 /**
@@ -252,6 +291,182 @@ static void gen_scan(Target* tgt) {
 }
 
 /**
+ * TASKS.TRIM_INV_SCAN
+ * 
+ * Scan TRIM_INV Parameter across all 63 parameter points for each channel
+ * Check ADC Pedstals for each parameter point
+ * Used to trim pedestals within each link
+ */
+static void trim_inv_scan(Target* tgt) {
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+
+  std::string output_filepath = pftool::readline_path("trim_inv_scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  int trim_inv =0;
+
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["scan_type"] = "CH_#.TRIM_INV sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "TRIM_INV";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+      f << trim_inv;
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ep.channel(ch).adc();
+      }
+      f << '\n';
+    }
+  };
+
+  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+  //take pedestal run on each parameter point
+  for (trim_inv = 0; trim_inv < 64; trim_inv += 4) {
+    pflib_log(info) << "Running TRIM_INV = " << trim_inv;
+    auto trim_inv_test_builder = roc.testParameters();
+    for (int ch{0}; ch < 72; ch++) {
+      trim_inv_test_builder.add("CH_"+std::to_string(ch), "TRIM_INV", trim_inv);
+    }
+    auto trim_inv_test = trim_inv_test_builder.apply();
+    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    
+  }
+}
+
+/**
+ * TASKS.INV_VREF_SCAN
+ * 
+ * Perform INV_VREF scan for each link 
+ * used to trim adc pedestals between two links
+ */
+static void inv_vref_scan(Target* tgt) {
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+
+  std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  int inv_vref = 0;
+
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["scan_type"] = "CH_#.INV_VREF sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "INV_VREF";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+      f << inv_vref;
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ep.channel(ch).adc();
+      }
+      f << '\n';
+    }
+  };
+
+  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+  //set global params HZ_noinv on each link (arbitrary channel on each)
+    auto test_param = roc.testParameters()
+      .add("CH_17", "HZ_NOINV", 1)
+      .add("CH_53", "HZ_NOINV", 1)
+      .apply();
+
+  //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+  for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
+    pflib_log(info) << "Running INV_VREF = " << inv_vref;
+    //set inv_vref simultaneously for both links
+    auto test_param = roc.testParameters()
+      .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
+      .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
+      .apply();
+      //store current scan state in header for writer access
+      tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+  }
+}
+
+
+/**
+   * TASKS.NOINV_VREF_SCAN
+   * 
+   * Perform NOINV_VREF scan for each link 
+   * used to trim adc pedestals between two links
+   * same as inv_vref_scan with noinv_vref parameter instead
+   */
+static void noinv_vref_scan(Target* tgt) {
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+
+  std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  int noinv_vref = 0;
+
+  pflib::DecodeAndWriteToCSV writer{
+    output_filepath,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["scan_type"] = "CH_#.NOINV_VREF sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << boost::json::serialize(header) << "\n"
+        << "NOINV_VREF";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket &ep) {
+      f << noinv_vref;
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ep.channel(ch).adc();
+      }
+      f << '\n';
+    }
+  };
+
+  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+
+  //set global params HZ_noinv on each link (arbitrary channel on each)
+    auto test_param = roc.testParameters()
+      .add("CH_17", "HZ_INV", 1)
+      .add("CH_53", "HZ_INV", 1)
+      .apply();
+
+  //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+  for (noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
+    pflib_log(info) << "Running NOINV_VREF = " << noinv_vref;
+    //set noinv_vref simultaneously for both links
+    auto test_param = roc.testParameters()
+      .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
+      .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
+      .apply();
+      //store current scan state in header for writer access
+      tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+  }
+}
+
+
+
+/*
  * TASKS.PARAMETER_TIMESCAN
  *
  * Scan a internal calibration pulse in time by varying the charge_to_l1a
@@ -419,6 +634,9 @@ auto menu_tasks =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
+        ->line("TRIM_INV_SCAN", "scan trim_inv parameter", trim_inv_scan)
+        ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
+        ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN", "scan phase_ck, pedestal for clock phase alignment", sampling_phase_scan)
 ;
 }

@@ -134,7 +134,6 @@ target_link_libraries(packing PUBLIC utility)
 
 # Build the pf library
 #
-#  src/pflib/Bias.cxx
 #  src/pflib/FastControl.cxx
   
 add_library(pflib SHARED 
@@ -158,6 +157,7 @@ add_library(pflib SHARED
   src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
+  src/pflib/Bias.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -192,6 +192,7 @@ add_executable(
   test/on_zcu/hgcroc_connection.cxx
   test/on_zcu/test_parameters.cxx
   test/on_zcu/elinks_aligned.cxx
+  test/on_zcu/read_bias.cxx
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
@@ -200,7 +201,8 @@ add_executable(pftool
   app/tool/expert.cxx
   app/tool/roc.cxx
   app/tool/daq.cxx
-  app/tool/tasks.cxx)
+  app/tool/tasks.cxx
+  app/tool/bias.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)

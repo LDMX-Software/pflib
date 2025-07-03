@@ -51,6 +51,12 @@ class FastControl {
   /** calib pulse setup (charge to l1a time) */
   virtual int fc_get_setup_calib() { return -1; }
 
+  /** led pulse setup */
+  virtual void fc_setup_led(int charge_to_l1a) {}
+
+  /** led pulse setup (charge to l1a time) */
+  virtual int fc_get_setup_led() { return -1; }
+
   /** read counters from the FC side */
   virtual void read_counters(int& spill_count, int& header_occ,
                              int& event_count, int& vetoed_counter) {}
