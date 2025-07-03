@@ -364,60 +364,52 @@ static void parameter_timescan(Target* tgt) {
 /**
  * TASKS.SAMPLING_PHASE_SCAN
  * 
- * Scan over phase_ck, pedestals, over 10 channels.
- * Used to align clock phase. Inspired by the document ~Handling
+ * Scan over phase_ck, do pedestals.
+ * Used to align clock phase. Inspired by the document "Handling
  * of different HGCAL commissiong run types: procedures, results,
- * expected~ by Amendola et al. (The title is verbatim from the
- * document, but it has a typo.)
+ * expected" by Amendola et al.
  */
 static void sampling_phase_scan(Target* tgt) {
-  int nevents = pftool::readline_int("How many events per time point? ", 1);
-  int channel = pftool::readline_int("First channel to pedestal? ", 0);
-  int npedestals = pftool::readline_int("Number of pedestals per phase_ck? ", 1000);
-  std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
-  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  int nevents = pftool::readline_int("How many events per time point? ", 100);
 
-  boost::json::object header;
-  header["scan_type"] = "CH_#.phase_ck scan";
-  header["trigger"] = "PEDESTAL";
-  header["nevents_per_point"] = nevents;
-  header["channel"] = channel;
+  std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  int phase_ck = 0;
 
   pflib::DecodeAndWriteToCSV writer{
     fname, //output file name
     [&](std::ofstream& f) {
-      f << std::boolalpha
-        << "# " << boost::json::serialize(header) << '\n'
-        << "channel,phase_ck,"
-        << pflib::packing::Sample::to_csv_header
-        << '\n';
+      boost::json::object header;
+      header["scan_type"] = "CH_#.PHASE_CK sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "#" << boost::json::serialize(header) << "\n"
+        << "PHASE_CK";
+      for (int ch{0}; ch < 72; ch++) {
+        f << "," << ch;
+      }
+      f << "\n";
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      // Writing channels and phase_ck to the CSV
-      f << header["current_channel"].as_int64() << ',' << header["current_phase_ck"].as_int64() << ',';
-      ep.channel(header["current_channel"].as_int64()).to_csv(f);
-      f << '\n';
-    } 
+      f << phase_ck;
+      for (int ch{0}; ch < 72; ch++) {
+        f << "," << ep.channel(ch).adc();
+      }
+      f << "\n";
+    }
   };
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   
-  // Loop over phases, then loop over channels and do pedestals.
-  for (int phase = 0; phase <= 15; ++phase) {
-    pflib_log(info) << "Scanning phase_ck = " << phase;
+  // Loop over phases and do pedestals
+  for (phase_ck = 0; phase_ck < 16; phase_ck++) {
+    pflib_log(info) << "Scanning phase_ck = " << phase_ck;
     auto phase_test_handle = roc.testParameters()
-      .add("TOP", "PHASE_CK", phase)
+      .add("TOP", "PHASE_CK", phase_ck)
       .apply();
-    for (int ch = channel; ch < channel + 10; ++ch) {
-      pflib_log(info) << "Running channel " << ch;
-      for (int pedestal = 0; pedestal < npedestals; ++pedestal) {
-        pflib_log(info) << "Pedestal # = " << pedestal;
-        header["current_channel"] = ch;
-        header["current_phase_ck"] = phase;
-      
-        tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
-      }
-    }
+    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
 
