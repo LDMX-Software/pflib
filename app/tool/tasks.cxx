@@ -576,6 +576,58 @@ static void parameter_timescan(Target* tgt) {
   }
 }
 
+/**
+ * TASKS.SAMPLING_PHASE_SCAN
+ * 
+ * Scan over phase_ck, do pedestals.
+ * Used to align clock phase. Inspired by the document "Handling
+ * of different HGCAL commissiong run types: procedures, results,
+ * expected" by Amendola et al.
+ */
+static void sampling_phase_scan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 100);
+
+  std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
+
+  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+
+  int phase_ck = 0;
+
+  pflib::DecodeAndWriteToCSV writer{
+    fname, //output file name
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["scan_type"] = "CH_#.PHASE_CK sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "#" << boost::json::serialize(header) << "\n"
+        << "PHASE_CK";
+      for (int ch{0}; ch < 72; ch++) {
+        f << "," << ch;
+      }
+      f << "\n";
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      f << phase_ck;
+      for (int ch{0}; ch < 72; ch++) {
+        f << "," << ep.channel(ch).adc();
+      }
+      f << "\n";
+    }
+  };
+
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  
+  // Loop over phases and do pedestals
+  for (phase_ck = 0; phase_ck < 16; phase_ck++) {
+    pflib_log(info) << "Scanning phase_ck = " << phase_ck;
+    auto phase_test_handle = roc.testParameters()
+      .add("TOP", "PHASE_CK", phase_ck)
+      .apply();
+    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+  }
+}
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
@@ -585,5 +637,6 @@ auto menu_tasks =
         ->line("TRIM_INV_SCAN", "scan trim_inv parameter", trim_inv_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan)
+        ->line("SAMPLING_PHASE_SCAN", "scan phase_ck, pedestal for clock phase alignment", sampling_phase_scan)
 ;
 }
