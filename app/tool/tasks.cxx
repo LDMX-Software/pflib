@@ -480,6 +480,11 @@ static void parameter_timescan(Target* tgt) {
   bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
   bool highrange = false;
   if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  bool totscan = pftool::readline_bool("Scan TOT? This setting reduced the samples per BX to 1 ", false);
+  int toa_threshold = 0;
+  int tot_threshold = 0;
+  if (totscan) toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
+  if (totscan) tot_threshold = pftool::readline_int("Value for TOT threshold: ", 500);
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
@@ -494,6 +499,8 @@ static void parameter_timescan(Target* tgt) {
     .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
     .add(refvol_page, "INTCTEST", 1)
     .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+    .add(refvol_page, "TOA_VREF", toa_threshold)
+    .add(refvol_page, "TOT_VREF", tot_threshold)
     .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
     .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
@@ -548,8 +555,7 @@ static void parameter_timescan(Target* tgt) {
        param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
        param_names[i_param].first),
       param_names[i_param].second,
-      param_values[i_param_point][i_param]
-      );
+      param_values[i_param_point][i_param]);
       pflib_log(info) << param_names[i_param].second << " = " << param_values[i_param_point][i_param];
     }
     auto test_param = test_param_builder.apply();
@@ -559,15 +565,23 @@ static void parameter_timescan(Target* tgt) {
       charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
       tgt->fc().fc_setup_calib(charge_to_l1a);
       pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-      for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
-        auto phase_strobe_test_handle = roc.testParameters()
-            .add("TOP", "PHASE_STROBE", phase_strobe)
-            .apply();
-        pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
-        usleep(10); // make sure parameters are applied
-        time = 
-          (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
-          - phase_strobe * clock_cycle/n_phase_strobe;
+      if (!totscan) 
+      {
+        for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+          auto phase_strobe_test_handle = roc.testParameters()
+              .add("TOP", "PHASE_STROBE", phase_strobe)
+              .apply();
+          pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+          usleep(10); // make sure parameters are applied
+          time = 
+            (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
+            - phase_strobe * clock_cycle/n_phase_strobe;
+          tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+        }
+      }
+      else 
+      {
+        time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
         tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
       }
     }
