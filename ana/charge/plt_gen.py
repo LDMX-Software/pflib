@@ -1,10 +1,5 @@
 import matplotlib.pyplot as plt
 
-"""
-    General function that defines the plotting canvas, runs the selected plotting function
-    and saves it to the output
-"""
-
 def plt_gen(
     plotting_func,
     samples,
@@ -21,6 +16,10 @@ def plt_gen(
     multicsv = False,
     **kwargs
 ):
+    """
+    General function that defines the plotting canvas, runs the selected plotting function
+    and saves it to the output
+    """
     plt.figure()
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

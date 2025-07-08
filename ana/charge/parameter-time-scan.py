@@ -47,13 +47,11 @@ if multicsv:
         samples_collection.append(samples)
         run_params_collection.append(run_params)
 
-"""
-    Set xticks
-"""
 def set_xticks (
     xvar,
     ax
 ):
+    """Set xticks"""
     xmin, xmax = xvar.min(), xvar.max()
     xmin = 25*np.floor(xmin/25)
     xmax = 25*np.ceil(xmax/25)
@@ -62,10 +60,6 @@ def set_xticks (
 
 #################### PLOTTING FUNCTIONS ########################
 
-"""
-    Plot a selected parameter vs time.
-"""
-
 def time(
     samples,
     run_params,
@@ -73,9 +67,10 @@ def time(
     xticks = False,
     yval = 'adc'
 ):
+    """Plot a selected parameter vs time."""
     if xticks:
         set_xticks(samples['time'], ax)
-    groups, param_name = get_params(samples)
+    groups, param_name = get_params(samples, 0)
     cmap = plt.get_cmap('viridis')
     n = len(groups)
     for i, (group_id, group_df) in enumerate(groups):
@@ -87,10 +82,6 @@ def time(
         if (len(groups) < 10):
             plt.legend()
 
-"""
-    Plot the tot vs calib
-"""
-
 def tot(
     samples,
     run_params,
@@ -99,65 +90,99 @@ def tot(
     tot_vref = 500,
     toa_vref = 250
 ):
-    groups, param_name = get_params(samples)
+    """Plot the tot vs calib"""
+    groups, param_name = get_params(samples, 0)
     filtered = samples[samples['tot'] > 0] # if tot <= 0 it didn't trigger
     plt.scatter(filtered[param_name], filtered['tot'], s=5)
     plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
               + f', TOA_VREF = {toa_vref}, TOT_VREF = {tot_vref}')
 
-"""
-    Plot the tot efficiency vs given parameter. 
-    For x samples per timepoint, the tot efficiency is the number of
-    events with triggered tot, divided by x.
-"""
-
 def tot_eff(
     samples,
     run_params,
     ax,
-    multiple_pulses = False,
+    multiple_params = False
 ):
-    groups, param_name = get_params(samples)
-    # This method to get the number of samples per timepoint is horrible
-    # requires assistance of a pandas wizard
-    key = list(groups.groups.keys())[0]
-    group = groups.get_group(key)
-    nr_bx = len(group.groupby('time'))
-    samples['new_cycle'] = (samples['time'].shift(1) > 0) & (samples['time'] == 0)
-    samples['cycle'] = samples['new_cycle'].cumsum()
-    # this is the number of samples per timepoint
-    nr_tot = int(sum(samples['cycle'] < 1) / nr_bx)
-    x = []
-    y = []
-    for i, (group_id, group_df) in enumerate(groups):
-        time_groups = group_df.groupby('time')
-        tot_eff = 0
-        for time_id, time_df in time_groups:
-            for tot in time_df['tot']:
-                if tot != -1:
-                    tot_eff += 1
-        tot_eff /= nr_tot
-        val = group_df[param_name].iloc[0]
+    """
+    Plot the tot efficiency vs given parameter. 
+    For x samples per timepoint, the tot efficiency is the number of
+    events with triggered tot, divided by x.
+    """
+    groups, param_name = get_params(samples, 0)
+    if !multiple_params:
+        # This method to get the number of samples per timepoint is horrible
+        # requires assistance of a pandas wizard
+        key = list(groups.groups.keys())[0]
+        group = groups.get_group(key)
+        nr_bx = len(group.groupby('time'))
+        samples['new_cycle'] = (samples['time'].shift(1) > 0) & (samples['time'] == 0)
+        samples['cycle'] = samples['new_cycle'].cumsum()
+        # Number of samples per timepoint
+        nr_tot = int(sum(samples['cycle'] < 1) / nr_bx)
+        x = []
+        y = []
+        for i, (group_id, group_df) in enumerate(groups):
+            time_groups = group_df.groupby('time')
+            tot_eff = 0
+            for time_id, time_df in time_groups:
+                for tot in time_df['tot']:
+                    if tot != -1:
+                        tot_eff += 1
+            tot_eff /= nr_tot
+            val = group_df[param_name].iloc[0]
         key = param_name.split('.')[1]
         x.append(group_df[param_name].iloc[0])
         y.append(tot_eff)
-    plt.plot(x, y, 
-             marker='o', color='black', linestyle='--', 
-             markerfacecolor='red', markeredgecolor = 'red', markersize = 5)
-    plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
-              + ', TOA_VREF = 250, TOT_VREF = 500')
-
-"""
-    Plot the ADC vs a selected parameter on a scatter plot. 
-    If multicsv, then the legend is set to the params for the given csv file.
-"""
+        plt.plot(x, y, 
+                 marker='o', color='black', linestyle='--', 
+                 markerfacecolor='red', markeredgecolor = 'red', markersize = 5)
+        plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
+                  + ', TOA_VREF = 250, TOT_VREF = 500')
+    else:
+        nr_tot = 20 # Number of samles per timepoint
+        cmap = plt.get_cmap('viridis')
+        n = len(groups)
+        for i, (vref_id, vref_df) in enumerate(groups): #iterates through vref
+            color = cmap(i/n)
+            second_group, second_param_name = get_params(vref_df, 1)  
+            x = []
+            y = []
+            for k, (calib_id, calib_df) in enumerate(second_group): #iterates through calib
+                time_groups = calib_df.groupby('time')
+                tot_eff = 0
+                for time_id, time_df in time_groups:
+                    for tot in time_df['tot']:
+                        if tot > 0:
+                            tot_eff += 1
+                if (tot_eff > 20):
+                    tot_eff /= 40
+                else:
+                    tot_eff /= nr_tot
+                calib = calib_df[second_param_name].iloc[0]
+                key = param_name.split('.')[1]
+                x.append(calib_df[second_param_name].iloc[0])
+                y.append(tot_eff)
+            #if sum(y) < 0.1: #if we don't want to plot the vrefs that don't have a tot_eff
+            #    continue
+            vref = vref_df[param_name].iloc[0]
+            ax.plot(x, y, 
+                     marker='o', color='black', linestyle='--', 
+                     markerfacecolor=color, markeredgecolor = color, markersize = 5,
+                     label=f"TOT_VREF={vref}")
+            #ax.legend(ncols=5, fontsize='xx-small', loc='upper right')
+            plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
+                      + ', TOA_VREF = 250, TOT_VREF = 500')
 
 def param(
     samples,
     run_params,
     ax
 ):
-    groups, param_name = get_params(samples)
+    """
+    Plot the ADC vs a selected parameter on a scatter plot. 
+    If multicsv, then the legend is set to the params for the given csv file.
+    """
+    groups, param_name = get_params(samples, 0)
     x = []
     y = []
     for _, group_df in groups:
@@ -170,20 +195,19 @@ def param(
     else:
         ax.scatter(x,y)
 
-"""
-    Two options for heatmaps, when having multiple events per timepoint.
-    The first is creating a heatmap for each individual CALIB voltage, 
-    the second is a stacked plot to visualize and compare the pulse shapes.
-
-    Takes input csv from tasks.parameter_timescan
-"""
-
 def heatmaps(
     samples,
     run_params,
     ax
 ):
-    groups, param_name = get_params(samples)
+    """
+    Two options for heatmaps, when having multiple events per timepoint.
+    The first is creating a heatmap for each individual CALIB voltage, 
+    the second is a stacked plot to visualize and compare the pulse shapes.
+
+    Takes input csv from tasks.parameter_timescan
+    """
+    groups, param_name = get_params(samples, 0)
 
     x_min = min(group_df['time'].min() for _, group_df in groups)
     x_max = max(group_df['time'].max() for _, group_df in groups)
@@ -265,20 +289,19 @@ def heatmaps(
     plt.savefig(f'{args.output}_CombinedHeatmap.png', dpi=200)
     plt.close()
 
-"""
+def multiparams(
+    samples_collection,
+    run_params_collection,
+    ax
+):
+    """
     If we want to plot multiple csv files!
 
     Takes collections (lists) instead of single sample, run_params, and loops over them
     for a given plot function. 
 
     So far only tested for PARAMS.
-"""
-
-def multiparams(
-    samples_collection,
-    run_params_collection,
-    ax
-):
+    """
     for i in range(len(samples_collection)):
         if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
             time(samples_collection[i], run_params_collection[i], ax)
@@ -305,7 +328,8 @@ if args.plot_function == 'TOT':
 
 if args.plot_function == 'TOT-EFF':
     plt_gen(tot_eff, samples, run_params, args.output, 
-            xlabel = args.xlabel, ylabel = args.ylabel)
+            xlabel = args.xlabel, ylabel = args.ylabel,
+            multiple_params = True)
 
 if args.plot_function == 'PARAMS':
     plt_gen(param, samples, run_params, args.output,
