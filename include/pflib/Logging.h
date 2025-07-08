@@ -52,6 +52,20 @@ using logger =
 logger get(const std::string& name);
 
 /**
+ * Get a logger for the input prefix and file
+ *
+ * This is useful in menus where we want the logging
+ * message associated with the __FILE__ from which the command
+ * originated but we don't want to have to include the whole filepath
+ * in the logging channel.
+ *
+ * @param[in] prefix string to prefix filestem with (e.g. menu name)
+ * @param[in] filepath filepath string e.g. from the __FILE__ macro
+ * @return logger
+ */
+logger get_by_file(const std::string& prefix, const std::string& filepath);
+
+/**
  * Initialize the logging backend
  *
  * This function sets up the sinks for the logs (e.g. terminal output)

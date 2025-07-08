@@ -4,10 +4,12 @@
 */
 #include <stdint.h>
 #include <stdio.h>
+#include <ostream>
 
 #include "pflib/Exception.h"
 #include "pflib/FastControl.h"
 #include "pflib/zcu/UIO.h"
+#include "pflib/Logging.h"
 
 namespace pflib {
 
@@ -59,6 +61,18 @@ class Periodic {
     burst_length = (uio_.read(offset_ + 1) >> 20) & 0x3FF;
   }
   void request() { uio_.rmw(offset_ + 0, 0x2, 0x2); }
+  friend std::ostream& operator<<(std::ostream& o, const Periodic& p) {
+    o << "{ "
+      << " enable: " << p.enable << ','
+      << " enable_follow: " << p.enable_follow << ','
+      << " flavor: " << p.flavor << ','
+      << " follow_which: " << p.follow_which << ','
+      << " bx: " << p.bx << ','
+      << " orbit_prescale: " << p.orbit_prescale << ','
+      << " burst_length: " << p.burst_length
+      << " }";
+    return o;
+  }
   void pack() {
     uint32_t a(0);
     if (enable) a |= 0x1;
@@ -80,10 +94,14 @@ class Periodic {
 class FastControlCMS_MMap : public FastControl {
  public:
   FastControlCMS_MMap() : FastControl(), uio_("/dev/uio4", 4096) {
-    standard_setup();
+    pflib_log(debug) << "pedestal fast command: " << periodic(PEDESTAL_PERIODIC);
+    pflib_log(debug) << "charge fast command: " << periodic(CHARGE_PERIODIC);
+    pflib_log(debug) << "charge-l1a fast command: " << periodic(CHARGE_L1A_PERIODIC);
+    pflib_log(debug) << "led fast command: " << periodic(LED_PERIODIC);
+    pflib_log(debug) << "led-l1a fast command: " << periodic(LED_L1A_PERIODIC);
   }
 
-  ~FastControlCMS_MMap() {}
+  ~FastControlCMS_MMap() = default;
 
   Periodic periodic(int i) { return Periodic(uio_, 0x20 + i * 2); }
 
@@ -93,9 +111,8 @@ class FastControlCMS_MMap : public FastControl {
   static const int LED_PERIODIC = 5;
   static const int LED_L1A_PERIODIC = 6;
 
-  void standard_setup() {
+  void standard_setup() override {
     Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
-
     std_l1a.bx = 10;
     std_l1a.flavor = 0;
     std_l1a.orbit_prescale = 1000;
@@ -112,7 +129,9 @@ class FastControlCMS_MMap : public FastControl {
     charge_inj.pack();
 
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    l1a_charge.bx = 90;  // needs tuning
+    // for a DIGITALHALF_{0,1}.L1OFFSET = 16 (the chip default)
+    // charge injection pulses were observed at a separation of 20
+    l1a_charge.bx = charge_inj.bx + 20;
     l1a_charge.flavor = 0;
     l1a_charge.enable_follow = true;
     l1a_charge.follow_which = CHARGE_PERIODIC;
@@ -121,7 +140,7 @@ class FastControlCMS_MMap : public FastControl {
     l1a_charge.pack();
 
     Periodic pled(periodic(LED_PERIODIC));
-    pled.bx = 30;     // needs tuning
+    pled.bx = 12;     // needs tuning
     pled.flavor = 3;  // external calibration pulse
     pled.enable_follow = false;
     pled.orbit_prescale = 1000;
@@ -129,7 +148,7 @@ class FastControlCMS_MMap : public FastControl {
     pled.pack();
 
     Periodic l1a_led(periodic(LED_L1A_PERIODIC));
-    l1a_led.bx = 100;  // needs tuning
+    l1a_led.bx = 30;  // needs tuning
     l1a_led.flavor = 0;
     l1a_led.enable_follow = true;
     l1a_led.follow_which = LED_PERIODIC;
@@ -142,26 +161,39 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, CTL_ENABLE_L1AS);
   }
 
-  virtual void resetCounters() {
+  virtual void resetCounters() override {
     uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
   }
 
-  virtual int fc_get_setup_calib() {
+  virtual int fc_get_setup_calib() override {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     return l1a_charge.bx - charge_inj.bx;
   }
 
-  virtual void fc_setup_calib(int charge_to_l1a) {
+  virtual void fc_setup_calib(int charge_to_l1a) override {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     l1a_charge.bx = charge_inj.bx + charge_to_l1a;
     l1a_charge.pack();
   }
 
-  virtual void sendL1A() { periodic(PEDESTAL_PERIODIC).request(); }
+  virtual int fc_get_setup_led() override {
+    Periodic led_flash(periodic(LED_PERIODIC));
+    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
+    return l1a_led.bx - led_flash.bx;
+  }
 
-  virtual std::vector<uint32_t> getCmdCounters() {
+  virtual void fc_setup_led(int led_to_l1a) override {
+    Periodic led_flash(periodic(LED_PERIODIC));
+    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
+    l1a_led.bx = led_flash.bx + led_to_l1a;
+    l1a_led.pack();
+  }
+
+  virtual void sendL1A() override { periodic(PEDESTAL_PERIODIC).request(); }
+
+  virtual std::vector<uint32_t> getCmdCounters() override {
     std::vector<uint32_t> retval;
     for (int i = 65; i <= 89; i++) retval.push_back(uio_.read(i));
     return retval;
@@ -206,22 +238,23 @@ class FastControlCMS_MMap : public FastControl {
   static const uint32_t REQ_spare7 =
       0x80000000u;  // Send a SPARE7 command (auto-clear)/>
 
-  virtual void linkreset_rocs() {
+  virtual void linkreset_rocs() override {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_roct, REQ_link_reset_roct);
     usleep(10);
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
-  virtual void clear_run() { uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr); }
+  virtual void clear_run() override { uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr); }
 
-  virtual void bufferclear() { uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr); }
+  virtual void bufferclear() override { uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr); }
 
-  virtual void chargepulse() { periodic(CHARGE_PERIODIC).request(); }
+  virtual void chargepulse() override { periodic(CHARGE_PERIODIC).request(); }
 
-  virtual void ledpulse() { periodic(LED_PERIODIC).request(); }
+  virtual void ledpulse() override { periodic(LED_PERIODIC).request(); }
 
  private:
   UIO uio_;
+  mutable logging::logger the_log_{logging::get("FastControlCMS_MMap")};
 };
 
 FastControl* make_FastControlCMS_MMap() { return new FastControlCMS_MMap(); }

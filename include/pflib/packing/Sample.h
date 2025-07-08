@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
 
 namespace pflib::packing {
 
@@ -21,6 +22,18 @@ struct Sample {
   int adc_tm1() const;
   int adc() const;
   int tot() const;
+  /// header if using to_csv
+  static const std::string to_csv_header;
+  /**
+   * Write out the Sample as a row in the CSV.
+   * ```
+   * Tp,Tc,adc_tm1,adc,tot,toa
+   * ```
+   * No newline is included in case other columns wish
+   * to be added. If you don't want to include all seven
+   * of these columns, you can write your own method.
+   */
+  void to_csv(std::ofstream& f) const;
 };
 
 }  // namespace pflib::packing

@@ -1,5 +1,6 @@
 #define BOOST_TEST_DYN_LINK
-#include "pflib/utility.h"
+#include "pflib/utility/load_integer_csv.h"
+#include "pflib/utility/crc.h"
 
 #include <boost/test/unit_test.hpp>
 #include <cstdio>
@@ -28,7 +29,7 @@ BOOST_AUTO_TEST_SUITE(load_csv)
 BOOST_AUTO_TEST_CASE(well_behaved) {
   TempCSV t("#header,row,commented\n1,2,3\n4,5,6\n7,8,9");
   int val = 0;
-  pflib::loadIntegerCSV(t.file_path_, [&val](const std::vector<int>& row) {
+  pflib::utility::load_integer_csv(t.file_path_, [&val](const std::vector<int>& row) {
     BOOST_CHECK(row.size() == 3);
     for (const int& cell : row) {
       val++;
@@ -40,7 +41,7 @@ BOOST_AUTO_TEST_CASE(well_behaved) {
 BOOST_AUTO_TEST_CASE(missing_cells) {
   TempCSV t("#header,row,commented\n1,,3\n4,5,\n7,8,9");
   int val = 0;
-  pflib::loadIntegerCSV(t.file_path_, [&val](const std::vector<int>& row) {
+  pflib::utility::load_integer_csv(t.file_path_, [&val](const std::vector<int>& row) {
     BOOST_CHECK(row.size() == 3);
     for (const int& cell : row) {
       val++;
@@ -51,6 +52,83 @@ BOOST_AUTO_TEST_CASE(missing_cells) {
       }
     }
   });
+}
+
+BOOST_AUTO_TEST_CASE(parse_header) {
+  TempCSV t("header, row,uncommented\n1,2,3\n4,5,6");
+  int val = 0;
+  pflib::utility::load_integer_csv(
+      t.file_path_,
+      [&val](const std::vector<int>& row) {
+        BOOST_CHECK(row.size() == 3);
+        for (const int& cell : row) {
+          val++;
+          BOOST_CHECK(cell == val);
+        } 
+      },
+      [](const std::vector<std::string>& row) {
+        BOOST_CHECK(row.size() == 3);
+        BOOST_CHECK(row[0] == "header");
+        BOOST_CHECK(row[1] == " row");
+        BOOST_CHECK(row[2] == "uncommented");
+      }
+  );
+}
+
+BOOST_AUTO_TEST_CASE(multiline_header) {
+  TempCSV t("# some extra comment\nheader, row,uncommented\n1,2,3\n4,5,6");
+  int val = 0;
+  pflib::utility::load_integer_csv(
+      t.file_path_,
+      [&val](const std::vector<int>& row) {
+        BOOST_CHECK(row.size() == 3);
+        for (const int& cell : row) {
+          val++;
+          BOOST_CHECK(cell == val);
+        } 
+      },
+      [](const std::vector<std::string>& row) {
+        BOOST_CHECK(row.size() == 3);
+        BOOST_CHECK(row[0] == "header");
+        BOOST_CHECK(row[1] == " row");
+        BOOST_CHECK(row[2] == "uncommented");
+      }
+  );
+}
+
+BOOST_AUTO_TEST_CASE(storage_params) {
+  TempCSV t("page.param1,page.param2\n1,20\n3,40\n");
+  std::vector<std::string> param_names;
+  std::vector<std::vector<int>> param_vals;
+  pflib::utility::load_integer_csv(
+      t.file_path_,
+      [&param_vals](const std::vector<int>& row) {
+        param_vals.push_back(row);
+      },
+      [&param_names](const std::vector<std::string>& row) {
+        param_names = row;
+      }
+  );
+  BOOST_CHECK_EQUAL(param_names.size(), 2);
+  BOOST_CHECK_EQUAL(param_names[0], "page.param1");
+  BOOST_CHECK_EQUAL(param_names[1], "page.param2");
+  BOOST_CHECK_EQUAL(param_vals.size(), 2);
+  BOOST_CHECK_EQUAL(param_vals[0].size(), 2);
+  BOOST_CHECK_EQUAL(param_vals[0][0], 1);
+  BOOST_CHECK_EQUAL(param_vals[0][1], 20);
+  BOOST_CHECK_EQUAL(param_vals[1].size(), 2);
+  BOOST_CHECK_EQUAL(param_vals[1][0], 3);
+  BOOST_CHECK_EQUAL(param_vals[1][1], 40);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(crc);
+
+BOOST_AUTO_TEST_CASE(increment) {
+  std::vector<uint32_t> data = {0x02};
+  auto result = pflib::utility::crc(data);
+  BOOST_CHECK_EQUAL( result, 0x09823b6e );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

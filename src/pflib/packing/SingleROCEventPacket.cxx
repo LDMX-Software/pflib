@@ -5,6 +5,7 @@
 
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
+#include "pflib/Exception.h"
 
 namespace pflib::packing {
 
@@ -31,10 +32,7 @@ void SingleROCEventPacket::from(std::span<uint32_t> data) {
     if (i_link < 2) {
       daq_links[i_link].from(data.subspan(link_start_offset, link_len));
     } else {
-      pflib_log(trace) << "trigger link - skip";
-      /*
       trigger_links[i_link-2].from(data.subspan(link_start_offset, link_len));
-      */
     }
     link_start_offset += link_len;
   }
@@ -87,6 +85,9 @@ Reader& SingleROCEventPacket::read(Reader& r) {
   return r;
 }
 
+const std::string SingleROCEventPacket::to_csv_header =
+  "i_link,bx,event,orbit,channel,"+Sample::to_csv_header;
+
 void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   /**
    * The columns of the output CSV are
@@ -102,19 +103,37 @@ void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   for (std::size_t i_link{0}; i_link < 2; i_link++) {
     const auto& daq_link{daq_links[i_link]};
     f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-      << daq_link.orbit << ',' << "calib," << daq_link.calib.Tp() << ','
-      << daq_link.calib.Tc() << ',' << daq_link.calib.adc_tm1() << ','
-      << daq_link.calib.adc() << ',' << daq_link.calib.tot() << ','
-      << daq_link.calib.toa() << '\n';
+      << daq_link.orbit << ',' << "calib,";
+    daq_link.calib.to_csv(f);
+    f << '\n';
     for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
       f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << i_ch << ',' << daq_link.channels[i_ch].Tp()
-        << ',' << daq_link.channels[i_ch].Tc() << ','
-        << daq_link.channels[i_ch].adc_tm1() << ','
-        << daq_link.channels[i_ch].adc() << ',' << daq_link.channels[i_ch].tot()
-        << ',' << daq_link.channels[i_ch].toa() << '\n';
+        << daq_link.orbit << ',' << i_ch << ',';
+      daq_link.channels[i_ch].to_csv(f);
+      f << '\n';
     }
   }
+}
+
+Sample SingleROCEventPacket::channel(int ch) const {
+  int i_link = (ch / 36);
+  int i_ch_in_link = (ch % 36);
+  return daq_links[i_link].channels[i_ch_in_link];
+}
+
+uint32_t SingleROCEventPacket::trigsum(int i_link, int i_sum, int i_bx) const {
+  if (i_link < 0 or i_link > 3) {
+    PFEXCEPTION_RAISE("OutOfRange",
+        "Trigger link "+std::to_string(i_link)+" is not in the range [0,3].");
+  }
+  /**
+   * We return the linearized sum since that is what most people want.
+   * @see TriggerLinkFrame::compressed_to_linearized for how this value
+   * is determined and how you should interpret it. TLDR: the value is
+   * linearized but is off by some scale factor that depends on the SelTC4
+   * parameter on the chip.
+   */
+  return trigger_links[i_link].linearized_sum(i_sum, i_bx);
 }
 
 }  // namespace pflib::packing

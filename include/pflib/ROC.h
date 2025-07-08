@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
@@ -13,9 +14,9 @@ namespace pflib {
 
 /**
  * @class ROC setup
- *
  */
 class ROC {
+  static const int N_REGISTERS_PER_PAGE = 32;
  public:
   ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version);
 
@@ -41,6 +42,14 @@ class ROC {
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
 
   /**
+   * get registers from the HGCROC
+   *
+   * @param[in] selected registers to get values for, all registers if empty
+   * @return register values currently on the chip
+   */
+  std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected = {});
+
+  /**
    * set registers on the HGCROC to specific values
    *
    * @param[in] file_path path to CSV file containing register values,
@@ -50,11 +59,11 @@ class ROC {
   void loadRegisters(const std::string& file_path);
 
   /**
-   * Retrieve the parameters that correspond to the input page
+   * Get the parameters for the input page
    *
    * @param[in] page name of page to get parameters for
    */
-  std::vector<std::string> parameters(const std::string& page);
+  std::map<std::string, int> getParameters(const std::string& page);
 
   /**
    * Retrieve all of the manual-documented defaults for all parameters
@@ -73,8 +82,11 @@ class ROC {
    * @param[in] parameters mapping of parameters to apply where the
    * first key is the page name, the second key is the parameter in
    * that page and the value is the parameter value
+   * @return chip registers that **were** on the chip before the application
+   * of these parameters, helpful if users want to unset them later with
+   * ROC::TestParameters
    */
-  void applyParameters(
+  std::map<int, std::map<int, uint8_t>> applyParameters(
       const std::map<std::string, std::map<std::string, int>>& parameters);
 
   /**
@@ -107,6 +119,61 @@ class ROC {
    * and write a YAML file, else just write a CSV file of the registers
    */
   void dumpSettings(const std::string& filepath, bool decompile);
+
+  /**
+   * test certain parameters before setting them back to old values
+   */
+  class TestParameters {
+    std::map<int, std::map<int, uint8_t>> previous_registers_;
+    ROC& roc_;
+   public:
+    /**
+     * Construct a set of test parameters
+     *
+     * Apply the input settings to the roc and store
+     * the previous chip settings to be applied in the destructor
+     */
+    TestParameters(
+      ROC& roc,
+      std::map<std::string, std::map<std::string, int>> new_params
+    );
+    /// applies the unset parameters to the ROC
+    ~TestParameters();
+    /// cannot copy or assign this lock
+    TestParameters(const TestParameters&) = delete;
+    TestParameters& operator=(const TestParameters&) = delete;
+    /// Build a TestParameters parameter by parameter
+    class Builder {
+      std::map<std::string, std::map<std::string, int>> parameters_;
+      ROC& roc_;
+     public:
+      Builder(ROC& roc);
+      Builder& add(const std::string& page, const std::string& param, const int& val);
+      [[nodiscard]] TestParameters apply();
+    };
+  };
+
+  /**
+   * start a set of test parameters
+   *
+   * Use when you want to temporarily set parameters on the chip
+   * which will then be re-set back to their previous values later.
+   *
+   * example
+   * ```cpp
+   * // PAGE.PARAM1 and PAGE.PARAM2 have some values from
+   * // previous settings that were applied
+   * {
+   *   auto test_parameter_handle = roc.testParameters()
+   *     .add("PAGE", "PARAM1", 42)
+   *     .add("PAGE", "PARAM2", 32);
+   *     .apply();
+   *   // PAGE.PARAM1 == 42 and PAGE.PARAM2 == 32
+   * }
+   * // PAGE.PARAM1 restored to previous settings
+   * ```
+   */
+  TestParameters::Builder testParameters();
 
  private:
   I2C& i2c_;

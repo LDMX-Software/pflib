@@ -40,3 +40,15 @@ test-log-all: (_test "-l all")
 # remove build directory
 clean:
     rm -r build
+
+# dump 32-bit words per line
+hexdump *args:
+    hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
+   
+# run the decoder
+decode *args:
+    denv ./build/pfdecoder {{ args }}
+
+# open the test menu
+test-menu:
+    denv ./build/test-menu

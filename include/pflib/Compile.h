@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "pflib/Logging.h"
+#include "pflib/utility/str_to_int.h"
 #include "register_maps/register_maps_types.h"
 
 namespace YAML {
@@ -21,24 +22,6 @@ class Node;
 }
 
 namespace pflib {
-
-/**
- * Get an integer from the input string
- *
- * The normal stoi (and similar) tools don't support binary inputs
- * which are helpful in our case where sometimes the value is set
- * in binary but each bit has a non-base-2 scale.
- *
- * Supported prefixes:
- * - `0b` --> binary
- * - `0x` --> hexidecimal
- * - `0`  --> octal
- * - none of the above --> decimal
- *
- * @param[in] str string form of integer
- * @return integer decoded from string
- */
-int str_to_int(std::string str);
 
 /**
  * Get a copy of the input string with all caps
@@ -180,20 +163,11 @@ class Compiler {
       bool be_careful);
 
   /**
-   * get the parameter names for the input page-type
+   * get the registers corresponding to the input page
    *
-   * The page-types are as specified in the HGC ROC manual without spaces
-   * and case insensitive.
-   * - DigitalHalf
-   * - ChannelWise
-   * - Top
-   * - MasterTDC
-   * - ReferenceVoltage
-   * - GlobalAnalog
-   *
-   * @return vector of parameter names for that page type
+   * @return dummy register mapping to help with selecting
    */
-  std::vector<std::string> parameters(const std::string& page);
+  std::map<int, std::map<int, uint8_t>> getRegisters(const std::string& page);
 
   /**
    * get the default parameter values as specified in the manual

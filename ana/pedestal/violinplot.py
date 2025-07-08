@@ -37,5 +37,6 @@ axes[-1].set_xticks(
     channels
 )
 axes[-1].set_xlabel('Channel')
+fig.suptitle(args.pedestals.stem)
 fig.savefig(args.output, bbox_inches='tight')
 plt.clf()

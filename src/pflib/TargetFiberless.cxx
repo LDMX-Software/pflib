@@ -16,8 +16,9 @@ class HcalFiberless : public Hcal {
   static const int GPO_HGCROC_RESET_SOFT = 1;
   static const int GPO_HGCROC_RESET_I2C = 0;
 
-  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c)
-      : Hcal(roc_i2c) {
+  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c)
+      : Hcal(roc_i2c, bias_i2c) {
+
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
     // should already be done, but be SURE
@@ -54,8 +55,11 @@ class HcalFiberless : public Hcal {
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
+    
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
+    if(i2croc_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");}
     i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
+    if(i2cboard_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");}
 
     i2c_["HGCROC"] = i2croc_;
     i2c_["BOARD"] = i2cboard_;
@@ -64,7 +68,10 @@ class TargetFiberless : public Target {
     std::vector<std::shared_ptr<I2C>> roc_i2cs;
     roc_i2cs.push_back(i2croc_);
 
-    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs));
+    std::vector<std::shared_ptr<I2C>> bias_i2cs;
+    bias_i2cs.push_back(i2cboard_);
+
+    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs, bias_i2cs));
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
@@ -91,6 +98,7 @@ void TargetFiberless::setup_run(int run, int format, int contrib_id) {
     contribid_ = contrib_id & 0xFF;
   ievt_ = 0;
   l1a_ = 0;
+  hcal_->daq().reset();
   fc_->clear_run();
 }
 
@@ -126,6 +134,7 @@ std::vector<uint32_t> TargetFiberless::read_event() {
       buffer[2] |= len_total;
       buffer.push_back(0xd07e2025);
       buffer.push_back(0x12345678);
+      hcal().daq().advanceLinkReadPtr();
     } else if (daqformat_ == 2) {
       const int bc = 0;  // bx number...
       buffer.push_back(0xb33f2025);

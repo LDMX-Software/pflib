@@ -11,27 +11,6 @@
 
 namespace pflib {
 
-int str_to_int(std::string str) {
-  if (str == "0") return 0;
-  int base = 10;
-  if (str[0] == '0' and str.length() > 2) {
-    // binary or hexadecimal
-    if (str[1] == 'b' or str[1] == 'B') {
-      base = 2;
-      str = str.substr(2);
-    } else if (str[1] == 'x' or str[1] == 'X') {
-      base = 16;
-      str = str.substr(2);
-    }
-  } else if (str[0] == '0' and str.length() > 1) {
-    // octal
-    base = 8;
-    str = str.substr(1);
-  }
-
-  return std::stoi(str, nullptr, base);
-}
-
 std::string upper_cp(const std::string& str) {
   std::string STR{str};
   for (auto& c : STR) c = toupper(c);
@@ -195,23 +174,17 @@ std::map<std::string, std::map<std::string, int>> Compiler::decompile(
   return settings;
 }
 
-std::vector<std::string> Compiler::parameters(const std::string& page) {
-  static auto get_parameter_names =
-      [&](const std::map<std::string, Parameter>& lut)
-      -> std::vector<std::string> {
-    std::vector<std::string> names;
-    for (const auto& param : lut) names.push_back(param.first);
-    return names;
-  };
-
+std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(const std::string& page) {
   std::string PAGE{upper_cp(page)};
-  auto page_it{page_lut_.find(PAGE)};
-  if (page_it == page_lut_.end()) {
-    PFEXCEPTION_RAISE("BadName", "Input page name " + page +
-                                     " does not match a page or type of page.");
+  auto page_it{parameter_lut_.find(PAGE)};
+  if (page_it == parameter_lut_.end()) {
+    PFEXCEPTION_RAISE("BadPage", "Input page "+page+" is not present in the look up table.");
   }
-
-  return get_parameter_names(page_it->second);
+  std::map<int, std::map<int,uint8_t>> registers;
+  for (const auto& param : page_it->second.second) {
+    compile(page, param.first, 0, registers);
+  }
+  return registers;
 }
 
 std::map<std::string, std::map<std::string, int>> Compiler::defaults() {
@@ -321,7 +294,7 @@ void Compiler::extract(
                                              param.first.as<std::string>());
         }
         std::string param_name = upper_cp(param.first.as<std::string>());
-        settings[page][param_name] = str_to_int(sval);
+        settings[page][param_name] = utility::str_to_int(sval);
       }
     }
   }

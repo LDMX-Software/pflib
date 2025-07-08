@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "pflib/Logging.h"
-#include "pflib/Version.h"
+#include "pflib/version/Version.h"
 #include "pflib/packing/FileReader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/SingleROCEventPacket.h"
@@ -24,6 +24,7 @@ static void usage() {
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
                "  --headers    : print header words and decoded value to term\n"
+               "  --trigger    : write out trigger links to term\n"
             << std::endl;
 }
 
@@ -37,6 +38,7 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("pfdecoder")};
 
+  bool trigger{false};
   bool headers{false};
   int nevents{-1};
   std::string in_file, out_file;
@@ -91,6 +93,8 @@ int main(int argc, char* argv[]) {
         }
       } else if (arg == "--headers") {
         headers = true;
+      } else if (arg == "--trigger") {
+        trigger = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -104,7 +108,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  pflib_log(debug) << PFLIB_VERSION << " (" << GIT_DESCRIBE << ")";
+  pflib_log(debug) << pflib::version::debug();
 
   if (in_file.empty()) {
     pflib_log(fatal) << "Need to provide a file to decode.";
@@ -128,34 +132,49 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  o << std::boolalpha;
-  o << "link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa\n";
+  try {
+    o << std::boolalpha;
+    o << pflib::packing::SingleROCEventPacket::to_csv_header << '\n';
+  
+    pflib::packing::SingleROCEventPacket ep;
+    // count is NOT written into output file,
+    // we use the event number from the links
+    // this is just to allow users to limit the number of entries in
+    // the output CSV if desired
+    int count{0};
+  
+    while (r) {
+      pflib_log(info) << "popping " << count << " event from stream";
+      r >> ep;
+      pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
+                       << " and bool(r): " << bool(r);
+      if (headers) {
+        for (std::size_t i_link{0}; i_link < 2; i_link++) {
+          const auto& daq_link{ep.daq_links[i_link]};
+          std::cout << "Link " << i_link << " : " << "BX = " << daq_link.bx
+                    << " Event = " << daq_link.event
+                    << " Orbit = " << daq_link.orbit << std::endl;
+        }
+      }
 
-  pflib::packing::SingleROCEventPacket ep;
-  // count is NOT written into output file,
-  // we use the event number from the links
-  // this is just to allow users to limit the number of entries in
-  // the output CSV if desired
-  int count{0};
+      if (trigger) {
+        for (std::size_t i_link{0}; i_link < 4; i_link++) {
+          for (std::size_t i_sum{0}; i_sum < 4; i_sum++) {
+            std::cout << "TC" << i_link << "_" << i_sum
+              << " = " << ep.trigsum(i_link, i_sum) << std::endl;
+          }
+        }
+      }
 
-  while (r) {
-    pflib_log(info) << "popping " << count << " event from stream";
-    r >> ep;
-    pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
-                     << " and bool(r): " << bool(r);
-    if (headers) {
-      for (std::size_t i_link{0}; i_link < 2; i_link++) {
-        const auto& daq_link{ep.daq_links[i_link]};
-        std::cout << "Link " << i_link << " : " << "BX = " << daq_link.bx
-                  << " Event = " << daq_link.event
-                  << " Orbit = " << daq_link.orbit << std::endl;
+      ep.to_csv(o);
+      count++;
+      if (nevents > 0 and count >= nevents) {
+        break;
       }
     }
-    ep.to_csv(o);
-    if (nevents > 0 and count > nevents) {
-      break;
-    }
-    count++;
+  } catch (const std::runtime_error& e) {
+    pflib_log(fatal) << e.what();
+    return 1;
   }
 
   return 0;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <vector>
+#include <map>
 
 namespace pflib {
 
@@ -58,6 +59,9 @@ class DAQ {
   /// Advance link read pointer
   virtual void advanceLinkReadPtr() {}
 
+  // get any useful debugging data
+  virtual std::map<std::string, uint32_t> get_debug() { return std::map<std::string, uint32_t>(); }
+  
  private:
   /// number of links
   int n_links;

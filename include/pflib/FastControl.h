@@ -21,6 +21,12 @@ class FastControl {
    */
   virtual void resetCounters() {}
 
+  /**
+   * Do standard setup for FastControl interface
+   * e.g. constructing fast control commands for requesting later
+   */
+  virtual void standard_setup() {}
+
   /** send a single L1A */
   virtual void sendL1A() = 0;
 
@@ -44,6 +50,12 @@ class FastControl {
 
   /** calib pulse setup (charge to l1a time) */
   virtual int fc_get_setup_calib() { return -1; }
+
+  /** led pulse setup */
+  virtual void fc_setup_led(int charge_to_l1a) {}
+
+  /** led pulse setup (charge to l1a time) */
+  virtual int fc_get_setup_led() { return -1; }
 
   /** read counters from the FC side */
   virtual void read_counters(int& spill_count, int& header_occ,

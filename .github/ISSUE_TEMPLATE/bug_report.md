@@ -27,11 +27,13 @@ $ pftool
 ...some error
 ```
 
-**Environment (please complete the following information):**
- - OS: [e.g. CentOS Stream]
- - Compiler and its version: [e.g. gcc 9.2]
- - Communication Method and Version [e.g. uHAL v2.8.1 or Rogue v5.9.3]
- - pftoolrc being loaded
+**Environment:**
+<!--
+- ZCU: [e.g. UMN]
+- pftoolrc being loaded:
+- Firmware version:
+- pflib version:
+-->
 
 **Additional context**
-Add any other context about the problem here.
+<!-- Add any other context about the problem here. -->
