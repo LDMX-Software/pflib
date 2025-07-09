@@ -83,46 +83,26 @@ load_parameter_points(const std::string& filepath) {
  */
 static void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  bool isLED = pftool::readline_bool("Flash LED instead of the internal calibration pulse?", true);
+  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
+  bool highrange = false;
+  if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
-  int link = (channel / 36);
-  auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
+  std::string fname = pftool::readline_path("charge-time-scan", ".csv");
   pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-  std::string fname;
-  bool preCC = false;
-  bool highrange = false;
-  int calib = 0;
-  
-  if(isLED){
-    fname = pftool::readline_path("led-time-scan", ".csv");
-    //Makes sure charge injections are turned off (in this ch at least)
-    auto test_param_handle = roc.testParameters()
-      .add(refvol_page, "CALIB", 0)
-      .add(refvol_page, "CALIB_2V5", 0)
-      .add(refvol_page, "INTCTEST", 1)
-      .add(refvol_page, "CHOICE_CINJ", 0)
-      .add(channel_page, "HIGHRANGE", 0)
-      .add(channel_page, "LOWRANGE", 0)
-      .apply();
-  }
-  else{
-    preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
-    highrange = false;
-    if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
-    calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
-    fname = pftool::readline_path("charge-time-scan", ".csv");
-    auto test_param_handle = roc.testParameters()
-      .add(refvol_page, "CALIB", preCC ? 0 : calib)
-      .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
-      .add(refvol_page, "INTCTEST", 1)
-      .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-      .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-      .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
-      .apply();
-  }
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto test_param_handle = roc.testParameters()
+    .add(refvol_page, "CALIB", preCC ? 0 : calib)
+    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
+    .add(refvol_page, "INTCTEST", 1)
+    .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+    .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
+    .apply();
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -136,7 +116,6 @@ static void charge_timescan(Target* tgt) {
       header["channel"] = channel;
       header["calib"] = calib;
       header["highrange"] = highrange;
-      header["ledflash"] = isLED;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
         << "time,"
@@ -150,21 +129,11 @@ static void charge_timescan(Target* tgt) {
     } 
   };
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  int central_charge_to_l1a;
-  if(isLED){
-    central_charge_to_l1a = tgt->fc().fc_get_setup_led();
-  } else {
-    central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-  }
+  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
   for (charge_to_l1a = central_charge_to_l1a+start_bx;
        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
-    if(isLED){
-      tgt->fc().fc_setup_led(charge_to_l1a);
-      pflib_log(info) << "led_to_l1a = " << tgt->fc().fc_get_setup_led();
-    } else {
-      tgt->fc().fc_setup_calib(charge_to_l1a);
-      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-    }
+    tgt->fc().fc_setup_calib(charge_to_l1a);
+    pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
     for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
       auto phase_strobe_test_handle = roc.testParameters()
         .add("TOP", "PHASE_STROBE", phase_strobe)
@@ -174,19 +143,11 @@ static void charge_timescan(Target* tgt) {
       time = 
         (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
         - phase_strobe * clock_cycle/n_phase_strobe;
-      if(isLED){
-        tgt->daq_run("LED", writer, nevents, pftool::state.daq_rate);
-      } else {
-        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
-      }
+      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
   }
   // reset charge_to_l1a to central value
-  if(isLED){
-    tgt->fc().fc_setup_led(central_charge_to_l1a);
-  } else {
-    tgt->fc().fc_setup_calib(central_charge_to_l1a);
-  }
+  tgt->fc().fc_setup_calib(central_charge_to_l1a);
 }
 
 /**
@@ -414,11 +375,228 @@ static void parameter_timescan(Target* tgt) {
   }
 }
 
+/**
+ * TASKS.VT50_SCAN
+ *
+ * Scans the calib range for the v_t50 of the tot.
+ * The v_t50 is the point where the tot triggers 50 percent of the time.
+ * We check the tot efficiency at every calib value and use a recursive method 
+ * to hone in on the v_t50.
+ *
+ */
+static void vt50_scan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 1);
+  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
+  bool highrange = false;
+  if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  bool search = pftool::readline_bool("Use binary (Y) or bisectional search (N)? ", false);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
+  int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  int start_bx = pftool::readline_int("Starting BX? ", -1);
+  int n_bx = pftool::readline_int("Number of BX? ", 3);
+  int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
+  int tot_threshold = pftool::readline_int("Value for TOT threshold: ", 500);
+  //std::string param_page = pftool::readline("Param page: ", "REFERENCEVOLTAGE_0");
+  //std::string param_name = pftool::readline("Param name: ", "CAlIB");
+  std::string fname = pftool::readline_path("param-time-scan", ".csv");
+  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto test_param_handle = roc.testParameters()
+    .add(refvol_page, "CALIB", preCC ? 0 : calib)
+    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
+    .add(refvol_page, "INTCTEST", 1)
+    .add(refvol_page, "TOA_VREF", toa_threshold)
+    .add(refvol_page, "TOT_VREF", tot_threshold)
+    .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+    .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
+    .apply();
+
+  std::filesystem::path parameter_points_file =
+    pftool::readline("File of parameter points: ");
+
+  pflib_log(info) << "loading parameter points file...";
+  auto [param_names, param_values ] = load_parameter_points(parameter_points_file);
+  pflib_log(info) << "successfully loaded parameter points";
+
+  int phase_strobe{0};
+  int charge_to_l1a{0};
+  double time{0};
+  double clock_cycle{25.0};
+  int n_phase_strobe{16};
+  int offset{1};
+  std::size_t i_param_point{0};
+  std::string page_name = "REFERENCEVOLTAGE_1";
+  std::string param_name = "CALIB";
+  int calib_value{100000};
+  double tot_eff{0};
+
+
+  std::vector<pflib::packing::SingleROCEventPacket> buffer;
+  pflib::DecodeAndWriteToCSV writer{
+    fname,
+    [&](std::ofstream& f) {
+      boost::json::object header;
+      header["channel"] = channel;
+      header["highrange"] = highrange;
+      header["preCC"] = preCC;
+      f << std::boolalpha
+        << "# " << boost::json::serialize(header) << '\n'
+        << "time,";
+      for (const auto& [ page, parameter ] : param_names) {
+        f << page << '.' << parameter << ',';
+      }
+      f << page_name << '.' << param_name << ',';
+      f << pflib::packing::Sample::to_csv_header
+        << '\n';
+    },
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      f << time << ',';
+      for (const auto& val : param_values[i_param_point]) {
+        f << val << ',';
+      }
+      f << calib_value << ',';
+      ep.channel(channel).to_csv(f);
+      f << '\n';
+      buffer.push_back(ep);
+    } 
+  };
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */); 
+
+  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+
+  // Vectors for storing tot_eff and calib for the current param_point
+  std::vector<double> tot_eff_list;
+  std::vector<int> calib_list = {0, 4095}; //min and max
+  double tol{0.1};
+  int count{2};
+  for (; i_param_point < param_values.size(); i_param_point++) {
+    // reset for every iteration
+    tot_eff_list.clear();
+    calib_list = {0, 4095};
+    calib_value = 100000;
+    tot_eff = 0;
+    auto test_param_builder = roc.testParameters();
+    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+      test_param_builder.add(
+      (param_names[i_param].first == "REFERENCEVOLTAGE_0" ? refvol_page : 
+       param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
+       param_names[i_param].first),
+      param_names[i_param].second,
+      param_values[i_param_point][i_param]);
+      pflib_log(info) << param_names[i_param].second << " = " 
+                      << param_values[i_param_point][i_param];
+    }
+    auto list_test_param = test_param_builder.apply();
+    while (bool isContinue = true) {
+      if (search) { 
+        // BINARY SEARCH
+        if (!tot_eff_list.empty()) {
+          if (tot_eff_list.back() > 0.5) {
+            calib_value = std::abs(calib_list.back() - calib_list[calib_list.size() - 2]) / 2
+                        + calib_list[calib_list.size() - count];
+            count++;
+          }
+          else {
+            calib_value = std::abs((calib_list[calib_list.size() - 2] - calib_list.back())) / 2
+                        + calib_list.back();
+            count = 2;
+          }
+        }
+        else {
+          calib_value = calib_list.front();
+        }
+      }
+      else {
+        // BISECTIONAL SEARCH
+        if (!tot_eff_list.empty()) {
+          if (tot_eff_list.back() > 0.5) {
+            calib_list.back() = calib_value;
+          }
+          else {
+            calib_list.front() = calib_value;
+          }
+          calib_value = (calib_list.back() - calib_list.front())/2 + calib_list.front();
+        }
+        else {
+          calib_value = (calib_list.back() - calib_list.front())/2;
+        }
+      }
+      auto calib_test_param = roc.testParameters().add(
+          page_name,
+          param_name,
+          calib_value
+      ).add(
+          "REFERENCEVOLTAGE_0",
+          param_name,
+          calib_value
+      ).apply();
+      usleep(10); // make sure parameters are applied
+
+      std::vector<pflib::packing::SingleROCEventPacket> data;
+      for (charge_to_l1a = central_charge_to_l1a+start_bx;
+        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
+        tgt->fc().fc_setup_calib(charge_to_l1a);
+        pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+        time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
+        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+      }
+      // Read and save buffer
+      data = buffer;
+      buffer.clear();
+      std::vector<double> tot_list;
+
+      for (pflib::packing::SingleROCEventPacket ep : data) {
+        auto tot = ep.channel(channel).tot();
+        if (tot > 0) {
+          tot_list.push_back(tot);
+        }
+      }
+      
+      // Calculate tot_eff
+      tot_eff = static_cast<double>(tot_list.size())/nevents;
+      pflib_log(info) << "calib = " << calib_value;
+      pflib_log(info) << "tot_eff = " << tot_eff;
+
+      if (search) {
+        // BINARY SEARCH
+        if (std::abs(calib_value-calib_list.back()) < tol) {
+          pflib_log(info) << "Final calib is : " << calib_value
+                          << " with tot_eff = " << tot_eff;
+          break;
+        }
+      }
+      else {
+        // BISECTIONAL SEARCH
+        if (std::abs(tot_eff - 0.5) < tol) {
+          pflib_log(info) << "Final calib is : " << calib_value
+                          << " with tot_eff = " << tot_eff;
+          break;
+        }
+        if (calib_value == 0 || calib_value == 4094) break;
+      }
+      
+      tot_eff_list.push_back(tot_eff);
+      if (search) calib_list.push_back(calib_value);
+
+      // We can't hone in close enough to 0.5 because calib are whole ints
+      if (tot_eff_list.size() > 25) break;
+
+      // reset charge_to_l1a to central value
+      tgt->fc().fc_setup_calib(central_charge_to_l1a);
+    }
+  }
+}
+
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
+        ->line("VT50_SCAN", "Hones in on the vt50 by setting the calib value based on the tot efficiency", vt50_scan)
 ;
 }
