@@ -1,5 +1,5 @@
 #include "pflib/utility/crc.h"
-
+#include <vector>
 #include <boost/endian/conversion.hpp>
 #include <boost/crc.hpp>
 

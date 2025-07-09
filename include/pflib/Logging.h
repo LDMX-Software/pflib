@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef BOOST_LOG_DYN_LINK
 #define BOOST_LOG_DYN_LINK
+#endif
 
 #include <boost/log/core.hpp>  //core logging service
 #include <boost/log/sources/record_ostream.hpp>
