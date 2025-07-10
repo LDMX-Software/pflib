@@ -162,33 +162,33 @@ static void charge_timescan(Target* tgt) {
   bool highrange = false;
   int calib = 0;
 
+
+  auto test_param_builder = roc.testParameters();
   if(isLED){
     fname = pftool::readline_path("led-time-scan", ".csv");
     //Makes sure charge injections are turned off (in this ch at least)
-    auto test_param_handle = roc.testParameters()
+    test_param_builder
       .add(refvol_page, "CALIB", 0)
       .add(refvol_page, "CALIB_2V5", 0)
       .add(refvol_page, "INTCTEST", 1)
       .add(refvol_page, "CHOICE_CINJ", 0)
       .add(channel_page, "HIGHRANGE", 0)
-      .add(channel_page, "LOWRANGE", 0)
-      .apply();
-  }
-  else{
+      .add(channel_page, "LOWRANGE", 0);
+  } else{
     preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
     highrange = false;
     if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
     calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
     fname = pftool::readline_path("charge-time-scan", ".csv");
-    auto test_param_handle = roc.testParameters()
+    test_param_builder
       .add(refvol_page, "CALIB", preCC ? 0 : calib)
       .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
       .add(refvol_page, "INTCTEST", 1)
       .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
       .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-      .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
-      .apply();
+      .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1);
   }
+  auto test_param_handle = test_param_builder.apply();
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
