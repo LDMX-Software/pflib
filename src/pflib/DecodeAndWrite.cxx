@@ -3,8 +3,6 @@
 #include "pflib/packing/BufferReader.h"
 #include "pflib/Exception.h"
 
-#DEFINE MAXBUFFERSIZE = 10000;
-
 namespace pflib {
 
 void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
@@ -68,7 +66,7 @@ void DecodeAndBuffer::start_run() {
 }
 
 void DecodeAndBuffer::end_run() {
-  if (ep_buffer_.size() > MAXBUFFERSIZE) ep_buffer_.clear();
+  if (ep_buffer_.size() > 10000) ep_buffer_.clear();
   //pflib_log(warn) << "too many events saved in buffer. buffer cleared";
 }
 

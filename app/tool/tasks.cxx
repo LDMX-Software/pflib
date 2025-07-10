@@ -118,7 +118,7 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
         ).apply();
     tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
-    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_data();
+    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_and_flush();
     for (const pflib::packing::SingleROCEventPacket ep : data) {
       auto toa = ep.channel(channel).toa();
       if (toa > 0) {
@@ -138,7 +138,7 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
     }
     toa_vref += 1;
   }
-  PFEXCEPTION("NOTOA", "No TOA threshold was found for channel " + std::stoi(channel) + "!");
+  PFEXCEPTION_RAISE("NOTOA", "No TOA threshold was found for channel " + std::to_string(channel) + "!");
 }
 
 /**
