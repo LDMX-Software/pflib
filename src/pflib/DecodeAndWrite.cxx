@@ -3,6 +3,8 @@
 #include "pflib/packing/BufferReader.h"
 #include "pflib/Exception.h"
 
+#DEFINE MAXBUFFERSIZE = 10000;
+
 namespace pflib {
 
 void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
@@ -47,21 +49,26 @@ DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
   );
 }
 
-DecodeAndWriteToBuffer::DecodeAndWriteToBuffer() : DecodeAndWrite() {};
+DecodeAndBuffer::DecodeAndBuffer() : DecodeAndWrite() {};
 
-void DecodeAndWriteToBuffer::write_event(const pflib::packing::SingleROCEventPacket& ep) {
+void DecodeAndBuffer::write_event(const pflib::packing::SingleROCEventPacket& ep) {
   ep_buffer_.push_back(ep);
 }
 
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndWriteToBuffer::read_data() {
+std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::read_and_flush() {
   std::vector<pflib::packing::SingleROCEventPacket> data = ep_buffer_;
   ep_buffer_.clear();
   return data;
 }
 
-void DecodeAndWriteToBuffer::end_run() {
-  if (ep_buffer_.size() > 300) ep_buffer_.clear();
-  //this doesn't work.
+void DecodeAndBuffer::start_run() {
+  if (ep_buffer_.size() > 0) {
+    //pflib_log(warn) << "buffer was not read and flushed since last run"
+  }
+}
+
+void DecodeAndBuffer::end_run() {
+  if (ep_buffer_.size() > MAXBUFFERSIZE) ep_buffer_.clear();
   //pflib_log(warn) << "too many events saved in buffer. buffer cleared";
 }
 

@@ -92,7 +92,7 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  int nevents = 50;
+  int nevents = 30;
   double toa_eff{2};
   // in the calibration documentation, it is suggested to send a "small" charge injection.
   // Here I used 200 but there is maybe a better value.
@@ -107,7 +107,7 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
-  pflib::DecodeAndWriteToBuffer buffer;
+  pflib::DecodeAndBuffer buffer;
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
@@ -138,7 +138,7 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
     }
     toa_vref += 1;
   }
-  throw std::logic_error("No TOA threshold was found!");
+  PFEXCEPTION("NOTOA", "No TOA threshold was found for channel " + std::stoi(channel) + "!");
 }
 
 /**
