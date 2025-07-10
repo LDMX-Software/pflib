@@ -642,6 +642,67 @@ static void sampling_phase_scan(Target* tgt) {
   }
 }
 
+/*
+ * TASKS.SET_TOA
+ *
+ * Do a pedestal run for a given channel, find the toa efficiency, and set
+ * the toa threshold to where the toa efficiency is 1. This corresponds to a point
+ * above the pedestal where the pedestal shouldn't fluctuate and trigger the toa.
+ * This assumes a global toa threshold is already set.
+ *
+ */
+static void parameter_timescan(Target* tgt, int channel, TYPE& toa_handle) {
+
+  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+
+  int nevents = 50;
+  int start_bx = -1;
+  int n_bx = 3;
+  int toa_vref = 1;
+
+  plib_log(info) << "finding the TOA threshold!";
+
+  std::vector<pflib::packing::SingleROCEventPacket> buffer;
+
+  pflib::DecodeAndWriteToCSV writer{
+    "",
+    [&](std::ofstream& f) {},
+    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      buffer.push_back(ep);
+    } 
+  };
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  while (bool isContinue = true) {
+    auto test_handle = roc.testParameters().add(
+        channel_page,
+        "TOA_TRIM",
+        toa_vref
+        ).apply();
+    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    std::vector<double> toa_data;
+    for (ep : buffer) {
+      auto toa = ep.channel(channel).toa();
+      if (toa > 0) {
+        toa_data.push_back();
+      }
+    }
+    toa_eff = static_cast<double>(toa_data.size()/nevents);
+    if (toa_eff == 0.0) {
+      toa_handle.add(
+          channel_page,
+          "TOA_TRIM",
+          toa_vref
+          ).apply();
+      pflib_log(info) << "the TOA threshold is set to " << toa_vref;
+      return;
+    }
+    toa_vref++;
+    buffer.clear();
+  }
+}
+
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
