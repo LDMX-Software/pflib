@@ -8,3 +8,5 @@ class test_menu : public pflib::menu::Menu<int*> {
   };
   static State state;
 };
+
+void print_cmd(const std::string& cmd, test_menu::TargetHandle p);

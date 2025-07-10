@@ -14,30 +14,9 @@ void increment(test_menu::TargetHandle p) {
   std::cout << *p << std::endl;
 }
 
-namespace {
-
-  /*
-auto sb = test_menu::menu("SB", "example submenu", [](test_menu::TargetHandle p) {
-                std::cout << test_menu::state.p << std::endl;
-                })
-              ->line("PRINT", "print target", print_cmd)
-              ->line("INCSB", "increment the target", increment)
-              ->line("ADD", "add something to the target",
-                  [](test_menu::TargetHandle p) {
-                    int n = test_menu::readline_int("Number to add: ");
-                    std::cout << " " << *p << " -> ";
-                    (*p) += n;
-                    std::cout << *p << std::endl;
-                  }
-              );
-                
-              */
-
-auto r = test_menu::root()
+static auto r = test_menu::root()
              ->line("INC", "increment the target", increment)
              ->line("ONE", "one command", print_cmd);
-
-}  // namespace
 
 int main(int argc, char* argv[]) {
   if (argc > 1) {
