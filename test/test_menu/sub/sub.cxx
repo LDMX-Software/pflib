@@ -1,5 +1,9 @@
-#include "sub.h"
+#include "../test_menu.h"
+#include "three.h"
+#include "another.h"
 
-pflib::menu::Menu<test_menu::TargetHandle>* sub_menu = test_menu::menu("SB", "sub menu");
-
-static auto _f = sub_menu->line("SUB_PRINT", "print command", print_cmd);
+static auto sub_menu = test_menu::menu("SB", "sub menu example")
+  ->line("PRINT_CMD", "calling a function defined in parent", print_cmd)
+  ->line("THREE", "third function defined here", three)
+  ->line("ANOTHER", "another function to multiply target", another)
+;
