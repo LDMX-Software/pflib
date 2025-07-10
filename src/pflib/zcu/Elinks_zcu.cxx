@@ -11,7 +11,7 @@ class Capture_zcu : public Elinks, public DAQ {
   Capture_zcu()
       : Elinks(6),
         DAQ(6),
-        uio_("/dev/uio5", 16 * 4096) {  // currently covers all elinks
+        uio_("ldmx_buffer", 16 * 4096) {  // currently covers all elinks
   }
 
   virtual int getBitslip(int ilink);

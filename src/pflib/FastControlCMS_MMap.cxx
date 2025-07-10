@@ -93,7 +93,7 @@ class Periodic {
 
 class FastControlCMS_MMap : public FastControl {
  public:
-  FastControlCMS_MMap() : FastControl(), uio_("/dev/uio4", 4096) {
+  FastControlCMS_MMap() : FastControl(), uio_("fastcontrol_axi", 4096) {
     pflib_log(debug) << "pedestal fast command: " << periodic(PEDESTAL_PERIODIC);
     pflib_log(debug) << "charge fast command: " << periodic(CHARGE_PERIODIC);
     pflib_log(debug) << "charge-l1a fast command: " << periodic(CHARGE_L1A_PERIODIC);

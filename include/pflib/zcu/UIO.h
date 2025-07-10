@@ -14,9 +14,12 @@ namespace pflib {
 
 class UIO {
  public:
+  /** Open the UIO device given a name, mapping the amount of memory indicated
+   */
+  UIO(const std::string& name, size_t size = 4096);
+
   /** Open the UIO device given, mapping the amount of memory indicated
    */
-  UIO(const std::string& dev, size_t size = 4096);
   ~UIO();
 
   /** Read the given word from the UIO device register space */
@@ -39,6 +42,10 @@ class UIO {
   void rmw(size_t where, uint32_t bits_to_modify, uint32_t newval);
 
  private:
+  /** Open a given device file directly */
+  void iopen(const std::string& dev, size_t size = 4096);
+
+
   int first_bit_set(uint32_t mask) {
     int i;
     for (i = 0; i < 32; i++)
