@@ -47,15 +47,22 @@ DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
   );
 }
 
-DecodeAndWriteToBuffer::DecodeAndWriteToBuffer(const pflib::packing:SingleROCEventPacket& ep) : DecodeAndWrite() {};
+DecodeAndWriteToBuffer::DecodeAndWriteToBuffer() : DecodeAndWrite() {};
 
 void DecodeAndWriteToBuffer::write_event(const pflib::packing::SingleROCEventPacket& ep) {
   ep_buffer_.push_back(ep);
 }
 
+std::vector<pflib::packing::SingleROCEventPacket> DecodeAndWriteToBuffer::read_data() {
+  std::vector<pflib::packing::SingleROCEventPacket> data = ep_buffer_;
+  ep_buffer_.clear();
+  return data;
+}
+
 void DecodeAndWriteToBuffer::end_run() {
-  if (ep_buffer_.size() > 300) ep_buffer.clear();
-  pflib_log(warn) << "too many events saved in buffer. buffer cleared";
+  if (ep_buffer_.size() > 300) ep_buffer_.clear();
+  //this doesn't work.
+  //pflib_log(warn) << "too many events saved in buffer. buffer cleared";
 }
 
 }

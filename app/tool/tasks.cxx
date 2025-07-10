@@ -75,6 +75,72 @@ load_parameter_points(const std::string& filepath) {
   return std::make_tuple(param_names, param_values);
 }
 
+/*
+ * TASKS.SET_TOA
+ *
+ * Do a charge injection run for a given channel, find the toa efficiency, and set
+ * the toa threshold to the first point where the toa efficiency is 1. 
+ * This corresponds to a point above the pedestal where the pedestal shouldn't 
+ * fluctuate and trigger the toa.
+ *
+ * Things that might be improved upon:
+ * the number of events nevents, which determines our toa efficiency.
+ * The calib value which defines a small pulse. 
+ *
+ */
+static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int channel) {
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int nevents = 50;
+  double toa_eff{2};
+  // in the calibration documentation, it is suggested to send a "small" charge injection.
+  // Here I used 200 but there is maybe a better value.
+  int calib = 200;
+  auto test_param_handle = roc.testParameters()
+      .add(refvol_page, "CALIB",  calib)
+      .add(refvol_page, "INTCTEST", 1)
+      .add(channel_page, "LOWRANGE", 1)
+      .apply();
+
+
+  pflib_log(info) << "finding the TOA threshold!";
+  // This class doesn't write to csv. When we just would like to
+  // use the data for setting params.
+  pflib::DecodeAndWriteToBuffer buffer;
+
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
+    auto test_handle = roc.testParameters().add(
+        refvol_page,
+        "TOA_VREF",
+        toa_vref
+        ).apply();
+    tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
+    std::vector<double> toa_data;
+    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_data();
+    for (const pflib::packing::SingleROCEventPacket ep : data) {
+      auto toa = ep.channel(channel).toa();
+      if (toa > 0) {
+        toa_data.push_back(toa);
+      }
+    }
+    toa_eff = static_cast<double>(toa_data.size())/nevents;
+    if (toa_eff == 1) {
+      auto toa_builder = roc.testParameters();
+      toa_builder.add(
+          refvol_page,
+          "TOA_VREF",
+          toa_vref
+          );
+      pflib_log(info) << "the TOA threshold is set to " << toa_vref;
+      return toa_builder.apply();
+    }
+    toa_vref += 1;
+  }
+  throw std::logic_error("No TOA threshold was found!");
+}
+
 /**
  * TASKS.CHARGE_TIMESCAN
  *
@@ -95,7 +161,7 @@ static void charge_timescan(Target* tgt) {
   bool preCC = false;
   bool highrange = false;
   int calib = 0;
-  
+
   if(isLED){
     fname = pftool::readline_path("led-time-scan", ".csv");
     //Makes sure charge injections are turned off (in this ch at least)
@@ -641,67 +707,6 @@ static void sampling_phase_scan(Target* tgt) {
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
-
-/*
- * TASKS.SET_TOA
- *
- * Do a pedestal run for a given channel, find the toa efficiency, and set
- * the toa threshold to where the toa efficiency is 1. This corresponds to a point
- * above the pedestal where the pedestal shouldn't fluctuate and trigger the toa.
- * This assumes a global toa threshold is already set.
- *
- */
-static void parameter_timescan(Target* tgt, int channel, TYPE& toa_handle) {
-
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-  auto channel_page = pflib::utility::string_format("CH_%d", channel);
-
-  int nevents = 50;
-  int start_bx = -1;
-  int n_bx = 3;
-  int toa_vref = 1;
-
-  plib_log(info) << "finding the TOA threshold!";
-
-  std::vector<pflib::packing::SingleROCEventPacket> buffer;
-
-  pflib::DecodeAndWriteToCSV writer{
-    "",
-    [&](std::ofstream& f) {},
-    [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      buffer.push_back(ep);
-    } 
-  };
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  while (bool isContinue = true) {
-    auto test_handle = roc.testParameters().add(
-        channel_page,
-        "TOA_TRIM",
-        toa_vref
-        ).apply();
-    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
-    std::vector<double> toa_data;
-    for (ep : buffer) {
-      auto toa = ep.channel(channel).toa();
-      if (toa > 0) {
-        toa_data.push_back();
-      }
-    }
-    toa_eff = static_cast<double>(toa_data.size()/nevents);
-    if (toa_eff == 0.0) {
-      toa_handle.add(
-          channel_page,
-          "TOA_TRIM",
-          toa_vref
-          ).apply();
-      pflib_log(info) << "the TOA threshold is set to " << toa_vref;
-      return;
-    }
-    toa_vref++;
-    buffer.clear();
-  }
-}
-
 
 namespace {
 auto menu_tasks =
