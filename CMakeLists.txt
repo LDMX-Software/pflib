@@ -205,7 +205,10 @@ add_executable(pftool
   app/tool/bias.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 
-add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
+add_executable(pflpgbt app/lpgbt/main.cxx 
+  app/lpgbt/lpgbt_mezz_tester.cc
+  app/lpgbt/zcu_optolink.cc
+)
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments

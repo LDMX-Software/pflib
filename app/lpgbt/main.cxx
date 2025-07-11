@@ -5,58 +5,81 @@
 
 #include "pflib/menu/Menu.h"
 #include "lpgbt_mezz_tester.h"
+#include "zcu_optolink.h"
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
 
-using tool = pflib::menu::Menu<pflib::lpGBT*>;
+struct ToolBox {
+  pflib::lpGBT* lpgbt;
+  pflib::zcu::OptoLink* olink;
+};
 
-void regs(const std::string& cmd, pflib::lpGBT* target) {
+using tool = pflib::menu::Menu<ToolBox*>;
+
+void opto(const std::string& cmd, ToolBox* target) {
+  pflib::zcu::OptoLink& olink=*(target->olink);
+  if (cmd=="FULLSTATUS") {
+    std::map<std::string,uint32_t> info;
+    info=olink.opto_status();
+    printf("Optical status:");
+    for (auto i:info) {
+      printf("  %-20s : 0x%04x\n",i.first,i.second);
+    }
+    info=olink.opto_rates();
+    printf("Optical rates:");
+    for (auto i:info) {
+      printf("  %-20s : 0x%04x\n",i.first,i.second);
+    }
+  }
+}
+
+void regs(const std::string& cmd, ToolBox* target) {
   static int addr = 0;
   if (cmd == "READ") {
     addr = tool::readline_int("Register", addr, true);
     int n = tool::readline_int("Number of items", 1);
     for (int i = 0; i < n; i++) {
-      printf("   %03x : %02x\n", addr + i, target->read(addr + i));
+      printf("   %03x : %02x\n", addr + i, target->lpgbt->read(addr + i));
     }
   }
   if (cmd == "WRITE") {
     addr = tool::readline_int("Register", addr, true);
-    int value = target->read(addr);
+    int value = target->lpgbt->read(addr);
     value = tool::readline_int("New value", value, true);
-    target->write(addr, value);
+    target->lpgbt->write(addr, value);
   }
   if (cmd == "LOAD") {
     std::string fname = tool::readline("File: ");
-    pflib::lpgbt::applylpGBTCSV(fname, *target);
+    pflib::lpgbt::applylpGBTCSV(fname, *(target->lpgbt));
   }
 }
 
-void gpio(const std::string& cmd, pflib::lpGBT* target) {
+void gpio(const std::string& cmd, ToolBox* target) {
   if (cmd == "SET") {
     int which = tool::readline_int("Pin");
-    if (which >= 0 && which < 12) target->gpio_set(which, true);
+    if (which >= 0 && which < 12) target->lpgbt->gpio_set(which, true);
   }
   if (cmd == "CLEAR") {
     int which = tool::readline_int("Pin");
-    if (which >= 0 && which < 12) target->gpio_set(which, false);
+    if (which >= 0 && which < 12) target->lpgbt->gpio_set(which, false);
   }
   if (cmd == "WRITE") {
-    uint16_t value = target->gpio_get();
+    uint16_t value = target->lpgbt->gpio_get();
     value = tool::readline_int("Value", value, true);
-    target->gpio_set(value);
+    target->lpgbt->gpio_set(value);
   }
 }
 
-void adc(const std::string& cmd, pflib::lpGBT* target) {
+void adc(const std::string& cmd, ToolBox* target) {
   if (cmd == "READ") {
     int whichp = tool::readline_int("Channel (pos)");
     int whichn = tool::readline_int("Channel (neg)", 15);
     int gain = tool::readline_int("Gain", 1);
-    printf("  ADC = %03x\n", target->adc_read(whichp, whichn, gain));
+    printf("  ADC = %03x\n", target->lpgbt->adc_read(whichp, whichn, gain));
   }
   if (cmd == "ALL") {
     for (int whichp = 0; whichp < 15; whichp++) {
-      printf("  ADC chan %d = %03x\n", whichp, target->adc_read(whichp, 15, 1));
+      printf("  ADC chan %d = %03x\n", whichp, target->lpgbt->adc_read(whichp, 15, 1));
     }
   }
 }
@@ -95,7 +118,7 @@ static uint16_t gbt2lcl(uint16_t val) {
 }
 #include "ad5593r.h"
 
-void test(const std::string& cmd, pflib::lpGBT* target) {
+void test(const std::string& cmd, ToolBox* target) {
   if (cmd == "GPIO") {
     // set up the external GPIO to read mode first
     pflib::lpGBT_ConfigTransport_I2C ext(0x21, "/dev/i2c-23");
@@ -109,12 +132,12 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
       ext.write_raw(0x8, 0xff);
       ext.write_raw(0x9, 0x0f);
       // setup the internal GPIO as write mode
-      for (int i = 0; i < 12; i++) target->gpio_cfg_set(i, 1);  // output
+      for (int i = 0; i < 12; i++) target->lpgbt->gpio_cfg_set(i, 1);  // output
 
       // walking ones lpgbt->lcl
       uint16_t pattern = 0x1;
       for (int i = 0; i < 12; i++) {
-        target->gpio_set(pattern);
+        target->lpgbt->gpio_set(pattern);
         ext.write_raw(0x80);
         uint16_t readback =
             (ext.read_raw() | (uint16_t(ext.read_raw()) << 8)) & 0xFFF;
@@ -129,7 +152,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
       // walking zeros lpgbt->lcl
       pattern = 0xFFE;
       for (int i = 0; i < 12; i++) {
-        target->gpio_set(pattern);
+        target->lpgbt->gpio_set(pattern);
         ext.write_raw(0x80);
         uint16_t readback =
             (ext.read_raw() | (uint16_t(ext.read_raw()) << 8)) & 0xFFF;
@@ -145,7 +168,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
 
       // switch directions
       // setup the internal GPIO as write mode
-      for (int i = 0; i < 12; i++) target->gpio_cfg_set(i, 0);  // input
+      for (int i = 0; i < 12; i++) target->lpgbt->gpio_cfg_set(i, 0);  // input
       ext.write_raw(0x8, 0x00);
       ext.write_raw(0x9, 0x00);
 
@@ -155,7 +178,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
         uint16_t scrambled = gbt2lcl(pattern);
         ext.write_raw(0xa, scrambled & 0xFF);
         ext.write_raw(0xb, scrambled >> 8);
-        uint16_t readback = target->gpio_get();
+        uint16_t readback = target->lpgbt->gpio_get();
 
         if (readback != pattern) {
           printf("Set from I2C: %03x Read on lpGBT: %03x \n", pattern,
@@ -170,7 +193,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
         uint16_t scrambled = gbt2lcl(pattern);
         ext.write_raw(0xa, scrambled & 0xFF);
         ext.write_raw(0xb, scrambled >> 8);
-        uint16_t readback = target->gpio_get();
+        uint16_t readback = target->lpgbt->gpio_get();
 
         if (readback != pattern) {
           printf("Set from I2C: %03x Read on lpGBT: %03x \n", pattern,
@@ -193,7 +216,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
     uint16_t onevolt = uint16_t(0xfff / 2.5 * 1.0);
 
     // get the pedestal, DACs set to zero at this point
-    int pedestal = target->adc_read(0, 15, 1);
+    int pedestal = target->lpgbt->adc_read(0, 15, 1);
 
     if (pedestal < 10 || pedestal > 50) {
       printf("Pedestal of lpGBT ADC (%d) is out of acceptable range", pedestal);
@@ -202,7 +225,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
 
     stim.dac_write(0, onevolt);
     stim.dac_write(1, onevolt);
-    int fullrange = target->adc_read(0, 15, 1);
+    int fullrange = target->lpgbt->adc_read(0, 15, 1);
 
     if (fullrange < 0x3D0 || fullrange > 0x3FD) {
       printf("One volt range of lpGBT ADC (%d/0x%x) is out of acceptable range",
@@ -230,7 +253,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
             if (half && i == 4) {  // resistor swap on test board
               expected = Va + curr * 100 + curr * 100 * (i - 4 * half);
             }
-            int adc = target->adc_read(i, 15, 1);
+            int adc = target->lpgbt->adc_read(i, 15, 1);
             double volts = (adc - pedestal) * scale;
             double error = expected - volts;
             // due to resistor chain, compliance isn't perfect when current flow is non-trivial.  Allowable error scales with deltaV as a result
@@ -256,7 +279,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
     for (int iclk = 0; iclk < 8; iclk++) {
       static constexpr int BIN[4] = {40, 80, 160, 320};
       for (int ibin = 0; ibin < 4; ibin++) {
-        target->setup_eclk(iclk, BIN[ibin]);
+        target->lpgbt->setup_eclk(iclk, BIN[ibin]);
         usleep(100000);
         std::vector<float> rates = mezz.clock_rates();
         float measured = rates[iclk];
@@ -264,7 +287,7 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
           errors++;
           printf("%d set %d measured %f\n", iclk, BIN[ibin], rates[iclk]);
         }
-        target->setup_eclk(iclk, 0);
+        target->lpgbt->setup_eclk(iclk, 0);
       }
     }
     if (errors != 0)
@@ -275,6 +298,10 @@ void test(const std::string& cmd, pflib::lpGBT* target) {
 }
 
 namespace {
+
+auto optom = tool::menu("OPTO", "Optical Link Functions")
+    ->line("FULLSTATUS", "Get full status", opto);
+
 auto direct = tool::menu("REG", "Direct Register Actions")
                   ->line("READ", "Read one or several registers", regs)
                   ->line("WRITE", "Write a register", regs)
@@ -336,8 +363,12 @@ int main(int argc, char* argv[]) {
 
   pflib::lpGBT_ConfigTransport_I2C tport(0x79, "/dev/i2c-23");
   pflib::lpGBT lpgbt(tport);
+  pflib::zcu::OptoLink olink;
   tool::set_history_filepath("~/.pflpgbt-history");
-  tool::run(&lpgbt);
+  ToolBox t;
+  t.lpgbt=&lpgbt;
+  t.olink=&olink;  
+  tool::run(&t);
 
   return 0;
 }
