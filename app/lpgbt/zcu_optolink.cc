@@ -3,7 +3,7 @@
 namespace pflib {
 namespace zcu {
 
-OptoLink::OptoLink() : transright_("transceiver_right") {
+OptoLink::OptoLink() : transright_("transceiver_right"), coder_("singleLPGBT") {
 
   // enable all SFPs, use internal clock
   transright_.write(0x2,0xF0000);
@@ -35,7 +35,8 @@ void OptoLink::reset_link() {
     }
     attempts += 1;
   }
-
+  
+  coder_.write(0,1);// reset the DECODER
   
 }
 
@@ -64,6 +65,12 @@ std::map<std::string, uint32_t> OptoLink::opto_status() {
   retval["BUFFBYPASS_DONE"]=(val>>3) & 0x1;
   retval["BUFFBYPASS_ERROR"]=(val>>4) & 0x1;
   retval["CDR_LOCK"]=transright_.read(7)&0xFFF;
+
+  val=coder_.read(2);
+  retval["READY"]=(val>>0) & 0x1;
+  retval["NOT_IN_RESET"]=(val>>1) & 0x1;
+  retval["LINK_ERRORS"]=coder_.read(4)&0xFFFFFF;
+  
   return retval;
 }
 
@@ -77,6 +84,14 @@ std::map<std::string, uint32_t> OptoLink::opto_rates() {
   for (int i=0; tnames[i]!=0; i++) 
     retval[tnames[i]]=transright_.read(TRIGHT_RATES_OFFSET+i);
 
+  const char* cnames[]={"LINK_WORD","LINK_ERROR","LINK_CLOCK","CLOCK_40",0};
+  const int CRATES_OFFSET = 80;
+  for (int i=0; cnames[i]!=0; i++) 
+    retval[cnames[i]]=coder_.read(CRATES_OFFSET+i);
+  
+      
+
+  
   return retval;
   
 }

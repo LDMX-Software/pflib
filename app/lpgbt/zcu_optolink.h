@@ -21,6 +21,7 @@ class OptoLink {
   
  private:
   ::pflib::UIO transright_;
+  ::pflib::UIO coder_;
   
 };
 
