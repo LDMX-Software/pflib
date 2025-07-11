@@ -109,7 +109,7 @@ def tot_eff(
     events with triggered tot, divided by x.
     """
     groups, param_name = get_params(samples, 0)
-    if !multiple_params:
+    if not multiple_params:
         # This method to get the number of samples per timepoint is horrible
         # requires assistance of a pandas wizard
         key = list(groups.groups.keys())[0]
@@ -327,9 +327,8 @@ if args.plot_function == 'TOT':
             xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'TOT-EFF':
-    plt_gen(tot_eff, samples, run_params, args.output, 
-            xlabel = args.xlabel, ylabel = args.ylabel,
-            multiple_params = True)
+    plt_gen(partial(tot_eff, multiple_params = True), samples, run_params, args.output, 
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'PARAMS':
     plt_gen(param, samples, run_params, args.output,
