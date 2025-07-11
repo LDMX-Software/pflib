@@ -161,7 +161,6 @@ static void charge_timescan(Target* tgt) {
   bool highrange = false;
   int calib = 0;
 
-
   auto test_param_builder = roc.testParameters();
   if(isLED){
     fname = pftool::readline_path("led-time-scan", ".csv");

@@ -59,21 +59,4 @@ class DecodeAndWriteToCSV : public DecodeAndWrite {
 
 DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name);
 
-class DecodeAndBuffer : public DecodeAndWrite {
-  public:
-    DecodeAndBuffer();
-    virtual ~DecodeAndBuffer() = default;
-    /// Read out buffer
-    virtual std::vector<pflib::packing::SingleROCEventPacket> read_and_flush();
-    /// Save to buffer
-    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) final;
-    /// Check that the buffer was read and flushed since last run
-    virtual void start_run() override;
-    /// Failcheck if the buffer is getting too big
-    virtual void end_run() override;
-  private:
-    /// Buffer to save event packets to
-    std::vector<pflib::packing::SingleROCEventPacket> ep_buffer_;
-};
-
 }
