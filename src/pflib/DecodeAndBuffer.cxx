@@ -33,12 +33,12 @@ void DecodeAndBuffer::start_run() {
   ep_buffer_.clear();
 }
 
-DecodeAndBufferToRead::DecodeAndBufferToRead(int nevents) : DecodeAndBuffer() {
+DecodeAndBuffer::DecodeAndBuffer(int nevents) : DecodeAndBuffer() {
   buffer_size_ = nevents;
   ep_buffer_.reserve(buffer_size_);
 }
 
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBufferToRead::read_buffer() {
+std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::read_buffer() {
   return ep_buffer_;
 }
 
