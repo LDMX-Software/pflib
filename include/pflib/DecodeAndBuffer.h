@@ -20,19 +20,15 @@ namespace pflib {
  */
 class DecodeAndBuffer : public Target::DAQRunConsumer {
   public:
-    // Constructor for allocating the size of the buffer.
-    DecodeAndBuffer(int nevents);
     virtual ~DecodeAndBuffer() = default;
     /// Read out buffer
-    virtual std::vector<pflib::packing::SingleROCEventPacket> read_and_flush();
+    virtual std::vector<pflib::packing::SingleROCEventPacket> read_buffer();
     /// Save to buffer
     virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) = 0;
     /// Consumer for events
     virtual void consume(std::vector<uint32_t>& event) final;
     /// Check that the buffer was read and flushed since last run
     virtual void start_run() override;
-    /// Failcheck if the buffer is getting too big
-    virtual void end_run() override;
   private:
     /// event packet for decoding
     pflib::packing::SingleROCEventPacket ep_;
@@ -42,6 +38,16 @@ class DecodeAndBuffer : public Target::DAQRunConsumer {
     int buffer_size_;
     /// logging for warning messages
     mutable ::pflib::logging::logger the_log_;
+};
+
+
+class DecodeAndBufferToRead : public DecodeAndBuffer {
+  public:
+    DecodeAndBufferToRead(int nevents);
+    virtual ~DecodeAndBufferToRead() = default;
+    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) final;
+    /// Read out buffer
+    virtual std::vector<pflib::packing::SingleROCEventPacket> read_buffer();
 };
 
 }

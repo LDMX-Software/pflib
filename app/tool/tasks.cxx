@@ -13,6 +13,7 @@ ENABLE_LOGGING();
 #include "pflib/utility/load_integer_csv.h"
 #include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
+#include "pflib/DecodeAndBuffer.h"
 
 /**
  * load a CSV of parameter points into member
@@ -107,7 +108,7 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
-  pflib::DecodeAndBuffer buffer;
+  pflib::DecodeAndBufferToRead buffer(nevents);
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
@@ -118,7 +119,7 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
         ).apply();
     tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
-    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_and_flush();
+    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_buffer();
     for (const pflib::packing::SingleROCEventPacket ep : data) {
       auto toa = ep.channel(channel).toa();
       if (toa > 0) {

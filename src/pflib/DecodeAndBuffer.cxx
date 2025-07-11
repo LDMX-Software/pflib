@@ -5,10 +5,7 @@
 
 namespace pflib {
 
-DecodeAndBuffer::DecodeAndBuffer(int nevents) {
-  buffer_size_ = nevents;
-  ep_buffer_.reserve(buffer_size_);
-}
+
 
 void DecodeAndBuffer::consume(std::vector<uint32_t>& event) {
   // we have to manually check the size so that we can do the reinterpret_cast
@@ -32,12 +29,17 @@ void DecodeAndBuffer::write_event(const pflib::packing::SingleROCEventPacket& ep
   ep_buffer_.push_back(ep);
 }
 
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::read_buffer() {
-  return ep_buffer_;
-}
-
 void DecodeAndBuffer::start_run() {
   ep_buffer_.clear();
+}
+
+DecodeAndBufferToRead::DecodeAndBufferToRead(int nevents) : DecodeAndBuffer() {
+  buffer_size_ = nevents;
+  ep_buffer_.reserve(buffer_size_);
+}
+
+std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBufferToRead::read_buffer() {
+  return ep_buffer_;
 }
 
 }
