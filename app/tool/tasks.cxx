@@ -485,24 +485,38 @@ static void parameter_timescan(Target* tgt) {
   if (totscan) toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
   if (totscan) tot_threshold = pftool::readline_int("Value for TOT threshold: ", 500);
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
-  int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  std::vector<int> channels;
+  bool tmp = pftool::readline_bool("Pulse into channel 61 (N) or all channels (Y)?", false);
+  if (tmp) {
+    for (int ch{0}; ch<72; ch++)
+      channels.push_back(ch);
+  } 
+  else {
+      channels.push_back(61);
+  }
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   std::string fname = pftool::readline_path("param-time-scan", ".csv");
   auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-  auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  int link = (channel / 36);
-  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
-  auto test_param_handle = roc.testParameters()
-    .add(refvol_page, "CALIB", preCC ? 0 : calib)
-    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
-    .add(refvol_page, "INTCTEST", 1)
-    .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-    .add(refvol_page, "TOA_VREF", toa_threshold)
-    .add(refvol_page, "TOT_VREF", tot_threshold)
-    .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-    .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
-    .apply();
+  
+  auto test_param_handle = roc.testParameters().add("REFERENCEVOLTAGE_0", "CALIB", preCC ? 0 : calib)
+      .add("REFERENCEVOLTAGE_0", "CALIB_2V5", preCC ? calib : 0)
+      .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
+      .add("REFERENCEVOLTAGE_0", "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+      .add("REFERENCEVOLTAGE_0", "TOA_VREF", toa_threshold)
+      .add("REFERENCEVOLTAGE_0", "TOT_VREF", tot_threshold)
+      .add("REFERENCEVOLTAGE_1", "CALIB", preCC ? 0 : calib)
+      .add("REFERENCEVOLTAGE_1", "CALIB_2V5", preCC ? calib : 0)
+      .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+      .add("REFERENCEVOLTAGE_1", "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+      .add("REFERENCEVOLTAGE_1", "TOA_VREF", toa_threshold)
+      .add("REFERENCEVOLTAGE_1", "TOT_VREF", tot_threshold);
+  for (int ch : channels) {
+    auto channel_page = pflib::utility::string_format("CH_%d", ch);
+    test_param_handle.add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+      .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1);
+  }
+  auto test_param = test_param_handle.apply();
 
   std::filesystem::path parameter_points_file =
     pftool::readline("File of parameter points: ");
@@ -522,7 +536,6 @@ static void parameter_timescan(Target* tgt) {
     fname,
     [&](std::ofstream& f) {
       boost::json::object header;
-      header["channel"] = channel;
       header["highrange"] = highrange;
       header["preCC"] = preCC;
       f << std::boolalpha
@@ -531,16 +544,20 @@ static void parameter_timescan(Target* tgt) {
       for (const auto& [ page, parameter ] : param_names) {
         f << page << '.' << parameter << ',';
       }
-      f << pflib::packing::Sample::to_csv_header
-        << '\n';
+      f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-      f << time << ',';
-      for (const auto& val : param_values[i_param_point]) {
-        f << val << ',';
+      for (int ch : channels) {
+        f << time << ',';
+
+        for (const auto& val : param_values[i_param_point]) {
+          f << val << ',';
+        }
+        f << ch << ',';
+
+        ep.channel(ch).to_csv(f);
+        f << '\n';
       }
-      ep.channel(channel).to_csv(f);
-      f << '\n';
     } 
   };
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
@@ -550,11 +567,14 @@ static void parameter_timescan(Target* tgt) {
     // Add implementation for other pages as well
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
       test_param_builder.add(
-      (param_names[i_param].first == "REFERENCEVOLTAGE_0" ? refvol_page : 
-       param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
-       param_names[i_param].first),
+      "REFERENCEVOLTAGE_0",
       param_names[i_param].second,
-      param_values[i_param_point][i_param]);
+      param_values[i_param_point][i_param]
+      ).add(
+      "REFERENCEVOLTAGE_1",
+      param_names[i_param].second,
+      param_values[i_param_point][i_param]
+      );
       pflib_log(info) << param_names[i_param].second << " = " << param_values[i_param_point][i_param];
     }
     auto test_param = test_param_builder.apply();
