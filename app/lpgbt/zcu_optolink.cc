@@ -10,8 +10,33 @@ OptoLink::OptoLink() : transright_("transceiver_right") {
   
 }
 
+static const uint32_t REG_STATUS                 = 3;
+  
 void OptoLink::reset_link() {
-  transright_.write(0x0,0x1);
+  transright_.write(0x0,0x2); //TX_RESET
+  transright_.write(0x0,0x1); //GTH_RESET
+  transright_.write(0x0,0x4); //RX_RESET
+
+  int done;
+  int attempts=1;
+  done=transright_.readMasked(REG_STATUS,0x8);
+  
+  while (!done and attempts<100) {
+    if (attempts % 2) {
+      transright_.write(0x0,0x1); //GTH_RESET
+      usleep(1000);
+      done=transright_.readMasked(REG_STATUS,0x8);
+      //      printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",attempts,done);
+    } else {
+      transright_.write(0x0,0x4); //RX_RESET
+      usleep(1000);
+      done=transright_.readMasked(REG_STATUS,0x8);
+      //      printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",attempts,done);
+    }
+    attempts += 1;
+  }
+
+  
 }
 
 static const uint32_t REG_POLARITY              = 0x1;
@@ -29,8 +54,6 @@ void OptoLink::set_polarity(bool polarity, int ichan, bool is_rx) {
   transright_.write(REG_POLARITY,val);
 }
 
-
-static const uint32_t REG_STATUS                 = 3;
 
 std::map<std::string, uint32_t> OptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;

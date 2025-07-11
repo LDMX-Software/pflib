@@ -21,15 +21,18 @@ void opto(const std::string& cmd, ToolBox* target) {
   if (cmd=="FULLSTATUS") {
     std::map<std::string,uint32_t> info;
     info=olink.opto_status();
-    printf("Optical status:");
+    printf("Optical status:\n");
     for (auto i:info) {
-      printf("  %-20s : 0x%04x\n",i.first,i.second);
+      printf("  %-20s : 0x%04x\n",i.first.c_str(),i.second);
     }
     info=olink.opto_rates();
-    printf("Optical rates:");
+    printf("Optical rates:\n");
     for (auto i:info) {
-      printf("  %-20s : 0x%04x\n",i.first,i.second);
+      printf("  %-20s : %.3f MHz (0x%04x)\n",i.first.c_str(),i.second/1e3,i.second);
     }
+  }
+  if (cmd=="RESET") {
+    olink.reset_link();
   }
 }
 
@@ -300,7 +303,10 @@ void test(const std::string& cmd, ToolBox* target) {
 namespace {
 
 auto optom = tool::menu("OPTO", "Optical Link Functions")
-    ->line("FULLSTATUS", "Get full status", opto);
+  ->line("FULLSTATUS", "Get full status", opto)
+  ->line("RESET","Reset optical link",opto)
+  ;
+  
 
 auto direct = tool::menu("REG", "Direct Register Actions")
                   ->line("READ", "Read one or several registers", regs)
