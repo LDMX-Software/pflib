@@ -88,7 +88,7 @@ load_parameter_points(const std::string& filepath) {
  * The calib value which defines a small pulse. 
  *
  */
-static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int channel) {
+static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
@@ -127,14 +127,13 @@ static pflib::ROC::TestParameters set_toa(Target* tgt, pflib::ROC& roc, int chan
     }
     toa_eff = static_cast<double>(toa_data.size())/nevents;
     if (toa_eff == 1) {
-      auto toa_builder = roc.testParameters();
-      toa_builder.add(
+      roc.applyParameter(
           refvol_page,
           "TOA_VREF",
           toa_vref
           );
       pflib_log(info) << "the TOA threshold is set to " << toa_vref;
-      return toa_builder.apply();
+      return;
     }
     toa_vref += 1;
   }
