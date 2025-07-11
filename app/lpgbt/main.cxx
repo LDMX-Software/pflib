@@ -36,6 +36,13 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
 }
 
+void general(const std::string& cmd, ToolBox* target) {
+  if (cmd=="STATUS") {
+    int pusm=target->lpgbt->status();
+    printf(" PUSM %s (%d)\n",target->lpgbt->status_name(pusm).c_str(),pusm);
+  }
+}
+
 void regs(const std::string& cmd, ToolBox* target) {
   static int addr = 0;
   if (cmd == "READ") {
@@ -300,8 +307,13 @@ void test(const std::string& cmd, ToolBox* target) {
   }
 }
 
+
 namespace {
 
+  auto gen = tool::menu("GENERAL","GENERAL funcations")
+    ->line("STATUS","Status summary",general)
+    ;
+  
 auto optom = tool::menu("OPTO", "Optical Link Functions")
   ->line("FULLSTATUS", "Get full status", opto)
   ->line("RESET","Reset optical link",opto)

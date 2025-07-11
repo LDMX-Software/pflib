@@ -113,6 +113,7 @@ static constexpr uint16_t REG_ADC_STATUS_H = 0x1ca;
 static constexpr uint16_t REG_ADC_STATUS_L = 0x1cb;
 
 static constexpr uint16_t REG_ECLK_BASE = 0x06e;
+static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
 
 void lpGBT::gpio_set(int ibit, bool high) {
   if (ibit < 0 || ibit > 15) {
@@ -302,4 +303,18 @@ void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
   // currently no ability to mess with pre-emphasis
 }
 
+  int lpGBT::status() {
+    return read(REG_POWERUP_STATUS);
+  }
+  std::string lpGBT::status_name(int pusm) {
+    static const char* states[]={"ARESET","RESET1","WAIT_VDD_STABLE","WAIT_VDD_HIGHER_THAN_0V90",
+      "STATE_COPY_FUSES","STATE_CALCULATE_CHECKSUM","COPY_ROM","PAUSE_FOR_PLL_CONFIG",
+      "WAIT_POWER_GOOD","RESET_PLL","WAIT_PLL_LOCK","INIT_SCRAM","RESETOUT",
+      "I2C_TRANS","PAUSE_FOR_DLL_CONFIG","RESET_DLLS","WAIT_DLL_LOCK",
+      "RESET_LOGIC_USING_DLL","WAIT_CHNS_LOCKED","READY"};
+    return states[pusm];
+    
+  }
+
+  
 }  // namespace pflib

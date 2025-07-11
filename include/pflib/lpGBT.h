@@ -69,6 +69,11 @@ class lpGBT {
   /* -------------------------------------------------------
      Medium-level interfaces
   */
+
+  /** Get the lpGBT status (power up state machine) */
+  int status();
+  std::string status_name(int pusm);  
+  
   /** Set the given gpio bit */
   void gpio_set(int ibit, bool high);
   /** Get the given gpio bit */
