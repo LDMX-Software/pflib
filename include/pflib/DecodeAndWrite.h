@@ -3,6 +3,7 @@
 #include <fstream>
 #include <memory>
 #include <functional>
+#include <vector>
 
 #include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/Logging.h"

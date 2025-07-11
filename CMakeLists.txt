@@ -146,6 +146,7 @@ add_library(pflib SHARED
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
   src/pflib/DecodeAndWrite.cxx
+  src/pflib/DecodeAndBuffer.cxx
   src/pflib/WriteToBinaryFile.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
