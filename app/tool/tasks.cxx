@@ -688,10 +688,10 @@ static void toa_vref_scan(Target* tgt) {
   // since the pedestal variations are likely lower than ~300 adc.
   for (toa_vref = 0; toa_vref < 256; toa_vref++) {
     pflib_log(info) << "Running TOA_VREF = " << toa_vref;
-    auto toa_vref_test_builder = roc.testParameters();
-    toa_vref_test_builder.add("REFERENCEVOLTAGE_0", "TOA_VREF", toa_vref)
-    .add("REFERENCEVOLTAGE_1", "TOA_VREF", toa_vref);
-    auto toa_vref_test = toa_vref_test_builder.apply();
+    auto toa_vref_test = roc.testParameters()
+      .add("REFERENCEVOLTAGE_0", "TOA_VREF", toa_vref)
+      .add("REFERENCEVOLTAGE_1", "TOA_VREF", toa_vref)
+      .apply();
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
