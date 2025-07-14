@@ -107,7 +107,7 @@ static void charge_timescan(Target* tgt) {
       .add(refvol_page, "CHOICE_CINJ", 0)
       .add(channel_page, "HIGHRANGE", 0)
       .add(channel_page, "LOWRANGE", 0);
-  } else{
+  } else {
     preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
     highrange = false;
     if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
@@ -656,49 +656,50 @@ static void vt50_scan(Target* tgt) {
   bool highrange = false;
   if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
   bool search = pftool::readline_bool("Use binary (Y) or bisectional search (N)? ", false);
-  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", highrange ? 64 : 1024);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
-  int tot_threshold = pftool::readline_int("Value for TOT threshold: ", 500);
-  //std::string param_page = pftool::readline("Param page: ", "REFERENCEVOLTAGE_0");
-  //std::string param_name = pftool::readline("Param name: ", "CAlIB");
-  std::string fname = pftool::readline_path("param-time-scan", ".csv");
+  int vref_lower = pftool::readline_int("Smallest tot threshold value: ", 300);
+  int vref_upper = pftool::readline_int("Largest tot threshold value: ", 600);
+  int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
+  std::string fname = pftool::readline_path("vt50-scan", ".csv");
   auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto test_param_handle = roc.testParameters()
-    .add(refvol_page, "CALIB", preCC ? 0 : calib)
-    .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
     .add(refvol_page, "INTCTEST", 1)
     .add(refvol_page, "TOA_VREF", toa_threshold)
-    .add(refvol_page, "TOT_VREF", tot_threshold)
     .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
     .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
     .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
 
-  std::filesystem::path parameter_points_file =
-    pftool::readline("File of parameter points: ");
-
-  pflib_log(info) << "loading parameter points file...";
-  auto [param_names, param_values ] = load_parameter_points(parameter_points_file);
-  pflib_log(info) << "successfully loaded parameter points";
-
-  int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
   double clock_cycle{25.0};
-  int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
-  std::string page_name = "REFERENCEVOLTAGE_1";
-  std::string param_name = "CALIB";
+  link == 1 ? std::string vref_page = "REFERENCEVOLTAGE_1" : std::string vref_page = "REFERENCEVOLTAGE_0";
+  link == 1 ? std::string calib_page = "REFERENCEVOLTAGE_1" : std::string calib_page = "REFERENCEVOLTAGE_0";
+  std::string vref_name = "TOT_VREF"
+  std::string calib_name = "CALIB";
   int calib_value{100000};
   double tot_eff{0};
 
+  // Vectors for storing tot_eff and calib for the current param_point
+  std::vector<double> tot_eff_list;
+  std::vector<int> calib_list = {0, 4095}; //min and max
+  double tol{0.1};
+  int count{2};
+  
+  // Range of tot_vref to iterate over
+  int vref_value{0};
+  std::vector<int> vref_values;
+  for (int i = vref_lower; i <= vref_upper; i += nsteps) {
+    vref_values.push_back(i);
+  }
 
   std::vector<pflib::packing::SingleROCEventPacket> buffer;
   pflib::DecodeAndWriteToCSV writer{
@@ -710,19 +711,15 @@ static void vt50_scan(Target* tgt) {
       header["preCC"] = preCC;
       f << std::boolalpha
         << "# " << boost::json::serialize(header) << '\n'
-        << "time,";
-      for (const auto& [ page, parameter ] : param_names) {
-        f << page << '.' << parameter << ',';
-      }
-      f << page_name << '.' << param_name << ',';
+        << "time,"; 
+      f << vref_page << '.' << vref_name << ','
+        << calib_page << '.' << calib_name << ',';
       f << pflib::packing::Sample::to_csv_header
         << '\n';
     },
     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
       f << time << ',';
-      for (const auto& val : param_values[i_param_point]) {
-        f << val << ',';
-      }
+      f << vref_value << ',';
       f << calib_value << ',';
       ep.channel(channel).to_csv(f);
       f << '\n';
@@ -732,13 +729,7 @@ static void vt50_scan(Target* tgt) {
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
   auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-
-  // Vectors for storing tot_eff and calib for the current param_point
-  std::vector<double> tot_eff_list;
-  std::vector<int> calib_list = {0, 4095}; //min and max
-  double tol{0.1};
-  int count{2};
-  for (; i_param_point < param_values.size(); i_param_point++) {
+  for (int i_param_point : vref_values) {
     // reset for every iteration
     tot_eff_list.clear();
     calib_list = {0, 4095};
@@ -747,13 +738,11 @@ static void vt50_scan(Target* tgt) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
       test_param_builder.add(
-      (param_names[i_param].first == "REFERENCEVOLTAGE_0" ? refvol_page :
-       param_names[i_param].first == "REFERENCEVOLTAGE_1" ? refvol_page :
-       param_names[i_param].first),
-      param_names[i_param].second,
-      param_values[i_param_point][i_param]);
-      pflib_log(info) << param_names[i_param].second << " = "
-                      << param_values[i_param_point][i_param];
+      vref_page,
+      vref_name,
+      vref_values[i_param_point]);
+      pflib_log(info) << vref_name << " = "
+                      << vref_values[i_param_point];
     }
     auto list_test_param = test_param_builder.apply();
     while (bool isContinue = true) {
@@ -764,44 +753,36 @@ static void vt50_scan(Target* tgt) {
             calib_value = std::abs(calib_list.back() - calib_list[calib_list.size() - 2])/2
                         + calib_list[calib_list.size() - count];
             count++;
-          }
-          else {
+          } else {
             calib_value = std::abs((calib_list[calib_list.size() - 2] - calib_list.back()))/2
                         + calib_list.back();
             count = 2;
           }
-        }
-        else {
+        } else {
           calib_value = calib_list.front();
         }
-      }
-      else {
+      } else {
         // BISECTIONAL SEARCH
         if (!tot_eff_list.empty()) {
           if (tot_eff_list.back() > 0.5) {
             calib_list.back() = calib_value;
-          }
-          else {
+          } else {
             calib_list.front() = calib_value;
           }
           calib_value = (calib_list.back() - calib_list.front())/2 + calib_list.front();
-        }
-        else {
+        } else {
           calib_value = (calib_list.back() - calib_list.front())/2;
         }
       }
       auto calib_test_param = roc.testParameters().add(
-          page_name,
-          param_name,
-          calib_value
-      ).add(
-          "REFERENCEVOLTAGE_0",
-          param_name,
+          calib_page,
+          calib_name,
           calib_value
       ).apply();
       usleep(10); // make sure parameters are applied
 
       std::vector<pflib::packing::SingleROCEventPacket> data;
+      buffer.clear();
       for (charge_to_l1a = central_charge_to_l1a+start_bx;
         charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
         tgt->fc().fc_setup_calib(charge_to_l1a);
@@ -809,12 +790,9 @@ static void vt50_scan(Target* tgt) {
         time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
         tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
       }
-      // Read and save buffer
-      data = buffer;
-      buffer.clear();
       std::vector<double> tot_list;
 
-      for (pflib::packing::SingleROCEventPacket ep : data) {
+      for (pflib::packing::SingleROCEventPacket ep : buffer) {
         auto tot = ep.channel(channel).tot();
         if (tot > 0) {
           tot_list.push_back(tot);
@@ -833,8 +811,7 @@ static void vt50_scan(Target* tgt) {
                           << " with tot_eff = " << tot_eff;
           break;
         }
-      }
-      else {
+      } else {
         // BISECTIONAL SEARCH
         if (std::abs(tot_eff - 0.5) < tol) {
           pflib_log(info) << "Final calib is : " << calib_value
