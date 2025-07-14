@@ -26,7 +26,7 @@ parser.add_argument('time_scan', type=Path, help='time scan data, only one event
 parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', "VT50"]
+plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
@@ -104,7 +104,7 @@ def tot_eff(
     multiple_params = False
 ):
     """
-    Plot the tot efficiency vs calib. 
+    Plot the tot efficiency vs given parameter. 
     For x samples per timepoint, the tot efficiency is the number of
     events with triggered tot, divided by x.
     """
@@ -142,7 +142,6 @@ def tot_eff(
         nr_tot = 20 # Number of samles per timepoint
         cmap = plt.get_cmap('viridis')
         n = len(groups)
-        #plt.xlim(0,1000)
         for i, (vref_id, vref_df) in enumerate(groups): #iterates through vref
             color = cmap(i/n)
             second_group, second_param_name = get_params(vref_df, 1)  
@@ -155,69 +154,24 @@ def tot_eff(
                     for tot in time_df['tot']:
                         if tot > 0:
                             tot_eff += 1
-                if (tot_eff > 2*nr_tot):
-                    tot_eff /= 3*nr_tot
-                elif (tot_eff > nr_tot):
-                    tot_eff /= 2*nr_tot
+                if (tot_eff > 20):
+                    tot_eff /= 40
                 else:
                     tot_eff /= nr_tot
                 calib = calib_df[second_param_name].iloc[0]
                 key = param_name.split('.')[1]
                 x.append(calib_df[second_param_name].iloc[0])
                 y.append(tot_eff)
-            if sum(y) == 0 or sum(y) == 0.0: # vrefs that don't have a tot_eff
-                continue
+            #if sum(y) < 0.1: #if we don't want to plot the vrefs that don't have a tot_eff
+            #    continue
             vref = vref_df[param_name].iloc[0]
             ax.plot(x, y, 
                      marker='o', color='black', linestyle='--', 
                      markerfacecolor=color, markeredgecolor = color, markersize = 5,
                      label=f"TOT_VREF={vref}")
-            ax.legend(ncols=2, fontsize='xx-small', loc='upper left')
+            #ax.legend(ncols=5, fontsize='xx-small', loc='upper right')
             plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
-                      + ', TOA_VREF = 250')
-
-def vt50_calib(
-    samples,
-    run_params,
-    ax
-):
-    """Plot the calib value of the vt50 vs tot_vref."""
-    groups, param_name = get_params(samples, 0)
-    nr_tot = 20 # Number of samles per timepoint
-    cmap = plt.get_cmap('viridis')
-    n = len(groups)
-    #plt.xlim(0,1000)
-    x = []
-    y = []
-    for i, (vref_id, vref_df) in enumerate(groups): #iterates through vref
-        second_group, second_param_name = get_params(vref_df, 1)  
-        for k, (calib_id, calib_df) in enumerate(second_group): #iterates through calib
-            time_groups = calib_df.groupby('time')
-            tot_eff = 0
-            for time_id, time_df in time_groups:
-                for tot in time_df['tot']:
-                    if tot > 0:
-                        tot_eff += 1
-            if (tot_eff > 2*nr_tot):
-                tot_eff /= 3*nr_tot
-            elif (tot_eff > nr_tot):
-                tot_eff /= 2*nr_tot
-            else:
-                tot_eff /= nr_tot
-            calib = calib_df[second_param_name].iloc[0]
-            key = param_name.split('.')[1]
-            if abs(tot_eff - 0.5) < 0.3:
-                x.append(vref_df[param_name].iloc[0])
-                y.append(calib_df[second_param_name].iloc[0])
-                break
-        #if sum(y) == 0 or sum(y) == 0.0: # vrefs that don't have a tot_eff
-        #    continue
-    ax.plot(x, y, 
-            marker='o', color='black', linestyle='--', 
-            markerfacecolor="red", markeredgecolor="red", markersize=5)
-    #ax.legend(ncols=2, fontsize='xx-small', loc='lower right')
-    plt.title(f"Calib vs tot_vref at the V_t50 (±0.3)\n" + ' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
-            + ', TOA_VREF = 250, Binary search')
+                      + ', TOA_VREF = 250, TOT_VREF = 500')
 
 def param(
     samples,
@@ -374,10 +328,6 @@ if args.plot_function == 'TOT':
 
 if args.plot_function == 'TOT-EFF':
     plt_gen(partial(tot_eff, multiple_params = True), samples, run_params, args.output, 
-            xlabel = args.xlabel, ylabel = args.ylabel)
-
-if args.plot_function == "VT50":
-    plt_gen(vt50_calib, samples, run_params, args.output,
             xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'PARAMS':
