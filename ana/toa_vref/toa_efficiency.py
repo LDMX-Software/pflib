@@ -6,7 +6,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 fp = 'toa_vref_scan.csv' # your file path here
-fp = 'toa_vref_scan_20250710_170132.csv'
 
 data = pd.read_csv(fp,
                    skiprows = 1)
