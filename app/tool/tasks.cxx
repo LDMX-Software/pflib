@@ -684,10 +684,7 @@ static void vt50_scan(Target* tgt) {
     .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
 
-  int charge_to_l1a{0};
-  double time{0};
-  double clock_cycle{25.0};
-  int offset{1};
+  double time{1};
   std::size_t i_param_point{0};
   std::string vref_page;
   std::string calib_page;
@@ -701,6 +698,7 @@ static void vt50_scan(Target* tgt) {
   // Vectors for storing tot_eff and calib for the current param_point
   std::vector<double> tot_eff_list;
   std::vector<int> calib_list = {0, 4095}; //min and max
+  // tolerance for checking distance between tot_eff and 0.5
   double tol{0.1};
   int count{2};
   
@@ -736,9 +734,9 @@ static void vt50_scan(Target* tgt) {
       buffer.push_back(ep);
     }
   };
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
-  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->fc().fc_setup_calib(tgt-fc().fc_get_setup_calib());
   for (int i_param_point = 0; i_param_point < vref_values.size(); i_param_point++) {
     // reset for every iteration
     tot_eff_list.clear();
@@ -753,7 +751,7 @@ static void vt50_scan(Target* tgt) {
       .apply();
     pflib_log(info) << vref_name << " = "
                     << vref_values[i_param_point];
-    while (bool isContinue = true) {
+    while (true) {
       if (search) {
         // BINARY SEARCH
         if (!tot_eff_list.empty()) {
@@ -789,17 +787,12 @@ static void vt50_scan(Target* tgt) {
       ).apply();
       usleep(10); // make sure parameters are applied
 
-      std::vector<pflib::packing::SingleROCEventPacket> data;
       buffer.clear();
-      for (charge_to_l1a = central_charge_to_l1a+start_bx;
-        charge_to_l1a < central_charge_to_l1a+start_bx+n_bx; charge_to_l1a++) {
-        tgt->fc().fc_setup_calib(charge_to_l1a);
-        pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-        time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
-        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
-      }
-      std::vector<double> tot_list;
 
+      // daq run
+      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+
+      std::vector<double> tot_list;
       for (pflib::packing::SingleROCEventPacket ep : buffer) {
         auto tot = ep.channel(channel).tot();
         if (tot > 0) {
@@ -832,11 +825,8 @@ static void vt50_scan(Target* tgt) {
       tot_eff_list.push_back(tot_eff);
       if (search) calib_list.push_back(calib_value);
 
-      // We can't hone in close enough to 0.5 because calib are whole ints
+      // Sometimes we can't hone in close enough to 0.5 because calib are whole ints
       if (tot_eff_list.size() > 25) break;
-
-      // reset charge_to_l1a to central value
-      tgt->fc().fc_setup_calib(central_charge_to_l1a);
     }
   }
 }
