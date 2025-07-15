@@ -682,8 +682,6 @@ static void vt50_scan(Target* tgt) {
     .add(channel_page, "LOWRANGE", preCC ? 0 : highrange ? 0 : 1)
     .apply();
 
-  double time{1};
-  std::size_t i_param_point{0};
   std::string vref_page = refvol_page;
   std::string calib_page = refvol_page;
   std::string vref_name = "TOT_VREF";
@@ -734,13 +732,9 @@ static void vt50_scan(Target* tgt) {
     calib_value = 100000;
     tot_eff = 0;
     auto vref_test_param = roc.testParameters()
-      .add(
-        vref_page,
-        vref_name,
-        vref_value)
+      .add(vref_page, vref_name, vref_value)
       .apply();
-    pflib_log(info) << vref_name << " = "
-                    << vref_value;
+    pflib_log(info) << vref_name << " = " << vref_value;
     while (true) {
       if (search) {
         // BINARY SEARCH
@@ -770,11 +764,9 @@ static void vt50_scan(Target* tgt) {
           calib_value = (calib_list.back() - calib_list.front())/2;
         }
       }
-      auto calib_test_param = roc.testParameters().add(
-          calib_page,
-          calib_name,
-          calib_value
-      ).apply();
+      auto calib_test_param = roc.testParameters()
+        .add(calib_page, calib_name, calib_value)
+        .apply();
       usleep(10); // make sure parameters are applied
 
       buffer.clear();
