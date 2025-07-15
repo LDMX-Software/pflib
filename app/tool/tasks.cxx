@@ -687,8 +687,7 @@ static void vt50_scan(Target* tgt) {
   std::string vref_page = refvol_page;
   std::string calib_page = refvol_page;
   std::string vref_name = "TOT_VREF";
-  std::string calib_name;
-  preCC ? calib_name = "CALIB_2V5" : calib_name = "CALIB";
+  std::string calib_name{preCC ? "CALIB_2V5" : "CALIB"};
   int calib_value{100000};
   double tot_eff{0};
 
