@@ -5,6 +5,10 @@
 
 namespace pflib {
 
+DecodeAndBuffer::DecodeAndBuffer(int nevents) : DecodeAndWrite() {
+  set_buffer_size(nevents);
+}
+
 void DecodeAndBuffer::consume(std::vector<uint32_t>& event) {
   // we have to manually check the size so that we can do the reinterpret_cast
   if (event.size() == 0) {
@@ -20,7 +24,7 @@ void DecodeAndBuffer::consume(std::vector<uint32_t>& event) {
 }
 
 void DecodeAndBuffer::write_event(const pflib::packing::SingleROCEventPacket& ep) {
-  if (ep_buffer_.size() > buffer_size_) {
+  if (ep_buffer_.size() > ep_buffer_.capacity()) {
     pflib_log(warn) << "Trying to push more elements to buffer than allocated capacity. Skipping!";
     return;
   }
@@ -36,15 +40,10 @@ std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::get_buffer() 
 }
 
 void DecodeAndBuffer::set_buffer_size(int nevents) {
-  buffer_size_ = nevents;
-  ep_buffer_.reserve(buffer_size_);
+  ep_buffer_.reserve(nevents);
 }
 
-DecodeAndBufferToRead::DecodeAndBufferToRead(int nevents) : DecodeAndBuffer() {
-  set_buffer_size(nevents);
-}
-
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBufferToRead::read_buffer() {
+std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::read_buffer() {
   std::vector<pflib::packing::SingleROCEventPacket> buffer = get_buffer();
   return buffer;
 }

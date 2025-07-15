@@ -108,7 +108,7 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
-  pflib::DecodeAndBufferToRead buffer(nevents);
+  pflib::DecodeAndBuffer buffer(nevents);
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {

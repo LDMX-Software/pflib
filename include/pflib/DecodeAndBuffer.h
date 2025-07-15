@@ -7,6 +7,7 @@
 #include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
+#include "pflib/DecodeAndWrite.h"
 
 namespace pflib {
 
@@ -18,17 +19,20 @@ namespace pflib {
  * of every event.
  *
  */
-class DecodeAndBuffer : public Target::DAQRunConsumer {
+class DecodeAndBuffer : DecodeAndWrite {
   public:
+    DecodeAndBuffer(int nevents);
     virtual ~DecodeAndBuffer() = default;
     /// get buffer
     std::vector<pflib::packing::SingleROCEventPacket> get_buffer();
     /// Set the buffer size
     void set_buffer_size(int nevents);
     /// Save to buffer
-    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) = 0;
+    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) override;
     /// Consumer for events
     virtual void consume(std::vector<uint32_t>& event) final;
+    /// Read out buffer
+    std::vector<pflib::packing::SingleROCEventPacket> read_buffer();
     /// Check that the buffer was read and flushed since last run
     virtual void start_run() override;
   private:
@@ -36,26 +40,8 @@ class DecodeAndBuffer : public Target::DAQRunConsumer {
     pflib::packing::SingleROCEventPacket ep_;
     /// Buffer for event packets
     std::vector<pflib::packing::SingleROCEventPacket> ep_buffer_;
-    /// Capacity of the buffer
-    int buffer_size_;
     /// logging for warning messages
     mutable ::pflib::logging::logger the_log_;
-};
-
-
-/**
- * Subclass for implementation
- * 
- */
-class DecodeAndBufferToRead : public DecodeAndBuffer {
-  public:
-    DecodeAndBufferToRead(int nevents);
-    virtual ~DecodeAndBufferToRead() = default;
-    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) override {
-      DecodeAndBuffer::write_event(ep);
-    };
-    /// Read out buffer
-    std::vector<pflib::packing::SingleROCEventPacket> read_buffer();
 };
 
 }
