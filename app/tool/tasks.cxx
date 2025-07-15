@@ -817,6 +817,7 @@ static void vt50_scan(Target* tgt) {
         if (calib_value == 0 || calib_value == 4094) {
           pflib_log(info) << "No v_t50 was found!";
           break;
+        }
       }
 
       tot_eff_list.push_back(tot_eff);
