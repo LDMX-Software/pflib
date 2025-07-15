@@ -24,8 +24,6 @@ from functools import partial
 parser = argparse.ArgumentParser()
 parser.add_argument('vt50_scan', type=Path, help='vt50 scan data')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
-parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
-parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to label the y-axis with.')
 args = parser.parse_args()
 
 samples, run_params = read_pflib_csv(args.vt50_scan)
