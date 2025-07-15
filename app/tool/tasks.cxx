@@ -698,13 +698,7 @@ static void vt50_scan(Target* tgt) {
   double tol{0.1};
   int count{2};
   int max_its = 25;
-  
-  // Range of tot_vref to iterate over
   int vref_value{0};
-  std::vector<int> vref_values;
-  for (int i = vref_lower; i <= vref_upper; i += nsteps) {
-    vref_values.push_back(i);
-  }
 
   std::vector<pflib::packing::SingleROCEventPacket> buffer;
   pflib::DecodeAndWriteToCSV writer{
@@ -733,13 +727,12 @@ static void vt50_scan(Target* tgt) {
   };
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  for (int i_param_point = 0; i_param_point < vref_values.size(); i_param_point++) {
+  for (vref_value = vref_lower; vref_value <= vref_upper; vref_value += nsteps) {
     // reset for every iteration
     tot_eff_list.clear();
     calib_list = {0, 4095};
     calib_value = 100000;
     tot_eff = 0;
-    vref_value = vref_values[i_param_point];
     auto vref_test_param = roc.testParameters()
       .add(
         vref_page,
