@@ -44,7 +44,7 @@ level_pedestals(Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
   /// do three runs of 10k samples each to have well defined pedestals
-  static const std::size_t n_events = 100; //10000;
+  static const std::size_t n_events = 100;
 
   tgt->setup_run(1, 1 /*DAQ_FORMAT_SIMPLEROC*/, 1);
 
@@ -53,7 +53,7 @@ level_pedestals(Target* tgt, ROC roc) {
   DecodeAndGetMedians buffer{n_events};
   
   { // baseline run
-    pflib_log(info) << "10k event baseline run, done in ~2min";
+    pflib_log(info) << "100 event baseline run"
     auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 0)
       .add_all_channels("DACB", 0)
@@ -71,7 +71,7 @@ level_pedestals(Target* tgt, ROC roc) {
   }
 
   { // highend run
-    pflib_log(info) << "10k event highend run, done in ~2min";
+    pflib_log(info) << "100 event highend run";
     auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 0)
       .add_all_channels("DACB", 0)
@@ -82,7 +82,7 @@ level_pedestals(Target* tgt, ROC roc) {
   }
 
   { // lowend run
-    pflib_log(info) << "10k event lowend run, done in ~2min";
+    pflib_log(info) << "100 event lowend run";
     auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 1)
       .add_all_channels("DACB", 31)
