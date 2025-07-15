@@ -666,8 +666,8 @@ static void vt50_scan(Target* tgt) {
   bool search = pftool::readline_bool("Use binary (Y) or bisectional search (N)? ", false);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
-  int vref_lower = pftool::readline_int("Smallest tot threshold value: ", 300);
-  int vref_upper = pftool::readline_int("Largest tot threshold value: ", 600);
+  int vref_lower = pftool::readline_int("Smallest tot threshold value (min = 0): ", 300);
+  int vref_upper = pftool::readline_int("Largest tot threshold value (max = 4095): ", 600);
   int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
   std::string fname = pftool::readline_path("vt50-scan", ".csv");
   auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
@@ -687,7 +687,8 @@ static void vt50_scan(Target* tgt) {
   std::string vref_page = refvol_page;
   std::string calib_page = refvol_page;
   std::string vref_name = "TOT_VREF";
-  std::string calib_name = "CALIB";
+  std::string calib_name;
+  preCC ? calib_name = "CALIB" : calib_name = "CALIB_2V5";
   int calib_value{100000};
   double tot_eff{0};
 
