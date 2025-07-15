@@ -649,9 +649,17 @@ static void sampling_phase_scan(Target* tgt) {
  * We check the tot efficiency at every calib value and use a recursive method
  * to hone in on the v_t50.
  *
+ * The tot efficiency is calculated depending on the number of events given. The higher
+ * the number of events, the more accurate tot efficiency.
+ *
+ * To hone in on the v_t50, I constructed two methods: binary and bisectional search.
+ * Both methods work, altough the binary search sometimes scans the same parameter point
+ * twice, giving rise to tot efficiencies larger than 1. 
+ * This can be adjusted for in analysis.
+ *
  */
 static void vt50_scan(Target* tgt) {
-  int nevents = pftool::readline_int("How many events per time point? ", 1);
+  int nevents = pftool::readline_int("How many events per time point? Remember that the tot efficiency's granularity depends on this number. ", 20);
   bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
   bool highrange = false;
   if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
@@ -681,9 +689,11 @@ static void vt50_scan(Target* tgt) {
   double clock_cycle{25.0};
   int offset{1};
   std::size_t i_param_point{0};
-  link == 1 ? std::string vref_page = "REFERENCEVOLTAGE_1" : std::string vref_page = "REFERENCEVOLTAGE_0";
-  link == 1 ? std::string calib_page = "REFERENCEVOLTAGE_1" : std::string calib_page = "REFERENCEVOLTAGE_0";
-  std::string vref_name = "TOT_VREF"
+  std::string vref_page;
+  std::string calib_page;
+  link == 1 ? vref_page = "REFERENCEVOLTAGE_1" : vref_page = "REFERENCEVOLTAGE_0";
+  link == 1 ? calib_page = "REFERENCEVOLTAGE_1" : calib_page = "REFERENCEVOLTAGE_0";
+  std::string vref_name = "TOT_VREF";
   std::string calib_name = "CALIB";
   int calib_value{100000};
   double tot_eff{0};
@@ -729,22 +739,20 @@ static void vt50_scan(Target* tgt) {
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
 
   auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-  for (int i_param_point : vref_values) {
+  for (int i_param_point = 0; i_param_point < vref_values.size(); i_param_point++) {
     // reset for every iteration
     tot_eff_list.clear();
     calib_list = {0, 4095};
     calib_value = 100000;
     tot_eff = 0;
-    auto test_param_builder = roc.testParameters();
-    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
-      test_param_builder.add(
-      vref_page,
-      vref_name,
-      vref_values[i_param_point]);
-      pflib_log(info) << vref_name << " = "
-                      << vref_values[i_param_point];
-    }
-    auto list_test_param = test_param_builder.apply();
+    auto vref_test_param = roc.testParameters()
+      .add(
+        vref_page,
+        vref_name,
+        vref_values[i_param_point])
+      .apply();
+    pflib_log(info) << vref_name << " = "
+                    << vref_values[i_param_point];
     while (bool isContinue = true) {
       if (search) {
         // BINARY SEARCH
