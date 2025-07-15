@@ -159,6 +159,7 @@ add_library(pflib SHARED
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/Bias.cxx
+  src/pflib/algorithm/level_pedestals.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

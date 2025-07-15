@@ -1,10 +1,11 @@
 #include "pflib/algorithm/level_pedestals.h"
+#include "pflib/utility/string_format.h"
 
 #include "pflib/DecodeAndWrite.h"
 
 /// probably partially replace by buffer that is in #177
 
-class DecodeAndGetMedians : public DecodeAndWrite {
+class DecodeAndGetMedians : public pflib::DecodeAndWrite {
   std::vector<pflib::packing::SingleROCEventPacket> buffer_;
  public:
   DecodeAndGetMedians(std::size_t n) : DecodeAndWrite() {
@@ -25,16 +26,12 @@ class DecodeAndGetMedians : public DecodeAndWrite {
     std::size_t halfway{buffer_.size() / 2};
     std::array<int, 72> medians;
     for (int ch{0}; ch < 72; ch++) {
-      std::nth_element(
-          buffer_.begin(), buffer_.begin()+halfway, buffer_.end(),
-          [&](
-            const pflib::packing::SingleROCEventPacket& lhs,
-            const pflib::packing::SingleROCEventPacket& rhs
-          ) {
-            return lhs.channel(ch).adc() < rhs.channel(ch).adc();
-          }
-      );
-      medians[ch] = buffer_[halfway];
+      std::vector<int> adcs(buffer_.size());
+      for (std::size_t i{0}; i < adcs.size(); i++) {
+        adcs[i] = buffer_[i].channel(ch).adc();
+      }
+      std::nth_element(adcs.begin(), adcs.begin()+halfway, adcs.end());
+      medians[ch] = adcs[halfway];
     }
     return medians;
   }
@@ -42,20 +39,22 @@ class DecodeAndGetMedians : public DecodeAndWrite {
 
 namespace pflib::algorithm {
 
-void level_pedestals(Target* tgt, int iroc, std::string type_version) {
+std::map<std::string, std::map<std::string, int>>
+level_pedestals(Target* tgt, ROC roc) {
+  static auto the_log_{::pflib::logging::get("level_pedestals")};
+
   /// do three runs of 10k samples each to have well defined pedestals
-  static const std::size_t n_events = 10_000;
+  static const std::size_t n_events = 100; //10000;
 
-  auto roc = tgt->hcal().roc(iroc, type_version);
-
-  tgt->setup_run(1, DAG_FORMAT_SIMPLEROC, 1);
+  tgt->setup_run(1, 1 /*DAQ_FORMAT_SIMPLEROC*/, 1);
 
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
   DecodeAndGetMedians buffer{n_events};
   
   { // baseline run
-    auto roc.testParameters()
+    pflib_log(info) << "10k event baseline run, done in ~2min";
+    auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 0)
       .add_all_channels("DACB", 0)
       .add_all_channels("TRIM_INV", 0)
@@ -72,7 +71,8 @@ void level_pedestals(Target* tgt, int iroc, std::string type_version) {
   }
 
   { // highend run
-    auto roc.testParameters()
+    pflib_log(info) << "10k event highend run, done in ~2min";
+    auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 0)
       .add_all_channels("DACB", 0)
       .add_all_channels("TRIM_INV", 63)
@@ -82,7 +82,8 @@ void level_pedestals(Target* tgt, int iroc, std::string type_version) {
   }
 
   { // lowend run
-    auto roc.testParameters()
+    pflib_log(info) << "10k event lowend run, done in ~2min";
+    auto test_handle = roc.testParameters()
       .add_all_channels("SIGN_DAC", 1)
       .add_all_channels("DACB", 31)
       .add_all_channels("TRIM_INV", 0)
@@ -91,15 +92,30 @@ void level_pedestals(Target* tgt, int iroc, std::string type_version) {
     lowend = buffer.get_medians();
   }
 
+  pflib_log(info) << "sample collections done, deducing settings";
   std::map<std::string, std::map<std::string, int>> settings;
   for (int ch{0}; ch < 72; ch++) {
-    std::string page{string_format("CH_%d", ch)};
+    std::string page{pflib::utility::string_format("CH_%d", ch)};
     int i_link = ch / 36;
     if (baseline.at(ch) < target.at(i_link)) {
-      settings[page]["TRIM_INV"] = (target.at(i_link) - baseline.at(ch))/(highend.at(ch) - baseline.at(ch)) * 63;
+      pflib_log(debug) << "Channel " << ch << " is below target, setting TRIM_INV";
+      double scale = static_cast<double>(target.at(i_link) - baseline.at(ch))/(highend.at(ch) - baseline.at(ch));
+      double optim = scale*63;
+      int val = static_cast<int>(optim);
+      pflib_log(trace) << "Scale " << scale
+                       << " giving optimal value of " << optim
+                       << " which rounds to " << val;
+      settings[page]["TRIM_INV"] = val;
     } else {
+      pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DACB=1 and DACB";
       settings[page]["SIGN_DACB"] = 1;
-      settings[page]["DACB"] = (baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch)) * 31;
+      double scale = static_cast<double>(baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch));
+      double optim = scale*31;
+      int val = static_cast<int>(optim);
+      pflib_log(trace) << "Scale " << scale
+                       << " giving optimal value of " << optim
+                       << " which rounds to " << val;
+      settings[page]["DACB"] = val;
     }
   }
 
