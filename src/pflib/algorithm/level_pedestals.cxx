@@ -108,7 +108,7 @@ level_pedestals(Target* tgt, ROC roc) {
       settings[page]["TRIM_INV"] = val;
     } else {
       pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DACB=1 and DACB";
-      settings[page]["SIGN_DACB"] = 1;
+      settings[page]["SIGN_DAC"] = 1;
       double scale = static_cast<double>(baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch));
       double optim = scale*31;
       int val = static_cast<int>(optim);
