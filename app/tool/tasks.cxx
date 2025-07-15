@@ -688,7 +688,7 @@ static void vt50_scan(Target* tgt) {
   std::string calib_page = refvol_page;
   std::string vref_name = "TOT_VREF";
   std::string calib_name;
-  preCC ? calib_name = "CALIB" : calib_name = "CALIB_2V5";
+  preCC ? calib_name = "CALIB_2V5" : calib_name = "CALIB";
   int calib_value{100000};
   double tot_eff{0};
 
@@ -734,7 +734,6 @@ static void vt50_scan(Target* tgt) {
   };
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib());
   for (int i_param_point = 0; i_param_point < vref_values.size(); i_param_point++) {
     // reset for every iteration
     tot_eff_list.clear();
