@@ -27,7 +27,7 @@ fig, axes = plt.subplots(
 channels = ['calib']+[str(c) for c in range(35)]
 for link, ax in enumerate(axes):
     ax.violinplot(
-        [ samples[(samples.link==link)&(samples.channel==ch)].adc for ch in channels]
+        [ samples[(samples.i_link==link)&(samples.channel==ch)].adc for ch in channels]
     )
     ax.set_ylabel('ADC')
     ax.set_title(f'Link {link}')
