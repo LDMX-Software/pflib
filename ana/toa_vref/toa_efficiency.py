@@ -2,6 +2,9 @@
 # requires a "toa_vref_scan.csv" file to run correctly.
 # Then, plots the efficiency versus toa_vref and saves the plot.
 
+import pandas as pd
+import numpy as np
+import yaml
 import matplotlib.pyplot as plt
 import os
 import argparse
@@ -29,22 +32,22 @@ data, head = read_pflib_csv(args.f)
 
 """
 Example plot of how TOA_VREF plot should look. I credit the toa_vref_analysis.py
-script from the TileboardQC Repository for HGCAL Tileboard Quality Control for giving
-me the idea to put a comment of the graph in the script.
+script from the TileboardQC Repository for HGCAL Tileboard Quality Control for this
+graph and the idea to comment it into the script.
 
 toa_efficiency vs Toa_vref
-|      + +
-|      +++
-|      +++
-|      +++   
-|      + + This is the value of toa vref we calculate
-|      ++  ^
-|______+++_|_________
+|        ++ +
+|       +++ +
+|       +++++
+|       +++++
+|       ++ ++
+|       +++ +
+|_______+++++_o______
 |____________________
 
 We want the TOA_VREF for each link to be just a bit higher than the pedestal variations
 for that link. That way, we ensure only incoming signals trigger TOA, and we maximize
-the signal-to-noise ratio.
+the signal-to-noise ratio. Select the point 'o' on the graph.
 """
 
 channel_lists = []
@@ -75,3 +78,41 @@ plt.tight_layout()
 plt.savefig('toa_efficiency_plot.png')
 plt.show()
 print("Plot saved as 'toa_efficiency_plot.png'")
+
+# Printing the values of highest non-zero TOA_VREF per link
+link0 = np.array(channel_lists[:36]).T
+link1 = np.array(channel_lists[36:]).T
+
+link0_count = []
+link1_count = []
+for i in range(len(link0)):
+    if not all(x == 0 for x in link0[i]):
+        link0_count.append(i)
+    if not all(x == 0 for x in link1[i]):
+        link1_count.append(i)
+
+print("for link 0, the highest non-zero toa_vref is " + str(link0_count[-1]) + ", " \
+"so set TOA_VREF to ", link0_count[-1] + 10)
+print("for link 1, the highest non-zero toa_vref is " + str(link1_count[-1]) + ", " \
+"so set TOA_VREF to ", link1_count[-1] + 10)
+
+#Outputting the values to a yaml file
+
+df_max = pd.DataFrame({
+    'link': [0, 1],
+    'max_toa': [link0_count[-1] + 10, link1_count[-1] + 10]
+}
+)
+
+#output to yaml file
+yaml_data = {}
+for _, row in df_max.iterrows():
+    page_name = f"REFERENCEVOLTAGE_{int(row['link'])}"
+    yaml_data[page_name] = {
+        'TOA_VREF': int(row['max_toa'])
+    }
+
+with open("output.yaml", "w") as f:
+    yaml.dump(yaml_data, f, sort_keys=False)
+
+print("Output saved to 'output.yaml'")
