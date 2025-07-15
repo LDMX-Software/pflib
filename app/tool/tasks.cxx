@@ -740,14 +740,15 @@ static void vt50_scan(Target* tgt) {
     calib_list = {0, 4095};
     calib_value = 100000;
     tot_eff = 0;
+    vref_value = vref_values[i_param_point];
     auto vref_test_param = roc.testParameters()
       .add(
         vref_page,
         vref_name,
-        vref_values[i_param_point])
+        vref_value)
       .apply();
     pflib_log(info) << vref_name << " = "
-                    << vref_values[i_param_point];
+                    << vref_value;
     while (true) {
       if (search) {
         // BINARY SEARCH
@@ -825,7 +826,7 @@ static void vt50_scan(Target* tgt) {
 
       // Sometimes we can't hone in close enough to 0.5 because calib are whole ints
       if (tot_eff_list.size() > max_its) {
-        pflib_log(info) << "Ended after " << max_its << " iterations" 
+        pflib_log(info) << "Ended after " << max_its << " iterations!" << '\n' 
                         << "Final calib is : " << calib_value
                         << " with tot_eff = " << tot_eff;
         break;

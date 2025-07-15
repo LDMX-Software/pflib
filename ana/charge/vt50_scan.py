@@ -34,7 +34,6 @@ def vt50_calib(
     samples,
     run_params,
     ax,
-    atvt50 = False
 ):
     """Plot the calib value of the vt50 vs tot_vref."""
     groups, param_name = get_params(samples, 0)
@@ -50,16 +49,15 @@ def vt50_calib(
         for k, (calib_id, calib_df) in enumerate(second_group): #iterates through calib
             time_groups = calib_df.groupby('time')
             tot_eff = 0
+            # nr of samples per timepoint. Can be larger than the number of 
+            # timepoints given if the scan checks the same position multiple times
+            nr_tot = 0
             for time_id, time_df in time_groups:
+                nr_tot += len(time_df)
                 for tot in time_df['tot']:
                     if tot > 0:
                         tot_eff += 1
-            if (tot_eff > 2*nr_tot):
-                tot_eff /= 3*nr_tot
-            elif (tot_eff > nr_tot):
-                tot_eff /= 2*nr_tot
-            else:
-                tot_eff /= nr_tot
+            tot_eff /= nr_tot # normalize
             calib = calib_df[second_param_name].iloc[0]
             key = param_name.split('.')[1]
             x.append(calib_df[second_param_name].iloc[0])
