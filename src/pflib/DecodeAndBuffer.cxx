@@ -21,17 +21,12 @@ void DecodeAndBuffer::start_run() {
   ep_buffer_.clear();
 }
 
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::get_buffer() {
+const std::vector<pflib::packing::SingleROCEventPacket>& DecodeAndBuffer::get_buffer() const {
   return ep_buffer_;
 }
 
 void DecodeAndBuffer::set_buffer_size(int nevents) {
   ep_buffer_.reserve(nevents);
-}
-
-std::vector<pflib::packing::SingleROCEventPacket> DecodeAndBuffer::read_buffer() {
-  std::vector<pflib::packing::SingleROCEventPacket> buffer = get_buffer();
-  return buffer;
 }
 
 }
