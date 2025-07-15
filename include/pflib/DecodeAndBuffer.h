@@ -19,7 +19,7 @@ namespace pflib {
  * of every event.
  *
  */
-class DecodeAndBuffer : DecodeAndWrite {
+class DecodeAndBuffer : public DecodeAndWrite {
   public:
     DecodeAndBuffer(int nevents);
     virtual ~DecodeAndBuffer() = default;
@@ -29,8 +29,6 @@ class DecodeAndBuffer : DecodeAndWrite {
     void set_buffer_size(int nevents);
     /// Save to buffer
     virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) override;
-    /// Consumer for events
-    virtual void consume(std::vector<uint32_t>& event) final;
     /// Read out buffer
     std::vector<pflib::packing::SingleROCEventPacket> read_buffer();
     /// Check that the buffer was read and flushed since last run
