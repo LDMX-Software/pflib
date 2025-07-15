@@ -32,6 +32,8 @@ for link, ax in enumerate(axes):
     ax.set_ylabel('ADC')
     ax.set_title(f'Link {link}')
     ax.grid()
+    ax.set_ylim(0,512)
+
 axes[-1].set_xticks(
     [i+1 for i in range(len(channels))],
     channels
