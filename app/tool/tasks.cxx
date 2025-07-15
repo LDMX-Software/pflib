@@ -112,15 +112,12 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
-    auto test_handle = roc.testParameters().add(
-        refvol_page,
-        "TOA_VREF",
-        toa_vref
-        ).apply();
+    auto test_handle = roc.testParameters()
+      .add(refvol_page, "TOA_VREF", toa_vref)
+      .apply();
     tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
-    std::vector<pflib::packing::SingleROCEventPacket> data = buffer.read_buffer();
-    for (const pflib::packing::SingleROCEventPacket ep : data) {
+    for (const pflib::packing::SingleROCEventPacket &ep : buffer.get_buffer()) {
       auto toa = ep.channel(channel).toa();
       if (toa > 0) {
         toa_data.push_back(toa);
@@ -128,11 +125,7 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
     }
     toa_eff = static_cast<double>(toa_data.size())/nevents;
     if (toa_eff == 1) {
-      roc.applyParameter(
-          refvol_page,
-          "TOA_VREF",
-          toa_vref
-          );
+      roc.applyParameter(refvol_page, "TOA_VREF", toa_vref);
       pflib_log(info) << "the TOA threshold is set to " << toa_vref;
       return;
     }
