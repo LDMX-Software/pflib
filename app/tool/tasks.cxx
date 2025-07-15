@@ -697,6 +697,7 @@ static void vt50_scan(Target* tgt) {
   // tolerance for checking distance between tot_eff and 0.5
   double tol{0.1};
   int count{2};
+  int max_its = 25;
   
   // Range of tot_vref to iterate over
   int vref_value{0};
@@ -820,7 +821,12 @@ static void vt50_scan(Target* tgt) {
       if (search) calib_list.push_back(calib_value);
 
       // Sometimes we can't hone in close enough to 0.5 because calib are whole ints
-      if (tot_eff_list.size() > 25) break;
+      if (tot_eff_list.size() > max_its) {
+        pflib_log(info) << "Ended after " << max_its << " iterations" 
+                        << "Final calib is : " << calib_value
+                        << " with tot_eff = " << tot_eff;
+        break;
+      }
     }
   }
 }
