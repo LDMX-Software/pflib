@@ -665,8 +665,6 @@ static void vt50_scan(Target* tgt) {
   if (!preCC) highrange = pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
   bool search = pftool::readline_bool("Use binary (Y) or bisectional search (N)? ", false);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
-  int start_bx = pftool::readline_int("Starting BX? ", -1);
-  int n_bx = pftool::readline_int("Number of BX? ", 3);
   int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
   int vref_lower = pftool::readline_int("Smallest tot threshold value: ", 300);
   int vref_upper = pftool::readline_int("Largest tot threshold value: ", 600);
@@ -686,10 +684,8 @@ static void vt50_scan(Target* tgt) {
 
   double time{1};
   std::size_t i_param_point{0};
-  std::string vref_page;
-  std::string calib_page;
-  link == 1 ? vref_page = "REFERENCEVOLTAGE_1" : vref_page = "REFERENCEVOLTAGE_0";
-  link == 1 ? calib_page = "REFERENCEVOLTAGE_1" : calib_page = "REFERENCEVOLTAGE_0";
+  std::string vref_page = refvol_page;
+  std::string calib_page = refvol_page;
   std::string vref_name = "TOT_VREF";
   std::string calib_name = "CALIB";
   int calib_value{100000};
@@ -736,7 +732,7 @@ static void vt50_scan(Target* tgt) {
   };
 
   tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
-  tgt->fc().fc_setup_calib(tgt-fc().fc_get_setup_calib());
+  tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib());
   for (int i_param_point = 0; i_param_point < vref_values.size(); i_param_point++) {
     // reset for every iteration
     tot_eff_list.clear();
@@ -802,8 +798,6 @@ static void vt50_scan(Target* tgt) {
 
       // Calculate tot_eff
       tot_eff = static_cast<double>(tot_list.size())/nevents;
-      pflib_log(info) << "calib = " << calib_value;
-      pflib_log(info) << "tot_eff = " << tot_eff;
 
       if (search) {
         // BINARY SEARCH
@@ -841,6 +835,6 @@ auto menu_tasks =
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN", "scan phase_ck, pedestal for clock phase alignment", sampling_phase_scan)
-        ->line("VT50_SCAN", "Hones in on the vt50 by setting the calib value based on the tot efficiency", vt50_scan)
+        ->line("VT50_SCAN", "Hones in on the vt50 with a binary or bisectional scan", vt50_scan)
 ;
 }
