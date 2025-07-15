@@ -2,13 +2,50 @@
 # requires a "toa_vref_scan.csv" file to run correctly.
 # Then, plots the efficiency versus toa_vref and saves the plot.
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import os
+import argparse
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-fp = 'toa_vref_scan.csv' # your file path here
+from read import read_pflib_csv
 
-data = pd.read_csv(fp,
-                   skiprows = 1)
+#runtime arguments
+parser = argparse.ArgumentParser(
+    prog = 'toa_efficiency.py',
+    description='takes a csv from tasks.toa_vref_scan and outputs a plot of TOA efficiency per channel against TOA VREF values'
+)
+parser.add_argument('-f', required = True, help='csv file containing scan from tasks.toa_vref_scan')
+args = parser.parse_args()
+
+if not os.path.isfile(args.f):
+    print(args.f + ' does not exist')
+    sys.exit()
+if not args.f.lower().endswith('csv'):
+    print(args.f + ' is not a csv file')
+    sys.exit()
+data, head = read_pflib_csv(args.f)
+
+"""
+Example plot of how TOA_VREF plot should look. I credit the toa_vref_analysis.py
+script from the TileboardQC Repository for HGCAL Tileboard Quality Control for giving
+me the idea to put a comment of the graph in the script.
+
+toa_efficiency vs Toa_vref
+|      + +
+|      +++
+|      +++
+|      +++   
+|      + + This is the value of toa vref we calculate
+|      ++  ^
+|______+++_|_________
+|____________________
+
+We want the TOA_VREF for each link to be just a bit higher than the pedestal variations
+for that link. That way, we ensure only incoming signals trigger TOA, and we maximize
+the signal-to-noise ratio.
+"""
 
 channel_lists = []
 for chan in range(72):
