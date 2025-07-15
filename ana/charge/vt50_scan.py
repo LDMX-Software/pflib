@@ -60,13 +60,13 @@ def vt50_calib(
             key = param_name.split('.')[1]
             x.append(calib_df[second_param_name].iloc[0])
             y.append(tot_eff)
+        if sum(y) == 0 or sum(y) == 0.0: # vrefs that don't have a tot_eff
+            continue
         ax.plot(x, y, 
                 marker='o', color='black', linestyle='--', 
                 markerfacecolor=color, markeredgecolor=color, markersize=5,
                 label=f"tot_vref = {vref_df[param_name].iloc[0]}")
         ax.legend(ncols=2, fontsize='xx-small', loc='lower right')
-        #if sum(y) == 0 or sum(y) == 0.0: # vrefs that don't have a tot_eff
-        #    continue
     plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
             + ', TOA_VREF = 250, Binary search')
 
