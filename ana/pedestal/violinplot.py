@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser()
 parser.add_argument('pedestals', type=Path, help='decoded pedestal CSV file to summarize')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is pedestal file with "-violinplot" suffix and extension changed to ".png"')
+parser.add_argument('--ylim', nargs=2, type=int, default=[100,300], help='limits of y-axis to use')
 args = parser.parse_args()
 
 samples = pd.read_csv(args.pedestals)
@@ -32,7 +33,7 @@ for link, ax in enumerate(axes):
     ax.set_ylabel('ADC')
     ax.set_title(f'Link {link}')
     ax.grid()
-    ax.set_ylim(0,512)
+    ax.set_ylim(*args.ylim)
 
 axes[-1].set_xticks(
     [i+1 for i in range(len(channels))],
