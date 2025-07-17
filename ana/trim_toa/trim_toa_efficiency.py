@@ -58,9 +58,6 @@ for each channel's trim_toa value.
 
 # separate the data into unique trim_toa values
 unique_trim_toas = data['TRIM_TOA'].unique()
-trim_lists = []
-for trim in unique_trim_toas:
-    trim_lists.append(data[data['TRIM_TOA'] == trim])
 
 for trim in unique_trim_toas:
     trim_toa_now = data[data['TRIM_TOA'] == trim]
