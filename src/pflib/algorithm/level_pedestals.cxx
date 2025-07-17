@@ -60,8 +60,10 @@ level_pedestals(Target* tgt, ROC roc) {
       .add_all_channels("TRIM_INV", 0)
       .apply();
     tgt->daq_run("PEDESTAL", buffer, n_events, 100);
+    pflib_log(trace) << "baseline run done, getting channel medians";
     auto medians = get_adc_medians(buffer.get_buffer());
     baseline = medians;
+    pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start{medians.begin()+36*i_link};
       auto end{start+36};
@@ -69,6 +71,7 @@ level_pedestals(Target* tgt, ROC roc) {
       std::nth_element(start, halfway, end);
       target[i_link] = *halfway;
     }
+    pflib_log(trace) << "got link medians";
   }
 
   { // highend run
@@ -108,15 +111,19 @@ level_pedestals(Target* tgt, ROC roc) {
                        << " which rounds to " << val;
       settings[page]["TRIM_INV"] = val;
     } else {
-      pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DAC=1 and DACB";
-      settings[page]["SIGN_DAC"] = 1;
       double scale = static_cast<double>(baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch));
       double optim = scale*31;
       int val = static_cast<int>(optim);
       pflib_log(trace) << "Scale " << scale
                        << " giving optimal value of " << optim
                        << " which rounds to " << val;
-      settings[page]["DACB"] = val;
+      if (val == 0) {
+        pflib_log(debug) << "Channel " << ch << " is above target but too close to use DACB to lower, skipping";
+      } else {
+        pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DAC=1 and DACB";
+        settings[page]["SIGN_DAC"] = 1;
+        settings[page]["DACB"] = val;
+      }
     }
   }
 
