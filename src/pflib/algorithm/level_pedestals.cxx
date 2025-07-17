@@ -5,8 +5,23 @@
 
 #include "pflib/DecodeAndBuffer.h"
 
+/**
+ * get the medians of the channel ADC values
+ *
+ * This may be helpful in some other contexts, but since it depends on the packing
+ * library it cannot go into utility. Just keeping it here for now, maybe move it
+ * into its own header/impl in algorithm.
+ *
+ * @param[in] data buffer of single-roc packet data
+ * @return array of channel ADC values
+ *
+ * @note We assume the caller knows what they are doing.
+ * Calib and Common Mode channels are ignored.
+ * TOT/TOA and the sample Tp/Tc flags are ignored.
+ */
 static std::array<int, 72> get_adc_medians(const std::vector<pflib::packing::SingleROCEventPacket> &data) {
   std::array<int, 72> medians;
+  /// reserve a vector of the appropriate capacity to avoid repeating allocation time for all 72 channels
   std::vector<int> adcs;
   adcs.reserve(data.size());
   for (int ch{0}; ch < 72; ch++) {
@@ -25,7 +40,7 @@ std::map<std::string, std::map<std::string, int>>
 level_pedestals(Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
-  /// do three runs of 10k samples each to have well defined pedestals
+  /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
 
   tgt->setup_run(1, 1 /*DAQ_FORMAT_SIMPLEROC*/, 1);
@@ -33,6 +48,11 @@ level_pedestals(Target* tgt, ROC roc) {
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
   DecodeAndBuffer buffer{n_events};
+
+  // for future devs:
+  //   I do this weird extra brackets to limit the scope
+  //   of the test_handle object and force it to destruct
+  //   after the run is over (unsetting the parameters).
   
   { // baseline run
     pflib_log(info) << "100 event baseline run";
@@ -90,7 +110,7 @@ level_pedestals(Target* tgt, ROC roc) {
                        << " which rounds to " << val;
       settings[page]["TRIM_INV"] = val;
     } else {
-      pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DACB=1 and DACB";
+      pflib_log(debug) << "Channel " << ch << " is above target, setting SIGN_DAC=1 and DACB";
       settings[page]["SIGN_DAC"] = 1;
       double scale = static_cast<double>(baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch));
       double optim = scale*31;
