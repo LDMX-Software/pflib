@@ -43,7 +43,7 @@ level_pedestals(Target* tgt, ROC roc) {
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, 1 /*DAQ_FORMAT_SIMPLEROC*/, 1);
+  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
