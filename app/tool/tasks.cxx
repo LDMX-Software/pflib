@@ -999,8 +999,15 @@ static void trim_toa_scan(Target* tgt) {
     for (calib = 0; calib < 4096; calib += 16) {
       pflib_log(info) << "Running CALIB = " << calib;
       // Set the TRIM_TOA and CALIB parameters for each channel
-      trim_toa_test_builder.add("REFERENCEVOLTAGE_0", "CALIB_2V5", calib).add("REFERENCEVOLTAGE_1", "CALIB_2V5", calib);
-      trim_toa_test = trim_toa_test_builder.apply();
+    // set TRIM_TOA for each channel
+    auto trim_toa_test = trim_toa_test_builder.apply();
+    for (calib = 0; calib < 4096; calib += 16) {
+      pflib_log(info) << "Running CALIB = " << calib;
+      // Set the CALIB parameters for both halves
+      auto calib_test = roc.testParameters()
+        .add("REFERENCEVOLTAGE_0", "CALIB_2V5", calib)
+        .add("REFERENCEVOLTAGE_1", "CALIB_2V5", calib)
+        .apply();
       tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
   }
