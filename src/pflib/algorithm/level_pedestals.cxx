@@ -21,11 +21,9 @@
  */
 static std::array<int, 72> get_adc_medians(const std::vector<pflib::packing::SingleROCEventPacket> &data) {
   std::array<int, 72> medians;
-  /// reserve a vector of the appropriate capacity to avoid repeating allocation time for all 72 channels
-  std::vector<int> adcs;
-  adcs.reserve(data.size());
+  /// reserve a vector of the appropriate size to avoid repeating allocation time for all 72 channels
+  std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
-    adcs.clear();
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = data[i].channel(ch).adc();
     }
