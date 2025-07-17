@@ -992,13 +992,10 @@ static void trim_toa_scan(Target* tgt) {
 
   for (trim_toa = 0; trim_toa < 64; trim_toa += 16) {
     pflib_log(info) << "Running TRIM_TOA = " << trim_toa;
-    auto trim_toa_test_builder = roc.testParameters()
+    auto trim_toa_test_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
       trim_toa_test_builder.add("CH_"+std::to_string(ch), "TRIM_TOA", trim_toa);
     }
-    for (calib = 0; calib < 4096; calib += 16) {
-      pflib_log(info) << "Running CALIB = " << calib;
-      // Set the TRIM_TOA and CALIB parameters for each channel
     // set TRIM_TOA for each channel
     auto trim_toa_test = trim_toa_test_builder.apply();
     for (calib = 0; calib < 4096; calib += 16) {
