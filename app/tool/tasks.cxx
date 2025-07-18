@@ -110,7 +110,7 @@ static void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   // use the data for setting params.
   pflib::DecodeAndBuffer buffer(nevents);
 
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
     auto test_handle = roc.testParameters()
       .add(refvol_page, "TOA_VREF", toa_vref)
@@ -207,7 +207,7 @@ static void charge_timescan(Target* tgt) {
       f << '\n';
     } 
   };
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   int central_charge_to_l1a;
   if(isLED){
     central_charge_to_l1a = tgt->fc().fc_get_setup_led();
@@ -332,7 +332,7 @@ static void gen_scan(Target* tgt) {
       f << '\n';
     }
   };
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
@@ -387,7 +387,7 @@ static void trim_inv_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   //take pedestal run on each parameter point
   for (trim_inv = 0; trim_inv < 64; trim_inv += 4) {
@@ -440,7 +440,7 @@ static void inv_vref_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   //set global params HZ_noinv on each link (arbitrary channel on each)
     auto test_param = roc.testParameters()
@@ -501,7 +501,7 @@ static void noinv_vref_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   //set global params HZ_noinv on each link (arbitrary channel on each)
     auto test_param = roc.testParameters()
@@ -602,7 +602,7 @@ static void parameter_timescan(Target* tgt) {
       f << '\n';
     } 
   };
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     // set parameters
     auto test_param_builder = roc.testParameters();
@@ -688,7 +688,7 @@ static void sampling_phase_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   
   // Loop over phases and do pedestals
   for (phase_ck = 0; phase_ck < 16; phase_ck++) {
@@ -783,7 +783,7 @@ static void vt50_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy - not stored */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
   for (vref_value = vref_lower; vref_value <= vref_upper; vref_value += nsteps) {
     // reset for every iteration
     tot_eff_list.clear();
@@ -878,6 +878,7 @@ static void vt50_scan(Target* tgt) {
   }
 }
 
+
 /**
  * TASKS.TOA_VREF_SCAN
  *
@@ -918,7 +919,7 @@ static void toa_vref_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   // Take a pedestal run on each parameter point
   // Toa_vref has a 10 b range, but we're not going to need all of that
@@ -974,7 +975,7 @@ static void trim_toa_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   // Take a charge injection run at each trim_toa. Do preCC to test
   // all the channels at the same time. Trim_toa has a range of 6 b.
@@ -1010,6 +1011,8 @@ static void trim_toa_scan(Target* tgt) {
   }
 }
 
+#include "tasks/level_pedestals.h"
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS", "tasks for studying the chip and tuning its parameters")
@@ -1021,6 +1024,7 @@ auto menu_tasks =
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN", "scan phase_ck, pedestal for clock phase alignment", sampling_phase_scan)
         ->line("VT50_SCAN", "Hones in on the vt50 with a binary or bisectional scan", vt50_scan)
+        ->line("LEVEL_PEDESTALS", "tune trim_inv and dacb to level pedestals with their link median", level_pedestals)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration", toa_vref_scan)
         ->line("TRIM_TOA_SCAN", "scan over TRIM parameters for TOA calibration", trim_toa_scan)
 ;

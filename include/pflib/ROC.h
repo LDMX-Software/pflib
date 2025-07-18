@@ -149,6 +149,7 @@ class ROC {
      public:
       Builder(ROC& roc);
       Builder& add(const std::string& page, const std::string& param, const int& val);
+      Builder& add_all_channels(const std::string& param, const int& val);
       [[nodiscard]] TestParameters apply();
     };
   };

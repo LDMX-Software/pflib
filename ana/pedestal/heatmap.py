@@ -17,7 +17,7 @@ if args.output is None:
     args.output = args.pedestals.parent / (args.pedestals.stem + '-heatmap.png')
 
 samples = pd.read_csv(args.pedestals)
-samples['uid'] = samples['link'].astype(str)+'_'+samples['channel']
+samples['uid'] = samples['i_link'].astype(str)+'_'+samples['channel']
 
 fig, axes = plt.subplots(
     nrows = 3,
