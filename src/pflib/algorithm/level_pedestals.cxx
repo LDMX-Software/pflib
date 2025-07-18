@@ -104,6 +104,18 @@ level_pedestals(Target* tgt, ROC roc) {
     if (baseline.at(ch) < target.at(i_link)) {
       pflib_log(debug) << "Channel " << ch << " is below target, setting TRIM_INV";
       double scale = static_cast<double>(target.at(i_link) - baseline.at(ch))/(highend.at(ch) - baseline.at(ch));
+      if (scale < 0) {
+        pflib_log(warn) << "Channel " << ch
+          << " is below target but increasing TRIM_INV made it lower??? Skipping...";
+        continue;
+      }
+      if (scale > 1) {
+        pflib_log(warn) << "Channel " << ch << " is so far below target that we cannot increase TRIM_INV enough."
+          << " Setting TRIM_INV to its maximum.";
+        settings[page]["TRIM_INV"] = 63;
+        continue;
+      }
+      // scale is in [0,1]
       double optim = scale*63;
       int val = static_cast<int>(optim);
       pflib_log(trace) << "Scale " << scale
@@ -112,6 +124,18 @@ level_pedestals(Target* tgt, ROC roc) {
       settings[page]["TRIM_INV"] = val;
     } else {
       double scale = static_cast<double>(baseline.at(ch) - target.at(i_link))/(baseline.at(ch) - lowend.at(ch));
+      if (scale < 0) {
+        pflib_log(warn) << "Channel " << ch
+          << " is above target but using SIGN_DAC=1 and increasing DACB made it higher??? Skipping...";
+        continue;
+      }
+      if (scale > 1) {
+        pflib_log(warn) << "Channel " << ch << " is so far above target that we cannot lower it enough."
+          << " Setting SIGN_DAC=1 and DACB to its maximum.";
+        settings[page]["SIGN_DAC"] = 1;
+        settings[page]["DACB"] = 31;
+        continue;
+      }
       double optim = scale*31;
       int val = static_cast<int>(optim);
       pflib_log(trace) << "Scale " << scale
