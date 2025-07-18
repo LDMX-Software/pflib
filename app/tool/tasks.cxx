@@ -919,7 +919,7 @@ static void toa_vref_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   // Take a pedestal run on each parameter point
   // Toa_vref has a 10 b range, but we're not going to need all of that
@@ -975,7 +975,7 @@ static void trim_toa_scan(Target* tgt) {
     }
   };
 
-  tgt->setup_run(1 /* dummy */, DAQ_FORMAT_SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
   // Take a charge injection run at each trim_toa. Do preCC to test
   // all the channels at the same time. Trim_toa has a range of 6 b.
