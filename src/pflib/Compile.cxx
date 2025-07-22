@@ -32,8 +32,9 @@ Compiler Compiler::get(const std::string& roc_type_version) {
 Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
     : parameter_lut_{parameter_lut}, page_lut_{page_lut} {}
 
-std::size_t msb(int v) {
+std::size_t msb(int i) {
   int r{0};
+  uint32_t v{static_cast<uint32_t>(i)};
   while (v >>= 1) {
     r++;
   }
@@ -41,7 +42,8 @@ std::size_t msb(int v) {
 }
 
 void Compiler::compile(const std::string& page_name,
-                       const std::string& param_name, const int& val,
+                       const std::string& param_name,
+                       const int& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
