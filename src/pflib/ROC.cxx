@@ -333,6 +333,14 @@ ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
   return *this;
 }
 
+ROC::TestParameters::Builder& ROC::TestParameters::Builder::add_all_channels(
+  const std::string& param, const int& val) {
+  for (int ch{0}; ch < 72; ch++) {
+    add("CH_"+std::to_string(ch), param, val);
+  }
+  return *this;
+}
+
 ROC::TestParameters ROC::TestParameters::Builder::apply() {
   return TestParameters(roc_, parameters_);
 }

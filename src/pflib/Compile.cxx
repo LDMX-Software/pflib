@@ -4,6 +4,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <map>
 
@@ -36,6 +37,28 @@ void Compiler::compile(const std::string& page_name,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
+
+  if (val < 0) {
+    PFEXCEPTION_RAISE("NegativeVal",
+        "Parameter "+page_name+"."+param_name
+        +" is being set to a negative value "+std::to_string(val)
+        +" which is not allowed in this register-based system.");
+  }
+
+  int total_nbits = std::accumulate(
+      spec.registers.begin(), spec.registers.end(), 0,
+      [](int bit_count, const RegisterLocation &rhs) {
+        return bit_count + rhs.n_bits; 
+      }
+  );
+  if (val >= (1 << total_nbits)) {
+    std::stringstream msg;
+    msg << "Parameter " << page_name << '.' << param_name
+        << " is being set to a value (" << val << ") exceeding its size ("
+        << total_nbits << " bits -> value < " << (1 << total_nbits) << ")";
+    PFEXCEPTION_RAISE("ValOver", msg.str());
+  }
+
   std::size_t value_curr_min_bit{0};
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {

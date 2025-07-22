@@ -51,8 +51,12 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     printf("Format options:\n");
     printf(" (1) ROC with ad-hoc headers as in TB2022\n");
     printf(" (2) ECON with full readout\n");
-    printf(" (3) ECON with ZS\n");
-    pftool::state.daq_format_mode = pftool::readline_int(" Select one: ", pftool::state.daq_format_mode);
+    //printf(" (3) ECON with ZS\n");
+    int i_format = pftool::readline_int(" Select one: ", static_cast<int>(pftool::state.daq_format_mode));
+    if (i_format < 1 or i_format > 2) {
+      PFEXCEPTION_RAISE("BadSel", std::to_string(i_format)+" is not a valid selection.");
+    }
+    pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
   }
   if (cmd == "CONFIG") {
     pftool::state.daq_contrib_id =
@@ -620,7 +624,7 @@ auto menu_daq_debug =
             int min_offset = pftool::readline_int("Minimum time offset to test? ", 0);
             int max_offset = pftool::readline_int("Maximum time offset to test? ", 128);
             std::string fname = pftool::readline_path("charge-timein");
-            tgt->setup_run(1, DAQ_FORMAT_SIMPLEROC, pftool::state.daq_contrib_id);
+            tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, pftool::state.daq_contrib_id);
             pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
             pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
             auto test_param_handle = roc.testParameters()
