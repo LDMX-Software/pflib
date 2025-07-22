@@ -32,32 +32,54 @@ Compiler Compiler::get(const std::string& roc_type_version) {
 Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
     : parameter_lut_{parameter_lut}, page_lut_{page_lut} {}
 
+std::size_t msb(int v) {
+  int r{0};
+  while (v >>= 1) {
+    r++;
+  }
+  return r;
+}
+
 void Compiler::compile(const std::string& page_name,
                        const std::string& param_name, const int& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
 
-  if (val < 0) {
-    PFEXCEPTION_RAISE("NegativeVal",
-        "Parameter "+page_name+"."+param_name
-        +" is being set to a negative value "+std::to_string(val)
-        +" which is not allowed in this register-based system.");
-  }
-
-  int total_nbits = std::accumulate(
+  std::size_t total_nbits = std::accumulate(
       spec.registers.begin(), spec.registers.end(), 0,
-      [](int bit_count, const RegisterLocation &rhs) {
+      [](std::size_t bit_count, const RegisterLocation &rhs) {
         return bit_count + rhs.n_bits; 
       }
   );
-  if (val >= (1 << total_nbits)) {
+  std::size_t val_msb = msb(val);
+  if (val_msb >= total_nbits) {
     std::stringstream msg;
     msg << "Parameter " << page_name << '.' << param_name
         << " is being set to a value (" << val << ") exceeding its size ("
         << total_nbits << " bits -> value < " << (1 << total_nbits) << ")";
     PFEXCEPTION_RAISE("ValOver", msg.str());
   }
+
+  /*
+  if (total_nbits < 32) {
+    if (val < 0) {
+      PFEXCEPTION_RAISE("NegativeVal",
+          "Parameter "+page_name+"."+param_name
+          +" is being set to a negative value "+std::to_string(val)
+          +" which is not allowed in this register-based system.");
+    }
+  
+    if (val >= (1 << total_nbits)) {
+      std::stringstream msg;
+      msg << "Parameter " << page_name << '.' << param_name
+          << " is being set to a value (" << val << ") exceeding its size ("
+          << total_nbits << " bits -> value < " << (1 << total_nbits) << ")";
+      PFEXCEPTION_RAISE("ValOver", msg.str());
+    }
+  } else {
+  }
+  */
 
   std::size_t value_curr_min_bit{0};
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
