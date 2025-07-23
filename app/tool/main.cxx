@@ -286,6 +286,10 @@ int main(int argc, char* argv[]) {
       sFile.close();
     } else if (arg == "-z") {
       mode = Fiberless;
+      if (not is_fw_active()) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
     } else if (arg == "-d" or arg == "--dump") {
       // dump out the entire menu to stdout
       pftool::root()->print(std::cout);

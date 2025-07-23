@@ -20,11 +20,6 @@
  */
 using pflib::Target;
 
-/// format mode integer for simple single-HGCROC
-static const int DAQ_FORMAT_SIMPLEROC = 1;
-/// format mode integer for ECON without Zero Suppression
-static const int DAQ_FORMAT_ECON = 2;
-
 /**
  * The type of menu we are constructing
  *
@@ -57,7 +52,7 @@ class pftool : public pflib::menu::Menu<Target*> {
     /// index of link currently being interacted with
     int ilink{0};
     /// current format mode to use
-    int daq_format_mode{1};
+    Target::DaqFormat daq_format_mode{Target::DaqFormat::SIMPLEROC};
     /// contributor ID of daq
     int daq_contrib_id{20};
     /// daq collection rate in Hz

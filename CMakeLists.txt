@@ -114,6 +114,7 @@ add_library(utility SHARED
   src/pflib/utility/load_integer_csv.cxx
   src/pflib/utility/json.cxx
   src/pflib/utility/str_to_int.cxx
+  src/pflib/utility/median.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -146,6 +147,7 @@ add_library(pflib SHARED
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
   src/pflib/DecodeAndWrite.cxx
+  src/pflib/DecodeAndBuffer.cxx
   src/pflib/WriteToBinaryFile.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
@@ -158,6 +160,7 @@ add_library(pflib SHARED
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/Bias.cxx
+  src/pflib/algorithm/level_pedestals.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -202,6 +205,7 @@ add_executable(pftool
   app/tool/roc.cxx
   app/tool/daq.cxx
   app/tool/tasks.cxx
+  app/tool/tasks/level_pedestals.cxx
   app/tool/bias.cxx)
 target_link_libraries(pftool PRIVATE pflib menu)
 

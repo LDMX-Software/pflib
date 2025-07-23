@@ -3,6 +3,7 @@
 #include <fstream>
 #include <memory>
 #include <functional>
+#include <vector>
 
 #include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/Logging.h"
@@ -28,12 +29,14 @@ class DecodeAndWrite : public Target::DAQRunConsumer {
 
   /// pure virtual function for writing out decoded event
   virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) = 0;
+ 
+ protected:
+  /// logging for warning messages on empty events
+  mutable ::pflib::logging::logger the_log_;
 
  private:
   /// event packet for decoding
   pflib::packing::SingleROCEventPacket ep_;
-  /// logging for warning messages on empty events
-  mutable ::pflib::logging::logger the_log_;
 };
 
 /**
