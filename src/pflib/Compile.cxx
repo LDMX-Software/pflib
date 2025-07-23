@@ -4,6 +4,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <map>
 
@@ -31,16 +32,48 @@ Compiler Compiler::get(const std::string& roc_type_version) {
 Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
     : parameter_lut_{parameter_lut}, page_lut_{page_lut} {}
 
+/**
+ * Calculate the Most Significant Bit of the input unsigned integer
+ *
+ * This is not safe and could be very slow if the value input is malformed
+ * (i.e. not a safely constructed unsigned integer).
+ */
+std::size_t msb(uint32_t v) {
+  int r{0};
+  while (v >>= 1) {
+    r++;
+  }
+  return r;
+}
+
 void Compiler::compile(const std::string& page_name,
-                       const std::string& param_name, const int& val,
+                       const std::string& param_name,
+                       const int& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
+  uint32_t uval{static_cast<uint32_t>(val)};
+
+  std::size_t total_nbits = std::accumulate(
+      spec.registers.begin(), spec.registers.end(), 0,
+      [](std::size_t bit_count, const RegisterLocation &rhs) {
+        return bit_count + rhs.n_bits; 
+      }
+  );
+  std::size_t val_msb = msb(uval);
+  if (val_msb >= total_nbits) {
+    std::stringstream msg;
+    msg << "Parameter " << page_name << '.' << param_name
+        << " is being set to a value (" << val << ") exceeding its size ("
+        << total_nbits << " bits -> value < " << (1u << total_nbits) << ")";
+    PFEXCEPTION_RAISE("ValOver", msg.str());
+  }
+
   std::size_t value_curr_min_bit{0};
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
-    uint8_t sub_val = ((val >> value_curr_min_bit) & location.mask);
+    uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
     pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", "
                      << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
