@@ -66,8 +66,7 @@ data, head = read_pflib_csv(args.f)
 # Will simultaneously calculate the threshold points.
 
 unique_trim_toas = data['TRIM_TOA'].unique()
-unique_calibs = data['CALIB_2V5'].unique()
-# TODO: rename CALIB_2V5 to CALIB in the tasks.cxx in the header for the CSV
+unique_calibs = data['CALIB'].unique()
 # trim = unique_trim_toas[0]
 print('working on plotting toa_efficiency vs calib')
 array = np.array([], dtype = 'int').reshape(0, 3)
@@ -79,7 +78,7 @@ for trim in unique_trim_toas:
     for chan in range(36):
         toa_efficiency = []
         for calib in unique_calibs:
-            current_calib = current_trim_toa[current_trim_toa['CALIB_2V5'] == calib]
+            current_calib = current_trim_toa[current_trim_toa['CALIB'] == calib]
             toa_triggers = len(current_calib[current_calib[str(chan)] != 0])
             chan_toa_efficiency = toa_triggers / len(current_calib)
             toa_efficiency.append(chan_toa_efficiency)
@@ -88,7 +87,7 @@ for trim in unique_trim_toas:
         ax1.set_title('link 0')
         ax1.set_xlabel('calib')
         ax1.set_ylabel('toa_efficiency')
-        # plt.plot(current_trim_toa['CALIB_2V5'], current_trim_toa['0'], linestyle = 'none', marker = 'o', alpha = .1)
+        # plt.plot(current_trim_toa['CALIB'], current_trim_toa['0'], linestyle = 'none', marker = 'o', alpha = .1)
         for i in range(len(toa_efficiency)):
             if toa_efficiency[i] != 0.0:
                 val = i
@@ -99,7 +98,7 @@ for trim in unique_trim_toas:
     for chan in range(36, 72):
         toa_efficiency = []
         for calib in unique_calibs:
-            current_calib = current_trim_toa[current_trim_toa['CALIB_2V5'] == calib]
+            current_calib = current_trim_toa[current_trim_toa['CALIB'] == calib]
             toa_triggers = len(current_calib[current_calib[str(chan)] != 0])
             chan_toa_efficiency = toa_triggers / len(current_calib)
             toa_efficiency.append(chan_toa_efficiency)
@@ -166,7 +165,7 @@ ax1.set_xlabel('trim_toa')
 ax2.set_xlabel('trim_toa')
 ax1.grid(True)
 plt.grid()
-plt.suptitle("TRIM_TOA vs CALIB_2V5 for each channel's toa turnaround points\nand linear fits")
+plt.suptitle("TRIM_TOA vs CALIB for each channel's toa turnaround points\nand linear fits")
 # plt.legend(loc = 'upper left', bbox_to_anchor = (1, 1.15))
 plt.savefig('threshold_points.png')
 # plt.show()
