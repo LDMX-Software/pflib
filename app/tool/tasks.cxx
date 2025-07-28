@@ -1006,21 +1006,21 @@ static void trim_toa_scan(Target* tgt) {
 
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
-  // Take a charge injection run at each trim_toa. Do preCC to test
-  // all the channels at the same time. Trim_toa has a range of 6 b.
-  // And vary calib, from 0 to 256. Want to see how toa_efficiency
+  // Take a charge injection run at each trim_toa. Do post-CC lowrange
+  // and test all channels at a same time. Trim_toa has a range of 6 b.
+  // And vary calib, from 0 to 800. Want to see how toa_efficiency
   // changes with trim_toa and calib. More details in the ana script.
   auto setup_builder = roc.testParameters()
-    .add("REFERENCEVOLTAGE_0", "CALIB_2V5", calib)
-    .add("REFERENCEVOLTAGE_1", "CALIB_2V5", calib)
+    .add("REFERENCEVOLTAGE_0", "CALIB", calib)
+    .add("REFERENCEVOLTAGE_1", "CALIB", calib)
     .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
     .add("REFERENCEVOLTAGE_1", "INTCTEST", 1);
   for (int ch{0}; ch < 72; ch++) {
-    setup_builder.add("CH_"+std::to_string(ch), "HIGHRANGE", 1);
+    setup_builder.add("CH_"+std::to_string(ch), "LOWRANGE", 1);
   }
   auto setup_test = setup_builder.apply();
 
-  for (trim_toa = 0; trim_toa < 64; trim_toa += 16) {
+  for (trim_toa = 0; trim_toa < 32; trim_toa += 4) {
     pflib_log(info) << "Running TRIM_TOA = " << trim_toa;
     auto trim_toa_test_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
@@ -1028,12 +1028,12 @@ static void trim_toa_scan(Target* tgt) {
     }
     // set TRIM_TOA for each channel
     auto trim_toa_test = trim_toa_test_builder.apply();
-    for (calib = 0; calib < 4096; calib += 16) {
+    for (calib = 0; calib < 800; calib += 4) {
       pflib_log(info) << "Running CALIB = " << calib;
       // Set the CALIB parameters for both halves
       auto calib_test = roc.testParameters()
-        .add("REFERENCEVOLTAGE_0", "CALIB_2V5", calib)
-        .add("REFERENCEVOLTAGE_1", "CALIB_2V5", calib)
+        .add("REFERENCEVOLTAGE_0", "CALIB", calib)
+        .add("REFERENCEVOLTAGE_1", "CALIB", calib)
         .apply();
       tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
     }
