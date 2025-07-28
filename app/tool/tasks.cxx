@@ -988,7 +988,7 @@ static void trim_toa_scan(Target* tgt) {
       header["trigger"] = "CHARGE";
       header["nevents_per_point"] = nevents;
       f << "# " << boost::json::serialize(header) << "\n"
-        << "TRIM_TOA" << "," << "CALIB_2V5";
+        << "TRIM_TOA" << "," << "CALIB";
       for (int ch{0}; ch < 72; ch++) {
         f << "," << ch;
       }
