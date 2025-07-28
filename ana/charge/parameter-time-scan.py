@@ -26,7 +26,7 @@ parser.add_argument('time_scan', type=Path, help='time scan data, only one event
 parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'HR_CORR']
+plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
@@ -173,107 +173,6 @@ def tot_eff(
             plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
                       + ', TOA_VREF = 250, TOT_VREF = 500')
 
-
-
-def highrange_correction(
-    samples_list,
-    run_params_list,
-    ax,
-    adcmax_linear = 600 #cut to disregard non-linear data
-): 
-
-    """
-    This function does two linear fits to the highrange and lowrange ADC vs charge plot. Assuming that the lowrange is "true", the highrange data is corrected so that it aligns with lowrange. 
-    This only happens in the linear region for the lowrange and highrange, meaning it excludes everything above an ADC of 600. Then both the lowrange and highrange slopes are plotted against the channel number.
-    Requires a two csv input, first lowrange then highrange!
-    """
-
-    low_samples, high_samples = samples_list
-    low_run_params, high_run_params = run_params_list
-    
-    channels = sorted(low_samples['channel'].unique())
-
-    m_high_all_ch = []
-    m_low_all_ch = []
-
-    for ch in channels:
-        low_ch  = low_samples[low_samples['channel'] == ch]
-        high_ch = high_samples[high_samples['channel'] == ch]
-
-        def extract_x_y(samples, run_params):
-            groups, param_name = get_params(samples, 0)
-            cap = 8e-12 if run_params['highrange'] else 500e-15 #for conversion of calib to charge Q[C]
-
-            x, y = [],[]
-            for _, group_df in groups:
-                q = group_df[param_name].iloc[0]*cap
-                adc_max = group_df['adc'].max()
-
-                if adc_max <= adcmax_linear:
-                    x.append(q)
-                    y.append(adc_max)
-
-            return np.array(x), np.array(y)
-
-        low_x, low_y = extract_x_y(low_ch, low_run_params)
-        high_x, high_y = extract_x_y(high_ch, high_run_params)
-
-        m_low, b_low = np.polyfit(low_x, low_y, deg=1) #slope=m, intercept=b
-        m_high, b_high = np.polyfit(high_x, high_y, deg=1)
-        m_low_all_ch.append(m_low)
-        m_high_all_ch.append(m_high)
-
-        high_x_corr = (high_y - b_low)/m_low
-        m_high_corr, b_high_corr = np.polyfit(high_x_corr, high_y, deg=1)
-
-        #points for linear fits
-        xs_low  = np.linspace(0, max(low_x),  2)
-        xs_high = np.linspace(0, max(high_x), 2)
-
-        fig, ax = plt.subplots()
-        #lowrange data and fit
-        ax.scatter(low_x, low_y, color='lightskyblue', label='lowrange data')
-        ax.plot(xs_low, m_low*xs_low + b_low, '--', color='black',  label='lowrange fit')
-
-        #highrange raw data and fit
-        ax.scatter(high_x, high_y, color='orange', label='highrange raw')
-        ax.plot(xs_high, m_high*xs_high + b_high, '--', color='orange', label='highrange fit')
-
-        #highrange corrected
-        ax.scatter(high_x_corr, high_y,  color='red', marker='x', label=f'highrange corrected')
-
-        ax.set_xlabel('Q [C]')
-        ax.set_ylabel('ADC')
-        ax.set_title(f'Highrange correction for CH{ch}')
-        ax.legend()   
-
-        outdir = args.output.parent / "hrcorr"
-        outdir.mkdir(exist_ok=True)
-        out_file = outdir / f"HR_CORR_CH{ch}.png"
-        plt.savefig(out_file)
-        plt.close(fig)
-
-    #m_high against channel number plot
-    fig, ax = plt.subplots()
-    ax.plot(channels, m_high_all_ch)
-    ax.set_xlabel('Channel number')
-    ax.set_ylabel('m_high')
-    ax.set_title('Slope of highrange against channel number')
-    scale_factor_outfile = args.output.parent / "m_high.png"
-    plt.savefig(scale_factor_outfile)
-    plt.close(fig)
-
-    #m_low against channel number plot
-    fig, ax = plt.subplots()
-    ax.plot(channels, m_low_all_ch)
-    ax.set_xlabel('Channel number')
-    ax.set_ylabel('m_low')
-    ax.set_title('Slope of lowrange against channel number')
-    scale_factor_outfile = args.output.parent / "m_low.png"
-    plt.savefig(scale_factor_outfile)
-    plt.close(fig)
-
-
 def param(
     samples,
     run_params,
@@ -288,14 +187,13 @@ def param(
     y = []
     for _, group_df in groups:
         y.append(group_df['adc'].max())
-        val = group_df[param_name].iloc[0]*8e-12
+        val = group_df[param_name].iloc[0]
         x.append(val)
     if multicsv:
         ax.scatter(x,y,label=(' '.join([f'{key} = {val}' for key, val in run_params.items()])))
         ax.legend()
     else:
         ax.scatter(x,y)
-        ax.set_xlim(0.3e-8,0.5e-8)
 
 def heatmaps(
     samples,
@@ -439,9 +337,6 @@ if args.plot_function == 'PARAMS':
 if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
     plt_gen(heatmap, samples, run_params, args.output,
             xlabel = args.xlabel, ylabel = args.ylabel)
-
-if args.plot_function == 'HR_CORR':
-    plt_gen(highrange_correction, samples_collection, run_params_collection, args.output, multicsv=True)
 
 if multicsv:
     plt_gen(multiparams, samples_collection, run_params_collection, args.output, 
