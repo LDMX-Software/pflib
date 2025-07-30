@@ -1120,6 +1120,6 @@ auto menu_tasks =
         ->line("LEVEL_PEDESTALS", "tune trim_inv and dacb to level pedestals with their link median", level_pedestals)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration", toa_vref_scan)
         ->line("TRIM_TOA_SCAN", "scan over TRIM parameters for TOA calibration", trim_toa_scan)
-        ->line("TOA_SCAN", 'JUST DOES THAT', toa_scan)
+        ->line("TOA_SCAN", "just does that bro", toa_scan)
 ;
 }
