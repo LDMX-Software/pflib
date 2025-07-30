@@ -69,6 +69,7 @@ unique_trim_toas = data['TRIM_TOA'].unique()
 unique_calibs = data['CALIB'].unique()
 print('working on plotting toa_efficiency vs calib')
 array = np.array([], dtype = 'int').reshape(0, 3)
+
 for trim in unique_trim_toas:
     print(f'on trim_toa = {trim}')
     current_trim_toa = data[data['TRIM_TOA'] == trim]
@@ -88,6 +89,7 @@ for trim in unique_trim_toas:
             if toa_efficiency[i] != 0.0:
                 val = i
                 break
+            val = 0
         # append the data to the array
         new_row = np.array([[trim, unique_calibs[val], chan]])
         array = np.concatenate((array, new_row), axis = 0)
@@ -131,6 +133,7 @@ stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 # Want colors to match lines and dots, so need a defined sequence. But, matplotlib's longest
 # is only 20, so I'm just concatenating 4 of them into a list of 80, so I don't go index out
 # of range.
+
 colors = mpl.color_sequences['tab20'] + mpl.color_sequences['tab20'] + mpl.color_sequences['tab20'] + mpl.color_sequences['tab20']
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (10, 5))
@@ -163,3 +166,51 @@ plt.savefig('threshold_points.png')
 plt.close()
 
 print('saved figs')
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Third, let's calculate the ideal trim_toa value for each channel. Since our 
+# regression gave us the calib as a function of trim_toa, we should use the equation of a
+# line and solve for trim as a function of slope, offset, and calib. 
+# calib = slope * trim_toa + offset
+# trim_toa = (calib - offset) / slope
+# Round everything to the nearest integer. 
+# Finally, set the channel's trim_toa to that result.
+
+# stats object holds the channel slope and intercept information
+
+print('picking calib = 300 as desired value')
+calib = 300
+target_trim = []
+# going to set any value not between 0 and 64 = 0.
+for chan in range(72):
+    if int((([calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]) < 0:
+        target_trim.append(0)
+    elif int((([calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]) > 64:
+        target_trim.append(0)
+    else:
+        target_trim.append(int((([calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]))
+        # target_trim.append(int((stats[stats['channel'] == chan]['slope'] * calib + stats[stats['channel'] == chan]['offset']).iloc[0]))
+
+print(target_trim)
+
+print('packing possible target_trim values into YAML')
+
+df_max = pd.DataFrame({
+    'channel': range(72),
+    'trim_toa': target_trim
+}
+)
+
+#output to yaml file
+yaml_data = {}
+for _, row in df_max.iterrows():
+    page_name = f"CH_{int(row['channel'])}"
+    yaml_data[page_name] = {
+        'TRIM_TOA': int(row['trim_toa'])
+    }
+
+with open("output.yaml", "w") as f:
+    yaml.dump(yaml_data, f, sort_keys=False)
+
+print("Output saved to 'output.yaml'")
