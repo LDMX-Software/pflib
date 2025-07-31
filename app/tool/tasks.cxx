@@ -1021,7 +1021,7 @@ static void trim_toa_scan(Target* tgt) {
   auto setup_test = setup_builder.apply();
 
   // for (trim_toa = 0; trim_toa < 32; trim_toa += 4) {
-  for (trim_toa = 0; trim_toa < 24; trim_toa += 4) {}
+  for (trim_toa = 0; trim_toa < 24; trim_toa += 4) {
     pflib_log(info) << "Running TRIM_TOA = " << trim_toa;
     auto trim_toa_test_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
@@ -1030,7 +1030,7 @@ static void trim_toa_scan(Target* tgt) {
     // set TRIM_TOA for each channel
     auto trim_toa_test = trim_toa_test_builder.apply();
     // for (calib = 0; calib < 800; calib += 4) {
-    for (calib = 100; calib < 600; calib += 4) {}
+    for (calib = 100; calib < 600; calib += 4) {
       pflib_log(info) << "Running CALIB = " << calib;
       // Set the CALIB parameters for both halves
       auto calib_test = roc.testParameters()
