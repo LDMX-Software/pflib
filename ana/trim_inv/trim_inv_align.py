@@ -35,13 +35,13 @@ df, head = read_pflib_csv(args.f)
 #only 1 event per parameter value per channel
 stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 
-#find slope, offset of each channel doing a fit of trim_inv vs adc
-#hardcoded with channel ranges as of now, in future add i_link to csv in tasks.trim_inv_scan
+#find slope, offset of each channel doing a fit of trim_inv vs adc with dacb = 0
+df1 = df.loc[df['DACB'] == 0]
 for channel in range(0, 72):
-    if df[str(channel)].empty:
+    if df1[str(channel)].empty:
         continue
-    adc = (df[str(channel)].to_numpy())
-    trim_inv = (df['TRIM_INV']).to_numpy()
+    adc = (df1[str(channel)].to_numpy())
+    trim_inv = (df1['TRIM_INV']).to_numpy()
     slope, offset, r_value, p_value, slope_err = lr(trim_inv, adc)
     stats.loc[len(stats)] = [channel, slope, offset]
 
