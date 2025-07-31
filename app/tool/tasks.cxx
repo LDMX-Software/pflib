@@ -420,7 +420,7 @@ static void trim_inv_dacb_scan(Target* tgt) {
   auto dacb_reset = dacb_reset_builder.apply();
 
   //take pedestal run for trim_inv parameter points
-  for (trim_inv = 0; trim_inv < 64; trim_inv += 4) {
+  for (trim_inv = 4; trim_inv < 64; trim_inv += 4) {
       pflib_log(info) << "Running TRIM_INV = " << trim_inv;
       auto trim_inv_test_builder = roc.testParameters();
       for (int ch{0}; ch < 72; ch++) {
