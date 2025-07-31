@@ -412,8 +412,9 @@ static void trim_inv_dacb_scan(Target* tgt) {
 
   //reset dacb to 0
   auto dacb_reset_builder = roc.testParameters();
+  dacb = 0;
   for (int ch{0}; ch < 72; ch++){
-      dacb_reset_builder.add("CH_" + std::to_string(ch), "DACB", 0)
+      dacb_reset_builder.add("CH_" + std::to_string(ch), "DACB", dacb)
                 .add("CH_" + std::to_string(ch), "SIGN_DAC", 0);
     }
   auto dacb_reset = dacb_reset_builder.apply();
