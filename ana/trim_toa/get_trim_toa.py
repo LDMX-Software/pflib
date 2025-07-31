@@ -70,6 +70,9 @@ unique_calibs = data['CALIB'].unique()
 print('working on plotting toa_efficiency vs calib')
 array = np.array([], dtype = 'int').reshape(0, 3)
 
+# select only from calib [100, 600] and trim_toa [4, 20]
+# data = data[(data['CALIB'] >= 00) & (data['CALIB'] <= 800) & (data['TRIM_TOA'] >= 0) & (data['TRIM_TOA'] <= 32)]
+
 for trim in unique_trim_toas:
     print(f'on trim_toa = {trim}')
     current_trim_toa = data[data['TRIM_TOA'] == trim]
