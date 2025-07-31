@@ -416,7 +416,7 @@ static void trim_inv_dacb_scan(Target* tgt) {
       dacb_reset_builder.add("CH_" + std::to_string(ch), "DACB", 0)
                 .add("CH_" + std::to_string(ch), "SIGN_DAC", 0);
     }
-  auto dacb_reset = dacb_reset_builder.apply()
+  auto dacb_reset = dacb_reset_builder.apply();
 
   //take pedestal run for trim_inv parameter points
   for (trim_inv = 0; trim_inv < 64; trim_inv += 4) {
