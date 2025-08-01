@@ -33,10 +33,6 @@ logger get(const std::string& name) {
   return lg;
 }
 
-logger get_by_file(const std::string& prefix, const std::string& filepath) {
-  return get(prefix+std::string(std::filesystem::path(filepath).stem()));
-}
-
 /**
  * Safely extract a value from the Boost.Log attribute
  *

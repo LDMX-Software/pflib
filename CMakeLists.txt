@@ -199,21 +199,16 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
-add_executable(pftool
-  app/tool/main.cxx
-  app/tool/expert.cxx
-  app/tool/roc.cxx
-  app/tool/daq.cxx
-  app/tool/tasks.cxx
-  app/tool/tasks/level_pedestals.cxx
-  app/tool/bias.cxx)
+file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
+add_executable(pftool ${pftool_sources})
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu test/test_menu.cxx)
+file(GLOB_RECURSE test_menu_sources LIST_DIRECTORIES FALSE test/test_menu/*.cxx)
+add_executable(test-menu ${test_menu_sources})
 target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
