@@ -1,4 +1,5 @@
 #Python script to find optimal inv_vref values given an inv_vref scan
+#to be done after already leveling pedestals
 import pandas as pd
 import yaml
 from scipy.stats import linregress as lr
@@ -15,11 +16,12 @@ from read import read_pflib_csv
 #runtime arguments
 parser = argparse.ArgumentParser(
     prog = 'inv_vref_align.py',
-    description='takes a csv from tasks.inv_vref_scan and outputs yaml file with optimal inv_vref values for pedestal trimming between links'
+    description='takes a csv from tasks.inv_vref_scan and outputs yaml file with optimal inv_vref values for pedestal trimming between links' \
+    '; Do after leveling pedestals'
 )
 parser.add_argument('-f', required = True, help='csv file containing scan from tasks.inv_vref_scan')
 parser.add_argument('-o', help='name of output yaml file', default = 'inv_vref_output.yaml')
-parser.add_argument('-t', help='target adc', default = 100)
+parser.add_argument('-t', help='target adc', default = 100, type = int)
 args = parser.parse_args()
 
 if not os.path.isfile(args.f):
