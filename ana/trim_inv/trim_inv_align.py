@@ -1,4 +1,4 @@
-#Python script to find optimal trim_inv values given a trim_inv scan
+#Python script to find optimal trim_inv and dacb values given a trim_inv_dacb scan
 import pandas as pd
 import yaml
 from scipy.stats import linregress as lr
