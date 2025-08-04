@@ -19,9 +19,6 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('-f', required = True, help='csv file containing scan from tasks.trim_inv_scan')
 parser.add_argument('--output', help='name of output yaml file', default = 'trim_inv_output.yaml')
-parser.add_argument('--min', type = int, help='minumum elink to be trimmed', default = 0)
-parser.add_argument('--max', type = int, help='maximum elink to be trimmed', default = 1)
-parser.add_argument('--target', type = float, help='number of standard deviations that target offset can be from median; play around with this value to find ideal pedestal trimming', default = 1)
 args = parser.parse_args()
 
 if not os.path.isfile(args.f):
@@ -33,37 +30,42 @@ if not args.f.lower().endswith('csv'):
 output = args.output
 if not output.lower().endswith('yaml'):
     output += '.yaml'
-min_link = args.min
-max_link = args.max
-t_std = args.target
 df, head = read_pflib_csv(args.f)
 
 #only 1 event per parameter value per channel
 stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 
-#find slope, offset of each channel doing a fit of trim_inv vs adc
-#hardcoded with channel ranges as of now, in future add i_link to csv in tasks.trim_inv_scan
-for channel in range(min_link * 36, max_link * 36 + 36):
-    if df[str(channel)].empty:
+#find slope, offset of each channel doing a fit of trim_inv vs adc with dacb = 0
+df1 = df.loc[df['DACB'] == 0]
+for channel in range(0, 72):
+    if df1[str(channel)].empty:
         continue
-    adc = (df[str(channel)].to_numpy())
-    trim_inv = (df['TRIM_INV']).to_numpy()
+    adc = (df1[str(channel)].to_numpy())
+    trim_inv = (df1['TRIM_INV']).to_numpy()
     slope, offset, r_value, p_value, slope_err = lr(trim_inv, adc)
     stats.loc[len(stats)] = [channel, slope, offset]
+
 
 new_trim_inv = pd.DataFrame(columns=['channel', 'TRIM_INV'])
 
 #find optimal trim_inv value for each channel using fit
-for i in range (min_link, max_link + 1):
+targets = np.empty(2)
+
+for i in range (0, 2):
     mCH = i * 36
     nCH = i * 36 + 36
     link = stats.loc[(stats['channel'] >= mCH) & (stats['channel'] <nCH)]
 
-    #target offset is max within t_std standard deviations of the median offset
+    #only select from non-outlier channels
     median_offset = link['offset'].median()
     std_offset = link['offset'].std()
-    offset_mask = link.loc[abs(link['offset'] - median_offset) < t_std * std_offset]
-    max_offset = offset_mask['offset'].max()
+    offset_mask = link.loc[abs(link['offset'] - median_offset) < 2 * std_offset]
+
+    #target adc is adc of lowest channel set at max trim_inv
+    lowest = offset_mask.loc[offset_mask['offset'] == offset_mask['offset'].min()]
+    target = lowest['offset'].values[0] + 63 * lowest['slope'].values[0]
+    targets[i] = target
+
 
     #optimal trim_inv value for channel using fit and target offset
     for channel in range(mCH, nCH):
@@ -73,7 +75,10 @@ for i in range (min_link, max_link + 1):
         slope = link.loc[link['channel'] == channel, 'slope'].values[0]
 
         if slope >0:
-            trim_inv = round(abs(max_offset - offset) / slope)
+            if offset > target:
+                trim_inv = 0
+            else:
+                trim_inv = round((target - offset) / slope)
         else:
             trim_inv = 0
 
@@ -83,12 +88,61 @@ for i in range (min_link, max_link + 1):
 
         new_trim_inv.loc[len(new_trim_inv)] = [channel, trim_inv]
 
-#into yaml config file
-trim_inv_dict = {
-    f'CH_{int(row.channel)}': {'TRIM_INV': int(row.TRIM_INV)}
-    for _, row in new_trim_inv.iterrows()
-}
-with open(output, 'w') as f:
-    yaml.dump(trim_inv_dict, f, sort_keys=False)
+dacb_stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 
+#find slope, offset of each channel doing a fit of trim_inv vs adc with dacb = 0
+dacb_channels = new_trim_inv.loc[new_trim_inv['TRIM_INV'] == 0, 'channel'].to_numpy()
+df1 = df.loc[df['TRIM_INV'] == 0]
+for channel in dacb_channels:
+    if df1[str(channel)].empty:
+        continue
+
+    #linear regime since adc bottoms out at dacb~=40
+    linear_region = df1.loc[df1[str(channel)] > 0]
+    adc = linear_region[str(channel)].to_numpy()
+    dacb = linear_region['DACB'].to_numpy()
+    if len(adc) == 0:
+        continue
+    slope, offset, r_value, p_value, slope_err = lr(dacb, adc)
+    dacb_stats.loc[len(dacb_stats)] = [channel, slope, offset]
+
+#from here get channels that have 0 set as trim_inv and find appropriate dacb
+dacb_values = pd.DataFrame(columns=['channel', 'DACB', "SIGN_DAC"])
+for i, channel in enumerate(dacb_channels):
+    if channel < 36:
+        target = targets[0]
+    else:
+        target = targets[1]
+    
+    row = dacb_stats.loc[dacb_stats['channel'] == channel]
+    if row.empty:
+        continue
+
+    offset = row['offset'].values[0]
+    slope = row['slope'].values[0]
+
+    if slope == 0:
+        continue
+    new_dacb = -1* round(abs(target - offset) / slope)
+    dacb_values.loc[len(dacb_values)] = [channel, new_dacb, 1]
+
+#into yaml config file
+import yaml
+# Convert dacb_values to dicts for quick lookup
+dacb_dict = dacb_values.set_index('channel')['DACB'].to_dict()
+sign_dac_dict = dacb_values.set_index('channel')['SIGN_DAC'].to_dict()
+
+combined_dict = {}
+
+for _, row in new_trim_inv.iterrows():
+    ch_key = f'CH_{int(row.channel)}'
+    combined_dict[ch_key] = {'TRIM_INV': int(row.TRIM_INV)}
+    
+    ch = int(row.channel)
+    if ch in dacb_dict:
+        combined_dict[ch_key]['DACB'] = int(dacb_dict[ch])
+        combined_dict[ch_key]['SIGN_DAC'] = int(sign_dac_dict[ch])
+
+with open(output, 'w') as f:
+    yaml.dump(combined_dict, f, sort_keys=False)
 
