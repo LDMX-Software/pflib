@@ -1,6 +1,9 @@
 #include "toa_scan.h"
 
+#include "pflib/utility/json.h"
 #include "pflib/DecodeAndWrite.h"
+
+ENABLE_LOGGING();
 
 void toa_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 100);

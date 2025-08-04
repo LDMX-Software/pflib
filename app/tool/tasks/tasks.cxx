@@ -14,6 +14,7 @@
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
+#include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "trim_inv_scan.h"
 #include "trim_toa_scan.h"
