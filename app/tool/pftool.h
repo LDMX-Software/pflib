@@ -9,11 +9,20 @@
 #include "pflib/Target.h"
 
 /**
+ * get a logger using the file name as the channel name
+ *
+ * the filename's extension is removed and the file path
+ * that is shared with the directory of this file is replaced
+ * by 'pftool'.
+ */
+::pflib::logging::logger get_by_file(const std::string& filepath);
+
+/**
  * @macro ENABLE_LOGGING
  * Enable logging using the file name as the channel name
  */
 #define ENABLE_LOGGING() \
-  static auto the_log_{::pflib::logging::get_by_file("pftool.", __FILE__)};
+  static auto the_log_{get_by_file(__FILE__)};
 
 /**
  * pull the target of our menu into this source file to reduce code
