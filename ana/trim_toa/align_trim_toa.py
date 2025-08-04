@@ -214,12 +214,12 @@ if do_plots:
 
 print(f'picking calib = {target_calib} as desired value')
 target_trim = []
-# setting values outside the bounds of 0-64 as 0 or 64.
+# setting values outside the bounds of 0-63 as 0 or 63.
 for chan in range(72):
     if int((([target_calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]) < 0:
         target_trim.append(0)
-    elif int((([target_calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]) > 64:
-        target_trim.append(64)
+    elif int((([target_calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]) > 63:
+        target_trim.append(63)
     else:
         target_trim.append(int((([target_calib] - stats[stats['channel'] == chan]['offset']) / stats[stats['channel'] == chan]['slope']).iloc[0]))
 print('target trims are ', target_trim)
