@@ -56,6 +56,7 @@ foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
   set(reg_map_header "include/register_maps/${roc}.h")
   add_custom_command(
     OUTPUT ${reg_map_header}
+    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
     COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
       ${reg_map_src} ${CMAKE_CURRENT_BINARY_DIR}/${reg_map_header} --no-intermediate-yaml
     DEPENDS ${reg_map_src} ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
@@ -68,6 +69,7 @@ endforeach()
 
 add_custom_command(
   OUTPUT "include/register_maps/direct_access.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3
   ${PROJECT_SOURCE_DIR}/register_maps/write-direct-access-header.py
   ${PROJECT_SOURCE_DIR}/register_maps/si_roc_directaccess_regmap.yaml
@@ -85,6 +87,7 @@ add_custom_target(direct_access DEPENDS include/register_maps/direct_access.h)
 
 add_custom_command(
   OUTPUT "include/register_maps/lpgbt.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3
   ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
   ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
@@ -99,6 +102,7 @@ add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
 
 add_custom_command(
   OUTPUT include/register_maps/register_maps.h
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
