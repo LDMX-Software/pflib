@@ -9,6 +9,8 @@ tool/test-menu
 
 # ignore all hidden files
 .*
+# except github
+!.github
 
 # python venv for lightweight analyses
 venv
