@@ -16,7 +16,7 @@
 #include "set_toa.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
-#include "trim_inv_scan.h"
+#include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
@@ -26,7 +26,7 @@ auto menu_tasks =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time", charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("PARAMETER_TIMESCAN", "scan charge/calib pulse over time for varying parameters", parameter_timescan)
-        ->line("TRIM_INV_SCAN", "scan trim_inv parameter", trim_inv_scan)
+        ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter", trim_inv_dacb_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter", noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN", "scan phase_ck, pedestal for clock phase alignment", sampling_phase_scan)
