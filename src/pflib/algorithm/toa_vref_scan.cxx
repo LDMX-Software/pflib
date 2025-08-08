@@ -50,7 +50,6 @@ toa_vref_scan(Target* tgt, ROC roc) {
       .add("REFERENCEVOLTAGE_0", "TOA_VREF", toa_vref)
       .add("REFERENCEVOLTAGE_1", "TOA_VREF", toa_vref)
       .apply();
-    //TODO: Do we need next line? Put it there so that parameters set properly. Remove to save time?
     usleep(10);
     tgt->daq_run("PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "finished toa_vref = " << toa_vref << ", getting efficiencies";
