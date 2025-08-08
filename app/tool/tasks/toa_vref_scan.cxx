@@ -11,7 +11,7 @@ void toa_vref_scan(Target* tgt) {
   for (const auto& page : settings) {
     out << YAML::Key << page.first;
     out << YAML::Value << YAML::BeginMap;
-    for (const antu& param : page.second) {
+    for (const auto& param : page.second) {
       out << YAML::Key << param.first << YAML::Value << param.second;
     }
     out << YAML::EndMap;
@@ -23,7 +23,7 @@ void toa_vref_scan(Target* tgt) {
   }
 
   if (pftool::readline_bool("Apple settings to the chip? ", true)) {
-    roc.appleParameters(settings);
+    roc.applyParameters(settings);
   }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
