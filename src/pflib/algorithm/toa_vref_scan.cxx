@@ -1,7 +1,7 @@
-#include "pflib/algorithm/find_toa_vref.h"
+#include "pflib/algorithm/toa_vref_scan.h"
 
-#include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
+#include "pflib/utility/efficiency.h"
 
 #include "pflib/DecodeAndBuffer.h"
 
@@ -31,8 +31,8 @@ static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::pack
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, int>>
-find_toa_vref(Target* tgt, ROC roc) {
-  static auto the_log_{::pflib::logging::get("find_toa_vref")};
+toa_vref_scan(Target* tgt, ROC roc) {
+  static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
   /// do a run of 100 samples per toa_vref to measure the TOA
   /// efficiency when looking at pedestal data

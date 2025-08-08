@@ -6,7 +6,7 @@
  * @namespace pflib::algorithm
  * housing of higher-level methods for repeatable tasks 
  */
- namespace pflib::algorithm {
+namespace pflib::algorithm {
 
 /**
  * Find TOA threshold voltage reference to align TOA values
@@ -16,6 +16,6 @@
  * @note Only functional for single-ROC targets
  */
 std::map<std::string, std::map<std::string, int>>
-find_toa_vref(Target* tgt, ROC roc);
+toa_vref_scan(Target* tgt, ROC roc);
 
 }

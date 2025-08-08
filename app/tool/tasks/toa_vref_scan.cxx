@@ -2,12 +2,13 @@
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-#include "pflib/algorithm/find_toa_vref.h"
+#include "pflib/algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
   auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-  auto settings = pflib::algorithm::find_toa_vref(tgt, roc);
+  auto settings = pflib::algorithm::toa_vref_scan(tgt, roc);
   YAML::Emitter out;
+  out << YAML::BeginMap;
   for (const auto& page : settings) {
     out << YAML::Key << page.first;
     out << YAML::Value << YAML::BeginMap;
