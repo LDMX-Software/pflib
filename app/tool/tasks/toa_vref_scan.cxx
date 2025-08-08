@@ -23,7 +23,7 @@ void toa_vref_scan(Target* tgt) {
     std::cout << out.c_str() << std::endl;
   }
 
-  if (pftool::readline_bool("Apple settings to the chip? ", true)) {
+  if (pftool::readline_bool("Apply settings to the chip? ", true)) {
     roc.applyParameters(settings);
   }
 

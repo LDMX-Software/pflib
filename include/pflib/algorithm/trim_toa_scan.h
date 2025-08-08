@@ -1,0 +1,21 @@
+#pragma once
+
+#include "pflib/Target.h"
+
+/**
+ * @namespace pflib::algorithm
+ * housing of higher-level methods for repeatable tasks 
+ */
+namespace pflib::algorithm {
+
+/**
+ * Align TOA values for all channels per link
+ *
+ * @param[in] tgt pointer to Target to interact with
+ *
+ * @note Only functional for single-ROC targets
+ */
+std::map<std::string, std::map<std::string, int>>
+trim_toa_scan(Target* tgt, ROC roc);
+
+}
