@@ -119,7 +119,6 @@ add_library(utility SHARED
   src/pflib/utility/json.cxx
   src/pflib/utility/str_to_int.cxx
   src/pflib/utility/median.cxx
-  src/pflib/utility/string_format.cxx
   src/pflib/utility/efficiency.cxx
 )
 target_include_directories(utility PUBLIC 

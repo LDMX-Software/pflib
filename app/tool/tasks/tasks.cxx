@@ -17,7 +17,6 @@
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
-#include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
 namespace {
@@ -33,7 +32,6 @@ auto menu_tasks =
         ->line("VT50_SCAN", "Hones in on the vt50 with a binary or bisectional scan", vt50_scan)
         ->line("LEVEL_PEDESTALS", "tune trim_inv and dacb to level pedestals with their link median", level_pedestals)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration", toa_vref_scan)
-        ->line("TRIM_TOA_SCAN", "scan over TRIM parameters for TOA calibration", trim_toa_scan)
         ->line("TOA_SCAN", "just does that bro (changes CALIB while saving only TOA)", toa_scan)
 ;
 }
