@@ -16,14 +16,7 @@ static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::pack
     for (std::size_t i{0}; i < toas.size(); i++) {
       toas[i] = data[i].channel(ch).toa();
     }
-    // might need something here if it freaks out when toas.size() == 0
-    // BUT I CAN'T FIGURE OUT HOW TO MAKE THE LOG WORK, SO MAYBE SOMEBODY CAN FIX THAT?
-    // if (toas.empty()) {
-    //   pflib_log(warn) << "No TOA values found for channel " << ch
-    //                   << ", setting efficiency to 0";
-    //   efficiencies[ch] = 0.0;
-    //   continue;
-    // }
+    /// we assume that the data provided is not empty otherwise the efficiency calculation is meaningless
     efficiencies[ch] = pflib::utility::efficiency(toas);
   }
   return efficiencies;
