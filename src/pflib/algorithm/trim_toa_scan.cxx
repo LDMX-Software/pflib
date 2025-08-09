@@ -37,7 +37,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
     pflib_log(info) << "testing trim_toa = " << trim_toa;
     auto trim_toa_test_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
-      trim_toa_test_builder.add("CH_"+std::to_string(ch), "TRIM_TOA", TRIM_TOA);
+      trim_toa_test_builder.add("CH_"+std::to_string(ch), "TRIM_TOA", trim_toa);
     }
     // set TRIM_TOA for each channel
     auto trim_toa_test = trim_toa_test_builder.apply();
@@ -49,17 +49,15 @@ trim_toa_scan(Target* tgt, ROC roc) {
         .add("REFERENCEVOLTAGE_1", "CALIB", calib)
       .apply();
       usleep(10);
-      // not sure what should go in 4th parameter of next line?
-      // the uncommented line is what I had for writer last time.
-      // tgt->daq_run("CHARGE", buffer, n_events, 100);
-      tgt->daq_run("CHARGE", buffer, n_events, pftool::state.daq_rate);
+      tgt->daq_run("CHARGE", buffer, n_events, 100);
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa << ", and calib = " << calib << ", getting efficiencies";
-      auto efficiencies = pflib::algorithm::toa_vref_scan::get_toa_efficiencies(buffer.get_buffer());
+      // how do I call the function from algorithm/toa_vref_scan called get_toa_efficiencies?
+      // auto efficiencies = pflib::algorithm::toa_vref_scan::get_toa_efficiencies(buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies, storing now";
-      for (int ch{0}; ch < 72; ch++) {
-        final_data[calib][trim_toa][ch] = efficiencies[ch];
-      }
+      // for (int ch{0}; ch < 72; ch++) {
+      //   final_data[calib][trim_toa][ch] = efficiencies[ch];
+      // }
     }
   }
 
@@ -88,6 +86,9 @@ trim_toa_scan(Target* tgt, ROC roc) {
   //   std::string page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
   //   settings[page]["TOA_VREF"] = target[i_link];
   // }
+
+  std::map<std::string, std::map<std::string, int>> settings;
+  
 
   return settings;
 }
