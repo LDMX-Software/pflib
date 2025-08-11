@@ -57,9 +57,7 @@ toa_vref_scan(Target* tgt, ROC roc) {
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start = efficiencies.begin() + 36 * i_link; // start at 0 for link 0, 36 for link 1
       auto end = start + 36;
-      auto max_index = std::max_element(start, end);
-      double max_eff = *max_index; // not sure how, but Google said this is how to do it
-      final_effs[i_link][toa_vref] = max_eff; // store it
+      final_effs[i_link][toa_vref] = *std::max_element(start, end);
     }
     pflib_log(trace) << "got link efficiencies";
   }
