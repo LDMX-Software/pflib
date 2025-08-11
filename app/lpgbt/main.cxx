@@ -8,9 +8,12 @@
 #include "zcu_optolink.h"
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
+#include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 
 struct ToolBox {
   pflib::lpGBT* lpgbt;
+  pflib::lpGBT* lpgbt_i2c;
+  pflib::lpGBT* lpgbt_ic;
   pflib::zcu::OptoLink* olink;
 };
 
@@ -37,9 +40,18 @@ void opto(const std::string& cmd, ToolBox* target) {
 }
 
 void general(const std::string& cmd, ToolBox* target) {
+  bool comm_is_i2c=(target->lpgbt==target->lpgbt_i2c);
+
   if (cmd=="STATUS") {
+    if (comm_is_i2c) printf(" Communication by I2C\n");
+    else printf(" Communication by IC\n");
     int pusm=target->lpgbt->status();
     printf(" PUSM %s (%d)\n",target->lpgbt->status_name(pusm).c_str(),pusm);
+  }
+  if (cmd=="COMM") {
+    printf("Swapping communication paths\n");
+    if (comm_is_i2c) target->lpgbt=target->lpgbt_ic;
+    else target->lpgbt=target->lpgbt_i2c;
   }
 }
 
@@ -311,7 +323,8 @@ void test(const std::string& cmd, ToolBox* target) {
 namespace {
 
   auto gen = tool::menu("GENERAL","GENERAL funcations")
-    ->line("STATUS","Status summary",general)
+      ->line("STATUS","Status summary",general)
+      ->line("COMM","Communication mode",general)
     ;
   
 auto optom = tool::menu("OPTO", "Optical Link Functions")
@@ -380,11 +393,15 @@ int main(int argc, char* argv[]) {
   }
 
   pflib::lpGBT_ConfigTransport_I2C tport(0x79, "/dev/i2c-23");
-  pflib::lpGBT lpgbt(tport);
+  pflib::lpGBT lpgbt_i2c(tport);
   pflib::zcu::OptoLink olink;
+  pflib::zcu::lpGBT_ICEC_Simple ic("",false,0x79);
+  pflib::lpGBT lpgbt_ic(ic);
   tool::set_history_filepath("~/.pflpgbt-history");
   ToolBox t;
-  t.lpgbt=&lpgbt;
+  t.lpgbt_i2c=&lpgbt_i2c;  
+  t.lpgbt_ic=&lpgbt_ic;
+  t.lpgbt=t.lpgbt_i2c;
   t.olink=&olink;  
   tool::run(&t);
 
