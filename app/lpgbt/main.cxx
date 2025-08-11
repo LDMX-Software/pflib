@@ -34,6 +34,11 @@ void opto(const std::string& cmd, ToolBox* target) {
   if (cmd=="RESET") {
     olink.reset_link();
   }
+  if (cmd=="LINKTRICK") {
+    target->lpgbt->write(0x128,0x5);
+    sleep(1);
+    target->lpgbt->write(0x128,0x0);
+  }
 }
 
 void general(const std::string& cmd, ToolBox* target) {
@@ -41,6 +46,25 @@ void general(const std::string& cmd, ToolBox* target) {
     int pusm=target->lpgbt->status();
     printf(" PUSM %s (%d)\n",target->lpgbt->status_name(pusm).c_str(),pusm);
   }
+  if (cmd=="RESET") {
+    LPGBT_Mezz_Tester tester;
+    tester.reset_lpGBT();
+  }
+  if (cmd=="MODE") {
+    LPGBT_Mezz_Tester tester;
+    printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-onlt\n");
+    bool wasMode, wasAddr;
+    tester.get_mode(wasAddr,wasMode);
+    bool newaddr=tool::readline_bool("ADDR bit",wasAddr);
+    bool newmode=tool::readline_bool("MODE1 value",wasMode);
+    if (newaddr!=wasAddr || newmode!=wasMode) {
+      printf("Setting new addr and mode.  lpGBT must be reset and so must this program\n\n");
+      tester.set_mode(newaddr,newmode);
+      tester.reset_lpGBT();
+      exit(0);
+    }
+  }
+  
 }
 
 void regs(const std::string& cmd, ToolBox* target) {
@@ -312,11 +336,14 @@ namespace {
 
   auto gen = tool::menu("GENERAL","GENERAL funcations")
     ->line("STATUS","Status summary",general)
+    ->line("MODE","Setup the lpGBT ADDR and MODE1",general)
+    ->line("RESET","Reset the lpGBT",general)
     ;
   
 auto optom = tool::menu("OPTO", "Optical Link Functions")
   ->line("FULLSTATUS", "Get full status", opto)
   ->line("RESET","Reset optical link",opto)
+  ->line("LINKTRICK","Cycle into/out of fixed speed to get SFP to lock",opto)
   ;
   
 
@@ -379,10 +406,20 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  pflib::lpGBT_ConfigTransport_I2C tport(0x79, "/dev/i2c-23");
+  tool::set_history_filepath("~/.pflpgbt-history");
+
+  LPGBT_Mezz_Tester tester;
+  bool addr, mode1;
+  tester.get_mode(addr, mode1); // need to determine address
+
+  int chipaddr=0x78;
+  if (addr) chipaddr|=0x1;
+  if (mode1) chipaddr|=0x4;
+  printf(" ADDR = %d and MODE1=%d -> 0x%02x\n",addr,mode1,chipaddr);
+  
+  pflib::lpGBT_ConfigTransport_I2C tport(chipaddr, "/dev/i2c-23");
   pflib::lpGBT lpgbt(tport);
   pflib::zcu::OptoLink olink;
-  tool::set_history_filepath("~/.pflpgbt-history");
   ToolBox t;
   t.lpgbt=&lpgbt;
   t.olink=&olink;  

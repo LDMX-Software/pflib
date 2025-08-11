@@ -11,6 +11,10 @@ class LPGBT_Mezz_Tester {
 
   std::vector<float> clock_rates();
 
+  void get_mode(bool& addr, bool& mode1);
+  void set_mode(bool addr, bool mode1);
+  void reset_lpGBT();
+
  private:
   pflib::UIO uio_;
 };
