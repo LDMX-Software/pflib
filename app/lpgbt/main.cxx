@@ -8,17 +8,24 @@
 #include "zcu_optolink.h"
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
+#include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 
 struct ToolBox {
   pflib::lpGBT* lpgbt;
+  pflib::lpGBT* lpgbt_i2c;
+  pflib::lpGBT* lpgbt_ic;
   pflib::zcu::OptoLink* olink;
 };
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
 void opto(const std::string& cmd, ToolBox* target) {
+  static const int irx=8;
+  static const int itx=8;
+  
   pflib::zcu::OptoLink& olink=*(target->olink);
   if (cmd=="FULLSTATUS") {
+    printf("Polarity -- TX: %d  RX: %d\n",olink.get_polarity(itx,false),olink.get_polarity(irx,true));
     std::map<std::string,uint32_t> info;
     info=olink.opto_status();
     printf("Optical status:\n");
@@ -34,6 +41,14 @@ void opto(const std::string& cmd, ToolBox* target) {
   if (cmd=="RESET") {
     olink.reset_link();
   }
+  if (cmd=="POLARITY") {
+    bool change;
+    printf("Polarity -- TX: %d  RX: %d\n",olink.get_polarity(itx,false),olink.get_polarity(irx,true));
+    change=tool::readline_bool("Change TX polarity? ", false);
+    if (change) olink.set_polarity(!olink.get_polarity(itx,false),itx,false);
+    change=tool::readline_bool("Change RX polarity? ", false);
+    if (change) olink.set_polarity(!olink.get_polarity(irx,true),irx,true);
+  }
   if (cmd=="LINKTRICK") {
     target->lpgbt->write(0x128,0x5);
     sleep(1);
@@ -42,7 +57,11 @@ void opto(const std::string& cmd, ToolBox* target) {
 }
 
 void general(const std::string& cmd, ToolBox* target) {
+  bool comm_is_i2c=(target->lpgbt==target->lpgbt_i2c);
+
   if (cmd=="STATUS") {
+    if (comm_is_i2c) printf(" Communication by I2C\n");
+    else printf(" Communication by IC\n");
     int pusm=target->lpgbt->status();
     printf(" PUSM %s (%d)\n",target->lpgbt->status_name(pusm).c_str(),pusm);
   }
@@ -64,7 +83,11 @@ void general(const std::string& cmd, ToolBox* target) {
       exit(0);
     }
   }
-  
+  if (cmd=="COMM") {
+    printf("Swapping communication paths\n");
+    if (comm_is_i2c) target->lpgbt=target->lpgbt_ic;
+    else target->lpgbt=target->lpgbt_i2c;
+  }
 }
 
 void regs(const std::string& cmd, ToolBox* target) {
@@ -338,11 +361,13 @@ namespace {
     ->line("STATUS","Status summary",general)
     ->line("MODE","Setup the lpGBT ADDR and MODE1",general)
     ->line("RESET","Reset the lpGBT",general)
+    ->line("COMM","Communication mode",general)
     ;
   
 auto optom = tool::menu("OPTO", "Optical Link Functions")
   ->line("FULLSTATUS", "Get full status", opto)
   ->line("RESET","Reset optical link",opto)
+  ->line("POLARITY","Adjust the polarity",opto)
   ->line("LINKTRICK","Cycle into/out of fixed speed to get SFP to lock",opto)
   ;
   
@@ -418,10 +443,15 @@ int main(int argc, char* argv[]) {
   printf(" ADDR = %d and MODE1=%d -> 0x%02x\n",addr,mode1,chipaddr);
   
   pflib::lpGBT_ConfigTransport_I2C tport(chipaddr, "/dev/i2c-23");
-  pflib::lpGBT lpgbt(tport);
   pflib::zcu::OptoLink olink;
+  pflib::lpGBT lpgbt_i2c(tport);
+  pflib::zcu::lpGBT_ICEC_Simple ic("singleLPGBT",false,chipaddr);
+  pflib::lpGBT lpgbt_ic(ic);
+  tool::set_history_filepath("~/.pflpgbt-history");
   ToolBox t;
-  t.lpgbt=&lpgbt;
+  t.lpgbt_i2c=&lpgbt_i2c;  
+  t.lpgbt_ic=&lpgbt_ic;
+  t.lpgbt=t.lpgbt_i2c;
   t.olink=&olink;  
   tool::run(&t);
 
