@@ -9,10 +9,13 @@ double efficiency(std::vector<int> samples) {
     return std::numeric_limits<double>::quiet_NaN();
   }
   double eff = std::count_if(samples.begin(), samples.end(), [](int sample) { return sample > 0; }) / static_cast<double>(samples.size());
+<<<<<<< HEAD
   // if (samples.empty()) {
   //   pflib_log(warn) << "No data in sample; efficiency set to 0";
   //   eff = 0.0;
   // }
+=======
+>>>>>>> main
   return eff;
   }
 }

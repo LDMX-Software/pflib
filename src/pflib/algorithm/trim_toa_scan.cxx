@@ -134,7 +134,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
   // now, we have the threshold points; let's do linear regression on them.
 
-
+  // linear regression goes... here?
 
   // now, write the settings, but this is just placeholder for now!
 

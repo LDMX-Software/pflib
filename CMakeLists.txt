@@ -167,7 +167,10 @@ add_library(pflib SHARED
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
+<<<<<<< HEAD
   src/pflib/algorithm/trim_toa_scan.cxx
+=======
+>>>>>>> main
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

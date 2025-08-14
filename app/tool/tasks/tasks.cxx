@@ -33,7 +33,11 @@ auto menu_tasks =
         ->line("VT50_SCAN", "Hones in on the vt50 with a binary or bisectional scan", vt50_scan)
         ->line("LEVEL_PEDESTALS", "tune trim_inv and dacb to level pedestals with their link median", level_pedestals)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration", toa_vref_scan)
+<<<<<<< HEAD
         ->line("TOA_SCAN", "charge injection run to see TOA values at different CALIB values", toa_scan)
         ->line("TRIM_TOA_SCAN", "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+=======
+        ->line("TOA_SCAN", "just does that bro (changes CALIB while saving only TOA)", toa_scan)
+>>>>>>> main
 ;
 }
