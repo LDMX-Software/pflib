@@ -37,7 +37,8 @@ trim_toa_scan(Target* tgt, ROC roc) {
   /// effectively a 2D scan of calib and trim_toa
   /// maybe could reduce from 100 to 1 if you wanna go fast
 
-  static const std::size_t n_events = 100;
+  // static const std::size_t n_events = 100;
+  static const std::size_t n_events = 5; // just for speed for testing purposes.
 
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
@@ -46,7 +47,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
   DecodeAndBuffer buffer{n_events}; // working in buffer, not in writer
 
-  // loop over runs, from trim_toa = 0 to 32 by skipping 4
+  // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
   // loop over calib, from calib = 0 to 800 by skipping over 4
 
   for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
@@ -71,7 +72,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
       auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
-        final_data[calib][trim_toa][ch] = efficiencies[ch];
+        final_data[calib/4][trim_toa/4][ch] = efficiencies[ch];
       }
     }
   }
@@ -109,7 +110,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   int trim_toa = 0; // just do first one.
   for (int ch{0}; ch < 72; ch++) {
     for (int calib{0}; calib < 800; calib += 4) {
-      if (final_data[calib][trim_toa][ch] > 0.0) {
+      if (final_data[calib/4][trim_toa/4][ch] > 0.0) {
         threshold_points.push_back({ch, trim_toa, calib});
         break;
       }
@@ -120,9 +121,9 @@ trim_toa_scan(Target* tgt, ROC roc) {
   for (int trim_toa{4}; trim_toa < 32; trim_toa += 4) {
     for (int ch{0}; ch < 72; ch++) {
       for (int calib{0}; calib < 800; calib += 4) {
-        if (final_data[calib][trim_toa][ch] > 0.0) { // count up from the bottom to first non-zero efficiency
-          while (final_data[calib][trim_toa - 4][ch]) { // only store if previous one is greater
-            if (final_data[calib][trim_toa - 4][ch] > final_data[calib][trim_toa][ch]) {
+        if (final_data[calib/4][trim_toa/4][ch] > 0.0) { // count up from the bottom to first non-zero efficiency
+          while (final_data[calib/4][trim_toa/4 - 1][ch]) { // only store if previous one is greater
+            if (final_data[calib/4][trim_toa/4 - 1][ch] > final_data[calib/4][trim_toa/4][ch]) {
               threshold_points.push_back({ch, trim_toa, calib});
               break;
             }
@@ -134,7 +135,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
   // now, we have the threshold points; let's do linear regression on them.
 
-  // linear regression goes... here?
+  // linear regression goes here, but don't have it yet.
 
   // now, write the settings, but this is just placeholder for now!
 
