@@ -36,10 +36,6 @@ toa_vref_scan(Target* tgt, ROC roc) {
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
   std::array<int, 2> target; //toa_vref is a global parameter (1 value per link)
-<<<<<<< HEAD
-  std::array<double, 72> chan_effs;
-=======
->>>>>>> main
 
   // there is probably a better way to do the next line
   std::array<std::array<double, 256>, 2> final_effs;
@@ -57,21 +53,11 @@ toa_vref_scan(Target* tgt, ROC roc) {
     tgt->daq_run("PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "finished toa_vref = " << toa_vref << ", getting efficiencies";
     auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
-<<<<<<< HEAD
-    chan_effs = efficiencies;
-=======
->>>>>>> main
     pflib_log(trace) << "got channel efficiencies, getting max efficiency per link";
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start = efficiencies.begin() + 36 * i_link; // start at 0 for link 0, 36 for link 1
       auto end = start + 36;
-<<<<<<< HEAD
-      auto max_index = std::max_element(start, end);
-      double max_eff = *max_index; // not sure how, but Google said this is how to do it
-      final_effs[i_link][toa_vref] = max_eff; // store it
-=======
       final_effs[i_link][toa_vref] = *std::max_element(start, end);
->>>>>>> main
     }
     pflib_log(trace) << "got link efficiencies";
   }
