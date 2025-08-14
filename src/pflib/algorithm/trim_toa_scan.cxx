@@ -10,6 +10,22 @@
  * calculate the TRIM_TOA for each channel that aligns them to a common trigger pulse.
  */
 
+ // re-using this code from pflib/algorithm/toa_vref_scan.cxx
+ // should put it into its own function if I keep it here.
+static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::packing::SingleROCEventPacket> &data) {
+  std::array<double, 72> efficiencies;
+  /// reserve a vector of the appropriate size to avoid repeating allocation time for all 72 channels
+  std::vector<int> toas(data.size());
+  for (int ch{0}; ch < 72; ch++) {
+    for (std::size_t i{0}; i < toas.size(); i++) {
+      toas[i] = data[i].channel(ch).toa();
+    }
+    /// we assume that the data provided is not empty otherwise the efficiency calculation is meaningless
+    efficiencies[ch] = pflib::utility::efficiency(toas);
+  }
+  return efficiencies;
+}
+
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, int>>
@@ -26,7 +42,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
   std::array<int, 72> target; //trim_toa is a channel-wise parameter (1 value per channel)
-  std::array<std::array<std::array<double, 72>, 8>, 200> final_data; // oh man this is probably jank
+  std::array<std::array<std::array<double, 72>, 8>, 200> final_data; // oh man this is probably jank. 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency here.
 
   DecodeAndBuffer buffer{n_events}; // working in buffer, not in writer
 
@@ -52,12 +68,11 @@ trim_toa_scan(Target* tgt, ROC roc) {
       tgt->daq_run("CHARGE", buffer, n_events, 100);
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa << ", and calib = " << calib << ", getting efficiencies";
-      // how do I call the function from algorithm/toa_vref_scan called get_toa_efficiencies?
-      // auto efficiencies = pflib::algorithm::toa_vref_scan::get_toa_efficiencies(buffer.get_buffer());
+      auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies, storing now";
-      // for (int ch{0}; ch < 72; ch++) {
-      //   final_data[calib][trim_toa][ch] = efficiencies[ch];
-      // }
+      for (int ch{0}; ch < 72; ch++) {
+        final_data[calib][trim_toa][ch] = efficiencies[ch];
+      }
     }
   }
 
@@ -66,30 +81,62 @@ trim_toa_scan(Target* tgt, ROC roc) {
   // the turn-on point (threshold point) is the first calib for which toa_efficiency is non-zero
   // for a given channel and trim_toa.
 
+  // However, I'm not sure how to do the Siegel linear regression without just building it
+  // outright. So, what we're going to do instead is the following: select only threshold 
+  // points that are "lower" than the previous threshold point, excluding the first one.
+  // That way, we are less likely to run into a problem with outliers where the next point
+  // is way higher than the previous point.
 
   // will come back and incorporate analysis algorithm. Need to make my own
   // linear regression, since it isn't in C++ natively (Siegel linear regression)
-  // pflib_log(info) << "sample collections done, deducing settings";
-  // for (int i_link{0}; i_link < 2; i_link++) {
-  //   int highest_non_zero_eff = -1; // just a placeholder in case it's not found
-  //   for (int toa_vref = final_effs[0].size(); toa_vref >= 0; toa_vref--) {
-  //     if (final_effs[i_link][toa_vref] > 0.0) {
-  //       highest_non_zero_eff = toa_vref + 10; // need to add 10 since we don't want to overlap with highest pedestals!
-  //       break; // should break from link 0 into link 1
-  //     }
-  //   }
-  //   target[i_link] = highest_non_zero_eff; //store value
-  // }
 
-  // std::map<std::string, std::map<std::string, int>> settings;
-  // for (int i_link{0}; i_link < 2; i_link++) {
-  //   std::string page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
-  //   settings[page]["TOA_VREF"] = target[i_link];
-  // }
+  pflib_log(info) << "sample collections done, deducing settings";
 
-  std::map<std::string, std::map<std::string, int>> settings;
-  
+  // first, get the threshold points
+  // for each channel and at each trim_toa, count up CALIB from the bottom until you get a non-zero efficiency
 
+  // storage for threshold values
+  // 3D vector? 1 for channel, 2 for calib/trim_toa pairs that are thresholds
+
+  std::vector<std::vector<std::vector<int, 72>, 0>, 0> threshold_points;
+  std::vector<std::vector<int>> threshold_points;
+  // "threshold_points" is 2D vector. Column 1 is channel index, Column 2 is trim_toa, Column 3 is calib.
+  // This way, since each channel will have multiple threshold points! We'll add on rows to the bottom of the
+  // vector using the "push_back()"" method.
+
+  // for each trim, look at the calib value at which the specific channel had a threshold point!
+  // store the first one, then only store the next one if it's lower.
+  int trim_toa = 0; // just do first one.
+  for (int ch{0}; ch < 72; ch++) {
+    for (int calib{0}; calib < 800; calib += 4) {
+      if (final_data[calib][trim_toa][ch] > 0.0) {
+        threshold_points.push_back({ch, trim_toa, calib});
+        break;
+      }
+    }
+  }
+
+  // now look at others!
+  for (int trim_toa{4}; trim_toa < 32; trim_toa += 4) {
+    for (int ch{0}; ch < 72; ch++) {
+      for (int calib{0}; calib < 800; calib += 4) {
+        if (final_data[calib][trim_toa][ch] > 0.0) { // count up from the bottom to first non-zero efficiency
+          while (final_data[calib][trim_toa - 4][ch]) { // only store if previous one is greater
+            if (final_data[calib][trim_toa - 4][ch] > final_data[calib][trim_toa][ch] {
+              threshold_points.push_back({ch, trim_toa, calib});
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // now, we have the threshold points; let's do linear regression on them.
+
+
+
+  // now, write the settings
   return settings;
 }
 
