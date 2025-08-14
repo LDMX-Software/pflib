@@ -98,7 +98,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   // storage for threshold values
   // 3D vector? 1 for channel, 2 for calib/trim_toa pairs that are thresholds
 
-  std::vector<std::vector<std::vector<int, 72>, 0>, 0> threshold_points;
+  // std::vector<std::vector<std::vector<int, 72>, 0>, 0> threshold_points;
   std::vector<std::vector<int>> threshold_points;
   // "threshold_points" is 2D vector. Column 1 is channel index, Column 2 is trim_toa, Column 3 is calib.
   // This way, since each channel will have multiple threshold points! We'll add on rows to the bottom of the
@@ -122,7 +122,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
       for (int calib{0}; calib < 800; calib += 4) {
         if (final_data[calib][trim_toa][ch] > 0.0) { // count up from the bottom to first non-zero efficiency
           while (final_data[calib][trim_toa - 4][ch]) { // only store if previous one is greater
-            if (final_data[calib][trim_toa - 4][ch] > final_data[calib][trim_toa][ch] {
+            if (final_data[calib][trim_toa - 4][ch] > final_data[calib][trim_toa][ch]) {
               threshold_points.push_back({ch, trim_toa, calib});
               break;
             }
@@ -136,7 +136,15 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
 
 
-  // now, write the settings
+  // now, write the settings, but this is just placeholder for now!
+
+  std::map<std::string, std::map<std::string, int>> settings;
+  std::array<int, 2> targetss = {1, 2};
+  for (int i_link{0}; i_link < 2; i_link++) {
+    std::string page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
+    settings[page]["TOA_VREF"] = targetss[i_link];
+  }
+
   return settings;
 }
 
