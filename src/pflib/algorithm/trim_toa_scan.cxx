@@ -26,6 +26,7 @@ static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::pack
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < toas.size(); i++) {
       toas[i] = data[i].channel(ch).toa();
+      // std::cout << "ch=" << ch << ", i=" << i << ", toa=" << toas[i] << std::endl; // debug
     }
     /// we assume that the data provided is not empty otherwise the efficiency calculation is meaningless
     efficiencies[ch] = pflib::utility::efficiency(toas);
@@ -102,8 +103,8 @@ trim_toa_scan(Target* tgt, ROC roc) {
   /// Note: Reduce the sample size (ex: 100 to 10) to decrease the scan time.
 
   // static const std::size_t n_events = 100;
-  // static const std::size_t n_events = 2; // just for speed of testing purposes.
-  static const std::size_t n_events = 1;
+  static const std::size_t n_events = 10; // just for speed of testing purposes.
+  // static const std::size_t n_events = 1;
 
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
@@ -134,10 +135,12 @@ trim_toa_scan(Target* tgt, ROC roc) {
       tgt->daq_run("CHARGE", buffer, n_events, 100);
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa << ", and calib = " << calib << ", getting efficiencies";
+      // std::cout << "buffer size: " << buffer.get_buffer().size() << std::endl; // debug
       auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
         final_data[calib/4][trim_toa/4][ch] = efficiencies[ch]; // need to divide by 4 because index is value/4 from final_data initialization
+        // std::cout << "calib=" << calib << ", trim_toa=" << trim_toa << ", ch=" << ch<< ", eff=" << efficiencies[ch] << std::endl; //debug
       }
     }
   }
@@ -200,7 +203,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   // now, write the settings, but this is just placeholder for now!
 
   std::map<std::string, std::map<std::string, int>> settings;
-  std::array<int, 2> targetss = {1, 2};
+  std::array<int, 2> targetss = {172,266};
   for (int i_link{0}; i_link < 2; i_link++) {
     std::string page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
     settings[page]["TOA_VREF"] = targetss[i_link];
