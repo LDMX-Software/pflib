@@ -12,9 +12,6 @@
 
 /**
  * Calculate the TRIM_TOA for each channel that best aligns all of them to a common threshold voltage, charge injection pulse (calib).
- *
- *
- * This is massively a work in progress document! Lots of junk code in here that will be cleared away in a final draft.
  */
 
  // re-using this code from pflib/algorithm/toa_vref_scan.cxx
@@ -102,9 +99,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   /// TRIM_TOA value for each channel to match a common "calib" value.
   /// Note: Reduce the sample size (ex: 100 to 10) to decrease the scan time.
 
-  // static const std::size_t n_events = 100;
-  static const std::size_t n_events = 10; // just for speed of testing purposes.
-  // static const std::size_t n_events = 1;
+  static const std::size_t n_events = 100;
 
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
@@ -124,6 +119,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
     }
     // set TRIM_TOA for each channel
     auto trim_toa_test = trim_toa_test_builder.apply();
+    usleep(10);
     for (int calib = 0; calib < 800; calib += 4) {
       pflib_log(info) << "Running CALIB = " << calib;
       // set CALIB for each half
@@ -203,10 +199,10 @@ trim_toa_scan(Target* tgt, ROC roc) {
   // now, write the settings, but this is just placeholder for now!
 
   std::map<std::string, std::map<std::string, int>> settings;
-  std::array<int, 2> targetss = {172,266};
+  std::array<int, 2> targetss = {0,0};
   for (int i_link{0}; i_link < 2; i_link++) {
-    std::string page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
-    settings[page]["TOA_VREF"] = targetss[i_link];
+    std::string page{pflib::utility::string_format("CH_%d", i_link)};
+    settings[page]["CALIB"] = targetss[i_link];
   }
 
   return settings;
