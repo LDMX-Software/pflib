@@ -43,13 +43,18 @@ double median(std::vector<double>& values) {
   }
 }
 
-void siegelRegression(const std::vector<Point>& data, double& slope, double& intercept) {
+void siegelRegression(const std::vector<double>& xVals, const std::vector<double>& yVals, double& slope, double& intercept) {
+  if (xVals.size() != yVals.size()) {
+    throw std::invalid_argument("xVals and yVals must be the same size.");
+  }
+  
+  size_t n = xVals.size();
   std::vector<double> slopes;
 
-  for (size_t i = 0; i < data.size(); ++i) {
-    for (size_t j = i + 1; j < data.size(); ++j) {
-      if (data[j].calib != data[i].calib) {
-        double m = (data[j].trim_toa - data[i].trim_toa) / (data[j].calib - data[i].calib);
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = i + 1; j < n; ++j) {
+      if (xVals[j] != xVals[i]) {
+        double m = (yVals[j] - yVals[i]) / (xVals[j] - xVals[i]);
         slopes.push_back(m);
       }
     }
@@ -58,8 +63,8 @@ void siegelRegression(const std::vector<Point>& data, double& slope, double& int
   slope = median(slopes);
 
   std::vector<double> intercepts;
-  for (const auto& pt : data) {
-    intercepts.push_back(pt.trim_toa - slope * pt.calib);
+  for (size_t i = 0; i < n; i++) {
+    intercepts.push_back(yVals[i] - slope * xVals[i]);
   }
 
   intercept = median(intercepts);
@@ -224,7 +229,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   std::vector<Point> data = {{1, 2}, {2, 3}, {3, 5}, {4, 4}, {5, 6}};
   double slope, intercept;
 
-  siegelRegression(data, slope, intercept);
+  // siegelRegression(data, slope, intercept);
 
   std::cout << "Siegel Regression Line: trim_toa = " << slope << "calib + " << intercept << std::endl;
   // end vibe coding here
