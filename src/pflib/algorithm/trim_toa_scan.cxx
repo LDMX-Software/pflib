@@ -7,7 +7,10 @@
 #include "pflib/DecodeAndBuffer.h"
 
 /**
- * calculate the TRIM_TOA for each channel that aligns them to a common trigger pulse.
+ * Calculate the TRIM_TOA for each channel that best aligns all of them to a common threshold voltage, charge injection pulse (calib).
+ *
+ *
+ * This is massively a work in progress document! Lots of junk code in here that will be cleared away in a final draft.
  */
 
  // re-using this code from pflib/algorithm/toa_vref_scan.cxx
@@ -28,10 +31,14 @@ static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::pack
 
 // doing some vibe coding here ~ just took straight from copilot
 
+// will delete this "Point" structure, since I don't need coordinate pairs.
+// I'm just using a list of xVals and yVals for the regression.
 struct Point {
   double calib, trim_toa;
 };
 
+// got this median function from Copilot. Not sure if I'll keep it or swap to the 
+// pflib/utility/median.cxx function.
 double median(std::vector<double>& values) {
   std::sort(values.begin(), values.end());
   size_t n = values.size();
@@ -43,6 +50,11 @@ double median(std::vector<double>& values) {
   }
 }
 
+
+// Here's the regression. Main idea is that it finds the median slope from all the pairs of points in the dataset.
+// Similarly, does the same for the intercept using the median slope. Supposedly less sensitive to outliers than the standard linear regression.
+// Got this function straight from Copilot. Maybe we should put it in algorithm or utility? Not sure if we'll use linear regression for 
+// TOT and stuff like that...
 void siegelRegression(const std::vector<double>& xVals, const std::vector<double>& yVals, double& slope, double& intercept) {
   if (xVals.size() != yVals.size()) {
     throw std::invalid_argument("xVals and yVals must be the same size.");
@@ -70,7 +82,7 @@ void siegelRegression(const std::vector<double>& xVals, const std::vector<double
   intercept = median(intercepts);
 }
 
-// end vibe coding
+// end vibe coding. back to what we had before
 
 namespace pflib::algorithm {
 
@@ -78,18 +90,20 @@ std::map<std::string, std::map<std::string, int>>
 trim_toa_scan(Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
-  /// do a run of 100 samples per trim_toa to measure the TOA
-  /// efficiency when looking at charge injection data. 
-  /// effectively a 2D scan of calib and trim_toa
-  /// maybe could reduce from 100 to 1 if you wanna go fast
+  /// Charge injection scan (100 samples) while varying TRIM_TOA.
+  /// Purpose is to align TRIM_TOA for each channel.
+  /// Calculates TOA efficiency while looking at charge injection data. 
+  /// Then uses Siegel Linear Regression to calculate the aligned
+  /// TRIM_TOA value for each channel to match a common "calib" value.
+  /// Note: Reduce the sample size (ex: 100 to 10) to decrease the scan time.
 
   // static const std::size_t n_events = 100;
-  static const std::size_t n_events = 2; // just for speed for testing purposes.
+  static const std::size_t n_events = 2; // just for speed of testing purposes.
 
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
   std::array<int, 72> target; //trim_toa is a channel-wise parameter (1 value per channel)
-  std::array<std::array<std::array<double, 72>, 8>, 200> final_data; // oh man this is probably jank. 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency here.
+  std::array<std::array<std::array<double, 72>, 8>, 200> final_data; // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency here.
 
   DecodeAndBuffer buffer{n_events}; // working in buffer, not in writer
 
@@ -118,74 +132,34 @@ trim_toa_scan(Target* tgt, ROC roc) {
       auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
-        final_data[calib/4][trim_toa/4][ch] = efficiencies[ch];
+        final_data[calib/4][trim_toa/4][ch] = efficiencies[ch]; // need to divide by 4 because index is value/4 from final_data initialization
       }
     }
   }
-
-  // got data, now do analysis
-  // want to make Siegel Linear Regression of trim_toa versus calib for each turn-on point.
-  // the turn-on point (threshold point) is the first calib for which toa_efficiency is non-zero
-  // for a given channel and trim_toa.
-
-  // However, I'm not sure how to do the Siegel linear regression without just building it
-  // outright. So, what we're going to do instead is the following: select only threshold 
-  // points that are "lower" than the previous threshold point, excluding the first one.
-  // That way, we are less likely to run into a problem with outliers where the next point
-  // is way higher than the previous point.
-
-  // will come back and incorporate analysis algorithm. Need to make my own
-  // linear regression, since it isn't in C++ natively (Siegel linear regression)
 
   pflib_log(info) << "sample collections done, deducing settings";
 
-  // first, get the threshold points
-  // for each channel and at each trim_toa, count up CALIB from the bottom until you get a non-zero efficiency
+  // Now that we have the data, we need to analyze it.
+  // We'll be looking for the turn-on (threshold) points for each channel 
+  // at each trim_toa value. The turn-on (threshold) point is the first
+  // point where toa_efficiency goes from 0 to non-zero. The toa_efficiency
+  // is simply the number of times TOA triggers divided by the sample size, for
+  // a given trim_toa/calib/channel combination.
 
-  // storage for threshold values
-  // 3D vector? 1 for channel, 2 for calib/trim_toa pairs that are thresholds
+  // We'll be using the Siegel Linear Regression because it's less sensitive to
+  // outliers, since sometimes changing the trim_toa causes the threshold (turn-on)
+  // points to "wrap around".
 
-  // std::vector<std::vector<std::vector<int, 72>, 0>, 0> threshold_points;
   std::vector<std::vector<int>> threshold_points;
-  // "threshold_points" is 2D vector. Column 1 is channel index, Column 2 is trim_toa, Column 3 is calib.
-  // This way, since each channel will have multiple threshold points! We'll add on rows to the bottom of the
-  // vector using the "push_back()" method.
 
-  // for each trim, look at the calib value at which the specific channel had a threshold point!
-  // store the first one, then only store the next one if it's lower.
-  int trim_toa = 0; // just do first one.
-  for (int ch{0}; ch < 72; ch++) {
-    for (int calib{0}; calib < 800; calib += 4) {
-      if (final_data[calib/4][trim_toa/4][ch] > 0.0) {
-        threshold_points.push_back({ch, trim_toa, calib});
-        break;
-      }
-    }
-  }
+  // "threshold_points" is a 2D vector. Column 1 is channel index, Column 2 is trim_toa, Column 3 is calib.
+  // Each channel has multiple threshold points, but we don't know how many at the start.
 
-  // now look at others!
-  for (int trim_toa{4}; trim_toa < 32; trim_toa += 4) {
-    for (int ch{0}; ch < 72; ch++) {
-      for (int calib{0}; calib < 800; calib += 4) {
-        if (final_data[calib/4][trim_toa/4][ch] > 0.0) { // count up from the bottom to first non-zero efficiency
-          while (final_data[calib/4][trim_toa/4 - 1][ch]) { // only store if previous one is greater
-            if (final_data[calib/4][trim_toa/4 - 1][ch] > final_data[calib/4][trim_toa/4][ch]) {
-              threshold_points.push_back({ch, trim_toa, calib});
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // and in case it works, let's do another one where it's all the threshold points!
-  std::vector<std::vector<int>> threshold_points_all;
   for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
     for (int ch{0}; ch < 72; ch++) {
       for (int calib{0}; calib < 800; calib += 4) {
-        if (final_data[calib/4][trim_toa/4][ch] > 0.0) {
-          threshold_points_all.push_back({ch, trim_toa, calib});
+        if (final_data[calib/4][trim_toa/4][ch] > 0.0) { // again, needing to divide by 4.
+          threshold_points.push_back({ch, trim_toa, calib});
           break;
         }
       }
@@ -200,22 +174,26 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
   // get vector of data points for each channel.
   for (int ch{0}; ch < 72; ch++) {
-    std::vector<std::vector<int>> channel_vector; // reset for each channel
+    std::vector<double> xVals;
+    std::vector<double> yVals;
 
-    for (const auto& row : threshold_points_all) {
-      if (!row.empty() && row[0] == ch) {
-        auto copy_of_row = row;
-        copy_of_row.erase(copy_of_row.begin());
-        channel_vector.push_back(copy_of_row); // adds the row to the channel_vector, but missing channel!
+    for (const auto& row : threshold_points) {
+      if (row.size() != 3) continue; // skip any malformed rows!
+      int channel = static_cast<int>(row[0]);
+      if (channel == ch) {
+        xVals.push_back(row[1]);
+        yVals.push_back(row[2]);
       }
     }
+
     std::cout << "the channel " << ch << " has row: " << std::endl;
-    for (const auto& row : channel_vector) {
-      for (const auto& value : row) {
-        std::cout << value << " "; // just printing the row values so we can see.
-      }
-      std::cout << std::endl;
+    for (const auto& item : xVals) {
+      std::cout << item << " "; // just printing the row values so we can see.
     }
+    for (const auto& item : yVals) {
+      std::cout << item << " ";
+    }
+
     // now that we have the channel_vector, we could remove the "channel" column, but we
     // really just need the second and third columns. I already got rid of channel earlier.
     double slope, intercept;
@@ -223,6 +201,9 @@ trim_toa_scan(Target* tgt, ROC roc) {
     std::vector<Point> data;
     // siegelRegression(data, slope, intercept);
     // std::cout << "channel " << ch << ": trim_toa = " << slope << "calib + " << intercept << std::endl;
+
+    siegelRegression(xVals, yVals, slope, intercept);
+    std::cout << "y = " << slope << "x + " << intercept << std::endl;
   }
 
   // more vibe coding here ~ also copilot
