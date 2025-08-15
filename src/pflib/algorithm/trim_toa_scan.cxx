@@ -26,6 +26,47 @@ static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::pack
   return efficiencies;
 }
 
+// doing some vibe coding here ~ just took straight from copilot
+
+struct Point {
+  double calib, trim_toa;
+};
+
+double median(std::vector<double>& values) {
+  std::sort(values.begin(), values.end());
+  size_t n = values.size();
+  if (n % 2 == 0) {
+    return (values[n/2 - 1] + values[n/2]) / 2.0;
+  }
+  else {
+    return values [n/2];
+  }
+}
+
+void siegelRegression(const std::vector<Point>& data, double& slope, double& intercept) {
+  std::vector<double> slopes;
+
+  for (size_t i = 0; i < data.size(); ++i) {
+    for (size_t j = i + 1; j < data.size(); ++j) {
+      if (data[j].calib != data[i].calib) {
+        double m = (data[j].trim_toa - data[i].trim_toa) / (data[j].calib - data[i].calib);
+        slopes.push_back(m);
+      }
+    }
+  }
+
+  slope = median(slopes);
+
+  std::vector<double> intercepts;
+  for (const auto& pt : data) {
+    intercepts.push_back(pt.trim_toa - slope * pt.calib);
+  }
+
+  intercept = median(intercepts);
+}
+
+// end vibe coding
+
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, int>>
@@ -38,7 +79,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   /// maybe could reduce from 100 to 1 if you wanna go fast
 
   // static const std::size_t n_events = 100;
-  static const std::size_t n_events = 5; // just for speed for testing purposes.
+  static const std::size_t n_events = 2; // just for speed for testing purposes.
 
   tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
 
@@ -103,7 +144,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
   std::vector<std::vector<int>> threshold_points;
   // "threshold_points" is 2D vector. Column 1 is channel index, Column 2 is trim_toa, Column 3 is calib.
   // This way, since each channel will have multiple threshold points! We'll add on rows to the bottom of the
-  // vector using the "push_back()"" method.
+  // vector using the "push_back()" method.
 
   // for each trim, look at the calib value at which the specific channel had a threshold point!
   // store the first one, then only store the next one if it's lower.
@@ -133,7 +174,62 @@ trim_toa_scan(Target* tgt, ROC roc) {
     }
   }
 
+  // and in case it works, let's do another one where it's all the threshold points!
+  std::vector<std::vector<int>> threshold_points_all;
+  for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
+    for (int ch{0}; ch < 72; ch++) {
+      for (int calib{0}; calib < 800; calib += 4) {
+        if (final_data[calib/4][trim_toa/4][ch] > 0.0) {
+          threshold_points_all.push_back({ch, trim_toa, calib});
+          break;
+        }
+      }
+    }
+  }
+
   // now, we have the threshold points; let's do linear regression on them.
+  pflib_log(info) << "got threshold points, getting fit parameters";
+
+  // doing Siegel linear regression, we need the median slope of all the slopes
+  // between each pair of points!
+
+  // get vector of data points for each channel.
+  for (int ch{0}; ch < 72; ch++) {
+    std::vector<std::vector<int>> channel_vector; // reset for each channel
+
+    for (const auto& row : threshold_points_all) {
+      if (!row.empty() && row[0] == ch) {
+        auto copy_of_row = row;
+        copy_of_row.erase(copy_of_row.begin());
+        channel_vector.push_back(copy_of_row); // adds the row to the channel_vector, but missing channel!
+      }
+    }
+    std::cout << "the channel " << ch << " has row: " << std::endl;
+    for (const auto& row : channel_vector) {
+      for (const auto& value : row) {
+        std::cout << value << " "; // just printing the row values so we can see.
+      }
+      std::cout << std::endl;
+    }
+    // now that we have the channel_vector, we could remove the "channel" column, but we
+    // really just need the second and third columns. I already got rid of channel earlier.
+    double slope, intercept;
+    // std::vector<Point> data = channel_vector;
+    std::vector<Point> data;
+    // siegelRegression(data, slope, intercept);
+    // std::cout << "channel " << ch << ": trim_toa = " << slope << "calib + " << intercept << std::endl;
+  }
+
+  // more vibe coding here ~ also copilot
+  std::vector<Point> data = {{1, 2}, {2, 3}, {3, 5}, {4, 4}, {5, 6}};
+  double slope, intercept;
+
+  siegelRegression(data, slope, intercept);
+
+  std::cout << "Siegel Regression Line: trim_toa = " << slope << "calib + " << intercept << std::endl;
+  // end vibe coding here
+
+  // need to get each channel from the threshold_points
 
   // linear regression goes here, but don't have it yet.
 
