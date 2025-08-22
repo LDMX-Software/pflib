@@ -70,6 +70,9 @@ class lpGBT {
      Medium-level interfaces
   */
 
+  /** Get the serial number (somewhat complex) */
+  uint32_t serial_number();
+  
   /** Get the lpGBT status (power up state machine) */
   int status();
   std::string status_name(int pusm);  
@@ -120,6 +123,9 @@ class lpGBT {
   void setup_erx(int ierx, int speed, bool invert = false, bool term = true,
                  int equalization = 0, bool acbias = false);
 
+
+  uint32_t read_efuse(uint16_t addr);
+  
  private:
   lpGBT_ConfigTransport& tport_;
 };

@@ -115,6 +115,61 @@ static constexpr uint16_t REG_ADC_STATUS_L = 0x1cb;
 static constexpr uint16_t REG_ECLK_BASE = 0x06e;
 static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
 
+static constexpr uint16_t REG_FUSECONTROL = 0x119;
+static constexpr uint16_t REG_FUSEADDRH = 0x11E;
+static constexpr uint16_t REG_FUSEADDRL = 0x11F;
+static constexpr uint16_t REG_FUSESTATUS = 0x1B1;
+static constexpr uint16_t REG_FUSEREADA = 0x1B2;
+  
+  static uint32_t rotate_right(uint32_t value, int shift){
+    return (value >> shift) | ((value << (32 - shift)) & 0xFFFFFFFFu);
+  }
+
+  uint32_t lpGBT::read_efuse(uint16_t reg) {
+    bit_set(REG_FUSECONTROL, 1); // FuseRead
+    while (!(read(REG_FUSESTATUS)&(1<<2))) {
+      usleep(1);
+    }
+    // wait for ready
+    write(REG_FUSEADDRH,uint8_t(reg>>8));
+    write(REG_FUSEADDRL,uint8_t(reg));
+    uint32_t retval(0);
+    for (int i=4; i>0; i--) {
+      retval=retval<<8;
+      retval=retval|read(REG_FUSEREADA+i-1);
+    }
+    bit_clr(REG_FUSECONTROL, 1); // FuseRead
+    bit_clr(REG_FUSECONTROL, 0); // FuseRead
+    return retval;
+  }
+  
+uint32_t lpGBT::serial_number() {
+  const int points[]={0, 0, 0x8, 6, 0xC, 12, 0x10, 18, 0x14, 24};
+  uint32_t results[5];
+  for (int i = 0; i<5; i++) {
+    // fuse read
+    results[i]=read_efuse(points[i*2]);
+    uint32_t raw=results[i];
+    // rotate
+    results[i]=rotate_right(results[i],points[i*2+1]);
+    //    printf("0x%08x 0x%0x\n",raw,results[i]);
+  }
+  if (results[1]==0 && results[2]==0 && results[3]==0 && results[4]==0) {  // no redundency
+    return results[0];
+  } else {
+    uint32_t voted=0;
+    for (int i=0; i<32; i++) {
+      int nones=0;
+      for (int j=0; j<5; j++)
+	if (results[j]&(1<<i)) nones++;
+      if (nones>=3) voted|=(1<<i);
+      //      if (nones!=0 && nones!=5) printf("Disagreement in bit %d\n",i);
+    }
+    return voted;	
+  }
+  
+}
+  
 void lpGBT::gpio_set(int ibit, bool high) {
   if (ibit < 0 || ibit > 15) {
     char msg[100];
