@@ -3,7 +3,7 @@
 
 
 LPGBT_Mezz_Tester::LPGBT_Mezz_Tester() : uio_("lpgbtmezz_test") {
-  printf("%08x %08x\n", uio_.read(0x20), uio_.read(0x21));
+  //  printf("%08x %08x\n", uio_.read(0x20), uio_.read(0x21));
 }
 
 std::vector<float> LPGBT_Mezz_Tester::clock_rates() {
