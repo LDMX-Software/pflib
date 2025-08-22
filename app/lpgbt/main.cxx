@@ -9,13 +9,17 @@
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
-
+#include "power_ctl_mezz.h"
+ 
 struct ToolBox {
   pflib::lpGBT* lpgbt;
   pflib::lpGBT* lpgbt_i2c;
   pflib::lpGBT* lpgbt_ic;
   pflib::zcu::OptoLink* olink;
+  pflib::power_ctl_mezz* p_ctl{0};
 };
+
+
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
@@ -136,7 +140,11 @@ void adc(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "ALL") {
     for (int whichp = 0; whichp < 15; whichp++) {
-      printf("  ADC chan %d = %03x\n", whichp, target->lpgbt->adc_read(whichp, 15, 1));
+      int adc=target->lpgbt->adc_read(whichp, 15, 1);
+      float val=adc/1024.0;
+      float gain=1;
+      if (whichp>=12) gain=2.33645;
+      printf("  ADC chan %d = %03x  (%.3f raw, %.3f cal)\n", whichp, adc, val, val*gain);
     }
   }
 }
@@ -175,8 +183,8 @@ static uint16_t gbt2lcl(uint16_t val) {
 }
 #include "ad5593r.h"
 
-void test(const std::string& cmd, ToolBox* target) {
-  if (cmd == "GPIO") {
+/// Walking ones
+bool test_gpio(ToolBox* target) {
     // set up the external GPIO to read mode first
     pflib::lpGBT_ConfigTransport_I2C ext(0x21, "/dev/i2c-23");
 
@@ -264,93 +272,139 @@ void test(const std::string& cmd, ToolBox* target) {
       fflush(stdout);
       cycles--;
     } while (cycles > 0 && errors == 0);
-    if (errors == 0) printf("\n Test was OK\n");
+    if (errors == 0) {
+      printf("\n GPIO Test was OK\n");
+      return true;
+    } else return false;
+}
+
+bool test_basic(ToolBox* target) {
+  printf("Serial number: %08x\n",target->lpgbt->serial_number());
+  float volts=target->p_ctl->econ_volts();
+  bool volts_ok=fabs(volts-1.2)<0.25;
+  float mA=target->p_ctl->econ_current_mA();
+  bool mA_ok=(fabs(mA-0.150)<0.50);
+  
+  printf("lpGBT VOLTS: %0.2fV   %s\n",volts,(volts_ok)?("OK"):("OUT-OF-RANGE"));
+  printf("lpGBT current: %0.2f mA   %s\n",mA,(mA_ok)?("OK"):("OUT-OF-RANGE"));
+
+  return volts_ok && mA_ok;
+}
+
+bool test_adc(ToolBox* target) {
+  pflib::AD5593R stim("/dev/i2c-23", 0x10);
+  for (int i = 0; i < 4; i++) {
+    stim.setup_dac(i);
+    stim.dac_write(i, 0);
+  }
+  uint16_t onevolt = uint16_t(0xfff / 2.5 * 1.0);
+  
+  // get the pedestal, DACs set to zero at this point
+  int pedestal = target->lpgbt->adc_read(0, 15, 1);
+  
+  if (pedestal < 10 || pedestal > 50) {
+    printf("Pedestal of lpGBT ADC (%d) is out of acceptable range", pedestal);
+    return false;
+  }
+  
+  stim.dac_write(0, onevolt);
+  stim.dac_write(1, onevolt);
+  int fullrange = target->lpgbt->adc_read(0, 15, 1);
+  
+  if (fullrange < 0x3D0 || fullrange > 0x3FD) {
+    printf("One volt range of lpGBT ADC (%d/0x%x) is out of acceptable range",
+	   fullrange, fullrange);
+    return false;
+  }
+  
+  double scale = 1.0 / (fullrange - pedestal);
+  int errors = 0;
+  
+  // test matrix
+  for (int half = 0; half < 2; half++) {
+    for (int pta = 0; pta < 3; pta++) {
+      for (int ptb = 0; ptb < 3; ptb++) {
+	stim.dac_write(0 + 2 * half, onevolt / 2 * pta);
+	stim.dac_write(1 + 2 * half, onevolt / 2 * ptb);
+	double Va = pta * 1.0 / 2;
+	double Vb = ptb * 1.0 / 2;
+	//	  printf("Setting Half %d %d %d\n",half,pta,ptb);
+	/// resistor chain pta -> 200 -> ch 0 -> 100 -> ch 1 -> 100 -> ch 2 -> 100 -> ch 3 -> 200 -> ptb
+	double curr = (Vb - Va) / (200 * 2 + 100 * 3);
+	//	  for (int i=0+4*half; i<4+4*half; i++) {
+	for (int i = 0 + 4 * half; i < 4 + 4 * half; i++) {
+	  double expected = Va + curr * 200 + curr * 100 * (i - 4 * half);
+	  if (half && i == 4) {  // resistor swap on test board
+	    expected = Va + curr * 100 + curr * 100 * (i - 4 * half);
+	  }
+	  int adc = target->lpgbt->adc_read(i, 15, 1);
+	  double volts = (adc - pedestal) * scale;
+	  double error = expected - volts;
+	  // due to resistor chain, compliance isn't perfect when current flow is non-trivial.  Allowable error scales with deltaV as a result
+	  double error_ok = 5e-3 + (15e-3 * abs(pta - ptb));
+	  if (fabs(error) > error_ok) {
+	    errors++;
+	    printf(" ADC%d %d %f %f %f %f\n", i, adc, volts, expected, error,
+		   error_ok);
+	  }
+	}
+      }
+    }
+  }
+  for (int i = 0; i < 4; i++) stim.clear_pin(i);
+  if (errors == 0) {
+    printf(" ADC TEST PASS\n");
+    return true;
+  } else {
+    printf(" ADC TEST ERRORS : %d\n", errors);
+    return false;
+  }
+}
+
+bool test_eclk(ToolBox* target) {
+  LPGBT_Mezz_Tester mezz;
+  int errors = 0;
+  for (int iclk = 0; iclk < 8; iclk++) {
+    static constexpr int BIN[4] = {40, 80, 160, 320};
+    for (int ibin = 0; ibin < 4; ibin++) {
+      target->lpgbt->setup_eclk(iclk, BIN[ibin]);
+      usleep(100000);
+      std::vector<float> rates = mezz.clock_rates();
+      float measured = rates[iclk];
+      if (fabs(measured - BIN[ibin]) > 5) {
+	errors++;
+	printf("%d set %d measured %f\n", iclk, BIN[ibin], rates[iclk]);
+      }
+      target->lpgbt->setup_eclk(iclk, 0);
+    }
+  }
+  if (errors != 0) {
+    printf("  ECLK TEST FAILED\n");
+    return true;
+  } else {
+    printf("  ECLK TEST PASS\n");
+    return false;
+  }
+}
+
+void test(const std::string& cmd, ToolBox* target) {
+  if (cmd == "GPIO") {
+    test_gpio(target);
+  }
+  if (cmd == "BASIC") {
+    test_basic(target);
   }
   if (cmd == "ADC") {
-    pflib::AD5593R stim("/dev/i2c-23", 0x10);
-    for (int i = 0; i < 4; i++) stim.setup_dac(i);
-
-    uint16_t onevolt = uint16_t(0xfff / 2.5 * 1.0);
-
-    // get the pedestal, DACs set to zero at this point
-    int pedestal = target->lpgbt->adc_read(0, 15, 1);
-
-    if (pedestal < 10 || pedestal > 50) {
-      printf("Pedestal of lpGBT ADC (%d) is out of acceptable range", pedestal);
-      return;
-    }
-
-    stim.dac_write(0, onevolt);
-    stim.dac_write(1, onevolt);
-    int fullrange = target->lpgbt->adc_read(0, 15, 1);
-
-    if (fullrange < 0x3D0 || fullrange > 0x3FD) {
-      printf("One volt range of lpGBT ADC (%d/0x%x) is out of acceptable range",
-             fullrange, fullrange);
-      return;
-    }
-
-    double scale = 1.0 / (fullrange - pedestal);
-    int errors = 0;
-
-    // test matrix
-    for (int half = 0; half < 2; half++) {
-      for (int pta = 0; pta < 3; pta++) {
-        for (int ptb = 0; ptb < 3; ptb++) {
-          stim.dac_write(0 + 2 * half, onevolt / 2 * pta);
-          stim.dac_write(1 + 2 * half, onevolt / 2 * ptb);
-          double Va = pta * 1.0 / 2;
-          double Vb = ptb * 1.0 / 2;
-          //	  printf("Setting Half %d %d %d\n",half,pta,ptb);
-          /// resistor chain pta -> 200 -> ch 0 -> 100 -> ch 1 -> 100 -> ch 2 -> 100 -> ch 3 -> 200 -> ptb
-          double curr = (Vb - Va) / (200 * 2 + 100 * 3);
-          //	  for (int i=0+4*half; i<4+4*half; i++) {
-          for (int i = 0 + 4 * half; i < 4 + 4 * half; i++) {
-            double expected = Va + curr * 200 + curr * 100 * (i - 4 * half);
-            if (half && i == 4) {  // resistor swap on test board
-              expected = Va + curr * 100 + curr * 100 * (i - 4 * half);
-            }
-            int adc = target->lpgbt->adc_read(i, 15, 1);
-            double volts = (adc - pedestal) * scale;
-            double error = expected - volts;
-            // due to resistor chain, compliance isn't perfect when current flow is non-trivial.  Allowable error scales with deltaV as a result
-            double error_ok = 5e-3 + (15e-3 * abs(pta - ptb));
-            if (fabs(error) > error_ok) {
-              errors++;
-              printf(" ADC%d %d %f %f %f %f\n", i, adc, volts, expected, error,
-                     error_ok);
-            }
-          }
-        }
-      }
-    }
-    if (errors == 0)
-      printf(" ADC TEST PASS\n");
-    else
-      printf(" ADC TEST ERRORS : %d\n", errors);
-    for (int i = 0; i < 4; i++) stim.clear_pin(i);
+    test_adc(target);
   }
   if (cmd == "ECLK") {
-    LPGBT_Mezz_Tester mezz;
-    int errors = 0;
-    for (int iclk = 0; iclk < 8; iclk++) {
-      static constexpr int BIN[4] = {40, 80, 160, 320};
-      for (int ibin = 0; ibin < 4; ibin++) {
-        target->lpgbt->setup_eclk(iclk, BIN[ibin]);
-        usleep(100000);
-        std::vector<float> rates = mezz.clock_rates();
-        float measured = rates[iclk];
-        if (fabs(measured - BIN[ibin]) > 5) {
-          errors++;
-          printf("%d set %d measured %f\n", iclk, BIN[ibin], rates[iclk]);
-        }
-        target->lpgbt->setup_eclk(iclk, 0);
-      }
-    }
-    if (errors != 0)
-      printf("  ECLK TEST FAILED\n");
-    else
-      printf("  ECLK TEST PASS\n");
+    test_eclk(target);
+  }
+  if (cmd == "ALL") {
+    test_basic(target);
+    test_gpio(target);
+    test_eclk(target);
+    test_adc(target);
   }
 }
 
@@ -387,6 +441,7 @@ auto madc = tool::menu("ADC", "ADC and DAC-related actions")
                 ->line("ALL", "Read all ADC lines", adc);
 
 auto mtest = tool::menu("TEST", "Mezzanine testing functions")
+                 ->line("BASIC", "Test the power and communication functions", test)
                  ->line("GPIO", "Test the gpio functions", test)
                  ->line("ADC", "Test the ADC function", test)
                  ->line("ECLK", "Test the elocks", test);
@@ -452,7 +507,12 @@ int main(int argc, char* argv[]) {
   t.lpgbt_i2c=&lpgbt_i2c;  
   t.lpgbt_ic=&lpgbt_ic;
   t.lpgbt=t.lpgbt_i2c;
-  t.olink=&olink;  
+  t.olink=&olink;
+
+  /// need to make sure the voltage is at a safe level, will be done automatically here
+  pflib::power_ctl_mezz ctl("/dev/i2c-23");  
+  t.p_ctl=&ctl;
+
   tool::run(&t);
 
   return 0;
