@@ -30,6 +30,40 @@ class AD5593R {
     i2c_.write_raw(REG_GENERAL, 0x1, 0x0);
   }
 
+  void setup_gpi(int pin, bool pull_down= false) {
+    if (pin < 0 || pin > 7) return;
+    clear_bit(REG_GPO_ENABLE, pin);
+    clear_bit(REG_ADC_PIN, pin);
+    clear_bit(REG_DAC_PIN, pin);
+    set_bit(REG_GPI_ENABLE, pin);
+    if (pull_down) {
+      set_bit(REG_PULLDOWN,pin);
+    } else {
+      clear_bit(REG_PULLDOWN,pin);
+    }
+  }
+
+  void setup_gpo(int pin, int value=-1) {
+    if (pin < 0 || pin > 7) return;
+    clear_bit(REG_GPI_ENABLE, pin);
+    clear_bit(REG_ADC_PIN, pin);
+    clear_bit(REG_DAC_PIN, pin);
+    if (value==0) {
+      clear_bit(REG_GPO_WRITE,pin);
+    } else {
+      set_bit(REG_GPO_WRITE,pin);
+    }
+    set_bit(REG_GPO_ENABLE, pin);
+  }
+
+  bool is_gpo(int pin) {
+    return read_reg(REG_GPO_ENABLE)&(1<<pin);
+  }
+
+  bool gpo_get_value(int pin) {
+    return read_reg(REG_GPO_WRITE)&(1<<pin);
+  }
+  
   void setup_dac(int pin, bool zero = true) {
     if (pin < 0 || pin > 7) return;
     clear_bit(REG_GPO_ENABLE, pin);
@@ -42,6 +76,39 @@ class AD5593R {
     }
     set_bit(REG_DAC_PIN, pin);
   }
+
+  void setup_adc(int pin) {
+    if (pin < 0 || pin > 7) return;
+    // turn off DAC on pin
+    clear_bit(REG_DAC_PIN,pin);
+    // turn off gpi on pin
+    clear_bit(REG_GPI_ENABLE,pin);
+    // turn off gpo on pin
+    clear_bit(REG_GPO_ENABLE,pin);
+    // turn off pull-down on pin
+    clear_bit(REG_PULLDOWN,pin);
+    // enable ADC
+    set_bit(REG_ADC_PIN,pin);
+  }
+
+  int adc_read(int pin) {
+    //""" selects a pin (must be configured already for ADC operation), performs ADC conversion sequence and reads back the raw 12 bit result from the ADC data register for that pin """
+    // first byte sets repetition and temperature indicator readback, second byte selects ADC channel (all off by default)
+    i2c_.write_raw(REG_ADC_SEQ,0x0,(1<<pin));
+    // select ADC address
+    i2c_.write_raw(0x40);
+    std::vector<uint8_t> result=i2c_.read_raw(2);
+    return int(result[1]) + (int(result[0]&0xF)<<8);
+  }
+
+  float adc_volts(int pin, int ave=10) {
+    int sum=0;
+    for (int i = 0; i<ave; i++)
+      sum+=adc_read(pin);
+    return (sum*1.0/ave)*2.5/4096;
+  }
+
+  
   void dac_write(int pin, uint16_t value) {
     if (pin < 0 || pin > 7) return;
     i2c_.write_raw(0x10 | pin, ((0x08 | pin) << 4) | ((value & 0xF00) >> 8),
@@ -54,6 +121,8 @@ class AD5593R {
     clear_bit(REG_ADC_PIN, pin);
     clear_bit(REG_DAC_PIN, pin);
   }
+
+  
 
  private:
   uint16_t read_reg(uint8_t reg) {
@@ -80,7 +149,7 @@ class AD5593R {
 
   lpGBT_ConfigTransport_I2C i2c_;
 };
-
+  
 }  // namespace pflib
 
 #endif  // AD5593R_H_INCLUDED
