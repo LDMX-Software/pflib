@@ -43,7 +43,9 @@ void OptoLink::reset_link() {
 static const uint32_t REG_POLARITY              = 0x1;
 static const uint32_t MASK_POLARITY_RX          = 0x00000FFF;
 static const uint32_t MASK_POLARITY_TX          = 0x0FFF0000;
-
+static const uint32_t REG_DOWNLINK_MODE0        = 48;
+static const uint32_t MASK_DOWNLINK_MODE        = 0x0000FFFF;
+  
 bool OptoLink::get_polarity(int ichan, bool is_rx) {
   return (transright_.readMasked(REG_POLARITY, (is_rx)?(MASK_POLARITY_RX):(MASK_POLARITY_TX))&(1<<ichan))!=0;
 }
@@ -95,6 +97,16 @@ std::map<std::string, uint32_t> OptoLink::opto_rates() {
   return retval;
   
 }
+  
+  int OptoLink::get_elink_tx_mode(int i) {
+    if (i<0 || i>3) return -1;
+    return coder_.read(REG_DOWNLINK_MODE0+i);
+  }
+  void OptoLink::set_elink_tx_mode(int i, int mode) {
+    if (i<0 || i>3) return;
+    coder_.write(REG_DOWNLINK_MODE0+i,mode&MASK_DOWNLINK_MODE);
+  }
 
+  
 }
 }

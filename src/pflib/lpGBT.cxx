@@ -112,8 +112,16 @@ static constexpr uint16_t REG_ADC_CONFIG = 0x123;
 static constexpr uint16_t REG_ADC_STATUS_H = 0x1ca;
 static constexpr uint16_t REG_ADC_STATUS_L = 0x1cb;
 
-static constexpr uint16_t REG_ECLK_BASE = 0x06e;
-static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
+static constexpr uint16_t REG_EPTXDATARATE     = 0x0a8;
+static constexpr uint16_t REG_EPTXCONTROL      = 0x0a9;
+static constexpr uint16_t REG_EPTX10ENABLE     = 0x0aa;
+static constexpr uint16_t REG_EPTXECCHNCNTR    = 0x0ac;  
+static constexpr uint16_t REG_EPTX00ChnCntr    = 0x0ae;
+static constexpr uint16_t REG_EPTX01_00ChnCntr = 0x0be;
+static constexpr uint16_t REG_EPRX0CONTROL     = 0x0c8;
+static constexpr uint16_t REG_EPRX00CHNCNTR    = 0x0d0;
+static constexpr uint16_t REG_ECLK_BASE        = 0x06e;
+static constexpr uint16_t REG_POWERUP_STATUS   = 0x1d9;
 
 static constexpr uint16_t REG_FUSECONTROL = 0x119;
 static constexpr uint16_t REG_FUSEADDRH = 0x11E;
@@ -323,6 +331,68 @@ uint16_t lpGBT::adc_read(int ipos, int ineg, int gain) {
   return adc_value;
 }
 
+void lpGBT::setup_erx(int irx, int align, int alignphase, int speed, bool invert, bool term,
+			int equalization, bool acbias) {
+    if (irx<0 || irx>5) return;
+    if (irx>=3) irx++; // irx=3 is EDIN4, 4->5, 5->6
+
+    // enable first channel, set speed and alignment strategy
+    tport_.write_reg(REG_EPRX0CONTROL+irx,0x10|((speed&0x3)<<2)|(align&0x3));
+    //
+    tport_.write_reg(REG_EPRX00CHNCNTR+irx*4,((alignphase&0xF)<<4)|((invert)?(0x8):(0))|((acbias)?(0x4):(0))|((term)?(0x2):(0)));
+    // ignore equalization for now
+  }
+  
+void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive,
+		      int pe_mode, int pe_strength, int pe_width) {
+  if (itx < 0 || itx > 6) return;
+  // 0x12 -> EGROUP 1, LINK 2
+  static constexpr uint8_t MAP_ETX[7] = { 0x00, 0x01, 0x10, 0x20, 0x21, 0x30, 0x31 };
+
+  // always set up the data rate
+  tport_.write_reg(REG_EPTXDATARATE, 0xFF); // all links at 320 MBps
+  tport_.write_reg(REG_EPTXCONTROL, 0x0F); // enable mirroring
+  int iport=(MAP_ETX[itx]>>4);
+  int ipin=(MAP_ETX[itx]&0xF);
+
+  if (!enable) {
+    bit_clr(REG_EPTX10ENABLE+iport/2,(iport%2)*4+ipin);
+    return;
+  } else {
+    bit_set(REG_EPTX10ENABLE+iport/2,(iport%2)*4+ipin);
+  }
+
+  uint16_t reg=REG_EPTX00ChnCntr+iport*4+ipin;
+  tport_.write_reg(reg,((pe_strength&0x7)<<5)|((pe_mode&0x3)<<3)|(drive&0x7));
+
+  reg=REG_EPTX01_00ChnCntr+iport*2+ipin/2;
+  uint8_t val=tport_.read_reg(reg);
+  if (ipin%1) {
+    val=val&0x0F;
+    if (invert) val|=0x80;
+    val|=(pe_width&0x7)<<4;
+  } else {
+    val=val&0xF0;
+    if (invert) val|=0x08;
+    val|=(pe_width&0x7);
+  }
+  tport_.write_reg(reg,val);
+  
+}
+
+  void lpGBT::setup_ec(bool invert_tx, int drive, bool fixed, int alignphase, bool invert_rx, bool term,
+		       bool acbias, bool pullup) {
+
+    // enable enable, pick fixed or not
+    tport_.write_reg(REG_EPRX0CONTROL+7,0x10|(fixed?(1):(0)));
+    // phase, invert, bias, term, pullup
+    tport_.write_reg(REG_EPRX00CHNCNTR+7*4,((alignphase&0x7)<<4)|((invert_rx)?(0x8):(0))|((acbias)?(0x4):(0))|((term)?(0x2):(0))|((pullup)?(0x1):(0)));
+    // TX side
+    tport_.write_reg(REG_EPTXECCHNCNTR,((drive&0x7)<<5)|((invert_tx)?(0x4):(0))|0x1);
+    
+  }
+
+  
 void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
   if (ieclk < 0 || ieclk > 7) return;
   static constexpr uint8_t MAP_ECLK[8] = {28, 6, 4, 1, 19, 21, 27, 25};

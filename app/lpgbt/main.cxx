@@ -19,8 +19,6 @@ struct ToolBox {
   pflib::power_ctl_mezz* p_ctl{0};
 };
 
-
-
 using tool = pflib::menu::Menu<ToolBox*>;
 
 void opto(const std::string& cmd, ToolBox* target) {
@@ -70,11 +68,11 @@ void general(const std::string& cmd, ToolBox* target) {
     printf(" PUSM %s (%d)\n",target->lpgbt->status_name(pusm).c_str(),pusm);
   }
   if (cmd=="RESET") {
-    LPGBT_Mezz_Tester tester;
+    LPGBT_Mezz_Tester tester(target->olink->coder());
     tester.reset_lpGBT();
   }
   if (cmd=="MODE") {
-    LPGBT_Mezz_Tester tester;
+    LPGBT_Mezz_Tester tester(target->olink->coder());
     printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-onlt\n");
     bool wasMode, wasAddr;
     tester.get_mode(wasAddr,wasMode);
@@ -147,6 +145,29 @@ void adc(const std::string& cmd, ToolBox* target) {
       printf("  ADC chan %d = %03x  (%.3f raw, %.3f cal)\n", whichp, adc, val, val*gain);
     }
   }
+}
+
+void elink(const std::string& cmd, ToolBox* target) {
+  LPGBT_Mezz_Tester mezz(target->olink->coder());
+
+  if (cmd=="SPY") {
+    bool isrx=tool::readline_bool("Spy on an RX? (false for TX) ",false);
+    int ilink=tool::readline_int("Which elink to spy",0);
+    std::vector<uint32_t> words=mezz.capture(ilink,isrx);
+    for (size_t i=0; i<words.size(); i++)
+      printf("%3d %08x\n",i,words[i]);
+  }
+  if (cmd=="PATTERN") {
+    bool isrx=tool::readline_bool("Adjust an RX? (false for TX) ",false);
+    int ilink=tool::readline_int("Which elink to spy",0);
+
+    if (isrx) {
+    } else {
+      int mode=tool::readline_int("Change to mode",target->olink->get_elink_tx_mode(ilink));
+      target->olink->set_elink_tx_mode(ilink,mode);
+    }
+  }
+  
 }
 
 static uint16_t lcl2gbt(uint16_t val) {
@@ -366,8 +387,114 @@ bool test_adc(ToolBox* target) {
   }
 }
 
+bool test_ctl(ToolBox* target) {
+  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  printf("CTL Elink PRBS scan\n");
+  std::vector<int> nok(7,0), nbad(7,0);
+  // ensure that the lpGBT is setup properly for transmitting the fast control
+  for (int i=0; i<7; i++)
+    target->lpgbt->setup_etx(i,true);
+  // set all the CTL links to mode (4) (just 4 links in this counting...)
+  for (int i=0; i<4; i++)
+    target->olink->set_elink_tx_mode(i,4);
+  // set the prbs length
+  mezz.set_prbs_len_ms(1000); // one second per point...
+  for (int ph=0; ph<510; ph+=20) {
+    mezz.set_phase(ph);
+    printf("  %5d ",ph);
+    std::vector<uint32_t> errs=mezz.ber_tx();
+    for (int i=0; i<int(errs.size()); i++) {
+      printf("%09d ",errs[i]);
+      if (errs[i]==0) nok[i]++;
+      else nbad[i]++;
+    }
+    printf("\n");
+  }
+  bool pass=true;
+  for (int i=0; i<7; i++) {
+    if (nbad[i]==0) {
+      printf(" Suspiciously, never saw a failure on %d, was PRBS ok?\n",i);
+      pass=false;
+    } else if (nbad[i]>4) {
+      printf(" High failure count (%d) on link %d\n",nbad[i],i);
+      pass=false;
+    }
+  }
+  if (pass) printf(" CTL Elink test PASSED\n");
+  else printf(" CTL Elink test FAILED\n");
+  return pass;
+}
+
+bool test_ec(ToolBox* target) {
+  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  // very very magic
+  ::pflib::UIO& raw=target->olink->coder();
+
+  target->lpgbt->setup_ec(true,4,true, 0); // need to invert one or the other
+
+  mezz.set_prbs_len_ms(1000); // one second per point...
+  raw.write(67,1<<8); // enable external
+  raw.write(69,3<<(8+3+4)); // enable prbs and clear
+
+  for (int i=0; i<8; i++) {
+    target->lpgbt->setup_ec(false,4,true,i); 
+    raw.write(69,3<<(8+3+4)); // enable prbs and clear
+    usleep(1);
+    raw.write(97,1); // start PRBS
+    bool done=false;
+    do {
+      usleep(1000);
+      done=raw.read(100)==0;
+    } while (!done);    
+    uint32_t errors=raw.read(70);
+    printf("%d %d\n",i,errors);
+  }
+  return false;
+  
+}
+
+bool test_elinks(ToolBox* target) {
+  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  printf("Data/Trigger Elink PRBS scan\n");
+  std::vector<int> nok(6,0), nbad(6,0);
+  // ensure that the lpGBT is setup properly for receiving the data
+  for (int i=0; i<6; i++) {
+    target->lpgbt->setup_erx(i,0,0,3,true);
+  // set all the transmitters to mode (1)
+    mezz.set_uplink_pattern(i,1);
+  }
+  
+  // set the prbs length
+  mezz.set_prbs_len_ms(1000); // one second per point...
+
+  for (int ph=0; ph<500; ph+=10) {
+    mezz.set_phase(ph);
+    printf("  %5d ",ph);
+    std::vector<uint32_t> errs=mezz.ber_rx();
+    for (int i=0; i<int(errs.size()); i++) {
+      printf("%010d ",errs[i]);
+      if (errs[i]==0) nok[i]++;
+      else nbad[i]++;
+    }
+    printf("\n");
+  }
+  bool pass=true;
+  for (int i=0; i<6; i++) {
+    if (nbad[i]==0) {
+      printf(" Suspiciously, never saw a failure on %d, was PRBS ok?\n",i);
+      pass=false;
+    } else if (nbad[i]>18) {
+      printf(" High failure count (%d) on link %d\n",nbad[i],i);
+      pass=false;
+    }
+  }
+  if (pass) printf(" Data/Trig Elink test PASSED\n");
+  else printf(" Data/Trig Elink test FAILED\n");
+  return pass;
+}
+
 bool test_eclk(ToolBox* target) {
-  LPGBT_Mezz_Tester mezz;
+  LPGBT_Mezz_Tester mezz(target->olink->coder());
   int errors = 0;
   for (int iclk = 0; iclk < 8; iclk++) {
     static constexpr int BIN[4] = {40, 80, 160, 320};
@@ -405,11 +532,21 @@ void test(const std::string& cmd, ToolBox* target) {
   if (cmd == "ECLK") {
     test_eclk(target);
   }
+  if (cmd == "CTL") {
+    test_ctl(target);
+  }
+  if (cmd == "ELINKS") {
+    test_elinks(target);
+  }
+  if (cmd == "EC") {
+    test_ec(target);
+  }
   if (cmd == "ALL") {
     test_basic(target);
     test_gpio(target);
     test_eclk(target);
-    test_adc(target);
+    test_ctl(target);
+    test_adc(target);    
   }
 }
 
@@ -441,6 +578,12 @@ auto mgpio = tool::menu("GPIO", "GPIO controls")
                  ->line("CLEAR", "CLEAR a GPIO pin", gpio)
                  ->line("WRITE", "Write all GPIO pins at once", gpio);
 
+  auto melink = tool::menu("ELINK","Elink-related items")
+    ->line("SETUP","Setup a pin",elink)
+    ->line("PATTERN","Pattern selection for",elink)
+    ->line("SPY","Spy on one or more pins", elink)
+    ;
+  
 auto madc = tool::menu("ADC", "ADC and DAC-related actions")
                 ->line("READ", "Read an ADC line", adc)
                 ->line("ALL", "Read all ADC lines", adc);
@@ -450,6 +593,9 @@ auto mtest = tool::menu("TEST", "Mezzanine testing functions")
                  ->line("GPIO", "Test the gpio functions", test)
                  ->line("ADC", "Test the ADC function", test)
                  ->line("ECLK", "Test the elocks", test)
+                 ->line("CTL", "Test the fast control lines", test)
+                 ->line("EC", "Test the EC control link", test)
+                 ->line("ELINKS", "Test the uplink elinks", test)
                  ->line("ALL","Run all tests",test)
   ;
 
@@ -495,7 +641,8 @@ int main(int argc, char* argv[]) {
 
   tool::set_history_filepath("~/.pflpgbt-history");
 
-  LPGBT_Mezz_Tester tester;
+  pflib::zcu::OptoLink olink;
+  LPGBT_Mezz_Tester tester(olink.coder());
   bool addr, mode1;
   tester.get_mode(addr, mode1); // need to determine address
 
@@ -505,7 +652,6 @@ int main(int argc, char* argv[]) {
   printf(" ADDR = %d and MODE1=%d -> 0x%02x\n",addr,mode1,chipaddr);
   
   pflib::lpGBT_ConfigTransport_I2C tport(chipaddr, "/dev/i2c-23");
-  pflib::zcu::OptoLink olink;
   pflib::lpGBT lpgbt_i2c(tport);
   pflib::zcu::lpGBT_ICEC_Simple ic("singleLPGBT",false,chipaddr);
   pflib::lpGBT lpgbt_ic(ic);

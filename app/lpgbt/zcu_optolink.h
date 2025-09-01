@@ -18,6 +18,13 @@ class OptoLink {
 
   std::map<std::string, uint32_t> opto_status();
   std::map<std::string, uint32_t> opto_rates();
+
+  ::pflib::UIO& coder() { return coder_; }
+
+  // setup various aspects
+  /// there are four TX elinks configured in the coder block
+  int get_elink_tx_mode(int ilink);
+  void set_elink_tx_mode(int ilink, int mode);
   
  private:
   ::pflib::UIO transright_;
