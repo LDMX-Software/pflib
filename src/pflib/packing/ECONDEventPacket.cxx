@@ -5,6 +5,36 @@
 
 namespace pflib::packing {
 
+void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
+  // sub-packet start
+  uint32_t stat = ((data.at(0) >> 29) & mask<3>);
+  corruption[2] = (stat != 0b111); // all ones is GOOD
+  if (corruption[2]) {
+    pflib_log(warn) << "bad subpacket checks";
+  }
+  uint32_t ham = ((data.at(0) >> 26) & mask<3>);
+  bool is_empty = ((data.at(0) >> 25) & mask<1>) == 1;
+  uint32_t cm0 = ((data.at(0) >> 15) & mask<12>);
+  uint32_t cm1 = ((data.at(0) >>  5) & mask<12>);
+  if (is_empty) {
+    // F=1
+    // single-word header, no channel data or channel map, entire link is empty
+    length = 1;
+    bool error_caused_empty = ((data.at(2) >> 4) & mask<1>);
+    // E=0 (false) means none of the 37 channels passed zero suppression
+    // E=1 (true) means the unmasked Stat error bits caused the sub-packet to be suppressed
+  } else {
+    // construct channel map
+    channel_map;
+
+    // consume channel data
+
+    length = 7; // some number greater than one depending on number of channels in packet
+  }
+}
+
+ECONDEventPacket::ECONDEventPacket(std::size_t n_links) : link_subpackets(n_links) {}
+
 void ECONDEventPacket::from(std::span<uint32_t> data) {
   uint32_t header_marker = ((data.at(0) >> 23) & mask<9>);
   corruption[0] = (header_marker != (0xaa << 1));
@@ -33,27 +63,10 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   uint32_t rr = ((data.at(1) >> 8) & mask<2>);
   uint32_t crc = (data.at(1) & mask<8>);
 
-  // sub-packet start
-  uint32_t stat = ((data.at(2) >> 29) & mask<3>);
-  corruption[2] = (stat != 0b111); // all ones is GOOD
-  if (corruption[2]) {
-    pflib_log(warn) << "bad subpacket checks";
-  }
-  uint32_t ham = ((data.at(2) >> 26) & mask<3>);
-  bool is_empty = ((data.at(2) >> 25) & mask<1>) == 1;
-  uint32_t cm0 = ((data.at(2) >> 15) & mask<12>);
-  uint32_t cm1 = ((data.at(2) >>  5) & mask<12>);
-  if (is_empty) {
-    // F=1
-    // single-word header, no channel data or channel map, entire link is empty
-    bool error_caused_empty = ((data.at(2) >> 4) & mask<1>);
-    // E=0 (false) means none of the 37 channels passed zero suppression
-    // E=1 (true) means the unmasked Stat error bits caused the sub-packet to be suppressed
-  } else {
-    // construct channel map
-    std::bitset<37> chan_map;
-
-    // consume channel data
+  std::size_t offset{2};
+  for (auto& link_subpacket : link_subpackets) {
+    link_subpacket.from(data.slice(offset));
+    offset += link_subpacket.length;
   }
 }
 

@@ -26,6 +26,19 @@ class ECONDEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
  
  public:
+  struct LinkSubPacket {
+    std::size_t length;
+    std::bitset<37> channel_map;
+    // channel data
+    /// parse into this package from the passed data span
+    void from(std::span<uint32_t> data);
+  };
+
+  std::array<bool, 2> corruption;
+  std::vector<LinkSubPacket> link_subpackets;
+
+  ECONDEventPacket(std::size_t n_links);
+
   /// parse into this package from the passed data span
   void from(std::span<uint32_t> data);
   /**
