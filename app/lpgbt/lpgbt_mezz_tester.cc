@@ -157,3 +157,41 @@ std::vector<uint32_t> LPGBT_Mezz_Tester::capture(int ilink, bool is_rx) {
   }
   return retval;
 }
+
+
+void LPGBT_Mezz_Tester::capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx) {
+  static constexpr int REG_SPY_CTL = 67;
+  static constexpr int REG_READ    = 69;
+
+  uint32_t val=opto_.read(REG_SPY_CTL);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10)|(1<<9); 
+  opto_.write(REG_SPY_CTL,val);
+
+  // now wait for it...
+  bool done=false;
+  do {
+    usleep(100);
+    done=(opto_.read(REG_READ)&0x400)!=0;
+    if (mode==0) done=true;
+  } while (!done);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); // disable the spy 
+  opto_.write(REG_SPY_CTL,val);
+
+  tx.clear();
+  rx.clear();
+  
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); 
+  for (int i=0; i<256; i++) {
+    val=val&0xFFF;
+    val=val|(i<<12);
+    opto_.write(REG_SPY_CTL,val);
+    usleep(1);
+    uint32_t k=opto_.read(REG_READ);
+    tx.push_back((k>>(2+11))&0x3);
+    rx.push_back((k>>11)&0x3);
+  }
+  
+}

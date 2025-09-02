@@ -157,6 +157,34 @@ void elink(const std::string& cmd, ToolBox* target) {
     for (size_t i=0; i<words.size(); i++)
       printf("%3d %08x\n",i,words[i]);
   }
+  if (cmd=="ECSPY") {
+    int magic=tool::readline_int("Magic for setup",0);
+    if (magic==1) {
+      ::pflib::UIO& raw=target->olink->coder();
+      raw.write(67,0<<8); // disable external
+      raw.write(69,0<<(8+3+4)); // disable prbs and clear
+    }
+    if (magic==2) {
+      ::pflib::UIO& raw=target->olink->coder();
+      raw.write(67,1<<8); // enable external
+      raw.write(69,0<<(8+3+4)); // disable prbs and clear
+    }
+    int imode=tool::readline_int("Which mode (zero for immediate)",0);
+    std::vector<uint8_t> tx,rx;
+    mezz.capture_ec(imode,tx,rx);
+    std::string stx, srx;
+    for (size_t i=0; i<tx.size(); i++) {
+      stx+=(tx[i]&0x2)?("1"):("0");
+      stx+=(tx[i]&0x1)?("1"):("0");
+      srx+=(rx[i]&0x2)?("1"):("0");
+      srx+=(rx[i]&0x1)?("1"):("0");
+      if (((i+1)%32)==0) {
+	printf("%3d %s %s\n",i-31,stx.c_str(),srx.c_str());
+	stx="";
+	srx="";
+      }
+    }
+  }
   if (cmd=="PATTERN") {
     bool isrx=tool::readline_bool("Adjust an RX? (false for TX) ",false);
     int ilink=tool::readline_int("Which elink to spy",0);
@@ -426,30 +454,53 @@ bool test_ctl(ToolBox* target) {
 }
 
 bool test_ec(ToolBox* target) {
+  // for some reason, the in-firmware tester isn't working correcly now.  We are using the capture as a weak replacement for now
+  printf("EC PRBS scan\n");
+
   LPGBT_Mezz_Tester mezz(target->olink->coder());
   // very very magic
   ::pflib::UIO& raw=target->olink->coder();
 
-  target->lpgbt->setup_ec(true,4,true, 0); // need to invert one or the other
+  target->lpgbt->setup_ec(true, 4, true, 0); // need to invert one or the other
 
   mezz.set_prbs_len_ms(1000); // one second per point...
   raw.write(67,1<<8); // enable external
   raw.write(69,3<<(8+3+4)); // enable prbs and clear
+  int nbad=0;
+  uint32_t ones=0;
 
+  
   for (int i=0; i<8; i++) {
-    target->lpgbt->setup_ec(false,4,true,i); 
-    raw.write(69,3<<(8+3+4)); // enable prbs and clear
-    usleep(1);
-    raw.write(97,1); // start PRBS
-    bool done=false;
-    do {
-      usleep(1000);
-      done=raw.read(100)==0;
-    } while (!done);    
-    uint32_t errors=raw.read(70);
-    printf("%d %d\n",i,errors);
+    target->lpgbt->setup_ec(true,4,true,i);
+
+    std::vector<uint8_t> tx,rx;
+    uint32_t errors=0;
+
+    for (int cycle=0; cycle<100; cycle++) {
+      mezz.capture_ec(0,tx,rx);    
+
+      std::vector<bool> srx;
+      for (size_t i=0; i<tx.size(); i++) {
+	srx.push_back(rx[i]&0x2);
+	srx.push_back(rx[i]&0x1);
+      }
+      for (size_t i=7; i<srx.size(); i++) {
+	bool exp=srx[i-7]^srx[i-6];
+	if (exp!=srx[i]) errors++;
+	if (srx[i]) ones++;
+      }
+    }
+    printf("  %d %d\n",i,errors);
+    if (errors>0) nbad++;
   }
-  return false;
+  if (ones==0) {
+    printf("EC: Never saw any one bits -- test invalid\n");
+    return false;
+  } else if (nbad>2) {
+    printf("EC: Too many bad phases (%d)\n",nbad);
+    return false;
+  }
+  return true;
   
 }
 
@@ -546,6 +597,8 @@ void test(const std::string& cmd, ToolBox* target) {
     test_gpio(target);
     test_eclk(target);
     test_ctl(target);
+    test_elinks(target);
+    test_ec(target);
     test_adc(target);    
   }
 }
@@ -582,6 +635,7 @@ auto mgpio = tool::menu("GPIO", "GPIO controls")
     ->line("SETUP","Setup a pin",elink)
     ->line("PATTERN","Pattern selection for",elink)
     ->line("SPY","Spy on one or more pins", elink)
+    ->line("ECSPY","Spy on the EC link", elink)
     ;
   
 auto madc = tool::menu("ADC", "ADC and DAC-related actions")
