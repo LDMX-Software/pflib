@@ -13,6 +13,15 @@
 
 #include "pftool.h"
 
+pflib::logging::logger get_by_file(const std::string& filepath) {
+  static const std::filesystem::path this_file{__FILE__};
+  static const std::filesystem::path this_parent{this_file.parent_path()};
+  std::filesystem::path fp{filepath};
+  std::string relative{std::filesystem::relative(fp, this_parent)};
+  std::replace(relative.begin(), relative.end(), '/', '.');
+  return pflib::logging::get("pftool."+relative);
+}
+
 pftool::State::State() {
   update_type_version("sipm_rocv3b");
 }
@@ -286,6 +295,10 @@ int main(int argc, char* argv[]) {
       sFile.close();
     } else if (arg == "-z") {
       mode = Fiberless;
+      if (not is_fw_active()) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
     } else if (arg == "-d" or arg == "--dump") {
       // dump out the entire menu to stdout
       pftool::root()->print(std::cout);

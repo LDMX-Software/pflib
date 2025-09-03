@@ -9,21 +9,25 @@
 #include "pflib/Target.h"
 
 /**
+ * get a logger using the file name as the channel name
+ *
+ * the filename's extension is removed and the file path
+ * that is shared with the directory of this file is replaced
+ * by 'pftool'.
+ */
+::pflib::logging::logger get_by_file(const std::string& filepath);
+
+/**
  * @macro ENABLE_LOGGING
  * Enable logging using the file name as the channel name
  */
 #define ENABLE_LOGGING() \
-  static auto the_log_{::pflib::logging::get_by_file("pftool.", __FILE__)};
+  static auto the_log_{get_by_file(__FILE__)};
 
 /**
  * pull the target of our menu into this source file to reduce code
  */
 using pflib::Target;
-
-/// format mode integer for simple single-HGCROC
-static const int DAQ_FORMAT_SIMPLEROC = 1;
-/// format mode integer for ECON without Zero Suppression
-static const int DAQ_FORMAT_ECON = 2;
 
 /**
  * The type of menu we are constructing
@@ -57,7 +61,7 @@ class pftool : public pflib::menu::Menu<Target*> {
     /// index of link currently being interacted with
     int ilink{0};
     /// current format mode to use
-    int daq_format_mode{1};
+    Target::DaqFormat daq_format_mode{Target::DaqFormat::SIMPLEROC};
     /// contributor ID of daq
     int daq_contrib_id{20};
     /// daq collection rate in Hz

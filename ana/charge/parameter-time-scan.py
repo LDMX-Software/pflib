@@ -173,6 +173,7 @@ def tot_eff(
             plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
                       + ', TOA_VREF = 250, TOT_VREF = 500')
 
+
 def param(
     samples,
     run_params,

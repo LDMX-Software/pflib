@@ -56,6 +56,7 @@ foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
   set(reg_map_header "include/register_maps/${roc}.h")
   add_custom_command(
     OUTPUT ${reg_map_header}
+    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
     COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
       ${reg_map_src} ${CMAKE_CURRENT_BINARY_DIR}/${reg_map_header} --no-intermediate-yaml
     DEPENDS ${reg_map_src} ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
@@ -68,6 +69,7 @@ endforeach()
 
 add_custom_command(
   OUTPUT "include/register_maps/direct_access.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3
   ${PROJECT_SOURCE_DIR}/register_maps/write-direct-access-header.py
   ${PROJECT_SOURCE_DIR}/register_maps/si_roc_directaccess_regmap.yaml
@@ -85,6 +87,7 @@ add_custom_target(direct_access DEPENDS include/register_maps/direct_access.h)
 
 add_custom_command(
   OUTPUT "include/register_maps/lpgbt.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3
   ${PROJECT_SOURCE_DIR}/register_maps/lpgbt-to-code.py
   ${PROJECT_SOURCE_DIR}/register_maps/lpgbt_regmap.yaml
@@ -99,6 +102,7 @@ add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
 
 add_custom_command(
   OUTPUT include/register_maps/register_maps.h
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     ${generate_headers} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
@@ -114,6 +118,8 @@ add_library(utility SHARED
   src/pflib/utility/load_integer_csv.cxx
   src/pflib/utility/json.cxx
   src/pflib/utility/str_to_int.cxx
+  src/pflib/utility/median.cxx
+  src/pflib/utility/efficiency.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -146,6 +152,7 @@ add_library(pflib SHARED
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
   src/pflib/DecodeAndWrite.cxx
+  src/pflib/DecodeAndBuffer.cxx
   src/pflib/WriteToBinaryFile.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
@@ -159,6 +166,8 @@ add_library(pflib SHARED
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/Bias.cxx
+  src/pflib/algorithm/level_pedestals.cxx
+  src/pflib/algorithm/toa_vref_scan.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -197,13 +206,8 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
-add_executable(pftool
-  app/tool/main.cxx
-  app/tool/expert.cxx
-  app/tool/roc.cxx
-  app/tool/daq.cxx
-  app/tool/tasks.cxx
-  app/tool/bias.cxx)
+file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
+add_executable(pftool ${pftool_sources})
 target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
@@ -213,7 +217,8 @@ add_executable(pflpgbt app/lpgbt/main.cxx
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments
-add_executable(test-menu test/test_menu.cxx)
+file(GLOB_RECURSE test_menu_sources LIST_DIRECTORIES FALSE test/test_menu/*.cxx)
+add_executable(test-menu ${test_menu_sources})
 target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
