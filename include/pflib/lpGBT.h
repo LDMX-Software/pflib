@@ -72,11 +72,11 @@ class lpGBT {
 
   /** Get the serial number (somewhat complex) */
   uint32_t serial_number();
-  
+
   /** Get the lpGBT status (power up state machine) */
   int status();
-  std::string status_name(int pusm);  
-  
+  std::string status_name(int pusm);
+
   /** Set the given gpio bit */
   void gpio_set(int ibit, bool high);
   /** Get the given gpio bit */
@@ -126,8 +126,9 @@ class lpGBT {
       \oaram acbias Apply a bias appropriate for AC-coupled elinks
       On the LDMX lpGBT mezzanine, each elink-rx is configured with a single active pair.
    */
-  void setup_erx(int ierx, int align, int alignphase=0, int speed=3, bool invert = false, bool term = true,
-                 int equalization = 0, bool acbias = false);
+  void setup_erx(int ierx, int align, int alignphase = 0, int speed = 3,
+                 bool invert = false, bool term = true, int equalization = 0,
+                 bool acbias = false);
 
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate in 320 Mbps mode.
       \param ietx ETx index (0-6)
@@ -137,8 +138,8 @@ class lpGBT {
       \param pe_strength Pre-emphasis strength (0-7)
       \param pe_width Pre-emphasis width (0-7)
    */
-  void setup_etx(int ietx, bool enable, bool invert=false, int drive=4,
-		 int pe_mode=0, int pe_strength=3, int pe_width=3);
+  void setup_etx(int ietx, bool enable, bool invert = false, int drive = 4,
+                 int pe_mode = 0, int pe_strength = 3, int pe_width = 3);
 
   /** Setup the EC port
       \param invert_tx Invert the outgoing signal
@@ -150,13 +151,12 @@ class lpGBT {
       \param acbias Apply a bias appropriate for AC-coupled elinks
       \param pullup Enable the pullup
    */
-  void setup_ec(bool invert_tx=false, int drive=4, bool fixed=false, int alignphase=0, bool invert_rx=false, bool term=true,
-		bool acbias=false, bool pullup=false);
-
-
+  void setup_ec(bool invert_tx = false, int drive = 4, bool fixed = false,
+                int alignphase = 0, bool invert_rx = false, bool term = true,
+                bool acbias = false, bool pullup = false);
 
   uint32_t read_efuse(uint16_t addr);
-  
+
  private:
   lpGBT_ConfigTransport& tport_;
 };

@@ -1,7 +1,9 @@
 #include "toa_vref_scan.h"
 
-#include <fstream>
 #include <yaml-cpp/yaml.h>
+
+#include <fstream>
+
 #include "pflib/algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
@@ -29,16 +31,12 @@ void toa_vref_scan(Target* tgt) {
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
     std::string fname = pftool::readline_path(
-      "toa-vref-scan-"+std::to_string(pftool::state.iroc)+"-settings",
-      ".yaml"
-    );
+        "toa-vref-scan-" + std::to_string(pftool::state.iroc) + "-settings",
+        ".yaml");
 
     std::ofstream f{fname};
     if (not f.is_open()) {
-      PFEXCEPTION_RAISE(
-        "File",
-        "Unable to open file " + fname + "."
-      );
+      PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
     }
     f << out.c_str() << std::endl;
   }

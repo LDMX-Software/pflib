@@ -3,28 +3,30 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <string.h>
+
 #include "pflib/Exception.h"
 
 namespace pflib {
 
-UIO::UIO(const std::string& name, size_t length) : size_{length}, ptr_{0}, handle_{0} {
-  for (int i=0; i<100; i++) {
-    char namefile[200],buffer[100];
-    snprintf(namefile,200,"/sys/class/uio/uio%d/maps/map0/name",i);
-    FILE* f=fopen(namefile,"r");
+UIO::UIO(const std::string& name, size_t length)
+    : size_{length}, ptr_{0}, handle_{0} {
+  for (int i = 0; i < 100; i++) {
+    char namefile[200], buffer[100];
+    snprintf(namefile, 200, "/sys/class/uio/uio%d/maps/map0/name", i);
+    FILE* f = fopen(namefile, "r");
     if (!f) continue;
-    fgets(buffer,100,f);
+    fgets(buffer, 100, f);
     fclose(f);
     // does it start with the same string?
-    if (strstr(buffer,name.c_str())==buffer) {
-      snprintf(namefile,200,"/dev/uio%d",i);
-      iopen(namefile,length);
+    if (strstr(buffer, name.c_str()) == buffer) {
+      snprintf(namefile, 200, "/dev/uio%d", i);
+      iopen(namefile, length);
     }
   }
-  if (ptr_==0) {
+  if (ptr_ == 0) {
     char msg[200];
     snprintf(msg, 200, "Found no UIO area with name %s", name.c_str());
     handle_ = 0;
@@ -33,7 +35,6 @@ UIO::UIO(const std::string& name, size_t length) : size_{length}, ptr_{0}, handl
 }
 
 void UIO::iopen(const std::string& path, size_t length) {
-    
   handle_ = open(path.c_str(), O_RDWR);
   if (handle_ < 0) {
     char msg[200];

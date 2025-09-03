@@ -21,7 +21,7 @@ class LPGBT_Mezz_Tester {
   std::vector<uint32_t> ber_rx();
   std::vector<uint32_t> ber_tx();
 
-  std::vector<uint32_t> capture(int ilink, bool is_rx=false);
+  std::vector<uint32_t> capture(int ilink, bool is_rx = false);
   void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
 
  private:

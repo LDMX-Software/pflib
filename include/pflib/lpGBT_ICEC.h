@@ -5,20 +5,17 @@
 
 namespace pflib {
 
-  /**
+/**
    * @class lpGBT configuration transport interface class partially specified
    * for IC/EC communication
    */
-  class lpGBT_ICEC : public lpGBT_ConfigTransport {
-   protected:
-    lpGBT_ICEC(bool isEC, uint8_t lpgbt_i2c_addr);
+class lpGBT_ICEC : public lpGBT_ConfigTransport {
+ protected:
+  lpGBT_ICEC(bool isEC, uint8_t lpgbt_i2c_addr);
 
-    virtual void transact(uint16_t reg, 
-  };
-  
-}
+    virtual void transact(uint16_t reg,
+};
 
+}  // namespace pflib
 
-#endif // PFLIB_lpGBT_ICEC_H_INCLUDED
-
-
+#endif  // PFLIB_lpGBT_ICEC_H_INCLUDED

@@ -1,8 +1,8 @@
 #include "set_toa.h"
 
-#include "pflib/utility/string_format.h"
 #include "pflib/DecodeAndBuffer.h"
 #include "pflib/Exception.h"
+#include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
 
@@ -16,31 +16,30 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   // Here I used 200 but there is maybe a better value.
   int calib = 200;
   auto test_param_handle = roc.testParameters()
-      .add(refvol_page, "CALIB",  calib)
-      .add(refvol_page, "INTCTEST", 1)
-      .add(channel_page, "LOWRANGE", 1)
-      .apply();
-
+                               .add(refvol_page, "CALIB", calib)
+                               .add(refvol_page, "INTCTEST", 1)
+                               .add(channel_page, "LOWRANGE", 1)
+                               .apply();
 
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
   pflib::DecodeAndBuffer buffer(nevents);
 
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+                 1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
-    auto test_handle = roc.testParameters()
-      .add(refvol_page, "TOA_VREF", toa_vref)
-      .apply();
+    auto test_handle =
+        roc.testParameters().add(refvol_page, "TOA_VREF", toa_vref).apply();
     tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
-    for (const pflib::packing::SingleROCEventPacket &ep : buffer.get_buffer()) {
+    for (const pflib::packing::SingleROCEventPacket& ep : buffer.get_buffer()) {
       auto toa = ep.channel(channel).toa();
       if (toa > 0) {
         toa_data.push_back(toa);
       }
     }
-    toa_eff = static_cast<double>(toa_data.size())/nevents;
+    toa_eff = static_cast<double>(toa_data.size()) / nevents;
     if (toa_eff == 1) {
       roc.applyParameter(refvol_page, "TOA_VREF", toa_vref);
       pflib_log(info) << "the TOA threshold is set to " << toa_vref;
@@ -48,5 +47,6 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
     }
     toa_vref += 1;
   }
-  PFEXCEPTION_RAISE("NOTOA", "No TOA threshold was found for channel " + std::to_string(channel) + "!");
+  PFEXCEPTION_RAISE("NOTOA", "No TOA threshold was found for channel " +
+                                 std::to_string(channel) + "!");
 }

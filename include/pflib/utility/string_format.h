@@ -27,12 +27,13 @@ namespace pflib::utility {
  * which has a line-by-line explanation for those who wish to learn more C++!
  * I've modified it slightly to use our exceptions and longer variable names.
  */
-template<typename ... Args>
-std::string string_format(const std::string& format, Args ... args) {
+template <typename... Args>
+std::string string_format(const std::string& format, Args... args) {
   // length of string without the closing null byte \0
   int size_s = std::snprintf(nullptr, 0, format.c_str(), args...);
   if (size_s < 0) {
-    PFEXCEPTION_RAISE("string_format", "error during formating of string "+format);
+    PFEXCEPTION_RAISE("string_format",
+                      "error during formating of string " + format);
   }
   // need one larger for the closing null byte
   auto size = static_cast<std::size_t>(size_s + 1);
@@ -43,4 +44,4 @@ std::string string_format(const std::string& format, Args ... args) {
   return std::string(buffer.get(), buffer.get() + size - 1);
 }
 
-}
+}  // namespace pflib::utility

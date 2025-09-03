@@ -77,6 +77,6 @@ class Rcfile {
   std::vector<HelpInfo> helpInfo_;
 };
 
-}
+}  // namespace pflib::menu
 
 #endif  // Rcfile_h_included_

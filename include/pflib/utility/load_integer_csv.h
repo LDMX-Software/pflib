@@ -21,8 +21,10 @@ namespace pflib::utility {
  *
  * @throws Exception if no file is provided or file cannot be opened
  */
-void load_integer_csv(const std::string& file_name,
-                      std::function<void(const std::vector<int>&)> Action,
-                      std::optional<std::function<void(const std::vector<std::string>&)>> HeaderAction = std::nullopt);
+void load_integer_csv(
+    const std::string& file_name,
+    std::function<void(const std::vector<int>&)> Action,
+    std::optional<std::function<void(const std::vector<std::string>&)>>
+        HeaderAction = std::nullopt);
 
-}
+}  // namespace pflib::utility

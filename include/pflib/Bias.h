@@ -56,7 +56,7 @@ class MAX5825 {
    * returned bytes.
    */
   std::vector<uint8_t> get(uint8_t channel);
-  
+
   void set(uint8_t channel, uint16_t data_bytes);
 
   /**

@@ -4,12 +4,13 @@
 */
 #include <stdint.h>
 #include <stdio.h>
+
 #include <ostream>
 
 #include "pflib/Exception.h"
 #include "pflib/FastControl.h"
-#include "pflib/zcu/UIO.h"
 #include "pflib/Logging.h"
+#include "pflib/zcu/UIO.h"
 
 namespace pflib {
 
@@ -62,15 +63,11 @@ class Periodic {
   }
   void request() { uio_.rmw(offset_ + 0, 0x2, 0x2); }
   friend std::ostream& operator<<(std::ostream& o, const Periodic& p) {
-    o << "{ "
-      << " enable: " << p.enable << ','
-      << " enable_follow: " << p.enable_follow << ','
-      << " flavor: " << p.flavor << ','
-      << " follow_which: " << p.follow_which << ','
-      << " bx: " << p.bx << ','
-      << " orbit_prescale: " << p.orbit_prescale << ','
-      << " burst_length: " << p.burst_length
-      << " }";
+    o << "{ " << " enable: " << p.enable << ','
+      << " enable_follow: " << p.enable_follow << ',' << " flavor: " << p.flavor
+      << ',' << " follow_which: " << p.follow_which << ',' << " bx: " << p.bx
+      << ',' << " orbit_prescale: " << p.orbit_prescale << ','
+      << " burst_length: " << p.burst_length << " }";
     return o;
   }
   void pack() {
@@ -94,9 +91,11 @@ class Periodic {
 class FastControlCMS_MMap : public FastControl {
  public:
   FastControlCMS_MMap() : FastControl(), uio_("fastcontrol_axi", 4096) {
-    pflib_log(debug) << "pedestal fast command: " << periodic(PEDESTAL_PERIODIC);
+    pflib_log(debug) << "pedestal fast command: "
+                     << periodic(PEDESTAL_PERIODIC);
     pflib_log(debug) << "charge fast command: " << periodic(CHARGE_PERIODIC);
-    pflib_log(debug) << "charge-l1a fast command: " << periodic(CHARGE_L1A_PERIODIC);
+    pflib_log(debug) << "charge-l1a fast command: "
+                     << periodic(CHARGE_L1A_PERIODIC);
     pflib_log(debug) << "led fast command: " << periodic(LED_PERIODIC);
     pflib_log(debug) << "led-l1a fast command: " << periodic(LED_L1A_PERIODIC);
   }
@@ -244,9 +243,13 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
-  virtual void clear_run() override { uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr); }
+  virtual void clear_run() override {
+    uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
+  }
 
-  virtual void bufferclear() override { uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr); }
+  virtual void bufferclear() override {
+    uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr);
+  }
 
   virtual void chargepulse() override { periodic(CHARGE_PERIODIC).request(); }
 

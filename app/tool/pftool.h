@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "pflib/menu/Menu.h"
 #include "pflib/Target.h"
+#include "pflib/menu/Menu.h"
 
 /**
  * get a logger using the file name as the channel name
@@ -21,8 +21,7 @@
  * @macro ENABLE_LOGGING
  * Enable logging using the file name as the channel name
  */
-#define ENABLE_LOGGING() \
-  static auto the_log_{get_by_file(__FILE__)};
+#define ENABLE_LOGGING() static auto the_log_{get_by_file(__FILE__)};
 
 /**
  * pull the target of our menu into this source file to reduce code
@@ -45,6 +44,7 @@ class pftool : public pflib::menu::Menu<Target*> {
     std::vector<std::string> page_names_;
     /// list of parameter names for tab-completion
     std::map<std::string, std::vector<std::string>> param_names_;
+
    public:
     /// default constructor which sets default type_version
     State();

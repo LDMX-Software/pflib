@@ -1,7 +1,7 @@
 #include "pflib/DecodeAndWrite.h"
 
-#include "pflib/packing/BufferReader.h"
 #include "pflib/Exception.h"
+#include "pflib/packing/BufferReader.h"
 
 namespace pflib {
 
@@ -22,15 +22,19 @@ void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
 DecodeAndWriteToCSV::DecodeAndWriteToCSV(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream& f, const pflib::packing::SingleROCEventPacket&)> write_event
-) : DecodeAndWrite(), file_{file_name}, write_event_{write_event} {
+    std::function<void(std::ofstream& f,
+                       const pflib::packing::SingleROCEventPacket&)>
+        write_event)
+    : DecodeAndWrite(), file_{file_name}, write_event_{write_event} {
   if (not file_) {
-    PFEXCEPTION_RAISE("FileOpen", "unable to open "+file_name+" for writing");
+    PFEXCEPTION_RAISE("FileOpen",
+                      "unable to open " + file_name + " for writing");
   }
   write_header(file_);
 }
 
-void DecodeAndWriteToCSV::write_event(const pflib::packing::SingleROCEventPacket& ep) {
+void DecodeAndWriteToCSV::write_event(
+    const pflib::packing::SingleROCEventPacket& ep) {
   write_event_(file_, ep);
 }
 
@@ -43,8 +47,7 @@ DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
       },
       [](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
         ep.to_csv(f);
-      }
-  );
+      });
 }
 
-}
+}  // namespace pflib

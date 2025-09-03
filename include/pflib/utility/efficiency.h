@@ -12,4 +12,4 @@ namespace pflib::utility {
  */
 double efficiency(std::vector<int> samples);
 
-}
+}  // namespace pflib::utility

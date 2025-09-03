@@ -4,9 +4,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "pflib/utility/crc.h"
-#include "pflib/packing/Hex.h"
 #include "pflib/Exception.h"
+#include "pflib/packing/Hex.h"
+#include "pflib/utility/crc.h"
 
 namespace pflib::packing {
 
@@ -36,11 +36,10 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   corruption[3] = ((header >> (1 + 4)) & mask<1>) == 1;
   corruption[4] = ((header >> (4)) & mask<1>) == 1;
   uint32_t trailflag = (header & mask<4>);
-  corruption[5] = (trailflag != 0b0101 and trailflag != 0b0010 );
+  corruption[5] = (trailflag != 0b0101 and trailflag != 0b0010);
   if (corruption[5]) {
-    pflib_log(warn)
-        << "bad trailing 4 bits of header (0b0101 or 0b0010): "
-        << std::bitset<4>(trailflag);
+    pflib_log(warn) << "bad trailing 4 bits of header (0b0101 or 0b0010): "
+                    << std::bitset<4>(trailflag);
   }
 
   const uint32_t& cm{data[1]};
@@ -48,7 +47,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   corruption[6] = (((cm >> 20) & mask<12>) != 0);
   if (corruption[6]) {
     // these leading bits are ignored in the CMS hexactrl-sw decoding
-    // so we are going to ignore them here putting 
+    // so we are going to ignore them here putting
     pflib_log(warn) << "bad common mode leading 12 bits (should be all zero): "
                     << std::bitset<12>(cm >> 20);
   }
@@ -73,8 +72,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
                    << " Tc = " << std::boolalpha << calib.Tc()
                    << " adc = " << calib.adc()
                    << " adc_tm1 = " << calib.adc_tm1()
-                   << " tot = " << calib.tot()
-                   << " toa = " << calib.toa();
+                   << " tot = " << calib.tot() << " toa = " << calib.toa();
 
   for (; i_chan < 36; i_chan++) {
     channels[i_chan].word = data[2 + 1 + i_chan];
@@ -93,7 +91,8 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   corruption[1] = (crcval != target);
   // no warning on CRC sum, again like CMS hexactrl-sw
   if (corruption[1]) {
-    pflib_log(warn) << "CRC sum don't match " << hex(crcval) << " != " << hex(target);
+    pflib_log(warn) << "CRC sum don't match " << hex(crcval)
+                    << " != " << hex(target);
   }
 }
 

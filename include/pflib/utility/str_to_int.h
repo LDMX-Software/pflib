@@ -26,4 +26,4 @@ namespace pflib::utility {
  */
 int str_to_int(std::string str);
 
-}
+}  // namespace pflib::utility

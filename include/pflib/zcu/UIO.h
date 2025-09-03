@@ -45,7 +45,6 @@ class UIO {
   /** Open a given device file directly */
   void iopen(const std::string& dev, size_t size = 4096);
 
-
   int first_bit_set(uint32_t mask) {
     int i;
     for (i = 0; i < 32; i++)
