@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
-#include <cstdint>
+
 #include "pflib/packing/Reader.h"
 
 namespace pflib::packing {

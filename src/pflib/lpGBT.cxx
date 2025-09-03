@@ -112,7 +112,71 @@ static constexpr uint16_t REG_ADC_CONFIG = 0x123;
 static constexpr uint16_t REG_ADC_STATUS_H = 0x1ca;
 static constexpr uint16_t REG_ADC_STATUS_L = 0x1cb;
 
+static constexpr uint16_t REG_EPTXDATARATE = 0x0a8;
+static constexpr uint16_t REG_EPTXCONTROL = 0x0a9;
+static constexpr uint16_t REG_EPTX10ENABLE = 0x0aa;
+static constexpr uint16_t REG_EPTXECCHNCNTR = 0x0ac;
+static constexpr uint16_t REG_EPTX00ChnCntr = 0x0ae;
+static constexpr uint16_t REG_EPTX01_00ChnCntr = 0x0be;
+static constexpr uint16_t REG_EPRX0CONTROL = 0x0c8;
+static constexpr uint16_t REG_EPRX00CHNCNTR = 0x0d0;
 static constexpr uint16_t REG_ECLK_BASE = 0x06e;
+static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
+
+static constexpr uint16_t REG_FUSECONTROL = 0x119;
+static constexpr uint16_t REG_FUSEADDRH = 0x11E;
+static constexpr uint16_t REG_FUSEADDRL = 0x11F;
+static constexpr uint16_t REG_FUSESTATUS = 0x1B1;
+static constexpr uint16_t REG_FUSEREADA = 0x1B2;
+
+static uint32_t rotate_right(uint32_t value, int shift) {
+  return (value >> shift) | ((value << (32 - shift)) & 0xFFFFFFFFu);
+}
+
+uint32_t lpGBT::read_efuse(uint16_t reg) {
+  bit_set(REG_FUSECONTROL, 1);  // FuseRead
+  while (!(read(REG_FUSESTATUS) & (1 << 2))) {
+    usleep(1);
+  }
+  // wait for ready
+  write(REG_FUSEADDRH, uint8_t(reg >> 8));
+  write(REG_FUSEADDRL, uint8_t(reg));
+  uint32_t retval(0);
+  for (int i = 4; i > 0; i--) {
+    retval = retval << 8;
+    retval = retval | read(REG_FUSEREADA + i - 1);
+  }
+  bit_clr(REG_FUSECONTROL, 1);  // FuseRead
+  bit_clr(REG_FUSECONTROL, 0);  // FuseRead
+  return retval;
+}
+
+uint32_t lpGBT::serial_number() {
+  const int points[] = {0, 0, 0x8, 6, 0xC, 12, 0x10, 18, 0x14, 24};
+  uint32_t results[5];
+  for (int i = 0; i < 5; i++) {
+    // fuse read
+    results[i] = read_efuse(points[i * 2]);
+    uint32_t raw = results[i];
+    // rotate
+    results[i] = rotate_right(results[i], points[i * 2 + 1]);
+    //    printf("0x%08x 0x%0x\n",raw,results[i]);
+  }
+  if (results[1] == 0 && results[2] == 0 && results[3] == 0 &&
+      results[4] == 0) {  // no redundency
+    return results[0];
+  } else {
+    uint32_t voted = 0;
+    for (int i = 0; i < 32; i++) {
+      int nones = 0;
+      for (int j = 0; j < 5; j++)
+        if (results[j] & (1 << i)) nones++;
+      if (nones >= 3) voted |= (1 << i);
+      //      if (nones!=0 && nones!=5) printf("Disagreement in bit %d\n",i);
+    }
+    return voted;
+  }
+}
 
 void lpGBT::gpio_set(int ibit, bool high) {
   if (ibit < 0 || ibit > 15) {
@@ -267,6 +331,73 @@ uint16_t lpGBT::adc_read(int ipos, int ineg, int gain) {
   return adc_value;
 }
 
+void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
+                      bool invert, bool term, int equalization, bool acbias) {
+  if (irx < 0 || irx > 5) return;
+  if (irx >= 3) irx++;  // irx=3 is EDIN4, 4->5, 5->6
+
+  // enable first channel, set speed and alignment strategy
+  tport_.write_reg(REG_EPRX0CONTROL + irx,
+                   0x10 | ((speed & 0x3) << 2) | (align & 0x3));
+  //
+  tport_.write_reg(REG_EPRX00CHNCNTR + irx * 4,
+                   ((alignphase & 0xF) << 4) | ((invert) ? (0x8) : (0)) |
+                       ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
+  // ignore equalization for now
+}
+
+void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
+                      int pe_strength, int pe_width) {
+  if (itx < 0 || itx > 6) return;
+  // 0x12 -> EGROUP 1, LINK 2
+  static constexpr uint8_t MAP_ETX[7] = {0x00, 0x01, 0x10, 0x20,
+                                         0x21, 0x30, 0x31};
+
+  // always set up the data rate
+  tport_.write_reg(REG_EPTXDATARATE, 0xFF);  // all links at 320 MBps
+  tport_.write_reg(REG_EPTXCONTROL, 0x0F);   // enable mirroring
+  int iport = (MAP_ETX[itx] >> 4);
+  int ipin = (MAP_ETX[itx] & 0xF);
+
+  if (!enable) {
+    bit_clr(REG_EPTX10ENABLE + iport / 2, (iport % 2) * 4 + ipin);
+    return;
+  } else {
+    bit_set(REG_EPTX10ENABLE + iport / 2, (iport % 2) * 4 + ipin);
+  }
+
+  uint16_t reg = REG_EPTX00ChnCntr + iport * 4 + ipin;
+  tport_.write_reg(
+      reg, ((pe_strength & 0x7) << 5) | ((pe_mode & 0x3) << 3) | (drive & 0x7));
+
+  reg = REG_EPTX01_00ChnCntr + iport * 2 + ipin / 2;
+  uint8_t val = tport_.read_reg(reg);
+  if (ipin % 1) {
+    val = val & 0x0F;
+    if (invert) val |= 0x80;
+    val |= (pe_width & 0x7) << 4;
+  } else {
+    val = val & 0xF0;
+    if (invert) val |= 0x08;
+    val |= (pe_width & 0x7);
+  }
+  tport_.write_reg(reg, val);
+}
+
+void lpGBT::setup_ec(bool invert_tx, int drive, bool fixed, int alignphase,
+                     bool invert_rx, bool term, bool acbias, bool pullup) {
+  // enable enable, pick fixed or not
+  tport_.write_reg(REG_EPRX0CONTROL + 7, 0x10 | (fixed ? (1) : (0)));
+  // phase, invert, bias, term, pullup
+  tport_.write_reg(REG_EPRX00CHNCNTR + 7 * 4,
+                   ((alignphase & 0x7) << 4) | ((invert_rx) ? (0x8) : (0)) |
+                       ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)) |
+                       ((pullup) ? (0x1) : (0)));
+  // TX side
+  tport_.write_reg(REG_EPTXECCHNCNTR,
+                   ((drive & 0x7) << 5) | ((invert_tx) ? (0x4) : (0)) | 0x1);
+}
+
 void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
   if (ieclk < 0 || ieclk > 7) return;
   static constexpr uint8_t MAP_ECLK[8] = {28, 6, 4, 1, 19, 21, 27, 25};
@@ -300,6 +431,31 @@ void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
 
   write(REG_ECLK_BASE + which_clk * 2, ctl);
   // currently no ability to mess with pre-emphasis
+}
+
+int lpGBT::status() { return read(REG_POWERUP_STATUS); }
+std::string lpGBT::status_name(int pusm) {
+  static const char* states[] = {"ARESET",
+                                 "RESET1",
+                                 "WAIT_VDD_STABLE",
+                                 "WAIT_VDD_HIGHER_THAN_0V90",
+                                 "STATE_COPY_FUSES",
+                                 "STATE_CALCULATE_CHECKSUM",
+                                 "COPY_ROM",
+                                 "PAUSE_FOR_PLL_CONFIG",
+                                 "WAIT_POWER_GOOD",
+                                 "RESET_PLL",
+                                 "WAIT_PLL_LOCK",
+                                 "INIT_SCRAM",
+                                 "RESETOUT",
+                                 "I2C_TRANS",
+                                 "PAUSE_FOR_DLL_CONFIG",
+                                 "RESET_DLLS",
+                                 "WAIT_DLL_LOCK",
+                                 "RESET_LOGIC_USING_DLL",
+                                 "WAIT_CHNS_LOCKED",
+                                 "READY"};
+  return states[pusm];
 }
 
 }  // namespace pflib

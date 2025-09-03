@@ -140,7 +140,8 @@ void ROC::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
   }
 }
 
-std::map<int, std::map<int, uint8_t>> ROC::getRegisters(const std::map<int, std::map<int, uint8_t>>& selected) {
+std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
+    const std::map<int, std::map<int, uint8_t>>& selected) {
   std::map<int, std::map<int, uint8_t>> chip_reg;
   if (selected.empty()) {
     /**
@@ -158,7 +159,8 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(const std::map<int, std:
      */
     for (auto& page : selected) {
       int page_id = page.first;
-      std::vector<uint8_t> on_chip_reg_values = readPage(page_id, N_REGISTERS_PER_PAGE);
+      std::vector<uint8_t> on_chip_reg_values =
+          readPage(page_id, N_REGISTERS_PER_PAGE);
       for (int i{0}; i < N_REGISTERS_PER_PAGE; i++) {
         // skip un-touched registers
         if (page.second.find(i) == page.second.end()) continue;
@@ -202,8 +204,7 @@ std::map<std::string, std::map<std::string, int>> ROC::defaults() {
   return compiler_.defaults();
 }
 
-std::map<int, std::map<int, uint8_t>>
-ROC::applyParameters(
+std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
     const std::map<std::string, std::map<std::string, int>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
@@ -314,9 +315,8 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
 }
 
 ROC::TestParameters::TestParameters(
-  ROC& roc,
-  std::map<std::string, std::map<std::string, int>> new_params)
-  : roc_{roc} {
+    ROC& roc, std::map<std::string, std::map<std::string, int>> new_params)
+    : roc_{roc} {
   previous_registers_ = roc_.applyParameters(new_params);
 }
 
@@ -324,19 +324,18 @@ ROC::TestParameters::~TestParameters() {
   roc_.setRegisters(previous_registers_);
 }
 
-ROC::TestParameters::Builder::Builder(ROC& roc)
-  : parameters_{}, roc_{roc} {}
+ROC::TestParameters::Builder::Builder(ROC& roc) : parameters_{}, roc_{roc} {}
 
 ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
-  const std::string& page, const std::string& param, const int& val) {
+    const std::string& page, const std::string& param, const int& val) {
   parameters_[page][param] = val;
   return *this;
 }
 
 ROC::TestParameters::Builder& ROC::TestParameters::Builder::add_all_channels(
-  const std::string& param, const int& val) {
+    const std::string& param, const int& val) {
   for (int ch{0}; ch < 72; ch++) {
-    add("CH_"+std::to_string(ch), param, val);
+    add("CH_" + std::to_string(ch), param, val);
   }
   return *this;
 }

@@ -28,9 +28,11 @@ BOOST_AUTO_TEST_CASE(single_register_rocv3) {
                       "multi-bit parameter setting not overwriting other "
                       "parameters in register");
   BOOST_TEST_INFO("too-large values throw exceptions");
-  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", 255, registers), pflib::Exception);
+  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", 255, registers),
+                    pflib::Exception);
   BOOST_TEST_INFO("negative values throw exceptions");
-  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", -12, registers), pflib::Exception);
+  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", -12, registers),
+                    pflib::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(one_param_multi_registers) {
@@ -50,7 +52,9 @@ BOOST_AUTO_TEST_CASE(one_param_multi_registers) {
                       "overwriting other parameters in register");
 
   BOOST_TEST_INFO("too-large values throw exceptions");
-  BOOST_CHECK_THROW(c.compile("DIGITALHALF_0", "BX_TRIGGER", 1 << 13, registers), pflib::Exception);
+  BOOST_CHECK_THROW(
+      c.compile("DIGITALHALF_0", "BX_TRIGGER", 1 << 13, registers),
+      pflib::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(big_32bit_params) {

@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include <vector>
 #include <map>
+#include <vector>
 
 namespace pflib {
 
@@ -60,8 +60,10 @@ class DAQ {
   virtual void advanceLinkReadPtr() {}
 
   // get any useful debugging data
-  virtual std::map<std::string, uint32_t> get_debug() { return std::map<std::string, uint32_t>(); }
-  
+  virtual std::map<std::string, uint32_t> get_debug() {
+    return std::map<std::string, uint32_t>();
+  }
+
  private:
   /// number of links
   int n_links;

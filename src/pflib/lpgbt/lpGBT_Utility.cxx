@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pflib/utility/str_to_int.h"
 #include "pflib/lpgbt/lpGBT_Registers.h"
+#include "pflib/utility/str_to_int.h"
 
 namespace pflib {
 namespace lpgbt {

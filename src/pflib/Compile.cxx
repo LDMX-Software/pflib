@@ -4,9 +4,9 @@
 #include <yaml-cpp/yaml.h>
 
 #include <algorithm>
-#include <numeric>
 #include <iostream>
 #include <map>
+#include <numeric>
 
 #include "pflib/Exception.h"
 
@@ -47,19 +47,17 @@ std::size_t msb(uint32_t v) {
 }
 
 void Compiler::compile(const std::string& page_name,
-                       const std::string& param_name,
-                       const int& val,
+                       const std::string& param_name, const int& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint32_t uval{static_cast<uint32_t>(val)};
 
-  std::size_t total_nbits = std::accumulate(
-      spec.registers.begin(), spec.registers.end(), 0,
-      [](std::size_t bit_count, const RegisterLocation &rhs) {
-        return bit_count + rhs.n_bits; 
-      }
-  );
+  std::size_t total_nbits =
+      std::accumulate(spec.registers.begin(), spec.registers.end(), 0,
+                      [](std::size_t bit_count, const RegisterLocation& rhs) {
+                        return bit_count + rhs.n_bits;
+                      });
   std::size_t val_msb = msb(uval);
   if (val_msb >= total_nbits) {
     std::stringstream msg;
@@ -207,13 +205,15 @@ std::map<std::string, std::map<std::string, int>> Compiler::decompile(
   return settings;
 }
 
-std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(const std::string& page) {
+std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(
+    const std::string& page) {
   std::string PAGE{upper_cp(page)};
   auto page_it{parameter_lut_.find(PAGE)};
   if (page_it == parameter_lut_.end()) {
-    PFEXCEPTION_RAISE("BadPage", "Input page "+page+" is not present in the look up table.");
+    PFEXCEPTION_RAISE("BadPage", "Input page " + page +
+                                     " is not present in the look up table.");
   }
-  std::map<int, std::map<int,uint8_t>> registers;
+  std::map<int, std::map<int, uint8_t>> registers;
   for (const auto& param : page_it->second.second) {
     compile(page, param.first, 0, registers);
   }

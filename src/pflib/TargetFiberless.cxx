@@ -16,9 +16,9 @@ class HcalFiberless : public Hcal {
   static const int GPO_HGCROC_RESET_SOFT = 1;
   static const int GPO_HGCROC_RESET_I2C = 0;
 
-  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c)
+  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c,
+                const std::vector<std::shared_ptr<I2C>>& bias_i2c)
       : Hcal(roc_i2c, bias_i2c) {
-
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
     // should already be done, but be SURE
@@ -55,11 +55,14 @@ class HcalFiberless : public Hcal {
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
-    
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
-    if(i2croc_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");}
+    if (i2croc_ < 0) {
+      PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
+    }
     i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
-    if(i2cboard_ < 0){PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");}
+    if (i2cboard_ < 0) {
+      PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
+    }
 
     i2c_["HGCROC"] = i2croc_;
     i2c_["BOARD"] = i2cboard_;
@@ -111,12 +114,12 @@ std::vector<uint32_t> TargetFiberless::read_event() {
       case DaqFormat::SIMPLEROC: {
         buffer.push_back(0x11888811);
         buffer.push_back(0xbeef2025);
-    
+
         buffer.push_back(0);  // come back to this
         for (int i = 0; i < (hcal().daq().nlinks() + 1) / 2; i++)
           buffer.push_back(0);  // come back to this
         size_t len_total = buffer.size() - 2;
-    
+
         for (int i = 0; i < hcal().daq().nlinks(); i++) {
           std::vector<uint32_t> data = hcal().daq().getLinkData(i);
           if (i >= 2) {  // trigger links
@@ -137,7 +140,8 @@ std::vector<uint32_t> TargetFiberless::read_event() {
         buffer.push_back(0xd07e2025);
         buffer.push_back(0x12345678);
         hcal().daq().advanceLinkReadPtr();
-      } break; case DaqFormat::ECOND_NO_ZS: {
+      } break;
+      case DaqFormat::ECOND_NO_ZS: {
         const int bc = 0;  // bx number...
         buffer.push_back(0xb33f2025);
         buffer.push_back(run_);
@@ -145,7 +149,7 @@ std::vector<uint32_t> TargetFiberless::read_event() {
         buffer.push_back(0);
         buffer.push_back((0xA6u << 24) | (contribid_ << 16) |
                          (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
-    
+
         for (int il1a = 0; il1a < hcal().daq().samples_per_ror(); il1a++) {
           formatter_.startEvent(bc + il1a * 2, l1a_ + il1a,
                                 0);      // assume orbit zero, L1A spaced by two
@@ -161,15 +165,16 @@ std::vector<uint32_t> TargetFiberless::read_event() {
           if (il1a == hcal().daq().samples_per_ror() - 1) header |= 0x8000;
           header |= il1a << 12;
           buffer.push_back(header);
-    
+
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),
                         formatter_.getPacket().end());
-    
+
           hcal().daq().advanceLinkReadPtr();
         }
         l1a_ += hcal().daq().samples_per_ror();
         buffer.push_back(0x12345678);
-      } break; default: {
+      } break;
+      default: {
         PFEXCEPTION_RAISE("NoImpl", "DaqFormat provided is not implemented");
       }
     }

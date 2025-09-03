@@ -164,6 +164,7 @@ add_library(pflib SHARED
   src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
+  src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
@@ -209,7 +210,10 @@ file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
 add_executable(pftool ${pftool_sources})
 target_link_libraries(pftool PRIVATE pflib menu)
 
-add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
+add_executable(pflpgbt app/lpgbt/main.cxx 
+  app/lpgbt/lpgbt_mezz_tester.cc
+  app/lpgbt/zcu_optolink.cc
+)
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments

@@ -36,12 +36,11 @@ int Sample::tot() const {
   }
 }
 
-const std::string Sample::to_csv_header =
-  "Tp,Tc,adc_tm1,adc,tot,toa";
+const std::string Sample::to_csv_header = "Tp,Tc,adc_tm1,adc,tot,toa";
 
 void Sample::to_csv(std::ofstream& f) const {
-  f << Tp() << ',' << Tc() << ','
-    << adc_tm1() << ',' << adc() << ',' << tot() << ',' << toa();
+  f << Tp() << ',' << Tc() << ',' << adc_tm1() << ',' << adc() << ',' << tot()
+    << ',' << toa();
 }
 
 }  // namespace pflib::packing
