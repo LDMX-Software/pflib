@@ -6,6 +6,7 @@
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
 #include "pflib/packing/TriggerLinkFrame.h"
+#include "pflib/packing/ECONDEventPacket.h"
 
 BOOST_AUTO_TEST_SUITE(decoding)
 
@@ -262,6 +263,10 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
     0x1bb1292f // CRC for sub-packets
                // no IDLE word?
   };
+
+  pflib::logging::set(pflib::logging::level::trace);
+  pflib::packing::ECONDEventPacket ep{6};
+  ep.from(frame);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
