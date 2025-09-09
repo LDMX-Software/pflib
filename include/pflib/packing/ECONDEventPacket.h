@@ -2,6 +2,7 @@
 
 #include <array>
 #include <span>
+#include <bitset>
 
 #include "pflib/Logging.h"
 #include "pflib/packing/Reader.h"
@@ -26,10 +27,14 @@ class ECONDEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
  
  public:
-  struct LinkSubPacket {
+  class LinkSubPacket {
+    mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+   public:
+    std::array<bool, 1> corruption;
     std::size_t length;
     std::bitset<37> channel_map;
-    // channel data
+    // temp solution while developing: (i_chan, unpacked data word 16-32 bits)
+    std::vector<std::tuple<int,uint32_t>> channel_data;
     /// parse into this package from the passed data span
     void from(std::span<uint32_t> data);
   };
