@@ -58,31 +58,60 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
       auto code{(data[length] >> (bits_left_in_current_word - 4)) & mask<4>};
       pflib_log(trace) << "ch " << i_chan << " code = " << std::bitset<4>(code)
         << " (top two = " << std::bitset<2>(code >> 2) << ")";
-      int nbits{0};
+      int nbits{0}, code_len{4}, extra{0};
+      bool has_adctm1{true}, has_toa{true};
       if (code == 0b0000) {
         // TOA ZS
+        code_len = 4;
+        has_adctm1 = true;
+        has_toa = false;
+        extra = 0;
         nbits = 24;
       } else if (code == 0b0001) {
         // ADC(-1) and TOA ZS
+        code_len = 4;
+        has_adctm1 = false;
+        has_toa = false;
+        extra = 2;
         nbits = 16;
       } else if (code == 0b0010) {
         // No ZS or ...
+        code_len = 4;
+        has_adctm1 = true;
+        has_toa = false;
+        extra = 0;
         nbits = 24;
       } else if (code == 0b0011) {
         // ADC(-1) ZS
+        code_len = 4;
+        has_adctm1 = false;
+        has_toa = true;
+        extra = 0;
         nbits = 24;
       } else if ((code >> 2) == 0b01) {
         // full pass ZS in ADC mode
+        code_len = 2;
+        has_adctm1 = true;
+        has_toa = true;
+        extra = 0;
         nbits = 32;
       } else if ((code >> 2) == 0b11) {
         // pass ZS because in TOT mode
+        code_len = 2;
+        has_adctm1 = true;
+        has_toa = true;
+        extra = 0;
         nbits = 32;
       } else if ((code >> 2) == 0b10) {
         // invalid code, return full word
         pflib_log(warn) << "ECOND eRx invalid code " << std::bitset<4>(code);
+        code_len = 2;
+        has_adctm1 = true;
+        has_toa = true;
+        extra = 0;
         nbits = 32;
       } else {
-        pflib_log(warn) << "unrecognized ECOND eRx code " << std::bitset<4>(code);
+        pflib_log(error) << "unrecognized ECOND eRx code " << std::bitset<4>(code);
       }
       pflib_log(trace) << "    nbits=" << nbits;
 
@@ -100,7 +129,35 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
       }
 
       pflib_log(trace) << "    chan_data=" << hex(chan_data);
+      int adc_tm1{-1}, adc{-1}, tot{-1}, toa{-1};
 
+      // shift out padding extra bits
+      chan_data >>= extra;
+
+      // next lowest 10 bits are TOA if it has it
+      if (has_toa) {
+        toa = (chan_data & mask<10>);
+        chan_data >>= 10;
+      }
+
+      // next lowest 10 bits are the main sample ADC or TOT
+      uint32_t sample = (chan_data & mask<10>);
+      chan_data >>= 10;
+      if (code_len == 2 and (code >> 2) == 0b11) {
+        tot = sample;
+      } else {
+        adc = sample;
+      }
+
+      // next lowest 10 bits are the ADCt-1 if it has it
+      if (has_adctm1) {
+        adc_tm1 = (chan_data & mask<10>);
+      }
+
+      pflib_log(trace) << "    ADC(t-1)=" << adc_tm1
+                       << " ADC=" << adc
+                       << " TOT=" << tot
+                       << " TOA=" << toa;
       channel_data.emplace_back(i_chan, chan_data);
 
       if (bits_left_in_current_word == 0) {
