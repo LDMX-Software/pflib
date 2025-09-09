@@ -50,15 +50,15 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
         continue;
       }
 
-
       pflib_log(trace) << hex(data[length]);
 
-      // attempt to translate Fig 20
-      // can the 2-4 bit code span multiple words?
+      // The code cannot span multiple words because the format is byte aligned and we
+      // start with a 4 or 2 bit code.
       auto code{(data[length] >> (bits_left_in_current_word - 4)) & mask<4>};
       pflib_log(trace) << "ch " << i_chan << " code = " << std::bitset<4>(code)
         << " (top two = " << std::bitset<2>(code >> 2) << ")";
-      int nbits{0}, code_len{4}, extra{0};
+      // direct transcription of the table in Fig 20 of the ECOND Spec
+      int nbits{0}, code_len{0}, extra{0};
       bool has_adctm1{true}, has_toa{true};
       if (code == 0b0000) {
         // TOA ZS
@@ -103,7 +103,7 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
         extra = 0;
         nbits = 32;
       } else if ((code >> 2) == 0b10) {
-        // invalid code, return full word
+        // invalid but known code
         pflib_log(warn) << "ECOND eRx invalid code " << std::bitset<4>(code);
         code_len = 2;
         has_adctm1 = true;
@@ -111,10 +111,12 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
         extra = 0;
         nbits = 32;
       } else {
+        // unknown code probably meaning the unpacking/decoding is going wrong
         pflib_log(error) << "unrecognized ECOND eRx code " << std::bitset<4>(code);
       }
       pflib_log(trace) << "    nbits=" << nbits;
 
+      // get the channel data from the current and perhaps the next word
       uint32_t chan_data{0};
       if (bits_left_in_current_word < nbits) {
         int runon_length = nbits - bits_left_in_current_word;
@@ -129,6 +131,10 @@ void ECONDEventPacket::LinkSubPacket::from(std::span<uint32_t> data) {
       }
 
       pflib_log(trace) << "    chan_data=" << hex(chan_data);
+
+      // unpack the channel data into the measurements that it contains
+      // none of these measurements can be negative, so a negative value
+      // corresponds to an measurement that did not exist
       int adc_tm1{-1}, adc{-1}, tot{-1}, toa{-1};
 
       // shift out padding extra bits
