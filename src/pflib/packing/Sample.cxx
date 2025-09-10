@@ -43,4 +43,20 @@ void Sample::to_csv(std::ofstream& f) const {
     << ',' << toa();
 }
 
+void Sample::from_unpacked(int adc_tm1, int adc, int tot, int toa) {
+  /**
+   * We assume that negative values have been zero-suppressed by the ECON-D
+   * and thus should be represented by a value of zero.
+   * The only exception to this is the distinction between TOT and ADC mode.
+   * Since the TOT is _never_ zero-suppressed, if it is a positive value
+   * we assume that the channel was in TOT mode.
+   */
+  bool Tc = (tot > 0);
+  bool Tp = (tot > 0);
+  int msb_meas = (adc_tm1 < 0) ? 0 : adc_tm1;
+  int lsb_meas = (toa < 0) ? 0 : toa;
+  int mid_meas = (tot > 0) ? tot : ((adc < 0) ? 0 : adc);
+  word = (Tc << 31) + (Tp << 30) + ((msb_meas & mask<10>) << 20) + ((mid_meas & mask<10>) << 10) + (lsb_meas & mask<10>);
+}
+
 }  // namespace pflib::packing

@@ -124,8 +124,15 @@ BOOST_AUTO_TEST_SUITE(crc);
 
 BOOST_AUTO_TEST_CASE(increment) {
   std::vector<uint32_t> data = {0x02};
-  auto result = pflib::utility::crc(data);
+  auto result = pflib::utility::hgcroc_crc32(data);
   BOOST_CHECK_EQUAL(result, 0x09823b6e);
+}
+
+BOOST_AUTO_TEST_CASE(econd_example_header_crc) {
+  // Figure 34 from ECOND Spec
+  uint64_t data{0x00aa5741000750ac};
+  auto result = pflib::utility::econd_crc8(data);
+  BOOST_CHECK_EQUAL(result, 0xfc);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

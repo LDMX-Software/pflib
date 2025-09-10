@@ -6,6 +6,7 @@
 
 #include "pflib/Logging.h"
 #include "pflib/packing/Reader.h"
+#include "pflib/packing/DAQLinkFrame.h"
 
 namespace pflib::packing {
 
@@ -15,7 +16,7 @@ namespace pflib::packing {
  * The ECON-D is the CONcentrator mezzanine for the Data path
  * and it has many different configuration modes. The two most
  * important to us are
- * 1. "Pass Through" (or no Zero Suppression) mode
+ * 1. "Pass Through" mode
  * 2. Zero Suppression (ZS) mode
  * 
  * The ECOND_Formatter emulates the ECON-D re-formatting of the HGCROC
@@ -25,22 +26,10 @@ namespace pflib::packing {
  */
 class ECONDEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
- 
+  std::size_t unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link);
  public:
-  class LinkSubPacket {
-    mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
-   public:
-    std::array<bool, 1> corruption;
-    std::size_t length;
-    std::bitset<37> channel_map;
-    // temp solution while developing: (i_chan, unpacked data word 16-32 bits)
-    std::vector<std::tuple<int,uint32_t>> channel_data;
-    /// parse into this package from the passed data span
-    void from(std::span<uint32_t> data);
-  };
-
-  std::array<bool, 2> corruption;
-  std::vector<LinkSubPacket> link_subpackets;
+  std::array<bool, 4> corruption;
+  std::vector<DAQLinkFrame> link_subpackets;
 
   ECONDEventPacket(std::size_t n_links);
 
@@ -56,6 +45,14 @@ class ECONDEventPacket {
    * ```
    */
   Reader& read(Reader& r);
+  /// header string if using to_csv
+  static const std::string to_csv_header;
+  /**
+   * write current packet into a CSV
+   *
+   * @param[in,out] f file to write CSV to
+   */
+  void to_csv(std::ofstream& f) const;
 };
 
 }

@@ -108,6 +108,46 @@ BOOST_AUTO_TEST_CASE(characterization) {
   BOOST_CHECK(s.toa() == 3);
 }
 
+BOOST_AUTO_TEST_CASE(from_unpacked_zs) {
+  pflib::packing::Sample s;
+  // fully zero-suppressed sample produces zero word
+  s.from_unpacked(-1, -1, -1, -1);
+  BOOST_CHECK(s.word == 0);
+}
+
+BOOST_AUTO_TEST_CASE(from_unpacked_adc) {
+  pflib::packing::Sample s;
+  s.from_unpacked(-1, 42, -1, -1);
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 42);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.toa() == 0);
+  BOOST_CHECK(s.adc_tm1() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(from_unpacked_adc_toa) {
+  pflib::packing::Sample s;
+  s.from_unpacked(21, 42, -1, 12);
+  BOOST_CHECK(s.Tc() == false);
+  BOOST_CHECK(s.Tp() == false);
+  BOOST_CHECK(s.adc() == 42);
+  BOOST_CHECK(s.tot() == -1);
+  BOOST_CHECK(s.toa() == 12);
+  BOOST_CHECK(s.adc_tm1() == 21);
+}
+
+BOOST_AUTO_TEST_CASE(from_unpacked_tot) {
+  pflib::packing::Sample s;
+  s.from_unpacked(21, -1, 33, 12);
+  BOOST_CHECK(s.Tc() == true);
+  BOOST_CHECK(s.Tp() == true);
+  BOOST_CHECK(s.adc() == -1);
+  BOOST_CHECK(s.tot() == 33);
+  BOOST_CHECK(s.toa() == 12);
+  BOOST_CHECK(s.adc_tm1() == 21);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(daq_link_frame)
@@ -267,6 +307,9 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
   pflib::logging::set(pflib::logging::level::trace);
   pflib::packing::ECONDEventPacket ep{6};
   ep.from(frame);
+  std::ofstream of("eg-econd-nozs.csv");
+  of << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
+  ep.to_csv(of);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
