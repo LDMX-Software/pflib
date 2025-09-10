@@ -52,20 +52,19 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
   int bits_left_in_current_word{32};
   for (std::size_t i_chan{0}; i_chan < 37; i_chan++) {
     pflib_log(trace) << "length=" << length << " blic=" << bits_left_in_current_word << " i_ch=" << i_chan;
+
+    // deduce a reference to the channel that we are unpacking
+    Sample *ch = &(link.calib);
+    if (i_chan < 18) {
+      ch = &(link.channels[i_chan]);
+    } else if (i_chan > 18) {
+      ch = &(link.channels[i_chan-1]);
+    }
+
     // skip channels that are not passed
     if (not channel_map[i_chan]) {
       pflib_log(trace) << "skipping ch " << i_chan << " because its not in map";
-      if (i_chan == 18) {
-        // i_chan==18 is the calib channel from this data link
-        link.calib.word = 0;
-      } else {
-        // above 18 is off-by-one relative to link channel indexing
-        int i_ch = i_chan;
-        if (i_chan > 18) {
-          i_ch--;
-        }
-        link.channels[i_ch].word = 0;
-      }
+      ch->word = 0;
       continue;
     }
 
@@ -184,17 +183,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
                      << " TOT=" << tot
                      << " TOA=" << toa;
 
-    if (i_chan == 18) {
-      // i_chan==18 is the calib channel from this data link
-      link.calib.from_unpacked(adc_tm1, adc, tot, toa);
-    } else {
-      // above 18 is off-by-one relative to link channel indexing
-      int i_ch = i_chan;
-      if (i_chan > 18) {
-        i_ch--;
-      }
-      link.channels[i_ch].from_unpacked(adc_tm1, adc, tot, toa);
-    }
+    ch->from_unpacked(adc_tm1, adc, tot, toa);
 
     if (bits_left_in_current_word == 0) {
       length++;
