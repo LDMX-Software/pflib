@@ -27,12 +27,12 @@ BOOST_AUTO_TEST_CASE(single_register_rocv3) {
   BOOST_CHECK_MESSAGE(registers == expected,
                       "multi-bit parameter setting not overwriting other "
                       "parameters in register");
-  // current behavior: silently trim parameters that are too large
-  c.compile("CH_45", "TRIM_TOA", 255, registers);
-  expected[11][1] = 0b11111110;
-  BOOST_CHECK_MESSAGE(
-      registers == expected,
-      "silently-trim parameter if larger than number of bits available");
+  BOOST_TEST_INFO("too-large values throw exceptions");
+  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", 255, registers),
+                    pflib::Exception);
+  BOOST_TEST_INFO("negative values throw exceptions");
+  BOOST_CHECK_THROW(c.compile("CH_45", "TRIM_TOA", -12, registers),
+                    pflib::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(one_param_multi_registers) {
@@ -50,14 +50,29 @@ BOOST_AUTO_TEST_CASE(one_param_multi_registers) {
   BOOST_CHECK_MESSAGE(registers == expected,
                       "set parameter across multiple registers without "
                       "overwriting other parameters in register");
-  // bx_trigger is only 12 bits, so shifting 1 by 13 ends up setting it back to
-  // zero
-  c.compile("DIGITALHALF_0", "BX_TRIGGER", 1 << 13, registers);
-  expected[89][24] = 0;
-  expected[89][26] = 0b00001101;
-  BOOST_CHECK_MESSAGE(
-      registers == expected,
-      "silently trim parameter if larger than number of bits available");
+
+  BOOST_TEST_INFO("too-large values throw exceptions");
+  BOOST_CHECK_THROW(
+      c.compile("DIGITALHALF_0", "BX_TRIGGER", 1 << 13, registers),
+      pflib::Exception);
+}
+
+BOOST_AUTO_TEST_CASE(big_32bit_params) {
+  /**
+   * There are a few parameters that are a full 32 bits
+   * and I want to make sure we can handle them.
+   *
+   * For example, DIGITALHALF_1.SC_TESTRAM is 32 bits split
+   * across four registers. (page 43, registers 20-23)
+   */
+  pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
+  std::map<int, std::map<int, uint8_t>> registers, expected;
+  expected[43][20] = 0xab;
+  expected[43][21] = 0xcd;
+  expected[43][22] = 0xee;
+  expected[43][23] = 0xff;
+  c.compile("DIGITALHALF_1", "SC_TESTRAM", 0xffeecdab, registers);
+  BOOST_CHECK(registers == expected);
 }
 
 BOOST_AUTO_TEST_CASE(glob_pages) {

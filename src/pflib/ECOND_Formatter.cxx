@@ -1,4 +1,5 @@
 #include "pflib/ECOND_Formatter.h"
+
 #include <stdio.h>
 
 namespace pflib {
@@ -129,6 +130,4 @@ int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
   return 4;  // assume we just read out everything for now, but easy to add TOA zs logic
 }
 
-
 }  // namespace pflib
-

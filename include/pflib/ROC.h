@@ -1,10 +1,10 @@
 #ifndef PFLIB_ROC_H_INCLUDED
 #define PFLIB_ROC_H_INCLUDED
 
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
@@ -17,6 +17,7 @@ namespace pflib {
  */
 class ROC {
   static const int N_REGISTERS_PER_PAGE = 32;
+
  public:
   ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version);
 
@@ -47,7 +48,8 @@ class ROC {
    * @param[in] selected registers to get values for, all registers if empty
    * @return register values currently on the chip
    */
-  std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected = {});
+  std::map<int, std::map<int, uint8_t>> getRegisters(
+      const std::map<int, std::map<int, uint8_t>>& selected = {});
 
   /**
    * set registers on the HGCROC to specific values
@@ -126,6 +128,7 @@ class ROC {
   class TestParameters {
     std::map<int, std::map<int, uint8_t>> previous_registers_;
     ROC& roc_;
+
    public:
     /**
      * Construct a set of test parameters
@@ -134,9 +137,7 @@ class ROC {
      * the previous chip settings to be applied in the destructor
      */
     TestParameters(
-      ROC& roc,
-      std::map<std::string, std::map<std::string, int>> new_params
-    );
+        ROC& roc, std::map<std::string, std::map<std::string, int>> new_params);
     /// applies the unset parameters to the ROC
     ~TestParameters();
     /// cannot copy or assign this lock
@@ -146,9 +147,12 @@ class ROC {
     class Builder {
       std::map<std::string, std::map<std::string, int>> parameters_;
       ROC& roc_;
+
      public:
       Builder(ROC& roc);
-      Builder& add(const std::string& page, const std::string& param, const int& val);
+      Builder& add(const std::string& page, const std::string& param,
+                   const int& val);
+      Builder& add_all_channels(const std::string& param, const int& val);
       [[nodiscard]] TestParameters apply();
     };
   };

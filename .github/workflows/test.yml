@@ -1,0 +1,19 @@
+name: test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v5
+      - name: get just
+        uses: extractions/setup-just@v3
+      - name: get denv
+        run: |
+          curl -s https://tomeichlersmith.github.io/denv/install | sh
+          denv check
+      - name: basic compile and run tests
+        run: just init configure build test

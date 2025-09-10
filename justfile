@@ -12,18 +12,7 @@ _test *ARGS:
 
 # init a local denv for development
 init:
-    #!/bin/sh
-    set -o errexit
-    set -o nounset
-    if command -v podman &> /dev/null; then
-      podman build env/ -f env/Containerfile -t pflib-env:latest
-    elif command -v docker &> /dev/null; then
-      docker build env/ -f env/Containerfile -t pflib-env:latest
-    else
-      echo "Unable to build pflib-env locally without podman or docker."
-      exit 1
-    fi
-    denv init pflib-env:latest
+    denv init ghcr.io/ldmx-software/pflib-env:latest
 
 # configure pflib build
 configure: _cmake

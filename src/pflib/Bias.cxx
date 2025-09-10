@@ -19,26 +19,23 @@ const uint8_t MAX5825::CODEn_LOADn = 11 << 4;
 const uint8_t MAX5825::REFn = 2 << 4;
 const uint8_t MAX5825::POWERn = 4 << 4;
 
-
 MAX5825::MAX5825(std::shared_ptr<I2C>& i2c, uint8_t addr)
     : i2c_{i2c}, our_addr_{addr} {}
 
-
-
 std::vector<uint8_t> MAX5825::get(uint8_t channel) {
   uint8_t cmd = (uint8_t)(MAX5825::CODEn | (channel & 0x07));
-  
+
   std::vector<uint8_t> retval =
       i2c_->general_write_read_ioctl(our_addr_, {cmd}, 2);
 
   return retval;
 }
 
-void MAX5825::set(uint8_t channel, uint16_t code){
+void MAX5825::set(uint8_t channel, uint16_t code) {
   uint8_t cmd = (uint8_t)(0xB0 | (channel & 0x07));
-  
-  std::vector<uint8_t> retval =
-      i2c_->general_write_read_ioctl(our_addr_, {cmd, (code << 4) >> 8, (code << 4) & 0xFF}, 0);
+
+  std::vector<uint8_t> retval = i2c_->general_write_read_ioctl(
+      our_addr_, {cmd, (code << 4) >> 8, (code << 4) & 0xFF}, 0);
 }
 
 /*
@@ -103,14 +100,12 @@ const uint8_t Bias::ADDR_LED_1 = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
-
 Bias::Bias(std::shared_ptr<I2C>& i2c) {
   led_.emplace_back(i2c, Bias::ADDR_LED_0);
   led_.emplace_back(i2c, Bias::ADDR_LED_1);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_1);
 }
-
 
 /*
 void Bias::initialize() {
@@ -139,16 +134,16 @@ void Bias::cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
 }
 */
 
-int Bias::readSiPM(uint8_t channel){
+int Bias::readSiPM(uint8_t channel) {
   int i_chip = (channel > 7);
   std::vector<uint8_t> data = sipm_.at(i_chip).get((channel & 0x07));
-  return ((data.at(0)*256 +data.at(1)) >> 4);
+  return ((data.at(0) * 256 + data.at(1)) >> 4);
 }
 
-int Bias::readLED(uint8_t channel){
+int Bias::readLED(uint8_t channel) {
   int i_chip = (channel > 7);
   std::vector<uint8_t> data = led_.at(i_chip).get((channel & 0x07));
-  return ((data.at(0)*256 +data.at(1)) >> 4);
+  return ((data.at(0) * 256 + data.at(1)) >> 4);
 }
 
 void Bias::setSiPM(uint8_t channel, uint16_t code) {
@@ -164,6 +159,5 @@ void Bias::setLED(uint8_t channel, uint16_t code) {
 //void Bias::setSiPM(uint8_t i_sipm, uint16_t code) {
 //  cmdSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
 //}
-
 
 }  // namespace pflib

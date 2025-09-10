@@ -1,7 +1,5 @@
 #include "pflib/Logging.h"
 
-#include <filesystem>
-
 #include <boost/core/null_deleter.hpp>        //to avoid deleting std::cout
 #include <boost/log/expressions.hpp>          //for attributes and expressions
 #include <boost/log/sinks/sync_frontend.hpp>  //syncronous sink frontend
@@ -10,6 +8,7 @@
 #include <boost/log/utility/formatting_ostream.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/file.hpp>
+#include <filesystem>
 #include <unordered_map>
 
 namespace pflib::logging {
@@ -31,10 +30,6 @@ logger get(const std::string& name) {
   logger lg(boost::log::keywords::channel = name);
   logger_cache[name] = lg;
   return lg;
-}
-
-logger get_by_file(const std::string& prefix, const std::string& filepath) {
-  return get(prefix+std::string(std::filesystem::path(filepath).stem()));
 }
 
 /**

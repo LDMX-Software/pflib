@@ -23,4 +23,4 @@ int str_to_int(std::string str) {
   return std::stoi(str, nullptr, base);
 }
 
-}
+}  // namespace pflib::utility

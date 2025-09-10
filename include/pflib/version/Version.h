@@ -28,4 +28,4 @@ std::string git_describe();
  */
 std::string debug();
 
-}
+}  // namespace pflib::version

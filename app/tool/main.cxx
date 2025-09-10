@@ -7,15 +7,21 @@
 #include <filesystem>
 #include <fstream>
 
+#include "pflib/Compile.h"
 #include "pflib/menu/Rcfile.h"
 #include "pflib/version/Version.h"
-#include "pflib/Compile.h"
-
 #include "pftool.h"
 
-pftool::State::State() {
-  update_type_version("sipm_rocv3b");
+pflib::logging::logger get_by_file(const std::string& filepath) {
+  static const std::filesystem::path this_file{__FILE__};
+  static const std::filesystem::path this_parent{this_file.parent_path()};
+  std::filesystem::path fp{filepath};
+  std::string relative{std::filesystem::relative(fp, this_parent)};
+  std::replace(relative.begin(), relative.end(), '/', '.');
+  return pflib::logging::get("pftool." + relative);
 }
+
+pftool::State::State() { update_type_version("sipm_rocv3b"); }
 
 void pftool::State::update_type_version(const std::string& type_version) {
   if (type_version != type_version_) {
@@ -32,15 +38,14 @@ void pftool::State::update_type_version(const std::string& type_version) {
   type_version_ = type_version;
 }
 
-const std::string& pftool::State::type_version() const {
-  return type_version_;
-}
+const std::string& pftool::State::type_version() const { return type_version_; }
 
 const std::vector<std::string>& pftool::State::page_names() const {
   return page_names_;
 }
 
-const std::vector<std::string>& pftool::State::param_names(const std::string& page) const {
+const std::vector<std::string>& pftool::State::param_names(
+    const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
   auto param_list_it = param_names_.find(PAGE);
   if (param_list_it == param_names_.end()) {
@@ -70,9 +75,11 @@ std::string exec(const char* cmd) {
   std::string result;
   std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
   if (!pipe) {
-    PFEXCEPTION_RAISE("POpen", "popen() failed to run the command given to exec");
+    PFEXCEPTION_RAISE("POpen",
+                      "popen() failed to run the command given to exec");
   }
-  while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+  while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) !=
+         nullptr) {
     result += buffer.data();
   }
   return result;
@@ -101,7 +108,7 @@ bool is_fw_active() {
  * @return string holding the full firmware version
  */
 std::string fw_version() {
-  static const std::string QUERY_CMD = "rpm -qa '*"+FW_SHORTNAME+"*'";
+  static const std::string QUERY_CMD = "rpm -qa '*" + FW_SHORTNAME + "*'";
   auto output = exec(QUERY_CMD.c_str());
   output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
   return output;
@@ -156,10 +163,12 @@ void prepareOpts(pflib::menu::Rcfile& rcfile) {
   rcfile.declareString("default_hostname",
                        "Hostname of polarfire to connect to if none are given "
                        "on the command line");
-  rcfile.declareString("default_output_directory",
+  rcfile.declareString(
+      "default_output_directory",
       "Path to default output directory for creating default output filepaths");
   rcfile.declareString("timestamp_format",
-      "C format string for creating timestamp appended to default output filepaths");
+                       "C format string for creating timestamp appended to "
+                       "default output filepaths");
   rcfile.declareString(
       "runnumber_file",
       "Full path to a file which contains the last run number");
@@ -247,7 +256,8 @@ int main(int argc, char* argv[]) {
   }
 
   if (options.contents().has_key("default_output_directory")) {
-    pftool::output_directory = options.contents().getString("default_output_directory");
+    pftool::output_directory =
+        options.contents().getString("default_output_directory");
   }
 
   if (options.contents().has_key("timestamp_format")) {
@@ -286,6 +296,11 @@ int main(int argc, char* argv[]) {
       sFile.close();
     } else if (arg == "-z") {
       mode = Fiberless;
+      if (not is_fw_active()) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
     } else if (arg == "-d" or arg == "--dump") {
       // dump out the entire menu to stdout
       pftool::root()->print(std::cout);
@@ -370,7 +385,8 @@ int main(int argc, char* argv[]) {
       }
 
       if (options.contents().has_key("runnumber_file")) {
-        pftool::state.last_run_file = options.contents().getString("runnumber_file");
+        pftool::state.last_run_file =
+            options.contents().getString("runnumber_file");
       }
 
       if (p_pft) {

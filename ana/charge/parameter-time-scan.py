@@ -1,9 +1,15 @@
 """ 
 plot the pulses gathered from a parameter-time-scan run
 heavily influenced by time_scan.py. Thanks Tom!
+
+Every individual plotting function in this script calls on plt_gen, which defines 
+general plotting parameters.
+
 """
 
 import update_path
+from plt_gen import plt_gen
+from get_params import get_params
 
 from pathlib import Path
 import argparse
@@ -13,12 +19,14 @@ import numpy as np
 
 from read import read_pflib_csv
 
+from functools import partial
+
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
 parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['TIME', 'PARAMS']
+plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
@@ -39,92 +47,143 @@ if multicsv:
         samples_collection.append(samples)
         run_params_collection.append(run_params)
 
-#################### FUNCS ########################
-"""
-    Set xticks
-"""
 def set_xticks (
     xvar,
     ax
 ):
+    """Set xticks"""
     xmin, xmax = xvar.min(), xvar.max()
     xmin = 25*np.floor(xmin/25)
     xmax = 25*np.ceil(xmax/25)
     ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
     ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True) 
 
-"""
-    General function that defines the plotting canvas, runs the selected plotting function
-    and saves it to the output
-"""
-
-def plt_gen(
-    plotting_func,
-    samples,
-    run_params,
-    xticks = True,
-    ax = None,
-    xlabel = args.xlabel,
-    ylabel = args.ylabel,
-    **kwargs
-):
-    plt.figure()
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    if multicsv:
-        plt.title('Data from multiple csv files')
-    else:
-        plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]))
-    plt.grid()
-    #Run the specified plot
-    ax = plt.gca()
-    plotting_func(samples, run_params, ax)
-    plt.savefig(args.output, bbox_inches='tight')
-    plt.clf()
-
-def get_params(
-    samples
-):
-    parameter_names = []
-    for column in samples:
-        if column.find('.') != -1:
-            parameter_names.append(column)
-    groups = samples.groupby(parameter_names[0])
-    return groups, parameter_names[0]
-
-
-"""
-    Plot a selected parameter vs time.
-"""
+#################### PLOTTING FUNCTIONS ########################
 
 def time(
     samples,
     run_params,
     ax,
-    xticks = True
+    xticks = False,
+    yval = 'adc'
 ):
+    """Plot a selected parameter vs time."""
     if xticks:
         set_xticks(samples['time'], ax)
-    groups, param_name = get_params(samples)
+    groups, param_name = get_params(samples, 0)
     cmap = plt.get_cmap('viridis')
     n = len(groups)
     for i, (group_id, group_df) in enumerate(groups):
         val = group_df[param_name].iloc[0]
         color = cmap(i/n)
-        plt.scatter(group_df['time'], group_df['adc'], label=f'CALIB = {val}', s=5, color=color)
-        plt.legend()
+        key = param_name.split('.')[1]
+        plt.scatter(group_df['time'], (group_df[yval]), label=f'{key} = {val}', 
+                    s=5, color=color)
+        if (len(groups) < 10):
+            plt.legend()
 
-"""
-    Plot the ADC vs a selected parameter on a scatter plot. 
-    If multicsv, then the legend is set to the params for the given csv file.
-"""
+def tot(
+    samples,
+    run_params,
+    ax,
+    multiple_pulses = False,
+    tot_vref = 500,
+    toa_vref = 250
+):
+    """Plot the tot vs calib"""
+    groups, param_name = get_params(samples, 0)
+    filtered = samples[samples['tot'] > 0] # if tot <= 0 it didn't trigger
+    plt.scatter(filtered[param_name], filtered['tot'], s=5)
+    plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
+              + f', TOA_VREF = {toa_vref}, TOT_VREF = {tot_vref}')
+
+def tot_eff(
+    samples,
+    run_params,
+    ax,
+    multiple_params = False
+):
+    """
+    Plot the tot efficiency vs given parameter. 
+    For x samples per timepoint, the tot efficiency is the number of
+    events with triggered tot, divided by x.
+    """
+    groups, param_name = get_params(samples, 0)
+    if not multiple_params:
+        # This method to get the number of samples per timepoint is horrible
+        # requires assistance of a pandas wizard
+        key = list(groups.groups.keys())[0]
+        group = groups.get_group(key)
+        nr_bx = len(group.groupby('time'))
+        samples['new_cycle'] = (samples['time'].shift(1) > 0) & (samples['time'] == 0)
+        samples['cycle'] = samples['new_cycle'].cumsum()
+        # Number of samples per timepoint
+        nr_tot = int(sum(samples['cycle'] < 1) / nr_bx)
+        x = []
+        y = []
+        for i, (group_id, group_df) in enumerate(groups):
+            time_groups = group_df.groupby('time')
+            tot_eff = 0
+            for time_id, time_df in time_groups:
+                for tot in time_df['tot']:
+                    if tot != -1:
+                        tot_eff += 1
+            tot_eff /= nr_tot
+            val = group_df[param_name].iloc[0]
+        key = param_name.split('.')[1]
+        x.append(group_df[param_name].iloc[0])
+        y.append(tot_eff)
+        plt.plot(x, y, 
+                 marker='o', color='black', linestyle='--', 
+                 markerfacecolor='red', markeredgecolor = 'red', markersize = 5)
+        plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
+                  + ', TOA_VREF = 250, TOT_VREF = 500')
+    else:
+        nr_tot = 20 # Number of samles per timepoint
+        cmap = plt.get_cmap('viridis')
+        n = len(groups)
+        for i, (vref_id, vref_df) in enumerate(groups): #iterates through vref
+            color = cmap(i/n)
+            second_group, second_param_name = get_params(vref_df, 1)  
+            x = []
+            y = []
+            for k, (calib_id, calib_df) in enumerate(second_group): #iterates through calib
+                time_groups = calib_df.groupby('time')
+                tot_eff = 0
+                for time_id, time_df in time_groups:
+                    for tot in time_df['tot']:
+                        if tot > 0:
+                            tot_eff += 1
+                if (tot_eff > 20):
+                    tot_eff /= 40
+                else:
+                    tot_eff /= nr_tot
+                calib = calib_df[second_param_name].iloc[0]
+                key = param_name.split('.')[1]
+                x.append(calib_df[second_param_name].iloc[0])
+                y.append(tot_eff)
+            #if sum(y) < 0.1: #if we don't want to plot the vrefs that don't have a tot_eff
+            #    continue
+            vref = vref_df[param_name].iloc[0]
+            ax.plot(x, y, 
+                     marker='o', color='black', linestyle='--', 
+                     markerfacecolor=color, markeredgecolor = color, markersize = 5,
+                     label=f"TOT_VREF={vref}")
+            #ax.legend(ncols=5, fontsize='xx-small', loc='upper right')
+            plt.title(' '.join([f'{key} = {val}' for key, val in run_params.items()]) 
+                      + ', TOA_VREF = 250, TOT_VREF = 500')
+
 
 def param(
     samples,
     run_params,
     ax
 ):
-    groups, param_name = get_params(samples)
+    """
+    Plot the ADC vs a selected parameter on a scatter plot. 
+    If multicsv, then the legend is set to the params for the given csv file.
+    """
+    groups, param_name = get_params(samples, 0)
     x = []
     y = []
     for _, group_df in groups:
@@ -137,20 +196,19 @@ def param(
     else:
         ax.scatter(x,y)
 
-"""
-    Two options for heatmaps, when having multiple events per timepoint.
-    The first is creating a heatmap for each individual CALIB voltage, 
-    the second is a stacked plot to visualize and compare the pulse shapes.
-
-    Takes input csv from tasks.parameter_timescan
-"""
-
 def heatmaps(
     samples,
     run_params,
     ax
 ):
-    groups, param_name = get_params(samples)
+    """
+    Two options for heatmaps, when having multiple events per timepoint.
+    The first is creating a heatmap for each individual CALIB voltage, 
+    the second is a stacked plot to visualize and compare the pulse shapes.
+
+    Takes input csv from tasks.parameter_timescan
+    """
+    groups, param_name = get_params(samples, 0)
 
     x_min = min(group_df['time'].min() for _, group_df in groups)
     x_max = max(group_df['time'].max() for _, group_df in groups)
@@ -181,19 +239,24 @@ def heatmaps(
 
         plt.figure()
         plt.imshow(
-            H_norm.T,  #transpose to have time on x-axis, ADC on y-axis
+            H_combined.T,
             extent=[x_min, x_max, y_min, y_max],
+            origin='lower',
             aspect='auto',
             cmap='Blues',
-            origin='lower',
             vmin=0,
             vmax=1
         )
+
+        calib_vals = [group_df[parameter_names[0]].iloc[0] for _, group_df in groups]
+        calib_str = ", ".join(str(v) for v in calib_vals)
+
+        plt.colorbar(label='Normalized Counts')
         plt.xlabel('time / ns = (charge_to_l1a - 20 + 1)*25 - samples.phase_strobe*25/16')
         plt.ylabel('ADC')
-        plt.colorbar(label='Normalized Counts')
-        plt.title(f'Normalized Heatmap for CALIB = {val}')
-        plt.savefig(f'{args.output}_NormalizedHeatmap_calib_{val}.png', dpi=200)
+        plt.title(f'Combined Normalized Heatmap\nCALIB values: {calib_str}')
+        plt.tight_layout()
+        plt.savefig(f'{args.output}_CombinedHeatmap.png', dpi=200)
         plt.close()
 
 
@@ -227,20 +290,19 @@ def heatmaps(
     plt.savefig(f'{args.output}_CombinedHeatmap.png', dpi=200)
     plt.close()
 
-"""
+def multiparams(
+    samples_collection,
+    run_params_collection,
+    ax
+):
+    """
     If we want to plot multiple csv files!
 
     Takes collections (lists) instead of single sample, run_params, and loops over them
     for a given plot function. 
 
     So far only tested for PARAMS.
-"""
-
-def multiparams(
-    samples_collection,
-    run_params_collection,
-    ax
-):
+    """
     for i in range(len(samples_collection)):
         if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
             time(samples_collection[i], run_params_collection[i], ax)
@@ -251,14 +313,33 @@ def multiparams(
 
 ############################## MAIN ###################################
 
-if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
-    plt_gen(time, samples, run_params)
+if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
+    plt_gen(partial(time, yval = 'adc'), samples, run_params, args.output,
+            xlabel = args.xlabel, ylabel = args.ylabel)
+
+if args.plot_function == 'TOT-TIME':
+    plt_gen(partial(time, yval = 'tot'), samples, run_params, args.output, 
+            ylim = False, ylim_range = [200, 500], 
+            xlabel = args.xlabel, ylabel = args.ylabel)
+
+if args.plot_function == 'TOT':
+    plt_gen(partial(tot, toa_vref=250, tot_vref=600), 
+            samples, run_params, args.output, 
+            xlabel = args.xlabel, ylabel = args.ylabel)
+
+if args.plot_function == 'TOT-EFF':
+    plt_gen(partial(tot_eff, multiple_params = True), samples, run_params, args.output, 
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'PARAMS':
-    plt_gen(param, samples, run_params)
+    plt_gen(param, samples, run_params, args.output,
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-    plt_gen(heatmap, samples, run_params)
+    plt_gen(heatmap, samples, run_params, args.output,
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if multicsv:
-    plt_gen(multiparams, samples_collection, run_params_collection)
+    plt_gen(multiparams, samples_collection, run_params_collection, args.output, 
+            multicsv = True,
+            xlabel = args.xlabel, ylabel = args.ylabel)

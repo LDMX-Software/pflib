@@ -21,7 +21,17 @@ class Target {
 
   FastControl& fc() { return *fc_; }
 
-  virtual void setup_run(int irun, int format, int contrib_id = -1) {}
+  /**
+   * types of daq formats that we can do
+   */
+  enum class DaqFormat {
+    /// simple format for direct HGCROC connection
+    SIMPLEROC = 1,
+    /// ECON-D without applying zero suppression
+    ECOND_NO_ZS = 2
+  };
+
+  virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return hcal().daq().getEventOccupancy() > 0; }
 
@@ -45,12 +55,8 @@ class Target {
    * @param[in] nevents number of events to collect
    * @param[in] rate how fast to collect events, default 100
    */
-  void daq_run(
-      const std::string& cmd,
-      DAQRunConsumer& consumer,
-      int nevents,
-      int rate = 100
-  );
+  void daq_run(const std::string& cmd, DAQRunConsumer& consumer, int nevents,
+               int rate = 100);
 
  protected:
   std::map<std::string, std::shared_ptr<I2C> > i2c_;

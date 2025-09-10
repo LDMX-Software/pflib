@@ -1,7 +1,7 @@
 #pragma once
 
-#include <span>
 #include <cstdint>
+#include <span>
 
 namespace pflib::utility {
 
@@ -13,4 +13,4 @@ namespace pflib::utility {
  */
 uint32_t crc(std::span<uint32_t> data);
 
-}
+}  // namespace pflib::utility
