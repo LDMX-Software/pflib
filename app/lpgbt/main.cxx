@@ -430,7 +430,19 @@ bool test_ctl(ToolBox* target) {
   // ensure that the lpGBT is setup properly for transmitting the fast control
   for (int i = 0; i < 7; i++) target->lpgbt->setup_etx(i, true);
   // set all the CTL links to mode (4) (just 4 links in this counting...)
-  for (int i = 0; i < 4; i++) target->olink->set_elink_tx_mode(i, 4);
+  for (int i=0; i<4; i++)
+    target->olink->set_elink_tx_mode(i,4);
+
+  bool ok=true;
+  for (int ilink=0; ilink<7; ilink++) {
+    std::vector<uint32_t> words=mezz.capture(ilink,false);
+    if (words[0]==0) {
+      printf("  CTL Link %d is all zeros\n",ilink);
+      ok=false;
+    }
+  }
+  if (!ok) return false;
+  
   // set the prbs length
   mezz.set_prbs_len_ms(1000);  // one second per point...
   for (int ph = 0; ph < 510; ph += 20) {
@@ -446,14 +458,12 @@ bool test_ctl(ToolBox* target) {
     }
     printf("\n");
   }
-  bool pass = true;
-  for (int i = 0; i < 7; i++) {
-    if (nbad[i] == 0) {
-      printf(" Suspiciously, never saw a failure on %d, was PRBS ok?\n", i);
-      pass = false;
-    } else if (nbad[i] > 4) {
-      printf(" High failure count (%d) on link %d\n", nbad[i], i);
-      pass = false;
+
+  bool pass=true;
+  for (int i=0; i<7; i++) {
+    if (nbad[i]>4) {
+      printf(" High failure count (%d) on link %d\n",nbad[i],i);
+      pass=false;
     }
   }
   if (pass)
