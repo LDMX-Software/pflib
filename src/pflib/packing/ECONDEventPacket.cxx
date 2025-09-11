@@ -78,8 +78,11 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     // direct transcription of the table in Fig 20 of the ECOND Spec
     int nbits{0}, code_len{0}, extra{0};
     bool has_adctm1{true}, has_toa{true};
+    bool Tc{false}, Tp{false};
     if (code == 0b0000) {
       // TOA ZS
+      Tc = false;
+      Tp = false;
       code_len = 4;
       has_adctm1 = true;
       has_toa = false;
@@ -87,6 +90,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 24;
     } else if (code == 0b0001) {
       // ADC(-1) and TOA ZS
+      Tc = false;
+      Tp = false;
       code_len = 4;
       has_adctm1 = false;
       has_toa = false;
@@ -94,6 +99,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 16;
     } else if (code == 0b0010) {
       // No ZS or ...
+      Tc = false;
+      Tp = true;
       code_len = 4;
       has_adctm1 = true;
       has_toa = false;
@@ -101,6 +108,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 24;
     } else if (code == 0b0011) {
       // ADC(-1) ZS
+      Tc = false;
+      Tp = false;
       code_len = 4;
       has_adctm1 = false;
       has_toa = true;
@@ -108,6 +117,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 24;
     } else if ((code >> 2) == 0b01) {
       // full pass ZS in ADC mode
+      Tc = false;
+      Tp = false;
       code_len = 2;
       has_adctm1 = true;
       has_toa = true;
@@ -115,6 +126,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 32;
     } else if ((code >> 2) == 0b11) {
       // pass ZS because in TOT mode
+      Tc = true;
+      Tp = true;
       code_len = 2;
       has_adctm1 = true;
       has_toa = true;
@@ -122,6 +135,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 32;
     } else if ((code >> 2) == 0b10) {
       // invalid but known code
+      Tc = true;
+      Tp = false;
       pflib_log(warn) << "ECOND eRx invalid code " << std::bitset<4>(code);
       code_len = 2;
       has_adctm1 = true;
@@ -138,10 +153,10 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     uint32_t chan_data{0};
     if (bits_left_in_current_word < nbits) {
       int runon_length = nbits - bits_left_in_current_word;
-      chan_data = ((data[length] & ((1ul << bits_left_in_current_word) - 1ul)) << (nbits - bits_left_in_current_word));
+      chan_data = ((data[length] & ((1ul << bits_left_in_current_word) - 1ul)) << runon_length);
       length++;
       bits_left_in_current_word = 32;
-      chan_data += ((data[length] >> runon_length) & ((1ul << runon_length) - 1ul));
+      chan_data += ((data[length] >> (bits_left_in_current_word - runon_length)) & ((1ul << runon_length) - 1ul));
       bits_left_in_current_word -= runon_length;
     } else {
       chan_data = ((data[length] >> (bits_left_in_current_word - nbits)) & ((1ul << nbits)-1ul));
@@ -165,13 +180,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     }
 
     // next lowest 10 bits are the main sample ADC or TOT
-    uint32_t sample = (chan_data & mask<10>);
+    uint32_t main_sample = (chan_data & mask<10>);
     chan_data >>= 10;
-    if (code_len == 2 and (code >> 2) == 0b11) {
-      tot = sample;
-    } else {
-      adc = sample;
-    }
 
     // next lowest 10 bits are the ADCt-1 if it has it
     if (has_adctm1) {
@@ -179,11 +189,10 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     }
 
     pflib_log(trace) << "    ADC(t-1)=" << adc_tm1
-                     << " ADC=" << adc
-                     << " TOT=" << tot
+                     << " ADC/TOT=" << main_sample
                      << " TOA=" << toa;
 
-    ch->from_unpacked(adc_tm1, adc, tot, toa);
+    ch->from_unpacked(Tc, Tp, adc_tm1, main_sample, toa);
 
     if (bits_left_in_current_word == 0) {
       length++;
@@ -196,7 +205,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
   return length;
 }
 
-ECONDEventPacket::ECONDEventPacket(std::size_t n_links) : link_subpackets(n_links) {}
+ECONDEventPacket::ECONDEventPacket(std::size_t n_links) : links(n_links) {}
 
 void ECONDEventPacket::from(std::span<uint32_t> data) {
   pflib_log(trace) << "econd header one: " << hex(data[0]);
@@ -248,7 +257,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   }
 
   std::size_t offset{2};
-  for (auto& link : link_subpackets) {
+  for (auto& link : links) {
     offset += unpack_link_subpacket(data.subspan(offset), link);
     link.bx = bx;
     link.event = l1a;
@@ -258,7 +267,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // offset is now the index of the trailer
 
   // the next word is the CRC for all link sub-packets, but not the event packet header
-  uint32_t crc_val = utility::econd_crc32(data.subspan(2, offset));
+  uint32_t crc_val = utility::econd_crc32(data.subspan(2, offset-2));
   uint32_t target = data[offset];
   corruption[3] = (crc_val != target);
   if (corruption[3]) {
@@ -304,8 +313,8 @@ void ECONDEventPacket::to_csv(std::ofstream &f) const {
    *
    * The trigger links are entirely ignored.
    */
-  for (std::size_t i_link{0}; i_link < link_subpackets.size(); i_link++) {
-    const auto& daq_link{link_subpackets[i_link]};
+  for (std::size_t i_link{0}; i_link < links.size(); i_link++) {
+    const auto& daq_link{links[i_link]};
     f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
       << daq_link.orbit << ',' << "calib,";
     daq_link.calib.to_csv(f);

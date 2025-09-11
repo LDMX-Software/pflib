@@ -112,13 +112,13 @@ BOOST_AUTO_TEST_CASE(characterization) {
 BOOST_AUTO_TEST_CASE(from_unpacked_zs) {
   pflib::packing::Sample s;
   // fully zero-suppressed sample produces zero word
-  s.from_unpacked(-1, -1, -1, -1);
+  s.from_unpacked(false, false, -1, -1, -1);
   BOOST_CHECK(s.word == 0);
 }
 
 BOOST_AUTO_TEST_CASE(from_unpacked_adc) {
   pflib::packing::Sample s;
-  s.from_unpacked(-1, 42, -1, -1);
+  s.from_unpacked(false, false, -1, 42, -1);
   BOOST_CHECK(s.Tc() == false);
   BOOST_CHECK(s.Tp() == false);
   BOOST_CHECK(s.adc() == 42);
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(from_unpacked_adc) {
 
 BOOST_AUTO_TEST_CASE(from_unpacked_adc_toa) {
   pflib::packing::Sample s;
-  s.from_unpacked(21, 42, -1, 12);
+  s.from_unpacked(false, false, 21, 42, 12);
   BOOST_CHECK(s.Tc() == false);
   BOOST_CHECK(s.Tp() == false);
   BOOST_CHECK(s.adc() == 42);
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(from_unpacked_adc_toa) {
 
 BOOST_AUTO_TEST_CASE(from_unpacked_tot) {
   pflib::packing::Sample s;
-  s.from_unpacked(21, -1, 33, 12);
+  s.from_unpacked(true, true, 21, 33, 12);
   BOOST_CHECK(s.Tc() == true);
   BOOST_CHECK(s.Tp() == true);
   BOOST_CHECK(s.adc() == -1);
@@ -305,17 +305,39 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
                // no IDLE word?
   };
 
-  pflib::logging::set(pflib::logging::level::trace);
+  //pflib::logging::set(pflib::logging::level::trace);
   pflib::packing::ECONDEventPacket ep{6};
   ep.from(frame);
+
+  /**
+   * In this no-signal single-event without zero suppression,
+   * all of the channels are in ADC mode with zero TOA.
+   */
+  for (const auto& link: ep.links) {
+    BOOST_CHECK_EQUAL(link.calib.toa(), 0);
+    BOOST_CHECK_EQUAL(link.calib.tot(), -1);
+    BOOST_CHECK_MESSAGE(
+        (link.calib.adc() > 0 and link.calib.adc() < 1024),
+        "Calib channel ADC " << link.calib.adc() << " out of range");
+    BOOST_CHECK_MESSAGE(
+        (link.calib.adc_tm1() > 0 and link.calib.adc_tm1() < 1024),
+        "Calib channel ADC(t-1) " << link.calib.adc_tm1() << " out of range");
+    for (const auto& ch: link.channels) {
+      BOOST_CHECK_EQUAL(ch.toa(), 0);
+      BOOST_CHECK_EQUAL(ch.tot(), -1);
+      BOOST_CHECK_MESSAGE((ch.adc() > 0 and ch.adc() < 1024), "channel ADC out of range");
+      BOOST_CHECK_MESSAGE((ch.adc_tm1() > 0 and ch.adc_tm1() < 1024), "channel ADC(t-1) out of range");
+    }
+  }
+  /*
   std::ofstream of("eg-econd-nozs.csv");
   of << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
   ep.to_csv(of);
+  */
 }
 
 BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   using pflib::packing::mask;
-  using pflib::packing::hex;
   /**
    * Dropping the eRx 2-N sub-packet rows, this is a direct copy of the example
    * in Figure 33 with some arbitrarily chosen channels
@@ -327,14 +349,14 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
       ch1_adc{(1<<6)+1},
       ch2_adctm1{122}, ch2_adc{498},
       ch3_adc{537}, ch3_toa{111},
-      ch4_adctm1{0b0101000110}, ch4_adc{874}, ch4_toa{777},
+      ch4_adc{0b0101000110}, ch4_tot{874}, ch4_toa{777},
       ch5_adctm1{0b1001001011}, ch5_tot{875}, ch5_toa{778},
       ch6_adctm1{0b0001100001}, ch6_adc{876}, ch6_toa{8};
   std::vector<uint32_t> frame;
   frame.resize(12);
   // two word event packet header
   frame[0] = (0xaau<<24)+(10<<14)+(0<<13)+(1u<<12)+(1u<<7);
-  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11); // CRC==0
+  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b01110111;
   // two word link sub-packet header with channel map
   // 7 channels readout: 31, 29, 26, 18, calib, 10, 0
   frame[2] = (0b111u<<29)+(l0_cm0 << 15)+(l0_cm1 << 5)+0b00001;
@@ -342,63 +364,73 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   // 7 channels concentrated into 6 words
   frame[4] = (ch0_adctm1 << 18)+(ch0_adc << 8)+(0b0001 << 4)+(ch1_adc >> 6);
   frame[5] = ((ch1_adc & mask<6>) << 26) + (0b0010 << 20) + (ch2_adctm1 << 10) + ch2_adc;
-  frame[6] = (0b0011u << 28) + (ch3_adc << 18) + (ch3_toa << 8) + (0b10 << 6) + (ch4_adctm1 >> 4);
-  frame[7] = ((ch4_adctm1 & mask<4>) << 28) + (ch4_adc << 18) + (ch4_toa << 8) + (0b11 << 6) + (ch5_adctm1 >> 4);
+  frame[6] = (0b0011u << 28) + (ch3_adc << 18) + (ch3_toa << 8) + (0b10 << 6) + (ch4_adc >> 4);
+  frame[7] = ((ch4_adc & mask<4>) << 28) + (ch4_tot << 18) + (ch4_toa << 8) + (0b11 << 6) + (ch5_adctm1 >> 4);
   frame[8] = ((ch5_adctm1 & mask<4>) << 28) + (ch5_tot << 18) + (ch5_toa << 8) + (0b01 << 6) + (ch6_adctm1 >> 4);
   frame[9] = ((ch6_adctm1 & mask<4>) << 28) + (ch6_adc << 18) + (ch6_toa << 8); 
   // single word for empty link sub-packet
   frame[10] = (0b111u<<29)+(1u << 25)+(l1_cm0 << 15)+(l1_cm1 << 5)+0b10001u;
   // CRC
-  frame[11] = 0x1234568u;
+  frame[11] = 0x8a89abb6;
 
-  for (const auto& word : frame) {
-    std::cout << hex(word) << std::endl;
-  }
-
-  pflib::logging::set(pflib::logging::level::trace);
+  //pflib::logging::set(pflib::logging::level::trace);
   pflib::packing::ECONDEventPacket ep{2};
   ep.from(frame);
 
-  BOOST_CHECK_EQUAL(ch0_adctm1, ep.link_subpackets[0].channels[0].adc_tm1());
-  BOOST_CHECK_EQUAL(ch0_adc, ep.link_subpackets[0].channels[0].adc());
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[0].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[0].tot());
+  BOOST_CHECK_MESSAGE(not ep.corruption[0], "test frame has bad header code");
+  BOOST_CHECK_MESSAGE(not ep.corruption[1], "test frame and decoding have mismatched lengths");
+  BOOST_CHECK_MESSAGE(not ep.corruption[2], "8-bit header CRC calculation done in software, needs to be updated once aligned with real hardware implementation");
+  BOOST_CHECK_MESSAGE(not ep.corruption[3], "Subpacket CRC calculation done in software, needs to be updated once aligned with real hardware implementation");
 
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[10].adc_tm1());
-  BOOST_CHECK_EQUAL(ch1_adc, ep.link_subpackets[0].channels[10].adc());
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[10].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[10].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 0 (should be CH 0)");
+  BOOST_CHECK_EQUAL(ch0_adctm1, ep.links[0].channels[0].adc_tm1());
+  BOOST_CHECK_EQUAL(ch0_adc, ep.links[0].channels[0].adc());
+  BOOST_CHECK_EQUAL(0, ep.links[0].channels[0].toa());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[0].tot());
 
-  BOOST_CHECK_EQUAL(ch2_adctm1, ep.link_subpackets[0].calib.adc_tm1());
-  BOOST_CHECK_EQUAL(ch2_adc, ep.link_subpackets[0].calib.adc());
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].calib.toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].calib.tot());
+  BOOST_TEST_INFO("Checking transmitted channel 1 (should be CH 10)");
+  BOOST_CHECK_EQUAL(0, ep.links[0].channels[10].adc_tm1());
+  BOOST_CHECK_EQUAL(ch1_adc, ep.links[0].channels[10].adc());
+  BOOST_CHECK_EQUAL(0, ep.links[0].channels[10].toa());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[10].tot());
 
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[18].adc_tm1());
-  BOOST_CHECK_EQUAL(ch3_adc, ep.link_subpackets[0].channels[18].adc());
-  BOOST_CHECK_EQUAL(ch3_toa, ep.link_subpackets[0].channels[18].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[18].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 2 (should be CALIB)");
+  BOOST_CHECK_EQUAL(ch2_adctm1, ep.links[0].calib.adc_tm1());
+  BOOST_CHECK_EQUAL(ch2_adc, ep.links[0].calib.adc());
+  BOOST_CHECK_EQUAL(0, ep.links[0].calib.toa());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].calib.tot());
 
-  BOOST_CHECK_EQUAL(ch4_adctm1, ep.link_subpackets[0].channels[26].adc_tm1());
-  BOOST_CHECK_EQUAL(ch4_adc, ep.link_subpackets[0].channels[26].adc());
-  BOOST_CHECK_EQUAL(ch4_toa, ep.link_subpackets[0].channels[26].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[26].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 3 (should be CH 18)");
+  BOOST_CHECK_EQUAL(0, ep.links[0].channels[18].adc_tm1());
+  BOOST_CHECK_EQUAL(ch3_adc, ep.links[0].channels[18].adc());
+  BOOST_CHECK_EQUAL(ch3_toa, ep.links[0].channels[18].toa());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[18].tot());
 
-  BOOST_CHECK_EQUAL(ch4_adctm1, ep.link_subpackets[0].channels[26].adc_tm1());
-  BOOST_CHECK_EQUAL(ch4_adc, ep.link_subpackets[0].channels[26].adc());
-  BOOST_CHECK_EQUAL(ch4_toa, ep.link_subpackets[0].channels[26].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[26].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 4 (should be CH 26)");
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[26].adc_tm1());
+  BOOST_CHECK_EQUAL(ch4_adc, ep.links[0].channels[26].adc());
+  BOOST_CHECK_EQUAL(ch4_toa, ep.links[0].channels[26].toa());
+  BOOST_CHECK_EQUAL(ch4_tot, ep.links[0].channels[26].tot());
 
-  BOOST_CHECK_EQUAL(ch5_adctm1, ep.link_subpackets[0].channels[29].adc_tm1());
-  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[29].adc());
-  BOOST_CHECK_EQUAL(ch5_toa, ep.link_subpackets[0].channels[29].toa());
-  BOOST_CHECK_EQUAL(ch5_tot, ep.link_subpackets[0].channels[29].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 5 (should be CH 29)");
+  BOOST_CHECK_EQUAL(ch5_adctm1, ep.links[0].channels[29].adc_tm1());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[29].adc());
+  BOOST_CHECK_EQUAL(ch5_toa, ep.links[0].channels[29].toa());
+  BOOST_CHECK_EQUAL(ch5_tot, ep.links[0].channels[29].tot());
 
-  BOOST_CHECK_EQUAL(ch6_adctm1, ep.link_subpackets[0].channels[31].adc_tm1());
-  BOOST_CHECK_EQUAL(ch6_adc, ep.link_subpackets[0].channels[31].adc());
-  BOOST_CHECK_EQUAL(ch6_toa, ep.link_subpackets[0].channels[31].toa());
-  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[31].tot());
+  BOOST_TEST_INFO("Checking transmitted channel 6 (should be CH 31)");
+  BOOST_CHECK_EQUAL(ch6_adctm1, ep.links[0].channels[31].adc_tm1());
+  BOOST_CHECK_EQUAL(ch6_adc, ep.links[0].channels[31].adc());
+  BOOST_CHECK_EQUAL(ch6_toa, ep.links[0].channels[31].toa());
+  BOOST_CHECK_EQUAL(-1, ep.links[0].channels[31].tot());
 
+  for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+    if (i_ch == 0 or i_ch == 10 or i_ch == 18 or i_ch == 26 or i_ch == 29 or i_ch == 31) {
+      continue;
+    }
+    BOOST_TEST_INFO("Checking that CH " << i_ch << " is empty");
+    BOOST_CHECK_EQUAL(0, ep.links[0].channels[i_ch].word);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

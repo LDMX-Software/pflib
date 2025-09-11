@@ -41,7 +41,7 @@ struct Sample {
    * the ECOND unpacking infrastructure where the values are known to be
    * limited to 10 bits already.
    */
-  void from_unpacked(int adc_tm1, int adc, int tot, int toa);
+  void from_unpacked(bool Tc, bool Tp, int adc_tm1, int main_sample, int toa);
 };
 
 }  // namespace pflib::packing

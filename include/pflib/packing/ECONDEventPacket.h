@@ -29,7 +29,7 @@ class ECONDEventPacket {
   std::size_t unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link);
  public:
   std::array<bool, 4> corruption;
-  std::vector<DAQLinkFrame> link_subpackets;
+  std::vector<DAQLinkFrame> links;
 
   ECONDEventPacket(std::size_t n_links);
 
