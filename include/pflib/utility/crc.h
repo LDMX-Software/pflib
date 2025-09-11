@@ -6,20 +6,12 @@
 namespace pflib::utility {
 
 /**
- * Calculate the CRC checksum as it is done on the HGCROC
+ * Calculate the CRC checksum for a set of 32bit words
  *
  * @param[in] data 32-bit words to calculate CRC for
  * @return value of CRC
  */
-uint32_t hgcroc_crc32(std::span<uint32_t> data);
-
-/**
- * Calculate the CRC checksum as it is done on the ECOND
- *
- * @param[in] data 32-bit words to calculate CRC for
- * @return value of CRC
- */
-uint32_t econd_crc32(std::span<uint32_t> data);
+uint32_t crc32(std::span<uint32_t> data);
 
 /**
  * Calculate the 8-bit CRC checksum as it is done for the event header on the ECOND

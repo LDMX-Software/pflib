@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_SUITE(crc);
 
 BOOST_AUTO_TEST_CASE(increment) {
   std::vector<uint32_t> data = {0x02};
-  auto result = pflib::utility::hgcroc_crc32(data);
+  auto result = pflib::utility::crc32(data);
   BOOST_CHECK_EQUAL(result, 0x09823b6e);
 }
 

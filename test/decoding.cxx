@@ -374,7 +374,7 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   frame.resize(12);
   // two word event packet header
   frame[0] = (0xaau<<24)+(10<<14)+(0<<13)+(1u<<12)+(1u<<7);
-  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b01110111;
+  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b11000110;
   // two word link sub-packet header with channel map
   // 7 channels readout: 31, 29, 26, 18, calib, 10, 0
   frame[2] = (0b111u<<29)+(l0_cm0 << 15)+(l0_cm1 << 5)+0b00001;

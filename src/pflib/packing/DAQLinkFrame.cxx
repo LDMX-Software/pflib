@@ -86,7 +86,7 @@ void DAQLinkFrame::from(std::span<uint32_t> data) {
   }
 
   // CRC of first 39 words, 40th word is the crc itself
-  auto crcval = utility::hgcroc_crc32(std::span(data.begin(), 39));
+  auto crcval = utility::crc32(std::span(data.begin(), 39));
   uint32_t target = data[39];
   corruption[1] = (crcval != target);
   // no warning on CRC sum, again like CMS hexactrl-sw

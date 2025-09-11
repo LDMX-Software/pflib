@@ -134,10 +134,10 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       extra = 0;
       nbits = 32;
     } else if ((code >> 2) == 0b10) {
-      // invalid but known code
+      // known invalid
+      pflib_log(debug) << "ECOND eRx known invalid code " << std::bitset<2>(code >> 2);
       Tc = true;
       Tp = false;
-      pflib_log(warn) << "ECOND eRx invalid code " << std::bitset<4>(code);
       code_len = 2;
       has_adctm1 = true;
       has_toa = true;
@@ -210,7 +210,8 @@ ECONDEventPacket::ECONDEventPacket(std::size_t n_links) : links(n_links) {}
 void ECONDEventPacket::from(std::span<uint32_t> data) {
   pflib_log(trace) << "econd header one: " << hex(data[0]);
   uint32_t header_marker = ((data[0] >> 23) & mask<9>);
-  corruption[0] = (header_marker != (0xaa << 1));
+  // two options for header marker: ECOND Spec default and common CMS configuration
+  corruption[0] = (header_marker != (0xaa << 1)) and (header_marker != (0xf3 << 1));
   if (corruption[0]) {
     pflib_log(warn) << "Bad header marker from ECOND "
       << "0x" << std::hex << std::setw(2) << std::setfill('0') << (header_marker >> 1)
@@ -245,11 +246,15 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
 
   // event header 8-bit CRC
   // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
-  uint64_t header_crc_base = 0;
-  // first header word, shift out the Hamming, move it into position
-  header_crc_base |= ((data[0] >> 5) << 30);
+  // first header word:
+  //   shift out the Hamming
+  uint64_t header_crc_base = (data[0] >> 5);
+  //   move into position
+  header_crc_base <<= 29;
   // second header word, shift out the CRC
   header_crc_base |= (data[1] >> 8);
+
+  pflib_log(trace) << "Header for Calculating 8b CRC: " << hex(header_crc_base);
 
   uint8_t header_crc_val = utility::econd_crc8(header_crc_base);
   corruption[2] = (header_crc_val != crc);
@@ -269,7 +274,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // offset is now the index of the trailer
 
   // the next word is the CRC for all link sub-packets, but not the event packet header
-  uint32_t crc_val = utility::econd_crc32(data.subspan(2, offset-2));
+  uint32_t crc_val = utility::crc32(data.subspan(2, offset-2));
   uint32_t target = data[offset];
   corruption[3] = (crc_val != target);
   if (corruption[3]) {
