@@ -4,6 +4,7 @@
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/Mask.h"
+#include "pflib/packing/Hex.h"
 #include "pflib/packing/Sample.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/packing/ECONDEventPacket.h"
@@ -174,7 +175,7 @@ std::vector<uint32_t> gen_test_frame() {
 
 std::vector<uint32_t> test_frame = gen_test_frame();
 
-BOOST_AUTO_TEST_CASE(foo) {
+BOOST_AUTO_TEST_CASE(simulated_frame) {
   pflib::packing::DAQLinkFrame f;
   BOOST_REQUIRE_NO_THROW(f.from(test_frame));
   BOOST_CHECK(f.bx == 12);
@@ -310,6 +311,94 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
   std::ofstream of("eg-econd-nozs.csv");
   of << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
   ep.to_csv(of);
+}
+
+BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
+  using pflib::packing::mask;
+  using pflib::packing::hex;
+  /**
+   * Dropping the eRx 2-N sub-packet rows, this is a direct copy of the example
+   * in Figure 33 with some arbitrarily chosen channels
+   */
+  unsigned int bx{420},l1a{12},orb{3};
+  unsigned int l0_cm0{576}, l0_cm1{999},
+      l1_cm0{3}, l1_cm1{58};
+  unsigned int ch0_adctm1{1}, ch0_adc{2},
+      ch1_adc{(1<<6)+1},
+      ch2_adctm1{122}, ch2_adc{498},
+      ch3_adc{537}, ch3_toa{111},
+      ch4_adctm1{0b0101000110}, ch4_adc{874}, ch4_toa{777},
+      ch5_adctm1{0b1001001011}, ch5_tot{875}, ch5_toa{778},
+      ch6_adctm1{0b0001100001}, ch6_adc{876}, ch6_toa{8};
+  std::vector<uint32_t> frame;
+  frame.resize(12);
+  // two word event packet header
+  frame[0] = (0xaau<<24)+(10<<14)+(0<<13)+(1u<<12)+(1u<<7);
+  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11); // CRC==0
+  // two word link sub-packet header with channel map
+  // 7 channels readout: 31, 29, 26, 18, calib, 10, 0
+  frame[2] = (0b111u<<29)+(l0_cm0 << 15)+(l0_cm1 << 5)+0b00001;
+  frame[3] = 0b01001000000011000000010000000001u;
+  // 7 channels concentrated into 6 words
+  frame[4] = (ch0_adctm1 << 18)+(ch0_adc << 8)+(0b0001 << 4)+(ch1_adc >> 6);
+  frame[5] = ((ch1_adc & mask<6>) << 26) + (0b0010 << 20) + (ch2_adctm1 << 10) + ch2_adc;
+  frame[6] = (0b0011u << 28) + (ch3_adc << 18) + (ch3_toa << 8) + (0b10 << 6) + (ch4_adctm1 >> 4);
+  frame[7] = ((ch4_adctm1 & mask<4>) << 28) + (ch4_adc << 18) + (ch4_toa << 8) + (0b11 << 6) + (ch5_adctm1 >> 4);
+  frame[8] = ((ch5_adctm1 & mask<4>) << 28) + (ch5_tot << 18) + (ch5_toa << 8) + (0b01 << 6) + (ch6_adctm1 >> 4);
+  frame[9] = ((ch6_adctm1 & mask<4>) << 28) + (ch6_adc << 18) + (ch6_toa << 8); 
+  // single word for empty link sub-packet
+  frame[10] = (0b111u<<29)+(1u << 25)+(l1_cm0 << 15)+(l1_cm1 << 5)+0b10001u;
+  // CRC
+  frame[11] = 0x1234568u;
+
+  for (const auto& word : frame) {
+    std::cout << hex(word) << std::endl;
+  }
+
+  pflib::logging::set(pflib::logging::level::trace);
+  pflib::packing::ECONDEventPacket ep{2};
+  ep.from(frame);
+
+  BOOST_CHECK_EQUAL(ch0_adctm1, ep.link_subpackets[0].channels[0].adc_tm1());
+  BOOST_CHECK_EQUAL(ch0_adc, ep.link_subpackets[0].channels[0].adc());
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[0].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[0].tot());
+
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[10].adc_tm1());
+  BOOST_CHECK_EQUAL(ch1_adc, ep.link_subpackets[0].channels[10].adc());
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[10].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[10].tot());
+
+  BOOST_CHECK_EQUAL(ch2_adctm1, ep.link_subpackets[0].calib.adc_tm1());
+  BOOST_CHECK_EQUAL(ch2_adc, ep.link_subpackets[0].calib.adc());
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].calib.toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].calib.tot());
+
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[18].adc_tm1());
+  BOOST_CHECK_EQUAL(ch3_adc, ep.link_subpackets[0].channels[18].adc());
+  BOOST_CHECK_EQUAL(ch3_toa, ep.link_subpackets[0].channels[18].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[18].tot());
+
+  BOOST_CHECK_EQUAL(ch4_adctm1, ep.link_subpackets[0].channels[26].adc_tm1());
+  BOOST_CHECK_EQUAL(ch4_adc, ep.link_subpackets[0].channels[26].adc());
+  BOOST_CHECK_EQUAL(ch4_toa, ep.link_subpackets[0].channels[26].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[26].tot());
+
+  BOOST_CHECK_EQUAL(ch4_adctm1, ep.link_subpackets[0].channels[26].adc_tm1());
+  BOOST_CHECK_EQUAL(ch4_adc, ep.link_subpackets[0].channels[26].adc());
+  BOOST_CHECK_EQUAL(ch4_toa, ep.link_subpackets[0].channels[26].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[26].tot());
+
+  BOOST_CHECK_EQUAL(ch5_adctm1, ep.link_subpackets[0].channels[29].adc_tm1());
+  BOOST_CHECK_EQUAL(0, ep.link_subpackets[0].channels[29].adc());
+  BOOST_CHECK_EQUAL(ch5_toa, ep.link_subpackets[0].channels[29].toa());
+  BOOST_CHECK_EQUAL(ch5_tot, ep.link_subpackets[0].channels[29].tot());
+
+  BOOST_CHECK_EQUAL(ch6_adctm1, ep.link_subpackets[0].channels[31].adc_tm1());
+  BOOST_CHECK_EQUAL(ch6_adc, ep.link_subpackets[0].channels[31].adc());
+  BOOST_CHECK_EQUAL(ch6_toa, ep.link_subpackets[0].channels[31].toa());
+  BOOST_CHECK_EQUAL(-1, ep.link_subpackets[0].channels[31].tot());
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
