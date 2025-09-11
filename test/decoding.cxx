@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE(one_link_passthrough) {
   // replace link header words
   frame[2] = (0b111 << 29) + (((frame[3] >> 10) & mask<10>) << 15) + ((frame[3] & mask<10>) << 5) + 0b11111;
   frame[3] = 0xffffffff;
-  frame.back() = 1;
+  frame[41] = 1;
 
   pflib::packing::ECONDEventPacket ep{1};
   ep.from(frame);
