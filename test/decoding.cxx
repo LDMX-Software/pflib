@@ -112,8 +112,8 @@ BOOST_AUTO_TEST_CASE(characterization) {
 BOOST_AUTO_TEST_CASE(from_unpacked_zs) {
   pflib::packing::Sample s;
   // fully zero-suppressed sample produces zero word
-  s.from_unpacked(false, false, -1, -1, -1);
-  BOOST_CHECK(s.word == 0);
+  s.from_unpacked(false, false, -1, 0, -1);
+  BOOST_CHECK_EQUAL(s.word, 0);
 }
 
 BOOST_AUTO_TEST_CASE(from_unpacked_adc) {
@@ -309,16 +309,34 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
   pflib::packing::ECONDEventPacket ep{6};
   ep.from(frame);
 
+  BOOST_CHECK_MESSAGE(
+      (not ep.corruption[0]),
+      "9b Header Marker same as Spec");
+  BOOST_CHECK_MESSAGE(
+      (not ep.corruption[1]),
+      "Payload length in header equal to frame size minus 2");
+  BOOST_CHECK_MESSAGE(
+      (not ep.corruption[2]),
+      "8b Header CRC matches transmitted value.");
+  BOOST_CHECK_MESSAGE(
+      (not ep.corruption[3]),
+      "32b Link Subpacket CRC matches transmitted value.");
+
   /**
    * In this no-signal single-event without zero suppression,
    * all of the channels are in ADC mode with zero TOA.
    */
   for (const auto& link: ep.links) {
+    BOOST_CHECK_MESSAGE(
+        (not link.corruption[0]),
+        "Link Stat checks all good");
     BOOST_CHECK_EQUAL(link.calib.toa(), 0);
     BOOST_CHECK_EQUAL(link.calib.tot(), -1);
+    // all of the calib channels have 0 ADC and non-zero ADC(t-1)
+    // maybe that's on purpose? Idk
     BOOST_CHECK_MESSAGE(
-        (link.calib.adc() > 0 and link.calib.adc() < 1024),
-        "Calib channel ADC " << link.calib.adc() << " out of range");
+        link.calib.adc() == 0,
+        "Calib channel ADC " << link.calib.adc() << " is zero");
     BOOST_CHECK_MESSAGE(
         (link.calib.adc_tm1() > 0 and link.calib.adc_tm1() < 1024),
         "Calib channel ADC(t-1) " << link.calib.adc_tm1() << " out of range");

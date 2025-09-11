@@ -16,8 +16,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
   // sub-packet start
   uint32_t stat = ((data[0] >> 29) & mask<3>);
   link.corruption[0] = (stat != 0b111); // all ones is GOOD
-  if (corruption[0]) {
-    pflib_log(warn) << "bad subpacket checks";
+  if (link.corruption[0]) {
+    pflib_log(warn) << "bad subpacket checks " << std::bitset<3>(stat);
   }
   uint32_t ham = ((data[0] >> 26) & mask<3>);
   bool is_empty = ((data[0] >> 25) & mask<1>) == 1;
@@ -168,7 +168,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     // unpack the channel data into the measurements that it contains
     // none of these measurements can be negative, so a negative value
     // corresponds to an measurement that did not exist
-    int adc_tm1{-1}, adc{-1}, tot{-1}, toa{-1};
+    int adc_tm1{-1}, toa{-1};
 
     // shift out padding extra bits
     chan_data >>= extra;
@@ -212,7 +212,9 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   uint32_t header_marker = ((data[0] >> 23) & mask<9>);
   corruption[0] = (header_marker != (0xaa << 1));
   if (corruption[0]) {
-    pflib_log(warn) << "Bad header marker from ECOND " << hex(header_marker);
+    pflib_log(warn) << "Bad header marker from ECOND "
+      << "0x" << std::hex << std::setw(2) << std::setfill('0') << (header_marker >> 1)
+      << " + 0b" << (header_marker & 0b1);
   }
 
   uint32_t length = ((data[0] >> 14) & mask<9>);
