@@ -11,7 +11,7 @@
 
 namespace pflib::packing {
 
-std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link) {
+std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link, bool passthrough) {
   pflib_log(trace) << "link header " << hex(data[0]);
   // sub-packet start
   uint32_t stat = ((data[0] >> 29) & mask<3>);
@@ -48,7 +48,6 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
   // start length with two header words (including channel map)
   length = 2;
 
-  // consume channel data
   int bits_left_in_current_word{32};
   for (std::size_t i_chan{0}; i_chan < 37; i_chan++) {
     pflib_log(trace) << "length=" << length << " blic=" << bits_left_in_current_word << " i_ch=" << i_chan;
@@ -59,6 +58,13 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       ch = &(link.channels[i_chan]);
     } else if (i_chan > 18) {
       ch = &(link.channels[i_chan-1]);
+    }
+
+    if (passthrough) {
+      // channels are transparently copied from the link
+      ch->word = data[length];
+      length++;
+      continue;
     }
 
     // skip channels that are not passed
@@ -228,12 +234,11 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
 
   bool passthrough = ((data[0] >> 13) & mask<1>) == 1;
   bool expected = ((data[0] >> 12) & mask<1>) == 1;
-  uint32_t ht_ebo = ((data[0] >> 8) & mask<8>);
+  uint32_t ht_ebo = ((data[0] >> 8) & mask<5>);
   bool m = ((data[0] >> 7) & mask<1>) == 1;
   bool truncated = ((data[0] >> 6) & mask<1>) == 1;
   uint32_t hamming = (data[0] & mask<6>);
   pflib_log(trace) << "    P=" << passthrough << " E=" << expected;
-  // ignoring other checks right now...
 
   pflib_log(trace) << "econd header two: " << hex(data[1]);
   uint32_t bx = ((data[1] >> 20) & mask<12>);
@@ -263,9 +268,14 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
       << std::bitset<8>(header_crc_val) << " != " << std::bitset<8>(crc);
   }
 
+  if (truncated) {
+    pflib_log(warn) << "Buffer control detected insufficient space so it did not transfer link packets.";
+    return;
+  }
+
   std::size_t offset{2};
   for (auto& link : links) {
-    offset += unpack_link_subpacket(data.subspan(offset), link);
+    offset += unpack_link_subpacket(data.subspan(offset), link, passthrough);
     link.bx = bx;
     link.event = l1a;
     link.orbit = orb;

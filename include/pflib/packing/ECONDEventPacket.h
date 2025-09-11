@@ -26,7 +26,7 @@ namespace pflib::packing {
  */
 class ECONDEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
-  std::size_t unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link);
+  std::size_t unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link, bool passthrough);
  public:
   std::array<bool, 4> corruption;
   std::vector<DAQLinkFrame> links;

@@ -9,6 +9,28 @@
 #include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/packing/ECONDEventPacket.h"
 
+std::vector<uint32_t> gen_test_frame() {
+  std::vector<uint32_t> test_frame = {
+      0xf00c26a5,  // daq header
+      0x00022802,  // common mode
+  };
+  std::size_t i_ch{0};
+  for (; i_ch < 18; i_ch++) {
+    test_frame.push_back(i_ch);
+  }
+  // mark calib channel as TOT busy
+  test_frame.push_back(0b01000000000000000000000000000000);
+  for (; i_ch < 36; i_ch++) {
+    test_frame.push_back(i_ch);
+  }
+  // CRC word calculated by our own code
+  // just to quiet the testing
+  test_frame.push_back(0xe2378cb3);
+  return test_frame;
+}
+
+std::vector<uint32_t> test_frame = gen_test_frame();
+
 BOOST_AUTO_TEST_SUITE(decoding)
 
 BOOST_AUTO_TEST_SUITE(mask)
@@ -152,28 +174,6 @@ BOOST_AUTO_TEST_CASE(from_unpacked_tot) {
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(daq_link_frame)
-
-std::vector<uint32_t> gen_test_frame() {
-  std::vector<uint32_t> test_frame = {
-      0xf00c26a5,  // daq header
-      0x00022802,  // common mode
-  };
-  std::size_t i_ch{0};
-  for (; i_ch < 18; i_ch++) {
-    test_frame.push_back(i_ch);
-  }
-  // mark calib channel as TOT busy
-  test_frame.push_back(0b01000000000000000000000000000000);
-  for (; i_ch < 36; i_ch++) {
-    test_frame.push_back(i_ch);
-  }
-  // CRC word calculated by our own code
-  // just to quiet the testing
-  test_frame.push_back(0xe2378cb3);
-  return test_frame;
-}
-
-std::vector<uint32_t> test_frame = gen_test_frame();
 
 BOOST_AUTO_TEST_CASE(simulated_frame) {
   pflib::packing::DAQLinkFrame f;
@@ -448,6 +448,56 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
     }
     BOOST_TEST_INFO("Checking that CH " << i_ch << " is empty");
     BOOST_CHECK_EQUAL(0, ep.links[0].channels[i_ch].word);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(one_link_passthrough) {
+  using pflib::packing::mask;
+
+  unsigned int bx{222},l1a{42},orb{2};
+  std::vector<uint32_t> frame(test_frame.size()+2);
+  // econd header words
+  frame[0] = (0xaa << 24) + ((39*1 + 1) << 14) + (1 << 13);
+  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b11000110;
+  // copy over test frame
+  std::copy(test_frame.begin(), test_frame.end(), frame.begin()+2);
+  // replace link header words
+  frame[2] = (0b111 << 29) + (((frame[3] >> 10) & mask<10>) << 15) + ((frame[3] & mask<10>) << 5) + 0b11111;
+  frame[3] = 0xffffffff;
+  frame.back() = 1;
+
+  pflib::packing::ECONDEventPacket ep{1};
+  ep.from(frame);
+
+  const auto& f{ep.links[0]};
+
+  BOOST_CHECK(f.bx == 222);
+  BOOST_CHECK(f.event == 42);
+  BOOST_CHECK(f.orbit == 2);
+  BOOST_CHECK(f.corruption[0] == false);
+  BOOST_CHECK(f.corruption[1] == false);
+  BOOST_CHECK(f.corruption[2] == false);
+  BOOST_CHECK(f.corruption[3] == false);
+  BOOST_CHECK(f.corruption[4] == false);
+  BOOST_CHECK(f.corruption[5] == false);
+  BOOST_CHECK_EQUAL(f.adc_cm1,  2);
+  BOOST_CHECK_EQUAL(f.adc_cm0, 138);
+
+  BOOST_CHECK(f.calib.Tc() == false);
+  BOOST_CHECK(f.calib.Tp() == true);
+  BOOST_CHECK(f.calib.adc() == 0);
+  BOOST_CHECK(f.calib.tot() == -1);
+  BOOST_CHECK(f.calib.adc_tm1() == 0);
+  BOOST_CHECK(f.calib.toa() == 0);
+
+  for (std::size_t i_ch{0}; i_ch < f.channels.size(); i_ch++) {
+    const auto& ch{f.channels[i_ch]};
+    BOOST_CHECK(ch.Tc() == false);
+    BOOST_CHECK(ch.Tp() == false);
+    BOOST_CHECK(ch.adc() == 0);
+    BOOST_CHECK(ch.tot() == -1);
+    BOOST_CHECK(ch.adc_tm1() == 0);
+    BOOST_CHECK(ch.toa() == i_ch);
   }
 }
 
