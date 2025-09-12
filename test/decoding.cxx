@@ -8,8 +8,9 @@
 #include "pflib/packing/Sample.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/packing/ECONDEventPacket.h"
+#include "pflib/ECOND_Formatter.h"
 
-std::vector<uint32_t> gen_test_frame() {
+std::vector<uint32_t> gen_test_daq_link_frame() {
   std::vector<uint32_t> test_frame = {
       0xf00c26a5,  // daq header
       0x00022802,  // common mode
@@ -29,7 +30,42 @@ std::vector<uint32_t> gen_test_frame() {
   return test_frame;
 }
 
-std::vector<uint32_t> test_frame = gen_test_frame();
+void check_test_daq_link_frame(
+    const pflib::packing::DAQLinkFrame& f,
+    int bx,
+    int event,
+    int orbit,
+    bool corr3
+) {
+  BOOST_CHECK_EQUAL(f.bx, bx);
+  BOOST_CHECK_EQUAL(f.event, event);
+  BOOST_CHECK_EQUAL(f.orbit, orbit);
+  BOOST_CHECK_EQUAL(f.corruption[0], false);
+  BOOST_CHECK_EQUAL(f.corruption[1], false);
+  BOOST_CHECK_EQUAL(f.corruption[2], false);
+  BOOST_CHECK_EQUAL(f.corruption[3], corr3);
+  BOOST_CHECK_EQUAL(f.corruption[4], false);
+  BOOST_CHECK_EQUAL(f.corruption[5], false);
+  BOOST_CHECK_EQUAL(f.adc_cm1,  2);
+  BOOST_CHECK_EQUAL(f.adc_cm0, 138);
+
+  BOOST_CHECK_EQUAL(f.calib.Tc(), false);
+  BOOST_CHECK_EQUAL(f.calib.Tp(), true);
+  BOOST_CHECK_EQUAL(f.calib.adc(), 0);
+  BOOST_CHECK_EQUAL(f.calib.tot(), -1);
+  BOOST_CHECK_EQUAL(f.calib.adc_tm1(), 0);
+  BOOST_CHECK_EQUAL(f.calib.toa(), 0);
+
+  for (std::size_t i_ch{0}; i_ch < f.channels.size(); i_ch++) {
+    const auto& ch{f.channels[i_ch]};
+    BOOST_CHECK_EQUAL(ch.Tc(), false);
+    BOOST_CHECK_EQUAL(ch.Tp(), false);
+    BOOST_CHECK_EQUAL(ch.adc(), 0);
+    BOOST_CHECK_EQUAL(ch.tot(), -1);
+    BOOST_CHECK_EQUAL(ch.adc_tm1(), 0);
+    BOOST_CHECK_EQUAL(ch.toa(), i_ch);
+  }
+}
 
 BOOST_AUTO_TEST_SUITE(decoding)
 
@@ -176,36 +212,10 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(daq_link_frame)
 
 BOOST_AUTO_TEST_CASE(simulated_frame) {
+  auto test_frame = gen_test_daq_link_frame();
   pflib::packing::DAQLinkFrame f;
   BOOST_REQUIRE_NO_THROW(f.from(test_frame));
-  BOOST_CHECK(f.bx == 12);
-  BOOST_CHECK(f.event == 9);
-  BOOST_CHECK(f.orbit == 5);
-  BOOST_CHECK(f.corruption[0] == false);
-  BOOST_CHECK(f.corruption[1] == false);
-  BOOST_CHECK(f.corruption[2] == false);
-  BOOST_CHECK(f.corruption[3] == true);
-  BOOST_CHECK(f.corruption[4] == false);
-  BOOST_CHECK(f.corruption[5] == false);
-  BOOST_CHECK(f.adc_cm1 == 2);
-  BOOST_CHECK(f.adc_cm0 == 138);
-
-  BOOST_CHECK(f.calib.Tc() == false);
-  BOOST_CHECK(f.calib.Tp() == true);
-  BOOST_CHECK(f.calib.adc() == 0);
-  BOOST_CHECK(f.calib.tot() == -1);
-  BOOST_CHECK(f.calib.adc_tm1() == 0);
-  BOOST_CHECK(f.calib.toa() == 0);
-
-  for (std::size_t i_ch{0}; i_ch < f.channels.size(); i_ch++) {
-    const auto& ch{f.channels[i_ch]};
-    BOOST_CHECK(ch.Tc() == false);
-    BOOST_CHECK(ch.Tp() == false);
-    BOOST_CHECK(ch.adc() == 0);
-    BOOST_CHECK(ch.tot() == -1);
-    BOOST_CHECK(ch.adc_tm1() == 0);
-    BOOST_CHECK(ch.toa() == i_ch);
-  }
+  check_test_daq_link_frame(f, 12, 9, 5, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -485,6 +495,8 @@ BOOST_AUTO_TEST_CASE(one_link_passthrough) {
   using pflib::packing::mask;
   using pflib::packing::hex;
 
+  auto test_frame = gen_test_daq_link_frame();
+
   unsigned int bx{222},l1a{42},orb{2};
   std::vector<uint32_t> frame(test_frame.size()+2);
   // econd header words
@@ -502,35 +514,26 @@ BOOST_AUTO_TEST_CASE(one_link_passthrough) {
   pflib::packing::ECONDEventPacket ep{1};
   ep.from(frame);
 
-  const auto& f{ep.links[0]};
+  check_test_daq_link_frame(ep.links[0], bx, l1a, orb, false);
+}
 
-  BOOST_CHECK(f.bx == 222);
-  BOOST_CHECK(f.event == 42);
-  BOOST_CHECK(f.orbit == 2);
-  BOOST_CHECK(f.corruption[0] == false);
-  BOOST_CHECK(f.corruption[1] == false);
-  BOOST_CHECK(f.corruption[2] == false);
-  BOOST_CHECK(f.corruption[3] == false);
-  BOOST_CHECK(f.corruption[4] == false);
-  BOOST_CHECK(f.corruption[5] == false);
-  BOOST_CHECK_EQUAL(f.adc_cm1,  2);
-  BOOST_CHECK_EQUAL(f.adc_cm0, 138);
+BOOST_AUTO_TEST_CASE(roundtrip_with_formatter) {
+  using pflib::packing::hex;
+  int bx{1111}, l1a{24}, orb{0};
+  auto test_frame = gen_test_daq_link_frame();
+  pflib::ECOND_Formatter formatter;
+  formatter.disable_zs();
+  formatter.startEvent(bx, l1a, orb);
+  for (int i{0}; i < 2; i++) {
+    formatter.add_elink_packet(i, test_frame);
+  }
+  formatter.finishEvent();
+  auto packet{formatter.getPacket()};
 
-  BOOST_CHECK(f.calib.Tc() == false);
-  BOOST_CHECK(f.calib.Tp() == true);
-  BOOST_CHECK(f.calib.adc() == 0);
-  BOOST_CHECK(f.calib.tot() == -1);
-  BOOST_CHECK(f.calib.adc_tm1() == 0);
-  BOOST_CHECK(f.calib.toa() == 0);
-
-  for (std::size_t i_ch{0}; i_ch < f.channels.size(); i_ch++) {
-    const auto& ch{f.channels[i_ch]};
-    BOOST_CHECK(ch.Tc() == false);
-    BOOST_CHECK(ch.Tp() == false);
-    BOOST_CHECK(ch.adc() == 0);
-    BOOST_CHECK(ch.tot() == -1);
-    BOOST_CHECK(ch.adc_tm1() == 0);
-    BOOST_CHECK(ch.toa() == i_ch);
+  pflib::packing::ECONDEventPacket ep{2};
+  ep.from(std::span(packet));
+  for (const auto& link : ep.links) {
+    check_test_daq_link_frame(link, bx, l1a, orb, false);
   }
 }
 
