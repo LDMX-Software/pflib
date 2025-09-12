@@ -21,8 +21,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
   }
   uint32_t ham = ((data[0] >> 26) & mask<3>);
   bool is_empty = ((data[0] >> 25) & mask<1>) == 1;
-  link.adc_cm0 = ((data[0] >> 15) & mask<12>);
-  link.adc_cm1 = ((data[0] >>  5) & mask<12>);
+  link.adc_cm0 = ((data[0] >> 15) & mask<10>);
+  link.adc_cm1 = ((data[0] >>  5) & mask<10>);
   pflib_log(trace) << "    is_empty=" << is_empty
                    << " CM0=" << link.adc_cm0
                    << " CM1=" << link.adc_cm1;
@@ -62,6 +62,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
 
     if (passthrough) {
       // channels are transparently copied from the link
+      pflib_log(trace) << "passthrough " << i_chan << " data " << hex(data[length]);
       ch->word = data[length];
       length++;
       continue;
@@ -205,7 +206,12 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       bits_left_in_current_word = 32;
     }
   }
-  length++;
+
+  // the link sub-packets are 32b-word-aligned, so if we are in the middle
+  // of a word, we increase the length by one to complete the 32b word
+  if (bits_left_in_current_word < 32) {
+    length++;
+  }
 
   pflib_log(trace) << "eRx final length " << length;
   return length;
@@ -282,6 +288,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   }
 
   // offset is now the index of the trailer
+  pflib_log(trace) << "Index of trailer: " << offset;
 
   // the next word is the CRC for all link sub-packets, but not the event packet header
   uint32_t crc_val = utility::crc32(data.subspan(2, offset-2));

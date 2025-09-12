@@ -354,6 +354,36 @@ BOOST_AUTO_TEST_CASE(real_full_frame) {
   */
 }
 
+/**
+ * construct the first word in the ECOND event packet header
+ *
+ * ignoring construction of the Hamming check
+ */
+uint32_t econd_event_header_1(int length, bool passthrough) {
+  return (0xaau<<24)+(length<<14)+(passthrough<<13)+(1u<<12)+(1u<<7);
+}
+
+/**
+ * construct the second word in the ECOND event packet header
+ *
+ * the CRC is not calculated in software and is hardcoded in order
+ * for the tests to detect changes to the software implementation
+ * when attempting to align with hardware.
+ */
+uint32_t econd_event_header_2(int bx, int l1a, int orb, int crc) {
+  return (bx<<20)+(l1a<<14)+(orb<<11)+(crc);
+}
+
+/**
+ * construct the first header word of a link sub-packet
+ *
+ * we leave top 5 channels in the channel map as all zero, so
+ * add on a 5-bit number if setting the channel map.
+ */
+uint32_t eRx_header_1(bool empty, int cm0, int cm1) {
+  return (0b111u<<29)+(empty << 25)+(cm0 << 15)+(cm1 << 5);
+}
+
 BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   using pflib::packing::mask;
   /**
@@ -373,11 +403,11 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   std::vector<uint32_t> frame;
   frame.resize(12);
   // two word event packet header
-  frame[0] = (0xaau<<24)+(10<<14)+(0<<13)+(1u<<12)+(1u<<7);
-  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b11000110;
+  frame[0] = econd_event_header_1(10, false);
+  frame[1] = econd_event_header_2(bx, l1a, orb, 0b11000110);
   // two word link sub-packet header with channel map
   // 7 channels readout: 31, 29, 26, 18, calib, 10, 0
-  frame[2] = (0b111u<<29)+(l0_cm0 << 15)+(l0_cm1 << 5)+0b00001;
+  frame[2] = eRx_header_1(false, l0_cm0, l0_cm1)+0b00001;
   frame[3] = 0b01001000000011000000010000000001u;
   // 7 channels concentrated into 6 words
   frame[4] = (ch0_adctm1 << 18)+(ch0_adc << 8)+(0b0001 << 4)+(ch1_adc >> 6);
@@ -387,7 +417,7 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   frame[8] = ((ch5_adctm1 & mask<4>) << 28) + (ch5_tot << 18) + (ch5_toa << 8) + (0b01 << 6) + (ch6_adctm1 >> 4);
   frame[9] = ((ch6_adctm1 & mask<4>) << 28) + (ch6_adc << 18) + (ch6_toa << 8); 
   // single word for empty link sub-packet
-  frame[10] = (0b111u<<29)+(1u << 25)+(l1_cm0 << 15)+(l1_cm1 << 5)+0b10001u;
+  frame[10] = eRx_header_1(true, l1_cm0, l1_cm1)+0b10001;
   // CRC
   frame[11] = 0x8a89abb6;
 
@@ -453,19 +483,22 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
 
 BOOST_AUTO_TEST_CASE(one_link_passthrough) {
   using pflib::packing::mask;
+  using pflib::packing::hex;
 
   unsigned int bx{222},l1a{42},orb{2};
   std::vector<uint32_t> frame(test_frame.size()+2);
   // econd header words
-  frame[0] = (0xaa << 24) + ((39*1 + 1) << 14) + (1 << 13);
-  frame[1] = (bx<<20)+(l1a<<14)+(orb<<11)+0b11000110;
+  frame[0] = econd_event_header_1(39*1+1, true);
+  frame[1] = econd_event_header_2(bx, l1a, orb, 0b01010010);
   // copy over test frame
   std::copy(test_frame.begin(), test_frame.end(), frame.begin()+2);
   // replace link header words
-  frame[2] = (0b111 << 29) + (((frame[3] >> 10) & mask<10>) << 15) + ((frame[3] & mask<10>) << 5) + 0b11111;
+  frame[2] = eRx_header_1(false, ((frame[3] >> 10) & mask<10>), (frame[3] & mask<10>)) + 0b11111;
   frame[3] = 0xffffffff;
-  frame[41] = 1;
+  // manually copied CRC so tests deduce if CRC calculation changes
+  frame[41] = 0x17b415af;
 
+  //pflib::logging::set(pflib::logging::level::trace);
   pflib::packing::ECONDEventPacket ep{1};
   ep.from(frame);
 
