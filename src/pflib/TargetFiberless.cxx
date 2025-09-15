@@ -158,6 +158,7 @@ std::vector<uint32_t> TargetFiberless::read_event() {
             formatter_.add_elink_packet(i, hcal().daq().getLinkData(i));
           }
           formatter_.finishEvent();
+
           // add header giving specs around ECOND packet
           uint32_t header = formatter_.getPacket().size() + 1;
           header |= (0x1 << 28);

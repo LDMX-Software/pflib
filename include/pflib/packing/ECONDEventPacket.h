@@ -79,22 +79,11 @@ class ECONDEventPacket {
    * This function is what implements the format describe
    * in the ECOND specification.
    *
-   * @see read for wrapping this function with more unpacking
-   * to handle the extra headers and trailers that are added
+   * @see MultiSampleECONDEventPacket for wrapping this function with more
+   * unpacking to handle the extra headers and trailers that are added
    * by software emulation or hardware.
    */
   void from(std::span<uint32_t> data);
-
-  /**
-   * read from the input reader into this packet
-   *
-   * enables us to
-   * ```cpp
-   * ECONDEventPacket ep;
-   * r >> ep;
-   * ```
-   */
-  Reader& read(Reader& r);
 
   /// header string if using to_csv
   static const std::string to_csv_header;
