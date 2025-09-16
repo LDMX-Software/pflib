@@ -14,7 +14,7 @@
 namespace pflib {
 
 /**
- * representing a standard HCAL motherboard or a test system
+ * representing a standard HCAL backplane or a test system
  */
 class Hcal {
  public:

@@ -54,7 +54,7 @@ class I2C {
       int nread = 0) = 0;
 
   virtual std::vector<uint8_t> general_write_read_ioctl(
-      int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread = 0) = 0;
+							int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread = 0) { return general_write_read(i2c_dev_addr, wdata, nread); }
 };
 
 }  // namespace pflib

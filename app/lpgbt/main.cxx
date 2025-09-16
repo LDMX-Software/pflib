@@ -6,16 +6,18 @@
 #include "lpgbt_mezz_tester.h"
 #include "pflib/lpgbt/lpGBT_ConfigTransport_I2C.h"
 #include "pflib/lpgbt/lpGBT_Utility.h"
+#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/menu/Menu.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "power_ctl_mezz.h"
 #include "zcu_optolink.h"
 
 struct ToolBox {
-  pflib::lpGBT* lpgbt;
-  pflib::lpGBT* lpgbt_i2c;
-  pflib::lpGBT* lpgbt_ic;
-  pflib::zcu::OptoLink* olink;
+  pflib::lpGBT* lpgbt{0};
+  pflib::lpGBT* lpgbt_i2c{0};
+  pflib::lpGBT* lpgbt_ic{0};
+  pflib::lpGBT* lpgbt_ec{0};
+  pflib::zcu::OptoLink* olink{0};
   pflib::power_ctl_mezz* p_ctl{0};
 };
 
@@ -42,8 +44,7 @@ void opto(const std::string& cmd, ToolBox* target) {
              i.second);
     }
   }
-  if (cmd == "RESET") {
-    olink.reset_link();
+  if (cmd == "RESET") {    olink.reset_link();
   }
   if (cmd == "POLARITY") {
     bool change;
@@ -61,24 +62,87 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
 }
 
+void i2c(const std::string& cmd, ToolBox* target) {
+  static int ibus=0;
+  ibus=tool::readline_int("Which I2C bus?",ibus);
+  target->lpgbt->setup_i2c(ibus,100); 
+  if (cmd=="SCAN") {
+    for (int addr=0; addr<0x80; addr++) {
+      bool success=true;
+      char failchar;
+      target->lpgbt->start_i2c_read(ibus,addr); // try reading a byte
+      try {
+	target->lpgbt->i2c_transaction_check(ibus,true);
+      } catch (pflib::Exception& e) {
+	if (e.name()=="I2CErrorNoCLK") failchar='C';
+	else if (e.name()=="I2CErrorNoACK") failchar='-';
+	else if (e.name()=="I2CErrorSDALow") failchar='*';
+	else failchar='?';
+	//	printf(e.what());
+	success=false;
+      }
+      if ((addr%0x10)==0) printf("\n%02x ",addr);
+      if (success) printf("%02x ",addr);
+      else printf("%c%c ",failchar,failchar);      
+    }
+    printf("\n");
+  }
+  static int i2c_addr=0;
+  if (cmd=="WRITE") {
+    std::vector<uint8_t> values;
+    i2c_addr=tool::readline_int("What I2C Address?",i2c_addr);
+    int nvalues=tool::readline_int("How many bytes?",1);
+    for (int i=0; i<nvalues; i++) {
+      char prompt[10];
+      snprintf(prompt,10,"[%d] ",i);
+      values.push_back(tool::readline_int(prompt,0));
+    }
+    target->lpgbt->i2c_write(ibus,i2c_addr,values);
+    target->lpgbt->i2c_transaction_check(ibus,true);
+  }
+  if (cmd=="READ") {
+    std::vector<uint8_t> values;
+    i2c_addr=tool::readline_int("What I2C Address?",i2c_addr);
+    int nvalues=tool::readline_int("How many bytes?",1);
+    target->lpgbt->start_i2c_read(ibus,i2c_addr,nvalues);
+    target->lpgbt->i2c_transaction_check(ibus,true);
+    values=target->lpgbt->i2c_read_data(ibus);
+    for (int i=0; i<nvalues; i++) {
+      printf("%2d %02x (%d)\n",i,values[i],values[i]);
+    }
+  }
+  
+}
+
 void general(const std::string& cmd, ToolBox* target) {
   bool comm_is_i2c = (target->lpgbt == target->lpgbt_i2c);
 
   if (cmd == "STATUS") {
     if (comm_is_i2c)
       printf(" Communication by I2C\n");
-    else
+    else if (target->lpgbt == target->lpgbt_ic) 
       printf(" Communication by IC\n");
+    else
+      printf(" Communication by EC\n");
     int pusm = target->lpgbt->status();
     printf(" PUSM %s (%d)\n", target->lpgbt->status_name(pusm).c_str(), pusm);
   }
   if (cmd == "RESET") {
-    LPGBT_Mezz_Tester tester(target->olink->coder());
-    tester.reset_lpGBT();
+    if (target->lpgbt_i2c!=0) {
+      LPGBT_Mezz_Tester tester(target->olink->coder());
+      tester.reset_lpGBT();
+    } else { // resets the TRIGGER lpGBT
+      target->lpgbt_ic->gpio_set(11,false);
+      target->lpgbt_ic->gpio_set(11,true);
+    }
+  }
+  if (cmd == "STANDARD_HCAL_DAQ") {
+    pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt);
+    printf("Applied standard HCAL DAQ configuration\n");
   }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->olink->coder());
-    printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-onlt\n");
+    printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-only\n");
     bool wasMode, wasAddr;
     tester.get_mode(wasAddr, wasMode);
     bool newaddr = tool::readline_bool("ADDR bit", wasAddr);
@@ -93,11 +157,20 @@ void general(const std::string& cmd, ToolBox* target) {
     }
   }
   if (cmd == "COMM") {
-    printf("Swapping communication paths\n");
-    if (comm_is_i2c)
-      target->lpgbt = target->lpgbt_ic;
-    else
+    bool go_opto = tool::readline_bool("Use optical communication?",!comm_is_i2c);
+    if (go_opto) {      
+      bool be_ic = tool::readline_bool("Talk to DAQ lpGBT?",target->lpgbt==target->lpgbt_ic);
+      if (!be_ic) {
+	printf(" Communication path is EC\n");
+	target->lpgbt = target->lpgbt_ec;
+      } else {
+	printf(" Communication path is IC\n");
+	target->lpgbt = target->lpgbt_ic;
+      }
+    } else {
+      printf(" Communication path is wired I2C (FMC)\n");
       target->lpgbt = target->lpgbt_i2c;
+    }
   }
 }
 
@@ -158,9 +231,9 @@ void adc(const std::string& cmd, ToolBox* target) {
 }
 
 void elink(const std::string& cmd, ToolBox* target) {
-  LPGBT_Mezz_Tester mezz(target->olink->coder());
 
   if (cmd == "SPY") {
+    LPGBT_Mezz_Tester mezz(target->olink->coder());
     bool isrx = tool::readline_bool("Spy on an RX? (false for TX) ", false);
     int ilink = tool::readline_int("Which elink to spy", 0);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
@@ -180,7 +253,24 @@ void elink(const std::string& cmd, ToolBox* target) {
     }
     int imode = tool::readline_int("Which mode (zero for immediate)", 0);
     std::vector<uint8_t> tx, rx;
-    mezz.capture_ec(imode, tx, rx);
+    target->olink->capture_ec(imode, tx, rx);
+    std::string stx, srx;
+    for (size_t i = 0; i < tx.size(); i++) {
+      stx += (tx[i] & 0x2) ? ("1") : ("0");
+      stx += (tx[i] & 0x1) ? ("1") : ("0");
+      srx += (rx[i] & 0x2) ? ("1") : ("0");
+      srx += (rx[i] & 0x1) ? ("1") : ("0");
+      if (((i + 1) % 32) == 0) {
+        printf("%3d %s %s\n", i - 31, stx.c_str(), srx.c_str());
+        stx = "";
+        srx = "";
+      }
+    }
+  }
+  if (cmd == "ICSPY") {
+    int imode = tool::readline_int("Which mode (zero for immediate)", 0);
+    std::vector<uint8_t> tx, rx;
+    target->olink->capture_ic(imode, tx, rx);
     std::string stx, srx;
     for (size_t i = 0; i < tx.size(); i++) {
       stx += (tx[i] & 0x2) ? ("1") : ("0");
@@ -496,7 +586,7 @@ bool test_ec(ToolBox* target) {
     uint32_t errors = 0;
 
     for (int cycle = 0; cycle < 100; cycle++) {
-      mezz.capture_ec(0, tx, rx);
+      target->olink->capture_ec(0, tx, rx);
 
       std::vector<bool> srx;
       for (size_t i = 0; i < tx.size(); i++) {
@@ -630,6 +720,7 @@ namespace {
 auto gen = tool::menu("GENERAL", "GENERAL funcations")
                ->line("STATUS", "Status summary", general)
                ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
+               ->line("STANDARD_HCAL_DAQ", "Apply standard HCAL DAQ lpGBT setup", general)
                ->line("RESET", "Reset the lpGBT", general)
                ->line("COMM", "Communication mode", general);
 
@@ -655,11 +746,18 @@ auto melink = tool::menu("ELINK", "Elink-related items")
                   ->line("SETUP", "Setup a pin", elink)
                   ->line("PATTERN", "Pattern selection for", elink)
                   ->line("SPY", "Spy on one or more pins", elink)
-                  ->line("ECSPY", "Spy on the EC link", elink);
+                  ->line("ECSPY", "Spy on the EC link", elink)
+                  ->line("ICSPY", "Spy on the IC link", elink);
 
 auto madc = tool::menu("ADC", "ADC and DAC-related actions")
                 ->line("READ", "Read an ADC line", adc)
                 ->line("ALL", "Read all ADC lines", adc);
+
+auto mi2c = tool::menu("I2C", "I2C activities")
+  ->line("SCAN", "Scan an I2C bus", i2c)
+  ->line("READ", "Read from an I2C device", i2c)
+  ->line("WRITE", "Write to an I2C device", i2c);
+
 
 auto mtest =
     tool::menu("TEST", "Mezzanine testing functions")
@@ -677,16 +775,34 @@ auto mtest =
 int main(int argc, char* argv[]) {
   if (argc == 2 and (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE: \n");
-    printf("   %s -z OPTIONS\n\n", argv[0]);
+    printf("   %s OPTIONS\n\n", argv[0]);
     printf("OPTIONS:\n");
+    printf("  --do [number] : Dual-optical configuration, implies no mezzanine\n");
+    printf("  -o : Use optical communication by default\n");
+    printf("  --nm : No mezzanine\n");
     printf("  -s [file] : pass a script of commands to run through\n");
     printf("  -h|--help : print this help and exit\n");
     printf("\n");
     return 1;
   }
 
+  bool wired=true;
+  bool nomezz=false;
+  std::string target_name("singleLPGBT");
+
   for (int i = 1; i < argc; i++) {
     std::string arg(argv[i]);
+    if (arg == "-o") wired=false;
+    if (arg == "--nm") nomezz=true;
+    if (arg == "--do") {
+      wired=false;
+      nomezz=true;
+      i++;
+      target_name="standardLpGBTpair-";
+      target_name+=argv[i][0];
+      printf("%s\n",target_name.c_str());
+    }
+      
     if (arg == "-s") {
       if (i + 1 == argc or argv[i + 1][0] == '-') {
         std::cerr << "Argument " << arg << " requires a file after it."
@@ -714,30 +830,38 @@ int main(int argc, char* argv[]) {
 
   tool::set_history_filepath("~/.pflpgbt-history");
 
-  pflib::zcu::OptoLink olink;
-  LPGBT_Mezz_Tester tester(olink.coder());
-  bool addr, mode1;
-  tester.get_mode(addr, mode1);  // need to determine address
-
-  int chipaddr = 0x78;
-  if (addr) chipaddr |= 0x1;
-  if (mode1) chipaddr |= 0x4;
-  printf(" ADDR = %d and MODE1=%d -> 0x%02x\n", addr, mode1, chipaddr);
-
-  pflib::lpGBT_ConfigTransport_I2C tport(chipaddr, "/dev/i2c-23");
-  pflib::lpGBT lpgbt_i2c(tport);
-  pflib::zcu::lpGBT_ICEC_Simple ic("singleLPGBT", false, chipaddr);
-  pflib::lpGBT lpgbt_ic(ic);
-  tool::set_history_filepath("~/.pflpgbt-history");
   ToolBox t;
-  t.lpgbt_i2c = &lpgbt_i2c;
+
+  pflib::zcu::OptoLink olink(target_name.c_str());
+  int chipaddr = 0x78;
+  if (wired) {
+    LPGBT_Mezz_Tester tester(olink.coder());
+    bool addr, mode1;
+    tester.get_mode(addr, mode1);  // need to determine address
+    if (addr) chipaddr |= 0x1;
+    if (mode1) chipaddr |= 0x4;
+    printf(" ADDR = %d and MODE1=%d -> 0x%02x\n", addr, mode1, chipaddr);
+    pflib::lpGBT_ConfigTransport_I2C* tport=new pflib::lpGBT_ConfigTransport_I2C(chipaddr, "/dev/i2c-23");
+    t.lpgbt_i2c = new pflib::lpGBT(*tport);
+  } else {
+    chipaddr |= 0x4;
+  }
+
+  pflib::zcu::lpGBT_ICEC_Simple ic(target_name, false, chipaddr);
+  pflib::lpGBT lpgbt_ic(ic);
+  pflib::zcu::lpGBT_ICEC_Simple ec(target_name, true, 0x78); // correct for HCAL
+  pflib::lpGBT lpgbt_ec(ec);
+  tool::set_history_filepath("~/.pflpgbt-history");
   t.lpgbt_ic = &lpgbt_ic;
-  t.lpgbt = t.lpgbt_i2c;
+  t.lpgbt_ec = &lpgbt_ec;
+  if (wired) t.lpgbt = t.lpgbt_i2c;
+  else t.lpgbt=t.lpgbt_ic;
   t.olink = &olink;
 
   /// need to make sure the voltage is at a safe level, will be done automatically here
-  pflib::power_ctl_mezz ctl("/dev/i2c-23");
-  t.p_ctl = &ctl;
+  pflib::power_ctl_mezz* ctl(0);
+  if (!nomezz) ctl=new pflib::power_ctl_mezz("/dev/i2c-23");
+  t.p_ctl = ctl;
 
   tool::run(&t);
 

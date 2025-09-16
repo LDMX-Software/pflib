@@ -28,6 +28,7 @@ static const uint32_t MASK_TX_EMPTY = 0x00000200;
 lpGBT_ICEC_Simple::lpGBT_ICEC_Simple(const std::string& target, bool isEC,
                                      uint8_t lpgbt_i2c_addr)
     : offset_{isEC ? (OFFSET_EC) : (OFFSET_IC)},
+      offset_status_{isEC ? (OFFSET_EC-1) : (OFFSET_IC)},
       lpgbt_i2c_addr_{lpgbt_i2c_addr},
       transport_(target) {
   int reg = REG_CTL_RESET_N_READ + offset_;
@@ -61,12 +62,14 @@ std::vector<uint8_t> lpGBT_ICEC_Simple::read_regs(uint16_t reg, int n) {
   transport_.write(offset_ + REG_CTL_RESET_N_READ, val);
   // wait for done...
   int timeout = 1000;
-  for (val = transport_.read(offset_ + REG_STATUS_READ); (val & MASK_RX_EMPTY);
-       val = transport_.read(offset_ + REG_STATUS_READ)) {
+  for (val = transport_.read(offset_status_ + REG_STATUS_READ); (val & MASK_RX_EMPTY);
+       val = transport_.read(offset_status_ + REG_STATUS_READ)) {
     usleep(1);
     timeout--;
     if (timeout == 0) {
-      PFEXCEPTION_RAISE("ICEC_Timeout", "Read register timeout");
+      char message[256];
+      snprintf(message,256,"Read register 0x%x timeout",reg);
+      PFEXCEPTION_RAISE("ICEC_Timeout", message);
     }
   }
   wc = 0;
@@ -77,8 +80,8 @@ std::vector<uint8_t> lpGBT_ICEC_Simple::read_regs(uint16_t reg, int n) {
     if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
     wc++;
     // this seems to be sometimes too fast...
-    transport_.read(offset_ + REG_STATUS_READ);
-    val = transport_.read(offset_ + REG_STATUS_READ);
+    transport_.read(offset_status_ + REG_STATUS_READ);
+    val = transport_.read(offset_status_ + REG_STATUS_READ);
   }
 
   return retval;
@@ -86,6 +89,7 @@ std::vector<uint8_t> lpGBT_ICEC_Simple::read_regs(uint16_t reg, int n) {
 
 void lpGBT_ICEC_Simple::write_reg(uint16_t reg, uint8_t value) {
   std::vector<uint8_t> vv(1, value);
+  //  printf("%x %x %x\n",reg, value, lpgbt_i2c_addr_);
   write_regs(reg, vv);
 }
 
@@ -107,13 +111,16 @@ void lpGBT_ICEC_Simple::write_regs(uint16_t reg,
       transport_.write(offset_ + REG_CTL_RESET_N_READ, MASK_START_WRITE);
       // wait for tx to be done
       int timeout = 1000;
-      for (uint32_t val = transport_.read(offset_ + REG_STATUS_READ);
-           (val & MASK_TX_EMPTY);
-           val = transport_.read(offset_ + REG_STATUS_READ)) {
+      for (uint32_t val = transport_.read(offset_status_ + REG_STATUS_READ);
+           !(val & MASK_TX_EMPTY);
+           val = transport_.read(offset_status_ + REG_STATUS_READ)) {
+	//	printf("%02x\n",val);
         usleep(1);
         timeout--;
         if (timeout == 0) {
-          PFEXCEPTION_RAISE("ICEC_Timeout", "Write register timeout");
+	  char message[256];
+	  snprintf(message,256,"Write register 0x%x (+%d) timeout (%x)",reg,ic,lpgbt_i2c_addr_);
+          PFEXCEPTION_RAISE("ICEC_Timeout", message);
         }
       }
       ic = 0;

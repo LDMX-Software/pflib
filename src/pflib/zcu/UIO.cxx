@@ -13,17 +13,54 @@ namespace pflib {
 
 UIO::UIO(const std::string& name, size_t length)
     : size_{length}, ptr_{0}, handle_{0} {
+  /** first, look for the DTSI map */
+  FILE* fdtsi=fopen("/opt/ldmx-firmware/active/device-tree/pl-full.dtsi","r");
+  uint32_t baseaddr=0;
+  if (fdtsi!=0) {
+    char buf[1024], *where;
+    uint32_t abaseaddr=0;
+    while (!feof(fdtsi)) {
+      buf[0]=0;
+      fgets(buf,1024,fdtsi);
+      
+      if ((where=strstr(buf,"@"))!=0) {
+	abaseaddr=strtoul(where+1,0,16);
+      } else if ((where=strstr(buf,"instance_id = "))!=0) {
+	std::string iname=strstr(where,"\"")+1;
+	iname.erase(iname.find('"'));
+	if (iname==name) {
+	  baseaddr=abaseaddr;
+	  break;
+	}
+	//	printf("%08x %s\n",baseaddr,iname.c_str());
+      }      
+    }
+    fclose(fdtsi);
+  }
   for (int i = 0; i < 100; i++) {
     char namefile[200], buffer[100];
-    snprintf(namefile, 200, "/sys/class/uio/uio%d/maps/map0/name", i);
+    if (baseaddr!=0) {
+      snprintf(namefile, 200, "/sys/class/uio/uio%d/maps/map0/addr", i);
+    } else {
+      snprintf(namefile, 200, "/sys/class/uio/uio%d/maps/map0/name", i);
+    }
     FILE* f = fopen(namefile, "r");
     if (!f) continue;
     fgets(buffer, 100, f);
     fclose(f);
+    if (baseaddr!=0) {
+      if (strtoul(buffer,0,0)==baseaddr) {
+	snprintf(namefile, 200, "/dev/uio%d", i);
+	iopen(namefile, length);
+	break;
+      }
+    } else {
     // does it start with the same string?
-    if (strstr(buffer, name.c_str()) == buffer) {
-      snprintf(namefile, 200, "/dev/uio%d", i);
-      iopen(namefile, length);
+      if (strstr(buffer, name.c_str()) == buffer) {
+	snprintf(namefile, 200, "/dev/uio%d", i);
+	iopen(namefile, length);
+	break;
+      }
     }
   }
   if (ptr_ == 0) {

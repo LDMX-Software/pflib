@@ -54,6 +54,7 @@ class lpGBT {
 
   void write(uint16_t reg, uint8_t value) { tport_.write_reg(reg, value); }
   uint8_t read(uint16_t reg) { return tport_.read_reg(reg); }
+  std::vector<uint8_t> read(uint16_t reg, int len) { return tport_.read_regs(reg,len); }
 
   typedef std::pair<uint16_t, uint8_t> RegisterValue;
   typedef std::vector<RegisterValue> RegisterValueVector;
@@ -157,8 +158,40 @@ class lpGBT {
 
   uint32_t read_efuse(uint16_t addr);
 
+
+  /** Setup an I2C bus
+      \param ibus Which I2C bus (0-2)
+      \param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
+      \param scl_drive Enable CMOS driver on SCL
+      \param strong_scl Enable higher-strength driver on SCL
+      \param strong_sda Enable higher-strength driver on SDA
+      \param pull_up_scl Enable internal pullup on SCL
+      \param pull_up_sda Enable internal pullup on SDA
+   */
+  void setup_i2c(int ibus, int speed_khz, bool scl_drive=false, bool strong_scl=true, bool strong_sda=true, bool pull_up_scl=false, bool pull_up_sda=false);
+  
+  /** Start an I2C read */
+  void start_i2c_read(int ibus, uint8_t i2c_addr, int len=1);
+
+  /** Start an I2C write of a single byte */
+  void i2c_write(int ibus, uint8_t i2c_addr, uint8_t value);
+
+  /** Start an I2C write of multiple bytes */
+  void i2c_write(int ibus, uint8_t i2c_addr, const std::vector<uint8_t>& values);
+
+  /** Check for transaction completion optionally waiting for completion, throws exception on failure */
+  bool i2c_transaction_check(int ibus, bool wait=false);
+
+  /** Get back the data from the read */
+  std::vector<uint8_t> i2c_read_data(int ibus);
+  
  private:
   lpGBT_ConfigTransport& tport_;
+  struct I2C {
+    uint8_t ctl_reg;
+    uint8_t read_len;
+  } i2c_[3];
+  
 };
 
 }  // namespace pflib

@@ -67,6 +67,7 @@ class Target {
 };
 
 Target* makeTargetFiberless();
+Target* makeTargetHcalMB();
 
 }  // namespace pflib
 

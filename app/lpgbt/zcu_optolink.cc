@@ -3,7 +3,7 @@
 namespace pflib {
 namespace zcu {
 
-OptoLink::OptoLink() : transright_("transceiver_right"), coder_("singleLPGBT") {
+  OptoLink::OptoLink(const char* coder_name) : transright_("transceiver_right"), coder_(coder_name), coder_name_(coder_name) {
 
   // enable all SFPs, use internal clock
   transright_.write(0x2,0xF0000);
@@ -37,7 +37,12 @@ void OptoLink::reset_link() {
   }
   
   coder_.write(0,1);// reset the DECODER
-  
+  usleep(1000);
+  coder_.write(65,0x40000000); //reset IC
+  coder_.write(67,0x40000000); //reset EC
+  usleep(1000);
+  coder_.write(65,0x00000000); //reset IC
+  coder_.write(67,0x00000000); //reset EC
 }
 
 static const uint32_t REG_POLARITY              = 0x1;
@@ -86,10 +91,17 @@ std::map<std::string, uint32_t> OptoLink::opto_rates() {
   for (int i=0; tnames[i]!=0; i++) 
     retval[tnames[i]]=transright_.read(TRIGHT_RATES_OFFSET+i);
 
-  const char* cnames[]={"LINK_WORD","LINK_ERROR","LINK_CLOCK","CLOCK_40",0};
-  const int CRATES_OFFSET = 80;
-  for (int i=0; cnames[i]!=0; i++) 
-    retval[cnames[i]]=coder_.read(CRATES_OFFSET+i);
+  if (coder_name_=="singleLPGBT") {
+    const char* cnames[]={"LINK_WORD","LINK_ERROR","LINK_CLOCK","CLOCK_40",0};
+    const int CRATES_OFFSET = 80;
+    for (int i=0; cnames[i]!=0; i++) 
+      retval[cnames[i]]=coder_.read(CRATES_OFFSET+i);
+  } else {
+    const char* cnames[]={"DAQ_LINK_WORD","TRIG_LINK_WORD", "DAQ_LINK_ERROR","TRIG_LINK_ERROR","DAQ_LINK_CLOCK","TRIG_LINK_CLOCK","CLOCK_40",0};
+    const int CRATES_OFFSET = 80;
+    for (int i=0; cnames[i]!=0; i++) 
+      retval[cnames[i]]=coder_.read(CRATES_OFFSET+i);
+  }
   
       
 
@@ -106,6 +118,81 @@ std::map<std::string, uint32_t> OptoLink::opto_rates() {
     if (i<0 || i>3) return;
     coder_.write(REG_DOWNLINK_MODE0+i,mode&MASK_DOWNLINK_MODE);
   }
+
+
+void OptoLink::capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx) {
+  static constexpr int REG_SPY_CTL = 67;
+  static constexpr int REG_READ    = 69;
+
+  uint32_t val=coder_.read(REG_SPY_CTL);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10)|(1<<9); 
+  coder_.write(REG_SPY_CTL,val);
+
+  // now wait for it...
+  bool done=false;
+  do {
+    usleep(100);
+    done=(coder_.read(REG_READ)&0x400)!=0;
+    if (mode==0) done=true;
+  } while (!done);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); // disable the spy 
+  coder_.write(REG_SPY_CTL,val);
+
+  tx.clear();
+  rx.clear();
+  
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); 
+  for (int i=0; i<256; i++) {
+    val=val&0xFFF;
+    val=val|(i<<12);
+    coder_.write(REG_SPY_CTL,val);
+    usleep(1);
+    uint32_t k=coder_.read(REG_READ);
+    tx.push_back((k>>(2+11))&0x3);
+    rx.push_back((k>>11)&0x3);
+  }
+  
+}
+
+void OptoLink::capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx) {
+  static constexpr int REG_SPY_CTL = 65;
+  static constexpr int REG_READ    = 68;
+
+  uint32_t val=coder_.read(REG_SPY_CTL);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10)|(1<<9); 
+  coder_.write(REG_SPY_CTL,val);
+
+  // now wait for it...
+  bool done=false;
+  do {
+    usleep(100);
+    done=(coder_.read(REG_READ)&0x400)!=0;
+    if (mode==0) done=true;
+  } while (!done);
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); // disable the spy 
+  coder_.write(REG_SPY_CTL,val);
+
+  tx.clear();
+  rx.clear();
+  
+  val=val&0x1FF;
+  val=val|((mode&0x3)<<10); 
+  for (int i=0; i<256; i++) {
+    val=val&0xFFF;
+    val=val|(i<<12);
+    coder_.write(REG_SPY_CTL,val);
+    usleep(1);
+    uint32_t k=coder_.read(REG_READ);
+    tx.push_back((k>>(2+11))&0x3);
+    rx.push_back((k>>11)&0x3);
+  }
+  
+}
 
   
 }

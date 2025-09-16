@@ -26,6 +26,7 @@ class lpGBT_ICEC_Simple : public lpGBT_ConfigTransport {
  private:
   /// Offset depending on EC/IC
   int offset_;
+  int offset_status_;
   /// i2c address of the device
   uint8_t lpgbt_i2c_addr_;
   /// UIO block
