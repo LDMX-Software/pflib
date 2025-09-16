@@ -55,12 +55,8 @@ class Target {
    * @param[in] nevents number of events to collect
    * @param[in] rate how fast to collect events, default 100
    */
-  void daq_run(
-      const std::string& cmd,
-      DAQRunConsumer& consumer,
-      int nevents,
-      int rate = 100
-  );
+  void daq_run(const std::string& cmd, DAQRunConsumer& consumer, int nevents,
+               int rate = 100);
 
  protected:
   std::map<std::string, std::shared_ptr<I2C> > i2c_;

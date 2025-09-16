@@ -111,22 +111,25 @@ static void i2c(const std::string& cmd, Target* target) {
 static void elinks(const std::string& cmd, Target* pft) {
   pflib::Elinks& elinks = pft->hcal().elinks();
   if (cmd == "SPY") {
-    pftool::state.ilink = pftool::readline_int("Which elink? ", pftool::state.ilink);
+    pftool::state.ilink =
+        pftool::readline_int("Which elink? ", pftool::state.ilink);
     std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink);
     for (size_t i = 0; i < spy.size(); i++)
       printf("%02d %08x\n", int(i), spy[i]);
   }
   if (cmd == "BITSLIP") {
-    pftool::state.ilink = pftool::readline_int("Which elink? ", pftool::state.ilink);
-    int bitslip =
-        pftool::readline_int("Bitslip value : ", elinks.getBitslip(pftool::state.ilink));
+    pftool::state.ilink =
+        pftool::readline_int("Which elink? ", pftool::state.ilink);
+    int bitslip = pftool::readline_int("Bitslip value : ",
+                                       elinks.getBitslip(pftool::state.ilink));
     for (int jlink = 0; jlink < 8; jlink++) {
       if (pftool::state.ilink >= 0 && jlink != pftool::state.ilink) continue;
       elinks.setBitslip(jlink, bitslip);
     }
   }
   if (cmd == "DELAY") {
-    pftool::state.ilink = pftool::readline_int("Which elink? ", pftool::state.ilink);
+    pftool::state.ilink =
+        pftool::readline_int("Which elink? ", pftool::state.ilink);
     int idelay = elinks.getAlignPhase(pftool::state.ilink);
     idelay = pftool::readline_int("Phase value: ", idelay);
     elinks.setAlignPhase(pftool::state.ilink, idelay);
@@ -137,17 +140,19 @@ static void elinks(const std::string& cmd, Target* pft) {
   }
 
   if (cmd == "SCAN") {
-    pftool::state.ilink = pftool::readline_int("Which elink?", pftool::state.ilink);
+    pftool::state.ilink =
+        pftool::readline_int("Which elink?", pftool::state.ilink);
 
     int bp = elinks.scanAlign(pftool::state.ilink, true);
     printf("\n Best Point: %d\n", bp);
   }
   if (cmd == "AUTO") {
-    std::cout << "In order to align the ELinks, we need to hard reset the HGCROC\n"
-                 "to force the trigger links to return idles.\n"
-                 "This will reset all parameters on the HGCROC to their defaults.\n"
-                 "You can use ROC.DUMP to write out the current HGCROC settings to\n"
-                 "a YAML file for later loading.\n";
+    std::cout
+        << "In order to align the ELinks, we need to hard reset the HGCROC\n"
+           "to force the trigger links to return idles.\n"
+           "This will reset all parameters on the HGCROC to their defaults.\n"
+           "You can use ROC.DUMP to write out the current HGCROC settings to\n"
+           "a YAML file for later loading.\n";
 
     if (not pftool::readline_bool("Continue? ", false)) {
       return;
@@ -266,7 +271,8 @@ static void fc(const std::string& cmd, Target* pft) {
       printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
     }
 
-    printf("  ELink Event Occupancy: %d\n", pft->hcal().daq().getEventOccupancy());
+    printf("  ELink Event Occupancy: %d\n",
+           pft->hcal().daq().getEventOccupancy());
     /**
      * FastControl::read_counters is default defined to do nothing,
      * FastControlCMS_MMap does not override this default definition
@@ -302,7 +308,8 @@ auto menu_elinks =
         ->line("BIGSPY", "Take a spy of a specific channel at 32-bits", elinks);
 
 auto menu_fc =
-    menu_expert->submenu("FAST_CONTROL", "configuration and testing of fast control")
+    menu_expert
+        ->submenu("FAST_CONTROL", "configuration and testing of fast control")
         ->line("STATUS", "Check status and counters", fc)
         ->line("SW_L1A", "Send a software L1A", fc)
         ->line("LINK_RESET", "Send a link reset", fc)
@@ -310,4 +317,4 @@ auto menu_fc =
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc);
-}
+}  // namespace

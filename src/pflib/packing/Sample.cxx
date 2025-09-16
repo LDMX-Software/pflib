@@ -36,12 +36,21 @@ int Sample::tot() const {
   }
 }
 
-const std::string Sample::to_csv_header =
-  "Tp,Tc,adc_tm1,adc,tot,toa";
+const std::string Sample::to_csv_header = "Tp,Tc,adc_tm1,adc,tot,toa";
 
 void Sample::to_csv(std::ofstream& f) const {
-  f << Tp() << ',' << Tc() << ','
-    << adc_tm1() << ',' << adc() << ',' << tot() << ',' << toa();
+  f << Tp() << ',' << Tc() << ',' << adc_tm1() << ',' << adc() << ',' << tot()
+    << ',' << toa();
+}
+
+void Sample::from_unpacked(bool Tc, bool Tp, int adc_tm1, int main_sample, int toa) {
+  /**
+   * We assume that negative values have been zero-suppressed by the ECON-D
+   * and thus should be represented by a value of zero.
+   */
+  int msb_meas = (adc_tm1 < 0) ? 0 : adc_tm1;
+  int lsb_meas = (toa < 0) ? 0 : toa;
+  word = (Tc << 31) + (Tp << 30) + ((msb_meas & mask<10>) << 20) + ((main_sample & mask<10>) << 10) + (lsb_meas & mask<10>);
 }
 
 }  // namespace pflib::packing

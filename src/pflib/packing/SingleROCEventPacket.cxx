@@ -3,9 +3,9 @@
 #include <fstream>
 #include <iostream>
 
+#include "pflib/Exception.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
-#include "pflib/Exception.h"
 
 namespace pflib::packing {
 
@@ -32,7 +32,7 @@ void SingleROCEventPacket::from(std::span<uint32_t> data) {
     if (i_link < 2) {
       daq_links[i_link].from(data.subspan(link_start_offset, link_len));
     } else {
-      trigger_links[i_link-2].from(data.subspan(link_start_offset, link_len));
+      trigger_links[i_link - 2].from(data.subspan(link_start_offset, link_len));
     }
     link_start_offset += link_len;
   }
@@ -86,7 +86,7 @@ Reader& SingleROCEventPacket::read(Reader& r) {
 }
 
 const std::string SingleROCEventPacket::to_csv_header =
-  "i_link,bx,event,orbit,channel,"+Sample::to_csv_header;
+    "i_link,bx,event,orbit,channel," + Sample::to_csv_header;
 
 void SingleROCEventPacket::to_csv(std::ofstream& f) const {
   /**
@@ -123,8 +123,8 @@ Sample SingleROCEventPacket::channel(int ch) const {
 
 uint32_t SingleROCEventPacket::trigsum(int i_link, int i_sum, int i_bx) const {
   if (i_link < 0 or i_link > 3) {
-    PFEXCEPTION_RAISE("OutOfRange",
-        "Trigger link "+std::to_string(i_link)+" is not in the range [0,3].");
+    PFEXCEPTION_RAISE("OutOfRange", "Trigger link " + std::to_string(i_link) +
+                                        " is not in the range [0,3].");
   }
   /**
    * We return the linearized sum since that is what most people want.

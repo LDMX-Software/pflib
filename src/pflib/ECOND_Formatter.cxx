@@ -1,4 +1,8 @@
 #include "pflib/ECOND_Formatter.h"
+
+#include "pflib/utility/crc.h"
+
+#include <span>
 #include <stdio.h>
 
 namespace pflib {
@@ -12,6 +16,7 @@ void ECOND_Formatter::startEvent(int bx, int l1a, int orbit) {
   packet_.push_back(
       ((bx & 0xFFF) << 20) | ((l1a & 0x3F) << 14) |
       ((orbit & 0x7) << 11));  // bx, l1a, orbit, S=0, RR=0, no CRC-8
+                               
 };
 
 void ECOND_Formatter::add_elink_packet(int ielink,
@@ -26,7 +31,18 @@ void ECOND_Formatter::add_elink_packet(int ielink,
 }
 
 void ECOND_Formatter::finishEvent() {
-  packet_.push_back(0xFFFFFFFFu);  // CRC, not actually...
+  // event header 8-bit CRC
+  // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
+  // first header word:
+  //   shift out the Hamming
+  uint64_t header_crc_base = (packet_[0] >> 5);
+  //   move into position
+  header_crc_base <<= 29;
+  // second header word, shift out the CRC
+  header_crc_base |= (packet_[1] >> 8);
+  packet_[1] += utility::econd_crc8(header_crc_base);
+  // calculate sub-link packet CRCs
+  packet_.push_back(utility::crc32(std::span(packet_.begin()+2, packet_.end())));
 }
 
 std::vector<uint32_t> ECOND_Formatter::format_elink(
@@ -62,33 +78,33 @@ std::vector<uint32_t> ECOND_Formatter::format_elink(
     int code = zs_process(ielink, ic, word);
     if (code >= 0) {
       // set the channel map bit
-      if (ic >= 32)
-        dest[0] |= (1 << (ic - 32));
+      if (iw >= 32)
+        dest[0] |= (1 << (iw - 32));
       else
-        dest[1] |= (1 << ic);
+        dest[1] |= (1 << iw);
 
       uint32_t insert_value;
       int insert_len = 32;
-      if (code == 0) {  // TOA ZS
-        insert_value = 0 | ((word >> 10) & 0xFFFFF);
+      if (code == 0b0000) {  // TOA ZS
+        insert_value = (0b000 << 20) | ((word >> 10) & 0xFFFFF);
         insert_len = 24;
-      } else if (code == 1) {  // ADC-1 and TOA ZS
-        insert_value = (0x1 << 12) | ((word >> 8) & 0xFFC);
+      } else if (code == 0b0001) {  // ADC-1 and TOA ZS
+        insert_value = (0b0001 << 12) | ((word >> 10) & 0xFFC);
         insert_len = 16;
-      } else if (code == 2) {  // TcTp=01, TOA ZS
-        insert_value = (0x2 << 12) | ((word >> 10) & 0xFFFFF);
+      } else if (code == 0b0010) {  // TcTp=01, TOA ZS
+        insert_value = (0b0010 << 20) | ((word >> 10) & 0xFFFFF);
         insert_len = 24;
-      } else if (code == 3) {  // ADC-1 ZS
-        insert_value = (0x3 << 12) | (word & 0xFFFFF);
+      } else if (code == 0b0011) {  // ADC-1 ZS
+        insert_value = (0b0011 << 20) | (word & 0xFFFFF);
         insert_len = 24;
-      } else if (code == 4) {  // readout all, ADC
+      } else if (code == 0b0100) {  // readout all, ADC
         insert_value = (0x1 << 30) | (word & 0x3FFFFFFF);
-      } else if (code == 12) {  // readout all, TOT
+      } else if (code == 0b1100) {  // readout all, TOT
         insert_value = word;
       } else {  // invalid code, readout all
         insert_value = word;
       }
-      //
+
       while (insert_len >= space_left) {
         building_word |= (insert_value >> (insert_len - space_left));
         if ((insert_len - space_left) == 8)
@@ -118,17 +134,15 @@ int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
   // eventually, implement detailed code to carry out different classes of ZS with provided
   // parameters.  For now, we just look at the tc/tp code
   int tctp = (word >> 30) & 0x3;
-  if (tctp == 0x3) return 12;  // is TOT
-  if (tctp == 0x2) return 8;   // is strange
-  if (tctp == 0x1) return 2;   // is invalid due to ongoing TOT
+  if (tctp == 0b11) return 0b1100;  // is TOT
+  if (tctp == 0b10) return 0b1000;  // is strange
+  if (tctp == 0b01) return 0b0010;  // is invalid due to ongoing TOT
   /// at this point, we have tctp=0, so we can apply zs algorithms
-  if (disable_ZS_) return 4;
+  if (disable_ZS_) return 0b0100;
   // TOA zs...
   bool no_toa = ((word & 0x3FF) == 0);
-  if (no_toa) return 0;
+  if (no_toa) return 0b0000;
   return 4;  // assume we just read out everything for now, but easy to add TOA zs logic
 }
 
-
 }  // namespace pflib
-

@@ -18,7 +18,8 @@ namespace pflib {
  */
 class Hcal {
  public:
-  Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c, const std::vector<std::shared_ptr<I2C>>& bias_i2c);
+  Hcal(const std::vector<std::shared_ptr<I2C>>& roc_i2c,
+       const std::vector<std::shared_ptr<I2C>>& bias_i2c);
 
   /** number of boards */
   int nrocs() { return nhgcroc_; }
@@ -60,7 +61,6 @@ class Hcal {
   /** The ROC I2C interfaces */
   std::vector<std::shared_ptr<I2C>> roc_i2c_;
   std::vector<std::shared_ptr<I2C>> bias_i2c_;
-
 };
 
 }  // namespace pflib

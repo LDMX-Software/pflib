@@ -26,6 +26,7 @@ namespace pflib::menu {
  */
 class BaseMenu {
   static std::string history_filepath_;
+
  public:
   /**
    * Decide where the filepath for reading/writing the history should be
@@ -107,7 +108,8 @@ class BaseMenu {
    * @return filepath string that looks like [BaseMenu::output_directory/]{name}{timestamp}[extension]
    * where {timestamp} is created from the current time and BaseMenu::timestamp_format
    */
-  static std::string default_path(const std::string& name, const std::string& extension = "");
+  static std::string default_path(const std::string& name,
+                                  const std::string& extension = "");
 
   /// output directory to include in default path
   static std::string output_directory;
@@ -119,7 +121,8 @@ class BaseMenu {
    * The arguments are then passed on to BaseMenu::default_path to create a default path for
    * the user to confirm or rewrite if they desire.
    */
-  static std::string readline_path(const std::string& name, const std::string& extension = "");
+  static std::string readline_path(const std::string& name,
+                                   const std::string& extension = "");
 
   /**
    * format of timestamp to append to default path
@@ -201,7 +204,6 @@ class BaseMenu {
    */
   static void add_to_command_queue(const std::string& str);
 
-
  protected:
   /**
    * Add a command to the history of commands that have been executed.
@@ -223,6 +225,7 @@ class BaseMenu {
   static const std::vector<std::string>* rl_comp_opts_;
 
   static ::pflib::logging::logger the_log_;
+
  private:
   /**
    * matcher function following readline's function signature
@@ -664,6 +667,6 @@ class Menu : public BaseMenu {
   RenderFuncType render_func_;
 };  // Menu
 
-}
+}  // namespace pflib::menu
 
 #endif  // PFLIB_TOOL_MENU_H

@@ -12,4 +12,4 @@ namespace pflib::utility {
  */
 int median(std::vector<int> samples);
 
-}
+}  // namespace pflib::utility

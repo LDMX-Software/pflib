@@ -2,24 +2,22 @@
  * @file daq.cxx
  * DAQ menu (and submenus) command definitions
  */
-#include "pftool.h"
-
-#include "pflib/WriteToBinaryFile.h"
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/string_format.h"
+#include "pflib/WriteToBinaryFile.h"
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/string_format.h"
+#include "pftool.h"
 
 ENABLE_LOGGING();
 
 static void print_daq_status(Target* pft) {
   pflib::DAQ& daq = pft->hcal().daq();
-  std::cout
-    << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
-    << "          ECON ID: " << daq.econid() << "\n"
-    << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
-    << "              SoI: " << daq.soi() << "\n"
-    << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
-    << std::endl;
+  std::cout << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
+            << "          ECON ID: " << daq.econid() << "\n"
+            << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
+            << "              SoI: " << daq.soi() << "\n"
+            << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
+            << std::endl;
 }
 
 /**
@@ -52,15 +50,17 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     printf(" (1) ROC with ad-hoc headers as in TB2022\n");
     printf(" (2) ECON with full readout\n");
     //printf(" (3) ECON with ZS\n");
-    int i_format = pftool::readline_int(" Select one: ", static_cast<int>(pftool::state.daq_format_mode));
+    int i_format = pftool::readline_int(
+        " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
     if (i_format < 1 or i_format > 2) {
-      PFEXCEPTION_RAISE("BadSel", std::to_string(i_format)+" is not a valid selection.");
+      PFEXCEPTION_RAISE(
+          "BadSel", std::to_string(i_format) + " is not a valid selection.");
     }
     pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
   }
   if (cmd == "CONFIG") {
-    pftool::state.daq_contrib_id =
-        pftool::readline_int(" Contributor id for data: ", pftool::state.daq_contrib_id);
+    pftool::state.daq_contrib_id = pftool::readline_int(
+        " Contributor id for data: ", pftool::state.daq_contrib_id);
     int econid = pftool::readline_int(" ECON ID: ", daq.econid());
     int samples = 1;  // frozen for now
     int soi = 0;      // frozen for now
@@ -157,13 +157,11 @@ static void daq_setup_standard(Target* tgt) {
    */
   tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
   /// this then requires us to lower the L1OFFSET as well
-  std::map<std::string,std::map<std::string, int>> l1offsets;
+  std::map<std::string, std::map<std::string, int>> l1offsets;
   l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
   l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
   /// @note only correct right now for the single-board readout
-  auto roc{
-    tgt->hcal()
-      .roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
   roc.applyParameters(l1offsets);
   roc.setRunMode(true);
   pflib::Elinks& elinks = tgt->hcal().elinks();
@@ -214,7 +212,7 @@ static void daq(const std::string& cmd, Target* pft) {
     rwbi->daq_get_dma_setup(fpgaid_i, samples_per_event, dma_enabled);
   }
 #endif
-  if (cmd=="RESET") {
+  if (cmd == "RESET") {
     daq.reset();
   }
   /*
@@ -320,16 +318,19 @@ static void daq(const std::string& cmd, Target* pft) {
 
     int run = pftool::readline_int("Run number? ", run);
     int nevents = pftool::readline_int("How many events? ", 100);
-    pftool::state.daq_rate = pftool::readline_int("Readout rate? (Hz) ", pftool::state.daq_rate);
+    pftool::state.daq_rate =
+        pftool::readline_int("Readout rate? (Hz) ", pftool::state.daq_rate);
 
-    pft->setup_run(run, pftool::state.daq_format_mode, pftool::state.daq_contrib_id);
+    pft->setup_run(run, pftool::state.daq_format_mode,
+                   pftool::state.daq_contrib_id);
 
     std::string fname = pftool::readline_path(runname);
     bool decoding =
         pftool::readline_bool("Should we decode the packet into CSV?", true);
-        
+
     if (decoding) {
-      pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
+      pflib::DecodeAndWriteToCSV writer{
+          pflib::all_channels_to_csv(fname + ".csv")};
       pft->daq_run(cmd, writer, nevents, pftool::state.daq_rate);
     } else {
       pflib::WriteToBinaryFile writer{fname + ".raw"};
@@ -363,20 +364,15 @@ static void daq_debug_trigger_timein(Target* tgt) {
 
   auto test_param_builder = roc.testParameters();
   for (int ch{0}; ch < 72; ch++) {
-    test_param_builder.add(
-      pflib::utility::string_format("CH_%d", ch),
-      "ADC_PEDESTAL",
-      255
-    );
+    test_param_builder.add(pflib::utility::string_format("CH_%d", ch),
+                           "ADC_PEDESTAL", 255);
   }
 
   for (int half{0}; half < 2; half++) {
     test_param_builder.add(
-      pflib::utility::string_format("DIGITALHALF_%d", half),
-      "ADC_TH",
-      31
-    );
-    auto refvol_page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
+        pflib::utility::string_format("DIGITALHALF_%d", half), "ADC_TH", 31);
+    auto refvol_page{
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
     test_param_builder.add(refvol_page, "CALIB", 3000);
     test_param_builder.add(refvol_page, "INTCTEST", 1);
   }
@@ -400,43 +396,39 @@ static void daq_debug_trigger_timein(Target* tgt) {
   static const uint32_t TC_2 = 0xa0003f80;
   static const uint32_t TC_3 = 0xa000007f;
   std::array<int, 4> injected_channels{0, 29, 42, 70};
-  std::array<uint32_t, 4> expected_charge_mask = {
-    TC_0,
-    TC_2,
-    TC_1,
-    TC_3
-  };
-  for (const int& ch: injected_channels) {
-    test_param_builder.add(
-      pflib::utility::string_format("CH_%d", ch),
-      "LOWRANGE",
-      1
-    );
+  std::array<uint32_t, 4> expected_charge_mask = {TC_0, TC_2, TC_1, TC_3};
+  for (const int& ch : injected_channels) {
+    test_param_builder.add(pflib::utility::string_format("CH_%d", ch),
+                           "LOWRANGE", 1);
   }
   pflib_log(info) << "applying setup parameters";
   auto test_param_handle = test_param_builder.apply();
 
   do {
     int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-    int charge_to_l1a = pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+    int charge_to_l1a =
+        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
     tgt->fc().fc_setup_calib(charge_to_l1a);
-  
+
     int default_l1offset = 16;
-    int l1offset = pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
+    int l1offset =
+        pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
     auto test_l1offset_handle = roc.testParameters()
-      .add("DIGITALHALF_0", "L1OFFSET", l1offset)
-      .add("DIGITALHALF_1", "L1OFFSET", l1offset)
-      .apply();
-  
+                                    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
+                                    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
+                                    .apply();
+
     int default_global_latency_time = 10;
-    int global_latency_time = pftool::readline_int("Global latency time on the HGCROC?", default_global_latency_time);
-    auto test_latency_time = roc.testParameters()
-      .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
-      .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
-      .apply();
-  
+    int global_latency_time = pftool::readline_int(
+        "Global latency time on the HGCROC?", default_global_latency_time);
+    auto test_latency_time =
+        roc.testParameters()
+            .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .apply();
+
     pflib_log(info) << "storing link settings and expanding capture window";
-  
+
     /**
      * The window size in the firmware is stored in 6 bits,
      * so the maximum capture window (and therefore maximum delay)
@@ -451,39 +443,41 @@ static void daq_debug_trigger_timein(Target* tgt) {
       daq.getLinkSetup(ilink, og_delay[ilink], og_capture[ilink]);
       daq.setupLink(ilink, 0, max_delay);
     }
-  
-    pflib_log(info) << "pedestal runs to confirm alignment and trigger-sum suppression";
+
+    pflib_log(info)
+        << "pedestal runs to confirm alignment and trigger-sum suppression";
     tgt->fc().sendL1A();
-    usleep(10000); // one 100Hz cycle later
+    usleep(10000);  // one 100Hz cycle later
     std::array<std::vector<uint32_t>, 6> pedestal_link_data;
     for (int ilink{0}; ilink < 6; ilink++) {
       pedestal_link_data[ilink] = daq.getLinkData(ilink);
     }
     tgt->hcal().daq().advanceLinkReadPtr();
-  
-    pflib_log(info) << "charge injection run to see non-zero trigger sums in specific places";
+
+    pflib_log(info) << "charge injection run to see non-zero trigger sums in "
+                       "specific places";
     tgt->fc().chargepulse();
-    usleep(10000); // one 100Hz cycle later
+    usleep(10000);  // one 100Hz cycle later
     std::array<std::vector<uint32_t>, 6> charge_link_data;
     for (int ilink{0}; ilink < 6; ilink++) {
       charge_link_data[ilink] = daq.getLinkData(ilink);
     }
     tgt->hcal().daq().advanceLinkReadPtr();
-  
+
     for (int ilink{0}; ilink < 6; ilink++) {
-      pflib_log(debug) << "reset link " << ilink
-                       << " to delay " << og_delay[ilink]
-                       << " and capture " << og_capture[ilink];
+      pflib_log(debug) << "reset link " << ilink << " to delay "
+                       << og_delay[ilink] << " and capture "
+                       << og_capture[ilink];
       daq.setupLink(ilink, og_delay[ilink], og_capture[ilink]);
     }
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
     tgt->fc().fc_setup_calib(og_charge_to_l1a);
-  
+
     pflib_log(info) << "analyze words readout from links";
     pflib_log(debug) << "delay : pedestal -> charge";
-    std::array<int, 6> delays{-1,-1,-1,-1,-1,-1};
-    std::array<std::pair<int,int>, 4> daq_pedestal_charge_adc;
-    std::array<std::pair<int,int>, 2> daq_ev;
+    std::array<int, 6> delays{-1, -1, -1, -1, -1, -1};
+    std::array<std::pair<int, int>, 4> daq_pedestal_charge_adc;
+    std::array<std::pair<int, int>, 2> daq_ev;
     for (int ilink{0}; ilink < 6; ilink++) {
       pflib_log(debug) << "Link " << ilink;
       if (ilink < 2) {
@@ -491,17 +485,16 @@ static void daq_debug_trigger_timein(Target* tgt) {
         // daq link analysis
         for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
           uint32_t pedestal{pedestal_link_data.at(ilink).at(i_delay)},
-                   charge{charge_link_data.at(ilink).at(i_delay)};
+              charge{charge_link_data.at(ilink).at(i_delay)};
           bool is_header{false};
-          if (
-            (pedestal & DAQ_HEADER_PATTERN)==DAQ_HEADER_PATTERN and
-            (charge & DAQ_HEADER_PATTERN)==DAQ_HEADER_PATTERN) {
+          if ((pedestal & DAQ_HEADER_PATTERN) == DAQ_HEADER_PATTERN and
+              (charge & DAQ_HEADER_PATTERN) == DAQ_HEADER_PATTERN) {
             is_header = true;
             delays[ilink] = i_delay;
           }
-          pflib_log(debug) << std::setw(2) << i_delay
-                           << " : " << pflib::packing::hex(pedestal)
-                           << " -> " << pflib::packing::hex(charge)
+          pflib_log(debug) << std::setw(2) << i_delay << " : "
+                           << pflib::packing::hex(pedestal) << " -> "
+                           << pflib::packing::hex(charge)
                            << (is_header ? " <- header" : "");
         }
 
@@ -509,31 +502,29 @@ static void daq_debug_trigger_timein(Target* tgt) {
           // could not find the header
           continue;
         }
-  
+
         // check if we found the injected charge pulses
-        pflib::packing::DAQLinkFrame pedestal{std::span(pedestal_link_data.at(ilink).begin()+delays[ilink], 40)};
-        pflib::packing::DAQLinkFrame charge{std::span(charge_link_data.at(ilink).begin()+delays[ilink], 40)};
-        daq_ev[ilink] = {
-          pedestal.event,
-          charge.event
-        };
+        pflib::packing::DAQLinkFrame pedestal{std::span(
+            pedestal_link_data.at(ilink).begin() + delays[ilink], 40)};
+        pflib::packing::DAQLinkFrame charge{
+            std::span(charge_link_data.at(ilink).begin() + delays[ilink], 40)};
+        daq_ev[ilink] = {pedestal.event, charge.event};
         for (std::size_t i_ch{0}; i_ch < injected_channels.size(); i_ch++) {
           const int& ch{injected_channels[i_ch]};
           int i_link = (ch / 36);
           int i_ch_in_link = (ch % 36);
           if (i_link == ilink) {
             daq_pedestal_charge_adc[i_ch] = {
-              pedestal.channels[i_ch_in_link].adc(),
-              charge.channels[i_ch_in_link].adc()
-            };
+                pedestal.channels[i_ch_in_link].adc(),
+                charge.channels[i_ch_in_link].adc()};
           }
         }
       } else {
         // trig link analysis
-        const auto& expected_charge{expected_charge_mask.at(ilink-2)};
+        const auto& expected_charge{expected_charge_mask.at(ilink - 2)};
         for (std::size_t i_delay{0}; i_delay < max_delay; i_delay++) {
           uint32_t pedestal{pedestal_link_data.at(ilink).at(i_delay)},
-                   charge{charge_link_data.at(ilink).at(i_delay)};
+              charge{charge_link_data.at(ilink).at(i_delay)};
           /**
            * The pedestal run producing trigger-zero words filters out words
            * that can be captured by this link but "belong" to a different link.
@@ -543,18 +534,19 @@ static void daq_debug_trigger_timein(Target* tgt) {
            * everywhere except the expected bits.
            */
           bool match_expected = false;
-          if (pedestal == ZERO and pedestal != charge and (charge & ZERO) == ZERO) {
+          if (pedestal == ZERO and pedestal != charge and
+              (charge & ZERO) == ZERO) {
             match_expected = ((charge & ~expected_charge) == 0);
             if (match_expected) delays[ilink] = static_cast<int>(i_delay);
           }
-          pflib_log(debug) << std::setw(2) << i_delay
-                           << " : " << pflib::packing::hex(pedestal)
-                           << " -> " << pflib::packing::hex(charge)
+          pflib_log(debug) << std::setw(2) << i_delay << " : "
+                           << pflib::packing::hex(pedestal) << " -> "
+                           << pflib::packing::hex(charge)
                            << (match_expected ? "(expected)" : "");
         }
       }
     }
-  
+
     /**
      * Finally, report the delays where we found the expected bits to be non-zero
      */
@@ -569,17 +561,18 @@ static void daq_debug_trigger_timein(Target* tgt) {
       if (ilink < 2) {
         const auto& [evp, evc] = daq_ev.at(ilink);
         std::cout << " event: " << evp << " -> " << evc;
-        for (std::size_t i_ch{2*ilink}; i_ch < 2*ilink+2; i_ch++) {
+        for (std::size_t i_ch{2 * ilink}; i_ch < 2 * ilink + 2; i_ch++) {
           const auto& [p, c] = daq_pedestal_charge_adc.at(i_ch);
           const auto& ch = injected_channels.at(i_ch);
-          std::cout << " ch_" << ch << (ch < 10 ? " " : "")
-                    << ": " << p << " -> " << c;
+          std::cout << " ch_" << ch << (ch < 10 ? " " : "") << ": " << p
+                    << " -> " << c;
         }
       }
       std::cout << '\n';
     }
     std::cout << std::flush;
-  } while (pftool::readline_bool("Want to try another set of timing parameters?", false));
+  } while (pftool::readline_bool(
+      "Want to try another set of timing parameters?", false));
 }
 
 namespace {
@@ -589,64 +582,72 @@ auto menu_daq =
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
-        ->line("CHARGE", "Take a charge-injection run", daq)
-    ;
+        ->line("CHARGE", "Take a charge-injection run", daq);
 
 auto menu_daq_debug =
     menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
         ->line("STATUS", "Provide the status", print_daq_status)
         ->line("ESPY", "Spy on one elink",
-          [](Target* tgt) {
-            static int input = 0;
-            input = pftool::readline_int("Which input?", input);
-            pflib::DAQ& daq = tgt->hcal().daq();
-        
-            std::vector<uint32_t> buffer = daq.getLinkData(input);
-            int delay{}, capture{};
-            daq.getLinkSetup(input, delay, capture);
-            for (size_t i = 0; i < buffer.size(); i++) {
-              if (i == 0) {
-                printf(" %04d %08x <- %d delay\n", int(i), buffer[i], delay);
-              } else {
-                printf(" %04d %08x\n", int(i), buffer[i]);
-              }
-            }
-          })
+               [](Target* tgt) {
+                 static int input = 0;
+                 input = pftool::readline_int("Which input?", input);
+                 pflib::DAQ& daq = tgt->hcal().daq();
+
+                 std::vector<uint32_t> buffer = daq.getLinkData(input);
+                 int delay{}, capture{};
+                 daq.getLinkSetup(input, delay, capture);
+                 for (size_t i = 0; i < buffer.size(); i++) {
+                   if (i == 0) {
+                     printf(" %04d %08x <- %d delay\n", int(i), buffer[i],
+                            delay);
+                   } else {
+                     printf(" %04d %08x\n", int(i), buffer[i]);
+                   }
+                 }
+               })
         ->line("ADV", "advance the readout pointers",
-          [](Target* tgt) {
-            tgt->hcal().daq().advanceLinkReadPtr();
-          })
-        ->line("SW_L1A", "send a L1A from software", [](Target* tgt) { tgt->fc().sendL1A(); })
-        ->line("CHARGE_TIMEIN", "Scan pulse-l1a time offset to see when it should be",
-          [](Target* tgt) {
-            int nevents = pftool::readline_int("How many events per time offset? ", 100);
-            int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 1024);
-            int min_offset = pftool::readline_int("Minimum time offset to test? ", 0);
-            int max_offset = pftool::readline_int("Maximum time offset to test? ", 128);
-            std::string fname = pftool::readline_path("charge-timein");
-            tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, pftool::state.daq_contrib_id);
-            pflib::DecodeAndWriteToCSV writer{pflib::all_channels_to_csv(fname + ".csv")};
-            pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
-            auto test_param_handle = roc.testParameters()
-              .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-              .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
-              .add("CH_61", "HIGHRANGE", 0)
-              .add("CH_61", "LOWRANGE", 0)
-              .apply();
-            for (int toffset{min_offset}; toffset < max_offset; toffset++) {
-              tgt->fc().fc_setup_calib(toffset);
-              usleep(10);
-              pflib_log(info) << "run with FAST_CONTROL.CALIB = " << tgt->fc().fc_get_setup_calib();
-              tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
-            }
-          })
+               [](Target* tgt) { tgt->hcal().daq().advanceLinkReadPtr(); })
+        ->line("SW_L1A", "send a L1A from software",
+               [](Target* tgt) { tgt->fc().sendL1A(); })
+        ->line(
+            "CHARGE_TIMEIN",
+            "Scan pulse-l1a time offset to see when it should be",
+            [](Target* tgt) {
+              int nevents = pftool::readline_int(
+                  "How many events per time offset? ", 100);
+              int calib = pftool::readline_int(
+                  "Setting for calib pulse amplitude? ", 1024);
+              int min_offset =
+                  pftool::readline_int("Minimum time offset to test? ", 0);
+              int max_offset =
+                  pftool::readline_int("Maximum time offset to test? ", 128);
+              std::string fname = pftool::readline_path("charge-timein");
+              tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
+                             pftool::state.daq_contrib_id);
+              pflib::DecodeAndWriteToCSV writer{
+                  pflib::all_channels_to_csv(fname + ".csv")};
+              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc,
+                                             pftool::state.type_version())};
+              auto test_param_handle =
+                  roc.testParameters()
+                      .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+                      .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+                      .add("CH_61", "HIGHRANGE", 0)
+                      .add("CH_61", "LOWRANGE", 0)
+                      .apply();
+              for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+                tgt->fc().fc_setup_calib(toffset);
+                usleep(10);
+                pflib_log(info) << "run with FAST_CONTROL.CALIB = "
+                                << tgt->fc().fc_get_setup_calib();
+                tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+              }
+            })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
-          [](Target* tgt) {
-            tgt->fc().chargepulse();
-          })
+               [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
-        ->line("TRIGGER_TIMEIN", "look for candidate trigger delays", daq_debug_trigger_timein)
-    ;
+        ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
+               daq_debug_trigger_timein);
 
 auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
@@ -656,7 +657,6 @@ auto menu_daq_setup =
         ->line("FPGA", "Set FPGA id", daq_setup)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)
         ->line("FORMAT", "Select the output data format", daq_setup)
-        ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup)
-    ;
+        ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup);
 
-}
+}  // namespace

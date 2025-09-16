@@ -17,4 +17,4 @@ void WriteToBinaryFile::consume(std::vector<uint32_t>& event) {
   fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
 }
 
-}
+}  // namespace pflib

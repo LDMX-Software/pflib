@@ -1,13 +1,13 @@
 #pragma once
 
-#include <memory>
 #include <functional>
+#include <memory>
 #include <vector>
 
-#include "pflib/packing/SingleROCEventPacket.h"
+#include "pflib/DecodeAndWrite.h"
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
-#include "pflib/DecodeAndWrite.h"
+#include "pflib/packing/SingleROCEventPacket.h"
 
 namespace pflib {
 
@@ -26,20 +26,22 @@ namespace pflib {
  * ```
  */
 class DecodeAndBuffer : public DecodeAndWrite {
-  public:
-    DecodeAndBuffer(int nevents);
-    virtual ~DecodeAndBuffer() = default;
-    /// get buffer
-    const std::vector<pflib::packing::SingleROCEventPacket>& get_buffer() const;
-    /// Set the buffer size
-    void set_buffer_size(int nevents);
-    /// Save to buffer
-    virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) override;
-    /// Check that the buffer was read and flushed since last run
-    virtual void start_run() override;
-  private:
-    /// Buffer for event packets
-    std::vector<pflib::packing::SingleROCEventPacket> ep_buffer_;
+ public:
+  DecodeAndBuffer(int nevents);
+  virtual ~DecodeAndBuffer() = default;
+  /// get buffer
+  const std::vector<pflib::packing::SingleROCEventPacket>& get_buffer() const;
+  /// Set the buffer size
+  void set_buffer_size(int nevents);
+  /// Save to buffer
+  virtual void write_event(
+      const pflib::packing::SingleROCEventPacket& ep) override;
+  /// Check that the buffer was read and flushed since last run
+  virtual void start_run() override;
+
+ private:
+  /// Buffer for event packets
+  std::vector<pflib::packing::SingleROCEventPacket> ep_buffer_;
 };
 
-}
+}  // namespace pflib

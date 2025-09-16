@@ -363,7 +363,8 @@ bool PolarfireTarget::loadBiasSettings(const std::string& file_name) {
       }
     });
     return true;
-  } else if (utility::ends_with(file_name, ".yaml") or utility::ends_with(file_name, ".yml")) {
+  } else if (utility::ends_with(file_name, ".yaml") or
+             utility::ends_with(file_name, ".yml")) {
     std::cerr << "Loading settings from YAML not implemented here yet."
               << std::endl;
     return false;

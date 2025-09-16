@@ -15,8 +15,8 @@ void increment(test_menu::TargetHandle p) {
 }
 
 static auto r = test_menu::root()
-             ->line("INC", "increment the target", increment)
-             ->line("ONE", "one command", print_cmd);
+                    ->line("INC", "increment the target", increment)
+                    ->line("ONE", "one command", print_cmd);
 
 int main(int argc, char* argv[]) {
   if (argc > 1) {

@@ -1,12 +1,12 @@
 #include "pflib/utility/load_integer_csv.h"
 
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <vector>
-#include <optional>
 
-#include "pflib/utility/str_to_int.h"
 #include "pflib/Exception.h"
+#include "pflib/utility/str_to_int.h"
 
 namespace pflib::utility {
 
@@ -20,9 +20,7 @@ namespace pflib::utility {
  */
 template <typename CellType>
 static std::optional<std::vector<CellType>> get_next_row(
-    std::istream& ss,
-    std::function<CellType(std::string)> conversion
-) {
+    std::istream& ss, std::function<CellType(std::string)> conversion) {
   std::string line;
   std::getline(ss, line);
 
@@ -56,9 +54,11 @@ static std::optional<std::vector<CellType>> get_next_row(
   return result;
 }
 
-void load_integer_csv(const std::string& file_name,
-                      std::function<void(const std::vector<int>&)> Action,
-                      std::optional<std::function<void(const std::vector<std::string>&)>> HeaderAction) {
+void load_integer_csv(
+    const std::string& file_name,
+    std::function<void(const std::vector<int>&)> Action,
+    std::optional<std::function<void(const std::vector<std::string>&)>>
+        HeaderAction) {
   if (file_name.empty()) {
     PFEXCEPTION_RAISE("Filename", "No file provided to load CSV function.");
   }
@@ -75,7 +75,8 @@ void load_integer_csv(const std::string& file_name,
      * then get the next line and apply the HeaderAction.
      */
     if (HeaderAction and not handled_header) {
-      auto cells = get_next_row<std::string>(f, [](std::string s) { return s; });
+      auto cells =
+          get_next_row<std::string>(f, [](std::string s) { return s; });
       if (cells) {
         HeaderAction.value()(cells.value());
         handled_header = true;
@@ -86,16 +87,13 @@ void load_integer_csv(const std::string& file_name,
        * the header, get the next line and apply the user's action if
        * the line is not a comment or empty.
        */
-      auto cells = get_next_row<int>(
-          f,
-          [](std::string s) {
-            if (s.empty()) {
-              return 0;
-            } else {
-              return str_to_int(s);
-            }
-          }
-        );
+      auto cells = get_next_row<int>(f, [](std::string s) {
+        if (s.empty()) {
+          return 0;
+        } else {
+          return str_to_int(s);
+        }
+      });
       if (cells) {
         Action(cells.value());
       }
@@ -103,4 +101,4 @@ void load_integer_csv(const std::string& file_name,
   }
 }
 
-}
+}  // namespace pflib::utility

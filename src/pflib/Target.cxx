@@ -12,21 +12,16 @@ std::vector<std::string> Target::i2c_bus_names() {
 
 I2C& Target::get_i2c_bus(const std::string& name) { return *(i2c_[name]); }
 
-void Target::daq_run(
-    const std::string& cmd,
-    DAQRunConsumer& consumer,
-    int nevents,
-    int rate
-) {
-  static const
-  std::unordered_map<std::string, std::function<void(pflib::FastControl&)>>
-  cmds = {
-    {"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
-    {"CHARGE"  , [](pflib::FastControl& fc) { fc.chargepulse(); }},
-    {"LED"     , [](pflib::FastControl& fc) { fc.ledpulse(); }}
-  };
+void Target::daq_run(const std::string& cmd, DAQRunConsumer& consumer,
+                     int nevents, int rate) {
+  static const std::unordered_map<std::string,
+                                  std::function<void(pflib::FastControl&)>>
+      cmds = {{"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
+              {"CHARGE", [](pflib::FastControl& fc) { fc.chargepulse(); }},
+              {"LED", [](pflib::FastControl& fc) { fc.ledpulse(); }}};
   if (cmds.find(cmd) == cmds.end()) {
-    PFEXCEPTION_RAISE("UnknownCMD", "Command "+cmd+" is not one of the daq_run options.");
+    PFEXCEPTION_RAISE("UnknownCMD",
+                      "Command " + cmd + " is not one of the daq_run options.");
   }
   auto trigger{cmds.at(cmd)};
 

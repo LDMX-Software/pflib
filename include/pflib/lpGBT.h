@@ -69,6 +69,14 @@ class lpGBT {
   /* -------------------------------------------------------
      Medium-level interfaces
   */
+
+  /** Get the serial number (somewhat complex) */
+  uint32_t serial_number();
+
+  /** Get the lpGBT status (power up state machine) */
+  int status();
+  std::string status_name(int pusm);
+
   /** Set the given gpio bit */
   void gpio_set(int ibit, bool high);
   /** Get the given gpio bit */
@@ -109,11 +117,45 @@ class lpGBT {
 
   /** Setup the given elink-rx 
       \param ierx ERx index (0-5)
-      \param
+      \param align Alignment mode (0-3)
+      \param alignphase Alignment phase particularly for fixed mode (0-15)
+      \param speed link speed as given in lpgbt manual (usually 3)
+      \param invert Invert the incoming signal
+      \param term Enable the internal 100 Ohm termination
+      \param equalization Value of the equalization field
+      \oaram acbias Apply a bias appropriate for AC-coupled elinks
       On the LDMX lpGBT mezzanine, each elink-rx is configured with a single active pair.
    */
-  void setup_erx(int ierx, int speed, bool invert = false, bool term = true,
-                 int equalization = 0, bool acbias = false);
+  void setup_erx(int ierx, int align, int alignphase = 0, int speed = 3,
+                 bool invert = false, bool term = true, int equalization = 0,
+                 bool acbias = false);
+
+  /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate in 320 Mbps mode.
+      \param ietx ETx index (0-6)
+      \param enable Enable the ETx
+      \param drive Driver strength (0-7)
+      \param pe_mode Pre-Emphasis mode (0 or 2, generally)
+      \param pe_strength Pre-emphasis strength (0-7)
+      \param pe_width Pre-emphasis width (0-7)
+   */
+  void setup_etx(int ietx, bool enable, bool invert = false, int drive = 4,
+                 int pe_mode = 0, int pe_strength = 3, int pe_width = 3);
+
+  /** Setup the EC port
+      \param invert_tx Invert the outgoing signal
+      \param drive Drive strength (0-7)
+      \param fixed Fixed mode?
+      \param alignphase Alignment phase for fixed mode (0-15)
+      \param invert_rx Invert the incoming signal
+      \param term Enable the internal 100 Ohm termination
+      \param acbias Apply a bias appropriate for AC-coupled elinks
+      \param pullup Enable the pullup
+   */
+  void setup_ec(bool invert_tx = false, int drive = 4, bool fixed = false,
+                int alignphase = 0, bool invert_rx = false, bool term = true,
+                bool acbias = false, bool pullup = false);
+
+  uint32_t read_efuse(uint16_t addr);
 
  private:
   lpGBT_ConfigTransport& tport_;

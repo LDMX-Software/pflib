@@ -5,10 +5,10 @@
 #include <iostream>
 
 #include "pflib/Logging.h"
-#include "pflib/version/Version.h"
 #include "pflib/packing/FileReader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/SingleROCEventPacket.h"
+#include "pflib/version/Version.h"
 
 static void usage() {
   std::cout << "\n"
@@ -135,14 +135,14 @@ int main(int argc, char* argv[]) {
   try {
     o << std::boolalpha;
     o << pflib::packing::SingleROCEventPacket::to_csv_header << '\n';
-  
+
     pflib::packing::SingleROCEventPacket ep;
     // count is NOT written into output file,
     // we use the event number from the links
     // this is just to allow users to limit the number of entries in
     // the output CSV if desired
     int count{0};
-  
+
     while (r) {
       pflib_log(info) << "popping " << count << " event from stream";
       r >> ep;
@@ -160,8 +160,8 @@ int main(int argc, char* argv[]) {
       if (trigger) {
         for (std::size_t i_link{0}; i_link < 4; i_link++) {
           for (std::size_t i_sum{0}; i_sum < 4; i_sum++) {
-            std::cout << "TC" << i_link << "_" << i_sum
-              << " = " << ep.trigsum(i_link, i_sum) << std::endl;
+            std::cout << "TC" << i_link << "_" << i_sum << " = "
+                      << ep.trigsum(i_link, i_sum) << std::endl;
           }
         }
       }

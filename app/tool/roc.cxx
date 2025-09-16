@@ -11,7 +11,8 @@
  * @param[in] pft active target (not used)
  */
 static void roc_render(Target* pft) {
-  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc, pftool::state.type_version().c_str());
+  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc,
+         pftool::state.type_version().c_str());
 }
 
 /**
@@ -19,8 +20,10 @@ static void roc_render(Target* pft) {
  */
 static void roc_expert_render(Target* tgt) {
   roc_render(tgt);
-  std::cout << "This menu avoids using the 'compiler' to translate parameter names into\n"
-               "register values and instead allows you to read/write registers directly.\n";
+  std::cout << "This menu avoids using the 'compiler' to translate parameter "
+               "names into\n"
+               "register values and instead allows you to read/write registers "
+               "directly.\n";
 }
 
 /**
@@ -63,7 +66,8 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
     roc.loadRegisters(fname);
   }
   if (cmd == "DUMP") {
-    std::string fname = pftool::readline_path("hgcroc_"+std::to_string(pftool::state.iroc)+"_settings", ".csv");
+    std::string fname = pftool::readline_path(
+        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".csv");
     roc.dumpSettings(fname, false);
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
@@ -120,12 +124,13 @@ static void roc(const std::string& cmd, Target* pft) {
     pft->hcal().softResetROC();
   }
   if (cmd == "IROC") {
-    pftool::state.iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-    pftool::state.update_type_version(
-        pftool::readline("type_version of the HGCROC: ", pftool::state.type_version())
-    );
+    pftool::state.iroc =
+        pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
+    pftool::state.update_type_version(pftool::readline(
+        "type_version of the HGCROC: ", pftool::state.type_version()));
   }
-  pflib::ROC roc = pft->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  pflib::ROC roc =
+      pft->hcal().roc(pftool::state.iroc, pftool::state.type_version());
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
@@ -134,7 +139,7 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "PAGE") {
     auto page = pftool::readline("Page? ", pftool::state.page_names());
     auto params{roc.getParameters(page)};
-    for (const auto& [ name, val ]: params) {
+    for (const auto& [name, val] : params) {
       std::cout << name << ": " << val << '\n';
     }
     std::cout << std::flush;
@@ -148,7 +153,8 @@ static void roc(const std::string& cmd, Target* pft) {
   }
   if (cmd == "POKE") {
     auto page = pftool::readline("Page: ", pftool::state.page_names());
-    auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
+    auto param =
+        pftool::readline("Parameter: ", pftool::state.param_names(page));
     int val = pftool::readline_int("New value: ");
     roc.applyParameter(page, param, val);
   }
@@ -165,11 +171,11 @@ static void roc(const std::string& cmd, Target* pft) {
     roc.loadParameters(fname, prepend_defaults);
   }
   if (cmd == "DUMP") {
-    std::string fname = pftool::readline_path("hgcroc_"+std::to_string(pftool::state.iroc)+"_settings", ".yaml");
+    std::string fname = pftool::readline_path(
+        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
     roc.dumpSettings(fname, true);
   }
 }
-
 
 namespace {
 auto menu_roc =
@@ -181,18 +187,23 @@ auto menu_roc =
         ->line("PAGE", "a page of the parameters on the chip", roc)
         ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
         ->line("POKE", "change a single parameter value", roc)
-        ->line("LOAD", "Load parameter values onto the chip from a YAML file", roc)
-        ->line("DUMP", "Dump hgcroc settings to a file", roc)
-    ;
+        ->line("LOAD", "Load parameter values onto the chip from a YAML file",
+               roc)
+        ->line("DUMP", "Dump hgcroc settings to a file", roc);
 
 auto menu_roc_expert =
-    menu_roc->submenu("EXPERT", "expert interaction with ROC", roc_expert_render)
+    menu_roc
+        ->submenu("EXPERT", "expert interaction with ROC", roc_expert_render)
         ->line("PAGE", "view a page of register values", roc_expert)
         ->line("POKE", "change a single register's value", roc_expert)
         ->line("LOAD", "load many register values from a CSV", roc_expert)
-        ->line("DUMP", "write out all the register values into a CSV", roc_expert)
-        ->line("DIRECT_ACCESS_PARAMETERS", "print out the names of the direct access parameters", roc_expert)
-        ->line("GET_DIRECT_ACCESS", "print out values of direct access parameters", roc_expert)
-        ->line("SET_DIRECT_ACCESS", "set direct access parameter bits", roc_expert)
-    ;
-}
+        ->line("DUMP", "write out all the register values into a CSV",
+               roc_expert)
+        ->line("DIRECT_ACCESS_PARAMETERS",
+               "print out the names of the direct access parameters",
+               roc_expert)
+        ->line("GET_DIRECT_ACCESS",
+               "print out values of direct access parameters", roc_expert)
+        ->line("SET_DIRECT_ACCESS", "set direct access parameter bits",
+               roc_expert);
+}  // namespace

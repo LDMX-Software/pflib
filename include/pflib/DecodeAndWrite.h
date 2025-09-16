@@ -1,13 +1,13 @@
 #pragma once
 
 #include <fstream>
-#include <memory>
 #include <functional>
+#include <memory>
 #include <vector>
 
-#include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/Logging.h"
 #include "pflib/Target.h"
+#include "pflib/packing/SingleROCEventPacket.h"
 
 namespace pflib {
 
@@ -29,7 +29,7 @@ class DecodeAndWrite : public Target::DAQRunConsumer {
 
   /// pure virtual function for writing out decoded event
   virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) = 0;
- 
+
  protected:
   /// logging for warning messages on empty events
   mutable ::pflib::logging::logger the_log_;
@@ -47,18 +47,23 @@ class DecodeAndWriteToCSV : public DecodeAndWrite {
   /// output file writing to
   std::ofstream file_;
   /// function that writes row(s) to csv given an event
-  std::function<void(std::ofstream&, const pflib::packing::SingleROCEventPacket&)> write_event_;
+  std::function<void(std::ofstream&,
+                     const pflib::packing::SingleROCEventPacket&)>
+      write_event_;
+
  public:
   DecodeAndWriteToCSV(
-    const std::string& file_name,
-    std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream&, const pflib::packing::SingleROCEventPacket&)> write_event
-  );
+      const std::string& file_name,
+      std::function<void(std::ofstream&)> write_header,
+      std::function<void(std::ofstream&,
+                         const pflib::packing::SingleROCEventPacket&)>
+          write_event);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
-  virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) final;
+  virtual void write_event(
+      const pflib::packing::SingleROCEventPacket& ep) final;
 };
 
 DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name);
 
-}
+}  // namespace pflib

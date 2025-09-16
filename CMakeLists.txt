@@ -132,6 +132,8 @@ add_library(packing SHARED
   src/pflib/packing/DAQLinkFrame.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
+  src/pflib/packing/ECONDEventPacket.cxx
+  src/pflib/packing/MultiSampleECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -164,6 +166,7 @@ add_library(pflib SHARED
   src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
+  src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
@@ -210,7 +213,10 @@ file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
 add_executable(pftool ${pftool_sources})
 target_link_libraries(pftool PRIVATE pflib menu)
 
-add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
+add_executable(pflpgbt app/lpgbt/main.cxx 
+  app/lpgbt/lpgbt_mezz_tester.cc
+  app/lpgbt/zcu_optolink.cc
+)
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments
@@ -220,6 +226,9 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
+
+add_executable(econd-decoder app/econd_decoder.cxx)
+target_link_libraries(econd-decoder PRIVATE pflib)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
