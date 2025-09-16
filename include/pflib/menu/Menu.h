@@ -329,10 +329,6 @@ class Menu : public BaseMenu {
    *
    * appends this menu line to us and then returns a pointer to us
    *
-   * @note Line takes ownership of Menus that are provided to it,
-   * so Menus should be dynamically created and not deleted.
-   * It is suggested to use the menu function to avoid complication.
-   *
    * This can be used if you already have a menu and you wish to add
    * another submenu to it.
    * ```cpp
