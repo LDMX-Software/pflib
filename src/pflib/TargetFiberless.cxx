@@ -151,14 +151,16 @@ std::vector<uint32_t> TargetFiberless::read_event() {
                          (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
 
         for (int il1a = 0; il1a < hcal().daq().samples_per_ror(); il1a++) {
-          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a,
-                                0);      // assume orbit zero, L1A spaced by two
-          for (int i = 0; i < 2; i++) {  // only the DAQ links here
+          // assume orbit zero, L1A spaced by two
+          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
+          // only consuming DAQ links in ECOND (D for DAQ)
+          for (int i = 0; i < 2; i++) {
             formatter_.add_elink_packet(i, hcal().daq().getLinkData(i));
           }
           formatter_.finishEvent();
-          uint32_t header =
-              formatter_.getPacket().size() + 1;  // include the header
+
+          // add header giving specs around ECOND packet
+          uint32_t header = formatter_.getPacket().size() + 1;
           header |= (0x1 << 28);
           header |= hcal().daq().econid() << 16;
           if (il1a == hcal().daq().soi()) header |= 0x800;
@@ -166,9 +168,11 @@ std::vector<uint32_t> TargetFiberless::read_event() {
           header |= il1a << 12;
           buffer.push_back(header);
 
+          // insert ECOND packet into buffer
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),
                         formatter_.getPacket().end());
 
+          // advance L1A pointer
           hcal().daq().advanceLinkReadPtr();
         }
         l1a_ += hcal().daq().samples_per_ror();
