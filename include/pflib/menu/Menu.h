@@ -347,9 +347,9 @@ class Menu : public BaseMenu {
    * @param[in] ex pointer to menu that we should append
    * @return pointer to the newly created submenu
    */
-  Menu* submenu(const char* name, const char* desc, RenderFuncType f = 0) {
-    auto sb = new Menu(f);
-    lines_.emplace_back(name, desc, sb);  // Line takes ownership
+  std::shared_ptr<Menu> submenu(const char* name, const char* desc, RenderFuncType f = 0) {
+    auto sb = std::make_shared<Menu>(f);
+    lines_.emplace_back(name, desc, sb);
     return sb;
   }
 
@@ -408,6 +408,28 @@ class Menu : public BaseMenu {
     for (const auto& l : lines_) {
       l.print(s, indent);
     }
+  }
+
+  /**
+   * Drop menu lines before running it
+   *
+   * This is helpful for disabling certain commands or menus
+   * at runtime before running the actual menu itself.
+   *
+   * This is *not* run recursively, so if you want to drop
+   * elements from a specific menu, you must obtain the
+   * pointer to that menu somehow.
+   *
+   * @param[in] to_drop list of menu lines to drop
+   */
+  void drop(const std::vector<std::string>& to_drop) {
+    std::erase_if(lines_, [&](auto& l) {
+          bool should_drop(std::find(to_drop.begin(), to_drop.end(), l.name()) != to_drop.end());
+          if (should_drop) {
+            pflib_log(trace) << "dropping menu line " << l.name();
+          }
+          return should_drop;
+        });
   }
 
   /**
@@ -503,7 +525,7 @@ class Menu : public BaseMenu {
    * @param[in] render_func function to use to render this sub menu
    * @return pointer to newly created menu
    */
-  static Menu* menu(const char* name, const char* desc,
+  static std::shared_ptr<Menu> menu(const char* name, const char* desc,
                     RenderFuncType render_func = 0) {
     return root()->submenu(name, desc, render_func);
   }
@@ -541,12 +563,12 @@ class Menu : public BaseMenu {
    public:
     /// define a menu line that uses a single target command
     Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_{0}, cmd_(f), mult_cmds_{0} {}
+        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(f), mult_cmds_{0} {}
     /// define a menu line that uses a multiple command function
     Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_{0}, mult_cmds_{f} {}
+        : name_(n), desc_(d), sub_menu_{nullptr}, mult_cmds_{f} {}
     /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, Menu* m)
+    Line(const char* n, const char* d, std::shared_ptr<Menu> m)
         : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
     /**
      * define an empty menu line with only a name and description
@@ -555,26 +577,7 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_{0}, cmd_(0), mult_cmds_{0} {}
-
-    /**
-     * noexcept move constructor allows std::vector to use it when expanding
-     * capacity
-     */
-    Line(Line&& l) noexcept
-        : name_{l.name_},
-          desc_{l.desc_},
-          sub_menu_{l.sub_menu_},
-          cmd_{l.cmd_},
-          mult_cmds_{l.mult_cmds_} {
-      l.sub_menu_ = 0;
-    }
-
-    Line(const Line& l) = default;
-
-    ~Line() {
-      if (sub_menu_) delete sub_menu_;
-    }
+        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(0), mult_cmds_{0} {}
 
     /**
      * Execute this line
@@ -653,7 +656,7 @@ class Menu : public BaseMenu {
     /// short description for what this line is
     const char* desc_;
     /// pointer to sub menu (if it exists)
-    Menu* sub_menu_;
+    std::shared_ptr<Menu> sub_menu_;
     /// function pointer to execute (if exists)
     SingleTargetCommand cmd_;
     /// function handling multiple commands to execute (if exists)
