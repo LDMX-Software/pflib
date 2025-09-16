@@ -226,6 +226,9 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
 
+add_executable(econd-decoder app/econd_decoder.cxx)
+target_link_libraries(econd-decoder PRIVATE pflib)
+
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
