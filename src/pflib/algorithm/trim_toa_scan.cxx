@@ -1,53 +1,13 @@
 #include "pflib/algorithm/trim_toa_scan.h"
-#include "pflib/algorithm/toa_vref_scan.h"
+#include "pflib/algorithm/get_toa_efficiencies.h"
 
 #include "pflib/utility/string_format.h"
-#include "pflib/utility/efficiency.h"
 
 #include "pflib/DecodeAndBuffer.h"
 
 // probably don't need these, but just double checking
 #include <algorithm>
 #include <cmath>
-
-/**
- * Calculate the TRIM_TOA for each channel that best aligns all of them to a common threshold voltage, charge injection pulse (calib).
- */
-
- // re-using this code from pflib/algorithm/toa_vref_scan.cxx
- // should put it into its own function if I keep it here.
-static std::array<double, 72> get_toa_efficiencies(const std::vector<pflib::packing::SingleROCEventPacket> &data) {
-  std::array<double, 72> efficiencies;
-  /// reserve a vector of the appropriate size to avoid repeating allocation time for all 72 channels
-  std::vector<int> toas(data.size());
-  for (int ch{0}; ch < 72; ch++) {
-    for (std::size_t i{0}; i < toas.size(); i++) {
-      toas[i] = data[i].channel(ch).toa();
-      // std::cout << "ch=" << ch << ", i=" << i << ", toa=" << toas[i] << std::endl; // debug
-    }
-    /// we assume that the data provided is not empty otherwise the efficiency calculation is meaningless
-    efficiencies[ch] = pflib::utility::efficiency(toas);
-  }
-  return efficiencies;
-}
-
-// doing some vibe coding here ~ just took straight from copilot
-
-// got this median function from Copilot. Not sure if I'll keep it or swap to the 
-// pflib/utility/median.cxx function.
-double median(std::vector<double>& values) {
-  if (values.empty()) {
-    throw std::invalid_argument("Cannot compute median of empty vector.");
-  }
-  std::sort(values.begin(), values.end());
-  size_t n = values.size();
-  if (n % 2 == 0) {
-    return (values[n/2 - 1] + values[n/2]) / 2.0;
-  }
-  else {
-    return values [n/2];
-  }
-}
 
 
 // Here's the regression. Main idea is that it finds the median slope from all the pairs of points in the dataset.
@@ -86,6 +46,10 @@ void siegelRegression(const std::vector<double>& xVals, const std::vector<double
 
 // end vibe coding. back to what we had before
 
+/**
+ * Calculate the TRIM_TOA for each channel that best aligns all of them
+ * to a common threshold voltage, charge injection pulse (calib).
+ */
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, int>>

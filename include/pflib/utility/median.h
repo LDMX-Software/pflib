@@ -12,4 +12,12 @@ namespace pflib::utility {
  */
 int median(std::vector<int> samples);
 
+/**
+ * find the median of the input vector of samples
+ *
+ * @param[in] samples list of samples to find median of
+ * @return median of the samples
+ */
+double median(std::vector<double> samples);
+
 }  // namespace pflib::utility
