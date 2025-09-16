@@ -25,12 +25,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
 parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
+parser.add_argument('-od', '--output_directory', type=Path, help='directorty to which to print.')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS']
+plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
-parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to label the y-axis with.')
+parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to label the y-axis with.') 
 args = parser.parse_args()
 
 if args.output is None:
@@ -81,6 +82,40 @@ def time(
                     s=5, color=color)
         if (len(groups) < 10):
             plt.legend()
+
+def time_multichannel(
+    samples,
+    run_params
+):
+    """
+    Plot the ADC vs a selected parameter on a scatter plot.
+    Do this for each channel. CSV file contains information from all channels,
+    which we get from running PARAMETER_TIMESCAN with option of ALL channels.
+
+    Make sure to only give the output directory with -o
+    """
+    param_group, param_name = get_params(samples,0)
+    channels = [i for i in range(72)]
+    cmap = plt.get_cmap('viridis')
+    n = len(param_group)
+    print("Plotting ADC for " + ('lowrange' if run_params['highrange'] == False else 'highrange'))
+    for ch in channels:
+        filtered_group = samples.loc[samples['channel'] == ch].groupby(param_name)
+        plt.figure()
+        plt.xlabel('Time [ns]')
+        plt.ylabel('ADC')
+        plt.title(' '.join([f'{key} = {val} ' for key,val in run_params.items()]) + ' ' + 'channel ' + str(ch))
+        for i, (group_id, group_df) in enumerate(filtered_group):
+            val = group_df[param_name].iloc[0]
+            color = cmap(i/n)
+            key = param_name.split('.')[1]
+            plt.scatter(group_df['time'], group_df['adc'], label=f'{key} = {val}', 
+                        s=5, color=color)
+        plt.legend()
+        fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '.png'
+        print("Channel " + str(ch) + " plotted and saved!")
+        plt.savefig(fig_name, dpi=400)
+        plt.close()
 
 def tot(
     samples,
@@ -316,6 +351,9 @@ def multiparams(
 if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
     plt_gen(partial(time, yval = 'adc'), samples, run_params, args.output,
             xlabel = args.xlabel, ylabel = args.ylabel)
+
+if args.plot_function == 'MULTI-CHANNEL':
+    time_multichannel(samples, run_params)
 
 if args.plot_function == 'TOT-TIME':
     plt_gen(partial(time, yval = 'tot'), samples, run_params, args.output, 
