@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
+#include "pflib/lpgbt/GPIO.h"
 
 namespace pflib {
 
@@ -95,8 +96,10 @@ class lpGBT {
   /** Get the GPIO pin configuration */
   int gpio_cfg_get(int ibit);
   /** Set the GPIO pin configuration */
-  void gpio_cfg_set(int ibit, int cfg);
-
+  void gpio_cfg_set(int ibit, int cfg, const std::string& name="");
+  /** Get the pflib GPIO object */
+  GPIO& gpio_interface() { return gpio_; }
+  
   /** Carry out an ADC read for the given pair of channels
       Valid gain values are 1 or 2, 8, 16, and 32.
       
@@ -191,7 +194,7 @@ class lpGBT {
     uint8_t ctl_reg;
     uint8_t read_len;
   } i2c_[3];
-  
+  ::pflib::lpgbt::GPIO gpio_;
 };
 
 }  // namespace pflib

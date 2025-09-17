@@ -14,7 +14,7 @@ void lpGBT_ConfigTransport::write_regs(uint16_t reg,
   for (size_t i = 0; i < value.size(); i++) write_reg(i + reg, value[i]);
 }
 
-lpGBT::lpGBT(lpGBT_ConfigTransport& transport) : tport_{transport} {}
+lpGBT::lpGBT(lpGBT_ConfigTransport& transport) : tport_{transport}, gpio_{*this} {}
 
 void lpGBT::write(const RegisterValueVector& regvalues) {
   std::vector<uint8_t> tosend;
@@ -250,7 +250,7 @@ int lpGBT::gpio_cfg_get(int ibit) {
   return cfg;
 }
 
-void lpGBT::gpio_cfg_set(int ibit, int cfg) {
+void lpGBT::gpio_cfg_set(int ibit, int cfg, const std::string& name) {
   if (ibit < 0 || ibit > 15) {
     char msg[100];
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
@@ -277,6 +277,7 @@ void lpGBT::gpio_cfg_set(int ibit, int cfg) {
   } else {
     bit_clr(REG_PIOPULLENAH + offset, ibit % 8);
   }
+  gpio_.add_pin(name,ibit,cfg&GPIO_IS_OUTPUT);
 }
 
 uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
