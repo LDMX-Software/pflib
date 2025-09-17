@@ -7,17 +7,17 @@ namespace pflib {
       void setup_hcal_daq(pflib::lpGBT& lpgbt) {
 	
 	// setup the reset lines
-	lpgbt.gpio_cfg_set(0,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // HGCROC2_HRST
-	lpgbt.gpio_set(0,true);
-	lpgbt.gpio_cfg_set(1,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // HGCROC2_SRST
-	lpgbt.gpio_set(1,true);
-	lpgbt.gpio_cfg_set(2,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // HGCROC1_HRST
-	lpgbt.gpio_set(2,true);
-	lpgbt.gpio_cfg_set(4,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // HGCROC1_SRST
-	lpgbt.gpio_set(4,true);
-	lpgbt.gpio_cfg_set(8,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // HGCROC_I2C_RST
+	lpgbt.gpio_cfg_set(0,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC2_HRST");
+	lpgbt.gpio_set(0,true);								     
+	lpgbt.gpio_cfg_set(1,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC2_SRST");
+	lpgbt.gpio_set(1,true);								      
+	lpgbt.gpio_cfg_set(2,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC1_HRST");
+	lpgbt.gpio_set(2,true);								     
+	lpgbt.gpio_cfg_set(4,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC1_SRST");
+	lpgbt.gpio_set(4,true);								      
+	lpgbt.gpio_cfg_set(8,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC_I2C_RST");
 	lpgbt.gpio_set(8,true);
-	lpgbt.gpio_cfg_set(11,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG); // D2T_RSTB
+	lpgbt.gpio_cfg_set(11,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"TRIG_LPGBT_RSTB");
 	lpgbt.gpio_set(11,true);
 
 	// setup clocks
@@ -39,8 +39,29 @@ namespace pflib {
 	lpgbt.setup_etx(5,true); // ECON-T1_FCMD
 	lpgbt.setup_etx(6,true); // HGCROC1_FCMD
 
+	// setup the one input...
+	lpgbt.setup_erx(0, 0);
+	
 	// setup the EC link
 	lpgbt.setup_ec(false,4,false,0,false,true,false,true);
+      }
+
+      void setup_hcal_trig(pflib::lpGBT& lpgbt) {
+	
+	// setup the reset lines
+	lpgbt.gpio_cfg_set(4,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC0_HRST");
+	lpgbt.gpio_set(4,true);								     
+	lpgbt.gpio_cfg_set(7,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC0_SRST");
+	lpgbt.gpio_set(7,true);								      
+	lpgbt.gpio_cfg_set(6,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC3_HRST");
+	lpgbt.gpio_set(6,true);								     
+	lpgbt.gpio_cfg_set(3,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC3_SRST");
+	lpgbt.gpio_set(3,true);								      
+
+	// setup the high speed inputs
+	for (int i=0; i<6; i++) {
+	  lpgbt.setup_erx(i, 0);
+	}	
       }
       
     }
