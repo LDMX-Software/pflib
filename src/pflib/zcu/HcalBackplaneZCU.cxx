@@ -10,7 +10,7 @@ namespace pflib {
   static constexpr int ADDR_HCAL_BACKPLANE_TRIG = 0x78;
   static constexpr int I2C_BUS_HGCROCS = 1; // DAQ
   static constexpr int I2C_BUS_BIAS    = 1; // TRIG
-  static constexpr int I2C_BUS_BOARD   = 1; // TRIG
+  static constexpr int I2C_BUS_BOARD   = 0; // TRIG
   static constexpr int ADDR_MUX_BIAS   = 0x70;
   static constexpr int ADDR_MUX_BOARD  = 0x71; 
   
