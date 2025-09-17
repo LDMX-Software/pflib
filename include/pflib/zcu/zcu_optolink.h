@@ -11,6 +11,7 @@ namespace zcu {
 class OptoLink {
  public:
   OptoLink(const char* coder_name="singleLPGBT");
+  OptoLink(const std::string& name) : OptoLink{name.c_str()} {}
 
   void reset_link();
 
