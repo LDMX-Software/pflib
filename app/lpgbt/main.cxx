@@ -10,7 +10,7 @@
 #include "pflib/menu/Menu.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "power_ctl_mezz.h"
-#include "zcu_optolink.h"
+#include "pflib/zcu/zcu_optolink.h"
 
 struct ToolBox {
   pflib::lpGBT* lpgbt{0};
@@ -136,9 +136,13 @@ void general(const std::string& cmd, ToolBox* target) {
       target->lpgbt_ic->gpio_set(11,true);
     }
   }
-  if (cmd == "STANDARD_HCAL_DAQ") {
-    pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt);
+  if (cmd == "EXPERT_STANDARD_HCAL_DAQ" || cmd=="STANDARD_HCAL") {
+    pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt_ic);
     printf("Applied standard HCAL DAQ configuration\n");
+  }
+  if (cmd == "EXPERT_STANDARD_HCAL_TRIG" || cmd=="STANDARD_HCAL") {
+    pflib::lpgbt::standard_config::setup_hcal_trig(*target->lpgbt_ec);
+    printf("Applied standard HCAL TRIG configuration\n");
   }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->olink->coder());
@@ -720,7 +724,9 @@ namespace {
 auto gen = tool::menu("GENERAL", "GENERAL funcations")
                ->line("STATUS", "Status summary", general)
                ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
-               ->line("STANDARD_HCAL_DAQ", "Apply standard HCAL DAQ lpGBT setup", general)
+               ->line("STANDARD_HCA", "Apply standard HCAL lpGBT setups", general)
+               ->line("EXPERT_STANDARD_HCAL_DAQ", "Apply just standard HCAL DAQ lpGBT setup", general)
+               ->line("EXPERT_STANDARD_HCAL_TRIG", "Apply just standard HCAL TRIG lpGBT setup", general)
                ->line("RESET", "Reset the lpGBT", general)
                ->line("COMM", "Communication mode", general);
 
