@@ -66,8 +66,8 @@ class Target {
   mutable logging::logger the_log_{logging::get("Target")};
 };
 
-Target* makeTargetFiberless();
-Target* makeTargetHcalMB();
+  Target* makeTargetFiberless();
+  Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask);
 
 }  // namespace pflib
 
