@@ -11,58 +11,40 @@ namespace pflib {
  */
 class GPIO {
  protected:
-  GPIO(int gpo, int gpi) : ngpo_{gpo}, ngpi_{gpi} {}
+  GPIO() {}
 
  public:
   /**
-   * Get the number of GPO bits
+   * Get the set of GPO pin names
    */
-  int getGPOcount() { return ngpo_; }
+  virtual std::vector<std::string> getGPOs() = 0;
 
   /**
-   * Get the number of GPI bits
+   * Get the set of GPI pin names
    */
-  int getGPIcount() { return ngpi_; }
+  virtual std::vector<std::string> getGPIs() = 0;
 
-  /** Get the name of a bit if possible */
-  virtual std::string getBitName(int ibit, bool isgpo = true) { return ""; }
+  /** Check if a given GPO exists */
+  virtual bool hasGPO(const std::string& name);
+
+  /** Check if a given GPI exists */
+  virtual bool hasGPI(const std::string& name);
 
   /**
    * Read a GPI bit
    */
-  virtual bool getGPI(int ibit);
+  virtual bool getGPI(const std::string& name) = 0;
 
   /**
-   * Read all GPI bits
+   * Get current value of GPO bit
    */
-  virtual std::vector<bool> getGPI() = 0;
+  virtual bool getGPO(const std::string& name) = 0;
 
   /**
    * Set a single GPO bit
    */
-  virtual void setGPO(int ibit, bool toTrue = true);
+  virtual void setGPO(const std::string& name, bool toTrue = true) = 0;
 
-  /**
-   * Set all GPO bits
-   */
-  virtual void setGPO(const std::vector<bool>& bits) = 0;
-
-  /**
-   * Read all GPO bits
-   */
-  virtual std::vector<bool> getGPO() = 0;
-
-  /// convenience wrapper for python bindings
-  bool getGPI_single(int ibit) { return getGPI(ibit); }
-  std::vector<bool> getGPI_all() { return getGPI(); }
-  void setGPO_single(int ibit, bool t) { return setGPO(ibit, t); }
-  void setGPO_all(const std::vector<bool>& b) { return setGPO(b); }
-
- private:
-  /**
-   * Cached numbers of GPI and GPO bits
-   */
-  int ngpi_, ngpo_;
 };
 
 GPIO* make_GPIO_HcalHGCROCZCU();
