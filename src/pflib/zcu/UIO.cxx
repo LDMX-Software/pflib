@@ -6,13 +6,31 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-
+#include <map>
 #include "pflib/Exception.h"
 
 namespace pflib {
 
+  struct Mapping {
+    uint32_t* ptr{0};
+    int users{0};
+    int handle{0};
+  };
+
+  /// SHOULD REALLY BE PROTECTED BY MUTEX
+  std::map<std::string,Mapping> gl_mappings;
+  
 UIO::UIO(const std::string& name, size_t length)
-    : size_{length}, ptr_{0}, handle_{0} {
+  : name_{name},size_{length}, ptr_{0}, handle_{0} {
+
+  auto gptr=gl_mappings.find(name);
+  if (gptr!=gl_mappings.end()) {
+    gptr->second.users++;
+    ptr_=gptr->second.ptr;
+    handle_=gptr->second.handle;
+    return;
+  }
+  
   /** first, look for the DTSI map */
   FILE* fdtsi=fopen("/opt/ldmx-firmware/active/device-tree/pl-full.dtsi","r");
   uint32_t baseaddr=0;
@@ -69,6 +87,11 @@ UIO::UIO(const std::string& name, size_t length)
     handle_ = 0;
     PFEXCEPTION_RAISE("DeviceFileNotFoundError", msg);
   }
+  Mapping m;
+  m.ptr=ptr_;
+  m.users=1;
+  m.handle=handle_;
+  gl_mappings[name]=m;
 }
 
 void UIO::iopen(const std::string& path, size_t length) {
@@ -88,6 +111,13 @@ void UIO::iopen(const std::string& path, size_t length) {
 }
 
 UIO::~UIO() {
+
+  auto gptr=gl_mappings.find(name_);
+  if (gptr!=gl_mappings.end()) {
+    gptr->second.users--;
+    if (gptr->second.users>0) return;
+  }
+  
   if (handle_ != 0) {
     munmap(ptr_, size_);
     close(handle_);
