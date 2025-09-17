@@ -29,7 +29,6 @@ class OptoLink {
 
   void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
   void capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
-
   
  private:
   ::pflib::UIO transright_;
