@@ -86,17 +86,18 @@ std::string exec(const char* cmd) {
 }
 
 /// firmware name as it appears as a directory on disk
-const std::string FW_SHORTNAME = "hcal-zcu102";
+const std::string FW_SHORTNAME_FIBERLESS = "hcal-zcu102";
+const std::string FW_SHORTNAME_UIO_ZCU = "dualtarget-zcu102";
 
 /**
  * Check if the firmware supporting the HGCROC is active
  *
  * @return true if correct firmware is active
  */
-bool is_fw_active() {
+bool is_fw_active(const std::string& name) {
   static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
   auto resolved{std::filesystem::read_symlink(active_fw).stem()};
-  return (resolved == FW_SHORTNAME);
+  return (resolved == name);
 }
 
 /**
@@ -108,7 +109,9 @@ bool is_fw_active() {
  * @return string holding the full firmware version
  */
 std::string fw_version() {
-  static const std::string QUERY_CMD = "rpm -qa '*" + FW_SHORTNAME + "*'";
+  static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
+  auto resolved{std::filesystem::read_symlink(active_fw).stem()};
+  static const std::string QUERY_CMD = "rpm -qa '*" + std::string(resolved) + "*'";
   auto output = exec(QUERY_CMD.c_str());
   output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
   return output;
@@ -123,11 +126,13 @@ std::string fw_version() {
  */
 static void status(Target* pft) {
   pflib_log(info) << "pflib version: " << pflib::version::debug();
+  /*
   if (is_fw_active()) {
     pflib_log(debug) << "fw is active";
   } else {
     pflib_log(fatal) << "fw is not active!";
   }
+  */
   pflib_log(info) << "fw version   : " << fw_version();
 }
 
@@ -205,12 +210,17 @@ int main(int argc, char* argv[]) {
   pflib::menu::Rcfile options;
   prepareOpts(options);
 
+  int boardmask=0xF;
+  int ilink=0;
+
   // print help before attempting to load RC file incase the RC file is broken
   if (argc == 2 and (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE: (HCal HGCROC fiberless mode)\n");
-    printf("   %s -z OPTIONS\n\n", argv[0]);
+    printf("   %s OPTIONS\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf("  -z : required for fiberless (no-polarfire, zcu102-based) mode\n");
+    printf("  -z0 : fiber-based ZCU, backplane 0 (SFP0/SFP1)\n");
+    printf("  -z1 : fiber-based ZCU, backplane 1 (SFP2/SFP3)\n");
     printf("  -s : pass a script of commands to run through pftool\n");
     printf("  -h|--help : print this help and exit\n");
     printf(
@@ -296,8 +306,24 @@ int main(int argc, char* argv[]) {
       sFile.close();
     } else if (arg == "-z") {
       mode = Fiberless;
-      if (not is_fw_active()) {
-        pflib_log(fatal) << "'" << FW_SHORTNAME
+      if (not is_fw_active(FW_SHORTNAME_FIBERLESS)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_FIBERLESS
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+    } else if (arg == "-z0") {
+      mode = UIO_ZCU;
+      ilink = 0;
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+    } else if (arg == "-z1") {
+      mode = UIO_ZCU;
+      ilink = 1;
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
                          << "' firmware is not active on ZCU.";
         pflib_log(fatal) << "Connection will likely fail.";
       }
@@ -370,8 +396,7 @@ int main(int argc, char* argv[]) {
                               "Rogue communication mode not implemented");
             break;
           case UIO_ZCU:
-            PFEXCEPTION_RAISE("BadComm",
-                              "UIO_ZCU communcation mode not implemented");
+	    p_pft = std::unique_ptr<Target>(pflib::makeTargetHcalBackplaneZCU(ilink,boardmask));
             break;
           default:
             PFEXCEPTION_RAISE(
