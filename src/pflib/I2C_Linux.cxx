@@ -9,8 +9,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <iostream> //REMOVE
-
 #include "pflib/packing/Hex.h"
 
 namespace pflib {
