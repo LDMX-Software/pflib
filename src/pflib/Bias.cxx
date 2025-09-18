@@ -39,58 +39,9 @@ void MAX5825::set(uint8_t channel, uint16_t code) {
 }
 
 /*
-void MAX5825::set(uint8_t cmd, uint16_t data_bytes) {
-  int savebus = i2c_.get_active_bus();
-  int savespeed = i2c_.get_bus_speed();
-  i2c_.set_active_bus(bus_);
-  i2c_.set_bus_speed(100);
-  i2c_.backplane_hack(true);
-
-  std::vector<unsigned char> instructions = {
-      cmd,                         // CODE for this dac
-      uint8_t(data_bytes >> 8),    // first data byte
-      uint8_t(data_bytes & 0xFF),  // second data byte
-  };
-
-  i2c_.general_write_read(our_addr_, instructions);
-
-  i2c_.set_active_bus(savebus);
-  i2c_.set_bus_speed(savespeed);
-  i2c_.backplane_hack(false);
-  return;
-}
-*/
-
-/*
 void MAX5825::setRefVoltage(int level) {
   uint8_t cmd = REFn | 0x4 | (level & 0x3);
   set(cmd, 0);
-}
-*/
-
-/*
-std::vector<uint16_t> MAX5825::getByDAC(uint8_t i_dac, uint8_t cmd) {
-  uint8_t num_dacs = 1;
-  if (i_dac > 7) {
-    i_dac = 8;
-    num_dacs = 8;
-  }
-  auto bytes{get(cmd + i_dac, 2 * num_dacs)};
-  std::vector<uint16_t> vals(num_dacs);
-  for (unsigned int j{0}; j < num_dacs; j++) {
-    vals[j] = (bytes.at(2 * j) << 4) + (bytes.at(2 * j + 1) >> 4);
-  }
-  return vals;
-}
-*/
-
-/*
-void MAX5825::setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t data_bytes) {
-  if (i_dac > 7) i_dac = 8;
-  // for the MAX5825, the voltages are 12-bits,
-  // so the 4 LSBs of the two data bytes will be ignored.
-  data_bytes <<= 4;
-  set(cmd + i_dac, data_bytes);
 }
 */
 
@@ -118,22 +69,6 @@ void Bias::initialize() {
 }
 */
 
-/*
-void Bias::cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting) {
-  int i_chip = (i_led > 7);
-  led_.at(i_chip).setByDAC(i_led - i_chip * 8, cmd, twelve_bit_setting);
-}
-*/
-
-/*
-void Bias::cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting) {
-  std::cout << "Bias::cmdSiPM i_sipm " << i_sipm << " cmd " << cmd << std::endl;
-  int i_chip = (i_sipm > 7);
-  std::cout << "i_chip " << i_chip << std::endl;
-  sipm_.at(i_chip).setByDAC(i_sipm - i_chip * 8, cmd, twelve_bit_setting);
-}
-*/
-
 int Bias::readSiPM(uint8_t channel) {
   int i_chip = (channel > 7);
   std::vector<uint8_t> data = sipm_.at(i_chip).get((channel & 0x07));
@@ -155,9 +90,5 @@ void Bias::setLED(uint8_t channel, uint16_t code) {
   int i_chip = (channel > 7);
   led_.at(i_chip).set((channel & 0x07), code);
 }
-
-//void Bias::setSiPM(uint8_t i_sipm, uint16_t code) {
-//  cmdSiPM(i_sipm, MAX5825::CODEn_LOADn, code);
-//}
 
 }  // namespace pflib
