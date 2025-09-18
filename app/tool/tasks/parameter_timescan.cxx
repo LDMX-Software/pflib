@@ -27,11 +27,12 @@ void parameter_timescan(Target* tgt) {
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ",
                                    highrange ? 64 : 1024);
   std::vector<int> channels;
-  if (pftool::readline_bool("Pulse into channel 61 (N) or all channels (Y)?",
+  if (pftool::readline_bool("Pulse into one channel (N) or all channels (Y)?",
                             false)) {
     for (int ch{0}; ch < 72; ch++) channels.push_back(ch);
   } else {
-    channels.push_back(61);
+    int channel = pftool::readline_int("Channel to pulse into?", 61);
+    channels.push_back(channel);
   }
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
