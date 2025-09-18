@@ -11,6 +11,8 @@ import update_path
 from plt_gen import plt_gen
 from get_params import get_params
 
+import os
+
 from pathlib import Path
 import argparse
 
@@ -25,7 +27,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, help='time scan data, only one event per time point')
 parser.add_argument('-ex', '--extra_csv_files', type=Path, nargs='+', help='time scan data, if you want to plot data from multiple csv files. Can be used to compare different parameter settings on the same plot. Adds a legend that takes the parameter settings.')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is input file with extension changed to ".png"')
-parser.add_argument('-od', '--output_directory', type=Path, help='directorty to which to print.')
+parser.add_argument('-od', '--output_directory', type=Path, help='directory to which to print.')
+parser.add_argument('-r', '--repository', type=bool, help='True if you would like to indicate that the input is a repository with csv files rather than a single csv file.')
 plot_types = ['SCATTER', 'HEATMAP']
 plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
@@ -39,14 +42,25 @@ if args.output is None:
 
 multicsv = bool(args.extra_csv_files)
 
-samples, run_params = read_pflib_csv(args.time_scan)
-if multicsv:
-    samples_collection = [samples]
-    run_params_collection = [run_params]
-    for csv in args.extra_csv_files:
-        samples, run_params = read_pflib_csv(csv)
+if args.repository:
+    samples_collection = []
+    run_params_collection = []
+    for name in os.listdir(args.time_scan):
+        if not name.endswith(".csv"):
+            continue # skip non csv files or directories
+        dir_str = str(args.time_scan) + '/' + name
+        samples, run_params = read_pflib_csv(dir_str)
         samples_collection.append(samples)
         run_params_collection.append(run_params)
+else:
+    samples, run_params = read_pflib_csv(args.time_scan)
+    if multicsv:
+        samples_collection = [samples]
+        run_params_collection = [run_params]
+        for csv in args.extra_csv_files:
+            samples, run_params = read_pflib_csv(csv)
+            samples_collection.append(samples)
+            run_params_collection.append(run_params)
 
 def set_xticks (
     xvar,
@@ -84,38 +98,47 @@ def time(
             plt.legend()
 
 def time_multichannel(
-    samples,
-    run_params
+    samples_collection,
+    run_params_collection
 ):
     """
     Plot the ADC vs a selected parameter on a scatter plot.
-    Do this for each channel. CSV file contains information from all channels,
-    which we get from running PARAMETER_TIMESCAN with option of ALL channels.
-
-    Make sure to only give the output directory with -o
+    Do this for each channel. We run multiple csv files that have the format
+    param-timescan-channel-i-option.csv' where i is the channel number
+    and option is highrange, lowrange or preCC.
     """
-    param_group, param_name = get_params(samples,0)
-    channels = [i for i in range(72)]
-    cmap = plt.get_cmap('viridis')
-    n = len(param_group)
-    print("Plotting ADC for " + ('lowrange' if run_params['highrange'] == False else 'highrange'))
-    for ch in channels:
-        filtered_group = samples.loc[samples['channel'] == ch].groupby(param_name)
+    for samples, run_params in zip(samples_collection, run_params_collection):
+        highrange = run_params['highrange']
+        preCC = run_params['preCC']
+        param_group, param_name = get_params(samples,0)
+        cmap = plt.get_cmap('viridis')
+        n = len(param_group)
+        ch = samples['channel'][0]
         plt.figure()
         plt.xlabel('Time [ns]')
         plt.ylabel('ADC')
         plt.title(' '.join([f'{key} = {val} ' for key,val in run_params.items()]) + ' ' + 'channel ' + str(ch))
-        for i, (group_id, group_df) in enumerate(filtered_group):
+        for i, (group_id, group_df) in enumerate(param_group):
             val = group_df[param_name].iloc[0]
             color = cmap(i/n)
             key = param_name.split('.')[1]
             plt.scatter(group_df['time'], group_df['adc'], label=f'{key} = {val}', 
                         s=5, color=color)
         plt.legend()
-        fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '.png'
-        print("Channel " + str(ch) + " plotted and saved!")
+        if highrange:
+            fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_highrange.png'
+        elif preCC:
+            fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_preCC.png'
+        else:
+            fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_lowrange.png'
         plt.savefig(fig_name, dpi=400)
         plt.close()
+        if highrange:
+            print("Channel " + str(ch) + " highrange plotted and saved!")
+        elif preCC:
+            print("Channel " + str(ch) + " preCC plotted and saved!")
+        else:
+            print("Channel " + str(ch) + " lowrange plotted and saved!")
 
 def tot(
     samples,
@@ -352,8 +375,8 @@ if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
     plt_gen(partial(time, yval = 'adc'), samples, run_params, args.output,
             xlabel = args.xlabel, ylabel = args.ylabel)
 
-if args.plot_function == 'MULTI-CHANNEL':
-    time_multichannel(samples, run_params)
+if args.plot_function == 'MULTI-CHANNEL' and args.repository == True:
+    time_multichannel(samples_collection, run_params_collection)
 
 if args.plot_function == 'TOT-TIME':
     plt_gen(partial(time, yval = 'tot'), samples, run_params, args.output, 
