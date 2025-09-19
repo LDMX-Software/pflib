@@ -1,0 +1,10 @@
+Aligner:
+  Global:
+    dbg_fc_cnt:
+      access: ro
+      address: 0x0398
+      default_value: 0
+      max_value: 31
+      param_mask: 0x001f
+      param_shift: 3
+      size_byte: 1
