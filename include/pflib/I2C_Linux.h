@@ -50,9 +50,6 @@ class I2C_Linux : public I2C {
                                           const std::vector<uint8_t>& wdata,
                                           int nread = 0);
 
-  std::vector<uint8_t> general_write_read_ioctl(
-      int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread);
-
  private:
   void obtain_control(uint8_t i2c_dev_addr);
 

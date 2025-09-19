@@ -68,110 +68,27 @@ void I2C_Linux::obtain_control(uint8_t i2c_dev_addr) {
   }
 }
 
-static int n_tries = 4;
-
 void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
   obtain_control(i2c_dev_addr);
 
-  int rv{-1};
-  for (std::size_t i_try{0}; i_try < n_tries; i_try++) {
-    rv = write(handle_, &data, 1);
-    if (rv >= 0) {
-      pflib_log(trace) << "wrote " << hex(data) << " to " << hex(i2c_dev_addr);
-      // success! let's leave
-      return;
-    }
-  }
-  // still erroring out (rv < 0) and we ran out of tries
-  char message[120];
-  snprintf(message, 120, "Error %d writing 0x%02x to i2c target 0x%02x", errno,
-           data, i2c_dev_addr);
-  PFEXCEPTION_RAISE("I2CError", message);
+  general_write_read(i2c_dev_addr, {data}, 0);
 }
 
 uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
   obtain_control(i2c_dev_addr);
-  uint8_t buffer[8];
-  int rv{-1};
-  for (std::size_t i_try{0}; i_try < n_tries; i_try++) {
-    rv = read(handle_, buffer, 1);
-    pflib_log(trace) << "read(" << hex(handle_) << ", " << hex(buffer)
-                     << ", 1) -> " << rv << " errno " << errno;
-    if (rv >= 0) {
-      pflib_log(trace) << "read " << hex(buffer[0]) << " from "
-                       << hex(i2c_dev_addr);
-      // success! let's leave
-      return buffer[0];
-    }
-  }
-  std::stringstream msg;
-  msg << errno;
-  switch (errno) {
-    case EAGAIN:
-      msg << " (EAGAIN) " << dev_ << "(" << hex(handle_)
-          << ") is marked as non blocking";
-      break;
-    case EBADF:
-      msg << " (EBADF) " << dev_ << "(" << hex(handle_)
-          << ") is not a valid descriptor or not open for reading";
-      break;
-    case EFAULT:
-      msg << " (EFAULT) buffer is outside accessible address space";
-      break;
-    case EINTR:
-      msg << " (EINTR) signal interrupted call";
-      break;
-    case EINVAL:
-      msg << " (EINVAL) buffer address or file offset is not aligned";
-      break;
-    case EIO:
-      msg << " (EIO) generic I/O error";
-      break;
-    case EISDIR:
-      msg << " (EISDIR) " << dev_ << "(" << hex(handle_)
-          << ") refers to a directory";
-      break;
-  }
-  PFEXCEPTION_RAISE("I2CError", msg.str());
+  
+  std::vector<uint8_t> buffer;
+  buffer = general_write_read(i2c_dev_addr, {}, 1);
+
   return buffer[0];
 }
 
 std::vector<uint8_t> I2C_Linux::general_write_read(
     uint8_t i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread) {
-  //ioctl(handle_, 0x0706, i2c_dev_addr);
-  obtain_control(i2c_dev_addr);
-
-  if (wdata.size() > 0) {
-    int ret = write(handle_, &(wdata[0]), wdata.size());
-
-    if (ret < 0) {
-      char message[120];
-      snprintf(message, 120, "Error %d writing to i2c target 0x%02x", errno,
-               i2c_dev_addr);
-      PFEXCEPTION_RAISE("I2CError", message);
-    }
-  }
-
-  std::vector<uint8_t> rv(nread, 0);
-
-  if (nread > 0) {
-    int ret = read(handle_, &rv[0], nread);
-
-    if (ret < 0) {
-      char message[120];
-      snprintf(message, 120, "Error %d reading from i2c target 0x%02x", errno,
-               i2c_dev_addr);
-      PFEXCEPTION_RAISE("I2CError", message);
-    }
-  }
-
-  return rv;
-}
-
-std::vector<uint8_t> I2C_Linux::general_write_read_ioctl(
-    int i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread) {
   __u8* buf;  //Linux specific type-def that is not necessarily uint8_t
 
+  obtain_control(i2c_dev_addr);
+  
   struct i2c_msg msgs[I2C_RDRW_IOCTL_MAX_MSGS];
   for (int i = 0; i < I2C_RDRW_IOCTL_MAX_MSGS; i++) msgs[i].buf = NULL;
   struct i2c_rdwr_ioctl_data rdwr;
