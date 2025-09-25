@@ -126,10 +126,13 @@ def time_multichannel(
                         s=5, color=color)
         plt.legend()
         if highrange:
+            plt.ylim(0,1100)
             fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_highrange.png'
         elif preCC:
+            plt.ylim(180,1000)
             fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_preCC.png'
         else:
+            plt.ylim(180,800)
             fig_name = str(args.output_directory) + '/parameter_timescan_channel' + str(ch) + '_lowrange.png'
         plt.savefig(fig_name, dpi=400)
         plt.close()
