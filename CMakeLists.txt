@@ -33,6 +33,9 @@ endif()
 
 # Boost for CRC calculator, Test, and Logging
 find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
 
 # Generate the register map headers for the different supported ROCs
 #  "v2" rocs were manually written so we just copy them into the correct spot
@@ -99,6 +102,36 @@ add_custom_command(
   VERBATIM
 )
 add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econd.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECOND register LUT from register_maps/ECOND_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econd_regmap DEPENDS include/register_maps/econd.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econt.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econt.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECONT register LUT from register_maps/ECONT_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econt_regmap DEPENDS include/register_maps/econt.h)
 
 add_custom_command(
   OUTPUT include/register_maps/register_maps.h
