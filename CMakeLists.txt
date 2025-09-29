@@ -33,9 +33,6 @@ endif()
 
 # Boost for CRC calculator, Test, and Logging
 find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
 
 # Generate the register map headers for the different supported ROCs
 #  "v2" rocs were manually written so we just copy them into the correct spot
