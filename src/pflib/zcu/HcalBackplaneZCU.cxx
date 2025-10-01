@@ -8,6 +8,7 @@ namespace pflib {
 
   static constexpr int ADDR_HCAL_BACKPLANE_DAQ  = 0x78|0x04;
   static constexpr int ADDR_HCAL_BACKPLANE_TRIG = 0x78;
+  static constexpr int I2C_BUS_ECONS = 0; // DAQ
   static constexpr int I2C_BUS_HGCROCS = 1; // DAQ
   static constexpr int I2C_BUS_BIAS    = 1; // TRIG
   static constexpr int I2C_BUS_BOARD   = 0; // TRIG
@@ -19,6 +20,7 @@ namespace pflib {
   public:
     HcalBackplaneZCUTarget(int itarget, uint8_t board_mask) {
       // first, setup the optical links
+      printf("Make Backplane ZCU target, setup optical links");
       std::string uio_coder=pflib::utility::string_format("standardLpGBTpair-%d",itarget);
       daq_tport_=std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(uio_coder, false, ADDR_HCAL_BACKPLANE_DAQ);
       trig_tport_=std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(uio_coder, true, ADDR_HCAL_BACKPLANE_TRIG);
@@ -26,14 +28,17 @@ namespace pflib {
       trig_lpgbt_=std::make_unique<pflib::lpGBT>(*trig_tport_);
       
       // next, create the Hcal I2C objects
-      roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
-      roc_i2c_->set_bus_speed(1000);
-      for (int ibd=0; ibd<4; ibd++) {
-	if ((board_mask&(1<<ibd))==0) continue;
-	std::shared_ptr<pflib::I2C> bias_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BIAS,ADDR_MUX_BIAS,(1<<ibd));
-	std::shared_ptr<pflib::I2C> board_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BOARD,ADDR_MUX_BOARD,(1<<ibd));
-	add_roc(ibd,roc_i2c_,bias_i2c,board_i2c);	
-      }
+      printf("Create I2C objects ");
+      econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
+      econ_i2c_->set_bus_speed(1000);
+      //roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
+      //roc_i2c_->set_bus_speed(1000);
+      //for (int ibd=0; ibd<4; ibd++) {
+      //if ((board_mask&(1<<ibd))==0) continue;
+      //std::shared_ptr<pflib::I2C> bias_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BIAS,ADDR_MUX_BIAS,(1<<ibd));
+      //std::shared_ptr<pflib::I2C> board_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BOARD,ADDR_MUX_BOARD,(1<<ibd));
+      //add_roc(ibd,roc_i2c_,bias_i2c,board_i2c);	
+      //}
 
       // next, create the elinks object
 
@@ -76,6 +81,7 @@ namespace pflib {
     std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
     std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
     std::shared_ptr<pflib::I2C> roc_i2c_;
+    std::shared_ptr<pflib::I2C> econ_i2c_;
   };
 
 
