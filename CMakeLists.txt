@@ -145,6 +145,7 @@ target_link_libraries(packing PUBLIC utility)
 add_library(pflib SHARED
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
+  src/pflib/ECON.cxx
   src/pflib/Compile.cxx
   src/pflib/Logging.cxx
   src/pflib/Hcal.cxx

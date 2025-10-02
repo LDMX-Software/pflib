@@ -31,6 +31,7 @@ namespace pflib {
       printf("Create I2C objects ");
       econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
       econ_i2c_->set_bus_speed(1000);
+      add_econ(0, econ_i2c_);
       //roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
       //roc_i2c_->set_bus_speed(1000);
       //for (int ibd=0; ibd<4; ibd++) {
@@ -43,6 +44,8 @@ namespace pflib {
       // next, create the elinks object
 
       hcal_=std::shared_ptr<Hcal>(this);
+      hcal_->print_i2c_map();
+ 
     }
     virtual void softResetROC(int which) {
       // assuming everything was done with the standard config
@@ -73,6 +76,14 @@ namespace pflib {
 	daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST",true);	
 	trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",false);
 	trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",true);	
+    }
+    virtual void hardResetECONs() {
+      trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", false);
+      trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
+    }
+    virtual void softResetECONs() {
+      trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", false);
+      trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", true);
     }
     virtual Elinks& elinks() { }
       virtual DAQ& daq() { }

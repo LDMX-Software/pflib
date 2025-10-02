@@ -34,7 +34,7 @@ namespace pflib {
 	lpgbt.setup_etx(0,true); // HGCROC2_FCMD
 	lpgbt.setup_etx(1,true); // HGCROC0_FCMD
 	lpgbt.setup_etx(2,true); // HGCROC3_FCMD
-	lpgbt.setup_etx(3,true); // ECON-T0_FCMF
+	lpgbt.setup_etx(3,true); // ECON-T0_FCMD
 	lpgbt.setup_etx(4,true); // ECON-D_FCMD
 	lpgbt.setup_etx(5,true); // ECON-T1_FCMD
 	lpgbt.setup_etx(6,true); // HGCROC1_FCMD
@@ -49,6 +49,8 @@ namespace pflib {
       void setup_hcal_trig(pflib::lpGBT& lpgbt) {
 	
 	// setup the reset lines
+	lpgbt.gpio_cfg_set(2,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"BOARD_I2C_RST");
+	lpgbt.gpio_set(2, true);
 	lpgbt.gpio_cfg_set(4,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC0_HRST");
 	lpgbt.gpio_set(4,true);								     
 	lpgbt.gpio_cfg_set(7,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC0_SRST");
@@ -56,7 +58,13 @@ namespace pflib {
 	lpgbt.gpio_cfg_set(6,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC3_HRST");
 	lpgbt.gpio_set(6,true);								     
 	lpgbt.gpio_cfg_set(3,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC3_SRST");
-	lpgbt.gpio_set(3,true);								      
+	lpgbt.gpio_set(3,true);
+	lpgbt.gpio_cfg_set(9,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"BIAS_I2C_RST");
+	lpgbt.gpio_set(9, true);
+	lpgbt.gpio_cfg_set(8,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"ECON_HRST");
+	lpgbt.gpio_set(8, true);
+	lpgbt.gpio_cfg_set(11,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"ECON_SRST");
+	lpgbt.gpio_set(11, true);
 
 	// setup the high speed inputs
 	for (int i=0; i<6; i++) {

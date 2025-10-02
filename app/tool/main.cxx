@@ -21,7 +21,15 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   return pflib::logging::get("pftool." + relative);
 }
 
-pftool::State::State() { update_type_version("sipm_rocv3b"); }
+pftool::State::State() {
+  update_type_version("sipm_rocv3b");
+  update_type_econ("econd");
+}
+
+void pftool::State::update_type_econ(const std::string& type_econ) {
+  type_econ_ = type_econ;
+}
+const std::string& pftool::State::type_econ() const { return type_econ_; }
 
 void pftool::State::update_type_version(const std::string& type_version) {
   if (type_version != type_version_) {

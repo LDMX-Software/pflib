@@ -38,6 +38,8 @@ class pftool : public pflib::menu::Menu<Target*> {
  public:
   /// static variables to share across menu
   class State {
+    /// type of ECON currently being interacted with
+    std::string type_econ_;
     /// type_version of HGCROC currently being interacted with
     std::string type_version_;
     /// list of page names for tab completion
@@ -48,6 +50,10 @@ class pftool : public pflib::menu::Menu<Target*> {
    public:
     /// default constructor which sets default type_version
     State();
+    /// ECON
+    void update_type_econ(const std::string& type_econ);
+    const std::string& type_econ() const;
+    int iecon{0};
     /// update roc type version, regenerating tab completion lists if needed
     void update_type_version(const std::string& type_version);
     /// get the type_version of the HGCROC currently being interacted with

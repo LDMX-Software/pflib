@@ -16,7 +16,7 @@ static void roc_render(Target* pft) {
 }
 
 /**
- * Extra instructsion for user
+ * Extra instruction for user
  */
 static void roc_expert_render(Target* tgt) {
   roc_render(tgt);
