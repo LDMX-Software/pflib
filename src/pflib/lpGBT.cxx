@@ -505,10 +505,8 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
     // copying all the data into the core...
     for (size_t i=0; i<values.size(); i++) {
       write(REG_I2CM0DATA0+(i%4)+ibus*REG_I2C_WSTRIDE,values[i]);
-      if ((i%4)==3) write(REG_I2CM0CMD+ibus*REG_I2C_WSTRIDE,CMD_I2C_W_MULTI_4BYTE0+i/4);
-    }
-    if ((values.size()%4)!=0) {
-      write(REG_I2CM0CMD+ibus*REG_I2C_WSTRIDE,CMD_I2C_W_MULTI_4BYTE0+(values.size())/4);
+      if ((i%4)==3 || (i+1)==values.size())
+	write(REG_I2CM0CMD+ibus*REG_I2C_WSTRIDE,CMD_I2C_W_MULTI_4BYTE0+(i/4));
     }
     // launch the write
     write(REG_I2CM0CMD+ibus*REG_I2C_WSTRIDE,CMD_I2C_WRITE_MULTI);      
