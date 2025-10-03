@@ -26,6 +26,9 @@ test: _test
 # print all messages during testing
 test-log-all: (_test "-l all")
 
+# run econd decoding test
+test-econd: (_test "-t \"decoding/econd*\"")
+
 # remove build directory
 clean:
     rm -r build

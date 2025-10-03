@@ -34,6 +34,14 @@ struct Sample {
    * of these columns, you can write your own method.
    */
   void to_csv(std::ofstream& f) const;
+  /**
+   * Construct the packed sample word given the unpacked sample values
+   *
+   * No overflow checks are made since this (should) only be used within
+   * the ECOND unpacking infrastructure where the values are known to be
+   * limited to 10 bits already.
+   */
+  void from_unpacked(bool Tc, bool Tp, int adc_tm1, int main_sample, int toa);
 };
 
 }  // namespace pflib::packing
