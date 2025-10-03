@@ -130,6 +130,7 @@ static constexpr uint16_t REG_I2CM0CMD      = 0x106;
 static constexpr uint16_t REG_I2CM0STATUS   = 0x171;
 static constexpr uint16_t REG_I2CM0READBYTE = 0x173;
 static constexpr uint16_t REG_I2CM0READ0    = 0x174;
+static constexpr uint16_t REG_I2CM0READ15   = 0x183;
 static constexpr uint16_t REG_I2C_WSTRIDE   = 7;
 static constexpr uint16_t REG_I2C_RSTRIDE   = 21;
   
@@ -544,7 +545,9 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
     if (i2c_[ibus].read_len==1) {
       retval.push_back(read(REG_I2CM0READBYTE+ibus*REG_I2C_RSTRIDE));
     } else {
-      return read(REG_I2CM0READBYTE+ibus*REG_I2C_RSTRIDE,i2c_[ibus].read_len);
+      // super-weird -- it's stored in backwards order...
+      retval=read(REG_I2CM0READ15+1-i2c_[ibus].read_len+ibus*REG_I2C_RSTRIDE,i2c_[ibus].read_len);
+      std::reverse(retval.begin(),retval.end());
     }
     return retval;
   }
