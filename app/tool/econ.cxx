@@ -31,16 +31,36 @@ static void econ_expert_render(Target* tgt) {
  * using the compiler
  *
  * ## Commands
- * - POKE : set a specific register to a specific value pflib::ECON::setValue
+ * - READ : read a specific register 
+ * - WRITE : write to a specific register
  */
 static void econ_expert(const std::string& cmd, Target* tgt) {
   auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_econ());
-  if (cmd == "POKE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int entry = pftool::readline_int("Offset: ", 0);
-    int value = pftool::readline_int("New value: ");
+  if (cmd == "READ") {
+    std::string addr_str = pftool::readline("Register address (hex): ", "0x0000");
+    int address = std::stoi(addr_str, nullptr, 16);
+    int nbytes = pftool::readline_int("Number of bytes to read: ", 1);
 
-    econ.setValue(page, entry, value);
+    std::vector<uint8_t> data = econ.getValues(address, nbytes);
+
+    printf("Read %d bytes from register 0x%04x:\n", nbytes, address);
+    for (size_t i = 0; i < data.size(); i++) {
+      printf("  [%02zu] = 0x%02x\n", i, data[i]);
+    }
+  }
+  else if (cmd == "WRITE") {
+    int address = pftool::readline_int("Register address (hex): ", 0x0000);
+    int nbytes = pftool::readline_int("Number of bytes to write: ", 1);
+    uint64_t value = pftool::readline_int("Value to write (hex): ", 0x0);
+
+    // split value into bytes
+    std::vector<uint8_t> data;
+    for (int i = 0; i < nbytes; ++i) {
+        data.push_back(static_cast<uint8_t>((value >> (8 * i)) & 0xFF));
+    }
+    
+    econ.setValues(address, data);
+    printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, address, nbytes);
   }
 }
 
@@ -55,7 +75,6 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * - SOFTRESET : pflib::Hcal::softResetECONs
  * - RUNMODE : enable run bit on the ECON
  * - IECON : Change which ECON to focus on
- * - POKE : pflib::ECON::setValue
  *
  * @param[in] cmd ECON command
  * @param[in] pft active target
@@ -79,12 +98,6 @@ static void econ(const std::string& cmd, Target* pft) {
     isRunMode = pftool::readline_bool("Set ECON runbit: ", isRunMode);
     econ.setRunMode(isRunMode);
   }
-  if (cmd == "POKE") {
-    //auto page = pftool::readline("Page: ", pftool::state.page_names());
-    //auto param = pftool::readline("Parameter: ", pftool::state.param_names(page));
-    //int val = pftool::readline_int("New value: ");
-    //econ.applyParameter(page, param, val);
-  }
 }
 
 
@@ -99,7 +112,8 @@ auto menu_econ =
     ;
 
 auto menu_econ_expert =
-    menu_econ->submenu("EXPERT", "expert interaction with ECON", econ_expert_render)
-        ->line("POKE", "change a single register's value", econ_expert)
+  menu_econ->submenu("EXPERT", "expert interaction with ECON", econ_expert_render)
+  ->line("READ", "read a single register's value", econ_expert)
+  ->line("WRITE", "read a single register's value", econ_expert)
     ;
 }

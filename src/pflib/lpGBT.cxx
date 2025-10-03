@@ -498,6 +498,7 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
   }
   
   void lpGBT::i2c_write(int ibus, uint8_t i2c_addr, const std::vector<uint8_t>& values) {
+    printf("ibus %i\n", ibus);
     if (ibus<0 || ibus>2 || values.size()>16) return;
     write(REG_I2CM0ADDRESS+ibus*REG_I2C_WSTRIDE,i2c_addr);
     write(REG_I2CM0DATA0+ibus*REG_I2C_WSTRIDE,i2c_[ibus].ctl_reg|(values.size()<<2));
@@ -505,6 +506,7 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
     // copying all the data into the core...
     for (size_t i=0; i<values.size(); i++) {
       write(REG_I2CM0DATA0+(i%4)+ibus*REG_I2C_WSTRIDE,values[i]);
+      // every 4 bytes or on the last byte
       if ((i%4)==3 || (i+1)==values.size())
 	write(REG_I2CM0CMD+ibus*REG_I2C_WSTRIDE,CMD_I2C_W_MULTI_4BYTE0+(i/4));
     }

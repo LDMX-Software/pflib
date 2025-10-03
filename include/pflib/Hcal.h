@@ -24,12 +24,19 @@ class Hcal {
   /** number of boards */
   int nrocs() { return nhgcroc_; }
 
-  int necons() { return necon_; }
+  int necons() { return necond_+necont_; }
 
   /** do we have a roc with this id? */
   bool have_roc(int iroc) { return i2c_for_rocbd_.find(iroc)!=i2c_for_rocbd_.end(); }
 
-  bool have_econ(int iecon) { return i2c_for_econbd_.find(iecon)!=i2c_for_econbd_.end(); }
+  bool have_econ(int iecon, const std::string& type_econ) {
+    if (type_econ == "econd") {
+      return i2c_for_econd_.find(iecon) != i2c_for_econd_.end();
+    } else if (type_econ == "econt") {
+      return i2c_for_econt_.find(iecon) != i2c_for_econt_.end();
+    }
+    return false;
+  }
 
   /** Get a ROC interface for the given HGCROC board */
   ROC roc(int which, const std::string& roc_type_version = "sipm_rocv3b");
@@ -64,9 +71,23 @@ class Hcal {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
-  void print_i2c_map() {
-    for (const auto& [key, ptr] : i2c_for_econbd_) {
-      std::cout << "Hcal ECON I2C Key: " << key << ", I2C pointer: " << ptr.get() << std::endl;
+  void print_i2c_map() const {
+    std::cout << "=== ECON-D I2C Map ===" << std::endl;
+    if (i2c_for_econd_.empty()) {
+      std::cout << "  (none)" << std::endl;
+    } else {
+      for (const auto& [key, ptr] : i2c_for_econd_) {
+	std::cout << "  Key: " << key << ", I2C pointer: " << ptr.get() << std::endl;
+      }
+    }
+    
+    std::cout << "=== ECON-T I2C Map ===" << std::endl;
+    if (i2c_for_econt_.empty()) {
+      std::cout << "  (none)" << std::endl;
+    } else {
+      for (const auto& [key, ptr] : i2c_for_econt_) {
+	std::cout << "  Key: " << key << ", I2C pointer: " << ptr.get() << std::endl;
+      }
     }
   }
   
@@ -75,12 +96,10 @@ class Hcal {
   void add_roc(int iroc, std::shared_ptr<I2C>& roc_i2c, std::shared_ptr<I2C>& bias_i2c, std::shared_ptr<I2C>& board_i2c);
 
   /** Add an ECON to the set of ECONs */
-  void add_econ(int iecon, std::shared_ptr<I2C>& econ_i2c);
+  void add_econ(int iecon, std::shared_ptr<I2C> econ_i2c, const std::string& type_econ);
   
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
-
-  int necon_;
 
   /** The GPIO interface */
   std::unique_ptr<GPIO> gpio_;
@@ -94,8 +113,12 @@ class Hcal {
   
   std::map<int, I2C_per_ROC> i2c_for_rocbd_;
 
-  std::map<int, std::shared_ptr<I2C>> i2c_for_econbd_;
-
+  /** The ECON I2C interface */
+  std::map<int, std::shared_ptr<I2C>> i2c_for_econd_; // for econd
+  std::map<int, std::shared_ptr<I2C>> i2c_for_econt_; // for econt
+  int necond_;
+  int necont_;
+  
 };
 
 }  // namespace pflib

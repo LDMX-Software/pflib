@@ -7,6 +7,8 @@ namespace pflib {
       void setup_hcal_daq(pflib::lpGBT& lpgbt) {
 	
 	// setup the reset lines
+	// each call configures the pin number, mode, and assigns a name
+	// then we set an initial value (true = high, false = low)
 	lpgbt.gpio_cfg_set(0,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC2_HRST");
 	lpgbt.gpio_set(0,true);								     
 	lpgbt.gpio_cfg_set(1,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"HGCROC2_SRST");

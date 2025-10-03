@@ -23,13 +23,13 @@ class ECON {
   void setRunMode(bool active = true);
   bool isRunMode();
 
-  uint8_t getValue(int page, int offset);
-  void setValue(int page, int offset, uint8_t value);
+  std::vector<uint8_t> getValues(int reg_addr, int nbytes);
+  void setValues(int reg_addr, const std::vector<uint8_t>& values);
 
  private:
   I2C& i2c_;
   uint8_t econ_base_;
-  Compiler compiler_;
+  //Compiler compiler_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("econ")};
 };
 

@@ -3,6 +3,7 @@
 #include "pflib/utility/string_format.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
+#include "pflib/lpgbt/lpGBT_standard_configs.h"
 
 namespace pflib {
 
@@ -31,7 +32,9 @@ namespace pflib {
       printf("Create I2C objects ");
       econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
       econ_i2c_->set_bus_speed(1000);
-      add_econ(0, econ_i2c_);
+      add_econ(0, econ_i2c_, "econd");
+      add_econ(0, econ_i2c_, "econt");
+      add_econ(1, econ_i2c_, "econt");
       //roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
       //roc_i2c_->set_bus_speed(1000);
       //for (int ibd=0; ibd<4; ibd++) {
@@ -42,10 +45,11 @@ namespace pflib {
       //}
 
       // next, create the elinks object
-
       hcal_=std::shared_ptr<Hcal>(this);
-      hcal_->print_i2c_map();
- 
+      //hcal_->print_i2c_map();
+
+      pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+      pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
     }
     virtual void softResetROC(int which) {
       // assuming everything was done with the standard config
@@ -68,14 +72,14 @@ namespace pflib {
       
     }
     virtual void hardResetROCs() {
-	trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST",false);
-	trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST",true);	
-	daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST",false);
-	daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST",true);	
-	daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST",false);
-	daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST",true);	
-	trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",false);
-	trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",true);	
+      trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST",false);
+      trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST",true);	
+      daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST",false);
+      daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST",true);	
+      daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST",false);
+      daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST",true);	
+      trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",false);
+      trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST",true);	
     }
     virtual void hardResetECONs() {
       trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", false);

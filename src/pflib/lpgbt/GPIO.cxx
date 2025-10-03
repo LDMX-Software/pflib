@@ -28,7 +28,14 @@ namespace pflib {
     }
     bool GPIO::getGPO(const std::string& name) {
       auto ptr=gpos_.find(name);
+
       if (ptr==gpos_.end()) {
+	// Print available names before raising the error
+	std::vector<std::string> names = getGPOs();
+	printf("lpGBT Available GPOs:\n");
+	for (const auto& n : names) {
+	  printf("  %s\n", n.c_str());
+	}
 	PFEXCEPTION_RAISE("GPIOError", pflib::utility::string_format("Unknown GPO bit '%s'",name.c_str()));
       }
       int ibit=ptr->second;
@@ -37,6 +44,11 @@ namespace pflib {
     void GPIO::setGPO(const std::string& name, bool toTrue) {
       auto ptr=gpos_.find(name);
       if (ptr==gpos_.end()) {
+	std::vector<std::string> names = getGPOs();
+        printf("lpGBT set Available GPOs:\n");
+        for (const auto& n : names) {
+          printf("  %s\n", n.c_str());
+        }
 	PFEXCEPTION_RAISE("GPIOError", pflib::utility::string_format("Unknown GPO bit '%s'",name.c_str()));
       }
       int ibit=ptr->second;
