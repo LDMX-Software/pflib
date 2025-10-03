@@ -499,7 +499,6 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
   }
   
   void lpGBT::i2c_write(int ibus, uint8_t i2c_addr, const std::vector<uint8_t>& values) {
-    printf("ibus %i\n", ibus);
     if (ibus<0 || ibus>2 || values.size()>16) return;
     write(REG_I2CM0ADDRESS+ibus*REG_I2C_WSTRIDE,i2c_addr);
     write(REG_I2CM0DATA0+ibus*REG_I2C_WSTRIDE,i2c_[ibus].ctl_reg|(values.size()<<2));

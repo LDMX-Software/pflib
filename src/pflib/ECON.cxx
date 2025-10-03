@@ -15,11 +15,7 @@ ECON::ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version)
       econ_base_{econ_base_addr}
       //compiler_{Compiler::get(type_version)}
 {
-  pflib_log(debug) << "base addr " << packing::hex(econ_base_);
-}
-  
-void ECON::setRunMode(bool active) {
-  // TODO: implement writing run mode to the hardware
+  pflib_log(debug) << "ECON base addr " << packing::hex(econ_base_);
 }
 
 uint32_t getParam(const std::vector<uint8_t>& data, size_t shift, uint32_t mask) {
@@ -50,23 +46,40 @@ std::vector<uint8_t> newParam(std::vector<uint8_t> prev_value, uint16_t reg_addr
     new_data.push_back(static_cast<uint8_t>((reg_val >> (8 * i)) & 0xFF));
   }
 
-  printf("To update register 0x%04x: bits [%d:%d] set to 0x%x\n",
-         reg_addr, shift + static_cast<int>(log2(mask)), shift, value);
+  //printf("To update register 0x%04x: bits [%d:%d] set to 0x%x\n",
+  //       reg_addr, shift + static_cast<int>(log2(mask)), shift, value);
   
   return new_data;  
+}
+
+void ECON::setRunMode(bool active) {
+  int nbytes = 3;
+  const uint32_t MASK_RUNBIT  = 1;
+  const int      SHIFT_RUNBIT = 23;
+  std::vector<uint8_t> data_03C5 = getValues(0x03C5, 3);
+  std::vector<uint8_t> new_data_03C5 = newParam(data_03C5, 0x03C5, nbytes, MASK_RUNBIT, SHIFT_RUNBIT, 1);
+  auto value = getParam(new_data_03C5, SHIFT_RUNBIT, MASK_RUNBIT);
+  std::cout << "new 03C5 value to write: " << value << std::endl;
+
+  std::vector<uint8_t> data;
+  for (int i = 0; i < nbytes; ++i) {
+    data.push_back(static_cast<uint8_t>((value >> (8 * i)) & 0xFF));
+  }
+    
+  setValues(0x03C5, data);
+  printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, 0x03C5, nbytes);
+
+  std::vector<uint8_t> data_03DF = getValues(0x3df, 4);
+  const uint32_t MASK_PUSMSTATE = 15;
+  const int      SHIFT_PUSMSTATE = 0;
+  uint32_t pusm_state_value = getParam(data_03DF, SHIFT_PUSMSTATE, MASK_PUSMSTATE);
+  std::cout << "new PUSM state value: " << pusm_state_value << std::endl;
 }
   
 bool ECON::isRunMode() {
 
-  std::vector<uint8_t> data_03e4 = getValues(0x3e4, 1);
-  uint8_t reg_val_erxenable = getParam(data_03e4, 0, 1);
-  std::cout << "Register 0x3e4 erx0 enable: " << int(reg_val_erxenable) << std::endl;
-
-  std::vector<uint8_t> data_03e5 = getValues(0x3e5, 1);
-  std::cout << "Register 0x3e5 erx1 enable: " << int(getParam(data_03e5, 0, 1)) << std::endl;
-  
   std::vector<uint8_t> data_03AB = getValues(0x03AB, 1);
-  std::cout << "FCtrl_Global_command_rx_inverted value value " << getParam(data_03AB, 0, 1) << " locked " << getParam(data_03AB, 1, 1) << std::endl;
+  std::cout << "FCtrl_Global_command_rx_inverted " << getParam(data_03AB, 0, 1) << " locked " << getParam(data_03AB, 1, 1) << std::endl;
   
   // Read 3-byte register at 0x03C5 and extract run bit
   std::vector<uint8_t> data_03C5 = getValues(0x03C5, 3);  
@@ -75,12 +88,6 @@ bool ECON::isRunMode() {
   uint32_t pusm_run_value = getParam(data_03C5, SHIFT_RUNBIT, MASK_RUNBIT);
   std::cout << "PUSM run value: " << pusm_run_value << std::endl;
 
-  std::vector<uint8_t> new_data_03C5 = newParam(data_03C5, 0x03C5, 3, MASK_RUNBIT, SHIFT_RUNBIT, 1);  // set RUNBIT = 1
-  //setValues(0x03C5, new_data_03C5);
-
-  pusm_run_value = getParam(data_03C5, SHIFT_RUNBIT, MASK_RUNBIT);
-  std::cout << "new PUSM run value: " << pusm_run_value << std::endl;
-  
   // Read 4-byte register at 0x03DF and extract PUSM state
   std::vector<uint8_t> data_03DF = getValues(0x3df, 4);
   const uint32_t MASK_PUSMSTATE = 15;
@@ -94,18 +101,19 @@ bool ECON::isRunMode() {
 std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
   if(nbytes < 1) {
     pflib_log(error) << "Invalid nbytes = " << nbytes;
+    return {};
   }
   
-  pflib_log(info) << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") from " << packing::hex(econ_base_);
+  //pflib_log(info) << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") from " << packing::hex(econ_base_);
 
   std::vector<uint8_t> waddr;
   waddr.push_back(static_cast<uint8_t>((reg_addr >> 8) & 0xFF));
   waddr.push_back(static_cast<uint8_t>(reg_addr & 0xFF));       
-
   std::vector<uint8_t> data = i2c_.general_write_read(econ_base_, waddr, nbytes);
-  for (size_t i = 0; i < data.size(); i++) {
-    printf("%02zu : %02x\n", i, data[i]);
-  }
+  
+  //for (size_t i = 0; i < data.size(); i++) {
+  //  printf("%02zu : %02x\n", i, data[i]);
+  //}
 
   return data;
 }
@@ -117,9 +125,9 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
   }
 
   pflib_log(info) << "ECON::setValues(" 
-                  << packing::hex(reg_addr) 
+		  << packing::hex(reg_addr) 
                   << ", nbytes = " << values.size() 
-                  << ") to " << packing::hex(econ_base_);
+		  << ") to " << packing::hex(econ_base_);
 
   // write buffer
   std::vector<uint8_t> wbuf;
@@ -127,7 +135,7 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
   wbuf.push_back(static_cast<uint8_t>(reg_addr & 0xFF));       
   wbuf.insert(wbuf.end(), values.begin(), values.end());
 
-  // Perform write
+  // perform write
   i2c_.general_write_read(econ_base_, wbuf, values.size());
 
   // Log written data

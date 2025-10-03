@@ -22,11 +22,6 @@ namespace pflib {
     }
     std::vector<uint8_t> I2C::general_write_read(uint8_t i2c_dev_addr, const std::vector<uint8_t>& wdata,int nread) {
       if (!wdata.empty()) {
-	 printf("I2C write to device 0x%02X, %zu bytes: ", i2c_dev_addr, wdata.size());
-	 for (size_t i = 0; i < wdata.size(); ++i) {
-	   printf("0x%02X ", wdata[i]);
-	 }
-	 printf("\n");
 	if (wdata.size()==1) lpgbt_.i2c_write(ibus_,i2c_dev_addr,wdata[0]);
 	else lpgbt_.i2c_write(ibus_,i2c_dev_addr,wdata);
 	lpgbt_.i2c_transaction_check(ibus_,true);

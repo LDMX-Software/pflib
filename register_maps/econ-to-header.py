@@ -94,12 +94,17 @@ def generate_header(input_yaml, data):
                     name_prefix = f"{group_name}_{reg_name}"
                     process_register(name_prefix, props, lines)
             
-            for reg_name, props in registers.items():
-                name_prefix = f"{group_name}_{reg_name}"
-                process_register(name_prefix, props, lines)
+            # for reg_name, props in registers.items():
+            #     name_prefix = f"{group_name}_{reg_name}"
+            #     process_register(name_prefix, props, lines)
         page_names.append(page_var)
         lines.append("  });")
 
+    #lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
+    #for name in page_names:
+    #    lines.append(f'  {{"{name}", {name}}},')
+    #lines.append("});")
+        
     lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
     for name in page_names:
         lines.append(f'  {{"{name}", {name}}},')

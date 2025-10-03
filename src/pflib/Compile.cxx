@@ -20,11 +20,11 @@ std::string upper_cp(const std::string& str) {
 
 #include "register_maps/register_maps.h"
 
-Compiler Compiler::get(const std::string& roc_type_version) {
-  auto reg_map_it = REGISTER_MAP_BY_ROC_TYPE.find(roc_type_version);
-  if (reg_map_it == REGISTER_MAP_BY_ROC_TYPE.end()) {
-    PFEXCEPTION_RAISE("BadRocType", "ROC type_version " + roc_type_version +
-                                        " is not present within the map.");
+Compiler Compiler::get(const std::string& type_version) {
+  auto reg_map_it = REGISTER_MAP_BY_TYPE.find(type_version);
+  if (reg_map_it == REGISTER_MAP_BY_TYPE.end()) {
+    PFEXCEPTION_RAISE("BadType", "Type_version " + type_version +
+		      " is not present within the map.");
   }
   return Compiler(reg_map_it->second.second, reg_map_it->second.first);
 }

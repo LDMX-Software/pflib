@@ -113,7 +113,7 @@ add_custom_command(
   COMMENT "Generating C++ ECOND register LUT from register_maps/ECOND_I2C_params_regmap.yaml"
   VERBATIM
 )
-add_custom_target(econd_regmap DEPENDS include/register_maps/econd.h)
+add_custom_target(econd DEPENDS include/register_maps/econd.h)
 
 add_custom_command(
   OUTPUT "include/register_maps/econt.h"
@@ -128,7 +128,10 @@ add_custom_command(
   COMMENT "Generating C++ ECONT register LUT from register_maps/ECONT_I2C_params_regmap.yaml"
   VERBATIM
 )
-add_custom_target(econt_regmap DEPENDS include/register_maps/econt.h)
+add_custom_target(econt DEPENDS include/register_maps/econt.h)
+
+#list(APPEND generate_headers econd)
+#list(APPEND generate_headers econt)
 
 add_custom_command(
   OUTPUT include/register_maps/register_maps.h
@@ -216,7 +219,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility)
-add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap econd)
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc
