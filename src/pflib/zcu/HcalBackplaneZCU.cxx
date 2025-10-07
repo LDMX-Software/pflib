@@ -14,9 +14,9 @@ static constexpr int I2C_BUS_BOARD = 0;    // TRIG
 static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
 
-class HcalBackplaneZCUTarget : public Target, public Hcal {
+class HcalBackplaneZCU : public Hcal {
  public:
-  HcalBackplaneZCUTarget(int itarget, uint8_t board_mask) {
+  HcalBackplaneZCU(int itarget, uint8_t board_mask) {
     // first, setup the optical links
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
@@ -44,7 +44,8 @@ class HcalBackplaneZCUTarget : public Target, public Hcal {
 
     // TODO create ELinks and DAQ objects
   }
-  virtual void softResetROC(int which) {
+
+  virtual void softResetROC(int which) override {
     // assuming everything was done with the standard config
     if (which < 0 || which == 0) {
       trig_lpgbt_->gpio_interface().setGPO("HGCROC0_SRST", false);
@@ -63,7 +64,8 @@ class HcalBackplaneZCUTarget : public Target, public Hcal {
       trig_lpgbt_->gpio_interface().setGPO("HGCROC3_SRST", true);
     }
   }
-  virtual void hardResetROCs() {
+
+  virtual void hardResetROCs() override {
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", false);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", true);
     daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST", false);
@@ -73,17 +75,45 @@ class HcalBackplaneZCUTarget : public Target, public Hcal {
     trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST", false);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST", true);
   }
-  virtual Elinks& elinks() {}
-  virtual DAQ& daq() {}
-  virtual std::vector<uint32_t> read_event() {
-    std::vector<uint32_t> empty;
-    return empty;
+
+  virtual Elinks& elinks() override {
+    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCU::elinks not implemented");
+  }
+
+  virtual DAQ& daq() override {
+    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCU::daq not implemented");
   }
 
  private:
+  /// let the target that holds this Hcal see our members
+  friend class HcalBackplaneZCUTarget;
   std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_;
+};
+
+class HcalBackplaneZCUTarget: public Target {
+ public:
+  HcalBackplaneZCUTarget(int ilink, uint8_t board_mask): Target() {
+    auto hcal_ptr = std::make_shared<HcalBackplaneZCU>(ilink, board_mask);
+    hcal_ = hcal_ptr;
+
+    // copy I2C connections into Target
+    // in case user wants to do raw I2C transactions for testing
+    for (auto [bid, i2c_pack]: hcal_ptr->i2c_for_rocbd_) {
+      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = i2c_pack.roc_i2c_;
+      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = i2c_pack.board_i2c_;
+      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = i2c_pack.bias_i2c_;
+    }
+
+    // TODO make FastControl object
+  }
+
+  virtual std::vector<uint32_t> read_event() override {
+    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCUTarget::read_event not implemented");
+    std::vector<uint32_t> empty;
+    return empty;
+  }
 };
 
 Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask) {
