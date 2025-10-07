@@ -389,14 +389,15 @@ int main(int argc, char* argv[]) {
         switch (mode) {
           case Fiberless:
             pflib_log(info) << "connecting from ZCU in Fiberless mode";
-            p_pft = std::unique_ptr<Target>(pflib::makeTargetFiberless());
+            p_pft.reset(pflib::makeTargetFiberless());
+            pftool::root()->drop({"OPTO"});
             break;
           case Rogue:
             PFEXCEPTION_RAISE("BadComm",
                               "Rogue communication mode not implemented");
             break;
           case UIO_ZCU:
-	    p_pft = std::unique_ptr<Target>(pflib::makeTargetHcalBackplaneZCU(ilink,boardmask));
+            p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink,boardmask));
             break;
           default:
             PFEXCEPTION_RAISE(
