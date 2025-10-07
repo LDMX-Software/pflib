@@ -14,7 +14,9 @@ def safe_int(val):
 
 def make_register_locations(address, mask, shift, size_byte):
     """Split a register into 8-bit chunks if it spans multiple bytes.
-    syntax reminder: RegisterLocation(reg, min_bit, n_bits):
+    syntax reminder: 
+       RegisterLocation(reg, min_bit, n_bits):
+     - reg = register 16-bit address
      - min_bit = param_shift for the first chunk, 0 for others
      - n_bits = number of 1's in the mask for the chunk
     """
@@ -45,6 +47,7 @@ def make_register_locations(address, mask, shift, size_byte):
 def process_register(name_prefix, props, lines):
     """
     Process recursively a register or nested subregisters and append C++ lines.
+    This will split big registers (>16 bytes) into multiple Parameters with suffixes (16 bytes is the max that lpGBT can handle).
     name_prefix: current register name prefix (e.g., 'USER_WORD')
     props: dict containing either address/mask/shift or nested subkeys
     lines: list of strings to append to
@@ -57,12 +60,27 @@ def process_register(name_prefix, props, lines):
             default_value = props.get("default_value", 0)
             size_byte = props.get("size_byte", 1)
 
-            # account for multi-byte registers
+            # generate all register locations and account for multi-byte registers
             reg_locs = make_register_locations(address, mask, shift, size_byte)
             reg_locs_str = ", ".join(reg_locs)
+            
+            # split into chunks of 16 bytes
+            chunk_size = 16
+            total_chunks = (len(reg_locs) + chunk_size - 1) // chunk_size
+            
+            for chunk_idx in range(total_chunks):
+                start = chunk_idx * chunk_size
+                end = start + chunk_size
+                chunk = reg_locs[start:end]
+                # use upper
+                chunk_name = (
+                    f"{name_prefix.upper()}"
+                    if total_chunks == 1
+                    else f"{name_prefix.upper()}_{chunk_idx}"
+                )
+                chunk_str = ", ".join(chunk)
+                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {default_value})}},')
 
-            cpp_name = name_prefix.upper()
-            lines.append(f'    {{"{cpp_name}", Parameter({{{reg_locs_str}}}, {default_value})}},')
     else:
         # look for nested subkeys if props is a dict
         if isinstance(props, dict):
@@ -94,9 +112,6 @@ def generate_header(input_yaml, data):
                     name_prefix = f"{group_name}_{reg_name}"
                     process_register(name_prefix, props, lines)
             
-            # for reg_name, props in registers.items():
-            #     name_prefix = f"{group_name}_{reg_name}"
-            #     process_register(name_prefix, props, lines)
         page_names.append(page_var)
         lines.append("  });")
 
