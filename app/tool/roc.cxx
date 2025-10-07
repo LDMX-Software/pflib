@@ -37,7 +37,8 @@ static void roc_expert_render(Target* tgt) {
  * - PAGE : print a page of raw registers pflib::ROC::readPage
  * - POKE : set a specific register to a specific value pflib::ROC::setValue
  * - LOAD : load a CSV of register values onto chip pflib::ROC::loadRegisters
- * - DUMP : dump HGCROC registers to CSV pflib::ROC::dumpSettings with decompile=false
+ * - DUMP : dump HGCROC registers to CSV pflib::ROC::dumpSettings with
+ * decompile=false
  * - DIRECT_ACCESS_PARAMETERS : prints all direct access parameters in the ROC
  * - GET_DIRECT_ACCESS : print direct access parameters and their values
  * - SET_DIRECT_ACCESS : set direct access parameter to specific value

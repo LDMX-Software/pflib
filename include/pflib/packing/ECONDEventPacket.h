@@ -1,12 +1,12 @@
 #pragma once
 
 #include <array>
-#include <span>
 #include <bitset>
+#include <span>
 
 #include "pflib/Logging.h"
-#include "pflib/packing/Reader.h"
 #include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/packing/Reader.h"
 
 namespace pflib::packing {
 
@@ -21,7 +21,7 @@ namespace pflib::packing {
  * 2. "Regular" mode - the ECOND event format is written which can include
  *    zero-suppression of multiple varieties including full eliminating
  *    channels that are empty
- * 
+ *
  * The ECOND_Formatter emulates the ECON-D re-formatting of the HGCROC
  * event packets into the ECON-D event packet. This unpacking is done
  * separately from this formatter so that it can be applied to data
@@ -42,7 +42,8 @@ class ECONDEventPacket {
    * @paran[in] passthrough whether the ECOND is in pass through mode or not
    * @return std::size_t length of data in 32b words that was unpacked
    */
-  std::size_t unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link, bool passthrough);
+  std::size_t unpack_link_subpacket(std::span<uint32_t> data,
+                                    DAQLinkFrame& link, bool passthrough);
 
  public:
   /**
@@ -60,7 +61,7 @@ class ECONDEventPacket {
   /**
    * storage of unpacked link data
    *
-   * This is very space in-efficient since we store zero words for 
+   * This is very space in-efficient since we store zero words for
    * any channel or measurement that was zero suppressed.
    * This won't be a problem for the smaller-scale testbeam prototypes,
    * but could be a memory issue when we get to the full LDMX
@@ -96,4 +97,4 @@ class ECONDEventPacket {
   void to_csv(std::ofstream& f) const;
 };
 
-}
+}  // namespace pflib::packing

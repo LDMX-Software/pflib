@@ -4,7 +4,7 @@
 
 /**
  * @namespace pflib::algorithm
- * housing of higher-level methods for repeatable tasks 
+ * housing of higher-level methods for repeatable tasks
  */
 namespace pflib::algorithm {
 

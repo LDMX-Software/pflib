@@ -24,7 +24,9 @@ class Hcal {
   int nrocs() { return nhgcroc_; }
 
   /** do we have a roc with this id? */
-  bool have_roc(int iroc) { return i2c_for_rocbd_.find(iroc)!=i2c_for_rocbd_.end(); }
+  bool have_roc(int iroc) {
+    return i2c_for_rocbd_.find(iroc) != i2c_for_rocbd_.end();
+  }
 
   /** Get a ROC interface for the given HGCROC board */
   ROC roc(int which, const std::string& roc_type_version = "sipm_rocv3b");
@@ -55,8 +57,9 @@ class Hcal {
 
  protected:
   /** Add a ROC to the set of ROCs */
-  void add_roc(int iroc, std::shared_ptr<I2C>& roc_i2C, std::shared_ptr<I2C>& bias_i2c, std::shared_ptr<I2C>& board_i2c);
-  
+  void add_roc(int iroc, std::shared_ptr<I2C>& roc_i2C,
+               std::shared_ptr<I2C>& bias_i2c, std::shared_ptr<I2C>& board_i2c);
+
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
 

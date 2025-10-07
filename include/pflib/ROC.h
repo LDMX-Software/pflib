@@ -37,8 +37,8 @@ class ROC {
   /**
    * set registers on the HGCROC to specific values
    *
-   * @param[in] registers The input map has the page as the first key and the register
-   * in the page as the second key and then the 8-bit register value.
+   * @param[in] registers The input map has the page as the first key and the
+   * register in the page as the second key and then the 8-bit register value.
    */
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
 
@@ -55,8 +55,8 @@ class ROC {
    * set registers on the HGCROC to specific values
    *
    * @param[in] file_path path to CSV file containing register values,
-   * the first column is the page, the second column is the register in that page,
-   * and then the last column is the value of the register
+   * the first column is the page, the second column is the register in that
+   * page, and then the last column is the value of the register
    */
   void loadRegisters(const std::string& file_path);
 

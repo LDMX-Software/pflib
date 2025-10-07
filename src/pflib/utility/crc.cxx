@@ -2,9 +2,9 @@
 
 #include <boost/crc.hpp>
 #include <boost/endian/conversion.hpp>
-#include <vector>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+#include <vector>
 
 namespace pflib::utility {
 
@@ -24,7 +24,6 @@ uint32_t crc32(std::span<uint32_t> data) {
   return boost::crc<32, 0x04c11db7, 0x0, 0x0, false, false>(input_ptr,
                                                             words.size() * 4);
 }
-
 
 uint8_t econd_crc8(uint64_t data) {
   /**

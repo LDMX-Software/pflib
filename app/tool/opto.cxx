@@ -2,10 +2,9 @@
  * @file opto.cxx
  * OPTO menu commands
  */
-#include "pftool.h"
-
-#include "pflib/zcu/zcu_optolink.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
+#include "pflib/zcu/zcu_optolink.h"
+#include "pftool.h"
 
 /**
  * Interaction with Optical links
@@ -37,7 +36,8 @@ void opto(const std::string& cmd, Target* target) {
              i.second);
     }
   }
-  if (cmd == "RESET") {    olink.reset_link();
+  if (cmd == "RESET") {
+    olink.reset_link();
   }
   if (cmd == "POLARITY") {
     bool change;

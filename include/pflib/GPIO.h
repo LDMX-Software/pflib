@@ -44,7 +44,6 @@ class GPIO {
    * Set a single GPO bit
    */
   virtual void setGPO(const std::string& name, bool toTrue = true) = 0;
-
 };
 
 GPIO* make_GPIO_HcalHGCROCZCU();

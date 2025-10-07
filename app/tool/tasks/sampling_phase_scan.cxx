@@ -15,7 +15,7 @@ void sampling_phase_scan(Target* tgt) {
   int phase_ck = 0;
 
   pflib::DecodeAndWriteToCSV writer{
-      fname,  //output file name
+      fname,  // output file name
       [&](std::ofstream& f) {
         boost::json::object header;
         header["scan_type"] = "CH_#.PHASE_CK sweep";

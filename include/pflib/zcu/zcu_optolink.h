@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -10,7 +11,7 @@ namespace zcu {
 
 class OptoLink {
  public:
-  OptoLink(const char* coder_name="singleLPGBT");
+  OptoLink(const char* coder_name = "singleLPGBT");
   OptoLink(const std::string& name) : OptoLink{name.c_str()} {}
 
   void reset_link();
@@ -30,7 +31,7 @@ class OptoLink {
 
   void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
   void capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
-  
+
  private:
   ::pflib::UIO transright_;
   ::pflib::UIO coder_;

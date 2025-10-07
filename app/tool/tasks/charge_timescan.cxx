@@ -26,7 +26,7 @@ void charge_timescan(Target* tgt) {
   auto test_param_builder = roc.testParameters();
   if (isLED) {
     fname = pftool::readline_path("led-time-scan", ".csv");
-    //Makes sure charge injections are turned off (in this ch at least)
+    // Makes sure charge injections are turned off (in this ch at least)
     test_param_builder.add(refvol_page, "CALIB", 0)
         .add(refvol_page, "CALIB_2V5", 0)
         .add(refvol_page, "INTCTEST", 1)

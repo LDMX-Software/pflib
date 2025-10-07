@@ -155,7 +155,8 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
     }
   } else {
     /**
-     * When the input map is not empty, only read the registers that are within that mapping.
+     * When the input map is not empty, only read the registers that are within
+     * that mapping.
      */
     for (auto& page : selected) {
       int page_id = page.first;

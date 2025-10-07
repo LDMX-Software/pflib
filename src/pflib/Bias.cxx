@@ -25,8 +25,7 @@ MAX5825::MAX5825(std::shared_ptr<I2C>& i2c, uint8_t addr)
 std::vector<uint8_t> MAX5825::get(uint8_t channel) {
   uint8_t cmd = (uint8_t)(MAX5825::CODEn | (channel & 0x07));
 
-  std::vector<uint8_t> retval =
-      i2c_->general_write_read(our_addr_, {cmd}, 2);
+  std::vector<uint8_t> retval = i2c_->general_write_read(our_addr_, {cmd}, 2);
 
   return retval;
 }

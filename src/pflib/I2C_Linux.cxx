@@ -76,7 +76,7 @@ void I2C_Linux::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
 
 uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
   obtain_control(i2c_dev_addr);
-  
+
   std::vector<uint8_t> buffer;
   buffer = general_write_read(i2c_dev_addr, {}, 1);
 
@@ -85,10 +85,10 @@ uint8_t I2C_Linux::read_byte(uint8_t i2c_dev_addr) {
 
 std::vector<uint8_t> I2C_Linux::general_write_read(
     uint8_t i2c_dev_addr, const std::vector<uint8_t>& wdata, int nread) {
-  __u8* buf;  //Linux specific type-def that is not necessarily uint8_t
+  __u8* buf;  // Linux specific type-def that is not necessarily uint8_t
 
   obtain_control(i2c_dev_addr);
-  
+
   struct i2c_msg msgs[I2C_RDRW_IOCTL_MAX_MSGS];
   for (int i = 0; i < I2C_RDRW_IOCTL_MAX_MSGS; i++) msgs[i].buf = NULL;
   struct i2c_rdwr_ioctl_data rdwr;

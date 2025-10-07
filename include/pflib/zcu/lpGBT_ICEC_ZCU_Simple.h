@@ -9,9 +9,9 @@ namespace pflib {
 namespace zcu {
 
 /**
-   * @class lpGBT configuration transport interface class partially specified
-   * for IC/EC communication
-   */
+ * @class lpGBT configuration transport interface class partially specified
+ * for IC/EC communication
+ */
 class lpGBT_ICEC_Simple : public lpGBT_ConfigTransport {
  public:
   lpGBT_ICEC_Simple(const std::string& target, bool isEC,

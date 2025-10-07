@@ -111,7 +111,8 @@ bool is_fw_active(const std::string& name) {
 std::string fw_version() {
   static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
   auto resolved{std::filesystem::read_symlink(active_fw).stem()};
-  static const std::string QUERY_CMD = "rpm -qa '*" + std::string(resolved) + "*'";
+  static const std::string QUERY_CMD =
+      "rpm -qa '*" + std::string(resolved) + "*'";
   auto output = exec(QUERY_CMD.c_str());
   output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
   return output;
@@ -210,8 +211,8 @@ int main(int argc, char* argv[]) {
   pflib::menu::Rcfile options;
   prepareOpts(options);
 
-  int boardmask=0xF;
-  int ilink=0;
+  int boardmask = 0xF;
+  int ilink = 0;
 
   // print help before attempting to load RC file incase the RC file is broken
   if (argc == 2 and (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
@@ -397,7 +398,7 @@ int main(int argc, char* argv[]) {
                               "Rogue communication mode not implemented");
             break;
           case UIO_ZCU:
-            p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink,boardmask));
+            p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
             break;
           default:
             PFEXCEPTION_RAISE(
