@@ -39,7 +39,14 @@ class HcalBackplaneZCU : public Hcal {
       std::shared_ptr<pflib::I2C> board_i2c =
           std::make_shared<pflib::lpgbt::I2CwithMux>(
               *trig_lpgbt_, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
-      add_roc(ibd, roc_i2c_, bias_i2c, board_i2c);
+      // TODO allow for board->typ_version configuration to be passed here
+      // right now its hardcoded because everyone has one of these
+      // but we could modify this constructor and its calling factory
+      // function in order to pass in a configuration
+      add_roc(
+        ibd, 0x28 | (ibd*8), "sipm_rocv3b",
+        roc_i2c_, bias_i2c, board_i2c
+      );
     }
 
     // TODO create ELinks and DAQ objects
@@ -100,10 +107,10 @@ class HcalBackplaneZCUTarget: public Target {
 
     // copy I2C connections into Target
     // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, i2c_pack]: hcal_ptr->i2c_for_rocbd_) {
-      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = i2c_pack.roc_i2c_;
-      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = i2c_pack.board_i2c_;
-      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = i2c_pack.bias_i2c_;
+    for (auto [bid, conn]: hcal_ptr->connections_) {
+      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
+      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
+      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
     }
 
     // TODO make FastControl object

@@ -13,7 +13,7 @@ void inv_vref_scan(Target* tgt) {
   int ch_link1 = pftool::readline_int("Channel to scan on link 1", 51);
   int channels[2] = {ch_link0, ch_link1};
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int inv_vref = 0;
 

@@ -26,7 +26,7 @@ void vt50_scan(Target* tgt) {
       pftool::readline_int("Largest tot threshold value (max = 4095): ", 600);
   int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
   std::string fname = pftool::readline_path("vt50-scan", ".csv");
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);

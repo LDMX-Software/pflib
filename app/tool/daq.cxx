@@ -162,7 +162,7 @@ static void daq_setup_standard(Target* tgt) {
   l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
   l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
   /// @note only correct right now for the single-board readout
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   roc.applyParameters(l1offsets);
   roc.setRunMode(true);
   pflib::Elinks& elinks = tgt->hcal().elinks();
@@ -628,8 +628,7 @@ auto menu_daq_debug =
                              pftool::state.daq_contrib_id);
               pflib::DecodeAndWriteToCSV writer{
                   pflib::all_channels_to_csv(fname + ".csv")};
-              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc,
-                                             pftool::state.type_version())};
+              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
               auto test_param_handle =
                   roc.testParameters()
                       .add("REFERENCEVOLTAGE_1", "CALIB", calib)

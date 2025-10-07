@@ -10,7 +10,7 @@ void noinv_vref_scan(Target* tgt) {
 
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int noinv_vref = 0;
 

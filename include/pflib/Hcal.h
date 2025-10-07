@@ -24,12 +24,13 @@ class Hcal {
   int nrocs() { return nhgcroc_; }
 
   /** do we have a roc with this id? */
-  bool have_roc(int iroc) {
-    return i2c_for_rocbd_.find(iroc) != i2c_for_rocbd_.end();
-  }
+  bool have_roc(int iroc);
+
+  /** get a list of the IDs we have set up */
+  std::vector<int> roc_ids() const;
 
   /** Get a ROC interface for the given HGCROC board */
-  ROC roc(int which, const std::string& roc_type_version = "sipm_rocv3b");
+  ROC roc(int which);
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   Bias bias(int which);
@@ -57,8 +58,9 @@ class Hcal {
 
  protected:
   /** Add a ROC to the set of ROCs */
-  void add_roc(int iroc, std::shared_ptr<I2C>& roc_i2C,
-               std::shared_ptr<I2C>& bias_i2c, std::shared_ptr<I2C>& board_i2c);
+  void add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_version,
+               std::shared_ptr<I2C>& roc_i2c, std::shared_ptr<I2C>& bias_i2c,
+               std::shared_ptr<I2C>& board_i2c);
 
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
@@ -66,13 +68,15 @@ class Hcal {
   /** The GPIO interface */
   std::unique_ptr<GPIO> gpio_;
 
-  /** The ROC I2C interfaces */
-  struct I2C_per_ROC {
+  /** The I2C interfaces and objects */
+  struct Connection {
+    pflib::ROC roc_;
     std::shared_ptr<I2C> roc_i2c_;
+    pflib::Bias bias_;
     std::shared_ptr<I2C> bias_i2c_;
     std::shared_ptr<I2C> board_i2c_;
   };
-  std::map<int, I2C_per_ROC> i2c_for_rocbd_;
+  std::map<int, Connection> connections_;
 };
 
 }  // namespace pflib

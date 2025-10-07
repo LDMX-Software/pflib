@@ -6,7 +6,21 @@ namespace pflib {
 
 Hcal::Hcal() { nhgcroc_ = 0; }
 
-void Hcal::add_roc(int iroc, std::shared_ptr<I2C>& roc_i2c,
+bool Hcal::have_roc(int iroc) {
+  return connections_.find(iroc) != connections_.end();
+}
+
+std::vector<int> Hcal::roc_ids() const {
+  std::vector<int> ids;
+  ids.reserve(connections_.size());
+  for (const auto& [id, _conn] : connections_) {
+    ids.push_back(id);
+  }
+  return ids;
+}
+
+void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_version,
+                   std::shared_ptr<I2C>& roc_i2c,
                    std::shared_ptr<I2C>& bias_i2c,
                    std::shared_ptr<I2C>& board_i2c) {
   if (have_roc(iroc)) {
@@ -15,29 +29,37 @@ void Hcal::add_roc(int iroc, std::shared_ptr<I2C>& roc_i2c,
                           "Already have registered ROC with id %d", iroc));
   }
   nhgcroc_++;
-  I2C_per_ROC handles;
-  handles.roc_i2c_ = roc_i2c;
-  handles.bias_i2c_ = bias_i2c;
-  handles.board_i2c_ = board_i2c;
-  i2c_for_rocbd_[iroc] = handles;
+  pflib::ROC roc{*roc_i2c, roc_baseaddr, roc_type_version};
+  pflib::Bias bias{bias_i2c};
+  connections_.emplace(
+    iroc,
+    Connection {
+      .roc_ = roc,
+      .roc_i2c_ = roc_i2c,
+      .bias_ = bias,
+      .bias_i2c_ = bias_i2c,
+      .board_i2c_ = board_i2c
+    }
+  );
 }
 
-ROC Hcal::roc(int which, const std::string& roc_type_version) {
-  if (!have_roc(which)) {
+ROC Hcal::roc(int which) {
+  auto roc_it{connections_.find(which)};
+  if (roc_it == connections_.end()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
                                           "Unknown ROC id %d", which));
   }
-  return ROC((*i2c_for_rocbd_[which].roc_i2c_), 0x20 | (which * 8),
-             roc_type_version);
+  return roc_it->second.roc_;
 }
 
 Bias Hcal::bias(int which) {
-  if (!have_roc(which)) {
+  auto roc_it{connections_.find(which)};
+  if (roc_it == connections_.end()) {
     PFEXCEPTION_RAISE("InvalidBoardId", pflib::utility::string_format(
                                             "Unknown board id %d", which));
   }
 
-  return Bias((i2c_for_rocbd_[which].bias_i2c_));
+  return roc_it->second.bias_;
 }
 
 void Hcal::hardResetROCs() {}

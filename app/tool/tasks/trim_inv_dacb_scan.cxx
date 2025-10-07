@@ -11,7 +11,7 @@ void trim_inv_dacb_scan(Target* tgt) {
   std::string output_filepath =
       pftool::readline_path("trim_inv_dacb_scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int trim_inv = 0;
   int dacb = 0;

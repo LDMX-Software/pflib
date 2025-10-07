@@ -25,7 +25,7 @@ class HcalFiberless : public Hcal {
     if (i2cboard_ < 0) {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
-    add_roc(0, i2croc_, i2cboard_, i2cboard_);
+    add_roc(0, 0x20, "sipm_rocv3b", i2croc_, i2cboard_, i2cboard_);
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 

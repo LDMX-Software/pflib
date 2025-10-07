@@ -7,7 +7,7 @@
 #include "pflib/algorithm/trim_toa_scan.h"
 
 void trim_toa_scan(Target* tgt) {
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   auto settings = pflib::algorithm::trim_toa_scan(tgt, roc);
   YAML::Emitter out;
   out << YAML::BeginMap;

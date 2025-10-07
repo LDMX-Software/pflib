@@ -21,34 +21,30 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   return pflib::logging::get("pftool." + relative);
 }
 
-pftool::State::State() { update_type_version("sipm_rocv3b"); }
+void pftool::State::init(Target* tgt) {
+  /// copy over page and param names for tab completion
 
-void pftool::State::update_type_version(const std::string& type_version) {
-  if (type_version != type_version_) {
-    page_names_.clear();
-    param_names_.clear();
-    auto defs = pflib::Compiler::get(type_version).defaults();
-    for (const auto& page : defs) {
-      page_names_.push_back(page.first);
-      for (const auto& param : page.second) {
-        param_names_[page.first].push_back(param.first);
+  std::vector<int> roc_ids{tgt->hcal().roc_ids()};
+  for (int id : roc_ids) {
+    auto defs = tgt->hcal().roc(id).defaults();
+    for (const auto& page: defs) {
+      page_names_[iroc].push_back(page.first);
+      for (const auto& param: page.second) {
+        param_names_[iroc][page.first].push_back(param.first);
       }
     }
   }
-  type_version_ = type_version;
 }
 
-const std::string& pftool::State::type_version() const { return type_version_; }
-
 const std::vector<std::string>& pftool::State::page_names() const {
-  return page_names_;
+  return page_names_.at(iroc);
 }
 
 const std::vector<std::string>& pftool::State::param_names(
     const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
-  auto param_list_it = param_names_.find(PAGE);
-  if (param_list_it == param_names_.end()) {
+  auto param_list_it = param_names_.at(iroc).find(PAGE);
+  if (param_list_it == param_names_.at(iroc).end()) {
     PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
   }
   return param_list_it->second;
@@ -415,6 +411,8 @@ int main(int argc, char* argv[]) {
         pftool::state.last_run_file =
             options.contents().getString("runnumber_file");
       }
+
+      pftool::state.init(p_pft.get());
 
       if (p_pft) {
         // prepare the links

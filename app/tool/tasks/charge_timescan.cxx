@@ -16,8 +16,7 @@ void charge_timescan(Target* tgt) {
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
-  pflib::ROC roc{
-      tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
   std::string fname;
   bool preCC = false;
   bool highrange = false;

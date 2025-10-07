@@ -54,7 +54,7 @@ void gen_scan(Target* tgt) {
   std::string output_filepath =
       pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
 
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   boost::json::object header;
   header["parameter_points_file"] = std::string(parameter_points_file);
   header["channel"] = channel;
