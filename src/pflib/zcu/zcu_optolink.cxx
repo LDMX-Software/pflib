@@ -3,7 +3,7 @@
 namespace pflib {
 namespace zcu {
 
-OptoLink::OptoLink(const char* coder_name)
+OptoLink::OptoLink(const std::string& coder_name)
     : transright_("transceiver_right"),
       coder_(coder_name),
       coder_name_(coder_name) {

@@ -42,9 +42,7 @@ class HcalBackplaneZCUTarget : public Target, public Hcal {
       add_roc(ibd, roc_i2c_, bias_i2c, board_i2c);
     }
 
-    // next, create the elinks object
-
-    hcal_ = std::shared_ptr<Hcal>(this);
+    // TODO create ELinks and DAQ objects
   }
   virtual void softResetROC(int which) {
     // assuming everything was done with the standard config
