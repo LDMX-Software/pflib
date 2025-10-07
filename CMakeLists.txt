@@ -132,6 +132,8 @@ add_library(packing SHARED
   src/pflib/packing/DAQLinkFrame.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
+  src/pflib/packing/ECONDEventPacket.cxx
+  src/pflib/packing/MultiSampleECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -173,6 +175,8 @@ add_library(pflib SHARED
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
+  src/pflib/algorithm/trim_toa_scan.cxx
+  src/pflib/algorithm/get_toa_efficiencies.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -227,6 +231,9 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
+
+add_executable(econd-decoder app/econd_decoder.cxx)
+target_link_libraries(econd-decoder PRIVATE pflib)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
