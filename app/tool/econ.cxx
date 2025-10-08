@@ -53,13 +53,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
     int nbytes = pftool::readline_int("Number of bytes to write: ", 1);
     uint64_t value = pftool::readline_int("Value to write (hex): ", 0x0);
 
-    // split value into bytes
-    std::vector<uint8_t> data;
-    for (int i = 0; i < nbytes; ++i) {
-        data.push_back(static_cast<uint8_t>((value >> (8 * i)) & 0xFF));
-    }
-    
-    econ.setValues(address, data);
+    econ.setValue(address, value, nbytes);
     printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, address, nbytes);
   }
 }
@@ -75,6 +69,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * - SOFTRESET : pflib::Hcal::softResetECONs
  * - RUNMODE : enable run bit on the ECON
  * - IECON : Change which ECON to focus on
+ * - LOAD : Load parameters from a YAML file
  *
  * @param[in] cmd ECON command
  * @param[in] pft active target
@@ -98,6 +93,18 @@ static void econ(const std::string& cmd, Target* pft) {
     isRunMode = pftool::readline_bool("Set ECON runbit: ", isRunMode);
     econ.setRunMode(isRunMode);
   }
+  if (cmd == "LOAD") {
+    std::cout << "\n"
+                 " --- This command expects a YAML file with page names, "
+                 "parameter names and their values.\n"
+              << std::flush;
+    std::string fname = pftool::readline("Filename: ");
+    bool prepend_defaults = pftool::readline_bool(
+        "Update all parameter values on the chip using the defaults in the "
+        "manual for any values not provided? ",
+        false);
+    econ.loadParameters(fname, prepend_defaults);
+  }
 }
 
 
@@ -109,6 +116,7 @@ auto menu_econ =
         ->line("IECON", "Change the active ECON number", econ)
         ->line("RUNMODE", "set/clear the run mode", econ)
         ->line("POKE", "change a single parameter value", econ)
+        ->line("LOAD", "load all parameters", econ)
     ;
 
 auto menu_econ_expert =

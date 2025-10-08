@@ -60,7 +60,8 @@ void Compiler::compile(const std::string& page_name,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
-  uint32_t uval{static_cast<uint32_t>(val)};
+  uint64_t uval{static_cast<uint64_t>(val)};
+  //uint32_t uval{static_cast<uint32_t>(val)};
 
   std::size_t total_nbits =
       std::accumulate(spec.registers.begin(), spec.registers.end(), 0,
@@ -68,6 +69,9 @@ void Compiler::compile(const std::string& page_name,
                         return bit_count + rhs.n_bits;
                       });
   std::size_t val_msb = msb(uval);
+  printf("Setting parameter %s.%s = %u (MSB=%zu, total bits=%zu)\n",
+	 page_name.c_str(), param_name.c_str(), uval, val_msb, total_nbits);
+
   if (val_msb >= total_nbits) {
     std::stringstream msg;
     msg << "Parameter " << page_name << '.' << param_name
@@ -77,10 +81,14 @@ void Compiler::compile(const std::string& page_name,
   }
 
   std::size_t value_curr_min_bit{0};
+  printf("%s.%s -> page %u\n", page_name.c_str(), param_name.c_str(), page_id);
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
+    printf("  Sub-value: %u (uval %u) (mask=0x%02X, shift=%zu) -> register 0x%04X\n",
+	   sub_val, uval, location.mask, location.min_bit, location.reg);
+
     pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", "
                      << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
@@ -88,14 +96,20 @@ void Compiler::compile(const std::string& page_name,
         register_values[page_id].end()) {
       // initialize register value to zero if it hasn't been touched before
       register_values[page_id][location.reg] = 0;
+      printf("    Initialized register 0x%04X to 0\n", location.reg);
     } else {
       // make sure to clear old value
       register_values[page_id][location.reg] &=
           ((location.mask << location.min_bit) ^ 0b11111111);
+      printf("    Cleared old bits in register 0x%04X\n", location.reg);
     }
     // put value into register at the specified location
     register_values[page_id][location.reg] += (sub_val << location.min_bit);
+
+    printf("    Updated register 0x%04X = 0x%02X\n", location.reg,
+	   register_values[page_id][location.reg]);
   }  // loop over register locations
+  printf("Finished setting %s.%s\n", page_name.c_str(), param_name.c_str());
   return;
 }
 

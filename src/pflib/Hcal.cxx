@@ -28,11 +28,11 @@ ECON Hcal::econ(int which, const std::string& type_econ) {
   }
 
   if (type_econ == "econd") {
-    std::cout << "econd " << (0x60 | (which * 8)) << std::endl;
-    return ECON(*i2c_for_econd_[which], 0x60 | (which * 8), type_econ);
+    // std::cout << "econd " << (0x60 | (which)) << std::endl;
+    return ECON(*i2c_for_econd_[which], 0x60 | which, type_econ);
   } else if (type_econ == "econt") {
-    std::cout << "econt " << (0x20 | (which * 8)) << std::endl;
-    return ECON(*i2c_for_econt_[which], 0x20 | (which * 8), type_econ);
+    // std::cout << "econt " << (0x20 | (which)) << std::endl;
+    return ECON(*i2c_for_econt_[which], 0x20 | which, type_econ);
   } else {
     throw std::runtime_error("Unknown ECON type in econ(): " + type_econ);
   }
@@ -53,17 +53,6 @@ void Hcal::add_econ(int iecon, std::shared_ptr<I2C> econ_i2c, const std::string&
   } else {
     throw std::runtime_error("Unknown ECON type in add_econ: " + type_econ);
   }
-
-  std::cout << "=== i2c_for_econd_ map ===" << std::endl;
-  for (const auto& [key, value] : i2c_for_econd_) {
-    std::cout << key << " : 0x" << std::hex << value << std::dec << std::endl;
-  }
-  std::cout << "===========================" << std::endl;
-  std::cout << "=== i2c_for_econt_ map ===" << std::endl;
-  for (const auto& [key, value] : i2c_for_econt_) {
-    std::cout << key << " : 0x" << std::hex << value << std::dec << std::endl;
-  }
-  std::cout << "===========================" << std::endl;
 }
   
 ROC Hcal::roc(int which, const std::string& roc_type_version) {

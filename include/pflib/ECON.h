@@ -24,12 +24,16 @@ class ECON {
   bool isRunMode();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
+  void setValue(int reg_addr, uint64_t value, int nbytes);
   void setValues(int reg_addr, const std::vector<uint8_t>& values);
 
+  void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
+  void loadParameters(const std::string& file_path, bool prepend_defaults);
+  
  private:
   I2C& i2c_;
   uint8_t econ_base_;
-  //Compiler compiler_;
+  Compiler compiler_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("econ")};
 };
 

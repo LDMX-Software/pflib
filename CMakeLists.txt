@@ -105,7 +105,8 @@ add_custom_command(
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3
   ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
-  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  #${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_test.yaml
   ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd.h
   DEPENDS
   ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
