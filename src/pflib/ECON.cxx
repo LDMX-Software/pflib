@@ -149,12 +149,46 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
 }
 
 void ECON::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
-  for (auto& page : registers) {
-    int page_id = page.first;
-    for (auto& reg : page.second) {
+  for (auto& page_pair : registers) {
+    int page_id = page_pair.first;
+    const auto& reg_map = page_pair.second;
+
+    for (auto& reg : page_pair.second) {
       printf("Page %d: setValue(0x%04x, 0x%02x)\n", page_id, reg.first, reg.second);
-      //this->setValue(reg.first, reg.second);
     }
+    
+    for (const auto& reg_pair : reg_map) {
+      bool adjacent = false;
+      std::vector<uint8_t> adjacent_vals;
+      int start_addr{};
+      int last_addr{}; // initialize so first register triggers new sequence
+      for (const auto& reg_pair : reg_map) {
+	int addr = reg_pair.first;
+	uint8_t value = reg_pair.second;
+	if (last_addr+1 == reg_pair.first) {
+	  adjacent_vals.push_back(reg_pair.second);
+	  last_addr++;
+	} else {
+	  // aren't adjacent anymore, write and start a new one
+	  if (!adjacent_vals.empty()) {
+	    printf("Page %d, start_addr %d, values: ", page_id, start_addr);
+	    for (auto v : adjacent_vals) {
+	      printf("0x%02X ", v);
+	    }
+	    printf("\n");
+	    
+	    // TODO: call hardware write function here
+	    // this->writeRegisters(page_id, start_addr, adjacent_vals);
+	  }
+        }
+
+	adjacent_vals.clear();
+	adjacent_vals.push_back(value);
+	start_addr = addr;
+      }
+      //this->setValue(page.first, reg.first, reg.second);
+    }
+      
   }
 }
 

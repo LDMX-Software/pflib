@@ -79,9 +79,14 @@ class Compiler {
    * values to apply parameter to
    */
   void compile(const std::string& page, const std::string& param,
-               const int& val,
+	       const uint64_t val,
                std::map<int, std::map<int, uint8_t>>& registers);
 
+  //void compile(const std::string& page_name,
+  //const std::string& param_name,
+  //	       const int& val,
+  //std::map<int, std::map<int, uint8_t>>& register_values);
+  
   /**
    * Compile a single parameter into the (potentially several)
    * registers that it should set. Any other bits in the register(s)
@@ -95,6 +100,7 @@ class Compiler {
   std::map<int, std::map<int, uint8_t>> compile(const std::string& page_name,
                                                 const std::string& param_name,
                                                 const int& val);
+  //const uint64_t val);
 
   /**
    * Compiling which translates parameter values for the HGCROC

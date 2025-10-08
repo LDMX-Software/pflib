@@ -56,8 +56,15 @@ std::size_t msb(uint32_t v) {
 }
 
 void Compiler::compile(const std::string& page_name,
-                       const std::string& param_name, const int& val,
+                       const std::string& param_name, const uint64_t val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
+  for (const auto& p : parameter_lut_) {
+    std::cout << "Page: " << p.first << "\n";
+    for (const auto& param : p.second.second) {
+      std::cout << "  Param: " << param.first << "\n";
+    }
+  }
+  
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};

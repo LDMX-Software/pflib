@@ -75,6 +75,25 @@ BOOST_AUTO_TEST_CASE(big_32bit_params) {
   BOOST_CHECK(registers == expected);
 }
 
+BOOST_AUTO_TEST_CASE(single_register_econd) {
+  pflib::Compiler c = pflib::Compiler::get("econd");
+  std::map<int, std::map<int, uint8_t>> registers, expected;
+  expected[0][0x0389] = 0xff;
+  expected[0][0x038a] = 0xff;
+  expected[0][0x038b] = 0xff;
+  expected[0][0x038c] = 0xff;
+  expected[0][0x038d] = 0;
+  expected[0][0x038e] =	0;
+  expected[0][0x038f] =	0;
+  expected[0][0x0390] = 0;
+  
+  uint64_t mask_val = 0xFFFFFFFF00000000ULL;
+  
+  // Call compile() with uint64_t value
+  c.compile("ALIGNER", "GLOBAL_MATCH_MASK_VAL", mask_val, registers);
+  BOOST_CHECK(registers == expected);
+}
+
 BOOST_AUTO_TEST_CASE(glob_pages) {
   pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
   std::string test_filepath{"settings.yaml"};
@@ -123,5 +142,6 @@ BOOST_AUTO_TEST_CASE(overwrite_with_later_settings) {
   BOOST_CHECK_MESSAGE(settings == expected,
                       "overwrite parameter with subsequent settings file");
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()

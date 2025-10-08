@@ -12,6 +12,13 @@ def safe_int(val):
         return int(val, 16) if val.startswith("0x") else int(val)
     return int(val)
 
+def format_cpp_int(value: int) -> str:
+    """Append 'ULL' if value is larger than 32-bit signed int"""
+    if value < 0 or value > 0x7FFFFFFF:
+        return f'{value}ULL'
+    else:
+        return str(value)
+    
 def make_register_locations(address, mask, shift, size_byte):
     """Split a register into 8-bit chunks if it spans multiple bytes.
     syntax reminder: 
@@ -84,7 +91,7 @@ def process_register(name_prefix, props, lines):
                     else f"{name_prefix.upper()}_{chunk_idx}"
                 )
                 chunk_str = ", ".join(chunk)
-                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {chunk_default})}},')
+                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)})}},')
                 #print(chunk_str, hex(chunk_default))
     else:
         # look for nested subkeys if props is a dict
