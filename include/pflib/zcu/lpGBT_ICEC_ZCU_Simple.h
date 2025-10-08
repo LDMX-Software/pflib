@@ -9,9 +9,9 @@ namespace pflib {
 namespace zcu {
 
 /**
-   * @class lpGBT configuration transport interface class partially specified
-   * for IC/EC communication
-   */
+ * @class lpGBT configuration transport interface class partially specified
+ * for IC/EC communication
+ */
 class lpGBT_ICEC_Simple : public lpGBT_ConfigTransport {
  public:
   lpGBT_ICEC_Simple(const std::string& target, bool isEC,
@@ -26,6 +26,7 @@ class lpGBT_ICEC_Simple : public lpGBT_ConfigTransport {
  private:
   /// Offset depending on EC/IC
   int offset_;
+  int offset_status_;
   /// i2c address of the device
   uint8_t lpgbt_i2c_addr_;
   /// UIO block

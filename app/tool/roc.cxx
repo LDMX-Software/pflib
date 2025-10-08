@@ -11,8 +11,7 @@
  * @param[in] pft active target (not used)
  */
 static void roc_render(Target* pft) {
-  printf(" Active ROC: %d (type_version = %s)\n", pftool::state.iroc,
-         pftool::state.type_version().c_str());
+  printf(" Active ROC: %d\n", pftool::state.iroc);
 }
 
 /**
@@ -37,13 +36,14 @@ static void roc_expert_render(Target* tgt) {
  * - PAGE : print a page of raw registers pflib::ROC::readPage
  * - POKE : set a specific register to a specific value pflib::ROC::setValue
  * - LOAD : load a CSV of register values onto chip pflib::ROC::loadRegisters
- * - DUMP : dump HGCROC registers to CSV pflib::ROC::dumpSettings with decompile=false
+ * - DUMP : dump HGCROC registers to CSV pflib::ROC::dumpSettings with
+ * decompile=false
  * - DIRECT_ACCESS_PARAMETERS : prints all direct access parameters in the ROC
  * - GET_DIRECT_ACCESS : print direct access parameters and their values
  * - SET_DIRECT_ACCESS : set direct access parameter to specific value
  */
 static void roc_expert(const std::string& cmd, Target* tgt) {
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
   if (cmd == "PAGE") {
     int page = pftool::readline_int("Which page? ", 0);
     int len = pftool::readline_int("Length?", 8);
@@ -126,11 +126,8 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "IROC") {
     pftool::state.iroc =
         pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-    pftool::state.update_type_version(pftool::readline(
-        "type_version of the HGCROC: ", pftool::state.type_version()));
   }
-  pflib::ROC roc =
-      pft->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  pflib::ROC roc = pft->hcal().roc(pftool::state.iroc);
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);

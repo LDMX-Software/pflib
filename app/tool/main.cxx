@@ -21,34 +21,30 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   return pflib::logging::get("pftool." + relative);
 }
 
-pftool::State::State() { update_type_version("sipm_rocv3b"); }
+void pftool::State::init(Target* tgt) {
+  /// copy over page and param names for tab completion
 
-void pftool::State::update_type_version(const std::string& type_version) {
-  if (type_version != type_version_) {
-    page_names_.clear();
-    param_names_.clear();
-    auto defs = pflib::Compiler::get(type_version).defaults();
-    for (const auto& page : defs) {
-      page_names_.push_back(page.first);
-      for (const auto& param : page.second) {
-        param_names_[page.first].push_back(param.first);
+  std::vector<int> roc_ids{tgt->hcal().roc_ids()};
+  for (int id : roc_ids) {
+    auto defs = tgt->hcal().roc(id).defaults();
+    for (const auto& page: defs) {
+      page_names_[iroc].push_back(page.first);
+      for (const auto& param: page.second) {
+        param_names_[iroc][page.first].push_back(param.first);
       }
     }
   }
-  type_version_ = type_version;
 }
 
-const std::string& pftool::State::type_version() const { return type_version_; }
-
 const std::vector<std::string>& pftool::State::page_names() const {
-  return page_names_;
+  return page_names_.at(iroc);
 }
 
 const std::vector<std::string>& pftool::State::param_names(
     const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
-  auto param_list_it = param_names_.find(PAGE);
-  if (param_list_it == param_names_.end()) {
+  auto param_list_it = param_names_.at(iroc).find(PAGE);
+  if (param_list_it == param_names_.at(iroc).end()) {
     PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
   }
   return param_list_it->second;
@@ -86,17 +82,18 @@ std::string exec(const char* cmd) {
 }
 
 /// firmware name as it appears as a directory on disk
-const std::string FW_SHORTNAME = "hcal-zcu102";
+const std::string FW_SHORTNAME_FIBERLESS = "hcal-zcu102";
+const std::string FW_SHORTNAME_UIO_ZCU = "dualtarget-zcu102";
 
 /**
  * Check if the firmware supporting the HGCROC is active
  *
  * @return true if correct firmware is active
  */
-bool is_fw_active() {
+bool is_fw_active(const std::string& name) {
   static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
   auto resolved{std::filesystem::read_symlink(active_fw).stem()};
-  return (resolved == FW_SHORTNAME);
+  return (resolved == name);
 }
 
 /**
@@ -108,7 +105,10 @@ bool is_fw_active() {
  * @return string holding the full firmware version
  */
 std::string fw_version() {
-  static const std::string QUERY_CMD = "rpm -qa '*" + FW_SHORTNAME + "*'";
+  static const std::filesystem::path active_fw{"/opt/ldmx-firmware/active"};
+  auto resolved{std::filesystem::read_symlink(active_fw).stem()};
+  static const std::string QUERY_CMD =
+      "rpm -qa '*" + std::string(resolved) + "*'";
   auto output = exec(QUERY_CMD.c_str());
   output.erase(std::remove(output.begin(), output.end(), '\n'), output.cend());
   return output;
@@ -123,11 +123,13 @@ std::string fw_version() {
  */
 static void status(Target* pft) {
   pflib_log(info) << "pflib version: " << pflib::version::debug();
+  /*
   if (is_fw_active()) {
     pflib_log(debug) << "fw is active";
   } else {
     pflib_log(fatal) << "fw is not active!";
   }
+  */
   pflib_log(info) << "fw version   : " << fw_version();
 }
 
@@ -205,12 +207,17 @@ int main(int argc, char* argv[]) {
   pflib::menu::Rcfile options;
   prepareOpts(options);
 
+  int boardmask = 0xF;
+  int ilink = 0;
+
   // print help before attempting to load RC file incase the RC file is broken
   if (argc == 2 and (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE: (HCal HGCROC fiberless mode)\n");
-    printf("   %s -z OPTIONS\n\n", argv[0]);
+    printf("   %s OPTIONS\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf("  -z : required for fiberless (no-polarfire, zcu102-based) mode\n");
+    printf("  -z0 : fiber-based ZCU, backplane 0 (SFP0/SFP1)\n");
+    printf("  -z1 : fiber-based ZCU, backplane 1 (SFP2/SFP3)\n");
     printf("  -s : pass a script of commands to run through pftool\n");
     printf("  -h|--help : print this help and exit\n");
     printf(
@@ -296,8 +303,24 @@ int main(int argc, char* argv[]) {
       sFile.close();
     } else if (arg == "-z") {
       mode = Fiberless;
-      if (not is_fw_active()) {
-        pflib_log(fatal) << "'" << FW_SHORTNAME
+      if (not is_fw_active(FW_SHORTNAME_FIBERLESS)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_FIBERLESS
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+    } else if (arg == "-z0") {
+      mode = UIO_ZCU;
+      ilink = 0;
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+    } else if (arg == "-z1") {
+      mode = UIO_ZCU;
+      ilink = 1;
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
                          << "' firmware is not active on ZCU.";
         pflib_log(fatal) << "Connection will likely fail.";
       }
@@ -363,15 +386,15 @@ int main(int argc, char* argv[]) {
         switch (mode) {
           case Fiberless:
             pflib_log(info) << "connecting from ZCU in Fiberless mode";
-            p_pft = std::unique_ptr<Target>(pflib::makeTargetFiberless());
+            p_pft.reset(pflib::makeTargetFiberless());
+            pftool::root()->drop({"OPTO"});
             break;
           case Rogue:
             PFEXCEPTION_RAISE("BadComm",
                               "Rogue communication mode not implemented");
             break;
           case UIO_ZCU:
-            PFEXCEPTION_RAISE("BadComm",
-                              "UIO_ZCU communcation mode not implemented");
+            p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
             break;
           default:
             PFEXCEPTION_RAISE(
@@ -388,6 +411,8 @@ int main(int argc, char* argv[]) {
         pftool::state.last_run_file =
             options.contents().getString("runnumber_file");
       }
+
+      pftool::state.init(p_pft.get());
 
       if (p_pft) {
         // prepare the links

@@ -1,30 +1,30 @@
 #include "pflib/packing/ECONDEventPacket.h"
 
+#include <boost/crc.hpp>
+#include <boost/endian/conversion.hpp>
+#include <iostream>
+
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/utility/crc.h"
 
-#include <boost/crc.hpp>
-#include <boost/endian/conversion.hpp>
-
-#include <iostream>
-
 namespace pflib::packing {
 
-std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DAQLinkFrame &link, bool passthrough) {
+std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
+                                                    DAQLinkFrame &link,
+                                                    bool passthrough) {
   pflib_log(trace) << "link header " << hex(data[0]);
   // sub-packet start
   uint32_t stat = ((data[0] >> 29) & mask<3>);
-  link.corruption[0] = (stat != 0b111); // all ones is GOOD
+  link.corruption[0] = (stat != 0b111);  // all ones is GOOD
   if (link.corruption[0]) {
     pflib_log(warn) << "bad subpacket checks " << std::bitset<3>(stat);
   }
   uint32_t ham = ((data[0] >> 26) & mask<3>);
   bool is_empty = ((data[0] >> 25) & mask<1>) == 1;
   link.adc_cm0 = ((data[0] >> 15) & mask<10>);
-  link.adc_cm1 = ((data[0] >>  5) & mask<10>);
-  pflib_log(trace) << "    is_empty=" << is_empty
-                   << " CM0=" << link.adc_cm0
+  link.adc_cm1 = ((data[0] >> 5) & mask<10>);
+  pflib_log(trace) << "    is_empty=" << is_empty << " CM0=" << link.adc_cm0
                    << " CM1=" << link.adc_cm1;
 
   std::size_t length{0};
@@ -34,7 +34,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     length = 1;
     bool error_caused_empty = ((data[0] >> 4) & mask<1>);
     // E=0 (false) means none of the 37 channels passed zero suppression
-    // E=1 (true) means the unmasked Stat error bits caused the sub-packet to be suppressed
+    // E=1 (true) means the unmasked Stat error bits caused the sub-packet to be
+    // suppressed
     pflib_log(trace) << "is empty, E=" << error_caused_empty;
     return length;
   }
@@ -50,19 +51,22 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
 
   int bits_left_in_current_word{32};
   for (std::size_t i_chan{0}; i_chan < 37; i_chan++) {
-    pflib_log(trace) << "length=" << length << " blic=" << bits_left_in_current_word << " i_ch=" << i_chan;
+    pflib_log(trace) << "length=" << length
+                     << " blic=" << bits_left_in_current_word
+                     << " i_ch=" << i_chan;
 
     // deduce a reference to the channel that we are unpacking
     Sample *ch = &(link.calib);
     if (i_chan < 18) {
       ch = &(link.channels[i_chan]);
     } else if (i_chan > 18) {
-      ch = &(link.channels[i_chan-1]);
+      ch = &(link.channels[i_chan - 1]);
     }
 
     if (passthrough) {
       // channels are transparently copied from the link
-      pflib_log(trace) << "passthrough " << i_chan << " data " << hex(data[length]);
+      pflib_log(trace) << "passthrough " << i_chan << " data "
+                       << hex(data[length]);
       ch->word = data[length];
       length++;
       continue;
@@ -77,11 +81,11 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
 
     pflib_log(trace) << hex(data[length]);
 
-    // The code cannot span multiple words because the format is byte aligned and we
-    // start with a 4 or 2 bit code.
+    // The code cannot span multiple words because the format is byte aligned
+    // and we start with a 4 or 2 bit code.
     auto code{(data[length] >> (bits_left_in_current_word - 4)) & mask<4>};
     pflib_log(trace) << "ch " << i_chan << " code = " << std::bitset<4>(code)
-      << " (top two = " << std::bitset<2>(code >> 2) << ")";
+                     << " (top two = " << std::bitset<2>(code >> 2) << ")";
     // direct transcription of the table in Fig 20 of the ECOND Spec
     int nbits{0}, code_len{0}, extra{0};
     bool has_adctm1{true}, has_toa{true};
@@ -142,7 +146,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 32;
     } else if ((code >> 2) == 0b10) {
       // known invalid
-      pflib_log(debug) << "ECOND eRx known invalid code " << std::bitset<2>(code >> 2);
+      pflib_log(debug) << "ECOND eRx known invalid code "
+                       << std::bitset<2>(code >> 2);
       Tc = true;
       Tp = false;
       code_len = 2;
@@ -152,7 +157,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       nbits = 32;
     } else {
       // unknown code probably meaning the unpacking/decoding is going wrong
-      pflib_log(error) << "unrecognized ECOND eRx code " << std::bitset<4>(code);
+      pflib_log(error) << "unrecognized ECOND eRx code "
+                       << std::bitset<4>(code);
     }
     pflib_log(trace) << "    nbits=" << nbits;
 
@@ -160,13 +166,17 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
     uint32_t chan_data{0};
     if (bits_left_in_current_word < nbits) {
       int runon_length = nbits - bits_left_in_current_word;
-      chan_data = ((data[length] & ((1ul << bits_left_in_current_word) - 1ul)) << runon_length);
+      chan_data = ((data[length] & ((1ul << bits_left_in_current_word) - 1ul))
+                   << runon_length);
       length++;
       bits_left_in_current_word = 32;
-      chan_data += ((data[length] >> (bits_left_in_current_word - runon_length)) & ((1ul << runon_length) - 1ul));
+      chan_data +=
+          ((data[length] >> (bits_left_in_current_word - runon_length)) &
+           ((1ul << runon_length) - 1ul));
       bits_left_in_current_word -= runon_length;
     } else {
-      chan_data = ((data[length] >> (bits_left_in_current_word - nbits)) & ((1ul << nbits)-1ul));
+      chan_data = ((data[length] >> (bits_left_in_current_word - nbits)) &
+                   ((1ul << nbits) - 1ul));
       bits_left_in_current_word -= nbits;
     }
 
@@ -195,8 +205,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data, DA
       adc_tm1 = (chan_data & mask<10>);
     }
 
-    pflib_log(trace) << "    ADC(t-1)=" << adc_tm1
-                     << " ADC/TOT=" << main_sample
+    pflib_log(trace) << "    ADC(t-1)=" << adc_tm1 << " ADC/TOT=" << main_sample
                      << " TOA=" << toa;
 
     ch->from_unpacked(Tc, Tp, adc_tm1, main_sample, toa);
@@ -222,12 +231,14 @@ ECONDEventPacket::ECONDEventPacket(std::size_t n_links) : links(n_links) {}
 void ECONDEventPacket::from(std::span<uint32_t> data) {
   pflib_log(trace) << "econd header one: " << hex(data[0]);
   uint32_t header_marker = ((data[0] >> 23) & mask<9>);
-  // two options for header marker: ECOND Spec default and common CMS configuration
-  corruption[0] = (header_marker != (0xaa << 1)) and (header_marker != (0xf3 << 1));
+  // two options for header marker: ECOND Spec default and common CMS
+  // configuration
+  corruption[0] =
+      (header_marker != (0xaa << 1)) and (header_marker != (0xf3 << 1));
   if (corruption[0]) {
-    pflib_log(warn) << "Bad header marker from ECOND "
-      << "0x" << std::hex << std::setw(2) << std::setfill('0') << (header_marker >> 1)
-      << " + 0b" << (header_marker & 0b1);
+    pflib_log(warn) << "Bad header marker from ECOND " << "0x" << std::hex
+                    << std::setw(2) << std::setfill('0') << (header_marker >> 1)
+                    << " + 0b" << (header_marker & 0b1);
   }
 
   uint32_t length = ((data[0] >> 14) & mask<9>);
@@ -235,7 +246,8 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   corruption[1] = (data.size() - 2 != length);
   if (corruption[1]) {
     pflib_log(warn) << "Incomplete event packet, stored payload length "
-      << length << " does not equal packet length " << data.size() - 2;
+                    << length << " does not equal packet length "
+                    << data.size() - 2;
   }
 
   bool passthrough = ((data[0] >> 13) & mask<1>) == 1;
@@ -271,16 +283,18 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   corruption[2] = (header_crc_val != crc);
   if (corruption[2]) {
     pflib_log(warn) << "Event header 8b CRC does not match trasmitted value: "
-      << std::bitset<8>(header_crc_val) << " != " << std::bitset<8>(crc);
+                    << std::bitset<8>(header_crc_val)
+                    << " != " << std::bitset<8>(crc);
   }
 
   if (truncated) {
-    pflib_log(warn) << "Buffer control detected insufficient space so it did not transfer link packets.";
+    pflib_log(warn) << "Buffer control detected insufficient space so it did "
+                       "not transfer link packets.";
     return;
   }
 
   std::size_t offset{2};
-  for (auto& link : links) {
+  for (auto &link : links) {
     offset += unpack_link_subpacket(data.subspan(offset), link, passthrough);
     link.bx = bx;
     link.event = l1a;
@@ -290,17 +304,20 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // offset is now the index of the trailer
   pflib_log(trace) << "Index of trailer: " << offset;
 
-  // the next word is the CRC for all link sub-packets, but not the event packet header
-  uint32_t crc_val = utility::crc32(data.subspan(2, offset-2));
+  // the next word is the CRC for all link sub-packets, but not the event packet
+  // header
+  uint32_t crc_val = utility::crc32(data.subspan(2, offset - 2));
   uint32_t target = data[offset];
   corruption[3] = (crc_val != target);
   if (corruption[3]) {
-    pflib_log(warn) << "CRC over all link sub-packets does not match transmitted value "
-      << hex(crc_val) << " != " << hex(target);
+    pflib_log(warn)
+        << "CRC over all link sub-packets does not match transmitted value "
+        << hex(crc_val) << " != " << hex(target);
   }
 }
 
-const std::string ECONDEventPacket::to_csv_header = "i_link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa";
+const std::string ECONDEventPacket::to_csv_header =
+    "i_link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa";
 
 void ECONDEventPacket::to_csv(std::ofstream &f) const {
   /**
@@ -316,7 +333,7 @@ void ECONDEventPacket::to_csv(std::ofstream &f) const {
    * The trigger links are entirely ignored.
    */
   for (std::size_t i_link{0}; i_link < links.size(); i_link++) {
-    const auto& daq_link{links[i_link]};
+    const auto &daq_link{links[i_link]};
     f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
       << daq_link.orbit << ',' << "calib,";
     daq_link.calib.to_csv(f);
@@ -330,4 +347,4 @@ void ECONDEventPacket::to_csv(std::ofstream &f) const {
   }
 }
 
-}
+}  // namespace pflib::packing

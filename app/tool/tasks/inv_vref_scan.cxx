@@ -13,7 +13,7 @@ void inv_vref_scan(Target* tgt) {
   int ch_link1 = pftool::readline_int("Channel to scan on link 1", 51);
   int channels[2] = {ch_link0, ch_link1};
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int inv_vref = 0;
 
@@ -41,15 +41,16 @@ void inv_vref_scan(Target* tgt) {
 
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
-  //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+  // increment inv_vref in increments of 20. 10 bit value but only scanning to
+  // 600
   for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
-    //set inv_vref simultaneously for both links
+    // set inv_vref simultaneously for both links
     auto test_param = roc.testParameters()
                           .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
                           .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
                           .apply();
-    //store current scan state in header for writer access
+    // store current scan state in header for writer access
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }

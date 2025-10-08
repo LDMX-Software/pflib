@@ -1,9 +1,10 @@
 #include "pflib/ECOND_Formatter.h"
 
-#include "pflib/utility/crc.h"
+#include <stdio.h>
 
 #include <span>
-#include <stdio.h>
+
+#include "pflib/utility/crc.h"
 
 namespace pflib {
 
@@ -16,7 +17,6 @@ void ECOND_Formatter::startEvent(int bx, int l1a, int orbit) {
   packet_.push_back(
       ((bx & 0xFFF) << 20) | ((l1a & 0x3F) << 14) |
       ((orbit & 0x7) << 11));  // bx, l1a, orbit, S=0, RR=0, no CRC-8
-                               
 };
 
 void ECOND_Formatter::add_elink_packet(int ielink,
@@ -42,7 +42,8 @@ void ECOND_Formatter::finishEvent() {
   header_crc_base |= (packet_[1] >> 8);
   packet_[1] += utility::econd_crc8(header_crc_base);
   // calculate sub-link packet CRCs
-  packet_.push_back(utility::crc32(std::span(packet_.begin()+2, packet_.end())));
+  packet_.push_back(
+      utility::crc32(std::span(packet_.begin() + 2, packet_.end())));
 }
 
 std::vector<uint32_t> ECOND_Formatter::format_elink(
@@ -51,7 +52,8 @@ std::vector<uint32_t> ECOND_Formatter::format_elink(
   int n_readout = 0;
   // check for right number of words, correct header, etc
   if (src.size() != 40 || ((src[0] >> 28) & 0xF) != 0xF) {
-    //      if (src.size()!=40 || ((src[0]>>28)&0xF)!=0xF || (((src[0]&0xF)!=0x5 && (src[0]&0xF)!=0x2))) {
+    //      if (src.size()!=40 || ((src[0]>>28)&0xF)!=0xF || (((src[0]&0xF)!=0x5
+    //      && (src[0]&0xF)!=0x2))) {
     printf("Invalid contents\n");
     return dest;
   }
@@ -131,8 +133,8 @@ std::vector<uint32_t> ECOND_Formatter::format_elink(
   return dest;
 }
 int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
-  // eventually, implement detailed code to carry out different classes of ZS with provided
-  // parameters.  For now, we just look at the tc/tp code
+  // eventually, implement detailed code to carry out different classes of ZS
+  // with provided parameters.  For now, we just look at the tc/tp code
   int tctp = (word >> 30) & 0x3;
   if (tctp == 0b11) return 0b1100;  // is TOT
   if (tctp == 0b10) return 0b1000;  // is strange
@@ -142,7 +144,8 @@ int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
   // TOA zs...
   bool no_toa = ((word & 0x3FF) == 0);
   if (no_toa) return 0b0000;
-  return 4;  // assume we just read out everything for now, but easy to add TOA zs logic
+  return 4;  // assume we just read out everything for now, but easy to add TOA
+             // zs logic
 }
 
 }  // namespace pflib

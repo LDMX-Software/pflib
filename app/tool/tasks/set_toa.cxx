@@ -12,8 +12,8 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int nevents = 30;
   double toa_eff{2};
-  // in the calibration documentation, it is suggested to send a "small" charge injection.
-  // Here I used 200 but there is maybe a better value.
+  // in the calibration documentation, it is suggested to send a "small" charge
+  // injection. Here I used 200 but there is maybe a better value.
   int calib = 200;
   auto test_param_handle = roc.testParameters()
                                .add(refvol_page, "CALIB", calib)

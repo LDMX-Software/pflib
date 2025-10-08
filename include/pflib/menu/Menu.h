@@ -105,8 +105,9 @@ class BaseMenu {
    *
    * @param[in] name name to be included in output filename before timestamp
    * @param[in] extension extension of file including `.`
-   * @return filepath string that looks like [BaseMenu::output_directory/]{name}{timestamp}[extension]
-   * where {timestamp} is created from the current time and BaseMenu::timestamp_format
+   * @return filepath string that looks like
+   * [BaseMenu::output_directory/]{name}{timestamp}[extension] where {timestamp}
+   * is created from the current time and BaseMenu::timestamp_format
    */
   static std::string default_path(const std::string& name,
                                   const std::string& extension = "");
@@ -117,9 +118,10 @@ class BaseMenu {
   /**
    * Read a path from the user using default_path to generate a default value.
    *
-   * The prompt is "Filename: " if an extension is given or "Filename (no extension):" if not.
-   * The arguments are then passed on to BaseMenu::default_path to create a default path for
-   * the user to confirm or rewrite if they desire.
+   * The prompt is "Filename: " if an extension is given or "Filename (no
+   * extension):" if not. The arguments are then passed on to
+   * BaseMenu::default_path to create a default path for the user to confirm or
+   * rewrite if they desire.
    */
   static std::string readline_path(const std::string& name,
                                    const std::string& extension = "");
@@ -343,7 +345,8 @@ class Menu : public BaseMenu {
    * @param[in] ex pointer to menu that we should append
    * @return pointer to the newly created submenu
    */
-  std::shared_ptr<Menu> submenu(const char* name, const char* desc, RenderFuncType f = 0) {
+  std::shared_ptr<Menu> submenu(const char* name, const char* desc,
+                                RenderFuncType f = 0) {
     auto sb = std::make_shared<Menu>(f);
     lines_.emplace_back(name, desc, sb);
     return sb;
@@ -420,12 +423,13 @@ class Menu : public BaseMenu {
    */
   void drop(const std::vector<std::string>& to_drop) {
     std::erase_if(lines_, [&](auto& l) {
-          bool should_drop(std::find(to_drop.begin(), to_drop.end(), l.name()) != to_drop.end());
-          if (should_drop) {
-            pflib_log(trace) << "dropping menu line " << l.name();
-          }
-          return should_drop;
-        });
+      bool should_drop(std::find(to_drop.begin(), to_drop.end(), l.name()) !=
+                       to_drop.end());
+      if (should_drop) {
+        pflib_log(trace) << "dropping menu line " << l.name();
+      }
+      return should_drop;
+    });
   }
 
   /**
@@ -522,7 +526,7 @@ class Menu : public BaseMenu {
    * @return pointer to newly created menu
    */
   static std::shared_ptr<Menu> menu(const char* name, const char* desc,
-                    RenderFuncType render_func = 0) {
+                                    RenderFuncType render_func = 0) {
     return root()->submenu(name, desc, render_func);
   }
 

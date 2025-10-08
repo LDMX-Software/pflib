@@ -39,9 +39,9 @@ void parameter_timescan(Target* tgt) {
   std::string fname = pftool::readline_path("param-time-scan", ".csv");
   std::array<bool, 2> link{false, false};
   for (int ch : channels)
-    link[ch / 36] = true;  //link0 if ch0-35, and 1 if 36-71
+    link[ch / 36] = true;  // link0 if ch0-35, and 1 if 36-71
 
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   auto test_param_handle = roc.testParameters();
   auto add_rv = [&](int l) {
     auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", l);

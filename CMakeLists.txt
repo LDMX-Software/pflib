@@ -144,7 +144,7 @@ target_link_libraries(packing PUBLIC utility)
 #
 #  src/pflib/FastControl.cxx
   
-add_library(pflib SHARED 
+add_library(pflib SHARED
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
   src/pflib/Compile.cxx
@@ -160,6 +160,9 @@ add_library(pflib SHARED
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
   src/pflib/lpgbt/lpGBT_Utility.cxx
+  src/pflib/lpgbt/lpGBT_standard_configs.cxx
+  src/pflib/lpgbt/I2C.cxx
+  src/pflib/lpgbt/GPIO.cxx
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
@@ -167,6 +170,8 @@ add_library(pflib SHARED
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
+  src/pflib/zcu/zcu_optolink.cxx
+  src/pflib/zcu/HcalBackplaneZCU.cxx
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
@@ -216,7 +221,6 @@ target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
   app/lpgbt/lpgbt_mezz_tester.cc
-  app/lpgbt/zcu_optolink.cc
 )
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 

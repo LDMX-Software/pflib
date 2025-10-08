@@ -14,12 +14,14 @@ namespace pflib {
 /**
  * Consume an event packet, decode it, and save to buffer.
  * The constructor takes an argument of the size of the buffer which should
- * be the number of events being collected in the run(s) where this buffer is used.
+ * be the number of events being collected in the run(s) where this buffer is
+ * used.
  *
  * The buffer can be read out with get_buffer().
  * The buffer is cleared upon the start of every run.
  *
- * Avoid copying this potentially large buffer around by using constant references.
+ * Avoid copying this potentially large buffer around by using constant
+ * references.
  * ```cpp
  * // after daq_run has filled the DecodeAndBuffer object 'buffer'
  * const auto& events{buffer.get_buffer()};

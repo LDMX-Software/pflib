@@ -14,10 +14,13 @@ void increment(test_menu::TargetHandle p) {
   std::cout << *p << std::endl;
 }
 
-static auto r = test_menu::root()
-                    ->line("SHOULD_NOT_EXIST", "this line should not appear in the interactive display", increment)
-                    ->line("INC", "increment the target", increment)
-                    ->line("ONE", "one command", print_cmd);
+static auto r =
+    test_menu::root()
+        ->line("SHOULD_NOT_EXIST",
+               "this line should not appear in the interactive display",
+               increment)
+        ->line("INC", "increment the target", increment)
+        ->line("ONE", "one command", print_cmd);
 
 int main(int argc, char* argv[]) {
   if (argc > 1) {

@@ -7,9 +7,9 @@
 /**
  * get the medians of the channel ADC values
  *
- * This may be helpful in some other contexts, but since it depends on the packing
- * library it cannot go into utility. Just keeping it here for now, maybe move it
- * into its own header/impl in algorithm.
+ * This may be helpful in some other contexts, but since it depends on the
+ * packing library it cannot go into utility. Just keeping it here for now,
+ * maybe move it into its own header/impl in algorithm.
  *
  * @param[in] data buffer of single-roc packet data
  * @return array of channel ADC values
@@ -21,7 +21,8 @@
 static std::array<int, 72> get_adc_medians(
     const std::vector<pflib::packing::SingleROCEventPacket>& data) {
   std::array<int, 72> medians;
-  /// reserve a vector of the appropriate size to avoid repeating allocation time for all 72 channels
+  /// reserve a vector of the appropriate size to avoid repeating allocation
+  /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < adcs.size(); i++) {

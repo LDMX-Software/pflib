@@ -48,7 +48,7 @@ class Target {
 
   /**
    * Do a DAQ run
-   * 
+   *
    * @param[in] cmd PEDESTAL, CHARGE, or LED (type of trigger to send)
    * @param[in] consumer DAQRunConsumer that handles the readout event packets
    * (probably writes them to a file or something like that)
@@ -67,6 +67,7 @@ class Target {
 };
 
 Target* makeTargetFiberless();
+Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask);
 
 }  // namespace pflib
 

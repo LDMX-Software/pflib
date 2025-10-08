@@ -9,7 +9,7 @@
  * Used to align TOA trigger to fire just above pedestals
  * Should be done after global pedestal alignment
  *
- * TODO: this scan will also output the ideal TOA_VREF 
+ * TODO: this scan will also output the ideal TOA_VREF
  * values using the pedestals method.
  */
 void toa_vref_scan(Target* tgt);

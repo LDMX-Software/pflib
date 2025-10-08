@@ -16,8 +16,7 @@ void charge_timescan(Target* tgt) {
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
-  pflib::ROC roc{
-      tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
   std::string fname;
   bool preCC = false;
   bool highrange = false;
@@ -26,7 +25,7 @@ void charge_timescan(Target* tgt) {
   auto test_param_builder = roc.testParameters();
   if (isLED) {
     fname = pftool::readline_path("led-time-scan", ".csv");
-    //Makes sure charge injections are turned off (in this ch at least)
+    // Makes sure charge injections are turned off (in this ch at least)
     test_param_builder.add(refvol_page, "CALIB", 0)
         .add(refvol_page, "CALIB_2V5", 0)
         .add(refvol_page, "INTCTEST", 1)

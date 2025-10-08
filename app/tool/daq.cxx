@@ -30,10 +30,11 @@ static void print_daq_status(Target* pft) {
  * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and
  * pflib::DAQ::enabled
  * - ZS : pflib::Target::enableZeroSuppression
- * - L1APARAMS : Use target's wishbone interface to set the L1A delay and capture length
- *   Uses pflib::tgt_DAQ_Inbuffer
+ * - L1APARAMS : Use target's wishbone interface to set the L1A delay and
+ * capture length Uses pflib::tgt_DAQ_Inbuffer
  * - FORMAT : Choose the output format to be used (simple HGCROC, ECON, etc)
- * - DMA : enable DMA readout pflib::rogue::RogueWishboneInterface::daq_dma_enable
+ * - DMA : enable DMA readout
+ * pflib::rogue::RogueWishboneInterface::daq_dma_enable
  * - FPGA : Set the polarfire FPGA ID number (pflib::DAQ::setIds) and pass this
  *   to DMA setup if it is enabled
  *
@@ -49,7 +50,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     printf("Format options:\n");
     printf(" (1) ROC with ad-hoc headers as in TB2022\n");
     printf(" (2) ECON with full readout\n");
-    //printf(" (3) ECON with ZS\n");
+    // printf(" (3) ECON with ZS\n");
     int i_format = pftool::readline_int(
         " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
     if (i_format < 1 or i_format > 2) {
@@ -161,7 +162,7 @@ static void daq_setup_standard(Target* tgt) {
   l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
   l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
   /// @note only correct right now for the single-board readout
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   roc.applyParameters(l1offsets);
   roc.setRunMode(true);
   pflib::Elinks& elinks = tgt->hcal().elinks();
@@ -548,7 +549,8 @@ static void daq_debug_trigger_timein(Target* tgt) {
     }
 
     /**
-     * Finally, report the delays where we found the expected bits to be non-zero
+     * Finally, report the delays where we found the expected bits to be
+     * non-zero
      */
     std::cout << "Link : Delay\n";
     for (std::size_t ilink{0}; ilink < 6; ilink++) {
@@ -626,8 +628,7 @@ auto menu_daq_debug =
                              pftool::state.daq_contrib_id);
               pflib::DecodeAndWriteToCSV writer{
                   pflib::all_channels_to_csv(fname + ".csv")};
-              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc,
-                                             pftool::state.type_version())};
+              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
               auto test_param_handle =
                   roc.testParameters()
                       .add("REFERENCEVOLTAGE_1", "CALIB", calib)
