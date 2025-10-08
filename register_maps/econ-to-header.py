@@ -64,23 +64,28 @@ def process_register(name_prefix, props, lines):
             reg_locs = make_register_locations(address, mask, shift, size_byte)
             reg_locs_str = ", ".join(reg_locs)
             
-            # split into chunks of 16 bytes
-            chunk_size = 16
+            # split into chunks of 8 bytes (the lpGBT can do 16 byte operations, but keeping it to 8 bytes allows us to do keep 64-bit integers as default?)
+            chunk_size = 8
             total_chunks = (len(reg_locs) + chunk_size - 1) // chunk_size
-            
             for chunk_idx in range(total_chunks):
                 start = chunk_idx * chunk_size
                 end = start + chunk_size
                 chunk = reg_locs[start:end]
-                # use upper
+                
+                # compute bit offset (each reg_loc corresponds to 1 byte)
+                bit_offset = chunk_idx * 8 * 8  # 8 bits/byte * 8 bytes = 64 bits per chunk
+                chunk_bits = len(chunk) * 8
+                chunk_mask = (1 << chunk_bits) - 1
+                chunk_default = (default_value >> bit_offset) & chunk_mask
+                
                 chunk_name = (
                     f"{name_prefix.upper()}"
                     if total_chunks == 1
                     else f"{name_prefix.upper()}_{chunk_idx}"
                 )
                 chunk_str = ", ".join(chunk)
-                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {default_value})}},')
-
+                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {chunk_default})}},')
+                #print(chunk_str, hex(chunk_default))
     else:
         # look for nested subkeys if props is a dict
         if isinstance(props, dict):
@@ -88,13 +93,13 @@ def process_register(name_prefix, props, lines):
                 new_prefix = f"{name_prefix}_{subkey}"
                 process_register(new_prefix, subval, lines)
 
-def generate_header(input_yaml, data):
+def generate_header(input_yaml, data, econ_type):
     """Generate the C++ header content for a given page."""
     lines = []
     lines.append(f'/* auto-generated LUT header from {input_yaml} */\n')
     lines.append("#pragma once\n")
     lines.append('#include "register_maps/register_maps_types.h"\n')
-    lines.append("namespace econd {\n")
+    lines.append(f"namespace econ{econ_type}"+" {\n")
 
     # Loop through all blocks (e.g. ALIGNER, CHALIGNER)
     page_names = []
@@ -115,16 +120,16 @@ def generate_header(input_yaml, data):
         page_names.append(page_var)
         lines.append("  });")
 
-    #lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
-    #for name in page_names:
-    #    lines.append(f'  {{"{name}", {name}}},')
-    #lines.append("});")
-        
     lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
     for name in page_names:
         lines.append(f'  {{"{name}", {name}}},')
     lines.append("});")
 
+    lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
+    for name in page_names:
+        lines.append(f'  {{"{name}", {{0, {name}}}}},')
+    lines.append("});")
+    
     lines.append("\n} // namespace econd\n")
 
     return "\n".join(lines)
@@ -133,13 +138,14 @@ def compile_registers(yaml_file, output_file):
     with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
 
-    content = generate_header(yaml_file, data)
+    econ_type =	"d" if "ECOND" in yaml_file else "t"
+    content = generate_header(yaml_file, data, econ_type)
     with open(output_file, "w") as f:
         f.write(content)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python3 compile_registers.py <input.yaml> <output_file>")
+        print("Usage: python3 econ-to-header.py <input.yaml> <output_file>")
         sys.exit(1)
 
     compile_registers(sys.argv[1], sys.argv[2])

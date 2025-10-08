@@ -130,16 +130,17 @@ add_custom_command(
 )
 add_custom_target(econt DEPENDS include/register_maps/econt.h)
 
-#list(APPEND generate_headers econd)
-#list(APPEND generate_headers econt)
+list(APPEND generate_headers_econ econd)
+list(APPEND generate_headers_econ econt)
 
 add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
-    ${generate_headers} --output include/register_maps/register_maps.h
+    --roc_types ${generate_headers} --econ_types ${generate_headers_econ} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
   DEPENDS ${generate_headers} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
+  DEPENDS ${generate_headers_econ} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
@@ -219,7 +220,7 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility)
-add_dependencies(pflib register_maps_header direct_access lpgbt_regmap econd)
+add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc

@@ -21,12 +21,21 @@ std::string upper_cp(const std::string& str) {
 #include "register_maps/register_maps.h"
 
 Compiler Compiler::get(const std::string& type_version) {
-  auto reg_map_it = REGISTER_MAP_BY_TYPE.find(type_version);
-  if (reg_map_it == REGISTER_MAP_BY_TYPE.end()) {
-    PFEXCEPTION_RAISE("BadType", "Type_version " + type_version +
-		      " is not present within the map.");
+   // Try ROC type map first
+  auto roc_it = REGISTER_MAP_BY_ROC_TYPE.find(type_version);
+  if (roc_it != REGISTER_MAP_BY_ROC_TYPE.end()) {
+    return Compiler(roc_it->second.second, roc_it->second.first);
   }
-  return Compiler(reg_map_it->second.second, reg_map_it->second.first);
+
+  // Try ECON type map next
+  auto econ_it = REGISTER_MAP_BY_ECON_TYPE.find(type_version);
+  if (econ_it != REGISTER_MAP_BY_ECON_TYPE.end()) {
+    return Compiler(econ_it->second.second, econ_it->second.first);
+
+  }
+  
+  PFEXCEPTION_RAISE("BadType", "Type_version " + type_version +
+                    " is not present within ROC or ECON register maps.");
 }
 
 Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
@@ -321,7 +330,26 @@ void Compiler::extract(
 
     for (const auto& page : matching_pages) {
       for (const auto& param : page_settings) {
-        std::string sval = param.second.as<std::string>();
+	std::string sval;
+	if (param.second.IsScalar()) {
+	  try {
+	    // try to parse as string first
+	    sval = param.second.as<std::string>();
+	  } catch (const YAML::TypedBadConversion<std::string>&) {
+	    try {
+	      // fallback: parse as int and convert to string
+	      int ival = param.second.as<int>();
+	      sval = std::to_string(ival);
+	    } catch (const YAML::TypedBadConversion<int>&) {
+	      PFEXCEPTION_RAISE("BadFormat", "Value for parameter " +
+				param.first.as<std::string>() + " is neither string nor int.");
+	    }
+	  }
+	} else {
+	  PFEXCEPTION_RAISE("BadFormat", "Non-scalar value for parameter " +
+			    param.first.as<std::string>());
+	}
+	
         if (sval.empty()) {
           PFEXCEPTION_RAISE("BadFormat", "Non-existent value for parameter " +
                                              param.first.as<std::string>());

@@ -5,8 +5,13 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    'types',
-    help='list of types that were generated headers',
+    '--roc_types',
+    help='list of ROC types that were generated headers',
+    nargs='+'
+)
+parser.add_argument(
+    '--econ_types',
+    help='list of ECON types that were generated headers',
     nargs='+'
 )
 parser.add_argument(
@@ -20,13 +25,24 @@ with open(args.output, 'w') as f:
     f.write('/* auto generated from scratch */\n\n')
     f.write('#pragma once\n\n')
     f.write('// include the register maps for each ROC type/version\n')
-    for rt in args.types:
+    for rt in args.roc_types:
+        f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
+    for rt in args.econ_types:
         f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
     f.write('\n// name the register maps so they can be retrieved by name\n')
     f.write('const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>\n')
-    f.write('REGISTER_MAP_BY_TYPE = {\n')
+    f.write('REGISTER_MAP_BY_ROC_TYPE = {\n')
     f.write(',\n'.join(
         '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
-        for rt in args.types
+        for rt in args.roc_types
+    ))
+    f.write('\n};\n')
+    # f.write('const std::map<std::string, const PageLUT&>\n')
+    f.write('const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>\n')
+    f.write('REGISTER_MAP_BY_ECON_TYPE = {\n')
+    f.write(',\n'.join(
+        #'  {"%s", {%s::PAGE_LUT}}'%(rt,rt)
+        '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
+        for rt in args.econ_types
     ))
     f.write('\n};\n\n')
