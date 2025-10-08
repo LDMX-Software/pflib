@@ -1,0 +1,10 @@
+Aligner:
+  Global:
+    match_mask_val:
+      access: rw
+      address: 0x0389
+      default_value: 18446744069414584320
+      max_value: 18446744073709551615
+      param_mask: 0xffffffffffffffff
+      param_shift: 0
+      size_byte: 8
