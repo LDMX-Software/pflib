@@ -95,10 +95,36 @@ class Compiler {
    * @param[in] val value parameter should be set to
    * @return page numbers, register numbers, and register values to set
    */
-  std::map<int, std::map<int, uint8_t>> compile(const std::string& page_name,
-                                                const std::string& param_name,
-                                                const int& val);
+  template <typename T>
+  std::map<int, std::map<int, uint8_t>> compile(
+						const std::string& page_name, const std::string& param_name,
+						const T& val)
+  {
+    std::string PAGE_NAME(upper_cp(page_name));
+    std::string PARAM_NAME(upper_cp(param_name));
+    
+    if (parameter_lut_.find(PAGE_NAME) == parameter_lut_.end()) {
+        PFEXCEPTION_RAISE("NotFound", "The page named '" + PAGE_NAME +
+			  "' is not found in the look up table.");
+    }
 
+    const auto& page_lut{parameter_lut_.at(PAGE_NAME).second};
+
+    if (page_lut.find(PARAM_NAME) == page_lut.end()) {
+        PFEXCEPTION_RAISE("NotFound",
+                          "The parameter named '" + PARAM_NAME +
+                          "' is not found in the look up table for page " +
+                          PAGE_NAME);
+    }
+
+    std::map<int, std::map<int, uint8_t>> rv;
+
+    compile(page_name, param_name, static_cast<uint64_t>(val), rv);
+
+    return rv;
+  }
+  
+  
   /**
    * Compiling which translates parameter values for the HGCROC
    * into register values that can be written to the chip
@@ -126,9 +152,39 @@ class Compiler {
    * settings
    * @return page numbers, register numbers, and register value settings
    */
+  template <typename T>
   std::map<int, std::map<int, uint8_t>> compile(
-      const std::map<std::string, std::map<std::string, int>>& settings);
+						const std::map<std::string, std::map<std::string, T>>& settings)
+  {
+    std::map<int, std::map<int, uint8_t>> register_values;
+    for (const auto& page : settings) {
+        std::string page_name = upper_cp(page.first);
+        if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
+            PFEXCEPTION_RAISE("NotFound",
+                "The page named '" + page.first + "' is not found in the look up table.");
+        }
+        const auto& page_lut{parameter_lut_.at(page_name).second};
+        for (const auto& param : page.second) {
+            std::string param_name = upper_cp(param.first);
+            if (page_lut.find(param_name) == page_lut.end()) {
+                PFEXCEPTION_RAISE("NotFound",
+                    "The parameter named '" + param.first +
+                    "' is not found in the look up table for page " +
+                    page.first);
+            }
+            compile(page_name, param_name, static_cast<uint64_t>(param.second), register_values);
+        }
+    }
+    return register_values;
+  }
 
+
+  /**
+   * Get all register address -> nbytes map
+   */
+  std::map<uint16_t, size_t> build_register_byte_lut();
+
+  
   /**
    * Get the known pages from the LUTs
    *

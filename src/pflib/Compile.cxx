@@ -131,59 +131,52 @@ void Compiler::compile(const std::string& page_name,
   //printf("Finished setting %s.%s\n", page_name.c_str(), param_name.c_str());
   return;
 }
+  
+std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
+  // register address -> number of bytes used)
+  std::map<uint16_t, size_t> reg_byte_lut;
 
-std::map<int, std::map<int, uint8_t>> Compiler::compile(
-    const std::string& page_name, const std::string& param_name,
-    const int& val) {
-  std::string PAGE_NAME(upper_cp(page_name)), PARAM_NAME(upper_cp(param_name));
-  if (parameter_lut_.find(PAGE_NAME) == parameter_lut_.end()) {
-    PFEXCEPTION_RAISE("NotFound", "The page named '" + PAGE_NAME +
-                                      "' is not found in the look up table.");
-  }
-  const auto& page_lut{parameter_lut_.at(PAGE_NAME).second};
-  if (page_lut.find(PARAM_NAME) == page_lut.end()) {
-    PFEXCEPTION_RAISE("NotFound",
-                      "The parameter named '" + PARAM_NAME +
-                          "' is not found in the look up table for page " +
-                          PAGE_NAME);
-  }
-  std::map<int, std::map<int, uint8_t>> rv;
-  compile(PAGE_NAME, PARAM_NAME, val, rv);
-  return rv;
-}
+  for (const auto& page_pair : page_lut_) {
+    const std::string& page_name = page_pair.first;
+    const Page& page = page_pair.second;
 
-std::map<int, std::map<int, uint8_t>> Compiler::compile(
-    const std::map<std::string, std::map<std::string, int>>& settings) {
-  std::map<int, std::map<int, uint8_t>> register_values;
-  for (const auto& page : settings) {
-    // page.first => page name
-    // page.second => parameter to value map
-    std::string page_name = upper_cp(page.first);
-    if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
-      // this exception shouldn't really ever happen because we check if the
-      // input page matches any of the pages in the LUT in detail::apply, but we
-      // leave this check in here for future development
-      PFEXCEPTION_RAISE("NotFound", "The page named '" + page.first +
-                                        "' is not found in the look up table.");
-    }
-    const auto& page_lut{parameter_lut_.at(page_name).second};
-    for (const auto& param : page.second) {
-      // param.first => parameter name
-      // param.second => value
-      std::string param_name = upper_cp(param.first);
-      if (page_lut.find(param_name) == page_lut.end()) {
-        PFEXCEPTION_RAISE("NotFound",
-                          "The parameter named '" + param.first +
-                              "' is not found in the look up table for page " +
-                              page.first);
+    std::set<uint16_t> all_used_regs;
+
+    for (const auto& param_pair : page) {
+      const Parameter& param = param_pair.second;
+
+      std::vector<RegisterLocation> regs = param.registers;
+
+      // start tracking a contiguous region
+      uint16_t start = regs[0].reg;
+      uint16_t end = start + (regs[0].min_bit + regs[0].n_bits + 7) / 8 - 1;
+      
+      for (size_t i = 1; i < regs.size(); ++i) {
+	uint16_t loc_start = regs[i].reg;
+	uint16_t loc_end = loc_start + (regs[i].min_bit + regs[i].n_bits + 7) / 8 - 1;
+	
+	if (loc_start <= end + 1) {
+	  // Extend the contiguous block
+	  end = std::max(end, loc_end);
+	} else {
+	  // Save previous block
+	  reg_byte_lut[start] = end - start + 1;
+	  
+	  // Start a new one
+	  start = loc_start;
+	  end = loc_end;
+	}
       }
-      compile(page_name, param_name, param.second, register_values);
-    }  // loop over parameters in page
-  }  // loop over pages
+      
+      // Save last block for this parameter
+      reg_byte_lut[start] = end - start + 1;
+    }
+  }
 
-  return register_values;
+  return reg_byte_lut;
 }
 
+    
 std::vector<int> Compiler::get_known_pages() {
   std::vector<int> known_pages;
   known_pages.reserve(parameter_lut_.size());

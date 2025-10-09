@@ -29,11 +29,14 @@ class ECON {
 
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
   void loadParameters(const std::string& file_path, bool prepend_defaults);
+  std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected);
+  std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
   
  private:
   I2C& i2c_;
   uint8_t econ_base_;
   Compiler compiler_;
+  std::map<uint16_t, size_t> econ_reg_nbytes_lut_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("econ")};
 };
 

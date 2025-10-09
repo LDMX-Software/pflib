@@ -15,6 +15,8 @@ ECON::ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version)
       econ_base_{econ_base_addr},
       compiler_{Compiler::get(type_version)}
 {
+  econ_reg_nbytes_lut_ = compiler_.build_register_byte_lut();
+
   pflib_log(debug) << "ECON base addr " << packing::hex(econ_base_);
 }
 
@@ -174,7 +176,7 @@ void ECON::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) 
       for (auto v : adjacent_vals) printf(" 0x%02X", v);
       printf("\n");
 
-      //this->setValues(start_addr, adjacent_vals);
+      this->setValues(start_addr, adjacent_vals);
 
       // reset for new block
       adjacent_vals.clear();
@@ -189,20 +191,89 @@ void ECON::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) 
     printf("start_addr 0x%04x, values:", start_addr);
     for (auto v : adjacent_vals) printf(" 0x%02X", v);
     printf("\n");
-    //this->setValues(start_addr, adjacent_vals);
+    this->setValues(start_addr, adjacent_vals);
   }
+}
+  
+std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
+    const std::map<int, std::map<int, uint8_t>>& selected) {
+  // output map: page_id -> (register address -> value)
+  std::map<int, std::map<int, uint8_t>> chip_reg;
+  const int page_id = 0;  // always page 0
+
+  // read all registers from the chip
+  for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
+    std::vector<uint8_t> on_chip_reg_values = getValues(reg_addr, nbytes);
+  }
+
+  /*
+  if (selected.empty()) {
+    // if no specific registers are requested, read all registers
+    for (int reg = 0; reg < N_REGISTERS_PER_PAGE; ++reg) {
+      chip_reg[page_id][reg] = on_chip_reg_values.at(reg);
+    }
+  } else {
+    // only read the registers in selected[0]
+    const auto& reg_map = selected.at(page_id);
+    for (const auto& [reg, _] : reg_map) {
+      chip_reg[page_id][reg] = on_chip_reg_values.at(reg);
+    }
+  }
+  */
+  
+  return chip_reg;
+}
+    
+std::map<int, std::map<int, uint8_t>> ECON::applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
+  /**
+   * 1. get registers YAML file contains by compiling without defaults
+   */
+  auto touched_registers = compiler_.compile(parameters);
+  /**
+   * 2. get the current register values on the chip which is
+   */
+  auto chip_reg{getRegisters(touched_registers)};
+  // copy of current chip values to return
+  auto ret_val = chip_reg;
+  /**
+   * 3. compile this parameter onto those register values
+   *    we can use the lower-level compile here because the
+   *    compile in step 1 checks that all of the page and param
+   *    names are correct
+   */
+  for (auto& page : parameters) {
+    std::string page_name = upper_cp(page.first);
+    for (auto& param : page.second) {
+      compiler_.compile(page_name, upper_cp(param.first), param.second,
+                        chip_reg);
+    }
+  }
+  /**
+   * 4. put these updated values onto the chip
+   */
+  this->setRegisters(chip_reg);
+  return ret_val;
 }
 
 void ECON::loadParameters(const std::string& file_path, bool prepend_defaults) {
   if (prepend_defaults) {
     /**
      * If we prepend defaults, then ALL of the parameters will be
-     * touched and so we do need to bother reading the current
+     * touched and so we do NOT need to bother reading the current
      * values and overlaying the new ones, instead we jump straight
      * to setting the registers.
      */
     auto settings = compiler_.compile(file_path, true);
     setRegisters(settings);
+  } else {
+    /**
+     * If we don't prepend the defaults, then we use the other applyParameters
+     * function to overlay the parameters we passed on top of the ones currently
+     * on the chip after extracting them from the YAML file.
+     */
+    std::map<std::string, std::map<std::string, uint64_t>> parameters;
+    compiler_.extract(std::vector<std::string>{file_path}, parameters);
+    applyParameters(parameters);
   }
 }
   

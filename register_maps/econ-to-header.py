@@ -18,6 +18,57 @@ def format_cpp_int(value: int) -> str:
         return f'{value}ULL'
     else:
         return str(value)
+
+def get_global_register_range(data):
+    """
+    Compute the minimum and maximum register addresses across all pages and registers
+    in the YAML LUT.    
+    """
+    min_addr = None
+    max_addr = None
+    used_addresses = set()
+
+    def update_range(address, mask, shift, size_byte):
+        nonlocal min_addr, max_addr
+        reg_locs = make_register_locations(address, mask, shift, size_byte)
+        for loc in reg_locs:
+            addr = int(loc.split("(")[1].split(",")[0], 16)
+            used_addresses.add(addr)
+            if min_addr is None or addr < min_addr:
+                min_addr = addr
+            if max_addr is None or addr > max_addr:
+                max_addr = addr
+
+    def process_node(props):
+        if isinstance(props, dict):
+            if "address" in props:
+                address = int(props["address"])
+                mask = int(props["param_mask"])
+                shift = int(props["param_shift"])
+                size_byte = props.get("size_byte", 1)
+                update_range(address, mask, shift, size_byte)
+            else:
+                for subval in props.values():
+                    process_node(subval)
+
+    # loop over all pages and registers
+    for page, groups in data.items():
+        for group_name, registers in groups.items():
+            if isinstance(registers, dict) and "address" in registers:
+                process_node(registers)
+            else:
+                for reg_name, props in registers.items():
+                    process_node(props)
+
+    # compute unused addresses
+    unused_addresses = []
+    if min_addr is not None and max_addr is not None:
+        full_range = set(range(min_addr, max_addr + 1))
+        unused_addresses = sorted(full_range - used_addresses)
+        
+    print(f"Global register range: 0x{min_addr:04X} - 0x{max_addr:04X}")
+    print(f"Unused addresses length: {len(unused_addresses)}")
+
     
 def make_register_locations(address, mask, shift, size_byte):
     """Split a register into 8-bit chunks if it spans multiple bytes.
@@ -108,7 +159,7 @@ def generate_header(input_yaml, data, econ_type):
     lines.append('#include "register_maps/register_maps_types.h"\n')
     lines.append(f"namespace econ{econ_type}"+" {\n")
 
-    # Loop through all blocks (e.g. ALIGNER, CHALIGNER)
+    # loop through all blocks (e.g. ALIGNER, CHALIGNER)
     page_names = []
     for page_name, groups in data.items():
         page_var = page_name.upper() # uppercase page name
@@ -137,7 +188,7 @@ def generate_header(input_yaml, data, econ_type):
         lines.append(f'  {{"{name}", {{0, {name}}}}},')
     lines.append("});")
     
-    lines.append("\n} // namespace econd\n")
+    lines.append("\n} //"+f" namespace econ{econ_type}\n")
 
     return "\n".join(lines)
 
@@ -146,10 +197,14 @@ def compile_registers(yaml_file, output_file):
         data = yaml.safe_load(f)
 
     econ_type =	"d" if "ECOND" in yaml_file else "t"
+    if "test" in yaml_file:
+        econ_type += "_test"
     content = generate_header(yaml_file, data, econ_type)
     with open(output_file, "w") as f:
         f.write(content)
-
+        
+    #get_global_register_range(data)
+        
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python3 econ-to-header.py <input.yaml> <output_file>")

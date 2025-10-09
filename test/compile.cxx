@@ -6,6 +6,8 @@
 
 #include "pflib/Exception.h"
 
+#include <iomanip>
+
 BOOST_AUTO_TEST_SUITE(compile)
 
 BOOST_AUTO_TEST_CASE(get_by_name) {
@@ -129,19 +131,6 @@ BOOST_AUTO_TEST_CASE(extract_largehexstr_econd){
   expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
-  for (const auto& page_pair : settings) {
-    const std::string& page = page_pair.first;
-    const auto& param_map = page_pair.second;
-    std::cout << "Page: " << page << "\n";
-    for (const auto& param_pair : param_map) {
-        const std::string& param = param_pair.first;
-        uint64_t value = param_pair.second;
-        // Print decimal and hex
-        std::cout << "  " << param << " = " << value 
-                  << " (0x" << std::hex << std::uppercase << value << std::dec << ")\n";
-    }
-  }
-  
   BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
 }
 
@@ -159,20 +148,25 @@ BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
   expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
-  for (const auto& page_pair : settings) {
-    const std::string& page = page_pair.first;
-    const auto& param_map = page_pair.second;
-    std::cout << "Page: " << page << "\n";
-    for (const auto& param_pair : param_map) {
-        const std::string& param = param_pair.first;
-        uint64_t value = param_pair.second;
-        // Print decimal and hex                                                                                                                                                                                                                                                                            
-        std::cout << "  " << param << " = " << value
-                  << " (0x" << std::hex << std::uppercase << value << std::dec << ")\n";
-    }
-  }
-
   BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
+}
+
+BOOST_AUTO_TEST_CASE(full_lut_econd) {
+  pflib::Compiler c = pflib::Compiler::get("econd_test");
+
+  std::map<uint16_t, size_t> page_reg_byte_lut, expected;
+  expected[0x0389] = 8;
+  page_reg_byte_lut = c.build_register_byte_lut();
+
+  for (const auto& [reg, nbytes] : page_reg_byte_lut) {
+    std::cout << "0x" 
+	      << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << reg
+	      << " -> " 
+	      << std::dec << nbytes << " bytes\n";
+  }
+  
+  BOOST_CHECK_MESSAGE(page_reg_byte_lut == expected,
+                    "The generated register LUT does not match the expected LUT");
 }
 
 BOOST_AUTO_TEST_CASE(glob_pages) {
