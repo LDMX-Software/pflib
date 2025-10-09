@@ -100,10 +100,6 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
   waddr.push_back(static_cast<uint8_t>(reg_addr & 0xFF));       
   std::vector<uint8_t> data = i2c_.general_write_read(econ_base_, waddr, nbytes);
   
-  //for (size_t i = 0; i < data.size(); i++) {
-  //  printf("%02zu : %02x\n", i, data[i]);
-  //}
-
   return data;
 }
 
@@ -149,46 +145,51 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
 }
 
 void ECON::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
-  for (auto& page_pair : registers) {
-    int page_id = page_pair.first;
-    const auto& reg_map = page_pair.second;
+  // registers[0] holds the actual register map
+  const auto& reg_map = registers.at(0);
 
-    for (auto& reg : page_pair.second) {
-      printf("Page %d: setValue(0x%04x, 0x%02x)\n", page_id, reg.first, reg.second);
-    }
-    
-    for (const auto& reg_pair : reg_map) {
-      bool adjacent = false;
-      std::vector<uint8_t> adjacent_vals;
-      int start_addr{};
-      int last_addr{}; // initialize so first register triggers new sequence
-      for (const auto& reg_pair : reg_map) {
-	int addr = reg_pair.first;
-	uint8_t value = reg_pair.second;
-	if (last_addr+1 == reg_pair.first) {
-	  adjacent_vals.push_back(reg_pair.second);
-	  last_addr++;
-	} else {
-	  // aren't adjacent anymore, write and start a new one
-	  if (!adjacent_vals.empty()) {
-	    printf("Page %d, start_addr %d, values: ", page_id, start_addr);
-	    for (auto v : adjacent_vals) {
-	      printf("0x%02X ", v);
-	    }
-	    printf("\n");
-	    
-	    // TODO: call hardware write function here
-	    // this->writeRegisters(page_id, start_addr, adjacent_vals);
-	  }
-        }
+  // print every register addr and value pair
+  for (const auto& [reg_addr, value] : reg_map) {
+    printf("setValue(0x%04x, 0x%02x)\n", reg_addr, value);
+  }
 
-	adjacent_vals.clear();
-	adjacent_vals.push_back(value);
-	start_addr = addr;
-      }
-      //this->setValue(page.first, reg.first, reg.second);
+  // combine adjacent registers into one write
+  std::vector<uint8_t> adjacent_vals;
+  int start_addr = -1;
+  int last_addr = -1;
+
+  for (const auto& [addr, value] : reg_map) {
+    if (start_addr == -1) {
+      // first register
+      start_addr = addr;
+      last_addr = addr;
+      adjacent_vals.push_back(value);
+    } else if (addr == last_addr + 1) {
+      // contiguous, keep adding
+      adjacent_vals.push_back(value);
+      last_addr = addr;
+    } else {
+      // non-contiguous → write previous block
+      printf("start_addr 0x%04x, values:", start_addr);
+      for (auto v : adjacent_vals) printf(" 0x%02X", v);
+      printf("\n");
+
+      //this->setValues(start_addr, adjacent_vals);
+
+      // reset for new block
+      adjacent_vals.clear();
+      adjacent_vals.push_back(value);
+      start_addr = addr;
+      last_addr = addr;
     }
-      
+  }
+
+  // write the final block
+  if (!adjacent_vals.empty()) {
+    printf("start_addr 0x%04x, values:", start_addr);
+    for (auto v : adjacent_vals) printf(" 0x%02X", v);
+    printf("\n");
+    //this->setValues(start_addr, adjacent_vals);
   }
 }
 

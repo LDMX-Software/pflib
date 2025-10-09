@@ -82,11 +82,6 @@ class Compiler {
 	       const uint64_t val,
                std::map<int, std::map<int, uint8_t>>& registers);
 
-  //void compile(const std::string& page_name,
-  //const std::string& param_name,
-  //	       const int& val,
-  //std::map<int, std::map<int, uint8_t>>& register_values);
-  
   /**
    * Compile a single parameter into the (potentially several)
    * registers that it should set. Any other bits in the register(s)
@@ -100,7 +95,6 @@ class Compiler {
   std::map<int, std::map<int, uint8_t>> compile(const std::string& page_name,
                                                 const std::string& param_name,
                                                 const int& val);
-  //const uint64_t val);
 
   /**
    * Compiling which translates parameter values for the HGCROC
@@ -223,8 +217,9 @@ class Compiler {
    * @param[in,out] settings page name, parameter name, parameter value settings
    *  extracted from YAML file(s)
    */
+  template <typename T>
   void extract(const std::vector<std::string>& setting_files,
-               std::map<std::string, std::map<std::string, int>>& settings);
+             std::map<std::string, std::map<std::string, T>>& settings);
 
   /**
    * compile a series of yaml files
@@ -271,8 +266,9 @@ class Compiler {
    * @param[in] params a YAML::Node to start extraction from
    * @param[in,out] settings map of names to values for extract parameters
    */
+  template <typename T>
   void extract(YAML::Node params,
-               std::map<std::string, std::map<std::string, int>>& settings);
+	       std::map<std::string, std::map<std::string, T>>& settings);
 
  private:
   const ParameterLUT& parameter_lut_;

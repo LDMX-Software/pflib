@@ -77,21 +77,102 @@ BOOST_AUTO_TEST_CASE(big_32bit_params) {
 
 BOOST_AUTO_TEST_CASE(single_register_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd");
+  // Note: this map is going to return a vector where the lowest address (0x0389) gets the least significant byte (rightmost) i.e. 0
+  // and the highest address (0x0390) gets the most significant byte (leftmost) i.e. 0xff
   std::map<int, std::map<int, uint8_t>> registers, expected;
-  expected[0][0x0389] = 0xff;
-  expected[0][0x038a] = 0xff;
-  expected[0][0x038b] = 0xff;
-  expected[0][0x038c] = 0xff;
-  expected[0][0x038d] = 0;
-  expected[0][0x038e] =	0;
-  expected[0][0x038f] =	0;
-  expected[0][0x0390] = 0;
+  expected[0][0x0389] = 0;
+  expected[0][0x038a] = 0;
+  expected[0][0x038b] = 0;
+  expected[0][0x038c] = 0;
+  expected[0][0x038d] = 0xff;
+  expected[0][0x038e] =	0xff;
+  expected[0][0x038f] =	0xff;
+  expected[0][0x0390] = 0xff;
   
   uint64_t mask_val = 0xFFFFFFFF00000000ULL;
   
   // Call compile() with uint64_t value
   c.compile("ALIGNER", "GLOBAL_MATCH_MASK_VAL", mask_val, registers);
+
+  // The registers are already in the form that we need it in ECON (little endian first), so we can just flatten it out 
+  std::vector<uint8_t> data;
+  int page = 0; 
+  for (const auto& [addr, val] : registers[page]) {
+    data.push_back(val);
+  }
+  
+  for (const auto& [page_id, reg_map] : registers) {
+    printf("Page %d:", page_id);
+    for (const auto& [addr, value] : reg_map)
+      printf(" [0x%04X]=0x%02X", addr, value);
+    printf("\n");
+  }
+
+  for (uint8_t byte : data)
+    printf("0x%02X ", byte);
+  printf("\n");
+  
   BOOST_CHECK(registers == expected);
+}
+
+BOOST_AUTO_TEST_CASE(extract_largehexstr_econd){
+  pflib::Compiler c = pflib::Compiler::get("econd");
+
+  std::string yaml_path = "aligner_test.yaml";
+  {
+    std::ofstream yaml_file{yaml_path};
+    yaml_file << "ALIGNER:\n"
+              << "  GLOBAL_MATCH_MASK_VAL: 0xFFFFFFFF00000000\n";
+  }
+
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
+  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] == 0xFFFFFFFF00000000ULL;
+  c.extract({yaml_path}, settings);
+
+  for (const auto& page_pair : settings) {
+    const std::string& page = page_pair.first;
+    const auto& param_map = page_pair.second;
+    std::cout << "Page: " << page << "\n";
+    for (const auto& param_pair : param_map) {
+        const std::string& param = param_pair.first;
+        uint64_t value = param_pair.second;
+        // Print decimal and hex
+        std::cout << "  " << param << " = " << value 
+                  << " (0x" << std::hex << std::uppercase << value << std::dec << ")\n";
+    }
+  }
+  
+  BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
+}
+
+BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
+  pflib::Compiler c = pflib::Compiler::get("econd");
+
+  std::string yaml_path = "aligner_test.yaml";
+  {
+    std::ofstream yaml_file{yaml_path};
+    yaml_file << "ALIGNER:\n"
+              << "  GLOBAL_MATCH_MASK_VAL: '18446744069414584320'\n";
+  }
+
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
+  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] == 0xFFFFFFFF00000000ULL;
+  c.extract({yaml_path}, settings);
+
+  for (const auto& page_pair : settings) {
+    const std::string& page = page_pair.first;
+    const auto& param_map = page_pair.second;
+    std::cout << "Page: " << page << "\n";
+    for (const auto& param_pair : param_map) {
+        const std::string& param = param_pair.first;
+        uint64_t value = param_pair.second;
+        // Print decimal and hex                                                                                                                                                                                                                                                                            
+        std::cout << "  " << param << " = " << value
+                  << " (0x" << std::hex << std::uppercase << value << std::dec << ")\n";
+    }
+  }
+
+  BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
 }
 
 BOOST_AUTO_TEST_CASE(glob_pages) {

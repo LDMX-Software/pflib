@@ -60,25 +60,25 @@ std::size_t msb(uint32_t v) {
 void Compiler::compile(const std::string& page_name,
                        const std::string& param_name, const uint64_t val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
-  std::cout << "[uint64_t overload] value = " << val
-	    << " sizeof=" << sizeof(val) << std::endl;
+  //std::cout << "[uint64_t overload] value = " << val
+  //<< " sizeof=" << sizeof(val) << std::endl;
    
-  std::cout << "Setting parameter " << page_name << "." << param_name
-            << " = " << val
-            << " (MSB=" << (64 - __builtin_clzll(val)) << ", total bits=64)\n";
-  std::cout << "sizeof(val) = " << sizeof(val) << std::endl;
+  //std::cout << "Setting parameter " << page_name << "." << param_name
+  //          << " = " << val
+  //          << " (MSB=" << (64 - __builtin_clzll(val)) << ", total bits=64)\n";
+  //std::cout << "sizeof(val) = " << sizeof(val) << std::endl;
 
-  for (const auto& p : parameter_lut_) {
-    std::cout << "Page: " << p.first << "\n";
-    for (const auto& param : p.second.second) {
-      std::cout << "  Param: " << param.first << "\n";
-    }
-  }
+  // To print out the full map of that chip
+  //for (const auto& p : parameter_lut_) {
+  //  std::cout << "Page: " << p.first << "\n";
+  //  for (const auto& param : p.second.second) {
+  //    std::cout << "  Param: " << param.first << "\n";
+  //  }
+  //}
   
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};
-  //uint32_t uval{static_cast<uint32_t>(val)};
 
   std::size_t total_nbits =
       std::accumulate(spec.registers.begin(), spec.registers.end(), 0,
@@ -86,8 +86,8 @@ void Compiler::compile(const std::string& page_name,
                         return bit_count + rhs.n_bits;
                       });
   std::size_t val_msb = msb(uval);
-  printf("Setting parameter %s.%s = %" PRIu64 " (MSB=%zu, total bits=%zu)\n",
-       page_name.c_str(), param_name.c_str(), uval, val_msb, total_nbits);
+  //printf("Setting parameter %s.%s = %" PRIu64 " (MSB=%zu, total bits=%zu)\n",
+  //     page_name.c_str(), param_name.c_str(), uval, val_msb, total_nbits);
 
   if (val_msb >= total_nbits) {
     std::stringstream msg;
@@ -98,15 +98,15 @@ void Compiler::compile(const std::string& page_name,
   }
 
   std::size_t value_curr_min_bit{0};
-  printf("%s.%s -> page %u\n", page_name.c_str(), param_name.c_str(), page_id);
+  //printf("%s.%s -> page %u\n", page_name.c_str(), param_name.c_str(), page_id);
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
-    uint64_t sub_val64 = ((uval >> value_curr_min_bit) & location.mask);
-    printf("  Sub-value debug: %" PRIu64 " -> 0x%02" PRIX64 "\n", sub_val64, sub_val64);
-    printf("  Sub-value: %u (uval %u) (mask=0x%02X, shift=%zu) -> register 0x%04X\n",
-	   sub_val, uval, location.mask, location.min_bit, location.reg);
+    //uint64_t sub_val64 = ((uval >> value_curr_min_bit) & location.mask);
+    //printf("  Sub-value debug: %" PRIu64 " -> 0x%02" PRIX64 "\n", sub_val64, sub_val64);
+    //printf("  Sub-value: %u (uval %u) (mask=0x%02X, shift=%zu) -> register 0x%04X\n",
+    //sub_val, uval, location.mask, location.min_bit, location.reg);
 
     pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", "
                      << location.n_bits << " bits";
@@ -115,20 +115,20 @@ void Compiler::compile(const std::string& page_name,
         register_values[page_id].end()) {
       // initialize register value to zero if it hasn't been touched before
       register_values[page_id][location.reg] = 0;
-      printf("    Initialized register 0x%04X to 0\n", location.reg);
+      //printf("    Initialized register 0x%04X to 0\n", location.reg);
     } else {
       // make sure to clear old value
       register_values[page_id][location.reg] &=
           ((location.mask << location.min_bit) ^ 0b11111111);
-      printf("    Cleared old bits in register 0x%04X\n", location.reg);
+      //printf("    Cleared old bits in register 0x%04X\n", location.reg);
     }
     // put value into register at the specified location
     register_values[page_id][location.reg] += (sub_val << location.min_bit);
 
-    printf("    Updated register 0x%04X = 0x%02X\n", location.reg,
-	   register_values[page_id][location.reg]);
+    //printf("    Updated register 0x%04X = 0x%02X\n", location.reg,
+    //register_values[page_id][location.reg]);
   }  // loop over register locations
-  printf("Finished setting %s.%s\n", page_name.c_str(), param_name.c_str());
+  //printf("Finished setting %s.%s\n", page_name.c_str(), param_name.c_str());
   return;
 }
 
@@ -272,9 +272,9 @@ std::map<std::string, std::map<std::string, int>> Compiler::defaults() {
   return settings;
 }
 
-void Compiler::extract(
-    const std::vector<std::string>& setting_files,
-    std::map<std::string, std::map<std::string, int>>& settings) {
+template <typename T>
+void Compiler::extract(const std::vector<std::string>& setting_files,
+                       std::map<std::string, std::map<std::string, T>>& settings) {
   for (auto& setting_file : setting_files) {
     YAML::Node setting_yaml;
     try {
@@ -308,9 +308,10 @@ std::map<int, std::map<int, uint8_t>> Compiler::compile(
   return compile(std::vector<std::string>{setting_file}, prepend_defaults);
 }
 
+template <typename T>
 void Compiler::extract(
     YAML::Node params,
-    std::map<std::string, std::map<std::string, int>>& settings) {
+    std::map<std::string, std::map<std::string, T>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run
   static std::vector<std::string> page_names;
@@ -388,7 +389,8 @@ void Compiler::extract(
                                              param.first.as<std::string>());
         }
         std::string param_name = upper_cp(param.first.as<std::string>());
-        settings[page][param_name] = utility::str_to_int(sval);
+	settings[page][param_name] = std::stoull(sval, nullptr, 0);  // base 0 allows hex
+        //settings[page][param_name] = utility::str_to_int(sval);
       }
     }
   }
