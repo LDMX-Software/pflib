@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(extract_largehexstr_econd){
   }
 
   std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
-  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] == 0xFFFFFFFF00000000ULL;
+  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
   for (const auto& page_pair : settings) {
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
   }
 
   std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
-  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] == 0xFFFFFFFF00000000ULL;
+  expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
   for (const auto& page_pair : settings) {

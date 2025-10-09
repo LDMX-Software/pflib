@@ -13,6 +13,9 @@
 #include <string>
 #include <vector>
 
+#include <yaml-cpp/yaml.h>
+#include "pflib/Exception.h"
+
 #include "pflib/Logging.h"
 #include "pflib/utility/str_to_int.h"
 #include "register_maps/register_maps_types.h"
@@ -283,7 +286,7 @@ class Compiler {
    * @param[in,out] settings map of names to values for extract parameters
    */
   template <typename T>
-void Compiler::extract(
+  void extract(
     YAML::Node params,
     std::map<std::string, std::map<std::string, T>>& settings) {
   // deduce list of page names for search                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
