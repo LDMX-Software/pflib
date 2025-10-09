@@ -42,10 +42,16 @@ channels = (df.columns[df.columns != 'INV_VREF'].to_numpy()).astype(int)
 #perform linear regression on adc vs inv_vref for each channel (one channel per link)
 stats = pd.DataFrame(columns=['channel', 'slope', 'offset'])
 #linear regime between 10% and 80% in the range of adc values
+
+##UPDATE: sometimes inv_Vref scan has outlier ADC values; Nonzero or nonmax adc values sometimes occur at INV_VREF vals below 200
+#when on our ROC linear regime is typically between 300 and 500 INV_VREF
+#This screwed up the linear fit and resultued in bad optimal inv_vref values and bad link alignment
+#Hard code fix for now to only consider this INV_VREF range
 for channel in channels:
     max = df[str(channel)].max()
     min = df[str(channel)].min()
     df1 = df.loc[(df[str(channel)] > (.1 * (max-min)) + min ) & (df[str(channel)] < (.8 * (max-min)) + min )]
+    df1 = df1.loc[(df1['INV_VREF'] > 300) & (df1['INV_VREF'] < 500)]
     adc = df1[str(channel)].to_numpy()
     inv_vref = df1['INV_VREF'].to_numpy()
     #print
