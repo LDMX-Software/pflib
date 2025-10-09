@@ -219,7 +219,23 @@ class Compiler {
    */
   template <typename T>
   void extract(const std::vector<std::string>& setting_files,
-             std::map<std::string, std::map<std::string, T>>& settings);
+               std::map<std::string, std::map<std::string, T>>& settings) {
+      for (const auto& file : setting_files) {
+          YAML::Node node;
+          try {
+              node = YAML::LoadFile(file);
+          } catch (const YAML::BadFile& e) {
+              throw std::runtime_error("Unable to load file " + file);
+          }
+
+          if (node.IsSequence()) {
+              for (std::size_t i = 0; i < node.size(); i++)
+                  extract<T>(node[i], settings);
+          } else {
+              extract<T>(node, settings);
+          }
+      }
+  }
 
   /**
    * compile a series of yaml files
@@ -267,8 +283,92 @@ class Compiler {
    * @param[in,out] settings map of names to values for extract parameters
    */
   template <typename T>
-  void extract(YAML::Node params,
-	       std::map<std::string, std::map<std::string, T>>& settings);
+void Compiler::extract(
+    YAML::Node params,
+    std::map<std::string, std::map<std::string, T>>& settings) {
+  // deduce list of page names for search                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+  //    only do this once per program run                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+  static std::vector<std::string> page_names;
+  if (page_names.empty()) {
+    for (auto& page : parameter_lut_) page_names.push_back(page.first);
+  }
+
+  if (params.IsNull()) {
+    // skip null nodes (probably comments)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    return;
+  }
+
+  if (not params.IsMap()) {
+    PFEXCEPTION_RAISE("BadFormat", "The YAML node provided is not a map.");
+  }
+
+  for (const auto& page_pair : params) {
+    std::string page_name = page_pair.first.as<std::string>();
+    YAML::Node page_settings = page_pair.second;
+    if (not page_settings.IsMap()) {
+      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page " + page_name +
+                                         " is not a map.");
+    }
+
+    // apply these settings only to pages the input name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+    std::vector<std::string> matching_pages;
+    // determine matching function depending on format of input page                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+    //  if input page contains glob character '*', then match prefix,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    //  otherwise match entire word                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    if (page_name.find('*') == std::string::npos) {
+      std::string PAGE_NAME = upper_cp(page_name);
+      std::copy_if(page_names.begin(), page_names.end(),
+                   std::back_inserter(matching_pages),
+                   [&](const std::string& page) { return PAGE_NAME == page; });
+    } else {
+      page_name = page_name.substr(0, page_name.find('*'));
+      std::copy_if(page_names.begin(), page_names.end(),
+                   std::back_inserter(matching_pages),
+                   [&](const std::string& page) {
+                     return strncasecmp(page.c_str(), page_name.c_str(),
+                                        page_name.size()) == 0;
+                   });
+    }
+
+    if (matching_pages.empty()) {
+      PFEXCEPTION_RAISE("NotFound",
+                        "The page " + page_name +
+                            " does not match any pages in the look up table.");
+    }
+
+    for (const auto& page : matching_pages) {
+      for (const auto& param : page_settings) {
+        std::string sval;
+        if (param.second.IsScalar()) {
+          try {
+            // try to parse as string first                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            sval = param.second.as<std::string>();
+          } catch (const YAML::TypedBadConversion<std::string>&) {
+            try {
+              // fallback: parse as int and convert to string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+              int ival = param.second.as<int>();
+              sval = std::to_string(ival);
+            } catch (const YAML::TypedBadConversion<int>&) {
+              PFEXCEPTION_RAISE("BadFormat", "Value for parameter " +
+                                param.first.as<std::string>() + " is neither string nor int.");
+            }
+          }
+        } else {
+          PFEXCEPTION_RAISE("BadFormat", "Non-scalar value for parameter " +
+                            param.first.as<std::string>());
+        }
+
+        if (sval.empty()) {
+          PFEXCEPTION_RAISE("BadFormat", "Non-existent value for parameter " +
+                                             param.first.as<std::string>());
+        }
+        std::string param_name = upper_cp(param.first.as<std::string>());
+        settings[page][param_name] = std::stoull(sval, nullptr, 0);  // base 0 allows hex                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+        //settings[page][param_name] = utility::str_to_int(sval);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+      }
+    }
+  }
+  }
 
  private:
   const ParameterLUT& parameter_lut_;

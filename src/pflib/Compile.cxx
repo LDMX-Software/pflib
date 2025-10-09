@@ -272,25 +272,6 @@ std::map<std::string, std::map<std::string, int>> Compiler::defaults() {
   return settings;
 }
 
-template <typename T>
-void Compiler::extract(const std::vector<std::string>& setting_files,
-                       std::map<std::string, std::map<std::string, T>>& settings) {
-  for (auto& setting_file : setting_files) {
-    YAML::Node setting_yaml;
-    try {
-      setting_yaml = YAML::LoadFile(setting_file);
-    } catch (const YAML::BadFile& e) {
-      PFEXCEPTION_RAISE("BadFile", "Unable to load file " + setting_file);
-    }
-    if (setting_yaml.IsSequence()) {
-      for (std::size_t i{0}; i < setting_yaml.size(); i++)
-        Compiler::extract(setting_yaml[i], settings);
-    } else {
-      Compiler::extract(setting_yaml, settings);
-    }
-  }
-}
-
 std::map<int, std::map<int, uint8_t>> Compiler::compile(
     const std::vector<std::string>& setting_files, bool prepend_defaults) {
   std::map<std::string, std::map<std::string, int>> settings;
@@ -308,92 +289,5 @@ std::map<int, std::map<int, uint8_t>> Compiler::compile(
   return compile(std::vector<std::string>{setting_file}, prepend_defaults);
 }
 
-template <typename T>
-void Compiler::extract(
-    YAML::Node params,
-    std::map<std::string, std::map<std::string, T>>& settings) {
-  // deduce list of page names for search
-  //    only do this once per program run
-  static std::vector<std::string> page_names;
-  if (page_names.empty()) {
-    for (auto& page : parameter_lut_) page_names.push_back(page.first);
-  }
-
-  if (params.IsNull()) {
-    // skip null nodes (probably comments)
-    return;
-  }
-
-  if (not params.IsMap()) {
-    PFEXCEPTION_RAISE("BadFormat", "The YAML node provided is not a map.");
-  }
-
-  for (const auto& page_pair : params) {
-    std::string page_name = page_pair.first.as<std::string>();
-    YAML::Node page_settings = page_pair.second;
-    if (not page_settings.IsMap()) {
-      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page " + page_name +
-                                         " is not a map.");
-    }
-
-    // apply these settings only to pages the input name
-    std::vector<std::string> matching_pages;
-    // determine matching function depending on format of input page
-    //  if input page contains glob character '*', then match prefix,
-    //  otherwise match entire word
-    if (page_name.find('*') == std::string::npos) {
-      std::string PAGE_NAME = upper_cp(page_name);
-      std::copy_if(page_names.begin(), page_names.end(),
-                   std::back_inserter(matching_pages),
-                   [&](const std::string& page) { return PAGE_NAME == page; });
-    } else {
-      page_name = page_name.substr(0, page_name.find('*'));
-      std::copy_if(page_names.begin(), page_names.end(),
-                   std::back_inserter(matching_pages),
-                   [&](const std::string& page) {
-                     return strncasecmp(page.c_str(), page_name.c_str(),
-                                        page_name.size()) == 0;
-                   });
-    }
-
-    if (matching_pages.empty()) {
-      PFEXCEPTION_RAISE("NotFound",
-                        "The page " + page_name +
-                            " does not match any pages in the look up table.");
-    }
-
-    for (const auto& page : matching_pages) {
-      for (const auto& param : page_settings) {
-	std::string sval;
-	if (param.second.IsScalar()) {
-	  try {
-	    // try to parse as string first
-	    sval = param.second.as<std::string>();
-	  } catch (const YAML::TypedBadConversion<std::string>&) {
-	    try {
-	      // fallback: parse as int and convert to string
-	      int ival = param.second.as<int>();
-	      sval = std::to_string(ival);
-	    } catch (const YAML::TypedBadConversion<int>&) {
-	      PFEXCEPTION_RAISE("BadFormat", "Value for parameter " +
-				param.first.as<std::string>() + " is neither string nor int.");
-	    }
-	  }
-	} else {
-	  PFEXCEPTION_RAISE("BadFormat", "Non-scalar value for parameter " +
-			    param.first.as<std::string>());
-	}
-	
-        if (sval.empty()) {
-          PFEXCEPTION_RAISE("BadFormat", "Non-existent value for parameter " +
-                                             param.first.as<std::string>());
-        }
-        std::string param_name = upper_cp(param.first.as<std::string>());
-	settings[page][param_name] = std::stoull(sval, nullptr, 0);  // base 0 allows hex
-        //settings[page][param_name] = utility::str_to_int(sval);
-      }
-    }
-  }
-}
 
 }  // namespace pflib
