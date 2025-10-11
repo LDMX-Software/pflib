@@ -32,6 +32,36 @@ class ECON {
   std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected);
   std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
   
+  void applyParameter(const std::string& param, const uint64_t& val);
+  void dumpSettings(const std::string& filename, bool should_decompile);
+  
+  class TestParameters {
+    std::map<int, std::map<int, uint8_t>> previous_registers_;
+    ECON& econ_;
+
+   public:
+    TestParameters(
+        ECON& econ, std::map<std::string, std::map<std::string, uint64_t>> new_params);
+    /// applies the unset parameters to the ECON
+    ~TestParameters();
+    /// cannot copy or assign this lock
+    TestParameters(const TestParameters&) = delete;
+    TestParameters& operator=(const TestParameters&) = delete;
+    /// Build a TestParameters parameter by parameter
+    class Builder {
+      std::map<std::string, std::map<std::string, uint64_t>> parameters_;
+      ECON& econ_;
+
+     public:
+      Builder(ECON& econ);
+      Builder& add(const std::string& page, const std::string& param,
+                   const uint64_t& val);
+      [[nodiscard]] TestParameters apply();
+    };
+  };
+
+  TestParameters::Builder testParameters();
+  
  private:
   I2C& i2c_;
   uint8_t econ_base_;

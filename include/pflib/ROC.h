@@ -65,7 +65,7 @@ class ROC {
    *
    * @param[in] page name of page to get parameters for
    */
-  std::map<std::string, int> getParameters(const std::string& page);
+  std::map<std::string, uint64_t> getParameters(const std::string& page);
 
   /**
    * Retrieve all of the manual-documented defaults for all parameters
@@ -76,7 +76,7 @@ class ROC {
    *
    * @return mapping of page->param->value
    */
-  std::map<std::string, std::map<std::string, int>> defaults();
+  std::map<std::string, std::map<std::string, uint64_t>> defaults();
 
   /**
    * Apply the input parameter mapping onto the chip
@@ -89,7 +89,7 @@ class ROC {
    * ROC::TestParameters
    */
   std::map<int, std::map<int, uint8_t>> applyParameters(
-      const std::map<std::string, std::map<std::string, int>>& parameters);
+      const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
 
   /**
    * Load the input parameters onto the chip
@@ -111,7 +111,7 @@ class ROC {
    * @param[in] val value to set parameter to
    */
   void applyParameter(const std::string& page, const std::string& param,
-                      const int& val);
+                      const uint64_t& val);
 
   /**
    * Dump the settings of the HGCROC into the input filepath
@@ -137,7 +137,7 @@ class ROC {
      * the previous chip settings to be applied in the destructor
      */
     TestParameters(
-        ROC& roc, std::map<std::string, std::map<std::string, int>> new_params);
+        ROC& roc, std::map<std::string, std::map<std::string, uint64_t>> new_params);
     /// applies the unset parameters to the ROC
     ~TestParameters();
     /// cannot copy or assign this lock
@@ -145,14 +145,14 @@ class ROC {
     TestParameters& operator=(const TestParameters&) = delete;
     /// Build a TestParameters parameter by parameter
     class Builder {
-      std::map<std::string, std::map<std::string, int>> parameters_;
+      std::map<std::string, std::map<std::string, uint64_t>> parameters_;
       ROC& roc_;
 
      public:
       Builder(ROC& roc);
       Builder& add(const std::string& page, const std::string& param,
-                   const int& val);
-      Builder& add_all_channels(const std::string& param, const int& val);
+                   const uint64_t& val);
+      Builder& add_all_channels(const std::string& param, const uint64_t& val);
       [[nodiscard]] TestParameters apply();
     };
   };

@@ -13,9 +13,6 @@
 #include <string>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
-#include "pflib/Exception.h"
-
 #include "pflib/Logging.h"
 #include "pflib/utility/str_to_int.h"
 #include "register_maps/register_maps_types.h"
@@ -40,14 +37,14 @@ std::string upper_cp(const std::string& str);
  * before they are able to compile.
  *
  * Right now, the compiler only has one configuration parameter:
- * which type and which version of the HGCROC it should compile for.
+ * which type and which version of the FE CHIP it should compile for.
  */
 class Compiler {
  public:
   /**
-   * Get an instance of the compiler for the input HGCROC type_version string
+   * Get an instance of the compiler for the input chip type_version string
    */
-  static Compiler get(const std::string& roc_type_version);
+  static Compiler get(const std::string& type_version);
 
   /**
    * Overlay a single parameter onto the input register map.
@@ -64,7 +61,7 @@ class Compiler {
    * checking of names before calling this one.
    *
    * **Most** of the parameters have the same names as the ones in the
-   * \hgcrocmanual; however, a few parameters on the Top sub-block (page)
+   * \hgcrocmanual or econmanual; however, a few parameters on the Top sub-block (page)
    * different in format and so we have changed them here. The translations from
    * the manual to what is used here are listed below.
    * - DIV_PLL_{A,B} -> DIV_PLL (two bit field)
@@ -82,7 +79,7 @@ class Compiler {
    * values to apply parameter to
    */
   void compile(const std::string& page, const std::string& param,
-	       const uint64_t val,
+               const uint64_t& val,
                std::map<int, std::map<int, uint8_t>>& registers);
 
   /**
@@ -95,36 +92,10 @@ class Compiler {
    * @param[in] val value parameter should be set to
    * @return page numbers, register numbers, and register values to set
    */
-  template <typename T>
-  std::map<int, std::map<int, uint8_t>> compile(
-						const std::string& page_name, const std::string& param_name,
-						const T& val)
-  {
-    std::string PAGE_NAME(upper_cp(page_name));
-    std::string PARAM_NAME(upper_cp(param_name));
-    
-    if (parameter_lut_.find(PAGE_NAME) == parameter_lut_.end()) {
-        PFEXCEPTION_RAISE("NotFound", "The page named '" + PAGE_NAME +
-			  "' is not found in the look up table.");
-    }
+  std::map<int, std::map<int, uint8_t>> compile(const std::string& page_name,
+                                                const std::string& param_name,
+                                                const uint64_t& val);
 
-    const auto& page_lut{parameter_lut_.at(PAGE_NAME).second};
-
-    if (page_lut.find(PARAM_NAME) == page_lut.end()) {
-        PFEXCEPTION_RAISE("NotFound",
-                          "The parameter named '" + PARAM_NAME +
-                          "' is not found in the look up table for page " +
-                          PAGE_NAME);
-    }
-
-    std::map<int, std::map<int, uint8_t>> rv;
-
-    compile(page_name, param_name, static_cast<uint64_t>(val), rv);
-
-    return rv;
-  }
-  
-  
   /**
    * Compiling which translates parameter values for the HGCROC
    * into register values that can be written to the chip
@@ -152,38 +123,10 @@ class Compiler {
    * settings
    * @return page numbers, register numbers, and register value settings
    */
-  template <typename T>
   std::map<int, std::map<int, uint8_t>> compile(
-						const std::map<std::string, std::map<std::string, T>>& settings)
-  {
-    std::map<int, std::map<int, uint8_t>> register_values;
-    for (const auto& page : settings) {
-        std::string page_name = upper_cp(page.first);
-        if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
-            PFEXCEPTION_RAISE("NotFound",
-                "The page named '" + page.first + "' is not found in the look up table.");
-        }
-        const auto& page_lut{parameter_lut_.at(page_name).second};
-        for (const auto& param : page.second) {
-            std::string param_name = upper_cp(param.first);
-            if (page_lut.find(param_name) == page_lut.end()) {
-                PFEXCEPTION_RAISE("NotFound",
-                    "The parameter named '" + param.first +
-                    "' is not found in the look up table for page " +
-                    page.first);
-            }
-            compile(page_name, param_name, static_cast<uint64_t>(param.second), register_values);
-        }
-    }
-    return register_values;
-  }
+      const std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
-
-  /**
-   * Get all register address -> nbytes map
-   */
   std::map<uint16_t, size_t> build_register_byte_lut();
-
   
   /**
    * Get the known pages from the LUTs
@@ -217,7 +160,7 @@ class Compiler {
    * partially-set params
    * @return page name, parameter name, parameter value of registers provided
    */
-  std::map<std::string, std::map<std::string, int>> decompile(
+  std::map<std::string, std::map<std::string, uint64_t>> decompile(
       const std::map<int, std::map<int, uint8_t>>& compiled_config,
       bool be_careful);
 
@@ -236,7 +179,7 @@ class Compiler {
    *
    * @return map of page name and parameter names to default values
    */
-  std::map<std::string, std::map<std::string, int>> defaults();
+  std::map<std::string, std::map<std::string, uint64_t>> defaults();
 
   /**
    * Extract the page name, parameter name, and parameter values from
@@ -276,25 +219,8 @@ class Compiler {
    * @param[in,out] settings page name, parameter name, parameter value settings
    *  extracted from YAML file(s)
    */
-  template <typename T>
   void extract(const std::vector<std::string>& setting_files,
-               std::map<std::string, std::map<std::string, T>>& settings) {
-      for (const auto& file : setting_files) {
-          YAML::Node node;
-          try {
-              node = YAML::LoadFile(file);
-          } catch (const YAML::BadFile& e) {
-              throw std::runtime_error("Unable to load file " + file);
-          }
-
-          if (node.IsSequence()) {
-              for (std::size_t i = 0; i < node.size(); i++)
-                  extract<T>(node[i], settings);
-          } else {
-              extract<T>(node, settings);
-          }
-      }
-  }
+               std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
   /**
    * compile a series of yaml files
@@ -341,93 +267,8 @@ class Compiler {
    * @param[in] params a YAML::Node to start extraction from
    * @param[in,out] settings map of names to values for extract parameters
    */
-  template <typename T>
-  void extract(
-    YAML::Node params,
-    std::map<std::string, std::map<std::string, T>>& settings) {
-  // deduce list of page names for search                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-  //    only do this once per program run                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-  static std::vector<std::string> page_names;
-  if (page_names.empty()) {
-    for (auto& page : parameter_lut_) page_names.push_back(page.first);
-  }
-
-  if (params.IsNull()) {
-    // skip null nodes (probably comments)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-    return;
-  }
-
-  if (not params.IsMap()) {
-    PFEXCEPTION_RAISE("BadFormat", "The YAML node provided is not a map.");
-  }
-
-  for (const auto& page_pair : params) {
-    std::string page_name = page_pair.first.as<std::string>();
-    YAML::Node page_settings = page_pair.second;
-    if (not page_settings.IsMap()) {
-      PFEXCEPTION_RAISE("BadFormat", "The YAML node for a page " + page_name +
-                                         " is not a map.");
-    }
-
-    // apply these settings only to pages the input name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    std::vector<std::string> matching_pages;
-    // determine matching function depending on format of input page                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-    //  if input page contains glob character '*', then match prefix,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-    //  otherwise match entire word                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    if (page_name.find('*') == std::string::npos) {
-      std::string PAGE_NAME = upper_cp(page_name);
-      std::copy_if(page_names.begin(), page_names.end(),
-                   std::back_inserter(matching_pages),
-                   [&](const std::string& page) { return PAGE_NAME == page; });
-    } else {
-      page_name = page_name.substr(0, page_name.find('*'));
-      std::copy_if(page_names.begin(), page_names.end(),
-                   std::back_inserter(matching_pages),
-                   [&](const std::string& page) {
-                     return strncasecmp(page.c_str(), page_name.c_str(),
-                                        page_name.size()) == 0;
-                   });
-    }
-
-    if (matching_pages.empty()) {
-      PFEXCEPTION_RAISE("NotFound",
-                        "The page " + page_name +
-                            " does not match any pages in the look up table.");
-    }
-
-    for (const auto& page : matching_pages) {
-      for (const auto& param : page_settings) {
-        std::string sval;
-        if (param.second.IsScalar()) {
-          try {
-            // try to parse as string first                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-            sval = param.second.as<std::string>();
-          } catch (const YAML::TypedBadConversion<std::string>&) {
-            try {
-              // fallback: parse as int and convert to string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-              int ival = param.second.as<int>();
-              sval = std::to_string(ival);
-            } catch (const YAML::TypedBadConversion<int>&) {
-              PFEXCEPTION_RAISE("BadFormat", "Value for parameter " +
-                                param.first.as<std::string>() + " is neither string nor int.");
-            }
-          }
-        } else {
-          PFEXCEPTION_RAISE("BadFormat", "Non-scalar value for parameter " +
-                            param.first.as<std::string>());
-        }
-
-        if (sval.empty()) {
-          PFEXCEPTION_RAISE("BadFormat", "Non-existent value for parameter " +
-                                             param.first.as<std::string>());
-        }
-        std::string param_name = upper_cp(param.first.as<std::string>());
-        settings[page][param_name] = std::stoull(sval, nullptr, 0);  // base 0 allows hex                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-        //settings[page][param_name] = utility::str_to_int(sval);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-      }
-    }
-  }
-  }
+  void extract(YAML::Node params,
+               std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
  private:
   const ParameterLUT& parameter_lut_;

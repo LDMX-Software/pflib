@@ -24,7 +24,7 @@ void gen_scan(Target* tgt) {
    * These scan wide parameters are written into the JSON header of the output CSV file
    * along with the other inputs to this function.
    */
-  std::map<std::string, std::map<std::string, int>> scan_wide_params;
+  std::map<std::string, std::map<std::string, uint64_t>> scan_wide_params;
   if (pftool::readline_bool(
           "Are there parameters to set constant for the whole scan? ", false)) {
     do {

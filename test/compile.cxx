@@ -77,6 +77,56 @@ BOOST_AUTO_TEST_CASE(big_32bit_params) {
   BOOST_CHECK(registers == expected);
 }
 
+BOOST_AUTO_TEST_CASE(overwrite_with_later_settings) {
+  pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
+  std::string test_filepath{"settings.yaml"}, test_overwrite{"overwrite.yaml"};
+
+  {
+    std::ofstream test_yaml{"settings.yaml"};
+    test_yaml << "ch_*:\n"
+              << "    channel_off: 1\n"
+              << std::endl;
+  }
+
+  {
+    std::ofstream test_yaml{"overwrite.yaml"};
+    test_yaml << "ch_42:\n"
+              << "    channel_off: 0\n"
+              << std::endl;
+  }
+
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected;
+
+  for (int ch{0}; ch < 72; ch++) {
+    expected["CH_" + std::to_string(ch)]["CHANNEL_OFF"] = (ch == 42) ? 0 : 1;
+  }
+  c.extract({test_filepath, test_overwrite}, settings);
+  BOOST_CHECK_MESSAGE(settings == expected,
+                      "overwrite parameter with subsequent settings file");
+}
+
+BOOST_AUTO_TEST_CASE(glob_pages) {
+  pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
+  std::string test_filepath{"settings.yaml"};
+
+  {
+    std::ofstream test_yaml{"settings.yaml"};
+    test_yaml << "ch_*:\n"
+              << "    channel_off: 1\n"
+              << std::endl;
+  }
+
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected;
+
+  for (int ch{0}; ch < 72; ch++) {
+    expected["CH_" + std::to_string(ch)]["CHANNEL_OFF"] = 1;
+  }
+
+  c.extract({test_filepath}, settings);
+  BOOST_CHECK_MESSAGE(settings == expected,
+                      "broadcast single parameter to all channel pages");
+}
+
 BOOST_AUTO_TEST_CASE(single_register_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd");
   // Note: this map is going to return a vector where the lowest address (0x0389) gets the least significant byte (rightmost) i.e. 0
@@ -102,7 +152,8 @@ BOOST_AUTO_TEST_CASE(single_register_econd) {
   for (const auto& [addr, val] : registers[page]) {
     data.push_back(val);
   }
-  
+
+  /*
   for (const auto& [page_id, reg_map] : registers) {
     printf("Page %d:", page_id);
     for (const auto& [addr, value] : reg_map)
@@ -113,6 +164,7 @@ BOOST_AUTO_TEST_CASE(single_register_econd) {
   for (uint8_t byte : data)
     printf("0x%02X ", byte);
   printf("\n");
+  */
   
   BOOST_CHECK(registers == expected);
 }
@@ -151,6 +203,34 @@ BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
   BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
 }
 
+BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
+  pflib::Compiler c = pflib::Compiler::get("econd_test");
+
+  std::map<int, std::map<int, uint8_t>> settings;
+  settings[0][0x389] = 0xff;
+  settings[0][0x38a] = 0;
+  settings[0][0x38b] = 0;
+  settings[0][0x38c] = 0;
+  settings[0][0x38d] = 0;
+  settings[0][0x38e] = 0;
+  settings[0][0x38f] = 0;
+  settings[0][0x390] = 0;
+    
+  auto chip_params = c.decompile(settings, true);
+
+  /*
+  for (const auto& [page_name, params] : chip_params) {
+    std::cout << "Page: " << page_name << "\n";
+    for (const auto& [param_name, value] : params) {
+      std::cout << "  " << param_name << " = " << value << "\n";
+    }
+  }
+  */
+  
+  BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
+		      "Page ALIGNER missing in decompiled settings");
+}
+
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd_test");
 
@@ -158,65 +238,17 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   expected[0x0389] = 8;
   page_reg_byte_lut = c.build_register_byte_lut();
 
+  /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
-    std::cout << "0x" 
-	      << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << reg
-	      << " -> " 
-	      << std::dec << nbytes << " bytes\n";
+    std::cout << "0x"
+              << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << reg
+              << " -> "
+              << std::dec << nbytes << " bytes\n";
   }
+  */
   
   BOOST_CHECK_MESSAGE(page_reg_byte_lut == expected,
                     "The generated register LUT does not match the expected LUT");
 }
-
-BOOST_AUTO_TEST_CASE(glob_pages) {
-  pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
-  std::string test_filepath{"settings.yaml"};
-
-  {
-    std::ofstream test_yaml{"settings.yaml"};
-    test_yaml << "ch_*:\n"
-              << "    channel_off: 1\n"
-              << std::endl;
-  }
-
-  std::map<std::string, std::map<std::string, int>> settings, expected;
-
-  for (int ch{0}; ch < 72; ch++) {
-    expected["CH_" + std::to_string(ch)]["CHANNEL_OFF"] = 1;
-  }
-  c.extract({test_filepath}, settings);
-  BOOST_CHECK_MESSAGE(settings == expected,
-                      "broadcast single parameter to all channel pages");
-}
-
-BOOST_AUTO_TEST_CASE(overwrite_with_later_settings) {
-  pflib::Compiler c = pflib::Compiler::get("sipm_rocv3");
-  std::string test_filepath{"settings.yaml"}, test_overwrite{"overwrite.yaml"};
-
-  {
-    std::ofstream test_yaml{"settings.yaml"};
-    test_yaml << "ch_*:\n"
-              << "    channel_off: 1\n"
-              << std::endl;
-  }
-
-  {
-    std::ofstream test_yaml{"overwrite.yaml"};
-    test_yaml << "ch_42:\n"
-              << "    channel_off: 0\n"
-              << std::endl;
-  }
-
-  std::map<std::string, std::map<std::string, int>> settings, expected;
-
-  for (int ch{0}; ch < 72; ch++) {
-    expected["CH_" + std::to_string(ch)]["CHANNEL_OFF"] = (ch == 42) ? 0 : 1;
-  }
-  c.extract({test_filepath, test_overwrite}, settings);
-  BOOST_CHECK_MESSAGE(settings == expected,
-                      "overwrite parameter with subsequent settings file");
-}
-
 
 BOOST_AUTO_TEST_SUITE_END()

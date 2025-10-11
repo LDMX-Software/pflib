@@ -95,12 +95,16 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
     return {};
   }
   
-  //pflib_log(info) << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") from " << packing::hex(econ_base_);
+  pflib_log(info) << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") from " << packing::hex(econ_base_);
 
   std::vector<uint8_t> waddr;
   waddr.push_back(static_cast<uint8_t>((reg_addr >> 8) & 0xFF));
   waddr.push_back(static_cast<uint8_t>(reg_addr & 0xFF));       
   std::vector<uint8_t> data = i2c_.general_write_read(econ_base_, waddr, nbytes);
+
+  for (size_t i = 0; i < data.size(); i++) {
+    printf("%02zu : %02x\n", i, data[i]);
+  }
   
   return data;
 }
@@ -201,25 +205,31 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   std::map<int, std::map<int, uint8_t>> chip_reg;
   const int page_id = 0;  // always page 0
 
-  // read all registers from the chip
+  // read all registers from the chip into a single map
+  std::map<int, uint8_t> all_regs;
   for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
-    std::vector<uint8_t> on_chip_reg_values = getValues(reg_addr, nbytes);
+    std::vector<uint8_t> values = getValues(reg_addr, nbytes);
+    for (int i = 0; i < values.size(); ++i) {
+      printf("Read [0x%04x] = 0x%02x\n", reg_addr, values[i]);
+      all_regs[reg_addr + i] = values[i];
+    }
   }
-
-  /*
+  
   if (selected.empty()) {
-    // if no specific registers are requested, read all registers
-    for (int reg = 0; reg < N_REGISTERS_PER_PAGE; ++reg) {
-      chip_reg[page_id][reg] = on_chip_reg_values.at(reg);
+    // if no specific registers are requested, copy all read registers
+    for (const auto& [reg, val] : all_regs) {
+      chip_reg[page_id][reg] = val;
     }
   } else {
     // only read the registers in selected[0]
     const auto& reg_map = selected.at(page_id);
     for (const auto& [reg, _] : reg_map) {
-      chip_reg[page_id][reg] = on_chip_reg_values.at(reg);
+      auto it = all_regs.find(reg);
+      if (it != all_regs.end()) {
+        chip_reg[page_id][reg] = it->second;
+      }
     }
   }
-  */
   
   return chip_reg;
 }
@@ -255,6 +265,13 @@ std::map<int, std::map<int, uint8_t>> ECON::applyParameters(const std::map<std::
   return ret_val;
 }
 
+void ECON::applyParameter(const std::string& param,
+                          const uint64_t& val) {
+  std::map<std::string, std::map<std::string, uint64_t>> p;
+  p[0][param] = val;
+  this->applyParameters(p);
+}
+  
 void ECON::loadParameters(const std::string& file_path, bool prepend_defaults) {
   if (prepend_defaults) {
     /**
@@ -276,5 +293,76 @@ void ECON::loadParameters(const std::string& file_path, bool prepend_defaults) {
     applyParameters(parameters);
   }
 }
+
+void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
+  if (filename.empty()) {
+    PFEXCEPTION_RAISE("Filename", "No filename provided to dump econ settings.");
+  }
+  std::ofstream f{filename};
+  if (not f.is_open()) {
+    PFEXCEPTION_RAISE(
+        "File", "Unable to open file " + filename + " in dump econ settings.");
+  }
+
+  // read all the pages and store them in memory                                                                                                                                                                    
+  std::map<int, std::map<int, uint8_t>> register_values{getRegisters({})};
+
+  if (should_decompile) {
+    /**
+     * decompile while being careful since we knowingly are attempting
+     * to read ALL of the parameters on the chip
+     */
+    std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
+        compiler_.decompile(register_values, true);
+
+    YAML::Emitter out;
+    out << YAML::BeginMap;
+    for (const auto& page : parameter_values) {
+      out << YAML::Key << page.first;
+      out << YAML::Value << YAML::BeginMap;
+      for (const auto& param : page.second) {
+        out << YAML::Key << param.first << YAML::Value << param.second;
+      }
+      out << YAML::EndMap;
+    }
+    out << YAML::EndMap;
+
+    f << out.c_str();
+  } else {
+    for (const auto& [_, regs] : register_values) {
+      for (const auto& [reg, val] : regs) {
+        f << reg << "," << packing::hex(val) << '\n';
+      }
+    }
+  }
+
+  f.flush();
+}
   
+ECON::TestParameters::TestParameters(
+				    ECON& econ, std::map<std::string, std::map<std::string, uint64_t>> new_params)
+  : econ_{econ} {
+  previous_registers_ = econ_.applyParameters(new_params);
+}
+
+ECON::TestParameters::~TestParameters() {
+  econ_.setRegisters(previous_registers_);
+}
+
+ECON::TestParameters::Builder::Builder(ECON& econ) : parameters_{}, econ_{econ} {}
+
+ECON::TestParameters::Builder& ECON::TestParameters::Builder::add(
+    const std::string& page, const std::string& param, const uint64_t& val) {
+  parameters_[page][param] = val;
+  return *this;
+}
+
+ECON::TestParameters ECON::TestParameters::Builder::apply() {
+  return TestParameters(econ_, parameters_);
+}
+
+ECON::TestParameters::Builder ECON::testParameters() {
+  return ECON::TestParameters::Builder(*this);
+}
+
 }  // namespace pflib

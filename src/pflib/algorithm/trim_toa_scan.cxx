@@ -67,7 +67,7 @@ std::tuple<double,double> siegel_regression(
  */
 namespace pflib::algorithm {
 
-std::map<std::string, std::map<std::string, int>>
+std::map<std::string, std::map<std::string, uint64_t>>
 trim_toa_scan(Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
@@ -186,7 +186,7 @@ trim_toa_scan(Target* tgt, ROC roc) {
 
   // now, write the settings, but this is just placeholder for now!
 
-  std::map<std::string, std::map<std::string, int>> settings;
+  std::map<std::string, std::map<std::string, uint64_t>> settings;
   std::array<int, 2> targetss = {0,0};
   for (int i_link{0}; i_link < 2; i_link++) {
     std::string page{pflib::utility::string_format("CH_%d", i_link)};

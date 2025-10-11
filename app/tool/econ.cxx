@@ -93,6 +93,12 @@ static void econ(const std::string& cmd, Target* pft) {
     isRunMode = pftool::readline_bool("Set ECON runbit: ", isRunMode);
     econ.setRunMode(isRunMode);
   }
+  if (cmd == "POKE") {
+    auto param =
+        pftool::readline("Parameter: ", pftool::state.param_names(0));
+    int val = pftool::readline_int("New value: ");
+    econ.applyParameter(param, val);
+  }
   if (cmd == "LOAD") {
     std::cout << "\n"
                  " --- This command expects a YAML file with page names, "
@@ -104,6 +110,10 @@ static void econ(const std::string& cmd, Target* pft) {
         "manual for any values not provided? ",
         false);
     econ.loadParameters(fname, prepend_defaults);
+  }
+  if (cmd == "DUMP") {
+    std::string fname = pftool::readline_path("econ_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
+    econ.dumpSettings(fname, true);
   }
 }
 
