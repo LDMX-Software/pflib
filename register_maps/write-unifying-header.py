@@ -34,15 +34,6 @@ with open(args.output, 'w') as f:
     f.write('REGISTER_MAP_BY_ROC_TYPE = {\n')
     f.write(',\n'.join(
         '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
-        for rt in args.roc_types
+        for rt in [args.roc_types+args.econ_types]
     ))
     f.write('\n};\n')
-    # f.write('const std::map<std::string, const PageLUT&>\n')
-    f.write('const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>\n')
-    f.write('REGISTER_MAP_BY_ECON_TYPE = {\n')
-    f.write(',\n'.join(
-        #'  {"%s", {%s::PAGE_LUT}}'%(rt,rt)
-        '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
-        for rt in args.econ_types
-    ))
-    f.write('\n};\n\n')
