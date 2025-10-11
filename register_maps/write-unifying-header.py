@@ -31,9 +31,10 @@ with open(args.output, 'w') as f:
         f.write('#include "register_maps/{rt}.h"\n'.format(rt=rt))
     f.write('\n// name the register maps so they can be retrieved by name\n')
     f.write('const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>\n')
-    f.write('REGISTER_MAP_BY_ROC_TYPE = {\n')
+    all_types = args.roc_types + args.econ_types
+    f.write('REGISTER_MAP_BY_TYPE = {\n')
     f.write(',\n'.join(
         '  {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
-        for rt in [args.roc_types+args.econ_types]
+        for rt in all_types
     ))
     f.write('\n};\n')
