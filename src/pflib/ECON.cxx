@@ -68,11 +68,13 @@ static const int      NBYTES_PUSMSTATE = 4;
 static const uint64_t ADDR_FCMDSTATUS = 0x03AB;
 static const int      NBYTES_FCMDSTATUS = 1;
 
-static const uint64_t ADDR_FCMDEDGE = 0x03A7;
-static const int      NBYTES_FCMDEDGE = 1;
+static const uint64_t ADDR_FCMD = 0x03A7;
+static const int      NBYTES_FCMD = 1;
 static const int      SHIFT_FCMDEDGE = 0;
 static const uint32_t MASK_FCMDEDGE = 1;
-  
+static const int      SHIFT_FCMDINVERT = 3;
+static const uint32_t MASK_FCMDINVERT = 1;
+
 void ECON::setRunMode(bool active) {
   // set run bit to 1
   std::vector<uint8_t> RUNBIT_read = getValues(ADDR_RUNBIT, NBYTES_RUNBIT);
@@ -82,9 +84,12 @@ void ECON::setRunMode(bool active) {
   // set EdgeSel to 0
   std::vector<uint8_t> FCMDEDGE_read = getValues(ADDR_FCMDEDGE, NBYTES_FCMDEDGE);
   std::vector<uint8_t> FCMDEDGE_zero = newParam(FCMDEDGE_read, ADDR_FCMDEDGE, NBYTES_FCMDEDGE, MASK_FCMDEDGE, SHIFT_FCMDEDGE, 0);
-  setValues(ADDR_RUNBIT, FCMDEDGE_zero);
+  setValues(ADDR_FCMDEDGE, FCMDEDGE_zero);
 
-  // invert FCMD data
+  // invert FCMD data to 1
+  std::vector<uint8_t> FCMD_read = getValues(ADDR_FCMD, NBYTES_FCMD);
+  std::vector<uint8_t> FCMD_invert = newParam(FCMD_read, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDINVERT, SHIFT_FCMDINVERT, 1);
+  setValues(ADDR_FCMD, FCMD_invert);
 }
   
 bool ECON::isRunMode() {
