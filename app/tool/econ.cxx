@@ -127,6 +127,7 @@ auto menu_econ =
         ->line("RUNMODE", "set/clear the run mode", econ)
         ->line("POKE", "change a single parameter value", econ)
         ->line("LOAD", "load all parameters", econ)
+        ->line("DUMP", "dump parameters", econ)
     ;
 
 auto menu_econ_expert =
