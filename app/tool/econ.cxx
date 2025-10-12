@@ -75,14 +75,6 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * @param[in] pft active target
  */
 static void econ(const std::string& cmd, Target* pft) {
-  auto page_names = pftool::state.page_names();
-  std::ostringstream oss;
-  oss << "[page_names] size=" << page_names.size() << " [";
-  for (size_t i = 0; i < page_names.size(); ++i) {
-    if (i > 0) oss << ", ";
-    oss << "'" << page_names[i] << "'";
-  }
-  oss << "]";
   if (cmd == "HARDRESET") {
     pft->hcal().hardResetECONs();
   }
@@ -96,6 +88,7 @@ static void econ(const std::string& cmd, Target* pft) {
     );
   }
   pflib::ECON econ = pft->hcal().econ(pftool::state.iecon, pftool::state.type_econ());
+  pftool::state.update_type_version(pftool::state.type_econ());
   if (cmd == "RUNMODE") {
     bool isRunMode = econ.isRunMode();
     isRunMode = pftool::readline_bool("Set ECON runbit: ", isRunMode);

@@ -33,8 +33,8 @@ class ECON {
   std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
   void applyParameter(const std::string& page, const std::string& param, const uint64_t& val);
   
-  std::map<int, std::map<int, uint8_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
-  std::map<int, std::map<int, uint8_t>> readParameters(const std::string& file_path);
+  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::string& file_path);
   void readParameter(const std::string& page, const std::string& param);
   
   void dumpSettings(const std::string& filename, bool should_decompile);

@@ -253,6 +253,13 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
     const std::map<int, std::map<int, uint8_t>>& compiled_config,
     bool be_careful) {
   std::map<std::string, std::map<std::string, uint64_t>> settings;
+  printf("[DEBUG] Compiled config contents:\n");
+  for (const auto& [page_id, reg_map] : compiled_config) {
+    printf("  Page %d:\n", page_id);
+    for (const auto& [reg_addr, val] : reg_map) {
+      printf("    [0x%04x] = 0x%02x\n", reg_addr, val);
+    }
+  }
   for (const auto& page : parameter_lut_) {
     const std::string& page_name{page.first};
     const int& page_id{page.second.first};

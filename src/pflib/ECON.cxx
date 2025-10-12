@@ -226,30 +226,42 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   std::map<int, std::map<int, uint8_t>> chip_reg;
   const int page_id = 0;  // always page 0
 
-  // read all registers from the chip into a single map
   std::map<int, uint8_t> all_regs;
-  for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
-    std::vector<uint8_t> values = getValues(reg_addr, nbytes);
-    for (int i = 0; i < values.size(); ++i) {
-      printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-      all_regs[reg_addr + i] = values[i];
-    }
-  }
-  
+
   if (selected.empty()) {
-    // if no specific registers are requested, copy all read registers
-    for (const auto& [reg, val] : all_regs) {
-      chip_reg[page_id][reg] = val;
+    // if no specific registers are requested, read all registers
+    printf("[DEBUG] Selected map is empty — reading all registers.\n");
+    std::map<int, uint8_t> all_regs;
+    for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
+      std::vector<uint8_t> values = getValues(reg_addr, nbytes);
+      for (int i = 0; i < values.size(); ++i) {
+	//printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+	all_regs[reg_addr + i] = values[i];
+      }
     }
   } else {
     // only read the registers in selected[0]
     const auto& reg_map = selected.at(page_id);
-    for (const auto& [reg, _] : reg_map) {
-      auto it = all_regs.find(reg);
-      if (it != all_regs.end()) {
-        chip_reg[page_id][reg] = it->second;
+    printf("[DEBUG] Selected contents:\n");
+    for (const auto& [page, reg_map] : selected) {
+      printf("  Page %d:\n", page);
+      for (const auto& [reg, val] : reg_map) {
+        printf("    [0x%04x] = 0x%02x\n", reg, val);
       }
     }
+    for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
+      if (reg_map.find(reg_addr) != reg_map.end()) {
+        std::vector<uint8_t> values = getValues(reg_addr, nbytes);
+        for (int i = 0; i < (int)values.size(); ++i) {
+          //printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+          all_regs[reg_addr + i] = values[i];
+        }
+      }
+    }
+  }
+
+  for (const auto& [reg, val] : all_regs) {
+    chip_reg[page_id][reg] = val;
   }
   
   return chip_reg;
@@ -315,14 +327,16 @@ void ECON::loadParameters(const std::string& file_path, bool prepend_defaults) {
   }
 }
 
-std::map<int, std::map<int, uint8_t>> ECON::readParameters(
+std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
 							   const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   auto touched_registers = compiler_.compile(parameters);
   auto chip_reg{getRegisters(touched_registers)};
-  return chip_reg;
+  std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
+    compiler_.decompile(chip_reg, true);
+  return parameter_values;
 }
 
-std::map<int, std::map<int, uint8_t>> ECON::readParameters(const std::string& file_path) {
+std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(const std::string& file_path) {
   std::map<std::string, std::map<std::string, uint64_t>> parameters;
   compiler_.extract(std::vector<std::string>{file_path}, parameters);
   return readParameters(parameters);
