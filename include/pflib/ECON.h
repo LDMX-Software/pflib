@@ -31,8 +31,12 @@ class ECON {
   void loadParameters(const std::string& file_path, bool prepend_defaults);
   std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected);
   std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+  void applyParameter(const std::string& page, const std::string& param, const uint64_t& val);
   
-  void applyParameter(const std::string& param, const uint64_t& val);
+  std::map<int, std::map<int, uint8_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+  std::map<int, std::map<int, uint8_t>> readParameters(const std::string& file_path);
+  void readParameter(const std::string& page, const std::string& param);
+  
   void dumpSettings(const std::string& filename, bool should_decompile);
   
   class TestParameters {

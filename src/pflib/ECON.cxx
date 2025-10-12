@@ -111,16 +111,19 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
     return {};
   }
   
-  pflib_log(info) << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ")";
-
   std::vector<uint8_t> waddr;
   waddr.push_back(static_cast<uint8_t>((reg_addr >> 8) & 0xFF));
   waddr.push_back(static_cast<uint8_t>(reg_addr & 0xFF));       
   std::vector<uint8_t> data = i2c_.general_write_read(econ_base_, waddr, nbytes);
 
-  //for (size_t i = 0; i < data.size(); i++) {
-  //  printf("%02zu : %02x\n", i, data[i]);
-  //}
+  std::ostringstream oss;
+  oss << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") -> [";
+  for (size_t i = 0; i < data.size(); ++i) {
+    if (i > 0) oss << " ";
+    oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(data[i]);
+  }
+  oss << "]";
+  pflib_log(info) << oss.str();
   
   return data;
 }
@@ -146,10 +149,16 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
     return;
   }
 
-  pflib_log(info) << "ECON::setValues(" 
-		  << packing::hex(reg_addr) 
-                  << ", nbytes = " << values.size() 
-		  << ")";
+  std::ostringstream oss;
+  oss << "ECON::setValues(" << packing::hex(reg_addr)
+      << ", nbytes = " << values.size() << ") -> [";
+  for (size_t i = 0; i < values.size(); ++i) {
+    if (i > 0) oss << " ";
+    oss << std::hex << std::setw(2) << std::setfill('0')
+        << static_cast<int>(values[i]);
+  }
+  oss << "]";
+  pflib_log(info) << oss.str();
 
   // write buffer
   std::vector<uint8_t> wbuf;
@@ -160,10 +169,6 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
   // perform write
   i2c_.general_write_read(econ_base_, wbuf, values.size());
 
-  // printf("Wrote %zu bytes to register 0x%04x:\n", values.size(), reg_addr);
-  // for (size_t i = 0; i < values.size(); ++i) {
-  //   printf("  %02zu : %02x\n", i, values[i]);
-  // }
 }
 
 void ECON::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
@@ -226,7 +231,7 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
     std::vector<uint8_t> values = getValues(reg_addr, nbytes);
     for (int i = 0; i < values.size(); ++i) {
-      printf("Read [0x%04x] = 0x%02x\n", reg_addr, values[i]);
+      printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
       all_regs[reg_addr + i] = values[i];
     }
   }
@@ -281,10 +286,10 @@ std::map<int, std::map<int, uint8_t>> ECON::applyParameters(const std::map<std::
   return ret_val;
 }
 
-void ECON::applyParameter(const std::string& param,
+void ECON::applyParameter(const std::string& page, const std::string& param,
                           const uint64_t& val) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
-  p[0][param] = val;
+  p[page][param] = val;
   this->applyParameters(p);
 }
   
@@ -310,6 +315,25 @@ void ECON::loadParameters(const std::string& file_path, bool prepend_defaults) {
   }
 }
 
+std::map<int, std::map<int, uint8_t>> ECON::readParameters(
+							   const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
+  auto touched_registers = compiler_.compile(parameters);
+  auto chip_reg{getRegisters(touched_registers)};
+  return chip_reg;
+}
+
+std::map<int, std::map<int, uint8_t>> ECON::readParameters(const std::string& file_path) {
+  std::map<std::string, std::map<std::string, uint64_t>> parameters;
+  compiler_.extract(std::vector<std::string>{file_path}, parameters);
+  return readParameters(parameters);
+}
+  
+void ECON::readParameter(const std::string& page, const std::string& param) {
+  std::map<std::string, std::map<std::string, uint64_t>> p;
+  p[page][param] = 0;
+  this->readParameters(p);
+}
+
 void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename", "No filename provided to dump econ settings.");
@@ -323,6 +347,16 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
   // read all the pages and store them in memory                                                                                                                                                                    
   std::map<int, std::map<int, uint8_t>> register_values{getRegisters({})};
 
+  std::cout << "[DEBUG] Printing register_values contents:\n";
+  for (const auto& [page, regs] : register_values) {
+    std::cout << "Page 0x" << std::hex << page << " (" << std::dec << page << "):\n";
+    for (const auto& [addr, val] : regs) {
+      std::cout << "  Addr 0x" << std::hex << std::setw(4) << std::setfill('0') << addr
+		<< " = 0x" << std::setw(2) << std::setfill('0') << static_cast<int>(val)
+		<< " (" << std::dec << static_cast<int>(val) << ")\n";
+    }
+  }
+  
   if (should_decompile) {
     /**
      * decompile while being careful since we knowingly are attempting

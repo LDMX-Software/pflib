@@ -75,6 +75,14 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * @param[in] pft active target
  */
 static void econ(const std::string& cmd, Target* pft) {
+  auto page_names = pftool::state.page_names();
+  std::ostringstream oss;
+  oss << "[page_names] size=" << page_names.size() << " [";
+  for (size_t i = 0; i < page_names.size(); ++i) {
+    if (i > 0) oss << ", ";
+    oss << "'" << page_names[i] << "'";
+  }
+  oss << "]";
   if (cmd == "HARDRESET") {
     pft->hcal().hardResetECONs();
   }
@@ -94,11 +102,12 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.setRunMode(isRunMode);
   }
   if (cmd == "POKE") {
+    auto page = pftool::readline("Page? ", pftool::state.page_names());
     auto param =
-        pftool::readline("Parameter: ", pftool::state.param_names(0));
+        pftool::readline("Parameter: ", pftool::state.param_names(page));
     int val = pftool::readline_int("New value: ");
-    econ.applyParameter(param, val);
-  }
+    econ.applyParameter(page, param, val);
+  }  
   if (cmd == "LOAD") {
     std::cout << "\n"
                  " --- This command expects a YAML file with page names, "
@@ -110,6 +119,20 @@ static void econ(const std::string& cmd, Target* pft) {
         "manual for any values not provided? ",
         false);
     econ.loadParameters(fname, prepend_defaults);
+  }
+  if (cmd == "READ") {
+    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    auto param =
+        pftool::readline("Parameter: ", pftool::state.param_names(page));
+    econ.readParameter(page, param);
+  }
+  if (cmd == "READCONFIG") {
+    std::cout << "\n"
+      " --- This command expects a YAML file with page names, "
+      "parameter names and their values.\n"
+	      << std::flush;
+    std::string fname = pftool::readline("Filename: ");
+    econ.readParameters(fname);
   }
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path("econ_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
@@ -128,6 +151,8 @@ auto menu_econ =
         ->line("POKE", "change a single parameter value", econ)
         ->line("LOAD", "load all parameters", econ)
         ->line("DUMP", "dump parameters", econ)
+        ->line("READCONFIG", "read a yaml file", econ)
+        ->line("READ", "read one parameter and page", econ)
     ;
 
 auto menu_econ_expert =

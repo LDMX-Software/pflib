@@ -205,6 +205,7 @@ BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
 
 BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   pflib::Compiler c = pflib::Compiler::get("econd_test");
+  //pflib::Compiler c = pflib::Compiler::get("econd");
 
   std::map<int, std::map<int, uint8_t>> settings;
   settings[0][0x389] = 0xff;
@@ -218,14 +219,12 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
     
   auto chip_params = c.decompile(settings, true);
 
-  /*
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
       std::cout << "  " << param_name << " = " << value << "\n";
     }
   }
-  */
   
   BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
 		      "Page ALIGNER missing in decompiled settings");
