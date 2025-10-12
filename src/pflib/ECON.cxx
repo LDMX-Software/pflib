@@ -231,7 +231,6 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   if (selected.empty()) {
     // if no specific registers are requested, read all registers
     printf("[DEBUG] Selected map is empty — reading all registers.\n");
-    std::map<int, uint8_t> all_regs;
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
       std::vector<uint8_t> values = getValues(reg_addr, nbytes);
       for (int i = 0; i < values.size(); ++i) {
@@ -331,8 +330,9 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
 							   const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   auto touched_registers = compiler_.compile(parameters);
   auto chip_reg{getRegisters(touched_registers)};
+  // decompile with little_endian
   std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-    compiler_.decompile(chip_reg, true);
+    compiler_.decompile(chip_reg, true, true);
   return parameter_values;
 }
 
@@ -377,7 +377,7 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
      * to read ALL of the parameters on the chip
      */
     std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-        compiler_.decompile(register_values, true);
+      compiler_.decompile(register_values, true, true);
 
     YAML::Emitter out;
     out << YAML::BeginMap;

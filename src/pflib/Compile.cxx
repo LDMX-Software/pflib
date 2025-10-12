@@ -234,9 +234,15 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
       }
       
       // write the last block
-      if (reg_byte_lut.find(start) == reg_byte_lut.end()) {
-	reg_byte_lut[start] = end - start + 1;
+      // e.g. if a previous parameter already wrote a block starting at addr_x of length 1, but the current parameter extends to include addr_x+1, the map will update to length=2
+      uint16_t block_len = end - start + 1;
+      auto it = reg_byte_lut.find(start);
+      if (it == reg_byte_lut.end()) {
+	reg_byte_lut[start] = block_len;
+      } else {
+	it->second = std::max(it->second, static_cast<decltype(it->second)>(block_len));
       }
+
     }
   }
 
@@ -256,7 +262,7 @@ std::vector<int> Compiler::get_known_pages() {
 
 std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
     const std::map<int, std::map<int, uint8_t>>& compiled_config,
-    bool be_careful) {
+    bool be_careful, bool little_endian) {
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   printf("[DEBUG] Compiled config contents:\n");
   for (const auto& [page_id, reg_map] : compiled_config) {
@@ -277,25 +283,40 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
       }
       continue;
     }
-    const auto& page_conf{compiled_config.at(page_id)};
+    const auto& page_conf = compiled_config.at(page_id);
     for (const auto& param : page_lut) {
       const Parameter& spec{page_lut.at(param.first)};
       std::size_t value_curr_min_bit{0};
       uint64_t pval{0};
       int n_missing_regs{0};
       for (const RegisterLocation& location : spec.registers) {
-        uint8_t sub_val =
-            0;  // defaults ot zero if not careful and register not found
-        if (page_conf.find(location.reg) == page_conf.end()) {
-          n_missing_regs++;
-          if (be_careful) break;
-        } else {
-          // grab sub value of parameter in this register
-          sub_val = ((page_conf.at(location.reg) >> location.min_bit) &
-                     location.mask);
-        }
-        pval += (sub_val << value_curr_min_bit);
-        value_curr_min_bit += location.n_bits;
+	uint8_t sub_val =
+	  0;  // defaults ot zero if not careful and register not found    
+	if (page_conf.find(location.reg) == page_conf.end()) {
+	  n_missing_regs++;
+	  if (be_careful) break;
+	} else {
+	  if(little_endian) {
+	    uint8_t reg_val = page_conf.at(location.reg);
+	    // use the absolute bit position (location.min_bit) rather than value_curr_min_bit
+	    pval |= (uint64_t(reg_val & location.mask) << location.min_bit);
+	    pflib_log(info) << "[DEBUG] Register 0x" 
+			    << std::hex << location.reg 
+			    << ": raw=0x" << std::hex << int(reg_val)
+			    << ", mask=0x" << std::hex << int(location.mask)
+			    << ", masked=0x" << std::hex << (reg_val & location.mask)
+			    << ", shift=" << std::dec << location.min_bit
+			    << ", shifted=0x" << std::hex << (uint64_t(reg_val & location.mask) << location.min_bit);
+	    pflib_log(info) << "[DEBUG] pval after OR = 0x" << std::hex << pval;
+	  }
+	  else {
+	    // grab sub value of parameter in this register
+	    sub_val = ((page_conf.at(location.reg) >> location.min_bit) &
+		       location.mask);
+	    pval += (sub_val << value_curr_min_bit);
+	    value_curr_min_bit += location.n_bits;
+	  }
+	}
       }
 
       if (n_missing_regs == spec.registers.size() or

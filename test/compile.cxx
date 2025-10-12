@@ -216,8 +216,12 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   settings[0][0x38e] = 0;
   settings[0][0x38f] = 0;
   settings[0][0x390] = 0;
-    
-  auto chip_params = c.decompile(settings, true);
+
+  settings[0][0x3c5] = 0;
+  settings[0][0x3c6] = 0;
+  settings[0][0x3c7] = 0x80;
+
+  auto chip_params = c.decompile(settings, true, true);
 
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";

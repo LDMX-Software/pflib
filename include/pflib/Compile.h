@@ -162,7 +162,7 @@ class Compiler {
    */
   std::map<std::string, std::map<std::string, uint64_t>> decompile(
       const std::map<int, std::map<int, uint8_t>>& compiled_config,
-      bool be_careful);
+      bool be_careful, bool little_endian=false);
 
   /**
    * get the registers corresponding to the input page
