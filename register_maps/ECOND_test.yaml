@@ -8,3 +8,13 @@ Aligner:
       param_mask: 0xffffffffffffffff
       param_shift: 0
       size_byte: 8
+ClocksAndResets:
+  Global:
+    pusm_run:
+      access: rw
+      address: 0x03c5
+      default_value: 0
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 23
+      size_byte: 3

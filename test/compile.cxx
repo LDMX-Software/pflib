@@ -239,6 +239,7 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
 
   std::map<uint16_t, size_t> page_reg_byte_lut, expected;
   expected[0x0389] = 8;
+  expected[0x03c5] = 0x800000;
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*

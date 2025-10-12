@@ -284,66 +284,120 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
       continue;
     }
     const auto& page_conf = compiled_config.at(page_id);
+
+    // loop over each parameter
     for (const auto& param : page_lut) {
       const Parameter& spec{page_lut.at(param.first)};
-      std::size_t value_curr_min_bit{0};
       uint64_t pval{0};
+      std::size_t value_curr_min_bit = 0;
       int n_missing_regs{0};
-      for (const RegisterLocation& location : spec.registers) {
-	uint8_t sub_val =
-	  0;  // defaults ot zero if not careful and register not found    
-	if (page_conf.find(location.reg) == page_conf.end()) {
-	  n_missing_regs++;
-	  if (be_careful) break;
-	} else {
-	  if(little_endian) {
-	    uint8_t reg_val = page_conf.at(location.reg);
-	    // use the absolute bit position (location.min_bit) rather than value_curr_min_bit
-	    pval |= (uint64_t(reg_val & location.mask) << location.min_bit);
-	    pflib_log(info) << "[DEBUG] Register 0x" 
-			    << std::hex << location.reg 
-			    << ": raw=0x" << std::hex << int(reg_val)
-			    << ", mask=0x" << std::hex << int(location.mask)
-			    << ", masked=0x" << std::hex << (reg_val & location.mask)
-			    << ", shift=" << std::dec << location.min_bit
-			    << ", shifted=0x" << std::hex << (uint64_t(reg_val & location.mask) << location.min_bit);
-	    pflib_log(info) << "[DEBUG] pval after OR = 0x" << std::hex << pval;
+      
+      pflib_log(info) << "[DEBUG] Decoding parameter: " << param.first;
+
+      if (little_endian) {
+        // collect all relevant registers in a vector in descending order
+	std::vector<uint8_t> data;
+	uint16_t first_reg = spec.registers.front().reg;
+	uint16_t last_reg = spec.registers.front().reg;
+	for (const RegisterLocation& loc : spec.registers) {
+	  if (loc.reg < first_reg) first_reg = loc.reg;
+	  
+	  // compute how many bytes this field spans
+	  uint16_t span_bytes = (loc.min_bit + loc.n_bits + 7) / 8; // ceiling division
+	  uint16_t reg_end = loc.reg + span_bytes - 1;
+	  
+	  if (reg_end > last_reg) last_reg = reg_end;
+	}
+
+	for (uint16_t reg = first_reg; reg <= last_reg; ++reg) {
+	  auto it = page_conf.find(reg);
+	  if (it != page_conf.end()) {
+	    data.push_back(it->second);
+	    pflib_log(info) << "[DEBUG] Register 0x" << std::hex << reg
+			    << ": byte=0x" << int(it->second);
+	  } else {
+	    pflib_log(warn) << "[WARN] Missing register 0x" << std::hex << reg
+			    << " for parameter " << param.first;
+	    n_missing_regs++;
+	    data.push_back(0); // assume 0 if missing
 	  }
-	  else {
+        }
+
+	// combine into a little endian integer
+	uint64_t value = 0;
+	for (size_t i = 0; i < data.size(); ++i) 
+	  value |= (static_cast<uint64_t>(data[i]) << (8 * i));
+	
+	pflib_log(info) << "[DEBUG] data contents for parameter " << param.first << ":";
+	for (size_t i = 0; i < data.size(); ++i) {
+	  pflib_log(info) << "  data[" << i << "] = 0x" << std::hex << int(data[i]);
+	}
+	pflib_log(info) << "value " << std::hex << value;
+ 
+        for (const RegisterLocation& loc : spec.registers) {
+	  // extract field from this register
+	  uint64_t field_value = (value >> loc.min_bit) & loc.mask;
+	  
+	  pflib_log(info) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
+			  << std::hex << loc.reg
+			  << ", min_bit=" << std::dec << loc.min_bit
+			  << ", n_bits=" << loc.n_bits
+			  << ", mask=0x" << std::hex << loc.mask
+			  << ", field_value=0x" << std::hex << field_value;
+	  pval |= field_value;
+        }
+	
+	pflib_log(info) << "[DEBUG] Parameter '" << param.first
+			<< "' final value = 0x" << std::hex << pval;
+
+      }
+      else {
+	// non-little-endian logic
+	for (const RegisterLocation& location : spec.registers) {
+	  uint8_t sub_val =
+	    0;  // defaults ot zero if not careful and register not found    
+	  if (page_conf.find(location.reg) == page_conf.end()) {
+	    n_missing_regs++;
+	    if (be_careful) break;
+	  } else {
 	    // grab sub value of parameter in this register
 	    sub_val = ((page_conf.at(location.reg) >> location.min_bit) &
 		       location.mask);
-	    pval += (sub_val << value_curr_min_bit);
-	    value_curr_min_bit += location.n_bits;
 	  }
+	  pval += (sub_val << value_curr_min_bit);
+	  value_curr_min_bit += location.n_bits;
 	}
       }
-
+      
+      
       if (n_missing_regs == spec.registers.size() or
-          (be_careful and n_missing_regs > 0)) {
-        // skip this parameter
-        if (be_careful) {
-          pflib_log(warn)
-              << "parameter " << param.first << " in page " << page_name
-              << " wasn't provided the necessary registers to be deduced";
-
+	  (be_careful and n_missing_regs > 0)) {
+	// skip this parameter
+	if (be_careful) {
+	  pflib_log(warn)
+	    << "parameter " << param.first << " in page " << page_name
+	    << " wasn't provided the necessary registers to be deduced";
+	  
 	  std::ostringstream oss;
 	  oss << "  Expected registers: ";
 	  for (const auto& loc : spec.registers) {
 	    oss << "0x" << std::hex << loc.reg << " ";
 	  }
 	  pflib_log(warn) << oss.str();
-
+	  
 	  std::ostringstream present;
 	  present << "  Registers provided in compiled_config[" << page_name << "]: ";
 	  for (const auto& kv : page_conf) {
 	    present << "0x" << std::hex << kv.first << " ";
 	  }
 	  pflib_log(warn) << present.str();
-	  
-        }
+	
+	}
       } else {
-        settings[page_name][param.first] = pval;
+	settings[page_name][param.first] = pval;
+	pflib_log(info) << "[DEBUG] Parameter '" << param.first << "' final value = 0x"
+			<< std::hex << pval
+                        << " (" << std::dec << pval << ")";
       }
     }
   }
