@@ -196,7 +196,7 @@ std::map<int, std::map<int, uint8_t>> Compiler::compile(
 }
   
 std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
-  // register address -> number of bytes used)
+  // register address -> number of bytes used
   std::map<uint16_t, size_t> reg_byte_lut;
 
   for (const auto& page_pair : page_lut_) {
@@ -207,35 +207,40 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
 
     for (const auto& param_pair : page) {
       const Parameter& param = param_pair.second;
-
       std::vector<RegisterLocation> regs = param.registers;
 
-      // start tracking a contiguous region
+      // start and end of the first (regs[0]) contiguous block of addresses for this parameter
       uint16_t start = regs[0].reg;
       uint16_t end = start + (regs[0].min_bit + regs[0].n_bits + 7) / 8 - 1;
-      
+
+      // iterate over remaining register locations for this parameter
       for (size_t i = 1; i < regs.size(); ++i) {
 	uint16_t loc_start = regs[i].reg;
 	uint16_t loc_end = loc_start + (regs[i].min_bit + regs[i].n_bits + 7) / 8 - 1;
 	
 	if (loc_start <= end + 1) {
-	  // Extend the contiguous block
+	  // overlapping or contiguous with previous block: extend the block
 	  end = std::max(end, loc_end);
 	} else {
-	  // Save previous block
-	  reg_byte_lut[start] = end - start + 1;
+	  // non-contiguous: save previous block if it does not exist (prevents overwriting)...
+	  if (reg_byte_lut.find(start) == reg_byte_lut.end()) {
+	    reg_byte_lut[start] = end - start + 1;
+	  }
 	  
-	  // Start a new one
+	  // start a new one
 	  start = loc_start;
 	  end = loc_end;
 	}
       }
       
-      // Save last block for this parameter
-      reg_byte_lut[start] = end - start + 1;
+      // write the last block
+      if (reg_byte_lut.find(start) == reg_byte_lut.end()) {
+	reg_byte_lut[start] = end - start + 1;
+      }
     }
   }
 
+  
   return reg_byte_lut;
 }
 
