@@ -21,7 +21,6 @@ namespace pflib {
   public:
     HcalBackplaneZCUTarget(int itarget, uint8_t board_mask) {
       // first, setup the optical links
-      printf("Make Backplane ZCU target, setup optical links");
       std::string uio_coder=pflib::utility::string_format("standardLpGBTpair-%d",itarget);
       daq_tport_=std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(uio_coder, false, ADDR_HCAL_BACKPLANE_DAQ);
       trig_tport_=std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(uio_coder, true, ADDR_HCAL_BACKPLANE_TRIG);
@@ -29,24 +28,23 @@ namespace pflib {
       trig_lpgbt_=std::make_unique<pflib::lpGBT>(*trig_tport_);
       
       // next, create the Hcal I2C objects
-      printf("Create I2C objects ");
       econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
       econ_i2c_->set_bus_speed(1000);
       add_econ(0, econ_i2c_, "econd");
       add_econ(0, econ_i2c_, "econt");
       add_econ(1, econ_i2c_, "econt");
-      //roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
-      //roc_i2c_->set_bus_speed(1000);
-      //for (int ibd=0; ibd<4; ibd++) {
-      //if ((board_mask&(1<<ibd))==0) continue;
-      //std::shared_ptr<pflib::I2C> bias_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BIAS,ADDR_MUX_BIAS,(1<<ibd));
-      //std::shared_ptr<pflib::I2C> board_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BOARD,ADDR_MUX_BOARD,(1<<ibd));
-      //add_roc(ibd,roc_i2c_,bias_i2c,board_i2c);	
-      //}
+      
+      roc_i2c_=std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
+      roc_i2c_->set_bus_speed(1000);
+      for (int ibd=0; ibd<4; ibd++) {
+	if ((board_mask&(1<<ibd))==0) continue;
+	std::shared_ptr<pflib::I2C> bias_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BIAS,ADDR_MUX_BIAS,(1<<ibd));
+	std::shared_ptr<pflib::I2C> board_i2c=std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_,I2C_BUS_BOARD,ADDR_MUX_BOARD,(1<<ibd));
+	add_roc(ibd,roc_i2c_,bias_i2c,board_i2c);	
+      }
 
       // next, create the elinks object
       hcal_=std::shared_ptr<Hcal>(this);
-      //hcal_->print_i2c_map();
 
       pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
       pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
@@ -90,8 +88,8 @@ namespace pflib {
       trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", true);
     }
     virtual Elinks& elinks() { }
-      virtual DAQ& daq() { }
-      virtual std::vector<uint32_t> read_event() { std::vector<uint32_t> empty; return empty; }
+    virtual DAQ& daq() { }
+    virtual std::vector<uint32_t> read_event() { std::vector<uint32_t> empty; return empty; }
   private:
     std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
     std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;

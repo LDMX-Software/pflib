@@ -12,7 +12,9 @@ namespace pflib {
 
       /** Setup the standard set of I/Os for the HCAL backplane TRIG lpGBT */
       void setup_hcal_trig(pflib::lpGBT&);
-      
+
+      /** Setup the lpGBT to train the eRx phase*/
+      void setup_erxtraining(pflib::lpGBT&, bool prbs_on);
     }    
   }
 }

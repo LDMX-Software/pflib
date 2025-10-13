@@ -71,22 +71,6 @@ std::size_t msb(uint32_t v) {
 void Compiler::compile(const std::string& page_name,
                        const std::string& param_name, const uint64_t& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
-  //std::cout << "[uint64_t overload] value = " << val
-  //<< " sizeof=" << sizeof(val) << std::endl;
-   
-  //std::cout << "Setting parameter " << page_name << "." << param_name
-  //          << " = " << val
-  //          << " (MSB=" << (64 - __builtin_clzll(val)) << ", total bits=64)\n";
-  //std::cout << "sizeof(val) = " << sizeof(val) << std::endl;
-
-  // To print out the full map of that chip
-  //for (const auto& p : parameter_lut_) {
-  //  std::cout << "Page: " << p.first << "\n";
-  //  for (const auto& param : p.second.second) {
-  //    std::cout << "  Param: " << param.first << "\n";
-  //  }
-  //}
-  
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};
@@ -97,8 +81,6 @@ void Compiler::compile(const std::string& page_name,
                         return bit_count + rhs.n_bits;
                       });
   std::size_t val_msb = msb(uval);
-  //printf("Setting parameter %s.%s = %" PRIu64 " (MSB=%zu, total bits=%zu)\n",
-  //     page_name.c_str(), param_name.c_str(), uval, val_msb, total_nbits);
 
   if (val_msb >= total_nbits) {
     std::stringstream msg;
@@ -109,16 +91,10 @@ void Compiler::compile(const std::string& page_name,
   }
 
   std::size_t value_curr_min_bit{0};
-  //printf("%s.%s -> page %u\n", page_name.c_str(), param_name.c_str(), page_id);
   pflib_log(trace) << page_name << "." << param_name << " -> page " << page_id;
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
-    //uint64_t sub_val64 = ((uval >> value_curr_min_bit) & location.mask);
-    //printf("  Sub-value debug: %" PRIu64 " -> 0x%02" PRIX64 "\n", sub_val64, sub_val64);
-    //printf("  Sub-value: %u (uval %u) (mask=0x%02X, shift=%zu) -> register 0x%04X\n",
-    //sub_val, uval, location.mask, location.min_bit, location.reg);
-
     pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", "
                      << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
@@ -126,20 +102,15 @@ void Compiler::compile(const std::string& page_name,
         register_values[page_id].end()) {
       // initialize register value to zero if it hasn't been touched before
       register_values[page_id][location.reg] = 0;
-      //printf("    Initialized register 0x%04X to 0\n", location.reg);
     } else {
       // make sure to clear old value
       register_values[page_id][location.reg] &=
           ((location.mask << location.min_bit) ^ 0b11111111);
-      //printf("    Cleared old bits in register 0x%04X\n", location.reg);
     }
     // put value into register at the specified location
     register_values[page_id][location.reg] += (sub_val << location.min_bit);
 
-    //printf("    Updated register 0x%04X = 0x%02X\n", location.reg,
-    //register_values[page_id][location.reg]);
   }  // loop over register locations
-  //printf("Finished setting %s.%s\n", page_name.c_str(), param_name.c_str());
   return;
 }
 
@@ -264,13 +235,6 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
     const std::map<int, std::map<int, uint8_t>>& compiled_config,
     bool be_careful, bool little_endian) {
   std::map<std::string, std::map<std::string, uint64_t>> settings;
-  printf("[DEBUG] Compiled config contents:\n");
-  for (const auto& [page_id, reg_map] : compiled_config) {
-    printf("  Page %d:\n", page_id);
-    for (const auto& [reg_addr, val] : reg_map) {
-      printf("    [0x%04x] = 0x%02x\n", reg_addr, val);
-    }
-  }
   for (const auto& page : parameter_lut_) {
     const std::string& page_name{page.first};
     const int& page_id{page.second.first};
@@ -292,8 +256,6 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
       std::size_t value_curr_min_bit = 0;
       int n_missing_regs{0};
       
-      pflib_log(info) << "[DEBUG] Decoding parameter: " << param.first;
-
       if (little_endian) {
         // collect all relevant registers in a vector in descending order
 	std::vector<uint8_t> data;
@@ -302,27 +264,35 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	for (const RegisterLocation& loc : spec.registers) {
 	  if (page_conf.find(loc.reg) == page_conf.end()) {
             n_missing_regs++;
-            if (be_careful) break;
+            if (be_careful)
+	      break;
+	    else
+	      continue;
           }
 	  
 	  if (loc.reg < first_reg) first_reg = loc.reg;
 	  
-	  // compute how many bytes this field spans
+	  // compute how many bytes this field spans to set the last_reg
 	  uint16_t span_bytes = (loc.min_bit + loc.n_bits + 7) / 8; // ceiling division
-	  uint16_t reg_end = loc.reg + span_bytes - 1;
-	  
+	  uint16_t reg_end = loc.reg + span_bytes - 1;	  
 	  if (reg_end > last_reg) last_reg = reg_end;
+	}
+
+	if (n_missing_regs > 0 && !be_careful) {
+	  //pflib_log(debug) << "Skipping parameter " << param.first
+	  //<< " (no registers found in compiled config)";
+	  continue;
 	}
 
 	for (uint16_t reg = first_reg; reg <= last_reg; ++reg) {
 	  auto it = page_conf.find(reg);
 	  if (it != page_conf.end()) {
 	    data.push_back(it->second);
-	    pflib_log(info) << "[DEBUG] Register 0x" << std::hex << reg
-			    << ": byte=0x" << int(it->second);
+	    //pflib_log(debug) << "[DEBUG] Register 0x" << std::hex << reg
+	    //<< ": byte=0x" << int(it->second);
 	  } else {
-	    pflib_log(warn) << "[WARN] Missing register 0x" << std::hex << reg
-			    << " for parameter " << param.first;
+	    //pflib_log(warn) << "[WARN] Missing register 0x" << std::hex << reg
+	    //<< " for parameter " << param.first;
 	    n_missing_regs++;
 	    data.push_back(0); // assume 0 if missing
 	  }
@@ -333,27 +303,29 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	for (size_t i = 0; i < data.size(); ++i) 
 	  value |= (static_cast<uint64_t>(data[i]) << (8 * i));
 	
-	pflib_log(info) << "[DEBUG] data contents for parameter " << param.first << ":";
-	for (size_t i = 0; i < data.size(); ++i) {
-	  pflib_log(info) << "  data[" << i << "] = 0x" << std::hex << int(data[i]);
-	}
-	pflib_log(info) << "value " << std::hex << value;
+	//pflib_log(debug) << "[DEBUG] data contents for parameter " << param.first << ":";
+	//for (size_t i = 0; i < data.size(); ++i) {
+	//pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex << int(data[i]);
+	//}
+	//pflib_log(debug) << "value " << std::hex << value;
  
         for (const RegisterLocation& loc : spec.registers) {
 	  // extract field from this register
 	  uint64_t field_value = (value >> loc.min_bit) & loc.mask;
-	  
-	  pflib_log(info) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
+
+	  /*
+	  pflib_log(debug) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
 			  << std::hex << loc.reg
 			  << ", min_bit=" << std::dec << loc.min_bit
 			  << ", n_bits=" << loc.n_bits
 			  << ", mask=0x" << std::hex << loc.mask
 			  << ", field_value=0x" << std::hex << field_value;
+	  */
 	  pval |= field_value;
         }
 	
-	pflib_log(info) << "[DEBUG] Parameter '" << param.first
-			<< "' final value = 0x" << std::hex << pval;
+	//pflib_log(debug) << "[DEBUG] Parameter '" << param.first
+	//<< "' final value = 0x" << std::hex << pval;
 
       }
       else {
@@ -400,7 +372,7 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	}
       } else {
 	settings[page_name][param.first] = pval;
-	pflib_log(info) << "[DEBUG] Parameter '" << param.first << "' final value = 0x"
+	pflib_log(debug) << "Parameter '" << param.first << "' final value = 0x"
 			<< std::hex << pval
                         << " (" << std::dec << pval << ")";
       }

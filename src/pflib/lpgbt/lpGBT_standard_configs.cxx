@@ -73,7 +73,11 @@ namespace pflib {
 	  lpgbt.setup_erx(i, 0);
 	}	
       }
-      
+
+      void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
+	// TODO, setup eRx for training mode
+	
+      }
     }
   }
 }

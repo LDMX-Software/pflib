@@ -11,7 +11,7 @@
  * @param[in] pft active target (not used)
  */
 static void econ_render(Target* pft) {
-  printf(" Active ECON: %d (type_econ_ = %s)\n", pftool::state.iecon, pftool::state.type_econ().c_str());
+  printf(" Active ECON: %d (%s)\n", pftool::state.iecon, pftool::state.type_econ().c_str());
 }
 
 /**
@@ -67,9 +67,15 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * ## Commands
  * - HARDRESET : pflib::Hcal::hardResetECONs
  * - SOFTRESET : pflib::Hcal::softResetECONs
- * - RUNMODE : enable run bit on the ECON
  * - IECON : Change which ECON to focus on
+ * - PAGE_NAMES : Use pflib::parameters to get list ECON page names
+ * - PARAM_NAMES : Use pflib::parameters to get list ECON parameter names
+ * - RUNMODE : enable run bit on the ECON
+ * - POKE : pflib::ECON::applyParameter
  * - LOAD : Load parameters from a YAML file
+ * - READ : pflib::ECON::readParameter
+ * - READCONFIG : Read parameters from a YAML file
+ * - DUMP : pflib::ECON::dumpSettings with decompile=true
  *
  * @param[in] cmd ECON command
  * @param[in] pft active target
@@ -89,6 +95,19 @@ static void econ(const std::string& cmd, Target* pft) {
   }
   pflib::ECON econ = pft->hcal().econ(pftool::state.iecon, pftool::state.type_econ());
   pftool::state.update_type_version(pftool::state.type_econ());
+  if (cmd == "PAGENAMES") {
+    for (const std::string& pn : pftool::state.page_names()) {
+      std::cout << pn << "\n";
+    }
+    std::cout << std::endl;
+  }
+  if (cmd == "PARAMNAMES") {
+    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    for (const std::string& pn : pftool::state.param_names(page)) {
+      std::cout << pn << "\n";
+    }
+    std::cout << std::endl;
+  }
   if (cmd == "RUNMODE") {
     bool isRunMode = econ.isRunMode();
     isRunMode = pftool::readline_bool("Set ECON runbit: ", isRunMode);
@@ -118,6 +137,7 @@ static void econ(const std::string& cmd, Target* pft) {
     auto param =
         pftool::readline("Parameter: ", pftool::state.param_names(page));
     econ.readParameter(page, param);
+
   }
   if (cmd == "READCONFIG") {
     std::cout << "\n"
@@ -128,7 +148,7 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.readParameters(fname);
   }
   if (cmd == "DUMP") {
-    std::string fname = pftool::readline_path("econ_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
+    std::string fname = pftool::readline_path(pftool::state.type_econ() + "_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
     econ.dumpSettings(fname, true);
   }
 }
@@ -137,9 +157,11 @@ static void econ(const std::string& cmd, Target* pft) {
 namespace {
 auto menu_econ =
     pftool::menu("ECON", "ECON Chip Configuration", econ_render)
-        ->line("HARDRESET", "Hard reset to all econs", econ)
-        ->line("SOFTRESET", "Soft reset to all econs", econ)
+        ->line("HARDRESET", "Hard reset to all ECONs", econ)
+        ->line("SOFTRESET", "Soft reset to all ECONs", econ)
         ->line("IECON", "Change the active ECON number", econ)
+        ->line("PAGENAMES", "List all page names for ECON", econ)
+        ->line("PARAMNAMES", "List all parameter names for a given page", econ)
         ->line("RUNMODE", "set/clear the run mode", econ)
         ->line("POKE", "change a single parameter value", econ)
         ->line("LOAD", "load all parameters", econ)

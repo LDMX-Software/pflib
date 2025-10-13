@@ -33,7 +33,7 @@ class ECON {
   std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
   void applyParameter(const std::string& page, const std::string& param, const uint64_t& val);
   
-  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters, bool print_values=true);
   std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::string& file_path);
   void readParameter(const std::string& page, const std::string& param);
   

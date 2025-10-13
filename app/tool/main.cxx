@@ -22,6 +22,7 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 }
 
 pftool::State::State() {
+  // update type versions by default?
   update_type_version("sipm_rocv3b");
   update_type_econ("econd");
 }
@@ -54,21 +55,6 @@ const std::vector<std::string>& pftool::State::page_names() const {
 
 const std::vector<std::string>& pftool::State::param_names(
     const std::string& page) const {
-  std::ostringstream oss;
-  
-  oss << "[param_names_] contents (" << param_names_.size() << " entries):\n";
-  
-  for (const auto& [page, params] : param_names_) {
-    oss << "  Page: '" << page << "' (" << params.size() << " params): ";
-    for (size_t i = 0; i < params.size(); ++i) {
-      if (i > 0) oss << ", ";
-      oss << params[i];
-    }
-    oss << "\n";
-  }
-  
-  pflib_log(info) << oss.str();
-  
   auto PAGE{pflib::upper_cp(page)};
   auto param_list_it = param_names_.find(PAGE);
   if (param_list_it == param_names_.end()) {

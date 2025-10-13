@@ -70,26 +70,6 @@ class Hcal {
 
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
-
-  void print_i2c_map() const {
-    std::cout << "=== ECON-D I2C Map ===" << std::endl;
-    if (i2c_for_econd_.empty()) {
-      std::cout << "  (none)" << std::endl;
-    } else {
-      for (const auto& [key, ptr] : i2c_for_econd_) {
-	std::cout << "  Key: " << key << ", I2C pointer: " << ptr.get() << std::endl;
-      }
-    }
-    
-    std::cout << "=== ECON-T I2C Map ===" << std::endl;
-    if (i2c_for_econt_.empty()) {
-      std::cout << "  (none)" << std::endl;
-    } else {
-      for (const auto& [key, ptr] : i2c_for_econt_) {
-	std::cout << "  Key: " << key << ", I2C pointer: " << ptr.get() << std::endl;
-      }
-    }
-  }
   
  protected:
   /** Add a ROC to the set of ROCs */
