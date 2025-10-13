@@ -1,5 +1,5 @@
 /**
- * "compiler" translating YAML HGCROC settings files
+ * "compiler" translating YAML HGCROC/ECON settings files
  * into a CSV file that contains registers and their values
  * defined by the settings in the YAML.
  *
@@ -24,7 +24,7 @@ static void usage() {
                " OPTIONS:\n"
                "  -v,--version  : Print pflib version\n"
                "  -h,--help     : Print this help and exit\n"
-               "  -r,--roc      : Define the ROC type_version that should be "
+               "  -c,--chip      : Define the CHIP type_version that should be "
                "used for compilation\n"
                "                  By default, we use the sipm_rocv3b register "
                "mapping.\n"
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 
   bool prepend_defaults = true;
   std::vector<std::string> setting_files;
-  std::string roc_type_version{"sipm_rocv3b"};
+  std::string type_version{"sipm_rocv3b"};
   std::string output_filename;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
@@ -62,14 +62,14 @@ int main(int argc, char* argv[]) {
       } else if (arg == "--version" or arg == "-v") {
         std::cout << "pflib " << pflib::version::debug() << std::endl;
         return 0;
-      } else if (arg == "--roc" or arg == "-r") {
+      } else if (arg == "--chip" or arg == "-c") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
-        roc_type_version = argv[i_arg];
+        type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (setting_files.empty()) {
-    pflib_log(fatal) << "We need at least one settings YAML file to compile.";
+    pflib_log(fatal) << "We need at least one settings YAML file as argument to compile.";
     return 2;
   }
 
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
   std::map<int, std::map<int, uint8_t>> settings;
   try {
     // compilation checks parameter/page names
-    settings = pflib::Compiler::get(roc_type_version)
+    settings = pflib::Compiler::get(type_version)
                    .compile(setting_files, prepend_defaults);
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "[" << e.name() << "] " << e.message();

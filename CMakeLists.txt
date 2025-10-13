@@ -101,12 +101,62 @@ add_custom_command(
 add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
 
 add_custom_command(
+  OUTPUT "include/register_maps/econd_test.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_test.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd_test.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_test.yaml
+  COMMENT "Generating C++ ECOND test register LUT from register_maps/ECOND_test.yaml"
+  VERBATIM
+)
+add_custom_target(econd_test DEPENDS include/register_maps/econd_test.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econd.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECOND register LUT from register_maps/ECOND_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econd DEPENDS include/register_maps/econd.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econt.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econt.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECONT register LUT from register_maps/ECONT_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econt DEPENDS include/register_maps/econt.h)
+
+list(APPEND generate_headers_econ econd_test)
+list(APPEND generate_headers_econ econd)
+list(APPEND generate_headers_econ econt)
+
+add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
-    ${generate_headers} --output include/register_maps/register_maps.h
+    --roc_types ${generate_headers} --econ_types ${generate_headers_econ} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
   DEPENDS ${generate_headers} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
+  DEPENDS ${generate_headers_econ} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
@@ -147,6 +197,7 @@ target_link_libraries(packing PUBLIC utility)
 add_library(pflib SHARED
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
+  src/pflib/ECON.cxx
   src/pflib/Compile.cxx
   src/pflib/Logging.cxx
   src/pflib/Hcal.cxx

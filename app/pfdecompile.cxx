@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     return 3;
   }
 
-  std::map<std::string, std::map<std::string, int>> parameters;
+  std::map<std::string, std::map<std::string, uint64_t>> parameters;
   try {
     // compilation checks parameter/page names
     parameters =

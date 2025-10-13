@@ -27,14 +27,18 @@ void OptoLink::reset_link() {
       transright_.write(0x0, 0x1);  // GTH_RESET
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      //      printf("   After %d attempts, BUFFBYPASS_DONE is %d
-      //      (GTH_RESET)\n",attempts,done);
+      /*
+      printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
+        attempts,done);
+      */
     } else {
       transright_.write(0x0, 0x4);  // RX_RESET
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      //      printf("   After %d attempts, BUFFBYPASS_DONE is %d
-      //      (RX_RESET)\n",attempts,done);
+      /*
+      printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
+        attempts,done);
+      */
     }
     attempts += 1;
   }

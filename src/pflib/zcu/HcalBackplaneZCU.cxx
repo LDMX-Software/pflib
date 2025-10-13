@@ -1,5 +1,6 @@
 #include "pflib/Target.h"
 #include "pflib/lpgbt/I2C.h"
+#include "pflib/lpgbt/lpGBT_standard_config.h"
 #include "pflib/utility/string_format.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "pflib/zcu/zcu_optolink.h"
@@ -8,6 +9,7 @@ namespace pflib {
 
 static constexpr int ADDR_HCAL_BACKPLANE_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_HCAL_BACKPLANE_TRIG = 0x78;
+static constexpr int I2C_BUS_ECONS = 0; // DAQ
 static constexpr int I2C_BUS_HGCROCS = 1;  // DAQ
 static constexpr int I2C_BUS_BIAS = 1;     // TRIG
 static constexpr int I2C_BUS_BOARD = 0;    // TRIG
@@ -28,6 +30,12 @@ class HcalBackplaneZCU : public Hcal {
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
 
     // next, create the Hcal I2C objects
+    econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
+    econ_i2c_->set_bus_speed(1000);
+    add_econ(0, 0x60 | 0, "econd", econ_i2c_)
+    add_econ(0, 0x20 | 0, "econt", econ_i2c_)
+    add_econ(1, 0x20 | 1, "econt", econ_i2c_)
+
     roc_i2c_ =
         std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
     roc_i2c_->set_bus_speed(1000);
@@ -50,6 +58,9 @@ class HcalBackplaneZCU : public Hcal {
     }
 
     // TODO create ELinks and DAQ objects
+
+    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
   }
 
   virtual void softResetROC(int which) override {
@@ -72,6 +83,11 @@ class HcalBackplaneZCU : public Hcal {
     }
   }
 
+  virtual void softResetECONs() override {
+    trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", false);
+    trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", true);
+  }
+
   virtual void hardResetROCs() override {
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", false);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", true);
@@ -81,6 +97,11 @@ class HcalBackplaneZCU : public Hcal {
     daq_lpgbt_->gpio_interface().setGPO("HGCROC2_HRST", true);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST", false);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC3_HRST", true);
+  }
+
+  virtual void hardResetECONs() override {
+    trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", false);
+    trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
   }
 
   virtual Elinks& elinks() override {
@@ -96,7 +117,7 @@ class HcalBackplaneZCU : public Hcal {
   friend class HcalBackplaneZCUTarget;
   std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
-  std::shared_ptr<pflib::I2C> roc_i2c_;
+  std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
 };
 
 class HcalBackplaneZCUTarget: public Target {
@@ -107,10 +128,13 @@ class HcalBackplaneZCUTarget: public Target {
 
     // copy I2C connections into Target
     // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn]: hcal_ptr->connections_) {
+    for (auto [bid, conn]: hcal_ptr->roc_connections_) {
       i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
       i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
       i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
+    }
+    for (auto [bid, conn]: hcal_ptr->econ_connections_) {
+      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
     }
 
     // TODO make FastControl object

@@ -23,7 +23,6 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 
 void pftool::State::init(Target* tgt) {
   /// copy over page and param names for tab completion
-
   std::vector<int> roc_ids{tgt->hcal().roc_ids()};
   for (int id : roc_ids) {
     auto defs = tgt->hcal().roc(id).defaults();

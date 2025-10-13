@@ -35,7 +35,7 @@ static std::array<int, 72> get_adc_medians(
 
 namespace pflib::algorithm {
 
-std::map<std::string, std::map<std::string, int>> level_pedestals(Target* tgt,
+std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(Target* tgt,
                                                                   ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
@@ -98,7 +98,7 @@ std::map<std::string, std::map<std::string, int>> level_pedestals(Target* tgt,
   }
 
   pflib_log(info) << "sample collections done, deducing settings";
-  std::map<std::string, std::map<std::string, int>> settings;
+  std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int ch{0}; ch < 72; ch++) {
     std::string page{pflib::utility::string_format("CH_%d", ch)};
     int i_link = ch / 36;
@@ -123,7 +123,7 @@ std::map<std::string, std::map<std::string, int>> level_pedestals(Target* tgt,
       }
       // scale is in [0,1]
       double optim = scale * 63;
-      int val = static_cast<int>(optim);
+      uint64_t val = static_cast<uint64_t>(optim);
       pflib_log(trace) << "Scale " << scale << " giving optimal value of "
                        << optim << " which rounds to " << val;
       settings[page]["TRIM_INV"] = val;
@@ -146,7 +146,7 @@ std::map<std::string, std::map<std::string, int>> level_pedestals(Target* tgt,
         continue;
       }
       double optim = scale * 31;
-      int val = static_cast<int>(optim);
+      uint64_t val = static_cast<uint64_t>(optim);
       pflib_log(trace) << "Scale " << scale << " giving optimal value of "
                        << optim << " which rounds to " << val;
       if (val == 0) {

@@ -4,25 +4,41 @@
 
 namespace pflib {
 
-Hcal::Hcal() { nhgcroc_ = 0; }
+Hcal::Hcal() {
+  nhgcroc_ = 0;
+  necon_ = 0;
+}
 
-bool Hcal::have_roc(int iroc) {
-  return connections_.find(iroc) != connections_.end();
+bool Hcal::have_roc(int iroc) const {
+  return roc_connections_.find(iroc) != roc_connections_.end();
+}
+
+bool Hcal::have_econ(int iecon) const {
+  return econ_connections_.find(iecon) != econ_connections_.end();
 }
 
 std::vector<int> Hcal::roc_ids() const {
   std::vector<int> ids;
-  ids.reserve(connections_.size());
-  for (const auto& [id, _conn] : connections_) {
+  ids.reserve(roc_connections_.size());
+  for (const auto& [id, _conn] : roc_connections_) {
+    ids.push_back(id);
+  }
+  return ids;
+}
+
+std::vector<int> Hcal::econ_ids() const {
+  std::vector<int> ids;
+  ids.reserve(econ_connections_.size());
+  for (const auto& [id, _conn] : econ_connections_) {
     ids.push_back(id);
   }
   return ids;
 }
 
 void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_version,
-                   std::shared_ptr<I2C>& roc_i2c,
-                   std::shared_ptr<I2C>& bias_i2c,
-                   std::shared_ptr<I2C>& board_i2c) {
+                   std::shared_ptr<I2C> roc_i2c,
+                   std::shared_ptr<I2C> bias_i2c,
+                   std::shared_ptr<I2C> board_i2c) {
   if (have_roc(iroc)) {
     PFEXCEPTION_RAISE("DuplicateROC",
                       pflib::utility::string_format(
@@ -31,7 +47,7 @@ void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_v
   nhgcroc_++;
   pflib::ROC roc{*roc_i2c, roc_baseaddr, roc_type_version};
   pflib::Bias bias{bias_i2c};
-  connections_.emplace(
+  roc_connections_.emplace(
     iroc,
     Connection {
       .roc_ = roc,
@@ -43,18 +59,45 @@ void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_v
   );
 }
 
+void Hcal::add_econ(int iroc, uint8_t econ_baseaddr, const std::string& type_version,
+                    std::shared_ptr<I2C> i2c) {
+  if (have_econ(iecon)) {
+    PFEXCEPTION_RAISE("DuplicateECON",
+                      pflib::utility::string_format(
+                          "Already have registered ECON with id %d", iroc));
+  }
+  necon_++;
+  pflib::ECON econ{*i2c, econ_baseaddr, type_version};
+  econ_connections_.emplace(
+      iecon,
+      ECONConnection {
+        .econ_ = econ,
+        .i2c_ = i2c
+      }
+  );
+}
+
 ROC Hcal::roc(int which) {
-  auto roc_it{connections_.find(which)};
-  if (roc_it == connections_.end()) {
+  auto roc_it{roc_connections_.find(which)};
+  if (roc_it == roc_connections_.end()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
                                           "Unknown ROC id %d", which));
   }
   return roc_it->second.roc_;
 }
 
+ECON Hcal::econ(int which) {
+  auto econ_it{econ_connections_.find(which)};
+  if (econ_it == econ_connections_.end()) {
+    PFEXCEPTION_RAISE("InvalidECONid", pflib::utility::string_format(
+                                          "Unknown ECON id %d", which));
+  }
+  return econ_it->second.econ_;
+}
+
 Bias Hcal::bias(int which) {
-  auto roc_it{connections_.find(which)};
-  if (roc_it == connections_.end()) {
+  auto roc_it{roc_connections_.find(which)};
+  if (roc_it == roc_connections_.end()) {
     PFEXCEPTION_RAISE("InvalidBoardId", pflib::utility::string_format(
                                             "Unknown board id %d", which));
   }
@@ -64,7 +107,11 @@ Bias Hcal::bias(int which) {
 
 void Hcal::hardResetROCs() {}
 
+void Hcal::hardResetECONs() {}
+
 void Hcal::softResetROC(int which) {}
+
+void Hcal::softResetECON(int which) {}
 
 uint32_t Hcal::getFirmwareVersion() { return 0; }
 

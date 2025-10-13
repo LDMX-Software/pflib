@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
   std::string version{pflib::version::debug()};
   pflib_log(debug) << version;
 
-  std::map<std::string, std::map<std::string, int>> parameters;
+  std::map<std::string, std::map<std::string, uint64_t>> parameters;
   try {
     parameters = pflib::Compiler::get(roc_type_version).defaults();
   } catch (const pflib::Exception& e) {
