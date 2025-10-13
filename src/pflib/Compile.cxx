@@ -300,6 +300,11 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	uint16_t first_reg = spec.registers.front().reg;
 	uint16_t last_reg = spec.registers.front().reg;
 	for (const RegisterLocation& loc : spec.registers) {
+	  if (page_conf.find(loc.reg) == page_conf.end()) {
+            n_missing_regs++;
+            if (be_careful) break;
+          }
+	  
 	  if (loc.reg < first_reg) first_reg = loc.reg;
 	  
 	  // compute how many bytes this field spans

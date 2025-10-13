@@ -223,23 +223,30 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
 
   auto chip_params = c.decompile(settings, true, true);
 
+  /*
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
       std::cout << "  " << param_name << " = " << value << "\n";
     }
   }
+  */
   
   BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
 		      "Page ALIGNER missing in decompiled settings");
+
+  BOOST_CHECK_MESSAGE(chip_params.find("CLOCKSANDRESETS") != chip_params.end(),
+                      "Page CLOCKSANDRESETS missing in decompiled settings");
+  
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd_test");
 
+  // map of register address and nbytes
   std::map<uint16_t, size_t> page_reg_byte_lut, expected;
   expected[0x0389] = 8;
-  expected[0x03c5] = 0x800000;
+  expected[0x03c5] = 3;
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*
