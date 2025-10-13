@@ -13,7 +13,8 @@ namespace pflib {
 ECON::ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version)
     : i2c_{i2c},
       econ_base_{econ_base_addr},
-      compiler_{Compiler::get(type_version)}
+      compiler_{Compiler::get(type_version)},
+      type_{type_version}
 {
   econ_reg_nbytes_lut_ = compiler_.build_register_byte_lut();
 

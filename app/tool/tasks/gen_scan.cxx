@@ -31,9 +31,9 @@ void gen_scan(Target* tgt) {
     do {
       std::cout << "Adding a scan-wide parameter..." << std::endl;
       try {
-        auto page = pftool::readline("  Page: ", pftool::state.page_names());
+        auto page = pftool::readline("  Page: ", pftool::state.roc_page_names());
         auto param =
-            pftool::readline("  Parameter: ", pftool::state.param_names(page));
+            pftool::readline("  Parameter: ", pftool::state.roc_param_names(page));
         auto val = pftool::readline_int("  Value: ");
         scan_wide_params[page][param] = val;
       } catch (const pflib::Exception& e) {

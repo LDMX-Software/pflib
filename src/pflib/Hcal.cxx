@@ -49,7 +49,7 @@ void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_v
   pflib::Bias bias{bias_i2c};
   roc_connections_.emplace(
     iroc,
-    Connection {
+    ROCConnection {
       .roc_ = roc,
       .roc_i2c_ = roc_i2c,
       .bias_ = bias,
@@ -59,12 +59,12 @@ void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_v
   );
 }
 
-void Hcal::add_econ(int iroc, uint8_t econ_baseaddr, const std::string& type_version,
+void Hcal::add_econ(int iecon, uint8_t econ_baseaddr, const std::string& type_version,
                     std::shared_ptr<I2C> i2c) {
   if (have_econ(iecon)) {
     PFEXCEPTION_RAISE("DuplicateECON",
                       pflib::utility::string_format(
-                          "Already have registered ECON with id %d", iroc));
+                          "Already have registered ECON with id %d", iecon));
   }
   necon_++;
   pflib::ECON econ{*i2c, econ_baseaddr, type_version};

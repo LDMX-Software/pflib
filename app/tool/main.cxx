@@ -27,23 +27,49 @@ void pftool::State::init(Target* tgt) {
   for (int id : roc_ids) {
     auto defs = tgt->hcal().roc(id).defaults();
     for (const auto& page: defs) {
-      page_names_[iroc].push_back(page.first);
+      roc_page_names_[id].push_back(page.first);
       for (const auto& param: page.second) {
-        param_names_[iroc][page.first].push_back(param.first);
+        roc_param_names_[id][page.first].push_back(param.first);
+      }
+    }
+  }
+  for (int id : tgt->hcal().econ_ids()) {
+    auto type = tgt->hcal().econ(id).type(); 
+    if (econ_page_names_.find(type) == econ_page_names_.end()) {
+      auto compiler = pflib::Compiler::get(type);
+      for (const auto& page: compiler.defaults()) {
+        econ_page_names_[type].push_back(page.first);
+        for (const auto& param: page.second) {
+          econ_param_names_[type][page.first].push_back(param.first);
+        }
       }
     }
   }
 }
 
-const std::vector<std::string>& pftool::State::page_names() const {
-  return page_names_.at(iroc);
+const std::vector<std::string>& pftool::State::roc_page_names() const {
+  return roc_page_names_.at(iroc);
 }
 
-const std::vector<std::string>& pftool::State::param_names(
+const std::vector<std::string>& pftool::State::roc_param_names(
     const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
-  auto param_list_it = param_names_.at(iroc).find(PAGE);
-  if (param_list_it == param_names_.at(iroc).end()) {
+  auto param_list_it = roc_param_names_.at(iroc).find(PAGE);
+  if (param_list_it == roc_param_names_.at(iroc).end()) {
+    PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
+  }
+  return param_list_it->second;
+}
+
+const std::vector<std::string>& pftool::State::econ_page_names(pflib::ECON econ) const {
+  return econ_page_names_.at(econ.type());
+}
+
+const std::vector<std::string>& pftool::State::econ_param_names(
+    pflib::ECON econ, const std::string& page) const {
+  auto PAGE{pflib::upper_cp(page)};
+  auto param_list_it = econ_param_names_.at(econ.type()).find(PAGE);
+  if (param_list_it == econ_param_names_.at(econ.type()).end()) {
     PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
   }
   return param_list_it->second;

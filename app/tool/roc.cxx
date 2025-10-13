@@ -134,7 +134,7 @@ static void roc(const std::string& cmd, Target* pft) {
     roc.setRunMode(isRunMode);
   }
   if (cmd == "PAGE") {
-    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    auto page = pftool::readline("Page? ", pftool::state.roc_page_names());
     auto params{roc.getParameters(page)};
     for (const auto& [name, val] : params) {
       std::cout << name << ": " << val << '\n';
@@ -142,16 +142,16 @@ static void roc(const std::string& cmd, Target* pft) {
     std::cout << std::flush;
   }
   if (cmd == "PARAM_NAMES") {
-    auto page = pftool::readline("Page? ", pftool::state.page_names());
-    for (const std::string& pn : pftool::state.param_names(page)) {
+    auto page = pftool::readline("Page? ", pftool::state.roc_page_names());
+    for (const std::string& pn : pftool::state.roc_param_names(page)) {
       std::cout << pn << "\n";
     }
     std::cout << std::endl;
   }
   if (cmd == "POKE") {
-    auto page = pftool::readline("Page: ", pftool::state.page_names());
+    auto page = pftool::readline("Page: ", pftool::state.roc_page_names());
     auto param =
-        pftool::readline("Parameter: ", pftool::state.param_names(page));
+        pftool::readline("Parameter: ", pftool::state.roc_param_names(page));
     int val = pftool::readline_int("New value: ");
     roc.applyParameter(page, param, val);
   }

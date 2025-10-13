@@ -1,6 +1,6 @@
 #include "pflib/Target.h"
 #include "pflib/lpgbt/I2C.h"
-#include "pflib/lpgbt/lpGBT_standard_config.h"
+#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "pflib/zcu/zcu_optolink.h"
@@ -32,9 +32,9 @@ class HcalBackplaneZCU : public Hcal {
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
     econ_i2c_->set_bus_speed(1000);
-    add_econ(0, 0x60 | 0, "econd", econ_i2c_)
-    add_econ(0, 0x20 | 0, "econt", econ_i2c_)
-    add_econ(1, 0x20 | 1, "econt", econ_i2c_)
+    add_econ(0, 0x60 | 0, "econd", econ_i2c_);
+    add_econ(0, 0x20 | 0, "econt", econ_i2c_);
+    add_econ(1, 0x20 | 1, "econt", econ_i2c_);
 
     roc_i2c_ =
         std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
@@ -83,7 +83,7 @@ class HcalBackplaneZCU : public Hcal {
     }
   }
 
-  virtual void softResetECONs() override {
+  virtual void softResetECON(int which = -1) override {
     trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", false);
     trig_lpgbt_->gpio_interface().setGPO("ECON_SRST", true);
   }

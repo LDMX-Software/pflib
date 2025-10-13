@@ -11,7 +11,7 @@
  * @param[in] pft active target (not used)
  */
 static void econ_render(Target* pft) {
-  printf(" Active ECON: %d (%s)\n", pftool::state.iecon, pftool::state.type_econ().c_str());
+  printf(" Active ECON: %d\n", pftool::state.iecon);
 }
 
 /**
@@ -35,7 +35,7 @@ static void econ_expert_render(Target* tgt) {
  * - WRITE : write to a specific register
  */
 static void econ_expert(const std::string& cmd, Target* tgt) {
-  auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_econ());
+  auto econ = tgt->hcal().econ(pftool::state.iecon);
   if (cmd == "READ") {
     std::string addr_str = pftool::readline("Register address (hex): ", "0x0000");
     int address = std::stoi(addr_str, nullptr, 16);
@@ -66,7 +66,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  *
  * ## Commands
  * - HARDRESET : pflib::Hcal::hardResetECONs
- * - SOFTRESET : pflib::Hcal::softResetECONs
+ * - SOFTRESET : pflib::Hcal::softResetECON with which=-1
  * - IECON : Change which ECON to focus on
  * - PAGE_NAMES : Use pflib::parameters to get list ECON page names
  * - PARAM_NAMES : Use pflib::parameters to get list ECON parameter names
@@ -85,25 +85,21 @@ static void econ(const std::string& cmd, Target* pft) {
     pft->hcal().hardResetECONs();
   }
   if (cmd == "SOFTRESET") {
-    pft->hcal().softResetECONs();
+    pft->hcal().softResetECON();
   }
   if (cmd == "IECON") {
     pftool::state.iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-    pftool::state.update_type_econ(
-        pftool::readline("type of the ECON (D or T): ", pftool::state.type_econ())
-    );
   }
-  pflib::ECON econ = pft->hcal().econ(pftool::state.iecon, pftool::state.type_econ());
-  pftool::state.update_type_version(pftool::state.type_econ());
+  pflib::ECON econ = pft->hcal().econ(pftool::state.iecon);
   if (cmd == "PAGENAMES") {
-    for (const std::string& pn : pftool::state.page_names()) {
+    for (const std::string& pn : pftool::state.econ_page_names(econ)) {
       std::cout << pn << "\n";
     }
     std::cout << std::endl;
   }
   if (cmd == "PARAMNAMES") {
-    auto page = pftool::readline("Page? ", pftool::state.page_names());
-    for (const std::string& pn : pftool::state.param_names(page)) {
+    auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
+    for (const std::string& pn : pftool::state.econ_param_names(econ, page)) {
       std::cout << pn << "\n";
     }
     std::cout << std::endl;
@@ -114,9 +110,9 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.setRunMode(isRunMode);
   }
   if (cmd == "POKE") {
-    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
     auto param =
-        pftool::readline("Parameter: ", pftool::state.param_names(page));
+        pftool::readline("Parameter: ", pftool::state.econ_param_names(econ, page));
     int val = pftool::readline_int("New value: ");
     econ.applyParameter(page, param, val);
   }  
@@ -133,9 +129,9 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.loadParameters(fname, prepend_defaults);
   }
   if (cmd == "READ") {
-    auto page = pftool::readline("Page? ", pftool::state.page_names());
+    auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
     auto param =
-        pftool::readline("Parameter: ", pftool::state.param_names(page));
+        pftool::readline("Parameter: ", pftool::state.econ_param_names(econ, page));
     econ.readParameter(page, param);
 
   }
@@ -148,7 +144,8 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.readParameters(fname);
   }
   if (cmd == "DUMP") {
-    std::string fname = pftool::readline_path(pftool::state.type_econ() + "_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
+    std::string fname = pftool::readline_path(
+        econ.type() + "_" + std::to_string(pftool::state.iecon)+"_settings", ".yaml");
     econ.dumpSettings(fname, true);
   }
 }

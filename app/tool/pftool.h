@@ -6,6 +6,7 @@
 #pragma once
 
 #include "pflib/Target.h"
+#include "pflib/ECON.h"
 #include "pflib/menu/Menu.h"
 
 /**
@@ -39,16 +40,24 @@ class pftool : public pflib::menu::Menu<Target*> {
   /// static variables to share across menu
   class State {
     /// list of page names for tab completion per ROC ID
-    std::map<int,std::vector<std::string>> page_names_;
+    std::map<int,std::vector<std::string>> roc_page_names_;
     /// list of parameter names for tab-completion per ROC ID
-    std::map<int,std::map<std::string, std::vector<std::string>>> param_names_;
+    std::map<int,std::map<std::string, std::vector<std::string>>> roc_param_names_;
+    /// list of page names for tab completion per ECON type
+    std::map<std::string,std::vector<std::string>> econ_page_names_;
+    /// list of parameter names for tab-completion per ECON type
+    std::map<std::string,std::map<std::string, std::vector<std::string>>> econ_param_names_;
    public:
     /// initialize the state with a Target
     void init(Target* tgt);
     /// get page names for tab completion
-    const std::vector<std::string>& page_names() const;
+    const std::vector<std::string>& roc_page_names() const;
     /// get the parameter names for tab completion
-    const std::vector<std::string>& param_names(const std::string& page) const;
+    const std::vector<std::string>& roc_param_names(const std::string& page) const;
+    /// get page names for tab completion
+    const std::vector<std::string>& econ_page_names(pflib::ECON econ) const;
+    /// get the parameter names for tab completion
+    const std::vector<std::string>& econ_param_names(pflib::ECON econ, const std::string& page) const;
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with

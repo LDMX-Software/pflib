@@ -20,6 +20,7 @@ class ECON {
  public:
   ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version);
 
+  const std::string& type() const { return type_; }
   void setRunMode(bool active = true);
   bool isRunMode();
 
@@ -70,6 +71,7 @@ class ECON {
   I2C& i2c_;
   uint8_t econ_base_;
   Compiler compiler_;
+  std::string type_;
   std::map<uint16_t, size_t> econ_reg_nbytes_lut_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("econ")};
 };

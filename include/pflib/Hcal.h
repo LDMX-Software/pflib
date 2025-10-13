@@ -8,6 +8,7 @@
 #include "pflib/GPIO.h"
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
+#include "pflib/ECON.h"
 // #include "pflib/FastControl.h"
 #include "pflib/DAQ.h"
 
@@ -24,7 +25,7 @@ class Hcal {
   int nrocs() { return nhgcroc_; }
 
   /// number of econds
-  int neconds() { return necond_; }
+  int necons() { return necon_; }
 
   /** do we have a roc with this id? */
   bool have_roc(int iroc) const;
@@ -41,8 +42,8 @@ class Hcal {
   /** Get a ROC interface for the given HGCROC board */
   ROC roc(int which);
 
-  /** get a ECON interface for the given econd board */
-  ECON econd(int which);
+  /** get a ECON interface for the given econ board */
+  ECON econ(int which);
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   Bias bias(int which);
@@ -81,11 +82,14 @@ class Hcal {
                std::shared_ptr<I2C> board_i2c);
 
   /** Add a ECON to the set of ECONs */
-  void add_econ(int iecon, uint8_t econ_baseaddr, const std:string& econ_type,
+  void add_econ(int iecon, uint8_t econ_baseaddr, const std::string& econ_type,
                 std::shared_ptr<I2C> econ_i2c);
 
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
+
+  /** Number of ECON boards in this system */
+  int necon_;
 
   /** The GPIO interface */
   std::unique_ptr<GPIO> gpio_;
