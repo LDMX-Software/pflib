@@ -16,7 +16,6 @@ namespace pflib {
  * @class ECON setup
  */
 class ECON {
-
  public:
   ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version);
 
@@ -30,23 +29,30 @@ class ECON {
 
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
   void loadParameters(const std::string& file_path, bool prepend_defaults);
-  std::map<int, std::map<int, uint8_t>> getRegisters(const std::map<int, std::map<int, uint8_t>>& selected);
-  std::map<int, std::map<int, uint8_t>> applyParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
-  void applyParameter(const std::string& page, const std::string& param, const uint64_t& val);
-  
-  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::map<std::string, std::map<std::string, uint64_t>>& parameters, bool print_values=true);
-  std::map<std::string, std::map<std::string, uint64_t>> readParameters(const std::string& file_path);
+  std::map<int, std::map<int, uint8_t>> getRegisters(
+      const std::map<int, std::map<int, uint8_t>>& selected);
+  std::map<int, std::map<int, uint8_t>> applyParameters(
+      const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+  void applyParameter(const std::string& page, const std::string& param,
+                      const uint64_t& val);
+
+  std::map<std::string, std::map<std::string, uint64_t>> readParameters(
+      const std::map<std::string, std::map<std::string, uint64_t>>& parameters,
+      bool print_values = true);
+  std::map<std::string, std::map<std::string, uint64_t>> readParameters(
+      const std::string& file_path);
   void readParameter(const std::string& page, const std::string& param);
-  
+
   void dumpSettings(const std::string& filename, bool should_decompile);
-  
+
   class TestParameters {
     std::map<int, std::map<int, uint8_t>> previous_registers_;
     ECON& econ_;
 
    public:
     TestParameters(
-        ECON& econ, std::map<std::string, std::map<std::string, uint64_t>> new_params);
+        ECON& econ,
+        std::map<std::string, std::map<std::string, uint64_t>> new_params);
     /// applies the unset parameters to the ECON
     ~TestParameters();
     /// cannot copy or assign this lock
@@ -66,7 +72,7 @@ class ECON {
   };
 
   TestParameters::Builder testParameters();
-  
+
  private:
   I2C& i2c_;
   uint8_t econ_base_;

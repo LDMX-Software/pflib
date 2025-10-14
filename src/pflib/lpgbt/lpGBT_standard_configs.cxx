@@ -81,11 +81,17 @@ void setup_hcal_trig(pflib::lpGBT& lpgbt) {
       3, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC3_SRST");
   lpgbt.gpio_set(3, true);
-  lpgbt.gpio_cfg_set(9,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"BIAS_I2C_RST");
+  lpgbt.gpio_cfg_set(
+      9, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "BIAS_I2C_RST");
   lpgbt.gpio_set(9, true);
-  lpgbt.gpio_cfg_set(8,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"ECON_HRST");
+  lpgbt.gpio_cfg_set(
+      8, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "ECON_HRST");
   lpgbt.gpio_set(8, true);
-  lpgbt.gpio_cfg_set(11,lpGBT::GPIO_IS_OUTPUT|lpGBT::GPIO_IS_PULLUP|lpGBT::GPIO_IS_STRONG,"ECON_SRST");
+  lpgbt.gpio_cfg_set(
+      11, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "ECON_SRST");
   lpgbt.gpio_set(11, true);
 
   // setup the high speed inputs

@@ -4,11 +4,11 @@
 #include <memory>
 
 #include "pflib/Bias.h"
+#include "pflib/ECON.h"
 #include "pflib/Elinks.h"
 #include "pflib/GPIO.h"
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
-#include "pflib/ECON.h"
 // #include "pflib/FastControl.h"
 #include "pflib/DAQ.h"
 
@@ -77,7 +77,8 @@ class Hcal {
 
  protected:
   /** Add a ROC to the set of ROCs */
-  void add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_version,
+  void add_roc(int iroc, uint8_t roc_baseaddr,
+               const std::string& roc_type_version,
                std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
                std::shared_ptr<I2C> board_i2c);
 
@@ -110,7 +111,6 @@ class Hcal {
     std::shared_ptr<I2C> i2c_;
   };
   std::map<int, ECONConnection> econ_connections_;
-
 };
 
 }  // namespace pflib

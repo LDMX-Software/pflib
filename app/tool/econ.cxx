@@ -32,8 +32,10 @@ static void econ_render(Target* tgt) {
  */
 static void econ_expert_render(Target* tgt) {
   econ_render(tgt);
-  std::cout << "This menu avoids using the 'compiler' to translate parameter names into\n"
-               "register values and instead allows you to read/write registers directly.\n";
+  std::cout << "This menu avoids using the 'compiler' to translate parameter "
+               "names into\n"
+               "register values and instead allows you to read/write registers "
+               "directly.\n";
 }
 
 /**
@@ -44,13 +46,14 @@ static void econ_expert_render(Target* tgt) {
  * using the compiler
  *
  * ## Commands
- * - READ : read a specific register 
+ * - READ : read a specific register
  * - WRITE : write to a specific register
  */
 static void econ_expert(const std::string& cmd, Target* tgt) {
   auto econ = tgt->hcal().econ(pftool::state.iecon);
   if (cmd == "READ") {
-    std::string addr_str = pftool::readline("Register address (hex): ", "0x0000");
+    std::string addr_str =
+        pftool::readline("Register address (hex): ", "0x0000");
     int address = std::stoi(addr_str, nullptr, 16);
     int nbytes = pftool::readline_int("Number of bytes to read: ", 1);
 
@@ -60,14 +63,14 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
     for (size_t i = 0; i < data.size(); i++) {
       printf("  [%02zu] = 0x%02x\n", i, data[i]);
     }
-  }
-  else if (cmd == "WRITE") {
+  } else if (cmd == "WRITE") {
     int address = pftool::readline_int("Register address (hex): ", 0x0000);
     int nbytes = pftool::readline_int("Number of bytes to write: ", 1);
     uint64_t value = pftool::readline_int("Value to write (hex): ", 0x0);
 
     econ.setValue(address, value, nbytes);
-    printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, address, nbytes);
+    printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, address,
+           nbytes);
   }
 }
 
@@ -102,7 +105,8 @@ static void econ(const std::string& cmd, Target* pft) {
   }
   if (cmd == "IECON") {
     print_econs(pft);
-    pftool::state.iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+    pftool::state.iecon =
+        pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   }
   pflib::ECON econ = pft->hcal().econ(pftool::state.iecon);
   if (cmd == "PAGENAMES") {
@@ -125,11 +129,11 @@ static void econ(const std::string& cmd, Target* pft) {
   }
   if (cmd == "POKE") {
     auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
-    auto param =
-        pftool::readline("Parameter: ", pftool::state.econ_param_names(econ, page));
+    auto param = pftool::readline("Parameter: ",
+                                  pftool::state.econ_param_names(econ, page));
     int val = pftool::readline_int("New value: ");
     econ.applyParameter(page, param, val);
-  }  
+  }
   if (cmd == "LOAD") {
     std::cout << "\n"
                  " --- This command expects a YAML file with page names, "
@@ -144,26 +148,25 @@ static void econ(const std::string& cmd, Target* pft) {
   }
   if (cmd == "READ") {
     auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
-    auto param =
-        pftool::readline("Parameter: ", pftool::state.econ_param_names(econ, page));
+    auto param = pftool::readline("Parameter: ",
+                                  pftool::state.econ_param_names(econ, page));
     econ.readParameter(page, param);
-
   }
   if (cmd == "READCONFIG") {
     std::cout << "\n"
-      " --- This command expects a YAML file with page names, "
-      "parameter names and their values.\n"
-	      << std::flush;
+                 " --- This command expects a YAML file with page names, "
+                 "parameter names and their values.\n"
+              << std::flush;
     std::string fname = pftool::readline("Filename: ");
     econ.readParameters(fname);
   }
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
-        econ.type() + "_" + std::to_string(pftool::state.iecon)+"_settings", ".yaml");
+        econ.type() + "_" + std::to_string(pftool::state.iecon) + "_settings",
+        ".yaml");
     econ.dumpSettings(fname, true);
   }
 }
-
 
 namespace {
 auto menu_econ =
@@ -178,12 +181,11 @@ auto menu_econ =
         ->line("LOAD", "load all parameters", econ)
         ->line("DUMP", "dump parameters", econ)
         ->line("READCONFIG", "read a yaml file", econ)
-        ->line("READ", "read one parameter and page", econ)
-    ;
+        ->line("READ", "read one parameter and page", econ);
 
 auto menu_econ_expert =
-  menu_econ->submenu("EXPERT", "expert interaction with ECON", econ_expert_render)
-  ->line("READ", "read a single register's value", econ_expert)
-  ->line("WRITE", "read a single register's value", econ_expert)
-    ;
-}
+    menu_econ
+        ->submenu("EXPERT", "expert interaction with ECON", econ_expert_render)
+        ->line("READ", "read a single register's value", econ_expert)
+        ->line("WRITE", "read a single register's value", econ_expert);
+}  // namespace

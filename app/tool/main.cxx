@@ -26,20 +26,20 @@ void pftool::State::init(Target* tgt) {
   std::vector<int> roc_ids{tgt->hcal().roc_ids()};
   for (int id : roc_ids) {
     auto defs = tgt->hcal().roc(id).defaults();
-    for (const auto& page: defs) {
+    for (const auto& page : defs) {
       roc_page_names_[id].push_back(page.first);
-      for (const auto& param: page.second) {
+      for (const auto& param : page.second) {
         roc_param_names_[id][page.first].push_back(param.first);
       }
     }
   }
   for (int id : tgt->hcal().econ_ids()) {
-    auto type = tgt->hcal().econ(id).type(); 
+    auto type = tgt->hcal().econ(id).type();
     if (econ_page_names_.find(type) == econ_page_names_.end()) {
       auto compiler = pflib::Compiler::get(type);
-      for (const auto& page: compiler.defaults()) {
+      for (const auto& page : compiler.defaults()) {
         econ_page_names_[type].push_back(page.first);
-        for (const auto& param: page.second) {
+        for (const auto& param : page.second) {
           econ_param_names_[type][page.first].push_back(param.first);
         }
       }
@@ -61,7 +61,8 @@ const std::vector<std::string>& pftool::State::roc_param_names(
   return param_list_it->second;
 }
 
-const std::vector<std::string>& pftool::State::econ_page_names(pflib::ECON econ) const {
+const std::vector<std::string>& pftool::State::econ_page_names(
+    pflib::ECON econ) const {
   return econ_page_names_.at(econ.type());
 }
 

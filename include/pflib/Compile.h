@@ -61,9 +61,9 @@ class Compiler {
    * checking of names before calling this one.
    *
    * **Most** of the parameters have the same names as the ones in the
-   * \hgcrocmanual or econmanual; however, a few parameters on the Top sub-block (page)
-   * different in format and so we have changed them here. The translations from
-   * the manual to what is used here are listed below.
+   * \hgcrocmanual or econmanual; however, a few parameters on the Top sub-block
+   * (page) different in format and so we have changed them here. The
+   * translations from the manual to what is used here are listed below.
    * - DIV_PLL_{A,B} -> DIV_PLL (two bit field)
    * - EN{1,2,3}_probe_pll -> PLL_probe_amplitude (three bit field)
    * - EN-pE{0,1,2}_probe_pll -> PLL_probe_pre_scale (three bit field)
@@ -127,7 +127,7 @@ class Compiler {
       const std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
   std::map<uint16_t, size_t> build_register_byte_lut();
-  
+
   /**
    * Get the known pages from the LUTs
    *
@@ -162,7 +162,7 @@ class Compiler {
    */
   std::map<std::string, std::map<std::string, uint64_t>> decompile(
       const std::map<int, std::map<int, uint8_t>>& compiled_config,
-      bool be_careful, bool little_endian=false);
+      bool be_careful, bool little_endian = false);
 
   /**
    * get the registers corresponding to the input page
@@ -219,8 +219,9 @@ class Compiler {
    * @param[in,out] settings page name, parameter name, parameter value settings
    *  extracted from YAML file(s)
    */
-  void extract(const std::vector<std::string>& setting_files,
-               std::map<std::string, std::map<std::string, uint64_t>>& settings);
+  void extract(
+      const std::vector<std::string>& setting_files,
+      std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
   /**
    * compile a series of yaml files
@@ -267,8 +268,9 @@ class Compiler {
    * @param[in] params a YAML::Node to start extraction from
    * @param[in,out] settings map of names to values for extract parameters
    */
-  void extract(YAML::Node params,
-               std::map<std::string, std::map<std::string, uint64_t>>& settings);
+  void extract(
+      YAML::Node params,
+      std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
  private:
   const ParameterLUT& parameter_lut_;

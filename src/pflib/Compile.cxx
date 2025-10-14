@@ -4,11 +4,10 @@
 #include <yaml-cpp/yaml.h>
 
 #include <algorithm>
+#include <cinttypes>
 #include <iostream>
 #include <map>
 #include <numeric>
-
-#include <cinttypes>
 
 #include "pflib/Exception.h"
 
@@ -25,7 +24,7 @@ std::string upper_cp(const std::string& str) {
 Compiler Compiler::get(const std::string& type_version) {
   auto chip_it = REGISTER_MAP_BY_TYPE.find(type_version);
   if (chip_it != REGISTER_MAP_BY_TYPE.end()) {
-    //printf("[DEBUG] Found type: %s\n", type_version.c_str());
+    // printf("[DEBUG] Found type: %s\n", type_version.c_str());
 
     // print out the first few page names
     /*
@@ -46,9 +45,10 @@ Compiler Compiler::get(const std::string& type_version) {
 
     return Compiler(chip_it->second.second, chip_it->second.first);
   }
-  
-  PFEXCEPTION_RAISE("BadType", "Type_version " + type_version +
-                    " is not present within ROC or ECON register maps.");
+
+  PFEXCEPTION_RAISE("BadType",
+                    "Type_version " + type_version +
+                        " is not present within ROC or ECON register maps.");
 }
 
 Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
@@ -165,7 +165,7 @@ std::map<int, std::map<int, uint8_t>> Compiler::compile(
 
   return register_values;
 }
-  
+
 std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
   // register address -> number of bytes used
   std::map<uint16_t, size_t> reg_byte_lut;
@@ -180,48 +180,51 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
       const Parameter& param = param_pair.second;
       std::vector<RegisterLocation> regs = param.registers;
 
-      // start and end of the first (regs[0]) contiguous block of addresses for this parameter
+      // start and end of the first (regs[0]) contiguous block of addresses for
+      // this parameter
       uint16_t start = regs[0].reg;
       uint16_t end = start + (regs[0].min_bit + regs[0].n_bits + 7) / 8 - 1;
 
       // iterate over remaining register locations for this parameter
       for (size_t i = 1; i < regs.size(); ++i) {
-	uint16_t loc_start = regs[i].reg;
-	uint16_t loc_end = loc_start + (regs[i].min_bit + regs[i].n_bits + 7) / 8 - 1;
-	
-	if (loc_start <= end + 1) {
-	  // overlapping or contiguous with previous block: extend the block
-	  end = std::max(end, loc_end);
-	} else {
-	  // non-contiguous: save previous block if it does not exist (prevents overwriting)...
-	  if (reg_byte_lut.find(start) == reg_byte_lut.end()) {
-	    reg_byte_lut[start] = end - start + 1;
-	  }
-	  
-	  // start a new one
-	  start = loc_start;
-	  end = loc_end;
-	}
+        uint16_t loc_start = regs[i].reg;
+        uint16_t loc_end =
+            loc_start + (regs[i].min_bit + regs[i].n_bits + 7) / 8 - 1;
+
+        if (loc_start <= end + 1) {
+          // overlapping or contiguous with previous block: extend the block
+          end = std::max(end, loc_end);
+        } else {
+          // non-contiguous: save previous block if it does not exist (prevents
+          // overwriting)...
+          if (reg_byte_lut.find(start) == reg_byte_lut.end()) {
+            reg_byte_lut[start] = end - start + 1;
+          }
+
+          // start a new one
+          start = loc_start;
+          end = loc_end;
+        }
       }
-      
+
       // write the last block
-      // e.g. if a previous parameter already wrote a block starting at addr_x of length 1, but the current parameter extends to include addr_x+1, the map will update to length=2
+      // e.g. if a previous parameter already wrote a block starting at addr_x
+      // of length 1, but the current parameter extends to include addr_x+1, the
+      // map will update to length=2
       uint16_t block_len = end - start + 1;
       auto it = reg_byte_lut.find(start);
       if (it == reg_byte_lut.end()) {
-	reg_byte_lut[start] = block_len;
+        reg_byte_lut[start] = block_len;
       } else {
-	it->second = std::max(it->second, static_cast<decltype(it->second)>(block_len));
+        it->second =
+            std::max(it->second, static_cast<decltype(it->second)>(block_len));
       }
-
     }
   }
 
-  
   return reg_byte_lut;
 }
 
-    
 std::vector<int> Compiler::get_known_pages() {
   std::vector<int> known_pages;
   known_pages.reserve(parameter_lut_.size());
@@ -255,126 +258,127 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
       uint64_t pval{0};
       std::size_t value_curr_min_bit = 0;
       int n_missing_regs{0};
-      
+
       if (little_endian) {
         // collect all relevant registers in a vector in descending order
-	std::vector<uint8_t> data;
-	uint16_t first_reg = spec.registers.front().reg;
-	uint16_t last_reg = spec.registers.front().reg;
-	for (const RegisterLocation& loc : spec.registers) {
-	  if (page_conf.find(loc.reg) == page_conf.end()) {
+        std::vector<uint8_t> data;
+        uint16_t first_reg = spec.registers.front().reg;
+        uint16_t last_reg = spec.registers.front().reg;
+        for (const RegisterLocation& loc : spec.registers) {
+          if (page_conf.find(loc.reg) == page_conf.end()) {
             n_missing_regs++;
             if (be_careful)
-	      break;
-	    else
-	      continue;
+              break;
+            else
+              continue;
           }
-	  
-	  if (loc.reg < first_reg) first_reg = loc.reg;
-	  
-	  // compute how many bytes this field spans to set the last_reg
-	  uint16_t span_bytes = (loc.min_bit + loc.n_bits + 7) / 8; // ceiling division
-	  uint16_t reg_end = loc.reg + span_bytes - 1;	  
-	  if (reg_end > last_reg) last_reg = reg_end;
-	}
 
-	if (n_missing_regs > 0 && !be_careful) {
-	  //pflib_log(debug) << "Skipping parameter " << param.first
-	  //<< " (no registers found in compiled config)";
-	  continue;
-	}
+          if (loc.reg < first_reg) first_reg = loc.reg;
 
-	for (uint16_t reg = first_reg; reg <= last_reg; ++reg) {
-	  auto it = page_conf.find(reg);
-	  if (it != page_conf.end()) {
-	    data.push_back(it->second);
-	    //pflib_log(debug) << "[DEBUG] Register 0x" << std::hex << reg
-	    //<< ": byte=0x" << int(it->second);
-	  } else {
-	    //pflib_log(warn) << "[WARN] Missing register 0x" << std::hex << reg
-	    //<< " for parameter " << param.first;
-	    n_missing_regs++;
-	    data.push_back(0); // assume 0 if missing
-	  }
+          // compute how many bytes this field spans to set the last_reg
+          uint16_t span_bytes =
+              (loc.min_bit + loc.n_bits + 7) / 8;  // ceiling division
+          uint16_t reg_end = loc.reg + span_bytes - 1;
+          if (reg_end > last_reg) last_reg = reg_end;
         }
 
-	// combine into a little endian integer
-	uint64_t value = 0;
-	for (size_t i = 0; i < data.size(); ++i) 
-	  value |= (static_cast<uint64_t>(data[i]) << (8 * i));
-	
-	//pflib_log(debug) << "[DEBUG] data contents for parameter " << param.first << ":";
-	//for (size_t i = 0; i < data.size(); ++i) {
-	//pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex << int(data[i]);
-	//}
-	//pflib_log(debug) << "value " << std::hex << value;
- 
+        if (n_missing_regs > 0 && !be_careful) {
+          // pflib_log(debug) << "Skipping parameter " << param.first
+          //<< " (no registers found in compiled config)";
+          continue;
+        }
+
+        for (uint16_t reg = first_reg; reg <= last_reg; ++reg) {
+          auto it = page_conf.find(reg);
+          if (it != page_conf.end()) {
+            data.push_back(it->second);
+            // pflib_log(debug) << "[DEBUG] Register 0x" << std::hex << reg
+            //<< ": byte=0x" << int(it->second);
+          } else {
+            // pflib_log(warn) << "[WARN] Missing register 0x" << std::hex <<
+            // reg
+            //<< " for parameter " << param.first;
+            n_missing_regs++;
+            data.push_back(0);  // assume 0 if missing
+          }
+        }
+
+        // combine into a little endian integer
+        uint64_t value = 0;
+        for (size_t i = 0; i < data.size(); ++i)
+          value |= (static_cast<uint64_t>(data[i]) << (8 * i));
+
+        // pflib_log(debug) << "[DEBUG] data contents for parameter " <<
+        // param.first << ":"; for (size_t i = 0; i < data.size(); ++i) {
+        // pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex <<
+        // int(data[i]);
+        // }
+        // pflib_log(debug) << "value " << std::hex << value;
+
         for (const RegisterLocation& loc : spec.registers) {
-	  // extract field from this register
-	  uint64_t field_value = (value >> loc.min_bit) & loc.mask;
+          // extract field from this register
+          uint64_t field_value = (value >> loc.min_bit) & loc.mask;
 
-	  /*
-	  pflib_log(debug) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
-			  << std::hex << loc.reg
-			  << ", min_bit=" << std::dec << loc.min_bit
-			  << ", n_bits=" << loc.n_bits
-			  << ", mask=0x" << std::hex << loc.mask
-			  << ", field_value=0x" << std::hex << field_value;
-	  */
-	  pval |= field_value;
+          /*
+          pflib_log(debug) << "[DEBUG] Extracting field from RegisterLocation:
+          reg=0x"
+                          << std::hex << loc.reg
+                          << ", min_bit=" << std::dec << loc.min_bit
+                          << ", n_bits=" << loc.n_bits
+                          << ", mask=0x" << std::hex << loc.mask
+                          << ", field_value=0x" << std::hex << field_value;
+          */
+          pval |= field_value;
         }
-	
-	//pflib_log(debug) << "[DEBUG] Parameter '" << param.first
-	//<< "' final value = 0x" << std::hex << pval;
 
-      }
-      else {
-	// non-little-endian logic
-	for (const RegisterLocation& location : spec.registers) {
-	  uint8_t sub_val =
-	    0;  // defaults ot zero if not careful and register not found    
-	  if (page_conf.find(location.reg) == page_conf.end()) {
-	    n_missing_regs++;
-	    if (be_careful) break;
-	  } else {
-	    // grab sub value of parameter in this register
-	    sub_val = ((page_conf.at(location.reg) >> location.min_bit) &
-		       location.mask);
-	  }
-	  pval += (sub_val << value_curr_min_bit);
-	  value_curr_min_bit += location.n_bits;
-	}
-      }
-      
-      
-      if (n_missing_regs == spec.registers.size() or
-	  (be_careful and n_missing_regs > 0)) {
-	// skip this parameter
-	if (be_careful) {
-	  pflib_log(warn)
-	    << "parameter " << param.first << " in page " << page_name
-	    << " wasn't provided the necessary registers to be deduced";
-	  
-	  std::ostringstream oss;
-	  oss << "  Expected registers: ";
-	  for (const auto& loc : spec.registers) {
-	    oss << "0x" << std::hex << loc.reg << " ";
-	  }
-	  pflib_log(warn) << oss.str();
-	  
-	  std::ostringstream present;
-	  present << "  Registers provided in compiled_config[" << page_name << "]: ";
-	  for (const auto& kv : page_conf) {
-	    present << "0x" << std::hex << kv.first << " ";
-	  }
-	  pflib_log(warn) << present.str();
-	
-	}
+        // pflib_log(debug) << "[DEBUG] Parameter '" << param.first
+        //<< "' final value = 0x" << std::hex << pval;
+
       } else {
-	settings[page_name][param.first] = pval;
-	pflib_log(debug) << "Parameter '" << param.first << "' final value = 0x"
-			<< std::hex << pval
-                        << " (" << std::dec << pval << ")";
+        // non-little-endian logic
+        for (const RegisterLocation& location : spec.registers) {
+          uint8_t sub_val =
+              0;  // defaults ot zero if not careful and register not found
+          if (page_conf.find(location.reg) == page_conf.end()) {
+            n_missing_regs++;
+            if (be_careful) break;
+          } else {
+            // grab sub value of parameter in this register
+            sub_val = ((page_conf.at(location.reg) >> location.min_bit) &
+                       location.mask);
+          }
+          pval += (sub_val << value_curr_min_bit);
+          value_curr_min_bit += location.n_bits;
+        }
+      }
+
+      if (n_missing_regs == spec.registers.size() or
+          (be_careful and n_missing_regs > 0)) {
+        // skip this parameter
+        if (be_careful) {
+          pflib_log(warn)
+              << "parameter " << param.first << " in page " << page_name
+              << " wasn't provided the necessary registers to be deduced";
+
+          std::ostringstream oss;
+          oss << "  Expected registers: ";
+          for (const auto& loc : spec.registers) {
+            oss << "0x" << std::hex << loc.reg << " ";
+          }
+          pflib_log(warn) << oss.str();
+
+          std::ostringstream present;
+          present << "  Registers provided in compiled_config[" << page_name
+                  << "]: ";
+          for (const auto& kv : page_conf) {
+            present << "0x" << std::hex << kv.first << " ";
+          }
+          pflib_log(warn) << present.str();
+        }
+      } else {
+        settings[page_name][param.first] = pval;
+        pflib_log(debug) << "Parameter '" << param.first << "' final value = 0x"
+                         << std::hex << pval << " (" << std::dec << pval << ")";
       }
     }
   }
@@ -408,8 +412,8 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::defaults() {
 }
 
 void Compiler::extract(
-		       const std::vector<std::string>& setting_files,
-		       std::map<std::string, std::map<std::string, uint64_t>>& settings) {
+    const std::vector<std::string>& setting_files,
+    std::map<std::string, std::map<std::string, uint64_t>>& settings) {
   for (auto& setting_file : setting_files) {
     YAML::Node setting_yaml;
     try {
@@ -425,7 +429,7 @@ void Compiler::extract(
     }
   }
 }
-  
+
 std::map<int, std::map<int, uint8_t>> Compiler::compile(
     const std::vector<std::string>& setting_files, bool prepend_defaults) {
   std::map<std::string, std::map<std::string, uint64_t>> settings;
@@ -448,8 +452,9 @@ void Compiler::extract(
     std::map<std::string, std::map<std::string, uint64_t>>& settings) {
   // deduce list of page names for search
   //    only do this once per program run
-  //static std::vector<std::string> page_names;
-  // Commented this out for now .. otherwise if we run the econd and roc tests at the same time it will fail.. FIX by separating them
+  // static std::vector<std::string> page_names;
+  // Commented this out for now .. otherwise if we run the econd and roc tests
+  // at the same time it will fail.. FIX by separating them
   std::vector<std::string> page_names;
   if (page_names.empty()) {
     for (auto& page : parameter_lut_) page_names.push_back(page.first);
@@ -464,7 +469,6 @@ void Compiler::extract(
     PFEXCEPTION_RAISE("BadFormat", "The YAML node provided is not a map.");
   }
 
-  
   for (const auto& page_pair : params) {
     std::string page_name = page_pair.first.as<std::string>();
     YAML::Node page_settings = page_pair.second;
@@ -484,8 +488,9 @@ void Compiler::extract(
                    std::back_inserter(matching_pages),
                    [&](const std::string& page) { return PAGE_NAME == page; });
     } else {
-      //pflib_log(debug)
-      //<< "[DEBUG] Searching for wildcard match. Page_Name: '" << page_name << "'";
+      // pflib_log(debug)
+      //<< "[DEBUG] Searching for wildcard match. Page_Name: '" << page_name <<
+      //"'";
       page_name = page_name.substr(0, page_name.find('*'));
       std::copy_if(page_names.begin(), page_names.end(),
                    std::back_inserter(matching_pages),
@@ -504,7 +509,7 @@ void Compiler::extract(
     for (const auto& page : matching_pages) {
       for (const auto& param : page_settings) {
         std::string sval;
-	if (param.second.IsScalar()) {
+        if (param.second.IsScalar()) {
           try {
             // try to parse as string first
             sval = param.second.as<std::string>();
@@ -515,24 +520,26 @@ void Compiler::extract(
               sval = std::to_string(ival);
             } catch (const YAML::TypedBadConversion<int>&) {
               PFEXCEPTION_RAISE("BadFormat", "Value for parameter " +
-                                param.first.as<std::string>() + " is neither string nor int.");
+                                                 param.first.as<std::string>() +
+                                                 " is neither string nor int.");
             }
           }
         } else {
           PFEXCEPTION_RAISE("BadFormat", "Non-scalar value for parameter " +
-                            param.first.as<std::string>());
+                                             param.first.as<std::string>());
         }
-	
+
         if (sval.empty()) {
           PFEXCEPTION_RAISE("BadFormat", "Non-existent value for parameter " +
-			    param.first.as<std::string>());
+                                             param.first.as<std::string>());
         }
         std::string param_name = upper_cp(param.first.as<std::string>());
-	settings[page][param_name] = std::stoull(sval, nullptr, 0);  // base 0 allows hex
-	//settings[page][param_name] = utility::str_to_int(sval);
+        settings[page][param_name] =
+            std::stoull(sval, nullptr, 0);  // base 0 allows hex
+        // settings[page][param_name] = utility::str_to_int(sval);
       }
     }
   }
 }
-  
+
 }  // namespace pflib

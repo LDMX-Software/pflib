@@ -89,7 +89,8 @@ int main(int argc, char* argv[]) {
   }
 
   if (setting_files.empty()) {
-    pflib_log(fatal) << "We need at least one settings YAML file as argument to compile.";
+    pflib_log(fatal)
+        << "We need at least one settings YAML file as argument to compile.";
     return 2;
   }
 

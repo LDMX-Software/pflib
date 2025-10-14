@@ -3,10 +3,9 @@
 
 #include <boost/test/unit_test.hpp>
 #include <fstream>
+#include <iomanip>
 
 #include "pflib/Exception.h"
-
-#include <iomanip>
 
 BOOST_AUTO_TEST_SUITE(compile)
 
@@ -129,26 +128,28 @@ BOOST_AUTO_TEST_CASE(glob_pages) {
 
 BOOST_AUTO_TEST_CASE(single_register_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd");
-  // Note: this map is going to return a vector where the lowest address (0x0389) gets the least significant byte (rightmost) i.e. 0
-  // and the highest address (0x0390) gets the most significant byte (leftmost) i.e. 0xff
+  // Note: this map is going to return a vector where the lowest address
+  // (0x0389) gets the least significant byte (rightmost) i.e. 0 and the highest
+  // address (0x0390) gets the most significant byte (leftmost) i.e. 0xff
   std::map<int, std::map<int, uint8_t>> registers, expected;
   expected[0][0x0389] = 0;
   expected[0][0x038a] = 0;
   expected[0][0x038b] = 0;
   expected[0][0x038c] = 0;
   expected[0][0x038d] = 0xff;
-  expected[0][0x038e] =	0xff;
-  expected[0][0x038f] =	0xff;
+  expected[0][0x038e] = 0xff;
+  expected[0][0x038f] = 0xff;
   expected[0][0x0390] = 0xff;
-  
+
   uint64_t mask_val = 0xFFFFFFFF00000000ULL;
-  
+
   // Call compile() with uint64_t value
   c.compile("ALIGNER", "GLOBAL_MATCH_MASK_VAL", mask_val, registers);
 
-  // The registers are already in the form that we need it in ECON (little endian first), so we can just flatten it out 
+  // The registers are already in the form that we need it in ECON (little
+  // endian first), so we can just flatten it out
   std::vector<uint8_t> data;
-  int page = 0; 
+  int page = 0;
   for (const auto& [addr, val] : registers[page]) {
     data.push_back(val);
   }
@@ -165,11 +166,11 @@ BOOST_AUTO_TEST_CASE(single_register_econd) {
     printf("0x%02X ", byte);
   printf("\n");
   */
-  
+
   BOOST_CHECK(registers == expected);
 }
 
-BOOST_AUTO_TEST_CASE(extract_largehexstr_econd){
+BOOST_AUTO_TEST_CASE(extract_largehexstr_econd) {
   pflib::Compiler c = pflib::Compiler::get("econd");
 
   std::string yaml_path = "aligner_test.yaml";
@@ -179,11 +180,12 @@ BOOST_AUTO_TEST_CASE(extract_largehexstr_econd){
               << "  GLOBAL_MATCH_MASK_VAL: 0xFFFFFFFF00000000\n";
   }
 
-  std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected;
   expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
-  BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
+  BOOST_CHECK_MESSAGE(settings == expected,
+                      "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
 }
 
 BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
@@ -196,16 +198,17 @@ BOOST_AUTO_TEST_CASE(extract_largeint_econd) {
               << "  GLOBAL_MATCH_MASK_VAL: '18446744069414584320'\n";
   }
 
-  std::map<std::string, std::map<std::string, uint64_t>> settings, expected ;
+  std::map<std::string, std::map<std::string, uint64_t>> settings, expected;
   expected["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0xFFFFFFFF00000000ULL;
   c.extract({yaml_path}, settings);
 
-  BOOST_CHECK_MESSAGE(settings == expected, "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
+  BOOST_CHECK_MESSAGE(settings == expected,
+                      "ALIGNER.GLOBAL_MATCH_MASK_VAL mismatch");
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   pflib::Compiler c = pflib::Compiler::get("econd_test");
-  //pflib::Compiler c = pflib::Compiler::get("econd");
+  // pflib::Compiler c = pflib::Compiler::get("econd");
 
   std::map<int, std::map<int, uint8_t>> settings;
   settings[0][0x389] = 0xff;
@@ -231,13 +234,12 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
     }
   }
   */
-  
+
   BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
-		      "Page ALIGNER missing in decompiled settings");
+                      "Page ALIGNER missing in decompiled settings");
 
   BOOST_CHECK_MESSAGE(chip_params.find("CLOCKSANDRESETS") != chip_params.end(),
                       "Page CLOCKSANDRESETS missing in decompiled settings");
-  
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
@@ -252,14 +254,16 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
     std::cout << "0x"
-              << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << reg
+              << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
+  << reg
               << " -> "
               << std::dec << nbytes << " bytes\n";
   }
   */
-  
-  BOOST_CHECK_MESSAGE(page_reg_byte_lut == expected,
-                    "The generated register LUT does not match the expected LUT");
+
+  BOOST_CHECK_MESSAGE(
+      page_reg_byte_lut == expected,
+      "The generated register LUT does not match the expected LUT");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

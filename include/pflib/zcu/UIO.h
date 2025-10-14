@@ -55,7 +55,6 @@ class UIO {
   size_t size_;
   uint32_t* ptr_;
   int handle_;
-
 };
 }  // namespace pflib
 #endif

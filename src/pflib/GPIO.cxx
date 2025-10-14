@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-
-
 #include "pflib/Exception.h"
 
 namespace pflib {

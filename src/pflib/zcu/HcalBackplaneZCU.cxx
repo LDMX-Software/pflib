@@ -9,7 +9,7 @@ namespace pflib {
 
 static constexpr int ADDR_HCAL_BACKPLANE_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_HCAL_BACKPLANE_TRIG = 0x78;
-static constexpr int I2C_BUS_ECONS = 0; // DAQ
+static constexpr int I2C_BUS_ECONS = 0;    // DAQ
 static constexpr int I2C_BUS_HGCROCS = 1;  // DAQ
 static constexpr int I2C_BUS_BIAS = 1;     // TRIG
 static constexpr int I2C_BUS_BOARD = 0;    // TRIG
@@ -51,10 +51,8 @@ class HcalBackplaneZCU : public Hcal {
       // right now its hardcoded because everyone has one of these
       // but we could modify this constructor and its calling factory
       // function in order to pass in a configuration
-      add_roc(
-        ibd, 0x28 | (ibd*8), "sipm_rocv3b",
-        roc_i2c_, bias_i2c, board_i2c
-      );
+      add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
+              board_i2c);
     }
 
     // TODO create ELinks and DAQ objects
@@ -120,20 +118,20 @@ class HcalBackplaneZCU : public Hcal {
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
 };
 
-class HcalBackplaneZCUTarget: public Target {
+class HcalBackplaneZCUTarget : public Target {
  public:
-  HcalBackplaneZCUTarget(int ilink, uint8_t board_mask): Target() {
+  HcalBackplaneZCUTarget(int ilink, uint8_t board_mask) : Target() {
     auto hcal_ptr = std::make_shared<HcalBackplaneZCU>(ilink, board_mask);
     hcal_ = hcal_ptr;
 
     // copy I2C connections into Target
     // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn]: hcal_ptr->roc_connections_) {
+    for (auto [bid, conn] : hcal_ptr->roc_connections_) {
       i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
       i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
       i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
     }
-    for (auto [bid, conn]: hcal_ptr->econ_connections_) {
+    for (auto [bid, conn] : hcal_ptr->econ_connections_) {
       i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
     }
 
@@ -141,7 +139,8 @@ class HcalBackplaneZCUTarget: public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCUTarget::read_event not implemented");
+    PFEXCEPTION_RAISE("NoImpl",
+                      "HcalBackplaneZCUTarget::read_event not implemented");
     std::vector<uint32_t> empty;
     return empty;
   }

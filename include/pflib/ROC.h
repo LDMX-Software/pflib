@@ -137,7 +137,8 @@ class ROC {
      * the previous chip settings to be applied in the destructor
      */
     TestParameters(
-        ROC& roc, std::map<std::string, std::map<std::string, uint64_t>> new_params);
+        ROC& roc,
+        std::map<std::string, std::map<std::string, uint64_t>> new_params);
     /// applies the unset parameters to the ROC
     ~TestParameters();
     /// cannot copy or assign this lock

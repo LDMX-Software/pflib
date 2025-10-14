@@ -35,9 +35,9 @@ std::vector<int> Hcal::econ_ids() const {
   return ids;
 }
 
-void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_version,
-                   std::shared_ptr<I2C> roc_i2c,
-                   std::shared_ptr<I2C> bias_i2c,
+void Hcal::add_roc(int iroc, uint8_t roc_baseaddr,
+                   const std::string& roc_type_version,
+                   std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
                    std::shared_ptr<I2C> board_i2c) {
   if (have_roc(iroc)) {
     PFEXCEPTION_RAISE("DuplicateROC",
@@ -47,20 +47,15 @@ void Hcal::add_roc(int iroc, uint8_t roc_baseaddr, const std::string& roc_type_v
   nhgcroc_++;
   pflib::ROC roc{*roc_i2c, roc_baseaddr, roc_type_version};
   pflib::Bias bias{bias_i2c};
-  roc_connections_.emplace(
-    iroc,
-    ROCConnection {
-      .roc_ = roc,
-      .roc_i2c_ = roc_i2c,
-      .bias_ = bias,
-      .bias_i2c_ = bias_i2c,
-      .board_i2c_ = board_i2c
-    }
-  );
+  roc_connections_.emplace(iroc, ROCConnection{.roc_ = roc,
+                                               .roc_i2c_ = roc_i2c,
+                                               .bias_ = bias,
+                                               .bias_i2c_ = bias_i2c,
+                                               .board_i2c_ = board_i2c});
 }
 
-void Hcal::add_econ(int iecon, uint8_t econ_baseaddr, const std::string& type_version,
-                    std::shared_ptr<I2C> i2c) {
+void Hcal::add_econ(int iecon, uint8_t econ_baseaddr,
+                    const std::string& type_version, std::shared_ptr<I2C> i2c) {
   if (have_econ(iecon)) {
     PFEXCEPTION_RAISE("DuplicateECON",
                       pflib::utility::string_format(
@@ -68,13 +63,7 @@ void Hcal::add_econ(int iecon, uint8_t econ_baseaddr, const std::string& type_ve
   }
   necon_++;
   pflib::ECON econ{*i2c, econ_baseaddr, type_version};
-  econ_connections_.emplace(
-      iecon,
-      ECONConnection {
-        .econ_ = econ,
-        .i2c_ = i2c
-      }
-  );
+  econ_connections_.emplace(iecon, ECONConnection{.econ_ = econ, .i2c_ = i2c});
 }
 
 ROC Hcal::roc(int which) {
@@ -90,7 +79,7 @@ ECON Hcal::econ(int which) {
   auto econ_it{econ_connections_.find(which)};
   if (econ_it == econ_connections_.end()) {
     PFEXCEPTION_RAISE("InvalidECONid", pflib::utility::string_format(
-                                          "Unknown ECON id %d", which));
+                                           "Unknown ECON id %d", which));
   }
   return econ_it->second.econ_;
 }

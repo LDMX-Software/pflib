@@ -30,7 +30,7 @@ bool GPIO::getGPO(const std::string& name) {
   auto ptr = gpos_.find(name);
   if (ptr == gpos_.end()) {
     printf("lpGBT Available GPOs:\n");
-    for( const auto& name: getGPOs()) {
+    for (const auto& name : getGPOs()) {
       printf("  %s\n", name.c_str());
     }
     PFEXCEPTION_RAISE("GPIOError", pflib::utility::string_format(
@@ -43,7 +43,7 @@ void GPIO::setGPO(const std::string& name, bool toTrue) {
   auto ptr = gpos_.find(name);
   if (ptr == gpos_.end()) {
     printf("lpGBT Available GPOs:\n");
-    for( const auto& name: getGPOs()) {
+    for (const auto& name : getGPOs()) {
       printf("  %s\n", name.c_str());
     }
     PFEXCEPTION_RAISE("GPIOError", pflib::utility::string_format(

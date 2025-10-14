@@ -35,8 +35,8 @@ static std::array<int, 72> get_adc_medians(
 
 namespace pflib::algorithm {
 
-std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(Target* tgt,
-                                                                  ROC roc) {
+std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
+    Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
   /// do three runs of 100 samples each to have well defined pedestals
