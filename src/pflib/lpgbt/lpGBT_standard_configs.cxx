@@ -6,6 +6,8 @@ namespace standard_config {
 
 void setup_hcal_daq(pflib::lpGBT& lpgbt) {
   // setup the reset lines
+  // each call configures the pin number, mode, and assigns a name
+  // then we set an initial value (true = high, false = low)
   lpgbt.gpio_cfg_set(
       0, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC2_HRST");
@@ -45,7 +47,7 @@ void setup_hcal_daq(pflib::lpGBT& lpgbt) {
   lpgbt.setup_etx(0, true);  // HGCROC2_FCMD
   lpgbt.setup_etx(1, true);  // HGCROC0_FCMD
   lpgbt.setup_etx(2, true);  // HGCROC3_FCMD
-  lpgbt.setup_etx(3, true);  // ECON-T0_FCMF
+  lpgbt.setup_etx(3, true);  // ECON-T0_FCMD
   lpgbt.setup_etx(4, true);  // ECON-D_FCMD
   lpgbt.setup_etx(5, true);  // ECON-T1_FCMD
   lpgbt.setup_etx(6, true);  // HGCROC1_FCMD
@@ -59,6 +61,10 @@ void setup_hcal_daq(pflib::lpGBT& lpgbt) {
 
 void setup_hcal_trig(pflib::lpGBT& lpgbt) {
   // setup the reset lines
+  lpgbt.gpio_cfg_set(
+      2, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "BOARD_I2C_RST");
+  lpgbt.gpio_set(2, true);
   lpgbt.gpio_cfg_set(
       4, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC0_HRST");
@@ -75,11 +81,27 @@ void setup_hcal_trig(pflib::lpGBT& lpgbt) {
       3, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC3_SRST");
   lpgbt.gpio_set(3, true);
+  lpgbt.gpio_cfg_set(
+      9, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "BIAS_I2C_RST");
+  lpgbt.gpio_set(9, true);
+  lpgbt.gpio_cfg_set(
+      8, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "ECON_HRST");
+  lpgbt.gpio_set(8, true);
+  lpgbt.gpio_cfg_set(
+      11, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "ECON_SRST");
+  lpgbt.gpio_set(11, true);
 
   // setup the high speed inputs
   for (int i = 0; i < 6; i++) {
     lpgbt.setup_erx(i, 0);
   }
+}
+
+void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
+  /// TODO setup eRx for training mode
 }
 
 }  // namespace standard_config

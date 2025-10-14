@@ -90,8 +90,8 @@ class AD5593R {
 
   int adc_read(int pin) {
     //""" selects a pin (must be configured already for ADC operation), performs
-    //ADC conversion sequence and reads back the raw 12 bit result from the ADC
-    //data register for that pin """
+    // ADC conversion sequence and reads back the raw 12 bit result from the ADC
+    // data register for that pin """
     // first byte sets repetition and temperature indicator readback, second
     // byte selects ADC channel (all off by default)
     i2c_.write_raw(REG_ADC_SEQ, 0x0, (1 << pin));
