@@ -1,0 +1,60 @@
+RocDaqCtrl:
+  Global:
+    hgcroc_hdr_marker: 15 #0xf
+    sync_header: 10 #0xa
+    sync_body: 89478485 # 0x5555555
+    active_erxs: 7 # 0b111, 3 active eRxs # 63 # 0x3F  all active eRxs
+    pass_thru_mode: 1
+    match_threshold: 2
+    simple_mode: 1
+Aligner:
+  Global:
+    orbsyn_cnt_load_val: 1
+    orbsyn_cnt_snapshot: 3080
+    match_pattern_val: 
+      00: 2505397589 #0x95555555
+      01: 2773833045 #0xa5555555
+    match_mask_val: 
+      00: 0
+      01: 0
+    i2c_snapshot_en: 0
+    snapshot_en: 1
+    orbsyn_cnt_max_val: 3563
+    freeze_output_enable: 0
+    freeze_output_enable_all_channels_locked: 0
+ChAligner: # 6 eRx to ECON-D on CM
+  00:
+    per_ch_align_en : 1
+  01:
+    per_ch_align_en : 1
+  02:
+    per_ch_align_en : 1
+  03:
+    per_ch_align_en : 1
+  04:
+    per_ch_align_en : 1
+  05:
+    per_ch_align_en : 1
+ERx:
+  00:
+    enable: 1
+  01:
+    enable: 1
+  02:
+    enable: 1
+  03:
+    enable: 0
+  04:
+    enable: 0
+  05:
+    enable: 0
+ELinkProcessors:
+  Global:
+    veto_pass_fail: 65535 #0xffff
+    recon_mode_result: 3
+    recon_mode_choice: 0   
+    v_reconstruct_thresh: 2 #0x5
+    # force subpackets to be transmitted
+    erx_mask_ebo: 4095 # 0xfff
+    erx_mask_crc: 4095 # 0xfff
+    erx_mask_ht: 4095 # 0xfff

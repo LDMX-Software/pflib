@@ -1,0 +1,20 @@
+ETx:
+  00:
+    invert_data: 1
+  01:
+    invert_data: 0
+FormatterBuffer:
+  Global:
+    align_serializer:
+      00: 26
+      01: 0
+      02: 0
+      03: 0
+      04: 0
+      05: 0
+    active_etxs: 1
+    #idle_pattern: "0xFFFFFF" #"0x000000"
+    #idle_pattern: 16777200 # "0xFFFFF0"
+    idle_pattern: 5592405 # "0x555555"
+    link_reset_pattern: 290 #"0x122"
+    #link_reset_pattern: 426 #"0x1aa"

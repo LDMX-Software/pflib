@@ -1,0 +1,15 @@
+ETx:
+  00:
+    invert_data: 0
+  01:
+    invert_data: 1
+  02:
+    invert_data: 0
+FormatterBuffer:
+  Global:
+    active_etxs: 0x7 # 0x7 = 3 etx
+    align_serializer:
+      00: 13
+      01: 14
+      02: 13
+    link_reset_pattern: 290 #"0x122"

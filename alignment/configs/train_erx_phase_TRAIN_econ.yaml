@@ -1,0 +1,26 @@
+ChEprxGrp:
+  00:
+    train_channel: 1
+  01:
+    train_channel: 1
+  02:
+    train_channel: 1
+  03:
+    train_channel: 1
+  04:
+    train_channel: 1
+  05:
+    train_channel: 1
+  06:
+    train_channel: 1
+  07:
+    train_channel: 1
+  08:
+    train_channel: 1
+  09:
+    train_channel: 1
+  10:
+    train_channel: 1
+  11:
+    train_channel: 1
+

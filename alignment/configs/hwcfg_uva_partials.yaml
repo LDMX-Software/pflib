@@ -1,0 +1,717 @@
+transport:
+  ic:
+    type: ic_ec_with_sct
+    cfg:
+      transportType: IC
+      connection_file: file:///opt/cms-hgcal-firmware/hgc-test-systems/active/uHAL_xml/connections.xml
+      device: TOP
+      isIC: true
+      broadcast_address: 1
+  ec:
+    type: ic_ec_with_sct
+    cfg:
+      transportType: EC
+      connection_file: file:///opt/cms-hgcal-firmware/hgc-test-systems/active/uHAL_xml/connections.xml
+      device: TOP
+      isIC: false
+      broadcast_address: 2
+  i2c_daq_1:
+    type: lpgbt_i2c
+    carrier: daq
+    cfg:
+      transportType: LPGBT_I2C_DAQ
+      bus: 1
+  i2c_trge_0:
+    type: lpgbt_i2c
+    carrier: trge
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 0
+  i2c_trge_1:
+    type: lpgbt_i2c
+    carrier: trge
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 1
+  i2c_trge_2:
+    type: lpgbt_i2c
+    carrier: trge
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 2
+  i2c_trgw_0:
+    type: lpgbt_i2c
+    carrier: trgw
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 0
+  i2c_trgw_1:
+    type: lpgbt_i2c
+    carrier: trgw
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 1
+  i2c_trgw_2:
+    type: lpgbt_i2c
+    carrier: trgw
+    cfg:
+      transportType: LPGBT_I2C_TRG
+      bus: 2
+chip:
+  daq:
+    type: lpgbt
+    transport: ic
+    cfg:
+      chipType: LPGBT_D
+      address: 0x70
+  trgw:
+    type: lpgbt
+    transport: ec
+    cfg:
+      chipType: LPGBT_T
+      address: 0x71
+  trge:
+    type: lpgbt
+    transport: ec
+    cfg:
+      chipType: LPGBT_T
+      address: 0x72
+  vtrx:
+    type: vtrxp
+    transport: i2c_daq_1
+    cfg:
+      chipType: VTRXP
+      address: 0x50
+  roc0_e0:
+    type: roc
+    transport: i2c_trge_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x08
+  roc1_e0:
+    type: roc
+    transport: i2c_trge_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x18
+  roc2_e0:
+    type: roc
+    transport: i2c_trge_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x28
+  econd_e0:
+    type: econ
+    transport: i2c_trge_0
+    cfg:
+      chipType: ECON_D
+      address: 0x60
+  econt_e0:
+    type: econ
+    transport: i2c_trge_0
+    cfg:
+      chipType: ECON_T
+      address: 0x20
+  roc0_e1:
+    type: roc
+    transport: i2c_trge_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x48
+  roc1_e1:
+    type: roc
+    transport: i2c_trge_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x58
+  roc2_e1:
+    type: roc
+    transport: i2c_trge_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x68
+  econt_e1:
+    type: econ
+    transport: i2c_trge_1
+    cfg:
+      chipType: ECON_T
+      address: 0x21
+  econd_e1:
+    type: econ
+    transport: i2c_trge_1
+    cfg:
+      chipType: ECON_D
+      address: 0x61
+  roc0_e2:
+    type: roc
+    transport: i2c_trge_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x48
+  roc1_e2:
+    type: roc
+    transport: i2c_trge_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x58
+  roc2_e2:
+    type: roc
+    transport: i2c_trge_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x68
+  econt_e2:
+    type: econ
+    transport: i2c_trge_2
+    cfg:
+      chipType: ECON_T
+      address: 0x21
+  econd_e2:
+    type: econ
+    transport: i2c_trge_2
+    cfg:
+      chipType: ECON_D
+      address: 0x61
+  roc0_w0:
+    type: roc
+    transport: i2c_trgw_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x08
+  roc1_w0:
+    type: roc
+    transport: i2c_trgw_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x18
+  roc2_w0:
+    type: roc
+    transport: i2c_trgw_0
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x28
+  econd_w0:
+    type: econ
+    transport: i2c_trgw_0
+    cfg:
+      chipType: ECON_D
+      address: 0x60
+  econt_w0:
+    type: econ
+    transport: i2c_trgw_0
+    cfg:
+      chipType: ECON_T
+      address: 0x20
+  roc0_w1:
+    type: roc
+    transport: i2c_trgw_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x48
+  roc1_w1:
+    type: roc
+    transport: i2c_trgw_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x58
+  roc2_w1:
+    type: roc
+    transport: i2c_trgw_1
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x68
+  econt_w1:
+    type: econ
+    transport: i2c_trgw_1
+    cfg:
+      chipType: ECON_T
+      address: 0x21
+  econd_w1:
+    type: econ
+    transport: i2c_trgw_1
+    cfg:
+      chipType: ECON_D
+      address: 0x61
+  roc0_w2:
+    type: roc
+    transport: i2c_trgw_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x48
+  roc1_w2:
+    type: roc
+    transport: i2c_trgw_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x58
+  roc2_w2:
+    type: roc
+    transport: i2c_trgw_2
+    cfg:
+      chipType: HGCROC_SI
+      address: 0x68
+  econt_w2:
+    type: econ
+    transport: i2c_trgw_2
+    cfg:
+      chipType: ECON_T
+      address: 0x21
+  econd_w2:
+    type: econ
+    transport: i2c_trgw_2
+    cfg:
+      chipType: ECON_D
+      address: 0x61
+gpio:
+  pwr_gd_dcdc_e0:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 0
+      direction: input
+  pwr_gd_ldo_w2:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 1
+      direction: input
+  pwr_gd_ldo_w1:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 2
+      direction: input
+  pwr_gd_ldo_e0:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 3
+      direction: input
+  pwr_gd_dcdc_w2:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 4
+      direction: input
+  pwr_gd_ldo_e2:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 5
+      direction: input
+  pwr_gd_dcdc_w1:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 6
+      direction: input
+  pwr_gd_ldo_w0:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 7
+      direction: input
+  pwr_gd_dcdc_e2:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 8
+      direction: input
+  pwr_gd_dcdc_w0:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 9
+      direction: input
+  pwr_gd_ldo_e1:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_LDO
+      pin: 10
+      direction: input
+  pwr_gd_dcdc_e1:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: PWR_GD_DCDC
+      pin: 11
+      direction: input
+  wready:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: READY
+      pin: 12
+      direction: input
+  eready:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: READY
+      pin: 13
+      direction: input
+  erstb:
+    type: lpgbt_gpio
+    carrier: daq
+    cfg:
+      gpioType: RSTB
+      pin: 15
+      direction: output
+      chip2Reset:
+        - {name: trge, template: lpgbt_template}
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+  pwr_en_e0:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: PWR_EN
+      pin: 0
+      direction: output
+      chip2Reset:
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+  pwr_en_e1:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: PWR_EN
+      pin: 1
+      direction: output
+      chip2Reset:
+        - {name: roc0_e2, template: siroc_template}
+        - {name: roc1_e2, template: siroc_template}
+        - {name: roc2_e2, template: siroc_template}
+        - {name: econd_e2, template: econd_template}
+        - {name: econt_e2, template: econt_template}
+  pwr_en_e2:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: PWR_EN
+      pin: 2
+      direction: output
+      chip2Reset:
+        - {name: roc0_e3, template: siroc_template}
+        - {name: roc1_e3, template: siroc_template}
+        - {name: roc2_e3, template: siroc_template}
+        - {name: econd_e3, template: econd_template}
+        - {name: econt_e3, template: econt_template}
+  pwr_en_w0:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: PWR_EN
+      pin: 0
+      direction: output
+      chip2Reset:
+        - {name: roc0_w1, template: siroc_template}
+        - {name: roc1_w1, template: siroc_template}
+        - {name: roc2_w1, template: siroc_template}
+        - {name: econd_w1, template: econd_template}
+        - {name: econt_w1, template: econt_template}
+  pwr_en_w1:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: PWR_EN
+      pin: 1
+      direction: output
+      chip2Reset:
+        - {name: roc0_w2, template: siroc_template}
+        - {name: roc1_w2, template: siroc_template}
+        - {name: roc2_w2, template: siroc_template}
+        - {name: econd_w2, template: econd_template}
+        - {name: econt_w2, template: econt_template}
+  pwr_en_w2:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: PWR_EN
+      pin: 2
+      direction: output
+      chip2Reset:
+        - {name: roc0_w3, template: siroc_template}
+        - {name: roc1_w3, template: siroc_template}
+        - {name: roc2_w3, template: siroc_template}
+        - {name: econd_w3, template: econd_template}
+        - {name: econt_w3, template: econt_template}
+  hgcroc_re_hb_e0:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 3
+      direction: output
+      chip2Reset:
+        - {name: roc0_e1, template: siroc_template}
+        - {name: roc1_e1, template: siroc_template}
+        - {name: roc2_e1, template: siroc_template}
+  hgcroc_re_hb_e1:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 4
+      direction: output
+      chip2Reset:
+        - {name: roc0_e2, template: siroc_template}
+        - {name: roc1_e2, template: siroc_template}
+        - {name: roc2_e2, template: siroc_template}
+  hgcroc_re_hb_e2:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 5
+      direction: output
+      chip2Reset:
+        - {name: roc0_e3, template: siroc_template}
+        - {name: roc1_e3, template: siroc_template}
+        - {name: roc2_e3, template: siroc_template}
+  hgcroc_re_sb_e0:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 6
+      direction: output
+  hgcroc_re_sb_e1:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 7
+      direction: output
+  hgcroc_re_sb_e2:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 8
+      direction: output
+  hgcroc_re_hb_w0:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 3
+      direction: output
+      chip2Reset:
+        - {name: roc0_w1, template: siroc_template}
+        - {name: roc1_w1, template: siroc_template}
+        - {name: roc2_w1, template: siroc_template}
+  hgcroc_re_hb_w1:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 4
+      direction: output
+      chip2Reset:
+        - {name: roc0_w2, template: siroc_template}
+        - {name: roc1_w2, template: siroc_template}
+        - {name: roc2_w2, template: siroc_template}
+  hgcroc_re_hb_w2:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_HB
+      pin: 5
+      direction: output
+      chip2Reset:
+        - {name: roc0_w3, template: siroc_template}
+        - {name: roc1_w3, template: siroc_template}
+        - {name: roc2_w3, template: siroc_template}
+  hgcroc_re_sb_w0:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 6
+      direction: output
+  hgcroc_re_sb_w1:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 7
+      direction: output
+  hgcroc_re_sb_w2:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: HGCROC_RE_SB
+      pin: 8
+      direction: output
+  econ_re_hb_e0:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 9
+      direction: output
+      chip2Reset:
+        - {name: econd_e1, template: econd_template}
+        - {name: econt_e1, template: econt_template}
+  econ_re_hb_e1:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 10
+      direction: output
+      chip2Reset:
+        - {name: econd_e2, template: econd_template}
+        - {name: econt_e2, template: econt_template}
+  econ_re_hb_e2:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 11
+      direction: output
+      chip2Reset:
+        - {name: econd_e3, template: econd_template}
+        - {name: econt_e3, template: econt_template}
+  econ_re_hb_w0:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 9
+      direction: output
+      chip2Reset:
+        - {name: econd_w1, template: econd_template}
+        - {name: econt_w1, template: econt_template}
+  econ_re_hb_w1:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 10
+      direction: output
+      chip2Reset:
+        - {name: econd_w2, template: econd_template}
+        - {name: econt_w2, template: econt_template}
+  econ_re_hb_w2:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_HB
+      pin: 11
+      direction: output
+      chip2Reset:
+        - {name: econd_w3, template: econd_template}
+        - {name: econt_w3, template: econt_template}
+  econ_re_sb_e0:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 12
+      direction: output
+  econ_re_sb_e1:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 13
+      direction: output
+  econ_re_sb_e2:
+    type: lpgbt_gpio
+    carrier: trge
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 14
+      direction: output
+  econ_re_sb_w0:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 12
+      direction: output
+  econ_re_sb_w1:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 13
+      direction: output
+  econ_re_sb_w2:
+    type: lpgbt_gpio
+    carrier: trgw
+    cfg:
+      gpioType: ECON_RE_SB
+      pin: 14
+      direction: output
+adc:
+  # Block for reading the internal temperature of the DAQ lpGBT
+  internal_temp_daq:
+    type: "lpgbt_adc"
+    carrier: "daq"
+    cfg:
+      # These settings don't matter for this measurement but must be present
+      current_dac_enable: 0
+      voltage_dac_enable: 0
+      current_dac_value: 0
+      voltage_dac_value: 0
+      vref_tune: 106 
+      external_measurements:
+        - name: "InternalTempSensor"
+          channel_p: "temp"      # Selects the internal temperature sensor
+          channel_n: "vref2"     # Measure against VREF/2 per the manual
+          current_dac_ch_enable: 0
+          gain: 0                # Corresponds to Gain x2 (effective 1x)
+  # --- Block for RTD W1 ---
+  rtd_w1:
+    type: "lpgbt_adc"
+    carrier: "daq"
+    cfg:
+      # Settings for this specific measurement
+      current_dac_enable: 1
+      current_dac_value: 127
+      vref_tune: 106 # IMPORTANT: Use the real calibration value!
+      voltage_dac_enable: 0
+      voltage_dac_value: 0
+      # The tool expects to find the channel info in this single-entry list
+      external_measurements:
+        - name: "RTDW1_ADC0"
+          channel_p: "ext0"
+          channel_n: "vref2"
+          current_dac_ch_enable: 1
+          gain: 0
+  # --- Block for RTD W2 ---
+  rtd_w2:
+    type: "lpgbt_adc"
+    carrier: "daq"
+    cfg:
+      current_dac_enable: 1
+      current_dac_value: 127
+      vref_tune: 106 # Use the same calibrated value
+      voltage_dac_enable: 0
+      voltage_dac_value: 0
+      external_measurements:
+        - name: "RTD W2 on ADC1"
+          channel_p: "ext1" # This is RTD W2's pin
+          channel_n: "vref2"
+          current_dac_ch_enable: 1
+          gain: 0
