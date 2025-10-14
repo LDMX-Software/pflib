@@ -33,8 +33,8 @@ class HcalBackplaneZCU : public Hcal {
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
     econ_i2c_->set_bus_speed(1000);
     add_econ(0, 0x60 | 0, "econd", econ_i2c_);
-    add_econ(0, 0x20 | 0, "econt", econ_i2c_);
-    add_econ(1, 0x20 | 1, "econt", econ_i2c_);
+    add_econ(1, 0x20 | 0, "econt", econ_i2c_);
+    add_econ(2, 0x20 | 1, "econt", econ_i2c_);
 
     roc_i2c_ =
         std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
