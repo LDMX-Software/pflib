@@ -4,14 +4,27 @@
  */
 #include "pftool.h"
 
+/// print available econ IDs and their types
+void print_econs(Target* tgt) {
+  for (auto iecon : tgt->hcal().econ_ids()) {
+    printf("  %d (%s)\n", iecon, tgt->hcal().econ(iecon).type());
+  }
+}
+
 /**
  * Simply print the currently selective ECON so that user is aware
  * which ECON they are interacting with by default.
  *
  * @param[in] pft active target (not used)
  */
-static void econ_render(Target* pft) {
-  printf(" Active ECON: %d\n", pftool::state.iecon);
+static void econ_render(Target* tgt) {
+  try {
+    auto econ{tgt->hcal().econ(pftool::state.iecon)};
+    printf(" Active ECON: %d (%s)\n", pftool::state.iecon, econ.type());
+  } catch (const std::exception&) {
+    printf(" Active ECON: %d (Not Configured)\n", pftool::state.iecon);
+    print_econs(tgt);
+  }
 }
 
 /**
@@ -88,6 +101,7 @@ static void econ(const std::string& cmd, Target* pft) {
     pft->hcal().softResetECON();
   }
   if (cmd == "IECON") {
+    print_econs(pft);
     pftool::state.iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   }
   pflib::ECON econ = pft->hcal().econ(pftool::state.iecon);
