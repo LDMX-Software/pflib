@@ -16,6 +16,45 @@ static constexpr int I2C_BUS_BOARD = 0;    // TRIG
 static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
 
+class Elinks_lpGBT: public Elinks {
+ public:
+  Elinks_lpGBT(int nlinks): Elinks(nlinks) {}
+  virtual std::vector<uint32_t> spy(int ilink) override {
+  }
+  virtual void setBitslip(int ilink, int bitslip) override {
+  }
+  virtual int getBitslip(int ilink) override {
+    return 0;
+  }
+  virtual uint32_t getStatusRaw(int ilink) override {
+    return 0;
+  }
+  virtual void clearErrorCounters(int ilink) override {
+  }
+  virtual void readCounters(int link, uint32_t& nonidles, uint32_t& resyncs) override {
+  }
+  virtual void resetHard() override {
+  }
+  virtual void setAlignPhase(int ilink, int iphase) override {}
+  virtual int getAlignPhase(int ilink) override { return -1; }
+};
+
+class DAQ_lpGBT: public DAQ {
+ public:
+  DAQ_lpGBT(int nlinks): DAQ(nlinks) {}
+  virtual void reset() override {}
+  virtual int getEventOccupancy() override { return 0; }
+  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) override {}
+  virtual void getLinkSetup(int ilink, int& l1a_delay,
+                            int& l1a_capture_width) override {}
+  virtual void bufferStatus(int ilink, bool& empty, bool& full) override {}
+  virtual std::vector<uint32_t> getLinkData(int ilink) override {}
+  virtual void advanceLinkReadPtr() override {}
+  virtual std::map<std::string, uint32_t> get_debug() override {
+    return std::map<std::string, uint32_t>();
+  }
+};
+
 class HcalBackplaneZCU : public Hcal {
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
