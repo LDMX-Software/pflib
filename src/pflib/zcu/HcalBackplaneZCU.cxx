@@ -4,6 +4,7 @@
 #include "pflib/utility/string_format.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "pflib/zcu/zcu_optolink.h"
+#include "pflib/Logging.h"
 
 namespace pflib {
 
@@ -56,6 +57,7 @@ class DAQ_lpGBT: public DAQ {
 };
 
 class HcalBackplaneZCU : public Hcal {
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("HcalBackplaneZCU")};
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
     // first, setup the optical links
@@ -96,8 +98,14 @@ class HcalBackplaneZCU : public Hcal {
 
     // TODO create ELinks and DAQ objects
 
-    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+    try {
+      pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+      pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+    } catch (const pflib::Exception& e) {
+      pflib_log(error) << "Init Error [" << e.name() << "]: " << e.message();
+      pflib_log(error) << "Failure to apply standard configuration to lpGBTs.";
+      pflib_log(error) << "Probably need to re-align optical links in the OPTO menu.";
+    }
   }
 
   virtual void softResetROC(int which) override {
