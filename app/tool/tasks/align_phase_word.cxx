@@ -120,7 +120,7 @@ void align_phase_word(Target* tgt) {
                           .add("CHEPRXGRP_10", "CHANNEL_LOCKED", 1) 
                           .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
                           ;
-  econ_setup_test = econ_setup_builder.apply();
+  auto econ_setup_test = econ_setup_builder.apply();
   // -------------------------------------------------------------------------------------------- //
   
 
