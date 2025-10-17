@@ -84,10 +84,10 @@ void align_phase_word(Target* tgt) {
                           .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1)  
 
   // Set run bit ON
-                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
+                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1)
 
   // Set run bit OFF
-                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0)
+                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0)
 
   // Set Training OFF
                           .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
