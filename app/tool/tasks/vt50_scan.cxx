@@ -26,7 +26,7 @@ void vt50_scan(Target* tgt) {
       pftool::readline_int("Largest tot threshold value (max = 4095): ", 600);
   int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
   std::string fname = pftool::readline_path("vt50-scan", ".csv");
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
@@ -51,7 +51,7 @@ void vt50_scan(Target* tgt) {
 
   // Vectors for storing tot_eff and calib for the current param_point
   std::vector<double> tot_eff_list;
-  std::vector<int> calib_list = {0, 4095};  //min and max
+  std::vector<int> calib_list = {0, 4095};  // min and max
   // tolerance for checking distance between tot_eff and 0.5
   double tol{0.1};
   int count{2};
@@ -170,7 +170,8 @@ void vt50_scan(Target* tgt) {
       tot_eff_list.push_back(tot_eff);
       if (search) calib_list.push_back(calib_value);
 
-      // Sometimes we can't hone in close enough to 0.5 because calib are whole ints
+      // Sometimes we can't hone in close enough to 0.5 because calib are whole
+      // ints
       if (tot_eff_list.size() > max_its) {
         pflib_log(info) << "Ended after " << max_its << " iterations!" << '\n'
                         << "Final calib is : " << calib_value

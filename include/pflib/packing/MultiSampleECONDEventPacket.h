@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pflib/packing/Reader.h"
 #include "pflib/packing/ECONDEventPacket.h"
+#include "pflib/packing/Reader.h"
 
 namespace pflib::packing {
 
@@ -21,6 +21,7 @@ class MultiSampleECONDEventPacket {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
   /// number of links connected to the ECOND
   int n_links_;
+
  public:
   /**
    * Corruption bits
@@ -53,4 +54,4 @@ class MultiSampleECONDEventPacket {
   Reader& read(Reader& r);
 };
 
-}
+}  // namespace pflib::packing

@@ -43,14 +43,14 @@ struct RegisterLocation {
  */
 struct Parameter {
   /// the default parameter value
-  const int def;
+  const uint64_t def;
   /// the locations that the parameter is split over
   const std::vector<RegisterLocation> registers;
   /// pass locations and default value of parameter
-  Parameter(std::initializer_list<RegisterLocation> r, int def)
+  Parameter(std::initializer_list<RegisterLocation> r, uint64_t def)
       : def{def}, registers{r} {}
   /// short constructor for single-location parameters
-  Parameter(int r, int m, int n, int def)
+  Parameter(int r, int m, int n, uint64_t def)
       : Parameter({RegisterLocation(r, m, n)}, def) {}
 };
 

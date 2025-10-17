@@ -12,10 +12,8 @@ namespace pflib::packing {
  *
  * @tparam[in] WordType type of word for styling
  */
-template <
-  typename WordType,
-  std::size_t HexWidth = 2*sizeof(WordType)
-> struct hex {
+template <typename WordType, std::size_t HexWidth = 2 * sizeof(WordType)>
+struct hex {
   WordType& word_;
   hex(WordType& w) : word_{w} {}
   friend inline std::ostream& operator<<(

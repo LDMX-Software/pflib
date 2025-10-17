@@ -14,7 +14,8 @@ void lpGBT_ConfigTransport::write_regs(uint16_t reg,
   for (size_t i = 0; i < value.size(); i++) write_reg(i + reg, value[i]);
 }
 
-lpGBT::lpGBT(lpGBT_ConfigTransport& transport) : tport_{transport} {}
+lpGBT::lpGBT(lpGBT_ConfigTransport& transport)
+    : tport_{transport}, gpio_{*this} {}
 
 void lpGBT::write(const RegisterValueVector& regvalues) {
   std::vector<uint8_t> tosend;
@@ -31,9 +32,9 @@ void lpGBT::write(const RegisterValueVector& regvalues) {
       if (base_addr == UNDEF_ADDR)
         base_addr = regvalues[ptr].first;  // start a new sequence
       tosend.push_back(regvalues[ptr].second);
-    } else if (
-        base_addr !=
-        UNDEF_ADDR) {  // this means the current value must be in sequence, even though the next one isn't
+    } else if (base_addr !=
+               UNDEF_ADDR) {  // this means the current value must be in
+                              // sequence, even though the next one isn't
       tosend.push_back(regvalues[ptr].second);
       tport_.write_regs(base_addr, tosend);
       tosend.clear();
@@ -63,9 +64,9 @@ lpGBT::RegisterValueVector lpGBT::read(const std::vector<uint16_t>& registers) {
         n = 0;
       }
       n++;
-    } else if (
-        base_addr !=
-        UNDEF_ADDR) {  // this means the current register must be in sequence, even though the next one isn't
+    } else if (base_addr !=
+               UNDEF_ADDR) {  // this means the current register must be in
+                              // sequence, even though the next one isn't
       n++;
       std::vector<uint8_t> values = tport_.read_regs(base_addr, n);
       for (int i = 0; i < n; i++)
@@ -122,6 +123,17 @@ static constexpr uint16_t REG_EPRX0CONTROL = 0x0c8;
 static constexpr uint16_t REG_EPRX00CHNCNTR = 0x0d0;
 static constexpr uint16_t REG_ECLK_BASE = 0x06e;
 static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
+
+static constexpr uint16_t REG_I2CM0CONFIG = 0x100;
+static constexpr uint16_t REG_I2CM0ADDRESS = 0x101;
+static constexpr uint16_t REG_I2CM0DATA0 = 0x102;
+static constexpr uint16_t REG_I2CM0CMD = 0x106;
+static constexpr uint16_t REG_I2CM0STATUS = 0x171;
+static constexpr uint16_t REG_I2CM0READBYTE = 0x173;
+static constexpr uint16_t REG_I2CM0READ0 = 0x174;
+static constexpr uint16_t REG_I2CM0READ15 = 0x183;
+static constexpr uint16_t REG_I2C_WSTRIDE = 7;
+static constexpr uint16_t REG_I2C_RSTRIDE = 21;
 
 static constexpr uint16_t REG_FUSECONTROL = 0x119;
 static constexpr uint16_t REG_FUSEADDRH = 0x11E;
@@ -240,7 +252,7 @@ int lpGBT::gpio_cfg_get(int ibit) {
   return cfg;
 }
 
-void lpGBT::gpio_cfg_set(int ibit, int cfg) {
+void lpGBT::gpio_cfg_set(int ibit, int cfg, const std::string& name) {
   if (ibit < 0 || ibit > 15) {
     char msg[100];
     snprintf(msg, 100, "GPIO bit %d is out of range 0:15", ibit);
@@ -267,6 +279,7 @@ void lpGBT::gpio_cfg_set(int ibit, int cfg) {
   } else {
     bit_clr(REG_PIOPULLENAH + offset, ibit % 8);
   }
+  gpio_.add_pin(name, ibit, cfg & GPIO_IS_OUTPUT);
 }
 
 uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
@@ -431,6 +444,120 @@ void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
 
   write(REG_ECLK_BASE + which_clk * 2, ctl);
   // currently no ability to mess with pre-emphasis
+}
+
+void lpGBT::setup_i2c(int ibus, int speed_khz, bool scl_drive, bool strong_scl,
+                      bool strong_sda, bool pull_up_scl, bool pull_up_sda) {
+  if (ibus < 0 || ibus > 2) return;
+
+  uint8_t val;
+  val = 0;
+  if (pull_up_scl) val |= 0x40;
+  if (pull_up_sda) val |= 0x10;
+  if (strong_scl) val |= 0x20;
+  if (strong_sda) val |= 0x08;
+  write(REG_I2CM0CONFIG + ibus * 7, val);
+
+  i2c_[ibus].ctl_reg = 0;
+  if (scl_drive) i2c_[ibus].ctl_reg |= 0x80;
+  if (speed_khz > 125 && speed_khz < 300) i2c_[ibus].ctl_reg |= 0x01;
+  if (speed_khz > 300 && speed_khz < 500) i2c_[ibus].ctl_reg |= 0x02;
+  if (speed_khz > 500 && speed_khz < 2000) i2c_[ibus].ctl_reg |= 0x03;
+}
+
+static constexpr uint8_t CMD_I2C_WRITE_CR = 0;
+static constexpr uint8_t CMD_I2C_1BYTE_WRITE = 2;
+static constexpr uint8_t CMD_I2C_1BYTE_READ = 3;
+static constexpr uint8_t CMD_I2C_W_MULTI_4BYTE0 = 8;
+static constexpr uint8_t CMD_I2C_W_MULTI_4BYTE1 = 9;
+static constexpr uint8_t CMD_I2C_W_MULTI_4BYTE2 = 10;
+static constexpr uint8_t CMD_I2C_W_MULTI_4BYTE3 = 11;
+static constexpr uint8_t CMD_I2C_WRITE_MULTI = 0xC;
+static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
+
+void lpGBT::start_i2c_read(int ibus, uint8_t i2c_addr, int len) {
+  if (ibus < 0 || ibus > 2 || len < 0 || len > 16) return;
+  i2c_[ibus].read_len = len;
+  write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
+  if (len == 1) {
+    write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE, i2c_[ibus].ctl_reg);
+    write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_CR);
+    write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_1BYTE_READ);
+  } else {
+    write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE,
+          i2c_[ibus].ctl_reg | (len << 2));
+    write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_CR);
+    write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_READ_MULTI);
+  }
+}
+
+void lpGBT::i2c_write(int ibus, uint8_t i2c_addr, uint8_t value) {
+  if (ibus < 0 || ibus > 2) return;
+  write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
+  write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE, i2c_[ibus].ctl_reg);
+  write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_CR);
+  write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE, value);
+  write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_1BYTE_WRITE);
+}
+
+void lpGBT::i2c_write(int ibus, uint8_t i2c_addr,
+                      const std::vector<uint8_t>& values) {
+  if (ibus < 0 || ibus > 2 || values.size() > 16) return;
+  write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
+  write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE,
+        i2c_[ibus].ctl_reg | (values.size() << 2));
+  write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_CR);
+  // copying all the data into the core...
+  for (size_t i = 0; i < values.size(); i++) {
+    write(REG_I2CM0DATA0 + (i % 4) + ibus * REG_I2C_WSTRIDE, values[i]);
+    // every 4 bytes or on the last byte
+    if ((i % 4) == 3 || (i + 1) == values.size())
+      write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE,
+            CMD_I2C_W_MULTI_4BYTE0 + (i / 4));
+  }
+  // launch the write
+  write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_MULTI);
+}
+
+bool lpGBT::i2c_transaction_check(int ibus, bool wait) {
+  static constexpr uint8_t NOCLK = 0x80;
+  static constexpr uint8_t NOACK = 0x40;
+  static constexpr uint8_t LEVELE = 0x08;
+  static constexpr uint8_t SUCCESS = 0x04;
+
+  if (ibus < 0 || ibus > 2) return false;
+  do {
+    uint8_t val = read(REG_I2CM0STATUS + ibus * REG_I2C_RSTRIDE);
+    if (val & NOCLK) {
+      PFEXCEPTION_RAISE("I2CErrorNoCLK", "No clock on I2C controller");
+    }
+    if (val & NOACK) {
+      PFEXCEPTION_RAISE("I2CErrorNoACK", "No acknowledge from I2C target");
+    }
+    if (val & LEVELE) {
+      PFEXCEPTION_RAISE("I2CErrorSDALow", "SDA Line Low on Start");
+    }
+    if (val & SUCCESS) {
+      return true;
+    }
+    usleep(100);  //
+  } while (wait);
+  return false;
+}
+
+std::vector<uint8_t> lpGBT::i2c_read_data(int ibus) {
+  std::vector<uint8_t> retval;
+  if (ibus < 0 || ibus > 2) return retval;
+  if (i2c_[ibus].read_len == 1) {
+    retval.push_back(read(REG_I2CM0READBYTE + ibus * REG_I2C_RSTRIDE));
+  } else {
+    // super-weird -- it's stored in backwards order...
+    retval =
+        read(REG_I2CM0READ15 + 1 - i2c_[ibus].read_len + ibus * REG_I2C_RSTRIDE,
+             i2c_[ibus].read_len);
+    std::reverse(retval.begin(), retval.end());
+  }
+  return retval;
 }
 
 int lpGBT::status() { return read(REG_POWERUP_STATUS); }

@@ -11,18 +11,19 @@
 #include "pflib/version/Version.h"
 
 static void usage() {
-  std::cout << 
-    "\n"
-    " USAGE:\n"
-    "  econd-decoder [options] NLINKS input_file.raw\n"
-    "\n"
-    " OPTIONS:\n"
-    "  -h,--help    : print this help and exit\n"
-    "  -o,--output  : output CSV file to dump samples into "
-    "(default is input file with extension changed)\n"
-    "  -n,--nevents : provide maximum number of events (default is all events possible)\n"
-    "  -l,--log     : logging level to printout (-1: trace up to 4: fatal)\n"
-    << std::endl;
+  std::cout << "\n"
+               " USAGE:\n"
+               "  econd-decoder [options] NLINKS input_file.raw\n"
+               "\n"
+               " OPTIONS:\n"
+               "  -h,--help    : print this help and exit\n"
+               "  -o,--output  : output CSV file to dump samples into "
+               "(default is input file with extension changed)\n"
+               "  -n,--nevents : provide maximum number of events (default is "
+               "all events possible)\n"
+               "  -l,--log     : logging level to printout (-1: trace up to 4: "
+               "fatal)\n"
+            << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -30,7 +31,8 @@ int main(int argc, char* argv[]) {
 
   auto the_log_{pflib::logging::get("econd-decoder")};
 
-  pflib_log(warn) << "The ECOND decoding is not well tested. Inspect the results carefully and please contribute!";
+  pflib_log(warn) << "The ECOND decoding is not well tested. Inspect the "
+                     "results carefully and please contribute!";
 
   if (argc == 1) {
     // can't do anything without any arguments
@@ -39,7 +41,7 @@ int main(int argc, char* argv[]) {
   }
 
   bool trigger{false};
-  
+
   int n_links{-1};
   int nevents{-1};
   std::string in_file, out_file;
@@ -101,7 +103,8 @@ int main(int argc, char* argv[]) {
         try {
           n_links = std::stoi(arg);
         } catch (const std::invalid_argument& e) {
-          pflib_log(fatal) << "The first positional argument needs to be the number of links, but '"
+          pflib_log(fatal) << "The first positional argument needs to be the "
+                              "number of links, but '"
                            << arg << "' is not an integer.";
           return 1;
         }

@@ -2,6 +2,7 @@
 #define ZCU_OPTOLINK_INCLUDED 1
 
 #include <map>
+#include <vector>
 
 #include "pflib/zcu/UIO.h"
 
@@ -10,7 +11,7 @@ namespace zcu {
 
 class OptoLink {
  public:
-  OptoLink();
+  OptoLink(const std::string& name = "singleLPGBT");
 
   void reset_link();
 
@@ -27,9 +28,13 @@ class OptoLink {
   int get_elink_tx_mode(int ilink);
   void set_elink_tx_mode(int ilink, int mode);
 
+  void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
+  void capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
+
  private:
   ::pflib::UIO transright_;
   ::pflib::UIO coder_;
+  std::string coder_name_;
 };
 
 }  // namespace zcu

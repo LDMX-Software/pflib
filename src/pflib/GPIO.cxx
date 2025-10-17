@@ -6,28 +6,24 @@
 
 namespace pflib {
 
-bool GPIO::getGPI(int ibit) {
-  if (ibit >= ngpi_) {
-    char message[120];
-    snprintf(message, 120, "GPI bit %d is out of range with maxGPI %d", ibit,
-             ngpi_);
-    PFEXCEPTION_RAISE("GPIOError", message);
+bool GPIO::hasGPO(const std::string& name) {
+  std::vector<std::string> names = getGPOs();
+  printf("Available GPOs:\n");
+  for (const auto& n : names) {
+    printf("  %s\n", n.c_str());
   }
-
-  std::vector<bool> bits = getGPI();
-  return bits[ibit];
+  for (auto i : names) {
+    if (i == name) return true;
+  }
+  return false;
 }
 
-void GPIO::setGPO(int ibit, bool toTrue) {
-  if (ibit >= ngpo_) {
-    char message[120];
-    snprintf(message, 120, "GPO bit %d is out of range with maxGPO=%d", ibit,
-             ngpo_);
-    PFEXCEPTION_RAISE("GPIOError", message);
+bool GPIO::hasGPI(const std::string& name) {
+  std::vector<std::string> names = getGPIs();
+  for (auto i : names) {
+    if (i == name) return true;
   }
-  std::vector<bool> bits = getGPO();
-  bits[ibit] = toTrue;
-  setGPO(bits);
+  return false;
 }
 
 }  // namespace pflib

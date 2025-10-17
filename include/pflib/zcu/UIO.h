@@ -51,6 +51,7 @@ class UIO {
       if ((mask & (1 << i)) != 0) return i;
     return 32;
   }
+  std::string name_;
   size_t size_;
   uint32_t* ptr_;
   int handle_;

@@ -37,14 +37,14 @@ std::string upper_cp(const std::string& str);
  * before they are able to compile.
  *
  * Right now, the compiler only has one configuration parameter:
- * which type and which version of the HGCROC it should compile for.
+ * which type and which version of the FE CHIP it should compile for.
  */
 class Compiler {
  public:
   /**
-   * Get an instance of the compiler for the input HGCROC type_version string
+   * Get an instance of the compiler for the input chip type_version string
    */
-  static Compiler get(const std::string& roc_type_version);
+  static Compiler get(const std::string& type_version);
 
   /**
    * Overlay a single parameter onto the input register map.
@@ -61,9 +61,9 @@ class Compiler {
    * checking of names before calling this one.
    *
    * **Most** of the parameters have the same names as the ones in the
-   * \hgcrocmanual; however, a few parameters on the Top sub-block (page)
-   * different in format and so we have changed them here. The translations from
-   * the manual to what is used here are listed below.
+   * \hgcrocmanual or econmanual; however, a few parameters on the Top sub-block
+   * (page) different in format and so we have changed them here. The
+   * translations from the manual to what is used here are listed below.
    * - DIV_PLL_{A,B} -> DIV_PLL (two bit field)
    * - EN{1,2,3}_probe_pll -> PLL_probe_amplitude (three bit field)
    * - EN-pE{0,1,2}_probe_pll -> PLL_probe_pre_scale (three bit field)
@@ -79,7 +79,7 @@ class Compiler {
    * values to apply parameter to
    */
   void compile(const std::string& page, const std::string& param,
-               const int& val,
+               const uint64_t& val,
                std::map<int, std::map<int, uint8_t>>& registers);
 
   /**
@@ -94,7 +94,7 @@ class Compiler {
    */
   std::map<int, std::map<int, uint8_t>> compile(const std::string& page_name,
                                                 const std::string& param_name,
-                                                const int& val);
+                                                const uint64_t& val);
 
   /**
    * Compiling which translates parameter values for the HGCROC
@@ -124,7 +124,9 @@ class Compiler {
    * @return page numbers, register numbers, and register value settings
    */
   std::map<int, std::map<int, uint8_t>> compile(
-      const std::map<std::string, std::map<std::string, int>>& settings);
+      const std::map<std::string, std::map<std::string, uint64_t>>& settings);
+
+  std::map<uint16_t, size_t> build_register_byte_lut();
 
   /**
    * Get the known pages from the LUTs
@@ -158,9 +160,9 @@ class Compiler {
    * partially-set params
    * @return page name, parameter name, parameter value of registers provided
    */
-  std::map<std::string, std::map<std::string, int>> decompile(
+  std::map<std::string, std::map<std::string, uint64_t>> decompile(
       const std::map<int, std::map<int, uint8_t>>& compiled_config,
-      bool be_careful);
+      bool be_careful, bool little_endian = false);
 
   /**
    * get the registers corresponding to the input page
@@ -177,7 +179,7 @@ class Compiler {
    *
    * @return map of page name and parameter names to default values
    */
-  std::map<std::string, std::map<std::string, int>> defaults();
+  std::map<std::string, std::map<std::string, uint64_t>> defaults();
 
   /**
    * Extract the page name, parameter name, and parameter values from
@@ -217,8 +219,9 @@ class Compiler {
    * @param[in,out] settings page name, parameter name, parameter value settings
    *  extracted from YAML file(s)
    */
-  void extract(const std::vector<std::string>& setting_files,
-               std::map<std::string, std::map<std::string, int>>& settings);
+  void extract(
+      const std::vector<std::string>& setting_files,
+      std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
   /**
    * compile a series of yaml files
@@ -265,8 +268,9 @@ class Compiler {
    * @param[in] params a YAML::Node to start extraction from
    * @param[in,out] settings map of names to values for extract parameters
    */
-  void extract(YAML::Node params,
-               std::map<std::string, std::map<std::string, int>>& settings);
+  void extract(
+      YAML::Node params,
+      std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
  private:
   const ParameterLUT& parameter_lut_;

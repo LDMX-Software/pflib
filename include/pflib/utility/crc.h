@@ -14,7 +14,8 @@ namespace pflib::utility {
 uint32_t crc32(std::span<uint32_t> data);
 
 /**
- * Calculate the 8-bit CRC checksum as it is done for the event header on the ECOND
+ * Calculate the 8-bit CRC checksum as it is done for the event header on the
+ * ECOND
  *
  * @param[in] data 64-bit word containing both ECOND event packet headers
  * @return value of CRC
