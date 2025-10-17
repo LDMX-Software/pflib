@@ -128,18 +128,18 @@ void align_phase_word(Target* tgt) {
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
-  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
+  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");   // dump Parameter I added to force this functionality to be able to assign to an output variable
   
   std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   // Check phase_select
-  auto phase_sel_0 = econ.readParameter("CHEPRXGRP", "00_CHANNEL_LOCKED");     // can also readParameters()
-  auto phase_sel_1 = econ.readParameter("CHEPRXGRP_01", "CHANNEL_LOCKED"); 
-  auto phase_sel_2 = econ.readParameter("CHEPRXGRP_02", "CHANNEL_LOCKED"); 
-  auto phase_sel_3 = econ.readParameter("CHEPRXGRP_03", "CHANNEL_LOCKED"); 
-  auto phase_sel_4 = econ.readParameter("CHEPRXGRP_04", "CHANNEL_LOCKED"); 
-  auto phase_sel_5 = econ.readParameter("CHEPRXGRP_05", "CHANNEL_LOCKED"); 
+  auto phase_sel_0 = econ.dumpParameter("CHEPRXGRP", "00_CHANNEL_LOCKED");     // can also readParameters()
+  auto phase_sel_1 = econ.dumpParameter("CHEPRXGRP_01", "CHANNEL_LOCKED"); 
+  auto phase_sel_2 = econ.dumpParameter("CHEPRXGRP_02", "CHANNEL_LOCKED"); 
+  auto phase_sel_3 = econ.dumpParameter("CHEPRXGRP_03", "CHANNEL_LOCKED"); 
+  auto phase_sel_4 = econ.dumpParameter("CHEPRXGRP_04", "CHANNEL_LOCKED"); 
+  auto phase_sel_5 = econ.dumpParameter("CHEPRXGRP_05", "CHANNEL_LOCKED"); 
 
   std::cout << "phase select 0 = " << phase_sel_0 << std::endl ;
   std::cout << "phase select 1 = " << phase_sel_1 << std::endl ;
