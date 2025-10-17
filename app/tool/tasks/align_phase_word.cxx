@@ -10,7 +10,7 @@ void align_phase_word(Target* tgt) {
   auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_version());
 
 
-  // int calib = 0;
+// Do I need something like this implemented?
 
   // pflib::DecodeAndWriteToCSV writer{
   //     output_filepath,
@@ -36,6 +36,8 @@ void align_phase_word(Target* tgt) {
   //     }};
 
 
+// -------------------------------------------------------------------------------------------------------------------------------- //
+// ----------------------------------------------------- PHASE ALIGNMENT ----------------------------------------------------- //
   int IDLE = 89478485;  // == 5555555. hardcode based on phase alignment script
 
   // Do I need one of these for the ECON? What does this do?
@@ -43,6 +45,8 @@ void align_phase_word(Target* tgt) {
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
 
+
+  // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
   // Is this how I set ROC parameters appropriately?
   // --ROC. do these test parameters correspond to e.g. before_state_roc.yaml?
   auto roc_setup_builder = roc.testParameters()
@@ -50,11 +54,13 @@ void align_phase_word(Target* tgt) {
                            .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
   auto roc_setup_test = roc_setup_builder.apply();
 
+  // ---------------------------------- --------------------------------------------------------- //
 
-  // -- SETTING ECON REGISTERS -- //
+
+  // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
   // -- ECON do these test parameters correspond to e.g. before_state.yaml?
   auto econ_setup_builder = econ.testParameters()
-                           .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0) // set run bit 0 while configuring
+                           .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0) // set run bit 0 while configuring
                           //  .add("", "", );
  
   //I can manually apply them, eg:
@@ -115,11 +121,10 @@ void align_phase_word(Target* tgt) {
                           .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
                           ;
     auto roc_setup_test = roc_setup_builder.apply();
-  // --------------------------------------------------------------------- //
+  // -------------------------------------------------------------------------------------------- //
   
 
-
-  // -- READING REGISTERS -- //
+  // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
@@ -129,7 +134,7 @@ void align_phase_word(Target* tgt) {
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   // Check phase_select
-  auto phase_sel_0 = econ.readParameter("CHEPRXGRP_00", "CHANNEL_LOCKED"); 
+  auto phase_sel_0 = econ.readParameter("CHEPRXGRP", "00_CHANNEL_LOCKED");     // can also readParameters()
   auto phase_sel_1 = econ.readParameter("CHEPRXGRP_01", "CHANNEL_LOCKED"); 
   auto phase_sel_2 = econ.readParameter("CHEPRXGRP_02", "CHANNEL_LOCKED"); 
   auto phase_sel_3 = econ.readParameter("CHEPRXGRP_03", "CHANNEL_LOCKED"); 
@@ -150,6 +155,71 @@ void align_phase_word(Target* tgt) {
   // .add("CHEPRXGRP_04", "CHANNEL_LOCKED", 1) 
   // .add("CHEPRXGRP_05", "CHANNEL_LOCKED", 1) 
 // --------------------------------------------------------------------- //
+
+// ----------------------------------------------------- END PHASE ALIGNMENT ----------------------------------------------------- //
+// -------------------------------------------------------------------------------------------------------------------------------- //
+
+
+
+
+
+
+
+// // -------------------------------------------------------------------------------------------------------------------------------- //
+// // ----------------------------------------------------- WORD ALIGNMENT ----------------------------------------------------- //
+
+// int INVERT_FCMD = 1; // Should this be 1 or 0? (See Econ align.sh)
+
+//   // ---------------------------------- SETTING ROC REGISTERS to configure ROC ---------------------------------- //
+//   roc_setup_builder = roc.testParameters()
+//                            .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
+//                            .add("DIGITALHALF_1", "IDLEFRAME", IDLE)
+//                           //  .add("TOP_0", "IN_INV_CMD_RX", INVERT_FCMD);   /// not needed
+//   roc_setup_test = roc_setup_builder.apply();    
+//       // $BASE_CMD_ROC -l trg${SIDE} -r roc${IROC}_${SIDE}${MOD} -w 1 -p DigitalHalf.0.IdleFrame -v $IDLE
+//       //     $BASE_CMD_ROC -l trg${SIDE} -r roc${IROC}_${SIDE}${MOD} -w 1 -p DigitalHalf.1.IdleFrame -v $IDLE
+
+//   // ------------------------------------------------------------------------------------------------------------ //
+
+
+
+
+//   // ---------------------------------- READING ROC REGISTERS ---------------------------------- //
+//   auto params = roc.getParameters("TOP_0"); // this uses the page and returns a mapping of all params therein
+//   auto inv_fc_rx = params.find("IN_INV_CMD_RX")->second;  // second because its a key value pair mapping (See ROC.cxx)
+
+//   params = roc.getParameters("TOP_0"); 
+//   auto RunL = params.find("RUNL")->second;
+
+//   std::cout << "inv_fc_rx = " << inv_fc_rx << std::endl;
+
+//   // ---------------------------------- --------------------------------------------------------- //
+
+
+
+
+//   // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
+// // e.g.   econ${ECON}_init_cpp.yaml (from econ_align.sh)
+//   // ---------------------------------- --------------------------------------------------------- //
+
+
+//   // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
+//       // read back econ_align.sh registers.
+//       // read_snaphot.yaml
+//       // check_econd_roc_alignment.yaml
+//   // ---------------------------------- --------------------------------------------------------- //
+
+// // see linkreset_rocs()
+// // econ version exists, 
+
+// // ----------------------------------------------------- END WORD ALIGNMENT ----------------------------------------------------- //
+// // -------------------------------------------------------------------------------------------------------------------------------- //
+
+
+
+
+
+
 
 
 
