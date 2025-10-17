@@ -69,19 +69,19 @@ void align_phase_word(Target* tgt) {
 
 
   //Phase ON
-                          .add("EPRXGRPTOP_GLOBAL", "TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
-                          .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
-                          .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 1)  
+                          .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
+                          .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
+                          .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1)  
 
   // Set run bit ON
                           .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
@@ -90,35 +90,35 @@ void align_phase_word(Target* tgt) {
                           .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0)
 
   // Set Training OFF
-                          .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
-                          .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 0) 
-                          .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
+                          .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 0)  
+                          .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 0) 
 
   // Set run bit ON
-                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
+                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1)
 
   // Set Training OFF
-                          .add("CHEPRXGRP_00", "CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
-                          .add("CHEPRXGRP_01", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_02", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_03", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_04", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_05", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_06", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_07", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_08", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_09", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_10", "CHANNEL_LOCKED", 1) 
-                          .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP", "0_CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
+                          .add("CHEPRXGRP", "1_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "2_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "3_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "4_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "5_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "6_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "7_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "8_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "9_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "10_CHANNEL_LOCKED", 1)  
+                          .add("CHEPRXGRP", "11_CHANNEL_LOCKED", 1)  
                           ;
   auto econ_setup_test = econ_setup_builder.apply();
   // -------------------------------------------------------------------------------------------- //
@@ -134,12 +134,12 @@ void align_phase_word(Target* tgt) {
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   // Check phase_select
-  auto phase_sel_0 = econ.dumpParameter("CHEPRXGRP", "00_CHANNEL_LOCKED");     // can also readParameters()
-  auto phase_sel_1 = econ.dumpParameter("CHEPRXGRP_01", "CHANNEL_LOCKED"); 
-  auto phase_sel_2 = econ.dumpParameter("CHEPRXGRP_02", "CHANNEL_LOCKED"); 
-  auto phase_sel_3 = econ.dumpParameter("CHEPRXGRP_03", "CHANNEL_LOCKED"); 
-  auto phase_sel_4 = econ.dumpParameter("CHEPRXGRP_04", "CHANNEL_LOCKED"); 
-  auto phase_sel_5 = econ.dumpParameter("CHEPRXGRP_05", "CHANNEL_LOCKED"); 
+  auto phase_sel_0 = econ.dumpParameter("CHEPRXGRP", "0_CHANNEL_LOCKED");     // can also readParameters()
+  auto phase_sel_1 = econ.dumpParameter("CHEPRXGRP", "1_CHANNEL_LOCKED"); 
+  auto phase_sel_2 = econ.dumpParameter("CHEPRXGRP", "2_CHANNEL_LOCKED"); 
+  auto phase_sel_3 = econ.dumpParameter("CHEPRXGRP", "3_CHANNEL_LOCKED"); 
+  auto phase_sel_4 = econ.dumpParameter("CHEPRXGRP", "4_CHANNEL_LOCKED"); 
+  auto phase_sel_5 = econ.dumpParameter("CHEPRXGRP", "5_CHANNEL_LOCKED"); 
 
   std::cout << "phase select 0 = " << phase_sel_0 << std::endl ;
   std::cout << "phase select 1 = " << phase_sel_1 << std::endl ;
