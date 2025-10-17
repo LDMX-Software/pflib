@@ -6,8 +6,8 @@
 ENABLE_LOGGING();
 
 void align_phase_word(Target* tgt) {
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
-  auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc); //, pftool::state.type_version());
+  auto econ = tgt->hcal().econ(pftool::state.iecon); //, pftool::state.type_version());
 
 
 // Do I need something like this implemented?
