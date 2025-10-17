@@ -50,8 +50,8 @@ void parameter_timescan(Target* tgt) {
         .add(refvol_page, "INTCTEST", 1)
         .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0);
     if (totscan) {
-    test_param_handle.add(refvol_page, "TOA_VREF", toa_threshold)
-      .add(refvol_page, "TOT_VREF", tot_threshold);
+      test_param_handle.add(refvol_page, "TOA_VREF", toa_threshold)
+          .add(refvol_page, "TOT_VREF", tot_threshold);
     }
   };
 
