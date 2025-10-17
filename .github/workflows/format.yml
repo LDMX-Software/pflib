@@ -1,0 +1,33 @@
+name: clang-format
+on:
+  push:
+    branches:
+      - 'trunk'
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - name: get just
+      uses: extractions/setup-just@v3
+    - name: get denv
+      run: |
+        curl -s https://tomeichlersmith.github.io/denv/install | sh
+        denv check
+    - name: format C++ code and commit updates
+      run: |
+        just init
+        just format-cpp
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Apply clang-format --style=Google" || exit 0
+    - name: push changes if not trunk
+      if: github.ref != 'refs/heads/trunk' 
+      run: git push
+
