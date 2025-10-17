@@ -49,11 +49,12 @@ void parameter_timescan(Target* tgt) {
         .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
         .add(refvol_page, "INTCTEST", 1)
         .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0);
-  };
-  if (totscan) {
+    if (totscan) {
     test_param_handle.add(refvol_page, "TOA_VREF", toa_threshold)
       .add(refvol_page, "TOT_VREF", tot_threshold);
-  }
+    }
+  };
+
   if (link[0]) add_rv(0);
   if (link[1]) add_rv(1);
 
