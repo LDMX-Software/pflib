@@ -120,7 +120,7 @@ void align_phase_word(Target* tgt) {
                           .add("CHEPRXGRP_10", "CHANNEL_LOCKED", 1) 
                           .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
                           ;
-    auto roc_setup_test = roc_setup_builder.apply();
+  roc_setup_test = roc_setup_builder.apply();
   // -------------------------------------------------------------------------------------------- //
   
 
@@ -128,7 +128,7 @@ void align_phase_word(Target* tgt) {
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
-  auto pusm_state = econ.readParameter("CLOCKSANDRESETS_GLOBAL","PUSM_STATE"); 
+  auto pusm_state = econ.readParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
   
   std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
