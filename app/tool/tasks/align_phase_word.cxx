@@ -7,7 +7,7 @@ ENABLE_LOGGING();
 
 void align_phase_word(Target* tgt) {
   auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
-  auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_version())
+  auto econ = tgt->hcal().econ(pftool::state.iecon, pftool::state.type_version());
 
 
   // int calib = 0;
@@ -36,15 +36,14 @@ void align_phase_word(Target* tgt) {
   //     }};
 
 
-
   int IDLE = 89478485;  // == 5555555. hardcode based on phase alignment script
 
-  // Do I need one of these for the ECON?
+  // Do I need one of these for the ECON? What does this do?
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::ECOND_NO_ZS, 2 /* dummy */);
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
 
-  // How do I set parameters appropriately?
+  // Is this how I set ROC parameters appropriately?
   // --ROC. do these test parameters correspond to e.g. before_state_roc.yaml?
   auto roc_setup_builder = roc.testParameters()
                            .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
@@ -52,74 +51,98 @@ void align_phase_word(Target* tgt) {
   auto roc_setup_test = roc_setup_builder.apply();
 
 
-  // --ECON do these test parameters correspond to e.g. before_state.yaml?
+  // -- SETTING ECON REGISTERS -- //
+  // -- ECON do these test parameters correspond to e.g. before_state.yaml?
   auto econ_setup_builder = econ.testParameters()
                            .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0) // set run bit 0 while configuring
-                           .add("", "", );
+                          //  .add("", "", );
  
+  //I can manually apply them, eg:
+  // set run bit 0 while configuring
+  // econ.testParameters().add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0).apply();
 
-  // -- SETTING REGISTERS -- //
-  //I dont know how to set these:
 
   //Phase ON
-  // .add("EPRXGRPTOP_GLOBAL", "TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
-  // .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
-  // .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 1)  
-  // .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 1)  
+                          .add("EPRXGRPTOP_GLOBAL", "TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
+                          .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
+                          .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 1)  
+                          .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 1)  
 
   // Set run bit ON
-  // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
+                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
 
   // Set run bit OFF
-  // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0)
+                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0)
 
   // Set Training OFF
-  // .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
-  // .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 0) 
-  // .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_00", "TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
+                          .add("CHEPRXGRP_01", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_02", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_03", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_04", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_05", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_06", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_07", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_08", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_09", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_10", "TRAIN_CHANNEL", 0) 
+                          .add("CHEPRXGRP_11", "TRAIN_CHANNEL", 0) 
 
   // Set run bit ON
-  // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
+                          .add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 1)
 
   // Set Training OFF
-  // .add("CHEPRXGRP_00", "CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
-  // .add("CHEPRXGRP_01", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_02", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_03", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_04", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_05", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_06", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_07", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_08", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_09", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_10", "CHANNEL_LOCKED", 1) 
-  // .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
-// --------------------------------------------------------------------- //
+                          .add("CHEPRXGRP_00", "CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
+                          .add("CHEPRXGRP_01", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_02", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_03", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_04", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_05", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_06", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_07", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_08", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_09", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_10", "CHANNEL_LOCKED", 1) 
+                          .add("CHEPRXGRP_11", "CHANNEL_LOCKED", 1) 
+                          ;
+    auto roc_setup_test = roc_setup_builder.apply();
+  // --------------------------------------------------------------------- //
+  
+
 
   // -- READING REGISTERS -- //
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
+  auto pusm_state = econ.readParameter("CLOCKSANDRESETS_GLOBAL","PUSM_STATE"); 
+  
+  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   // Check phase_select
+  auto phase_sel_0 = econ.readParameter("CHEPRXGRP_00", "CHANNEL_LOCKED"); 
+  auto phase_sel_1 = econ.readParameter("CHEPRXGRP_01", "CHANNEL_LOCKED"); 
+  auto phase_sel_2 = econ.readParameter("CHEPRXGRP_02", "CHANNEL_LOCKED"); 
+  auto phase_sel_3 = econ.readParameter("CHEPRXGRP_03", "CHANNEL_LOCKED"); 
+  auto phase_sel_4 = econ.readParameter("CHEPRXGRP_04", "CHANNEL_LOCKED"); 
+  auto phase_sel_5 = econ.readParameter("CHEPRXGRP_05", "CHANNEL_LOCKED"); 
+
+  std::cout << "phase select 0 = " << phase_sel_0 << std::endl ;
+  std::cout << "phase select 1 = " << phase_sel_1 << std::endl ;
+  std::cout << "phase select 2 = " << phase_sel_2 << std::endl ;
+  std::cout << "phase select 3 = " << phase_sel_3 << std::endl ;
+  std::cout << "phase select 4 = " << phase_sel_4 << std::endl ;
+  std::cout << "phase select 5 = " << phase_sel_5 << std::endl ;
+  
   // .add("CHEPRXGRP_00", "CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
   // .add("CHEPRXGRP_01", "CHANNEL_LOCKED", 1) 
   // .add("CHEPRXGRP_02", "CHANNEL_LOCKED", 1) 
@@ -132,11 +155,8 @@ void align_phase_word(Target* tgt) {
 
 
 
-
-  auto econ_setup_test = econ_setup_builder.apply();
-
-  // Do I need one of these for the ECON?
-  tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+  // // Do I need one of these for the ECON?
+  // tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
 
 
 
