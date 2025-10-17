@@ -366,6 +366,14 @@ void ECON::readParameter(const std::string& page, const std::string& param) {
   this->readParameters(p);
 }
 
+// added by Josh to get the actual value out in the script
+uint64_t ECON::dumpParameter(const std::string& page, const std::string& param) {
+  std::map<std::string, std::map<std::string, uint64_t>> p;
+  p[page][param] = 0;
+  auto values = this->readParameters(p);  // get the results
+  return values[page][param];             // return the actual register value
+}
+
 void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename",

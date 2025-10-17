@@ -128,7 +128,7 @@ void align_phase_word(Target* tgt) {
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
-  auto pusm_state = econ.readParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
+  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
   
   std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
