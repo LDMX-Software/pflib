@@ -60,10 +60,11 @@ void align_phase_word(Target* tgt) {
   // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
   // -- ECON do these test parameters correspond to e.g. before_state.yaml?
   { // scope this
+    std::cout << "1 test = " << std::endl ;
     auto econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0); // set run bit 0 while configuring
     auto econ_setup_test = econ_setup_builder.apply();
     auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
-    std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+    std::cout << "PUSM_STATE 1 = " << pusm_state << std::endl ;
   }
 
 
