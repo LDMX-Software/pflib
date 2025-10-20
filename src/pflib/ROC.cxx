@@ -21,7 +21,7 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
-  printf("i2c base address %#x\n", roc_base_);
+  //printf("i2c base address %#x\n", roc_base_);
 
   std::vector<uint8_t> retval;
   for (int i = 0; i < len; i++) {
@@ -150,11 +150,7 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
      * When the input map is empty, then read all registers.
      */
     auto pages = compiler_.get_known_pages();
-    std::cout << "Known pages: ";
-    for (auto p : pages) std::cout << p << " ";
-    std::cout << std::endl;
     for (int page : compiler_.get_known_pages()) {
-      std::cout << "page " << page << std::endl;
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
         chip_reg[page][reg] = v.at(reg);
@@ -194,54 +190,19 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
   /**
    * get registers corresponding to a page
    */
-  std::cout << "[DEBUG] getParameters() called with page='" << page << "'\n";
   auto registers = compiler_.getRegisters(page);
-  std::cout << "[DEBUG] compiler_.getRegisters(" << page << ") returned "
-            << registers.size() << " registers.\n";
-
-  if (!registers.empty()) {
-    std::cout << "[DEBUG] Dumping first few register entries:\n";
-    size_t printed_outer = 0;
-    for (const auto& [outer_addr, inner_map] : registers) {
-      std::cout << "  Block 0x" << std::hex << outer_addr << std::dec << " -> "
-                << inner_map.size() << " entries\n";
-      size_t printed_inner = 0;
-      for (const auto& [inner_addr, val] : inner_map) {
-        std::cout << "    0x" << std::hex << inner_addr << " : 0x"
-                  << static_cast<int>(val) << std::dec << "\n";
-        if (++printed_inner >= 4) break;  // limit inner loop output
-      }
-      if (++printed_outer >= 3) break;  // limit outer loop output
-    }
-  }
 
   /**
    * Get the values of these registers from the chip
    */
   auto chip_reg = getRegisters(registers);
-  std::cout << "[DEBUG] getRegisters() returned " << chip_reg.size()
-            << " values.\n";
+
   /**
    * De-compile the registers back into the parameter mapping
    *
    * We don't be careful here since we are skipping pages
    */
   auto chip_params = compiler_.decompile(chip_reg, false);
-  std::cout << "[DEBUG] compiler_.decompile() returned " << chip_params.size()
-            << " pages.\n";
-  std::cout << "         Available pages:";
-  for (const auto& [k, _] : chip_params) std::cout << " [" << k << "]";
-  std::cout << std::endl;
-
-  if (chip_params.find(page) == chip_params.end()) {
-    std::cerr << "[ERROR] Page '" << page
-              << "' not found in chip_params! Available keys above.\n";
-    return {};  // return empty map instead of throwing
-  }
-
-  // Step 5: Return that page’s parameters
-  std::cout << "[DEBUG] Returning parameters for page '" << page << "' with "
-            << chip_params[page].size() << " entries.\n";
 
   return chip_params[page];
 }
