@@ -71,6 +71,50 @@ std::size_t msb(uint32_t v) {
 void Compiler::compile(const std::string& page_name,
                        const std::string& param_name, const uint64_t& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
+  std::cout << "[DEBUG] compile() called with page='" << page_name
+            << "', param='" << param_name << "'\n";
+
+  try {
+    // --- Step 1: Lookup page in parameter_lut_ ---
+    std::cout << "[DEBUG] parameter_lut_ size = " << parameter_lut_.size() << "\n";
+    if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
+      std::cerr << "[ERROR] page_name '" << page_name
+                << "' not found in parameter_lut_. Available pages:\n";
+      for (const auto& [k, _] : parameter_lut_)
+        std::cerr << "   " << k << "\n";
+      PFEXCEPTION_RAISE("BadPage", "Missing page: " + page_name);
+    }
+
+    const auto& page_entry = parameter_lut_.at(page_name);
+    const auto& page_id = page_entry.first;
+    const auto& params_map = page_entry.second;
+    std::cout << "[DEBUG] Found page '" << page_name
+              << "' (page_id=" << page_id
+              << ") with " << params_map.size() << " parameters.\n";
+
+    // --- Step 2: Lookup parameter in that page ---
+    if (params_map.find(param_name) == params_map.end()) {
+      std::cerr << "[ERROR] param_name '" << param_name
+                << "' not found in page '" << page_name << "'. "
+                << "Available parameters:\n";
+      int count = 0;
+      for (const auto& [pname, _] : params_map) {
+        std::cerr << "   " << pname << "\n";
+        if (++count >= 10) { std::cerr << "   ... (truncated)\n"; break; }
+      }
+      PFEXCEPTION_RAISE("BadParam", "Missing parameter: " + page_name + "." + param_name);
+    }
+  }
+  catch (const std::out_of_range& e) {
+    std::cerr << "[ERROR] out_of_range in compile('" << page_name << "', '"
+              << param_name << "') : " << e.what() << "\n";
+    throw;
+  } catch (const std::exception& e) {
+    std::cerr << "[ERROR] Exception in compile('" << page_name << "', '"
+              << param_name << "') : " << e.what() << "\n";
+    throw;
+  }
+  
   const auto& page_id{parameter_lut_.at(page_name).first};
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};
