@@ -59,97 +59,111 @@ void align_phase_word(Target* tgt) {
 
   // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
   // -- ECON do these test parameters correspond to e.g. before_state.yaml?
-  auto econ_setup_builder = econ.testParameters()
-                           .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0); // set run bit 0 while configuring
-                          //  .add("", "", );
+  { // scope this
+    auto econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0); // set run bit 0 while configuring
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
+    std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  }
 
-  auto econ_setup_test = econ_setup_builder.apply();
-  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
-  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
- 
+
   // I can manually apply them, eg:
   // set run bit 0 while configuring
   // econ.testParameters().add("CLOCKSANDRESETS_GLOBAL", "PUSM_RUN", 0).apply();
 
 
   //Phase ON
-  auto econ_setup_builder = econ.testParameters()
-                          .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
-                          .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
-                          .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 1)  
-                          .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1);  
-  econ_setup_test = econ_setup_builder.apply();
-  auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");
-  auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
-  std::cout << "EPRXGRPTOP = " << eprxgrptop << std::endl ; 
-  std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;   // arbitrarily using 5
+  // auto econ_setup_builder = econ.testParameters()
+  { // scope this
+    auto econ_setup_builder.add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
+                            .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
+                            .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 1)  
+                            .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1);  
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");
+    auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
+    std::cout << "EPRXGRPTOP = " << eprxgrptop << std::endl ; 
+    std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;   // arbitrarily using 5
+  }
 
 
-  // Set run bit ON
-  econ_setup_builder = econ.testParameters()
-                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
-  econ_setup_test = econ_setup_builder.apply();
-  pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
-  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  { // scope this
+    // Set run bit ON
+    auto econ_setup_builder = econ.testParameters()
+                            .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  }
 
-  // Set run bit OFF
-  econ_setup_builder = econ.testParameters()
-                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0);
-  econ_setup_test = econ_setup_builder.apply();
-  pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
-  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  { // scope this
+    // Set run bit OFF
+    auto econ_setup_builder = econ.testParameters()
+                            .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0);
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  }
 
-  // Set Training OFF
-  econ_setup_builder = econ.testParameters()
-                          .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
-                          .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 0)  
-                          .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 0); 
-  econ_setup_test = econ_setup_builder.apply();  
-  cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
-  std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;
 
-  // Set run bit ON
-  econ_setup_builder = econ.testParameters()
-                          .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
-  econ_setup_test = econ_setup_builder.apply();
-  pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
-  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  { // scope this
+    // Set Training OFF
+    auto econ_setup_builder = econ.testParameters()
+                            .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 0) // corresponding to configs/train_erx_phase_OFF_econ.yaml
+                            .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 0)  
+                            .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 0); 
+    auto econ_setup_test = econ_setup_builder.apply();  
+    auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
+    std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;
+  }
 
-  // Set Training OFF
-  econ_setup_builder = econ.testParameters()
-                          .add("CHEPRXGRP", "0_CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
-                          .add("CHEPRXGRP", "1_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "2_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "3_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "4_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "5_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "6_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "7_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "8_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "9_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "10_CHANNEL_LOCKED", 1)  
-                          .add("CHEPRXGRP", "11_CHANNEL_LOCKED", 1);
-  econ_setup_test = econ_setup_builder.apply();  
-  cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_CHANNEL_LOCKED");
-  std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;  
+
+  { // scope this
+    // Set run bit ON
+    auto econ_setup_builder = econ.testParameters()
+                            .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+  }
+
+  { // scope this
+    // Set Training OFF
+    auto econ_setup_builder = econ.testParameters()
+                            .add("CHEPRXGRP", "0_CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
+                            .add("CHEPRXGRP", "1_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "2_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "3_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "4_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "5_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "6_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "7_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "8_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "9_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "10_CHANNEL_LOCKED", 1)  
+                            .add("CHEPRXGRP", "11_CHANNEL_LOCKED", 1);
+    auto econ_setup_test = econ_setup_builder.apply();  
+    auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_CHANNEL_LOCKED");
+    std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;  
+  }
                           ;
   // auto econ_setup_test = econ_setup_builder.apply();
   // -------------------------------------------------------------------------------------------- //
