@@ -189,7 +189,8 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
   /**
    * get registers corresponding to a page
    */
-  auto registers = compiler_.getRegisters(page);
+  std::string PAGE{upper_cp(page)};
+  auto registers = compiler_.getRegisters(PAGE);
 
   /**
    * Get the values of these registers from the chip
@@ -203,7 +204,7 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
    */
   auto chip_params = compiler_.decompile(chip_reg, false);
 
-  return chip_params[page];
+  return chip_params[PAGE];
 }
 
 std::map<std::string, std::map<std::string, uint64_t>> ROC::defaults() {
