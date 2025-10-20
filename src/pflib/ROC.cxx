@@ -21,6 +21,8 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
+  printf("i2c base address %#x\n", roc_base_);
+  
   std::vector<uint8_t> retval;
   for (int i = 0; i < len; i++) {
     // set the address
@@ -147,7 +149,13 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
     /**
      * When the input map is empty, then read all registers.
      */
+    auto pages = compiler_.get_known_pages();
+    std::cout << "Known pages: ";
+    for (auto p : pages)
+      std::cout << p << " ";
+    std::cout << std::endl;
     for (int page : compiler_.get_known_pages()) {
+      std::cout << "page " << page << std::endl;
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
         chip_reg[page][reg] = v.at(reg);

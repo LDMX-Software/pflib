@@ -7,7 +7,7 @@
 /// print available econ IDs and their types
 void print_econs(Target* tgt) {
   for (auto iecon : tgt->hcal().econ_ids()) {
-    printf("  %d (%s)\n", iecon, tgt->hcal().econ(iecon).type());
+    printf("  %d (%s)\n", iecon, tgt->hcal().econ(iecon).type().c_str());
   }
 }
 
