@@ -73,8 +73,8 @@ void align_phase_word(Target* tgt) {
 
 
   //Phase ON
-  auto econ_setup_builder = econ.testParameters()
   { // scope this
+  auto econ_setup_builder = econ.testParameters()
                             .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
                             .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
                             .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
