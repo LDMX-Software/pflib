@@ -197,46 +197,46 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
   std::cout << "[DEBUG] getParameters() called with page='" << page << "'\n";
   auto registers = compiler_.getRegisters(page);
   std::cout << "[DEBUG] compiler_.getRegisters(" << page << ") returned "
-	    << registers.size() << " registers.\n";
+            << registers.size() << " registers.\n";
 
   if (!registers.empty()) {
     std::cout << "[DEBUG] Dumping first few register entries:\n";
     size_t printed_outer = 0;
     for (const auto& [outer_addr, inner_map] : registers) {
-      std::cout << "  Block 0x" << std::hex << outer_addr << std::dec
-		<< " -> " << inner_map.size() << " entries\n";
+      std::cout << "  Block 0x" << std::hex << outer_addr << std::dec << " -> "
+                << inner_map.size() << " entries\n";
       size_t printed_inner = 0;
       for (const auto& [inner_addr, val] : inner_map) {
-	std::cout << "    0x" << std::hex << inner_addr
-		  << " : 0x" << static_cast<int>(val) << std::dec << "\n";
-	if (++printed_inner >= 4) break;  // limit inner loop output
+        std::cout << "    0x" << std::hex << inner_addr << " : 0x"
+                  << static_cast<int>(val) << std::dec << "\n";
+        if (++printed_inner >= 4) break;  // limit inner loop output
       }
-      if (++printed_outer >= 3) break;    // limit outer loop output
+      if (++printed_outer >= 3) break;  // limit outer loop output
     }
   }
-  
+
   /**
    * Get the values of these registers from the chip
    */
   auto chip_reg = getRegisters(registers);
-  std::cout << "[DEBUG] getRegisters() returned " << chip_reg.size() << " values.\n";
+  std::cout << "[DEBUG] getRegisters() returned " << chip_reg.size()
+            << " values.\n";
   /**
    * De-compile the registers back into the parameter mapping
    *
    * We don't be careful here since we are skipping pages
    */
   auto chip_params = compiler_.decompile(chip_reg, false);
-    std::cout << "[DEBUG] compiler_.decompile() returned " << chip_params.size()
+  std::cout << "[DEBUG] compiler_.decompile() returned " << chip_params.size()
             << " pages.\n";
   std::cout << "         Available pages:";
-  for (const auto& [k, _] : chip_params)
-    std::cout << " [" << k << "]";
+  for (const auto& [k, _] : chip_params) std::cout << " [" << k << "]";
   std::cout << std::endl;
 
   if (chip_params.find(page) == chip_params.end()) {
     std::cerr << "[ERROR] Page '" << page
               << "' not found in chip_params! Available keys above.\n";
-    return {}; // return empty map instead of throwing
+    return {};  // return empty map instead of throwing
   }
 
   // Step 5: Return that page’s parameters
