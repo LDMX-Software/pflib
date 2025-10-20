@@ -173,13 +173,10 @@ void align_phase_word(Target* tgt) {
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
-  // auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");   // dump Parameter I added to force this functionality to be able to assign to an output variable
+  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");   // dump Parameter I added to force this functionality to be able to assign to an output variable
   
     
-  auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");  
-  
-
-
+  // auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");  
   std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
