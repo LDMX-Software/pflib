@@ -149,7 +149,6 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
     /**
      * When the input map is empty, then read all registers.
      */
-    auto pages = compiler_.get_known_pages();
     for (int page : compiler_.get_known_pages()) {
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
