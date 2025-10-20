@@ -389,7 +389,8 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(
     const std::string& page) {
   std::string PAGE{upper_cp(page)};
-  std::cout << "[DEBUG] parameter_lut_ size = " << parameter_lut_.size() << "\n";
+  std::cout << "[DEBUG] parameter_lut_ size = " << parameter_lut_.size()
+            << "\n";
   if (parameter_lut_.empty()) {
     std::cerr << "[ERROR] parameter_lut_ is empty! No pages defined.\n";
   }
