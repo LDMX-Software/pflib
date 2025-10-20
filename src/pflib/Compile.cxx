@@ -389,15 +389,29 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(
     const std::string& page) {
   std::string PAGE{upper_cp(page)};
+  std::cout << "[DEBUG] parameter_lut_ size = " << parameter_lut_.size() << "\n";
+  if (parameter_lut_.empty()) {
+    std::cerr << "[ERROR] parameter_lut_ is empty! No pages defined.\n";
+  }
   auto page_it{parameter_lut_.find(PAGE)};
   if (page_it == parameter_lut_.end()) {
     PFEXCEPTION_RAISE("BadPage", "Input page " + page +
                                      " is not present in the look up table.");
   }
+  std::cout << "[DEBUG] Found page '" << PAGE
+            << "' in parameter_lut_. Number of parameters in page: "
+            << page_it->second.second.size() << "\n";
   std::map<int, std::map<int, uint8_t>> registers;
   for (const auto& param : page_it->second.second) {
-    compile(page, param.first, 0, registers);
+    try {
+      compile(page, param.first, 0, registers);
+    } catch (const std::exception& e) {
+      std::cerr << "[ERROR] Exception in compile('" << page << "', '"
+                << param.first << "') : " << e.what() << "\n";
+      throw;
+    }
   }
+
   return registers;
 }
 
