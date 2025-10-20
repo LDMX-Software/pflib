@@ -77,7 +77,8 @@ void Compiler::compile(const std::string& page_name,
   const auto& page_id{parameter_lut_.at(page_name).first};
 
   if (params_map.find(param_name) == params_map.end()) {
-    PFEXCEPTION_RAISE("BadParam", "Missing parameter: " + page_name + "." + param_name);
+    PFEXCEPTION_RAISE("BadParam",
+                      "Missing parameter: " + page_name + "." + param_name);
   }
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};

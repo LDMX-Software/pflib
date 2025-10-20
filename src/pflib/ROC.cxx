@@ -21,7 +21,7 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
-  //printf("i2c base address %#x\n", roc_base_);
+  // printf("i2c base address %#x\n", roc_base_);
 
   std::vector<uint8_t> retval;
   for (int i = 0; i < len; i++) {
