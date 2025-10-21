@@ -66,8 +66,10 @@ void align_phase_word(Target* tgt) {
     std::cout << "1 test = " << std::endl ;
     auto econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0); // set run bit 0 while configuring
     auto econ_setup_test = econ_setup_builder.apply();
-    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
     std::cout << "PUSM_STATE 1 = " << pusm_state << std::endl ;
+    std::cout << "PUSM_RUN 1 = " << pusm_run << std::endl ;
   }
 
 
@@ -105,8 +107,10 @@ void align_phase_word(Target* tgt) {
     auto econ_setup_builder = econ.testParameters()
                             .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
     auto econ_setup_test = econ_setup_builder.apply();
-    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+    std::cout << "PUSM_RUN = " << pusm_run << std::endl ;
   }
 
   { // scope this
@@ -114,8 +118,10 @@ void align_phase_word(Target* tgt) {
     auto econ_setup_builder = econ.testParameters()
                             .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0);
     auto econ_setup_test = econ_setup_builder.apply();
-    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+    std::cout << "PUSM_RUN = " << pusm_run << std::endl ;
   }
 
 
@@ -145,8 +151,10 @@ void align_phase_word(Target* tgt) {
     auto econ_setup_builder = econ.testParameters()
                             .add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);
     auto econ_setup_test = econ_setup_builder.apply();
-    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");
+    auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
+    std::cout << "PUSM_RUN = " << pusm_run << std::endl ;
   }
 
   { // scope this
@@ -191,13 +199,25 @@ void align_phase_word(Target* tgt) {
   auto phase_sel_3 = econ.dumpParameter("CHEPRXGRP", "3_CHANNEL_LOCKED"); 
   auto phase_sel_4 = econ.dumpParameter("CHEPRXGRP", "4_CHANNEL_LOCKED"); 
   auto phase_sel_5 = econ.dumpParameter("CHEPRXGRP", "5_CHANNEL_LOCKED"); 
+  auto phase_sel_6 = econ.dumpParameter("CHEPRXGRP", "6_CHANNEL_LOCKED"); 
+  auto phase_sel_7 = econ.dumpParameter("CHEPRXGRP", "7_CHANNEL_LOCKED"); 
+  auto phase_sel_8 = econ.dumpParameter("CHEPRXGRP", "8_CHANNEL_LOCKED"); 
+  auto phase_sel_9 = econ.dumpParameter("CHEPRXGRP", "9_CHANNEL_LOCKED"); 
+  auto phase_sel_10 = econ.dumpParameter("CHEPRXGRP", "10_CHANNEL_LOCKED"); 
+  auto phase_sel_11 = econ.dumpParameter("CHEPRXGRP", "11_CHANNEL_LOCKED"); 
 
   std::cout << "phase select 0 = " << phase_sel_0 << std::endl ;
   std::cout << "phase select 1 = " << phase_sel_1 << std::endl ;
   std::cout << "phase select 2 = " << phase_sel_2 << std::endl ;
   std::cout << "phase select 3 = " << phase_sel_3 << std::endl ;
   std::cout << "phase select 4 = " << phase_sel_4 << std::endl ;
-  std::cout << "phase select 5 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 6 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 7 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 8 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 9 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 10 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 11 = " << phase_sel_5 << std::endl ;
+
   
   // .add("CHEPRXGRP_00", "CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
   // .add("CHEPRXGRP_01", "CHANNEL_LOCKED", 1) 
