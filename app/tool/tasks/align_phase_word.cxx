@@ -385,12 +385,12 @@ std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << std::endl ;
 //   // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
 //READ SNAPSHOT
   // Check ROC D pattern in each eRx   (from read_snapshot.yaml)       /// "ROC-D pattern"?
-  auto ch_snap_0 = econ.dumpParameter("CHALIGNER", "0_PER_CH_ALIGN_EN", 1); 
-  auto ch_snap_1 = econ.dumpParameter("CHALIGNER", "1_PER_CH_ALIGN_EN", 1); 
-  auto ch_snap_2 = econ.dumpParameter("CHALIGNER", "2_PER_CH_ALIGN_EN", 1); 
-  auto ch_snap_3 = econ.dumpParameter("CHALIGNER", "3_PER_CH_ALIGN_EN", 1); 
-  auto ch_snap_4 = econ.dumpParameter("CHALIGNER", "4_PER_CH_ALIGN_EN", 1); 
-  auto ch_snap_5 = econ.dumpParameter("CHALIGNER", "5_PER_CH_ALIGN_EN", 1); 
+  auto ch_snap_0 = econ.dumpParameter("CHALIGNER", "0_PER_CH_ALIGN_EN"); 
+  auto ch_snap_1 = econ.dumpParameter("CHALIGNER", "1_PER_CH_ALIGN_EN"); 
+  auto ch_snap_2 = econ.dumpParameter("CHALIGNER", "2_PER_CH_ALIGN_EN"); 
+  auto ch_snap_3 = econ.dumpParameter("CHALIGNER", "3_PER_CH_ALIGN_EN"); 
+  auto ch_snap_4 = econ.dumpParameter("CHALIGNER", "4_PER_CH_ALIGN_EN"); 
+  auto ch_snap_5 = econ.dumpParameter("CHALIGNER", "5_PER_CH_ALIGN_EN"); 
 
 std::cout << "chAligner snapshot 0 = " << ch_snap_0 << std::endl ;
 std::cout << "chAligner snapshot 1 = " << ch_snap_1 << std::endl ;
@@ -400,24 +400,24 @@ std::cout << "chAligner snapshot 4 = " << ch_snap_4 << std::endl ;
 std::cout << "chAligner snapshot 5 = " << ch_snap_5 << std::endl ;
 
 //READ ALIGNMENT STATUS  (from check_econd_roc_alignment.yaml)
-  auto ch_pm_0 = econ.dumpParameter("CHALIGNER", "0_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_0 = econ.dumpParameter("CHALIGNER", "0_SNAPSHOT_DV", 1); 
-  auto ch_select_0 = econ.dumpParameter("CHALIGNER", "0_SELECT", 1); 
-  auto ch_pm_1 = econ.dumpParameter("CHALIGNER", "1_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_1 = econ.dumpParameter("CHALIGNER", "1_SNAPSHOT_DV", 1); 
-  auto ch_select_1 = econ.dumpParameter("CHALIGNER", "1_SELECT", 1); 
-  auto ch_pm_2 = econ.dumpParameter("CHALIGNER", "2_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_2 = econ.dumpParameter("CHALIGNER", "2_SNAPSHOT_DV", 1); 
-  auto ch_select_2 = econ.dumpParameter("CHALIGNER", "2_SELECT", 1); 
-  auto ch_pm_3 = econ.dumpParameter("CHALIGNER", "3_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_3 = econ.dumpParameter("CHALIGNER", "3_SNAPSHOT_DV", 1); 
-  auto ch_select_3 = econ.dumpParameter("CHALIGNER", "3_SELECT", 1); 
-  auto ch_pm_4 = econ.dumpParameter("CHALIGNER", "4_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_4 = econ.dumpParameter("CHALIGNER", "4_SNAPSHOT_DV", 1); 
-  auto ch_select_4 = econ.dumpParameter("CHALIGNER", "4_SELECT", 1); 
-  auto ch_pm_5 = econ.dumpParameter("CHALIGNER", "5_PATTERN_MATCH", 1); 
-  auto ch_snap_dv_5 = econ.dumpParameter("CHALIGNER", "5_SNAPSHOT_DV", 1); 
-  auto ch_select_5 = econ.dumpParameter("CHALIGNER", "5_SELECT", 1); 
+  auto ch_pm_0 = econ.dumpParameter("CHALIGNER", "0_PATTERN_MATCH"); 
+  auto ch_snap_dv_0 = econ.dumpParameter("CHALIGNER", "0_SNAPSHOT_DV"); 
+  auto ch_select_0 = econ.dumpParameter("CHALIGNER", "0_SELECT"); 
+  auto ch_pm_1 = econ.dumpParameter("CHALIGNER", "1_PATTERN_MATCH"); 
+  auto ch_snap_dv_1 = econ.dumpParameter("CHALIGNER", "1_SNAPSHOT_DV"); 
+  auto ch_select_1 = econ.dumpParameter("CHALIGNER", "1_SELECT"); 
+  auto ch_pm_2 = econ.dumpParameter("CHALIGNER", "2_PATTERN_MATCH"); 
+  auto ch_snap_dv_2 = econ.dumpParameter("CHALIGNER", "2_SNAPSHOT_DV"); 
+  auto ch_select_2 = econ.dumpParameter("CHALIGNER", "2_SELECT"); 
+  auto ch_pm_3 = econ.dumpParameter("CHALIGNER", "3_PATTERN_MATCH"); 
+  auto ch_snap_dv_3 = econ.dumpParameter("CHALIGNER", "3_SNAPSHOT_DV"); 
+  auto ch_select_3 = econ.dumpParameter("CHALIGNER", "3_SELECT"); 
+  auto ch_pm_4 = econ.dumpParameter("CHALIGNER", "4_PATTERN_MATCH"); 
+  auto ch_snap_dv_4 = econ.dumpParameter("CHALIGNER", "4_SNAPSHOT_DV"); 
+  auto ch_select_4 = econ.dumpParameter("CHALIGNER", "4_SELECT"); 
+  auto ch_pm_5 = econ.dumpParameter("CHALIGNER", "5_PATTERN_MATCH"); 
+  auto ch_snap_dv_5 = econ.dumpParameter("CHALIGNER", "5_SNAPSHOT_DV"); 
+  auto ch_select_5 = econ.dumpParameter("CHALIGNER", "5_SELECT"); 
 
 std::cout << "chAligner pattern_match 0 = " << ch_pm_0 << std::endl ;
 std::cout << "chAligner snapshot_dv 0 = " << ch_snap_dv_0 << std::endl ;
