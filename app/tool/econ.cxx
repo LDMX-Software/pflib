@@ -7,7 +7,7 @@
 /// print available econ IDs and their types
 void print_econs(Target* tgt) {
   for (auto iecon : tgt->hcal().econ_ids()) {
-    printf("  %d (%s)\n", iecon, tgt->hcal().econ(iecon).type());
+    printf("  %d (%s)\n", iecon, tgt->hcal().econ(iecon).type().c_str());
   }
 }
 
@@ -20,7 +20,7 @@ void print_econs(Target* tgt) {
 static void econ_render(Target* tgt) {
   try {
     auto econ{tgt->hcal().econ(pftool::state.iecon)};
-    printf(" Active ECON: %d (%s)\n", pftool::state.iecon, econ.type());
+    printf(" Active ECON: %d (%s)\n", pftool::state.iecon, econ.type().c_str());
   } catch (const std::exception&) {
     printf(" Active ECON: %d (Not Configured)\n", pftool::state.iecon);
     print_econs(tgt);
