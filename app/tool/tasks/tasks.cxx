@@ -4,6 +4,7 @@
  * Definition of TASKS menu commands
  */
 #include "../pftool.h"
+#include "align_econ_lpgbt.h"
 #include "charge_timescan.h"
 #include "gen_scan.h"
 #include "inv_vref_scan.h"
@@ -18,7 +19,6 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
-#include "align_econ_lpgbt.h"
 
 namespace {
 auto menu_tasks =
@@ -52,6 +52,6 @@ auto menu_tasks =
                toa_scan)
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
-        ->line("ALIGN_ECON_LPGBT",
-	       "align ECON-D to lpGBT interface", align_econ_lpgbt);
+        ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
+               align_econ_lpgbt);
 }
