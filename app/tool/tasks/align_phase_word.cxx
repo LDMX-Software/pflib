@@ -308,8 +308,8 @@ int INVERT_FCMD = 1; // Should this be 1 or 0? (See Econ align.sh)
 
                             .add("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 1)  
                             .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080)  
-                            .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_00", 2505397589)       // IS THIS CORRECT (and those below _00 _01)
-                            .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)  
+                            .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL", 2505397589)       // IS THIS CORRECT (and those below _00 _01)
+                            // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)  
                             .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 00)                    // is this set like this?  
                             .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 01)  
                             .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)  
