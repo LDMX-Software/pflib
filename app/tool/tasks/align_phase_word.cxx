@@ -340,8 +340,8 @@ int INVERT_FCMD = 1; // Should this be 1 or 0? (See Econ align.sh)
                             .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  
                             .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095) ;  
     auto econ_setup_test = econ_setup_builder.apply();
-    auto global_atch_pattern_val = econ.dumpParameter("CHEPRXGRP", "11_CHANNEL_LOCKED"); 
-    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_atch_pattern_val << std::endl ;
+    auto global_match_pattern_val = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL"); 
+    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val << std::endl ;
   }
 
   // sets when snapshot is going to be taken
