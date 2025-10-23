@@ -340,16 +340,14 @@ int INVERT_FCMD = 1; // Should this be 1 or 0? (See Econ align.sh)
                             .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  
                             .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095) ;  
     auto econ_setup_test = econ_setup_builder.apply();
-    // auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");
-    // auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
-    // std::cout << "EPRXGRPTOP = " << eprxgrptop << std::endl ; 
-    // std::cout << "CHEPRXGRP5 = " << cheprxgrp5 << std::endl ;  
+    auto global_atch_pattern_val = econ.dumpParameter("CHEPRXGRP", "11_CHANNEL_LOCKED"); 
+    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_atch_pattern_val << std::endl ;
   }
 
   // sets when snapshot is going to be taken
   { // scope this
     auto econ_setup_builder = econ.testParameters()
-                            .add("ROCDAQCTRL", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);           // UNSURE what this parameter should be. "snapshot location BX" or "ORBSYNCSNAPSHOT"
+                            .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);           // UNSURE what this parameter should be. "snapshot location BX" or "ORBSYNCSNAPSHOT"
     auto econ_setup_test = econ_setup_builder.apply();
   }
 //   // ---------------------------------- --------------------------------------------------------- //
