@@ -85,16 +85,16 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
         RUNBIT_read, ADDR_RUNBIT, NBYTES_RUNBIT, MASK_RUNBIT, SHIFT_RUNBIT, 1);
     setValues(ADDR_RUNBIT, RUNBIT_one);
 
-    if(edgesel > 0 && fcmd_invert > 0) {
+    if (edgesel > 0 && fcmd_invert > 0) {
       // set EdgeSel to 0
       std::vector<uint8_t> FCMDEDGE_read = getValues(ADDR_FCMD, NBYTES_FCMD);
       std::vector<uint8_t> FCMDEDGE_edgesel =
-        newParam(FCMDEDGE_read, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDEDGE,
-                 SHIFT_FCMDEDGE, edgesel);
+          newParam(FCMDEDGE_read, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDEDGE,
+                   SHIFT_FCMDEDGE, edgesel);
       // invert FCMD data to 1 (the ECON CM needs this)
       std::vector<uint8_t> FCMD_invert =
-        newParam(FCMDEDGE_edgesel, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDINVERT,
-                 SHIFT_FCMDINVERT, fcmd_invert);
+          newParam(FCMDEDGE_edgesel, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDINVERT,
+                   SHIFT_FCMDINVERT, fcmd_invert);
       setValues(ADDR_FCMD, FCMD_invert);
     }
   }

@@ -127,7 +127,7 @@ static void econ(const std::string& cmd, Target* pft) {
     isRunMode = pftool::readline_bool("Set ECON runbit: ", ~isRunMode);
     int edgesel = 0;
     int invertfcmd = 1;
-    econ.setRunMode(isRunMode, edgesel, invertfcmd); 
+    econ.setRunMode(isRunMode, edgesel, invertfcmd);
     // read status again
     econ.isRunMode();
   }
