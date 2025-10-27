@@ -70,8 +70,8 @@ void align_phase_word(Target* tgt) {
     auto econ_setup_test = econ_setup_builder.apply();
     auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
     auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
-    std::cout << "PUSM_STATE 1 = " << pusm_state << std::endl ;
-    std::cout << "PUSM_RUN 1 = " << pusm_run << std::endl ;
+    std::cout << "First PUSM_STATE = " << pusm_state << std::endl ;
+    std::cout << "First PUSM_RUN = " << pusm_run << std::endl ;
   }
 
 
@@ -187,7 +187,7 @@ void align_phase_word(Target* tgt) {
 
   // Read PUSH
   // .add("CLOCKSANDRESETS_GLOBAL", "PUSM_STATE", 0)
-  auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");   // dump Parameter I added to force this functionality to be able to assign to an output variable
+  auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     
   // auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");  
@@ -214,12 +214,12 @@ void align_phase_word(Target* tgt) {
   std::cout << "phase select 2 = " << phase_sel_2 << std::endl ;
   std::cout << "phase select 3 = " << phase_sel_3 << std::endl ;
   std::cout << "phase select 4 = " << phase_sel_4 << std::endl ;
-  std::cout << "phase select 6 = " << phase_sel_5 << std::endl ;
-  std::cout << "phase select 7 = " << phase_sel_5 << std::endl ;
-  std::cout << "phase select 8 = " << phase_sel_5 << std::endl ;
-  std::cout << "phase select 9 = " << phase_sel_5 << std::endl ;
-  std::cout << "phase select 10 = " << phase_sel_5 << std::endl ;
-  std::cout << "phase select 11 = " << phase_sel_5 << std::endl ;
+  std::cout << "phase select 6 = " << phase_sel_6 << std::endl ;
+  std::cout << "phase select 7 = " << phase_sel_7 << std::endl ;
+  std::cout << "phase select 8 = " << phase_sel_8 << std::endl ;
+  std::cout << "phase select 9 = " << phase_sel_9 << std::endl ;
+  std::cout << "phase select 10 = " << phase_sel_10 << std::endl ;
+  std::cout << "phase select 11 = " << phase_sel_11 << std::endl ;
 
 // --------------------------------------------------------------------- //
 
