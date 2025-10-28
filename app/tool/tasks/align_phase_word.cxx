@@ -27,7 +27,7 @@ void align_phase_word(Target* tgt) {
 
     int list_channels[] = {6,7}; // {2,3,4,5,6,7};
 
-    std::cout << "Channels to be affected: " << std::endl;
+    std::cout << "Channels to be configured: " << std::endl;
     for(int channel : list_channels){
       std::cout << channel << "  " ;
     } std::cout << std::endl;
@@ -47,20 +47,9 @@ void align_phase_word(Target* tgt) {
 
 
     // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
-    
-    // NOT setting run bit - commenting out
-    // { // scope this
-    //   std::cout << "1 test = " << std::endl ;
-    //   auto econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 0); // set run bit 0 while configuring
-    //   auto econ_setup_test = econ_setup_builder.apply();
-    //   auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
-    //   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE"); 
-    //   std::cout << "First PUSM_STATE = " << pusm_state << std::endl ;
-    //   std::cout << "First PUSM_RUN = " << pusm_run << std::endl ;
-    // }
 
-    //Phase ON
     { // scope this
+      // Set Phase Training ON
       auto econ_setup_builder = econ.testParameters()
                               .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
       for(int channel : list_channels){
@@ -86,16 +75,6 @@ void align_phase_word(Target* tgt) {
       std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl ;
     }
 
-
-    { // scope this
-      // Set (Check only?) Channel Locks - I am not sure this does anything? Write only?
-      for(int channel : list_channels){
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 1);
-        auto econ_setup_test = econ_setup_builder.apply(); 
-        std::cout << "[debug line] channel, varname = " << channel << ", " << var_name << std::endl;   // DEBUG line
-      }
-    };
     // -------------------------------------------------------------------------------------------- //
     
 
@@ -123,24 +102,6 @@ void align_phase_word(Target* tgt) {
 
   // // -------------------------------------------------------------------------------------------------------------------------------- //
   // // ----------------------------------------------------- WORD ALIGNMENT ----------------------------------------------------- //
-
-  int INVERT_FCMD = 1; // Should this be 1 or 0? (See Econ align.sh)
-
-  //   // ---------------------------------- SETTING ROC REGISTERS to configure ROC ---------------------------------- //
-  { // scope this
-      auto roc_setup_builder = roc.testParameters()
-                              .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
-                              .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
-      auto params = roc.getParameters("DIGITALHALF_0"); // this uses the page and returns a mapping of all params therein
-      auto idle_0 = params.find("IDLEFRAME")->second;  // second because its a key value pair mapping (See ROC.cxx)
-
-      std::cout << "idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0 << std::dec << std::endl;
-  }
-
-  //   // ------------------------------------------------------------------------------------------------------------ //
-
-
-
 
   //   // ---------------------------------- READING ROC REGISTERS ---------------------------------- //
   { // scope this
