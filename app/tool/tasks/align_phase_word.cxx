@@ -23,7 +23,7 @@ void align_phase_word(Target* tgt) {
   std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex << pusm_state << std::dec << std::endl ;
   std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run << std::dec << std::endl ;
 
-  if(pusm_state==7){
+  if(pusm_state==8){
 
     int list_channels[] = {3}; // {2,3,4,5,6,7};
   
