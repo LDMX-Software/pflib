@@ -83,6 +83,8 @@ void setup_hcal_trig(pflib::lpGBT& lpgbt) {
   for (int i = 0; i < 6; i++) {
     lpgbt.setup_erx(i, 0);
   }
+  // finalize the setup
+  lpgbt.finalize_setup();
 }
 
 }  // namespace standard_config
