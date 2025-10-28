@@ -35,7 +35,7 @@ void align_phase_word(Target* tgt) {
     std::cout << "Channels to be configured: " << std::endl;
     for(int channel : list_channels){
       std::cout << channel << "  " << std::endl;
-    } std::cout << "Binary value of channels: " << binary_channels << std::endl;
+    } std::cout << "Decimal value of channels: " << binary_channels << std::endl;
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
@@ -156,7 +156,7 @@ void align_phase_word(Target* tgt) {
                             .add("ROCDAQCTRL", "GLOBAL_HGCROC_HDR_MARKER", 15)
                             .add("ROCDAQCTRL", "GLOBAL_SYNC_HEADER", 1) 
                             .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)  
-                            .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", 7)  
+                            .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", binary_channels)  
                             .add("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1)  
                             .add("ROCDAQCTRL", "GLOBAL_MATCH_THRESHOLD", 2)  
                             .add("ROCDAQCTRL", "GLOBAL_SIMPLE_MODE", 1) 
