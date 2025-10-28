@@ -62,7 +62,7 @@ void align_phase_word(Target* tgt) {
     for(int channel : poke_channels){
       std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
       econ_setup_builder.add("CHEPRXGRP", var_name, 1);
-      std::cout << "channel, varname = " << channel << ", " << varname << std::endl;
+      std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
     }
 
 
