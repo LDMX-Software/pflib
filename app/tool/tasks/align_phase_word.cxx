@@ -58,7 +58,7 @@ void align_phase_word(Target* tgt) {
     //Phase ON
     { // scope this
     auto econ_setup_builder = econ.testParameters()
-                            .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
+                            .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
     for(int channel : poke_channels){
       std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
       econ_setup_builder.add("CHEPRXGRP", var_name, 1)
