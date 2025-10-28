@@ -146,7 +146,7 @@ class lpGBT {
       \param pe_width Pre-emphasis width (0-7)
    */
   void setup_etx(int ietx, bool enable, bool invert = false, int drive = 4,
-                 int pe_mode = 0, int pe_strength = 3, int pe_width = 3);
+                 int pe_mode = 0, int pe_strength = 0, int pe_width = 0);
 
   /** Setup the EC port
       \param invert_tx Invert the outgoing signal
