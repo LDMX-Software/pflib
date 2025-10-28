@@ -25,8 +25,6 @@ void align_phase_word(Target* tgt) {
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   if(pusm_state==8){
-
-    int poke_channels[] = {2,3,4,5,6,7};
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
@@ -58,28 +56,19 @@ void align_phase_word(Target* tgt) {
     //Phase ON
     { // scope this
     auto econ_setup_builder = econ.testParameters()
-                            .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
-    for(int channel : poke_channels){
-      std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-      econ_setup_builder.add("CHEPRXGRP", var_name, 1)
-      std::cout << "channel, varname = " << channel << ", " << varname << std::endl;
-    }
-
-
-
-    
-                              // .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
-                              // .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 1)  
-                              // .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1);  
+                              .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1)  // corresponding to configs/train_erx_phase_ON_econ.yaml
+                              .add("CHEPRXGRP", "0_TRAIN_CHANNEL", 1) // corresponding to configs/train_erx_phase_TRAIN_econ.yaml
+                              .add("CHEPRXGRP", "1_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "2_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "3_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "4_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "5_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "6_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "7_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "8_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "9_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "10_TRAIN_CHANNEL", 1)  
+                              .add("CHEPRXGRP", "11_TRAIN_CHANNEL", 1);  
       auto econ_setup_test = econ_setup_builder.apply();
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
