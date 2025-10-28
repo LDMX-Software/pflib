@@ -71,7 +71,18 @@ std::size_t msb(uint32_t v) {
 void Compiler::compile(const std::string& page_name,
                        const std::string& param_name, const uint64_t& val,
                        std::map<int, std::map<int, uint8_t>>& register_values) {
-  const auto& page_id{parameter_lut_.at(page_name).first};
+  if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
+    PFEXCEPTION_RAISE("BadPage", "Missing page: " + page_name);
+  }
+
+  const auto& page_entry = parameter_lut_.at(page_name);
+  const auto& page_id = page_entry.first;
+  const auto& params_map = page_entry.second;
+  if (params_map.find(param_name) == params_map.end()) {
+    PFEXCEPTION_RAISE("BadParam",
+                      "Missing parameter: " + page_name + "." + param_name);
+  }
+
   const Parameter& spec{parameter_lut_.at(page_name).second.at(param_name)};
   uint64_t uval{static_cast<uint64_t>(val)};
 
@@ -396,8 +407,9 @@ std::map<int, std::map<int, uint8_t>> Compiler::getRegisters(
   }
   std::map<int, std::map<int, uint8_t>> registers;
   for (const auto& param : page_it->second.second) {
-    compile(page, param.first, 0, registers);
+    compile(PAGE, param.first, 0, registers);
   }
+
   return registers;
 }
 
