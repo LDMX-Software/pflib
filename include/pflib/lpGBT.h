@@ -196,7 +196,7 @@ class lpGBT {
 
   /** finalize the configuration */
   void finalize_setup();
-  
+
  private:
   lpGBT_ConfigTransport& tport_;
   struct I2C {

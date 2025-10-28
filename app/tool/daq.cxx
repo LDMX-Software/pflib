@@ -158,7 +158,7 @@ static void daq_setup_standard(Target* tgt) {
    */
   tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
   /// this then requires us to lower the L1OFFSET as well
-  std::map<std::string, std::map<std::string, int>> l1offsets;
+  std::map<std::string, std::map<std::string, uint64_t>> l1offsets;
   l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
   l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
   /// @note only correct right now for the single-board readout

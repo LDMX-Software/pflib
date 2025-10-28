@@ -25,15 +25,16 @@ void gen_scan(Target* tgt) {
    * These scan wide parameters are written into the JSON header of the output
    * CSV file along with the other inputs to this function.
    */
-  std::map<std::string, std::map<std::string, int>> scan_wide_params;
+  std::map<std::string, std::map<std::string, uint64_t>> scan_wide_params;
   if (pftool::readline_bool(
           "Are there parameters to set constant for the whole scan? ", false)) {
     do {
       std::cout << "Adding a scan-wide parameter..." << std::endl;
       try {
-        auto page = pftool::readline("  Page: ", pftool::state.page_names());
-        auto param =
-            pftool::readline("  Parameter: ", pftool::state.param_names(page));
+        auto page =
+            pftool::readline("  Page: ", pftool::state.roc_page_names());
+        auto param = pftool::readline("  Parameter: ",
+                                      pftool::state.roc_param_names(page));
         auto val = pftool::readline_int("  Value: ");
         scan_wide_params[page][param] = val;
       } catch (const pflib::Exception& e) {

@@ -736,7 +736,7 @@ auto gen =
     tool::menu("GENERAL", "GENERAL funcations")
         ->line("STATUS", "Status summary", general)
         ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
-        ->line("STANDARD_HCA", "Apply standard HCAL lpGBT setups", general)
+        ->line("STANDARD_HCAL", "Apply standard HCAL lpGBT setups", general)
         ->line("EXPERT_STANDARD_HCAL_DAQ",
                "Apply just standard HCAL DAQ lpGBT setup", general)
         ->line("EXPERT_STANDARD_HCAL_TRIG",

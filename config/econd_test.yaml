@@ -1,0 +1,13 @@
+FormatterBuffer:
+    Global_active_etxs: 0
+    Global_link_reset_pattern: 0
+Aligner:
+    Global_i2c_snapshot_en: 0
+ClocksAndResets:
+    Global_pusm_state: 0
+    Global_pusm_run: 0
+FCtrl:
+    Global_locked: 0
+    Global_lock_count: 0
+    Global_command_rx_inverted: 0
+    Global_invert_command_rx: 0

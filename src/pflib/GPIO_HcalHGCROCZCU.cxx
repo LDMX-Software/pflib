@@ -119,8 +119,13 @@ void GPIO_HcalHGCROCZCU::setGPO(const std::string& name, bool toTrue) {
 bool GPIO_HcalHGCROCZCU::getGPO(const std::string& name) {
   auto ptr = gpos_.find(name);
   if (ptr == gpos_.end()) {
-    PFEXCEPTION_RAISE("GPIOError", pflib::utility::string_format(
-                                       "Unknown GPO bit '%s'", name.c_str()));
+    printf("HcalHGCROCZCU Available GPOs:\n");
+    for (const auto& name : getGPOs()) {
+      printf("  %s\n", name.c_str());
+    }
+    PFEXCEPTION_RAISE("GPIOError",
+                      pflib::utility::string_format(
+                          "GPIO ZCU Unknown GPO bit '%s'", name.c_str()));
   }
   int ibit = ptr->second;
 

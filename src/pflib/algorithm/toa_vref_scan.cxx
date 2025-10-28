@@ -7,8 +7,8 @@
 
 namespace pflib::algorithm {
 
-std::map<std::string, std::map<std::string, int>> toa_vref_scan(Target* tgt,
-                                                                ROC roc) {
+std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
+    Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
   /// do a run of 100 samples per toa_vref to measure the TOA
@@ -65,7 +65,7 @@ std::map<std::string, std::map<std::string, int>> toa_vref_scan(Target* tgt,
     target[i_link] = highest_non_zero_eff;  // store value
   }
 
-  std::map<std::string, std::map<std::string, int>> settings;
+  std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {
     std::string page{
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};

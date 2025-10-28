@@ -512,6 +512,7 @@ void lpGBT::i2c_write(int ibus, uint8_t i2c_addr,
   // copying all the data into the core...
   for (size_t i = 0; i < values.size(); i++) {
     write(REG_I2CM0DATA0 + (i % 4) + ibus * REG_I2C_WSTRIDE, values[i]);
+    // every 4 bytes or on the last byte
     if ((i % 4) == 3 || (i + 1) == values.size())
       write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE,
             CMD_I2C_W_MULTI_4BYTE0 + (i / 4));
@@ -565,8 +566,9 @@ std::vector<uint8_t> lpGBT::i2c_read_data(int ibus) {
     write(REG_POWERUP2, 0x4|0x2);
   }
   
-int lpGBT::status() { return read(REG_POWERUP_STATUS); }
-std::string lpGBT::status_name(int pusm) {
+  int lpGBT::status() { return read(REG_POWERUP_STATUS); }
+
+  std::string lpGBT::status_name(int pusm) {
   static const char* states[] = {"ARESET",
                                  "RESET1",
                                  "WAIT_VDD_STABLE",
