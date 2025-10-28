@@ -247,7 +247,7 @@ void elink(const std::string& cmd, ToolBox* target) {
   if (cmd == "SPY") {
     LPGBT_Mezz_Tester mezz(target->olink->coder());
     static bool isrx = false;
-    isrx=tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
+    isrx = tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
     ilink = tool::readline_int("Which elink to spy", ilink);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
     for (size_t i = 0; i < words.size(); i++) printf("%3d %08x\n", i, words[i]);
@@ -256,8 +256,8 @@ void elink(const std::string& cmd, ToolBox* target) {
     LPGBT_Mezz_Tester mezz(target->olink->coder());
     ilink = tool::readline_int("Which elink to adjust phase for", ilink);
     int phase = tool::readline_int("New phase", mezz.get_phase(ilink));
-    mezz.set_phase(phase,ilink);
-  }    
+    mezz.set_phase(phase, ilink);
+  }
   if (cmd == "ECSPY") {
     int magic = tool::readline_int("Magic for setup", 0);
     if (magic == 1) {
