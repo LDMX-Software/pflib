@@ -273,20 +273,17 @@ void align_phase_word(Target* tgt) {
 
     // LINK_RESET
     tgt->fc().standard_setup();
-    tgt->fc().linkreset_rocs(); 
+    tgt->fc().linkreset_rocs();
     auto cmdcounters = tgt->fc().getCmdCounters();
     for (uint32_t i : cmdcounters) {
       std::cout << "i: " << i << ", ";
     }
     std::cout << std::endl;
-    
+
     // Custom BX value
-    int bx_new=3000;
-    int bx_addr=3;
+    int bx_new = 3000;
+    int bx_addr = 3;
     // tgt->fc().bx_custom(bx_addr, bx_new);
-
-
-
 
     // //
     // ------------------------------------------------------------------------------------------------------------
