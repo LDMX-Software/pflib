@@ -74,7 +74,6 @@ void Compiler::compile(const std::string& page_name,
   if (parameter_lut_.find(page_name) == parameter_lut_.end()) {
     PFEXCEPTION_RAISE("BadPage", "Missing page: " + page_name);
   }
-  const auto& page_id{parameter_lut_.at(page_name).first};
 
   const auto& page_entry = parameter_lut_.at(page_name);
   const auto& page_id = page_entry.first;
