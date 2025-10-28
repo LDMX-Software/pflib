@@ -26,7 +26,7 @@ void align_phase_word(Target* tgt) {
 
   if(pusm_state==8){
 
-    int poke_channels[] = {2,3,4,5,6,7};
+    int poke_channels[] = {3}; // {2,3,4,5,6,7};
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
@@ -84,22 +84,18 @@ void align_phase_word(Target* tgt) {
 
 
     { // scope this
-      // Set Channel Locks
+      // Set (Check only?) Channel Locks - I am not sure this does anything? Write only?
       for(int channel : poke_channels){
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED"; // corresponding to configs/train_erx_phase_OFF_econ.yaml
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 1);
         auto econ_setup_test = econ_setup_builder.apply(); 
-        std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
+        std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;   // DEBUG line
       }
-      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_CHANNEL_LOCKED");
-      std::cout << "CHEPRXGRP5 (Example lock_channel 5) = " << cheprxgrp5 << std::endl ;  
     };
     // -------------------------------------------------------------------------------------------- //
     
 
     // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
-
-
     {  //scope
       // Check channel lock
       std::map<int, int> ch_lock_values;  // create map for storing channel - value. Note this is not used, but here just in case its needed.
@@ -207,20 +203,6 @@ void align_phase_word(Target* tgt) {
                             .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)  
                             .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED", 0)
 
-                            // .add("CHALIGNER", "0_PER_CH_ALIGN_EN", 1)
-                            // .add("CHALIGNER", "1_PER_CH_ALIGN_EN", 1)
-                            // .add("CHALIGNER", "2_PER_CH_ALIGN_EN", 1)
-                            // .add("CHALIGNER", "3_PER_CH_ALIGN_EN", 1)
-                            // .add("CHALIGNER", "4_PER_CH_ALIGN_EN", 1)
-                            // .add("CHALIGNER", "5_PER_CH_ALIGN_EN", 1)
-
-                            // .add("ERX", "0_ENABLE", 1)
-                            // .add("ERX", "1_ENABLE", 1)
-                            // .add("ERX", "2_ENABLE", 1)
-                            // .add("ERX", "3_ENABLE", 1)
-                            // .add("ERX", "4_ENABLE", 1)
-                            // .add("ERX", "5_ENABLE", 1)
-
                             .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)
                             .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3) 
                             .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)  
@@ -241,7 +223,7 @@ void align_phase_word(Target* tgt) {
                                     .add("CHALIGNER", var_name_align, 1)
                                     .add("ERX", var_name_erx, 1);
       auto econ_setup_test = econ_setup_builder.apply(); 
-      std::cout << "channel, varname_align/erx = " << channel << ", " << var_name_align << ", " << var_name_erx << std::endl;
+      // std::cout << "channel, varname_align/erx = " << channel << ", " << var_name_align << ", " << var_name_erx << std::endl;  // DEBUG line
     }
   }
 
