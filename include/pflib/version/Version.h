@@ -23,7 +23,7 @@ std::string git_describe();
 
 /**
  * get the full debug version of pflib
- * 
+ *
  * Format: `tag` (`git_describe`)
  */
 std::string debug();

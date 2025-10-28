@@ -21,6 +21,8 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
+  // printf("i2c base address %#x\n", roc_base_);
+
   std::vector<uint8_t> retval;
   for (int i = 0; i < len; i++) {
     // set the address
@@ -155,7 +157,8 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
     }
   } else {
     /**
-     * When the input map is not empty, only read the registers that are within that mapping.
+     * When the input map is not empty, only read the registers that are within
+     * that mapping.
      */
     for (auto& page : selected) {
       int page_id = page.first;
@@ -182,30 +185,34 @@ void ROC::loadRegisters(const std::string& file_name) {
   });
 }
 
-std::map<std::string, int> ROC::getParameters(const std::string& page) {
+std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
   /**
    * get registers corresponding to a page
    */
-  auto registers = compiler_.getRegisters(page);
+  std::string PAGE{upper_cp(page)};
+  auto registers = compiler_.getRegisters(PAGE);
+
   /**
    * Get the values of these registers from the chip
    */
   auto chip_reg = getRegisters(registers);
+
   /**
    * De-compile the registers back into the parameter mapping
    *
    * We don't be careful here since we are skipping pages
    */
   auto chip_params = compiler_.decompile(chip_reg, false);
-  return chip_params[page];
+
+  return chip_params[PAGE];
 }
 
-std::map<std::string, std::map<std::string, int>> ROC::defaults() {
+std::map<std::string, std::map<std::string, uint64_t>> ROC::defaults() {
   return compiler_.defaults();
 }
 
 std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
-    const std::map<std::string, std::map<std::string, int>>& parameters) {
+    const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
    */
@@ -252,15 +259,15 @@ void ROC::loadParameters(const std::string& file_path, bool prepend_defaults) {
      * function to overlay the parameters we passed on top of the ones currently
      * on the chip after extracting them from the YAML file.
      */
-    std::map<std::string, std::map<std::string, int>> parameters;
+    std::map<std::string, std::map<std::string, uint64_t>> parameters;
     compiler_.extract(std::vector<std::string>{file_path}, parameters);
     applyParameters(parameters);
   }
 }
 
 void ROC::applyParameter(const std::string& page, const std::string& param,
-                         const int& val) {
-  std::map<std::string, std::map<std::string, int>> p;
+                         const uint64_t& val) {
+  std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = val;
   this->applyParameters(p);
 }
@@ -283,7 +290,7 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
      * decompile while being careful since we knowingly are attempting
      * to read ALL of the parameters on the chip
      */
-    std::map<std::string, std::map<std::string, int>> parameter_values =
+    std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
         compiler_.decompile(register_values, true);
 
     YAML::Emitter out;
@@ -315,7 +322,7 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
 }
 
 ROC::TestParameters::TestParameters(
-    ROC& roc, std::map<std::string, std::map<std::string, int>> new_params)
+    ROC& roc, std::map<std::string, std::map<std::string, uint64_t>> new_params)
     : roc_{roc} {
   previous_registers_ = roc_.applyParameters(new_params);
 }
@@ -327,13 +334,13 @@ ROC::TestParameters::~TestParameters() {
 ROC::TestParameters::Builder::Builder(ROC& roc) : parameters_{}, roc_{roc} {}
 
 ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
-    const std::string& page, const std::string& param, const int& val) {
+    const std::string& page, const std::string& param, const uint64_t& val) {
   parameters_[page][param] = val;
   return *this;
 }
 
 ROC::TestParameters::Builder& ROC::TestParameters::Builder::add_all_channels(
-    const std::string& param, const int& val) {
+    const std::string& param, const uint64_t& val) {
   for (int ch{0}; ch < 72; ch++) {
     add("CH_" + std::to_string(ch), param, val);
   }

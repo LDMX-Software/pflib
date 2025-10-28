@@ -10,12 +10,12 @@ void sampling_phase_scan(Target* tgt) {
 
   std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int phase_ck = 0;
 
   pflib::DecodeAndWriteToCSV writer{
-      fname,  //output file name
+      fname,  // output file name
       [&](std::ofstream& f) {
         boost::json::object header;
         header["scan_type"] = "CH_#.PHASE_CK sweep";

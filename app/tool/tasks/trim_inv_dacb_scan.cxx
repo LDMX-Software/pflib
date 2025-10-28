@@ -11,7 +11,7 @@ void trim_inv_dacb_scan(Target* tgt) {
   std::string output_filepath =
       pftool::readline_path("trim_inv_dacb_scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int trim_inv = 0;
   int dacb = 0;
@@ -40,7 +40,7 @@ void trim_inv_dacb_scan(Target* tgt) {
 
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
-  //take pedestal run for dacb parameter points (trim_inv = 0)
+  // take pedestal run for dacb parameter points (trim_inv = 0)
   auto sign_dac_builder = roc.testParameters();
   for (int ch{0}; ch < 72; ch++) {
     sign_dac_builder.add("CH_" + std::to_string(ch), "SIGN_DAC", 1);
@@ -58,7 +58,7 @@ void trim_inv_dacb_scan(Target* tgt) {
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 
-  //reset dacb to 0
+  // reset dacb to 0
   auto dacb_reset_builder = roc.testParameters();
   dacb = 0;
   for (int ch{0}; ch < 72; ch++) {
@@ -67,7 +67,7 @@ void trim_inv_dacb_scan(Target* tgt) {
   }
   auto dacb_reset = dacb_reset_builder.apply();
 
-  //take pedestal run for trim_inv parameter points
+  // take pedestal run for trim_inv parameter points
   for (trim_inv = 4; trim_inv < 64; trim_inv += 4) {
     pflib_log(info) << "Running TRIM_INV = " << trim_inv;
     auto trim_inv_test_builder = roc.testParameters();

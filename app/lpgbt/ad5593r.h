@@ -6,7 +6,8 @@
 
 namespace pflib {
 
-/** Partial clone from python code, with just needed functionalities for testing for now.
+/** Partial clone from python code, with just needed functionalities for testing
+ * for now.
  */
 class AD5593R {
   static constexpr uint8_t REG_DAC_PIN = 0x05;
@@ -88,8 +89,11 @@ class AD5593R {
   }
 
   int adc_read(int pin) {
-    //""" selects a pin (must be configured already for ADC operation), performs ADC conversion sequence and reads back the raw 12 bit result from the ADC data register for that pin """
-    // first byte sets repetition and temperature indicator readback, second byte selects ADC channel (all off by default)
+    //""" selects a pin (must be configured already for ADC operation), performs
+    // ADC conversion sequence and reads back the raw 12 bit result from the ADC
+    // data register for that pin """
+    // first byte sets repetition and temperature indicator readback, second
+    // byte selects ADC channel (all off by default)
     i2c_.write_raw(REG_ADC_SEQ, 0x0, (1 << pin));
     // select ADC address
     i2c_.write_raw(0x40);

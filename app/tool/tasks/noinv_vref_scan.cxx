@@ -10,7 +10,7 @@ void noinv_vref_scan(Target* tgt) {
 
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version());
+  auto roc = tgt->hcal().roc(pftool::state.iroc);
 
   int noinv_vref = 0;
 
@@ -38,21 +38,22 @@ void noinv_vref_scan(Target* tgt) {
 
   tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
-  //set global params HZ_noinv on each link (arbitrary channel on each)
+  // set global params HZ_noinv on each link (arbitrary channel on each)
   auto test_param = roc.testParameters()
                         .add("CH_17", "HZ_INV", 1)
                         .add("CH_53", "HZ_INV", 1)
                         .apply();
 
-  //increment inv_vref in increments of 20. 10 bit value but only scanning to 600
+  // increment inv_vref in increments of 20. 10 bit value but only scanning to
+  // 600
   for (noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
     pflib_log(info) << "Running NOINV_VREF = " << noinv_vref;
-    //set noinv_vref simultaneously for both links
+    // set noinv_vref simultaneously for both links
     auto test_param = roc.testParameters()
                           .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
                           .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
                           .apply();
-    //store current scan state in header for writer access
+    // store current scan state in header for writer access
     tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }

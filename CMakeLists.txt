@@ -101,12 +101,62 @@ add_custom_command(
 add_custom_target(lpgbt_regmap DEPENDS include/register_maps/lpgbt.h)
 
 add_custom_command(
+  OUTPUT "include/register_maps/econd_test.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_test.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd_test.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_test.yaml
+  COMMENT "Generating C++ ECOND test register LUT from register_maps/ECOND_test.yaml"
+  VERBATIM
+)
+add_custom_target(econd_test DEPENDS include/register_maps/econd_test.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econd.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econd.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECOND_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECOND register LUT from register_maps/ECOND_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econd DEPENDS include/register_maps/econd.h)
+
+add_custom_command(
+  OUTPUT "include/register_maps/econt.h"
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
+  COMMAND python3
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps/econt.h
+  DEPENDS
+  ${PROJECT_SOURCE_DIR}/register_maps/econ-to-header.py
+  ${PROJECT_SOURCE_DIR}/register_maps/ECONT_I2C_params_regmap.yaml
+  COMMENT "Generating C++ ECONT register LUT from register_maps/ECONT_I2C_params_regmap.yaml"
+  VERBATIM
+)
+add_custom_target(econt DEPENDS include/register_maps/econt.h)
+
+list(APPEND generate_headers_econ econd_test)
+list(APPEND generate_headers_econ econd)
+list(APPEND generate_headers_econ econt)
+
+add_custom_command(
   OUTPUT include/register_maps/register_maps.h
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
-    ${generate_headers} --output include/register_maps/register_maps.h
+    --roc_types ${generate_headers} --econ_types ${generate_headers_econ} --output include/register_maps/register_maps.h
   COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
   DEPENDS ${generate_headers} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
+  DEPENDS ${generate_headers_econ} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
@@ -132,6 +182,8 @@ add_library(packing SHARED
   src/pflib/packing/DAQLinkFrame.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
+  src/pflib/packing/ECONDEventPacket.cxx
+  src/pflib/packing/MultiSampleECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -142,9 +194,10 @@ target_link_libraries(packing PUBLIC utility)
 #
 #  src/pflib/FastControl.cxx
   
-add_library(pflib SHARED 
+add_library(pflib SHARED
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
+  src/pflib/ECON.cxx
   src/pflib/Compile.cxx
   src/pflib/Logging.cxx
   src/pflib/Hcal.cxx
@@ -158,6 +211,9 @@ add_library(pflib SHARED
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
   src/pflib/lpgbt/lpGBT_Utility.cxx
+  src/pflib/lpgbt/lpGBT_standard_configs.cxx
+  src/pflib/lpgbt/I2C.cxx
+  src/pflib/lpgbt/GPIO.cxx
   src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
@@ -165,9 +221,13 @@ add_library(pflib SHARED
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
+  src/pflib/zcu/zcu_optolink.cxx
+  src/pflib/zcu/HcalBackplaneZCU.cxx
   src/pflib/Bias.cxx
   src/pflib/algorithm/level_pedestals.cxx
   src/pflib/algorithm/toa_vref_scan.cxx
+  src/pflib/algorithm/trim_toa_scan.cxx
+  src/pflib/algorithm/get_toa_efficiencies.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -212,7 +272,6 @@ target_link_libraries(pftool PRIVATE pflib menu)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
   app/lpgbt/lpgbt_mezz_tester.cc
-  app/lpgbt/zcu_optolink.cc
 )
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
@@ -223,6 +282,9 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
+
+add_executable(econd-decoder app/econd_decoder.cxx)
+target_link_libraries(econd-decoder PRIVATE pflib)
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)

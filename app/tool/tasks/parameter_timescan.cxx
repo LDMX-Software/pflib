@@ -27,30 +27,34 @@ void parameter_timescan(Target* tgt) {
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ",
                                    highrange ? 64 : 1024);
   std::vector<int> channels;
-  if (pftool::readline_bool("Pulse into channel 61 (N) or all channels (Y)?",
+  if (pftool::readline_bool("Pulse into one channel (N) or all channels (Y)?",
                             false)) {
     for (int ch{0}; ch < 72; ch++) channels.push_back(ch);
   } else {
-    channels.push_back(61);
+    int channel = pftool::readline_int("Channel to pulse into?", 61);
+    channels.push_back(channel);
   }
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   std::string fname = pftool::readline_path("param-time-scan", ".csv");
   std::array<bool, 2> link{false, false};
   for (int ch : channels)
-    link[ch / 36] = true;  //link0 if ch0-35, and 1 if 36-71
+    link[ch / 36] = true;  // link0 if ch0-35, and 1 if 36-71
 
-  auto roc{tgt->hcal().roc(pftool::state.iroc, pftool::state.type_version())};
+  auto roc{tgt->hcal().roc(pftool::state.iroc)};
   auto test_param_handle = roc.testParameters();
   auto add_rv = [&](int l) {
     auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", l);
     test_param_handle.add(refvol_page, "CALIB", preCC ? 0 : calib)
         .add(refvol_page, "CALIB_2V5", preCC ? calib : 0)
         .add(refvol_page, "INTCTEST", 1)
-        .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-        .add(refvol_page, "TOA_VREF", toa_threshold)
-        .add(refvol_page, "TOT_VREF", tot_threshold);
+        .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0);
+    if (totscan) {
+      test_param_handle.add(refvol_page, "TOA_VREF", toa_threshold)
+          .add(refvol_page, "TOT_VREF", tot_threshold);
+    }
   };
+
   if (link[0]) add_rv(0);
   if (link[1]) add_rv(1);
 

@@ -4,6 +4,8 @@ LABEL os.version="almalinux:9.4"
 RUN yum -y install \
   gcc \
   g++ \
+  clang \
+  clang-tools-extra \
   cmake \
   readline-devel \
   boost-devel \

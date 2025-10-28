@@ -14,9 +14,13 @@ void increment(test_menu::TargetHandle p) {
   std::cout << *p << std::endl;
 }
 
-static auto r = test_menu::root()
-                    ->line("INC", "increment the target", increment)
-                    ->line("ONE", "one command", print_cmd);
+static auto r =
+    test_menu::root()
+        ->line("SHOULD_NOT_EXIST",
+               "this line should not appear in the interactive display",
+               increment)
+        ->line("INC", "increment the target", increment)
+        ->line("ONE", "one command", print_cmd);
 
 int main(int argc, char* argv[]) {
   if (argc > 1) {
@@ -24,6 +28,7 @@ int main(int argc, char* argv[]) {
     std::cout << std::flush;
     return 0;
   }
+  test_menu::root()->drop({"SHOULD_NOT_EXIST"});
   test_menu::set_history_filepath("~/.pflib-test-menu-history");
   try {
     int i = 3;

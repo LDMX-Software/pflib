@@ -12,13 +12,21 @@ namespace pflib {
 
 class HcalFiberless : public Hcal {
  public:
-  static const int GPO_HGCROC_RESET_HARD = 2;
-  static const int GPO_HGCROC_RESET_SOFT = 1;
-  static const int GPO_HGCROC_RESET_I2C = 0;
+  static constexpr const char* GPO_HGCROC_RESET_HARD = "HGCROC_HARD_RSTB";
+  static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
+  static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
-  HcalFiberless(const std::vector<std::shared_ptr<I2C>>& roc_i2c,
-                const std::vector<std::shared_ptr<I2C>>& bias_i2c)
-      : Hcal(roc_i2c, bias_i2c) {
+  HcalFiberless() : Hcal() {
+    i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
+    if (i2croc_ < 0) {
+      PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
+    }
+    i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
+    if (i2cboard_ < 0) {
+      PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
+    }
+    add_roc(0, 0x20, "sipm_rocv3b", i2croc_, i2cboard_, i2cboard_);
+
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
     // should already be done, but be SURE
@@ -47,7 +55,9 @@ class HcalFiberless : public Hcal {
   virtual Elinks& elinks() { return *elinks_; }
   virtual DAQ& daq() { return *daq_; }
 
- private:
+ public:
+  std::shared_ptr<I2C> i2croc_;
+  std::shared_ptr<I2C> i2cboard_;
   Elinks* elinks_;
   DAQ* daq_;
 };
@@ -55,26 +65,13 @@ class HcalFiberless : public Hcal {
 class TargetFiberless : public Target {
  public:
   TargetFiberless() : Target() {
-    i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
-    if (i2croc_ < 0) {
-      PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
-    }
-    i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
-    if (i2cboard_ < 0) {
-      PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
-    }
+    HcalFiberless* p_hcal = new HcalFiberless();
 
-    i2c_["HGCROC"] = i2croc_;
-    i2c_["BOARD"] = i2cboard_;
-    i2c_["BIAS"] = i2cboard_;
+    i2c_["HGCROC"] = p_hcal->i2croc_;
+    i2c_["BOARD"] = p_hcal->i2cboard_;
+    i2c_["BIAS"] = p_hcal->i2cboard_;
 
-    std::vector<std::shared_ptr<I2C>> roc_i2cs;
-    roc_i2cs.push_back(i2croc_);
-
-    std::vector<std::shared_ptr<I2C>> bias_i2cs;
-    bias_i2cs.push_back(i2cboard_);
-
-    hcal_ = std::shared_ptr<Hcal>(new HcalFiberless(roc_i2cs, bias_i2cs));
+    hcal_ = std::shared_ptr<Hcal>(p_hcal);
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
@@ -82,9 +79,6 @@ class TargetFiberless : public Target {
   virtual std::vector<uint32_t> read_event();
 
  private:
-  std::shared_ptr<I2C> i2croc_;
-  std::shared_ptr<I2C> i2cboard_;
-
   int run_;
   DaqFormat daqformat_;
   int ievt_, l1a_;
@@ -151,14 +145,16 @@ std::vector<uint32_t> TargetFiberless::read_event() {
                          (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
 
         for (int il1a = 0; il1a < hcal().daq().samples_per_ror(); il1a++) {
-          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a,
-                                0);      // assume orbit zero, L1A spaced by two
-          for (int i = 0; i < 2; i++) {  // only the DAQ links here
+          // assume orbit zero, L1A spaced by two
+          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
+          // only consuming DAQ links in ECOND (D for DAQ)
+          for (int i = 0; i < 2; i++) {
             formatter_.add_elink_packet(i, hcal().daq().getLinkData(i));
           }
           formatter_.finishEvent();
-          uint32_t header =
-              formatter_.getPacket().size() + 1;  // include the header
+
+          // add header giving specs around ECOND packet
+          uint32_t header = formatter_.getPacket().size() + 1;
           header |= (0x1 << 28);
           header |= hcal().daq().econid() << 16;
           if (il1a == hcal().daq().soi()) header |= 0x800;
@@ -166,9 +162,11 @@ std::vector<uint32_t> TargetFiberless::read_event() {
           header |= il1a << 12;
           buffer.push_back(header);
 
+          // insert ECOND packet into buffer
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),
                         formatter_.getPacket().end());
 
+          // advance L1A pointer
           hcal().daq().advanceLinkReadPtr();
         }
         l1a_ += hcal().daq().samples_per_ror();

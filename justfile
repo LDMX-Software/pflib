@@ -26,6 +26,13 @@ test: _test
 # print all messages during testing
 test-log-all: (_test "-l all")
 
+# run econd decoding test
+test-econd: (_test "-t \"decoding/econd*\"")
+
+# format the C++ with Google style guide
+format-cpp:
+    git ls-tree -r --name-only HEAD | egrep '\.(h|cxx)$' | xargs denv clang-format -i --style=Google
+
 # remove build directory
 clean:
     rm -r build

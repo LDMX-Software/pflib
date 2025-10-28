@@ -126,7 +126,7 @@ void PolarfireTarget::loadROCParameters(int roc, const std::string& file_name,
     hcal.roc(roc).setRegisters(settings);
   } else {
     // only change parameters that YAML file contains
-    std::map<std::string, std::map<std::string, int>> parameters;
+    std::map<std::string, std::map<std::string, uint64_t>> parameters;
     extract(std::vector<std::string>{file_name}, parameters);
     hcal.roc(roc).applyParameters(parameters);
   }
@@ -157,7 +157,7 @@ void PolarfireTarget::dumpSettings(int roc, const std::string& filename,
     }
 
     // decompile while being careful
-    std::map<std::string, std::map<std::string, int>> parameter_values =
+    std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
         decompile(register_values, true);
 
     YAML::Emitter out;
