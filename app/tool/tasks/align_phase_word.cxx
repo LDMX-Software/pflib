@@ -241,7 +241,7 @@ void align_phase_word(Target* tgt) {
                                     .add("CHALIGNER", var_name_align, 1)
                                     .add("ERX", var_name_erx, 1);
       auto econ_setup_test = econ_setup_builder.apply(); 
-      std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
+      std::cout << "channel, varname_align/erx = " << channel << ", " << var_name_align << ", " << var_name_erx << std::endl;
     }
   }
 
