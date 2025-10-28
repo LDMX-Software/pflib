@@ -345,6 +345,12 @@ std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << std::endl ;
   auto ch_snap_3 = econ.dumpParameter("CHALIGNER", "3_PER_CH_ALIGN_EN"); 
   auto ch_snap_4 = econ.dumpParameter("CHALIGNER", "4_PER_CH_ALIGN_EN"); 
   auto ch_snap_5 = econ.dumpParameter("CHALIGNER", "5_PER_CH_ALIGN_EN"); 
+  auto ch_snap_6 = econ.dumpParameter("CHALIGNER", "6_PER_CH_ALIGN_EN"); 
+  auto ch_snap_7 = econ.dumpParameter("CHALIGNER", "7_PER_CH_ALIGN_EN"); 
+  auto ch_snap_8 = econ.dumpParameter("CHALIGNER", "8_PER_CH_ALIGN_EN"); 
+  auto ch_snap_9 = econ.dumpParameter("CHALIGNER", "9_PER_CH_ALIGN_EN"); 
+  auto ch_snap_10 = econ.dumpParameter("CHALIGNER", "10_PER_CH_ALIGN_EN"); 
+  auto ch_snap_11 = econ.dumpParameter("CHALIGNER", "11_PER_CH_ALIGN_EN"); 
 
 std::cout << "chAligner snapshot 0 = " << ch_snap_0 << std::endl ;
 std::cout << "chAligner snapshot 1 = " << ch_snap_1 << std::endl ;
@@ -352,6 +358,12 @@ std::cout << "chAligner snapshot 2 = " << ch_snap_2 << std::endl ;
 std::cout << "chAligner snapshot 3 = " << ch_snap_3 << std::endl ;
 std::cout << "chAligner snapshot 4 = " << ch_snap_4 << std::endl ;
 std::cout << "chAligner snapshot 5 = " << ch_snap_5 << std::endl ;
+std::cout << "chAligner snapshot 6 = " << ch_snap_6 << std::endl ;
+std::cout << "chAligner snapshot 7 = " << ch_snap_7 << std::endl ;
+std::cout << "chAligner snapshot 8 = " << ch_snap_8 << std::endl ;
+std::cout << "chAligner snapshot 9 = " << ch_snap_9 << std::endl ;
+std::cout << "chAligner snapshot 10 = " << ch_snap_10 << std::endl ;
+std::cout << "chAligner snapshot 11 = " << ch_snap_11 << std::endl ;
 
 //READ ALIGNMENT STATUS  (from check_econd_roc_alignment.yaml)
   auto ch_pm_0 = econ.dumpParameter("CHALIGNER", "0_PATTERN_MATCH"); 
@@ -372,6 +384,24 @@ std::cout << "chAligner snapshot 5 = " << ch_snap_5 << std::endl ;
   auto ch_pm_5 = econ.dumpParameter("CHALIGNER", "5_PATTERN_MATCH"); 
   auto ch_snap_dv_5 = econ.dumpParameter("CHALIGNER", "5_SNAPSHOT_DV"); 
   auto ch_select_5 = econ.dumpParameter("CHALIGNER", "5_SELECT"); 
+  auto ch_pm_6 = econ.dumpParameter("CHALIGNER", "6_PATTERN_MATCH"); 
+  auto ch_snap_dv_6 = econ.dumpParameter("CHALIGNER", "6_SNAPSHOT_DV"); 
+  auto ch_select_6 = econ.dumpParameter("CHALIGNER", "6_SELECT"); 
+  auto ch_pm_7 = econ.dumpParameter("CHALIGNER", "7_PATTERN_MATCH"); 
+  auto ch_snap_dv_7 = econ.dumpParameter("CHALIGNER", "7_SNAPSHOT_DV"); 
+  auto ch_select_7 = econ.dumpParameter("CHALIGNER", "7_SELECT"); 
+  auto ch_pm_8 = econ.dumpParameter("CHALIGNER", "8_PATTERN_MATCH"); 
+  auto ch_snap_dv_8 = econ.dumpParameter("CHALIGNER", "8_SNAPSHOT_DV"); 
+  auto ch_select_8 = econ.dumpParameter("CHALIGNER", "8_SELECT"); 
+  auto ch_pm_9 = econ.dumpParameter("CHALIGNER", "9_PATTERN_MATCH"); 
+  auto ch_snap_dv_9 = econ.dumpParameter("CHALIGNER", "9_SNAPSHOT_DV"); 
+  auto ch_select_9 = econ.dumpParameter("CHALIGNER", "9_SELECT"); 
+  auto ch_pm_10 = econ.dumpParameter("CHALIGNER", "10_PATTERN_MATCH"); 
+  auto ch_snap_dv_10 = econ.dumpParameter("CHALIGNER", "10_SNAPSHOT_DV"); 
+  auto ch_select_10 = econ.dumpParameter("CHALIGNER", "10_SELECT"); 
+  auto ch_pm_11 = econ.dumpParameter("CHALIGNER", "11_PATTERN_MATCH"); 
+  auto ch_snap_dv_11 = econ.dumpParameter("CHALIGNER", "11_SNAPSHOT_DV"); 
+  auto ch_select_11 = econ.dumpParameter("CHALIGNER", "11_SELECT"); 
 
 std::cout << "chAligner pattern_match 0 = " << ch_pm_0 << std::endl ;
 std::cout << "chAligner snapshot_dv 0 = " << ch_snap_dv_0 << std::endl ;
@@ -391,6 +421,24 @@ std::cout << "chAligner select 4 = " << ch_select_4 << std::endl ;
 std::cout << "chAligner pattern_match 5 = " << ch_pm_5 << std::endl ;
 std::cout << "chAligner snapshot_dv 5 = " << ch_snap_dv_5 << std::endl ;
 std::cout << "chAligner select 5 = " << ch_select_5 << std::endl ;
+std::cout << "chAligner pattern_match 6 = " << ch_pm_6 << std::endl ;
+std::cout << "chAligner snapshot_dv 6 = " << ch_snap_dv_6 << std::endl ;
+std::cout << "chAligner select 6 = " << ch_select_6 << std::endl ;
+std::cout << "chAligner pattern_match 7 = " << ch_pm_7 << std::endl ;
+std::cout << "chAligner snapshot_dv 7 = " << ch_snap_dv_7 << std::endl ;
+std::cout << "chAligner select 7 = " << ch_select_7 << std::endl ;
+std::cout << "chAligner pattern_match 8 = " << ch_pm_8 << std::endl ;
+std::cout << "chAligner snapshot_dv 8 = " << ch_snap_dv_8 << std::endl ;
+std::cout << "chAligner select 8 = " << ch_select_9 << std::endl ;
+std::cout << "chAligner pattern_match 9 = " << ch_pm_9 << std::endl ;
+std::cout << "chAligner snapshot_dv 9 = " << ch_snap_dv_9 << std::endl ;
+std::cout << "chAligner select 9 = " << ch_select_10 << std::endl ;
+std::cout << "chAligner pattern_match 10 = " << ch_pm_10 << std::endl ;
+std::cout << "chAligner snapshot_dv 10 = " << ch_snap_dv_10 << std::endl ;
+std::cout << "chAligner select 10 = " << ch_select_10 << std::endl ;
+std::cout << "chAligner pattern_match 11 = " << ch_pm_11 << std::endl ;
+std::cout << "chAligner snapshot_dv 11 = " << ch_snap_dv_11 << std::endl ;
+std::cout << "chAligner select 11 = " << ch_select_11 << std::endl ;
 //   // ---------------------------------- --------------------------------------------------------- //
 
 
