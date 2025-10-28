@@ -83,11 +83,31 @@ void LPGBT_Mezz_Tester::set_prbs_len_ms(int len_ms) {
   opto_.write(REG_OPTO_PRBS_LEN,len_ms);
 }
 
-void LPGBT_Mezz_Tester::set_phase(int phase) {
+void LPGBT_Mezz_Tester::set_phase(int phase, int ilink) {
   if (wired_) {
     wired_->rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_TX_DELAY, phase<<16);
     wired_->rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_RX_DELAY, phase<<7);
   }
+  if (ilink>=0 && ilink<6) {
+    static constexpr int REG_UPLINK_PHASE = 21;
+    uint32_t val=opto_.read(REG_UPLINK_PHASE);
+    uint32_t mask=0x1F<<(ilink*5);
+    // set to zero
+    val=val|mask;
+    val=val^mask;
+    // mask in new phase
+    val=val|((phase&0x1F)<<(ilink*5));
+    opto_.write(REG_UPLINK_PHASE,val);
+  }
+}
+
+int LPGBT_Mezz_Tester::get_phase(int ilink) {
+  if (ilink>=0 && ilink<6) {
+    static constexpr int REG_UPLINK_PHASE = 21;
+    uint32_t val=opto_.read(REG_UPLINK_PHASE);
+    return (val>>(ilink*5))&0x1F;
+  }
+  return -1;
 }
 
 void LPGBT_Mezz_Tester::set_uplink_pattern(int ilink, int pattern) {
@@ -164,6 +184,7 @@ std::vector<uint32_t> LPGBT_Mezz_Tester::capture(int ilink, bool is_rx) {
     static constexpr int REG_CAPTURE_WINDOW = 20;
     opto_.write(REG_CAPTURE_OLINK,0);
     opto_.write(REG_CAPTURE_ELINK,(ilink+1)&0x7);
+    opto_.write(REG_CAPTURE_ENABLE,0);
     opto_.write(REG_CAPTURE_ENABLE,1);
     usleep(1000);
     opto_.write(REG_CAPTURE_ENABLE,0);
