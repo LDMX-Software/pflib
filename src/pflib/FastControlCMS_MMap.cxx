@@ -237,6 +237,10 @@ class FastControlCMS_MMap : public FastControl {
   static const uint32_t REQ_spare7 =
       0x80000000u;  // Send a SPARE7 command (auto-clear)/>
 
+  // virtual void bx_custom(int bx_addr, int bx_new) override {
+  //   uio_.rmw(bx_addr, bx_new, bx_new);
+  // }
+
   virtual void linkreset_rocs() override {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_roct, REQ_link_reset_roct);
     usleep(10);
