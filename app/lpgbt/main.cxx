@@ -245,8 +245,10 @@ void adc(const std::string& cmd, ToolBox* target) {
 void elink(const std::string& cmd, ToolBox* target) {
   if (cmd == "SPY") {
     LPGBT_Mezz_Tester mezz(target->olink->coder());
-    bool isrx = tool::readline_bool("Spy on an RX? (false for TX) ", false);
-    int ilink = tool::readline_int("Which elink to spy", 0);
+    static bool isrx = false;
+    isrx=tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
+    static int ilink = 0;
+    ilink = tool::readline_int("Which elink to spy", ilink);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
     for (size_t i = 0; i < words.size(); i++) printf("%3d %08x\n", i, words[i]);
   }
