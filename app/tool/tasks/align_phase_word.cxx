@@ -20,13 +20,12 @@ void align_phase_word(Target* tgt) {
   auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     
-  std::cout << "PUSM_STATE = " << pusm_state << ", " << std::hex << pusm_state << std::endl ;
-  std::cout << "PUSM_RUN = " << pusm_run << ", " << std::hex << pusm_run << std::endl ;
-  //" (0x" << std::hex << pusm_state << std::dec << ")\n";
+  std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex << pusm_state << std::dec << std::endl ;
+  std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run << std::dec << std::endl ;
 
-  if(pusm_state==8){
+  if(pusm_state==7){
 
-    int poke_channels[] = {3}; // {2,3,4,5,6,7};
+    int list_channels[] = {3}; // {2,3,4,5,6,7};
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
@@ -36,7 +35,7 @@ void align_phase_word(Target* tgt) {
       auto params = roc.getParameters("DIGITALHALF_0"); // this uses the page and returns a mapping of all params therein
       auto idle_0 = params.find("IDLEFRAME")->second;  // second because its a key value pair mapping (See ROC.cxx)
 
-      std::cout << "idle_0 = " << idle_0 << std::endl;
+      std::cout << "idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0 << std::dec << std::endl;
     }
 
     // ---------------------------------- --------------------------------------------------------- //
@@ -59,7 +58,7 @@ void align_phase_word(Target* tgt) {
     { // scope this
       auto econ_setup_builder = econ.testParameters()
                               .add("EPRXGRPTOP", "GLOBAL_TRACK_MODE", 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
-      for(int channel : poke_channels){
+      for(int channel : list_channels){
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         // std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
@@ -67,25 +66,25 @@ void align_phase_word(Target* tgt) {
         auto econ_setup_test = econ_setup_builder.apply();
         auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP","GLOBAL_TRACK_MODE");
         auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
-        std::cout << "EPRXGRPTOP = " << eprxgrptop << std::endl ; 
-        std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << std::endl ;   // arbitrarily using 5 as example
+        std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex << eprxgrptop << std::dec << std::endl ; 
+        std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl ;   // arbitrarily using 5 as example
     }
 
     { // scope this
       // Set Training OFF
-      for(int channel : poke_channels){
+      for(int channel : list_channels){
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL"; // corresponding to configs/train_erx_phase_OFF_econ.yaml
         auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 0);
         auto econ_setup_test = econ_setup_builder.apply(); 
       }
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
-      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << std::endl ;
+      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl ;
     }
 
 
     { // scope this
       // Set (Check only?) Channel Locks - I am not sure this does anything? Write only?
-      for(int channel : poke_channels){
+      for(int channel : list_channels){
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 1);
         auto econ_setup_test = econ_setup_builder.apply(); 
@@ -99,11 +98,11 @@ void align_phase_word(Target* tgt) {
     {  //scope
       // Check channel lock
       std::map<int, int> ch_lock_values;  // create map for storing channel - value. Note this is not used, but here just in case its needed.
-      for(int channel : poke_channels){
+      for(int channel : list_channels){
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
         ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << std::endl ;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x" << std::hex << ch_lock << std::dec << std::endl ;
       }
     }
   // --------------------------------------------------------------------- //
@@ -130,7 +129,7 @@ void align_phase_word(Target* tgt) {
       auto params = roc.getParameters("DIGITALHALF_0"); // this uses the page and returns a mapping of all params therein
       auto idle_0 = params.find("IDLEFRAME")->second;  // second because its a key value pair mapping (See ROC.cxx)
 
-      std::cout << "idle_0 = " << idle_0 << std::endl;
+      std::cout << "idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0 << std::dec << std::endl;
   }
 
   //   // ------------------------------------------------------------------------------------------------------------ //
@@ -142,36 +141,36 @@ void align_phase_word(Target* tgt) {
   { // scope this
     auto params = roc.getParameters("TOP"); // this uses the page and returns a mapping of all params therein
     auto inv_fc_rx = params.find("IN_INV_CMD_RX")->second;  // second because its a key value pair mapping (See ROC.cxx)
-    std::cout << "inv_fc_rx = " << inv_fc_rx << std::endl;
+    std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex << inv_fc_rx << std::dec << std::endl;
 
     params = roc.getParameters("TOP"); 
     auto RunL = params.find("RUNL")->second;
-    std::cout << "RunL = " << RunL << std::endl;
+    std::cout << "RunL = " << RunL << ", 0x" << std::hex << RunL << std::dec << std::endl;
 
     params = roc.getParameters("TOP"); 
     auto RunR = params.find("RUNR")->second;
-    std::cout << "RunR = " << RunR << std::endl;
+    std::cout << "RunR = " << RunR << ", 0x" << std::hex << RunR << std::dec << std::endl;
 
     params = roc.getParameters("DIGITALHALF_0"); 
     auto idle_0 = params.find("IDLEFRAME")->second;
     params = roc.getParameters("DIGITALHALF_1"); 
     auto idle_1 = params.find("IDLEFRAME")->second;
-    std::cout << "Idle_0 = " << idle_0 << std::endl;
-    std::cout << "Idle_1 = " << idle_1 << std::endl;
+    std::cout << "Idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0 << std::dec << std::endl;
+    std::cout << "Idle_1 = " << idle_1 << ", 0x" << std::hex << idle_1 << std::dec << std::endl;
 
     params = roc.getParameters("DIGITALHALF_0"); 
     auto bx_0 = params.find("BX_OFFSET")->second;
     params = roc.getParameters("DIGITALHALF_1"); 
     auto bx_1 = params.find("BX_OFFSET")->second;
-    std::cout << "bxoffset_0 = " << bx_0 << std::endl;
-    std::cout << "bxoffset_1 = " << bx_1 << std::endl;
+    std::cout << "bxoffset_0 = " << bx_0 << ", 0x" << std::hex << bx_0 << std::dec << std::endl;
+    std::cout << "bxoffset_1 = " << bx_1 << ", 0x" << std::hex << bx_1 << std::dec << std::endl;
 
     params = roc.getParameters("DIGITALHALF_0"); 
     auto bxtrig_0 = params.find("BX_TRIGGER")->second;
     params = roc.getParameters("DIGITALHALF_1"); 
     auto bxtrig_1 = params.find("BX_TRIGGER")->second;
-    std::cout << "bxtrigger_0 = " << bxtrig_0 << std::endl;
-    std::cout << "bxtrigger_1 = " << bxtrig_1 << std::endl;
+    std::cout << "bxtrigger_0 = " << bxtrig_0 << ", 0x" << std::hex << bxtrig_0 << std::dec << std::endl;
+    std::cout << "bxtrigger_1 = " << bxtrig_1 << ", 0x" << std::hex << bxtrig_1 << std::dec << std::endl;
 
   }
   //   // ---------------------------------- --------------------------------------------------------- //
@@ -212,11 +211,11 @@ void align_phase_word(Target* tgt) {
                             .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095) ;  
     auto econ_setup_test = econ_setup_builder.apply();
     auto global_match_pattern_val = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL"); 
-    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val << std::endl ;
+    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val << ", 0x" << std::hex << global_match_pattern_val << std::dec  << std::endl ;
   }
 
   {
-    for(int channel : poke_channels){
+    for(int channel : list_channels){
       std::string var_name_align = std::to_string(channel) + "_PER_CH_ALIGN_EN";
       std::string var_name_erx = std::to_string(channel) + "_ENABLE";
       auto econ_setup_builder = econ.testParameters()
@@ -240,7 +239,7 @@ void align_phase_word(Target* tgt) {
   //   // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
   auto cnt_load_val = econ.dumpParameter("ALIGNER","GLOBAL_ORBSYN_CNT_LOAD_VAL"); 
 
-  std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << std::endl ;
+  std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x" << std::hex << cnt_load_val << std::dec << std::endl ;
   //   // ---------------------------------- --------------------------------------------------------- //
 
 
@@ -261,7 +260,7 @@ void align_phase_word(Target* tgt) {
   //READ SNAPSHOT
     {  //scope
     // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
-      for(int channel : poke_channels){
+      for(int channel : list_channels){
         std::string var_name_align = std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
@@ -270,10 +269,10 @@ void align_phase_word(Target* tgt) {
         auto ch_pm= econ.dumpParameter("CHALIGNER", var_name_pm); 
         auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv); 
         auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
-        std::cout << "channel_snap " << channel << " = " << ch_snap << std::endl ;
-        std::cout << "chAligner pattern_match = " << ch_pm << std::endl ;
-        std::cout << "chAligner snapshot_dv = " << ch_snap_dv << std::endl ;
-        std::cout << "chAligner select " << channel << " = " << ch_select << std::endl ;
+        std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x" << std::hex << ch_snap << std::dec  << std::endl ;
+        std::cout << "chAligner pattern_match = " << ch_pm << ", 0x" << std::hex << ch_pm << std::dec  << std::endl ;
+        std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x" << std::hex << ch_snap_dv << std::dec  << std::endl ;
+        std::cout << "chAligner select " << channel << " = " << ch_select << ", 0x" << std::hex << ch_select << std::dec  << std::endl ;
       }
     }
 
