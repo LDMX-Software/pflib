@@ -77,7 +77,6 @@ void align_phase_word(Target* tgt) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL"; // corresponding to configs/train_erx_phase_OFF_econ.yaml
         auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 0);
         auto econ_setup_test = econ_setup_builder.apply(); 
-        std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
       }
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_TRAIN_CHANNEL");
       std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5 << std::endl ;
@@ -85,21 +84,13 @@ void align_phase_word(Target* tgt) {
 
 
     { // scope this
-      // Set Channel Lock ?
-      auto econ_setup_builder = econ.testParameters()
-                              .add("CHEPRXGRP", "0_CHANNEL_LOCKED", 1) // corresponding to configs/check_erx_current_channel_locked_econ$ECON.yaml
-                              .add("CHEPRXGRP", "1_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "2_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "3_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "4_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "5_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "6_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "7_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "8_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "9_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "10_CHANNEL_LOCKED", 1)  
-                              .add("CHEPRXGRP", "11_CHANNEL_LOCKED", 1);
-      auto econ_setup_test = econ_setup_builder.apply();  
+      // Set Channel Locks
+      for(int channel : poke_channels){
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED"; // corresponding to configs/train_erx_phase_OFF_econ.yaml
+        auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 1);
+        auto econ_setup_test = econ_setup_builder.apply(); 
+        std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
+      }
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP","5_CHANNEL_LOCKED");
       std::cout << "CHEPRXGRP5 (Example lock_channel 5) = " << cheprxgrp5 << std::endl ;  
     };
@@ -109,32 +100,16 @@ void align_phase_word(Target* tgt) {
     // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
 
 
-    // Check channel lock
-    auto ch_lock_0 = econ.dumpParameter("CHEPRXGRP", "0_CHANNEL_LOCKED");     // can also readParameters()
-    auto ch_lock_1 = econ.dumpParameter("CHEPRXGRP", "1_CHANNEL_LOCKED"); 
-    auto ch_lock_2 = econ.dumpParameter("CHEPRXGRP", "2_CHANNEL_LOCKED"); 
-    auto ch_lock_3 = econ.dumpParameter("CHEPRXGRP", "3_CHANNEL_LOCKED"); 
-    auto ch_lock_4 = econ.dumpParameter("CHEPRXGRP", "4_CHANNEL_LOCKED"); 
-    auto ch_lock_5 = econ.dumpParameter("CHEPRXGRP", "5_CHANNEL_LOCKED"); 
-    auto ch_lock_6 = econ.dumpParameter("CHEPRXGRP", "6_CHANNEL_LOCKED"); 
-    auto ch_lock_7 = econ.dumpParameter("CHEPRXGRP", "7_CHANNEL_LOCKED"); 
-    auto ch_lock_8 = econ.dumpParameter("CHEPRXGRP", "8_CHANNEL_LOCKED"); 
-    auto ch_lock_9 = econ.dumpParameter("CHEPRXGRP", "9_CHANNEL_LOCKED"); 
-    auto ch_lock_10 = econ.dumpParameter("CHEPRXGRP", "10_CHANNEL_LOCKED"); 
-    auto ch_lock_11 = econ.dumpParameter("CHEPRXGRP", "11_CHANNEL_LOCKED"); 
-
-    std::cout << "channel_locked 0 = " << ch_lock_0 << std::endl ;
-    std::cout << "channel_locked 1 = " << ch_lock_1 << std::endl ;
-    std::cout << "channel_locked 2 = " << ch_lock_2 << std::endl ;
-    std::cout << "channel_locked 3 = " << ch_lock_3 << std::endl ;
-    std::cout << "channel_locked 4 = " << ch_lock_4 << std::endl ;
-    std::cout << "channel_locked 6 = " << ch_lock_6 << std::endl ;
-    std::cout << "channel_locked 7 = " << ch_lock_7 << std::endl ;
-    std::cout << "channel_locked 8 = " << ch_lock_8 << std::endl ;
-    std::cout << "channel_locked 9 = " << ch_lock_9 << std::endl ;
-    std::cout << "channel_locked 10 = " << ch_lock_10 << std::endl ;
-    std::cout << "channel_locked 11 = " << ch_lock_11 << std::endl ;
-
+    {  //scope
+      // Check channel lock
+      std::map<int, int> ch_lock_values;  // create map for storing channel - value. Note this is not used, but here just in case its needed.
+      for(int channel : poke_channels){
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+        ch_lock_values[channel] = ch_lock;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << std::endl ;
+      }
+    }
   // --------------------------------------------------------------------- //
 
   // ----------------------------------------------------- END PHASE ALIGNMENT ----------------------------------------------------- //
@@ -209,61 +184,74 @@ void align_phase_word(Target* tgt) {
 
 
   //   // ---------------------------------- SETTING ECON REGISTERS ---------------------------------- //
-    //Configure ECOND for Alignment (from econd_init_cpp.yaml)
-    { // scope this
+  //Configure ECOND for Alignment (from econd_init_cpp.yaml)
+  { // scope this
+    auto econ_setup_builder = econ.testParameters()
+                            .add("ROCDAQCTRL", "GLOBAL_HGCROC_HDR_MARKER", 15)
+                            .add("ROCDAQCTRL", "GLOBAL_SYNC_HEADER", 1) 
+                            .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)  
+                            .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", 7)  
+                            .add("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1)  
+                            .add("ROCDAQCTRL", "GLOBAL_MATCH_THRESHOLD", 2)  
+                            .add("ROCDAQCTRL", "GLOBAL_SIMPLE_MODE", 1) 
+
+                            .add("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 1)  
+                            .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080)  
+                            .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL", 2505397589)       // IS THIS CORRECT (and those below _00 _01)
+                            // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)  
+                            .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 00)                    // is this set like this?  
+                            .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 01)  
+                            .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)  
+                            .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)  
+                            .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563)  
+                            .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)  
+                            .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED", 0)
+
+                            // .add("CHALIGNER", "0_PER_CH_ALIGN_EN", 1)
+                            // .add("CHALIGNER", "1_PER_CH_ALIGN_EN", 1)
+                            // .add("CHALIGNER", "2_PER_CH_ALIGN_EN", 1)
+                            // .add("CHALIGNER", "3_PER_CH_ALIGN_EN", 1)
+                            // .add("CHALIGNER", "4_PER_CH_ALIGN_EN", 1)
+                            // .add("CHALIGNER", "5_PER_CH_ALIGN_EN", 1)
+
+                            // .add("ERX", "0_ENABLE", 1)
+                            // .add("ERX", "1_ENABLE", 1)
+                            // .add("ERX", "2_ENABLE", 1)
+                            // .add("ERX", "3_ENABLE", 1)
+                            // .add("ERX", "4_ENABLE", 1)
+                            // .add("ERX", "5_ENABLE", 1)
+
+                            .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)
+                            .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3) 
+                            .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)  
+                            .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)  
+                            .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  
+                            .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  
+                            .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095) ;  
+    auto econ_setup_test = econ_setup_builder.apply();
+    auto global_match_pattern_val = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL"); 
+    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val << std::endl ;
+  }
+
+  {
+    for(int channel : poke_channels){
+      std::string var_name_align = std::to_string(channel) + "_PER_CH_ALIGN_EN";
+      std::string var_name_erx = std::to_string(channel) + "_ENABLE";
       auto econ_setup_builder = econ.testParameters()
-                              .add("ROCDAQCTRL", "GLOBAL_HGCROC_HDR_MARKER", 15)
-                              .add("ROCDAQCTRL", "GLOBAL_SYNC_HEADER", 1) 
-                              .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)  
-                              .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", 7)  
-                              .add("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1)  
-                              .add("ROCDAQCTRL", "GLOBAL_MATCH_THRESHOLD", 2)  
-                              .add("ROCDAQCTRL", "GLOBAL_SIMPLE_MODE", 1) 
-
-                              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 1)  
-                              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080)  
-                              .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL", 2505397589)       // IS THIS CORRECT (and those below _00 _01)
-                              // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)  
-                              .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 00)                    // is this set like this?  
-                              .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 01)  
-                              .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)  
-                              .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)  
-                              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563)  
-                              .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)  
-                              .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED", 0)
-
-                              .add("CHALIGNER", "0_PER_CH_ALIGN_EN", 1)
-                              .add("CHALIGNER", "1_PER_CH_ALIGN_EN", 1)
-                              .add("CHALIGNER", "2_PER_CH_ALIGN_EN", 1)
-                              .add("CHALIGNER", "3_PER_CH_ALIGN_EN", 1)
-                              .add("CHALIGNER", "4_PER_CH_ALIGN_EN", 1)
-                              .add("CHALIGNER", "5_PER_CH_ALIGN_EN", 1)
-
-                              .add("ERX", "0_ENABLE", 1)
-                              .add("ERX", "1_ENABLE", 1)
-                              .add("ERX", "2_ENABLE", 1)
-                              .add("ERX", "3_ENABLE", 1)
-                              .add("ERX", "4_ENABLE", 1)
-                              .add("ERX", "5_ENABLE", 1)
-
-                              .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)
-                              .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3) 
-                              .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)  
-                              .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)  
-                              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  
-                              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  
-                              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095) ;  
-      auto econ_setup_test = econ_setup_builder.apply();
-      auto global_match_pattern_val = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL"); 
-      std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val << std::endl ;
+                                    .add("CHALIGNER", var_name_align, 1)
+                                    .add("ERX", var_name_erx, 1);
+      auto econ_setup_test = econ_setup_builder.apply(); 
+      std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
     }
+  }
 
-    // sets when snapshot is going to be taken
-    { // scope this
-      auto econ_setup_builder = econ.testParameters()
-                              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);
-      auto econ_setup_test = econ_setup_builder.apply();
-    }
+
+  // sets when snapshot is going to be taken
+  { // scope this
+    auto econ_setup_builder = econ.testParameters()
+                            .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);
+    auto econ_setup_test = econ_setup_builder.apply();
+  }
   //   // ---------------------------------- --------------------------------------------------------- //
 
 
@@ -271,10 +259,6 @@ void align_phase_word(Target* tgt) {
   auto cnt_load_val = econ.dumpParameter("ALIGNER","GLOBAL_ORBSYN_CNT_LOAD_VAL"); 
 
   std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << std::endl ;
-
-  //       // read back econ_align.sh registers.
-  //       // read_snaphot.yaml
-  //       // check_econd_roc_alignment.yaml
   //   // ---------------------------------- --------------------------------------------------------- //
 
 
@@ -293,109 +277,25 @@ void align_phase_word(Target* tgt) {
 
   //   // ---------------------------------- READING ECON REGISTERS ---------------------------------- //
   //READ SNAPSHOT
-    // Check ROC D pattern in each eRx   (from read_snapshot.yaml)       /// "ROC-D pattern"?
-    auto ch_snap_0 = econ.dumpParameter("CHALIGNER", "0_PER_CH_ALIGN_EN"); 
-    auto ch_snap_1 = econ.dumpParameter("CHALIGNER", "1_PER_CH_ALIGN_EN"); 
-    auto ch_snap_2 = econ.dumpParameter("CHALIGNER", "2_PER_CH_ALIGN_EN"); 
-    auto ch_snap_3 = econ.dumpParameter("CHALIGNER", "3_PER_CH_ALIGN_EN"); 
-    auto ch_snap_4 = econ.dumpParameter("CHALIGNER", "4_PER_CH_ALIGN_EN"); 
-    auto ch_snap_5 = econ.dumpParameter("CHALIGNER", "5_PER_CH_ALIGN_EN"); 
-    auto ch_snap_6 = econ.dumpParameter("CHALIGNER", "6_PER_CH_ALIGN_EN"); 
-    auto ch_snap_7 = econ.dumpParameter("CHALIGNER", "7_PER_CH_ALIGN_EN"); 
-    auto ch_snap_8 = econ.dumpParameter("CHALIGNER", "8_PER_CH_ALIGN_EN"); 
-    auto ch_snap_9 = econ.dumpParameter("CHALIGNER", "9_PER_CH_ALIGN_EN"); 
-    auto ch_snap_10 = econ.dumpParameter("CHALIGNER", "10_PER_CH_ALIGN_EN"); 
-    auto ch_snap_11 = econ.dumpParameter("CHALIGNER", "11_PER_CH_ALIGN_EN"); 
+    {  //scope
+    // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
+      for(int channel : poke_channels){
+        std::string var_name_align = std::to_string(channel) + "_PER_CH_ALIGN_EN";
+        std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
+        std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
+        std::string var_name_select = std::to_string(channel) + "_SELECT";
+        auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
+        auto ch_pm= econ.dumpParameter("CHALIGNER", var_name_pm); 
+        auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv); 
+        auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
+        std::cout << "channel_snap " << channel << " = " << ch_snap << std::endl ;
+        std::cout << "chAligner pattern_match = " << ch_pm << std::endl ;
+        std::cout << "chAligner snapshot_dv = " << ch_snap_dv << std::endl ;
+        std::cout << "chAligner select " << channel << " = " << ch_select << std::endl ;
+      }
+    }
 
-  std::cout << "chAligner snapshot 0 = " << ch_snap_0 << std::endl ;
-  std::cout << "chAligner snapshot 1 = " << ch_snap_1 << std::endl ;
-  std::cout << "chAligner snapshot 2 = " << ch_snap_2 << std::endl ;
-  std::cout << "chAligner snapshot 3 = " << ch_snap_3 << std::endl ;
-  std::cout << "chAligner snapshot 4 = " << ch_snap_4 << std::endl ;
-  std::cout << "chAligner snapshot 5 = " << ch_snap_5 << std::endl ;
-  std::cout << "chAligner snapshot 6 = " << ch_snap_6 << std::endl ;
-  std::cout << "chAligner snapshot 7 = " << ch_snap_7 << std::endl ;
-  std::cout << "chAligner snapshot 8 = " << ch_snap_8 << std::endl ;
-  std::cout << "chAligner snapshot 9 = " << ch_snap_9 << std::endl ;
-  std::cout << "chAligner snapshot 10 = " << ch_snap_10 << std::endl ;
-  std::cout << "chAligner snapshot 11 = " << ch_snap_11 << std::endl ;
-
-  //READ ALIGNMENT STATUS  (from check_econd_roc_alignment.yaml)
-    auto ch_pm_0 = econ.dumpParameter("CHALIGNER", "0_PATTERN_MATCH"); 
-    auto ch_snap_dv_0 = econ.dumpParameter("CHALIGNER", "0_SNAPSHOT_DV"); 
-    auto ch_select_0 = econ.dumpParameter("CHALIGNER", "0_SELECT"); 
-    auto ch_pm_1 = econ.dumpParameter("CHALIGNER", "1_PATTERN_MATCH"); 
-    auto ch_snap_dv_1 = econ.dumpParameter("CHALIGNER", "1_SNAPSHOT_DV"); 
-    auto ch_select_1 = econ.dumpParameter("CHALIGNER", "1_SELECT"); 
-    auto ch_pm_2 = econ.dumpParameter("CHALIGNER", "2_PATTERN_MATCH"); 
-    auto ch_snap_dv_2 = econ.dumpParameter("CHALIGNER", "2_SNAPSHOT_DV"); 
-    auto ch_select_2 = econ.dumpParameter("CHALIGNER", "2_SELECT"); 
-    auto ch_pm_3 = econ.dumpParameter("CHALIGNER", "3_PATTERN_MATCH"); 
-    auto ch_snap_dv_3 = econ.dumpParameter("CHALIGNER", "3_SNAPSHOT_DV"); 
-    auto ch_select_3 = econ.dumpParameter("CHALIGNER", "3_SELECT"); 
-    auto ch_pm_4 = econ.dumpParameter("CHALIGNER", "4_PATTERN_MATCH"); 
-    auto ch_snap_dv_4 = econ.dumpParameter("CHALIGNER", "4_SNAPSHOT_DV"); 
-    auto ch_select_4 = econ.dumpParameter("CHALIGNER", "4_SELECT"); 
-    auto ch_pm_5 = econ.dumpParameter("CHALIGNER", "5_PATTERN_MATCH"); 
-    auto ch_snap_dv_5 = econ.dumpParameter("CHALIGNER", "5_SNAPSHOT_DV"); 
-    auto ch_select_5 = econ.dumpParameter("CHALIGNER", "5_SELECT"); 
-    auto ch_pm_6 = econ.dumpParameter("CHALIGNER", "6_PATTERN_MATCH"); 
-    auto ch_snap_dv_6 = econ.dumpParameter("CHALIGNER", "6_SNAPSHOT_DV"); 
-    auto ch_select_6 = econ.dumpParameter("CHALIGNER", "6_SELECT"); 
-    auto ch_pm_7 = econ.dumpParameter("CHALIGNER", "7_PATTERN_MATCH"); 
-    auto ch_snap_dv_7 = econ.dumpParameter("CHALIGNER", "7_SNAPSHOT_DV"); 
-    auto ch_select_7 = econ.dumpParameter("CHALIGNER", "7_SELECT"); 
-    auto ch_pm_8 = econ.dumpParameter("CHALIGNER", "8_PATTERN_MATCH"); 
-    auto ch_snap_dv_8 = econ.dumpParameter("CHALIGNER", "8_SNAPSHOT_DV"); 
-    auto ch_select_8 = econ.dumpParameter("CHALIGNER", "8_SELECT"); 
-    auto ch_pm_9 = econ.dumpParameter("CHALIGNER", "9_PATTERN_MATCH"); 
-    auto ch_snap_dv_9 = econ.dumpParameter("CHALIGNER", "9_SNAPSHOT_DV"); 
-    auto ch_select_9 = econ.dumpParameter("CHALIGNER", "9_SELECT"); 
-    auto ch_pm_10 = econ.dumpParameter("CHALIGNER", "10_PATTERN_MATCH"); 
-    auto ch_snap_dv_10 = econ.dumpParameter("CHALIGNER", "10_SNAPSHOT_DV"); 
-    auto ch_select_10 = econ.dumpParameter("CHALIGNER", "10_SELECT"); 
-    auto ch_pm_11 = econ.dumpParameter("CHALIGNER", "11_PATTERN_MATCH"); 
-    auto ch_snap_dv_11 = econ.dumpParameter("CHALIGNER", "11_SNAPSHOT_DV"); 
-    auto ch_select_11 = econ.dumpParameter("CHALIGNER", "11_SELECT"); 
-
-  std::cout << "chAligner pattern_match 0 = " << ch_pm_0 << std::endl ;
-  std::cout << "chAligner snapshot_dv 0 = " << ch_snap_dv_0 << std::endl ;
-  std::cout << "chAligner select 0 = " << ch_select_0 << std::endl ;
-  std::cout << "chAligner pattern_match 1 = " << ch_pm_1 << std::endl ;
-  std::cout << "chAligner snapshot_dv 1 = " << ch_snap_dv_1 << std::endl ;
-  std::cout << "chAligner select 1 = " << ch_select_1 << std::endl ;
-  std::cout << "chAligner pattern_match 2 = " << ch_pm_2 << std::endl ;
-  std::cout << "chAligner snapshot_dv 2 = " << ch_snap_dv_2 << std::endl ;
-  std::cout << "chAligner select 2 = " << ch_select_2 << std::endl ;
-  std::cout << "chAligner pattern_match 3 = " << ch_pm_3 << std::endl ;
-  std::cout << "chAligner snapshot_dv 3 = " << ch_snap_dv_3 << std::endl ;
-  std::cout << "chAligner select 3 = " << ch_select_3 << std::endl ;
-  std::cout << "chAligner pattern_match 4 = " << ch_pm_4 << std::endl ;
-  std::cout << "chAligner snapshot_dv 4 = " << ch_snap_dv_4 << std::endl ;
-  std::cout << "chAligner select 4 = " << ch_select_4 << std::endl ;
-  std::cout << "chAligner pattern_match 5 = " << ch_pm_5 << std::endl ;
-  std::cout << "chAligner snapshot_dv 5 = " << ch_snap_dv_5 << std::endl ;
-  std::cout << "chAligner select 5 = " << ch_select_5 << std::endl ;
-  std::cout << "chAligner pattern_match 6 = " << ch_pm_6 << std::endl ;
-  std::cout << "chAligner snapshot_dv 6 = " << ch_snap_dv_6 << std::endl ;
-  std::cout << "chAligner select 6 = " << ch_select_6 << std::endl ;
-  std::cout << "chAligner pattern_match 7 = " << ch_pm_7 << std::endl ;
-  std::cout << "chAligner snapshot_dv 7 = " << ch_snap_dv_7 << std::endl ;
-  std::cout << "chAligner select 7 = " << ch_select_7 << std::endl ;
-  std::cout << "chAligner pattern_match 8 = " << ch_pm_8 << std::endl ;
-  std::cout << "chAligner snapshot_dv 8 = " << ch_snap_dv_8 << std::endl ;
-  std::cout << "chAligner select 8 = " << ch_select_9 << std::endl ;
-  std::cout << "chAligner pattern_match 9 = " << ch_pm_9 << std::endl ;
-  std::cout << "chAligner snapshot_dv 9 = " << ch_snap_dv_9 << std::endl ;
-  std::cout << "chAligner select 9 = " << ch_select_10 << std::endl ;
-  std::cout << "chAligner pattern_match 10 = " << ch_pm_10 << std::endl ;
-  std::cout << "chAligner snapshot_dv 10 = " << ch_snap_dv_10 << std::endl ;
-  std::cout << "chAligner select 10 = " << ch_select_10 << std::endl ;
-  std::cout << "chAligner pattern_match 11 = " << ch_pm_11 << std::endl ;
-  std::cout << "chAligner snapshot_dv 11 = " << ch_snap_dv_11 << std::endl ;
-  std::cout << "chAligner select 11 = " << ch_select_11 << std::endl ;
   //   // ---------------------------------- --------------------------------------------------------- //
-
 
 
   // // ----------------------------------------------------- END WORD ALIGNMENT ----------------------------------------------------- //
