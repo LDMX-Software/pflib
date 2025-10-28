@@ -26,6 +26,11 @@ void align_phase_word(Target* tgt) {
   if(pusm_state==8){
 
     int list_channels[] = {3}; // {2,3,4,5,6,7};
+
+    std::cout << "Channels to be affected: " << std::endl;
+    for(int channel : list_channels){
+      std::cout << channel << ", " ;
+    } std::cout << std::endl;
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
