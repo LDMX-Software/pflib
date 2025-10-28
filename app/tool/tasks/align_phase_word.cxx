@@ -75,7 +75,7 @@ void align_phase_word(Target* tgt) {
       // Set Training OFF
       for(int channel : poke_channels){
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL"; // corresponding to configs/train_erx_phase_OFF_econ.yaml
-        auto econ_setup_builder = econ.add("CHEPRXGRP", var_name, 0);
+        auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 0);
         auto econ_setup_test = econ_setup_builder.apply(); 
         std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;
       }
