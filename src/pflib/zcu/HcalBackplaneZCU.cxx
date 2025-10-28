@@ -136,6 +136,7 @@ class HcalBackplaneZCUTarget : public Target {
     }
 
     // TODO make FastControl object
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
   virtual std::vector<uint32_t> read_event() override {

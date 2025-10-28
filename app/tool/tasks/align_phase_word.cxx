@@ -219,11 +219,12 @@ void align_phase_word(Target* tgt) {
   // // see linkreset_rocs()
 
   //LINK_RESET
+    tgt->fc().standard_setup();
     // tgt->fc().linkreset_rocs();     // is this sufficient? Do I need to set a value e.g. ./uhal_backend_v3.py -b Housekeeping-FastCommands-fastcontrol-axi-0 --node bx_link_reset_roc${ECON} --val 3516
-    auto cmdcounters = tgt->fc().getCmdCounters();
-    for(uint32_t i : cmdcounters){
-      std::cout << i << ", ";
-    }std::cout << std::endl;
+    // auto cmdcounters = tgt->fc().getCmdCounters();
+    // for(uint32_t i : cmdcounters){
+    //   std::cout << i << ", ";
+    // }std::cout << std::endl;
 
     // // econ version exists, 
   // // ------------------------------------------------------------------------------------------------------------ //
