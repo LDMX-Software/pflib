@@ -1,15 +1,27 @@
 #include "lpgbt_mezz_tester.h"
 #include <boost/process.hpp>
+#include "pflib/Exception.h"
 
-LPGBT_Mezz_Tester::LPGBT_Mezz_Tester(pflib::UIO& opto) : opto_{opto}, wired_("lpgbtmezz_test") {
+LPGBT_Mezz_Tester::LPGBT_Mezz_Tester(pflib::UIO& opto) : opto_{opto}, wired_(0) {
+  try {
+    wired_=new pflib::UIO("lpgbtmezz_test");
+  } catch (pflib::Exception e) {
+    wired_=0;
+  }
   //  printf("%08x %08x\n", wired_.read(0x20), wired_.read(0x21));
+}
+
+LPGBT_Mezz_Tester::~LPGBT_Mezz_Tester() {
+  if (wired_) delete wired_;
 }
 
 std::vector<float> LPGBT_Mezz_Tester::clock_rates() {
   std::vector<float> retvals;
-  for (int iclk = 0; iclk < 8; iclk++) {
-    uint32_t val = wired_.read(0x20 + 8 + iclk);
-    retvals.push_back(val / 1e4);
+  if (wired_) {
+    for (int iclk = 0; iclk < 8; iclk++) {
+      uint32_t val = wired_->read(0x20 + 8 + iclk);
+      retvals.push_back(val / 1e4);
+    }
   }
   return retvals;
 }
@@ -65,41 +77,47 @@ void LPGBT_Mezz_Tester::reset_lpGBT() {
 }
 
 void LPGBT_Mezz_Tester::set_prbs_len_ms(int len_ms) {
-  wired_.write(REG_PRBS_LEN,len_ms);
+  if (wired_) 
+    wired_->write(REG_PRBS_LEN,len_ms);
   static constexpr int REG_OPTO_PRBS_LEN = 98;
   opto_.write(REG_OPTO_PRBS_LEN,len_ms);
 }
 
 void LPGBT_Mezz_Tester::set_phase(int phase) {
-  wired_.rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_TX_DELAY, phase<<16);
-  wired_.rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_RX_DELAY, phase<<7);
+  if (wired_) {
+    wired_->rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_TX_DELAY, phase<<16);
+    wired_->rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_RX_DELAY, phase<<7);
+  }
 }
 
 void LPGBT_Mezz_Tester::set_uplink_pattern(int ilink, int pattern) {
-  if (ilink<0 || ilink>=7) return;
-  uint32_t val=wired_.read(REG_UPLINK_PATTERN);
+  if (ilink<0 || ilink>=7 || !wired_) return;
+  uint32_t val=wired_->read(REG_UPLINK_PATTERN);
   uint32_t mask=(0xF)<<(ilink*4);
   val=val|mask;
   val=val^mask;
   val=val|((pattern&0xF)<<(ilink*4));
-  wired_.write(REG_UPLINK_PATTERN,val);
+  wired_->write(REG_UPLINK_PATTERN,val);
 }
 
 std::vector<uint32_t> LPGBT_Mezz_Tester::ber_tx() {
+  if (!wired_) {
+    return std::vector<uint32_t>();
+  }
   // clear the counters
-  wired_.rmw(REG_CTL,MASK_PRBS_CLEAR,MASK_PRBS_CLEAR);
+  wired_->rmw(REG_CTL,MASK_PRBS_CLEAR,MASK_PRBS_CLEAR);
   usleep(1);
-  wired_.rmw(REG_CTL,MASK_PRBS_CLEAR,0);
+  wired_->rmw(REG_CTL,MASK_PRBS_CLEAR,0);
   // start the PRBS
-  wired_.rmw(REG_CTL,MASK_START_PRBS,MASK_START_PRBS);
+  wired_->rmw(REG_CTL,MASK_START_PRBS,MASK_START_PRBS);
   bool busy=true;
   do {
     usleep(100); // takes some time...
-    busy=(wired_.read(REG_PRBS_BUSY)&0x1)!=0;
+    busy=(wired_->read(REG_PRBS_BUSY)&0x1)!=0;
   } while (busy);
   std::vector<uint32_t> retval;
   for (int i=0; i<7; i++) {
-    retval.push_back(wired_.read(REG_WIRED_ERROR_COUNT+i));
+    retval.push_back(wired_->read(REG_WIRED_ERROR_COUNT+i));
   }
   return retval;
 }
@@ -131,21 +149,21 @@ std::vector<uint32_t> LPGBT_Mezz_Tester::ber_rx() {
 
 std::vector<uint32_t> LPGBT_Mezz_Tester::capture(int ilink, bool is_rx) {
   std::vector<uint32_t> retval;
-  if (!is_rx) {
-    wired_.rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_CAPTURE_WHICH, ilink&0xFF);
-    wired_.rmw(REG_CTL, MASK_ENABLE_CAPTURE, MASK_ENABLE_CAPTURE); // self-clearing
+  if (!is_rx && wired_) {
+    wired_->rmw(REG_WIRED_DELAY_CAPTURE_WHICH, MASK_WIRED_CAPTURE_WHICH, ilink&0xFF);
+    wired_->rmw(REG_CTL, MASK_ENABLE_CAPTURE, MASK_ENABLE_CAPTURE); // self-clearing
     usleep(1000); // wait...
     for (int i=0; i<32; i++) {
-      retval.push_back(wired_.read(REG_WIRED_CAPTURE+i));
+      retval.push_back(wired_->read(REG_WIRED_CAPTURE+i));
     }
   } else { // high-speed rx
     static constexpr int REG_CAPTURE_ENABLE = 16;
-    static constexpr int REG_CAPTURE_ELINK  = 18;
     static constexpr int REG_CAPTURE_OLINK  = 17;
+    static constexpr int REG_CAPTURE_ELINK  = 18;
     static constexpr int REG_CAPTURE_PTR    = 19;
     static constexpr int REG_CAPTURE_WINDOW = 20;
     opto_.write(REG_CAPTURE_OLINK,0);
-    opto_.write(REG_CAPTURE_ELINK,ilink&0x7);
+    opto_.write(REG_CAPTURE_ELINK,(ilink+1)&0x7);
     opto_.write(REG_CAPTURE_ENABLE,1);
     usleep(1000);
     opto_.write(REG_CAPTURE_ENABLE,0);

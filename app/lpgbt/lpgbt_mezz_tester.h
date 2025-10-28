@@ -8,7 +8,7 @@
 class LPGBT_Mezz_Tester {
  public:
   LPGBT_Mezz_Tester(pflib::UIO& opto);
-
+  ~LPGBT_Mezz_Tester();
   std::vector<float> clock_rates();
 
   void get_mode(bool& addr, bool& mode1);
@@ -25,7 +25,7 @@ class LPGBT_Mezz_Tester {
 
  private:
   pflib::UIO& opto_;
-  pflib::UIO wired_;
+  pflib::UIO* wired_;
 };
 
 #endif  // LPGBT_MEZZ_TESTER_H_INCLUDED
