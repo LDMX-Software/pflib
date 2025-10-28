@@ -279,7 +279,7 @@ void align_phase_word(Target* tgt) {
     // bx_link_reset_roc${ECON} --val 3516 auto cmdcounters =
     auto cmdcounters = tgt->fc().getCmdCounters();
     for (uint32_t i : cmdcounters) {
-      std::cout << i << ", ";
+      std::cout <<"i: " i << ", ";
     }
     std::cout << std::endl;
 
