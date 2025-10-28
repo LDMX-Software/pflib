@@ -20,8 +20,8 @@ void align_phase_word(Target* tgt) {
   auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_RUN");   // dump Parameter I added to force this functionality to be able to assign to an output variable
   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS","GLOBAL_PUSM_STATE");
     
-  std::cout << "PUSM_STATE = " << pusm_state << std::endl ;
-  std::cout << "PUSM_RUN = " << pusm_run << std::endl ;
+  std::cout << "PUSM_STATE = " << pusm_state << ", " << std::hex << pusm_state << std::endl ;
+  std::cout << "PUSM_RUN = " << pusm_run << ", " << std::hex << pusm_run << std::endl ;
   //" (0x" << std::hex << pusm_state << std::dec << ")\n";
 
   if(pusm_state==8){
@@ -89,7 +89,7 @@ void align_phase_word(Target* tgt) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto econ_setup_builder = econ.testParameters().add("CHEPRXGRP", var_name, 1);
         auto econ_setup_test = econ_setup_builder.apply(); 
-        std::cout << "channel, varname = " << channel << ", " << var_name << std::endl;   // DEBUG line
+        std::cout << "[debug line] channel, varname = " << channel << ", " << var_name << std::endl;   // DEBUG line
       }
     };
     // -------------------------------------------------------------------------------------------- //
