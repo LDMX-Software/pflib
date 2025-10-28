@@ -26,11 +26,16 @@ void align_phase_word(Target* tgt) {
   if(pusm_state==8){
 
     int list_channels[] = {6,7}; // {2,3,4,5,6,7};
+    int binary_channels = 0;
+
+    for (int i = 0; i<size(list_channels); i++){
+      binary_channels = binary_channels | (1<<list_channels[i]);  // bit wise OR comparison between e.g. 6 and 7, and shifting the '1' bit in the lowest sig bit, with << operator by the amount of the channel #.
+    }
 
     std::cout << "Channels to be configured: " << std::endl;
     for(int channel : list_channels){
-      std::cout << channel << "  " ;
-    } std::cout << std::endl;
+      std::cout << channel << "  " << std::endl;
+    } std::cout << "Binary value of channels: " << binary_channels << std::endl;
   
     // ---------------------------------- SETTING ROC REGISTERS ---------------------------------- //
     { // scope this
@@ -214,7 +219,7 @@ void align_phase_word(Target* tgt) {
   // // see linkreset_rocs()
 
   //LINK_RESET
-    // tgt->fc().linkreset_rocs();     // is this sufficient? Do I need to set a value e.g. ./uhal_backend_v3.py -b Housekeeping-FastCommands-fastcontrol-axi-0 --node bx_link_reset_roc${ECON} --val 3516
+    tgt->fc().linkreset_rocs();     // is this sufficient? Do I need to set a value e.g. ./uhal_backend_v3.py -b Housekeeping-FastCommands-fastcontrol-axi-0 --node bx_link_reset_roc${ECON} --val 3516
 
     // // econ version exists, 
   // // ------------------------------------------------------------------------------------------------------------ //
