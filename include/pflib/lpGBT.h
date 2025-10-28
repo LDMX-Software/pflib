@@ -194,6 +194,9 @@ class lpGBT {
   /** Get back the data from the read */
   std::vector<uint8_t> i2c_read_data(int ibus);
 
+  /** finalize the configuration */
+  void finalize_setup();
+  
  private:
   lpGBT_ConfigTransport& tport_;
   struct I2C {

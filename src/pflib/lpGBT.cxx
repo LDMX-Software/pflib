@@ -98,6 +98,8 @@ static constexpr uint16_t REG_PIOPULLENAH = 0x057;
 static constexpr uint16_t REG_PIOUPDOWNH = 0x059;
 static constexpr uint16_t REG_PIODRIVEH = 0x05b;
 
+static constexpr uint16_t REG_POWERUP2 = 0x0fb;
+
 static constexpr uint16_t REG_PIOOUTH = 0x055;
 static constexpr uint16_t REG_PIOOUTL = 0x056;
 static constexpr uint16_t REG_PIOINH = 0x1AF;
@@ -559,6 +561,10 @@ std::vector<uint8_t> lpGBT::i2c_read_data(int ibus) {
   return retval;
 }
 
+  void lpGBT::finalize_setup() {
+    write(REG_POWERUP2, 0x4|0x2);
+  }
+  
 int lpGBT::status() { return read(REG_POWERUP_STATUS); }
 std::string lpGBT::status_name(int pusm) {
   static const char* states[] = {"ARESET",
