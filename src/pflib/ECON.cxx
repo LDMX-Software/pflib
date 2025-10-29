@@ -191,7 +191,7 @@ void ECON::setRegisters(
   const auto& reg_map = registers.at(0);
 
   // print every register addr and value pair
-  // for (const auto& [reg_addr, value] : reg_map) {
+  //for (const auto& [reg_addr, value] : reg_map) {
   //  printf("setValue(0x%04x, 0x%02x)\n", reg_addr, value);
   //}
 
@@ -248,8 +248,8 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
       std::vector<uint8_t> values = getValues(reg_addr, nbytes);
       for (int i = 0; i < values.size(); ++i) {
-        // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-        all_regs[reg_addr + i] = values[i];
+	printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+	all_regs[reg_addr + i] = values[i];
       }
     }
   } else {
@@ -259,7 +259,7 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
       if (reg_map.find(reg_addr) != reg_map.end()) {
         std::vector<uint8_t> values = getValues(reg_addr, nbytes);
         for (int i = 0; i < (int)values.size(); ++i) {
-          // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+	  printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
           all_regs[reg_addr + i] = values[i];
         }
       }
