@@ -224,16 +224,29 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   settings[0][0x3c6] = 0;
   settings[0][0x3c7] = 0x80;
 
-  settings[0][0xf29] = 0;
   settings[0][0xf2c] = 0;
-  
+  settings[0][0xf2d] = 0x20;
+  settings[0][0xf2e] = 0x92;
+  settings[0][0xf2f] = 0xaa;
+  settings[0][0xf30] = 0xaa;
+  settings[0][0xf31] = 0x2a;
+  settings[0][0xf32] = 0xf3;
 
+  settings[0][0x0452] = 0xab;
+  settings[0][0x0453] = 0x89;
+  settings[0][0x0454] = 0x67;
+  settings[0][0x0455] = 0x45;
+  settings[0][0x0456] = 0x23;
+  settings[0][0x0457] = 0x01;
+  
   auto chip_params = c.decompile(settings, true, true);
 
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
-      std::cout << "  " << param_name << " = " << value << "\n";
+      std::cout << "  " << param_name 
+		<< " = " << std::dec << value 
+		<< " (0x" << std::hex << value << std::dec << ")\n";
     }
   }
 
@@ -252,17 +265,18 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   std::map<uint16_t, size_t> page_reg_byte_lut, expected;
   expected[0x0389] = 8;
   expected[0x03c5] = 3;
+  expected[0x03c5] = 3;
+  expected[0x0f2c] = 7;
+  expected[0x0452] = 6;
   page_reg_byte_lut = c.build_register_byte_lut();
 
-  /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
     std::cout << "0x"
               << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
-  << reg
+	      << reg
               << " -> "
               << std::dec << nbytes << " bytes\n";
   }
-  */
 
   BOOST_CHECK_MESSAGE(
       page_reg_byte_lut == expected,
