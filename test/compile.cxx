@@ -250,7 +250,6 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
     }
   }
 
-
   BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
                       "Page ALIGNER missing in decompiled settings");
 
