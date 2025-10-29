@@ -144,6 +144,11 @@ def process_register(name_prefix, props, lines):
                 chunk_str = ", ".join(chunk)
                 lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)})}},')
                 #print(chunk_str, hex(chunk_default))
+        else:
+            if isinstance(props, dict):
+                for subkey, subval in props.items():
+                    new_prefix = f"{name_prefix}_{subkey}"
+                    process_register(new_prefix, subval, lines)        
     else:
         # look for nested subkeys if props is a dict
         if isinstance(props, dict):

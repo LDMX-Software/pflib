@@ -18,3 +18,11 @@ ClocksAndResets:
       param_mask: 0x0001
       param_shift: 23
       size_byte: 3
+FormatterBuffer:
+  Global:
+    align_serializer:
+      0:
+        address: 0x0f29
+        param_mask: 0x003f
+        param_shift: 0
+        size_byte: 3
