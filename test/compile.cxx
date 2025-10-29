@@ -226,7 +226,6 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
 
   settings[0][0xf29] = 0;
   settings[0][0xf2c] = 0;
-  
 
   auto chip_params = c.decompile(settings, true, true);
 
@@ -236,7 +235,6 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
       std::cout << "  " << param_name << " = " << value << "\n";
     }
   }
-
 
   BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
                       "Page ALIGNER missing in decompiled settings");
