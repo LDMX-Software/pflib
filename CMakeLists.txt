@@ -228,6 +228,10 @@ add_library(pflib SHARED
   src/pflib/algorithm/toa_vref_scan.cxx
   src/pflib/algorithm/trim_toa_scan.cxx
   src/pflib/algorithm/get_toa_efficiencies.cxx
+  src/pflib/algorithm/tot_vref_scan.cxx
+  src/pflib/algorithm/get_calibs.cxx
+  src/pflib/algorithm/trim_tot_scan.cxx
+  src/pflib/algorithm/tp50_scan.cxx
 )
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

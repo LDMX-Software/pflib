@@ -3,6 +3,7 @@
 #include "pflib/DecodeAndBuffer.h"
 #include "pflib/algorithm/get_calibs.h"
 #include "pflib/algorithm/trim_tot_scan.h"
+#include "pflib/algorithm/tp50_scan.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 
@@ -37,9 +38,9 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
     // Run the threshold scan TP50 (threshold point at 50%) that gives the
     // tot_vref value as output
     if (target[i_link]) {
-      int tot_vref = TP50(tgt, roc, calibs[ch], tot_vref = target[i_link]);
+      int tot_vref = tp50_scan(tgt, roc, calibs[ch], tot_vref = target[i_link]);
     } else {
-      int tot_vref = TP50(tgt, roc, calibs[ch]);
+      int tot_vref = tp50_scan(tgt, roc, calibs[ch]);
     }
     // Save to target
     target[i_link] = tot_vref;
