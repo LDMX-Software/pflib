@@ -1,7 +1,8 @@
+#include "pflib/algorithm/get_calibs.h"
+
 #include <algorithm>
 #include <cmath>
 
-#include "pflib/algorithm/get_calibs.h"
 #include "pflib/utility/efficiency.h"
 
 namespace pflib::algorithm {
