@@ -214,7 +214,7 @@ def generate_header(input_yaml, data, econ_type):
         page_names.append(page_var)
         lines.append("  });")
 
-    print(register_byte_lut)
+    # print(register_byte_lut)
         
     lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
     for name in page_names:
