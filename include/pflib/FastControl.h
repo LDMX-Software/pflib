@@ -33,6 +33,9 @@ class FastControl {
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
 
+  /** set custom bunch crossing */
+  virtual void bx_custom() = 0;
+
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 
