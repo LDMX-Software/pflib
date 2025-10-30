@@ -16,7 +16,13 @@ void align_phase_word(Target* tgt) {
   int IDLE = 89478485;  // == 5555555. hardcode based on phase alignment script
 
   // check PUSM state, run task only if state=8
-  // Read PUSH
+  // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to get ECON to lock to FCMDs; otherwise run bit will = 3.
+  auto econ_setup_builder =
+        econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
+                                  0);  // set run bit 0 while configuring
+  auto econ_setup_test = econ_setup_builder.apply();
+  auto pusm_run = econ.dumpParameter(
+
   auto pusm_run = econ.dumpParameter(
       "CLOCKSANDRESETS",
       "GLOBAL_PUSM_RUN");  // dump Parameter I added to force this functionality
