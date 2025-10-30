@@ -50,7 +50,7 @@ void align_phase_word(Target* tgt) {
     // ---------------------------------- SETTING ROC REGISTERS
     // ---------------------------------- //
     {  // scope this
-      //set run modes
+      // set run modes
       roc.setRunMode(1);
 
       auto roc_setup_builder = roc.testParameters()
@@ -284,12 +284,9 @@ void align_phase_word(Target* tgt) {
     std::cout << std::endl;
 
     // Custom BX value
-    int bx_new=3000;
-    int bx_addr=3;
+    int bx_new = 3000;
+    int bx_addr = 3;
     tgt->fc().bx_custom(bx_addr, bx_new);
-
-
-
 
     // //
     // ------------------------------------------------------------------------------------------------------------
