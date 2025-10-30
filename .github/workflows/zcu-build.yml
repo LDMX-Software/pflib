@@ -10,6 +10,8 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - name: checkout repository
         uses: actions/checkout@v5
+        with:
+          depth: 0
       - name: get just
         uses: extractions/setup-just@v3
       - run: just zcu-build
