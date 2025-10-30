@@ -24,8 +24,16 @@ void align_phase_word(Target* tgt) {
         "FCTRL", "GLOBAL_INVERT_COMMAND_RX",
         1);  // set fctrl inversion so that ECON can Lock.
     auto econ_setup_test = econ_setup_builder.apply();
-  } // set run value
-  {
+  } 
+
+  { // set inversion value - try a second call to test parameters to force this inversion parameter to get written (so I dont have to run the whole thing twice)
+    auto econ_setup_builder = econ.testParameters().add(
+        "FCTRL", "GLOBAL_INVERT_COMMAND_RX",
+        1);  // set fctrl inversion so that ECON can Lock.
+    auto econ_setup_test = econ_setup_builder.apply();
+  } 
+
+  { // set run value
     auto econ_setup_builder = econ.testParameters().add(
         "CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
         1); // set run bit = 1 AFTER inversion bit.
