@@ -10,9 +10,9 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - name: checkout repository
         uses: actions/checkout@v5
-      - run: |
-          docker run --platform linux/arm64 ghcr.io/ldmx-software/pflib-env:sha-8244ecf \
-            sh -c 'cmake -B build -S . && cmake --build build'
+      - name: get just
+        uses: extractions/setup-just@v3
+      - run: just zcu-build
       - uses: actions/upload-artifact@v5
         with:
           path: build
