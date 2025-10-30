@@ -20,7 +20,7 @@ void align_phase_word(Target* tgt) {
   // get ECON to lock to FCMDs; otherwise run bit will = 3.
   auto econ_setup_builder =
       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-                                0);  // set run bit 0 while configuring
+                                1);  // set run bit 1
   auto econ_setup_test = econ_setup_builder.apply();
 
   auto pusm_run = econ.dumpParameter(
