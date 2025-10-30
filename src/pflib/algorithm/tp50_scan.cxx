@@ -1,6 +1,5 @@
-#include "pflib/algorithm/t50_scan.h"
-
 #include "pflib/DecodeAndBuffer.h"
+#include "pflib/algorithm/t50_scan.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib::algorithm {
