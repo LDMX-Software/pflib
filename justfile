@@ -49,7 +49,6 @@ decode *args:
 test-menu:
     denv ./build/test-menu
 
-
 # build for the zcu using docker+qemu to emulate architecture
 zcu-build:
     docker run \
@@ -61,5 +60,5 @@ zcu-build:
       --workdir ${PWD} \
       --user $(id -u "${USER}"):$(id -g "${USER}") \
       ghcr.io/ldmx-software/pflib-env:sha-8244ecf \
-      sh -c 'cmake -B build -S . && cmake --build build'
+      sh -c 'cmake -B build -S . && cmake --build build -- -j'
 
