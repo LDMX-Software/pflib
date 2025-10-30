@@ -181,7 +181,8 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
   // register address -> number of bytes used
   std::map<uint16_t, size_t> reg_byte_lut;
 
-  // assume that every parameter's RegisterLocation list already covers a contiguous byte range
+  // assume that every parameter's RegisterLocation list already covers a
+  // contiguous byte range
   for (const auto& page_pair : page_lut_) {
     const std::string& page_name = page_pair.first;
     const Page& page = page_pair.second;
@@ -193,24 +194,25 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
       std::vector<RegisterLocation> regs = param.registers;
 
       if (regs.empty()) continue;
-      
+
       std::vector<uint16_t> addrs;
       for (const auto& loc : regs) addrs.push_back(loc.reg);
 
-      // this sorts addresses but in principle is not needed since this is done when building the headers
+      // this sorts addresses but in principle is not needed since this is done
+      // when building the headers
       std::sort(addrs.begin(), addrs.end());
 
       // the first register's address is the start
       // the number of RegisterLocation entries is the number of bytes
       uint16_t start = addrs.front();
       size_t nbytes = addrs.size();
-      
+
       // only write or increase nbytes
       auto it = reg_byte_lut.find(start);
       if (it == reg_byte_lut.end()) {
-	reg_byte_lut[start] = nbytes;
+        reg_byte_lut[start] = nbytes;
       } else {
-	it->second = std::max(it->second, nbytes);
+        it->second = std::max(it->second, nbytes);
       }
     }
   }
@@ -256,10 +258,10 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
         // collect all relevant registers in a vector in descending order
         std::vector<uint8_t> data;
         std::set<uint16_t> reg_set;
-	for (const auto& loc : spec.registers) {
-	  reg_set.insert(loc.reg); 
-	  auto it = page_conf.find(loc.reg);
-	  if (it != page_conf.end()) {
+        for (const auto& loc : spec.registers) {
+          reg_set.insert(loc.reg);
+          auto it = page_conf.find(loc.reg);
+          if (it != page_conf.end()) {
             data.push_back(it->second);
             // pflib_log(debug) << "[DEBUG] Register 0x" << std::hex << reg
             //<< ": byte=0x" << int(it->second);
@@ -272,27 +274,25 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
           }
         }
 
-	uint16_t first_reg = *reg_set.begin();
-	 
-	/*
-	// get the first_reg and last_reg that span all the registers in reg_set
-	// after accounting for how many bytes each occupies according to register_byte_lut
-	uint16_t first_reg = *reg_set.begin();
-	uint16_t last_reg  = first_reg;
-	for (uint16_t reg : reg_set) {
-	  auto it = register_byte_lut.find(reg);
-	  if (it == register_byte_lut.end()) continue;  // skip if not found
-	  uint16_t reg_end = reg + static_cast<uint16_t>(it->second - 1);
-	  if (reg_end > last_reg) last_reg = reg_end;
-	  if (reg < first_reg) first_reg = reg;
-	}
-	
+        uint16_t first_reg = *reg_set.begin();
+
+        /*
+        // get the first_reg and last_reg that span all the registers in reg_set
+        // after accounting for how many bytes each occupies according to
+        register_byte_lut uint16_t first_reg = *reg_set.begin(); uint16_t
+        last_reg  = first_reg; for (uint16_t reg : reg_set) { auto it =
+        register_byte_lut.find(reg); if (it == register_byte_lut.end())
+        continue;  // skip if not found uint16_t reg_end = reg +
+        static_cast<uint16_t>(it->second - 1); if (reg_end > last_reg) last_reg
+        = reg_end; if (reg < first_reg) first_reg = reg;
+        }
+
         for (uint16_t reg = first_reg; reg <= last_reg; ++reg) {
           auto it = page_conf.find(reg);
           if (it != page_conf.end()) {
             data.push_back(it->second);
-	    pflib_log(info) << "[DEBUG] Register 0x" << std::hex << reg
-			     << ": byte=0x" << int(it->second);
+            pflib_log(info) << "[DEBUG] Register 0x" << std::hex << reg
+                             << ": byte=0x" << int(it->second);
           } else {
             // pflib_log(warn) << "[WARN] Missing register 0x" << std::hex <<
             // reg
@@ -301,36 +301,36 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
             data.push_back(0);  // assume 0 if missing
           }
         }
-	*/
+        */
 
-	// combine into a little endian integer
-	uint64_t value = 0;
-	for (size_t i = 0; i < data.size(); ++i)
+        // combine into a little endian integer
+        uint64_t value = 0;
+        for (size_t i = 0; i < data.size(); ++i)
           value |= (static_cast<uint64_t>(data[i]) << (8 * i));
 
-        pflib_log(debug) << "[DEBUG] data contents for parameter " <<
-	  param.first << ":"; for (size_t i = 0; i < data.size(); ++i) {
-          pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex <<
-	    int(data[i]);
-	}
-	pflib_log(debug) << "value " << std::hex << value;
+        pflib_log(debug) << "[DEBUG] data contents for parameter "
+                         << param.first << ":";
+        for (size_t i = 0; i < data.size(); ++i) {
+          pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex
+                           << int(data[i]);
+        }
+        pflib_log(debug) << "value " << std::hex << value;
 
         size_t bit_cursor =
             0;  // keeps track of which bit in pval to place each field
         for (const RegisterLocation& loc : spec.registers) {
-	  size_t byte_offset = loc.reg - first_reg;
-	  size_t bit_offset = 8 * byte_offset + loc.min_bit;
-	  uint64_t field_value = (value >> bit_offset) & loc.mask;
-	  
-          pflib_log(debug) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
-			   << std::hex << loc.reg
-			   << ", min_bit=" << std::dec << loc.min_bit
-			   << ", n_bits=" << loc.n_bits
-			   << ", mask=0x" << std::hex << loc.mask
-			   << ", field_value=0x" << std::hex << field_value;
-	  
-	  pval |= field_value << bit_cursor;
-	  bit_cursor += loc.n_bits; 
+          size_t byte_offset = loc.reg - first_reg;
+          size_t bit_offset = 8 * byte_offset + loc.min_bit;
+          uint64_t field_value = (value >> bit_offset) & loc.mask;
+
+          pflib_log(debug)
+              << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
+              << std::hex << loc.reg << ", min_bit=" << std::dec << loc.min_bit
+              << ", n_bits=" << loc.n_bits << ", mask=0x" << std::hex
+              << loc.mask << ", field_value=0x" << std::hex << field_value;
+
+          pval |= field_value << bit_cursor;
+          bit_cursor += loc.n_bits;
         }
 
         pflib_log(debug) << "[DEBUG] Parameter '" << param.first

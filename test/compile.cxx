@@ -251,9 +251,8 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   }
   */
 
-  auto check_param = [&](const std::string& page,
-                       const std::string& param,
-                       uint64_t expected) {
+  auto check_param = [&](const std::string& page, const std::string& param,
+                         uint64_t expected) {
     auto p_it = chip_params.find(page);
     BOOST_REQUIRE_MESSAGE(p_it != chip_params.end(), "Missing page: " + page);
 
@@ -264,21 +263,21 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
 
     uint64_t value = v_it->second;
     BOOST_CHECK_MESSAGE(value == expected,
-			"Incorrect value for " + page + "::" + param +
-			". Expected " + std::to_string(expected) +
-			", got " + std::to_string(value));
+                        "Incorrect value for " + page + "::" + param +
+                            ". Expected " + std::to_string(expected) +
+                            ", got " + std::to_string(value));
   };
 
-  check_param("ALIGNER",          "GLOBAL_MATCH_MASK_VAL",        255);               // 0xff
-  check_param("CLOCKSANDRESETS",  "GLOBAL_PUSM_RUN",              1);                 // 0x1
-  check_param("ELINKPROCESSORS",  "GLOBAL_CM_ERX_ROUTE",          1250999896491ULL);  // 0x123456789ab
-  
-  check_param("FORMATTERBUFFER",  "GLOBAL_ALIGN_SERIALIZER_4",    0);
-  check_param("FORMATTERBUFFER",  "GLOBAL_ALIGN_SERIALIZER_5",    0);
-  check_param("FORMATTERBUFFER",  "GLOBAL_HEADER_MARKER",         486);              // 0x1e6
-  check_param("FORMATTERBUFFER",  "GLOBAL_IDLE_PATTERN",          5592405);          // 0x555555
-  check_param("FORMATTERBUFFER",  "GLOBAL_LINK_RESET_PATTERN",    290);              // 0x122
-  
+  check_param("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 255);  // 0xff
+  check_param("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);  // 0x1
+  check_param("ELINKPROCESSORS", "GLOBAL_CM_ERX_ROUTE",
+              1250999896491ULL);  // 0x123456789ab
+
+  check_param("FORMATTERBUFFER", "GLOBAL_ALIGN_SERIALIZER_4", 0);
+  check_param("FORMATTERBUFFER", "GLOBAL_ALIGN_SERIALIZER_5", 0);
+  check_param("FORMATTERBUFFER", "GLOBAL_HEADER_MARKER", 486);       // 0x1e6
+  check_param("FORMATTERBUFFER", "GLOBAL_IDLE_PATTERN", 5592405);    // 0x555555
+  check_param("FORMATTERBUFFER", "GLOBAL_LINK_RESET_PATTERN", 290);  // 0x122
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
