@@ -286,7 +286,8 @@ void align_phase_word(Target* tgt) {
     // Custom BX value
     int bx_new = 3000;
     int bx_addr = 3;
-    tgt->fc().bx_custom(bx_addr, bx_new);
+    int bx_mask = 0xfff000;
+    tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
 
     // //
     // ------------------------------------------------------------------------------------------------------------
