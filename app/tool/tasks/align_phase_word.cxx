@@ -26,7 +26,7 @@ void align_phase_word(Target* tgt) {
     auto econ_setup_test = econ_setup_builder.apply();
   }
 
-  usleep(1000);
+  // usleep(1000);
 
   {  // set run value
     auto econ_setup_builder =
