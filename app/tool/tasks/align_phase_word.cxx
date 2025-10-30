@@ -23,7 +23,8 @@ void align_phase_word(Target* tgt) {
       1);  // set fctrl inversion so that ECON can Lock.
   auto econ_setup_test = econ_setup_builder.apply();
 
-  econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1); // set run bit = 1 AFTER inversion bit.
+  econ_setup_builder = econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
+                         1);  // set run bit = 1 AFTER inversion bit.
   econ_setup_test = econ_setup_builder.apply();
 
   auto pusm_run = econ.dumpParameter(
