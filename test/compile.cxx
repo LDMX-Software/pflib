@@ -239,6 +239,10 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   settings[0][0x0456] = 0x23;
   settings[0][0x0457] = 0x01;
 
+  settings[0][0x03e4] =	0x05;
+  
+  settings[0][0x03e5] = 0x05;
+
   auto chip_params = c.decompile(settings, true, true);
 
   /*
@@ -290,6 +294,9 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   expected[0x03c5] = 3;
   expected[0x0f2c] = 7;
   expected[0x0452] = 6;
+  expected[0x03e4] = 1;
+  expected[0x03e5] = 1;
+  
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*

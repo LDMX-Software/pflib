@@ -107,22 +107,22 @@ def make_register_locations(address, mask, shift, size_byte):
         # compute bits in this byte if i is part of the parameter bytes
         param_byte_index = i - start_byte_offset
         if 0 <= param_byte_index <= (n_bits_total + start_bit_offset - 1) // 8:
-            if param_byte_index == (n_bits_total + start_bit_offset - 1) // 8:
-                # last byte of the parameter
+            if param_byte_index == 0:
+                bits_in_byte = min(8 - start_bit_offset, n_bits_total)
+            elif param_byte_index == (n_bits_total + start_bit_offset - 1) // 8:
                 bits_in_byte = (n_bits_total + start_bit_offset) % 8
                 if bits_in_byte == 0:
                     bits_in_byte = 8
-            elif param_byte_index == 0:
-                # first byte of the parameter
-                bits_in_byte = min(8 - start_bit_offset, n_bits_total)
             else:
                 bits_in_byte = 8
         else:
+            # if not, use 0
             bits_in_byte = 0
-
+            
         # shift for the byte: first byte uses start_bit_offset, others 0
         shift_for_byte = start_bit_offset if param_byte_index == 0 and bits_in_byte > 0 else 0
 
+        #print("RegisterLocation ", hex(curr_addr), shift_for_byte, bits_in_byte)
         reg_locs.append(f"RegisterLocation(0x{curr_addr:04x}, {shift_for_byte}, {bits_in_byte})")
 
     return reg_locs
@@ -147,6 +147,7 @@ def process_register(name_prefix, props, lines, register_byte_lut = {}):
                 register_byte_lut[address] = size_byte
             
             # generate all register locations and account for multi-byte registers
+            #print(f"{name_prefix}: address={hex(address)}, mask={bin(mask).count('1')}, shift={shift}, size_byte={size_byte}")
             reg_locs = make_register_locations(address, mask, shift, size_byte)
             reg_locs_str = ", ".join(reg_locs)
             
