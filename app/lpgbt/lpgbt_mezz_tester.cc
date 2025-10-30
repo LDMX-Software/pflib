@@ -91,6 +91,8 @@ void LPGBT_Mezz_Tester::set_phase(int phase, int ilink) {
   if (ilink>=0 && ilink<6) {
     static constexpr int REG_UPLINK_PHASE = 21;
     uint32_t val=opto_.read(REG_UPLINK_PHASE);
+    val|=0x80000000u;
+    if (phase>=0) val^=0x80000000u;
     uint32_t mask=0x1F<<(ilink*5);
     // set to zero
     val=val|mask;
