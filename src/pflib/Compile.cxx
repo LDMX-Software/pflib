@@ -315,7 +315,8 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	}
 	pflib_log(debug) << "value " << std::hex << value;
 
-	size_t bit_cursor = 0;  // keeps track of which bit in pval to place each field
+        size_t bit_cursor =
+            0;  // keeps track of which bit in pval to place each field
         for (const RegisterLocation& loc : spec.registers) {
 	  size_t byte_offset = loc.reg - first_reg;
 	  size_t bit_offset = 8 * byte_offset + loc.min_bit;
@@ -331,9 +332,9 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	  pval |= field_value << bit_cursor;
 	  bit_cursor += loc.n_bits; 
         }
-	
-	pflib_log(debug) << "[DEBUG] Parameter '" << param.first
-			 << "' final value = 0x" << std::hex << pval;
+
+        pflib_log(debug) << "[DEBUG] Parameter '" << param.first
+                         << "' final value = 0x" << std::hex << pval;
 
       } else {
         // non-little-endian logic

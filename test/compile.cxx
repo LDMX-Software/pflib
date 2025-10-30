@@ -245,9 +245,8 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
-      std::cout << "  " << param_name 
-		<< " = " << std::dec << value 
-		<< " (0x" << std::hex << value << std::dec << ")\n";
+      std::cout << "  " << param_name << " = " << std::dec << value << " (0x"
+                << std::hex << value << std::dec << ")\n";
     }
   }
   */
@@ -296,11 +295,9 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
 
   /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
-    std::cout << "0x"
-              << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
-	      << reg
-              << " -> "
-              << std::dec << nbytes << " bytes\n";
+    std::cout << "0x" << std::hex << std::uppercase << std::setw(4)
+              << std::setfill('0') << reg << " -> " << std::dec << nbytes
+              << " bytes\n";
   }
   */
 
