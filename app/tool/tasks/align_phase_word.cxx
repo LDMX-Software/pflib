@@ -24,7 +24,7 @@ void align_phase_word(Target* tgt) {
   auto econ_setup_test = econ_setup_builder.apply();
 
   econ_setup_builder.add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1); // set run bit = 1 AFTER inversion bit.
-  econ_setup_test.apply();
+  econ_setup_test=econ_setup_builder.apply();
 
   auto pusm_run = econ.dumpParameter(
       "CLOCKSANDRESETS",
