@@ -1,4 +1,5 @@
 #include "pflib/algorithm/tot_vref_scan.h"
+#include "pflib/algorithm/trim_tot_scan.h"
 
 #include "pflib/DecodeAndBuffer.h"
 #include "pflib/algorithm/get_calibs.h"
@@ -20,34 +21,45 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   // until the efficiency is < 0.5.
 
   // Get the calibs for all channels
-  int target_adc = 950;
+  int target_adc = 950; // What target does CMS use? This should be hardcoded
   auto calibs = get_calibs(tgt, roc, target_adc);
 
   std::array<int, 2>
       target;  // tot_vref is a global parameter (1 value per link)
 
   for (int ch = 0; ch < 72; i++) {
-    // Set the calib value
+    // Set calib
     int i_link = ch / 36;
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
     auto calib_handle =
         roc.testParameters().add(refvol_page, "CALIB", calib).apply();
-    // Run the threshold scan T_50 that gives the tot_vref value as output
+    // Run the threshold scan TP50 (threshold point at 50%) that gives the tot_vref value as output
     if (target[i_link]) {
-      int tot_vref = T50(tgt, roc, calibs[ch], tot_vref = target[i_link]);
+      int tot_vref = TP50(tgt, roc, calibs[ch], tot_vref = target[i_link]);
     } else {
-      int tot_vref = T50(tgt, roc, calibs[ch]);
+      int tot_vref = TP50(tgt, roc, calibs[ch]);
     }
     // Save to target
     target[i_link] = tot_vref;
   }
+
+  // We want to trim the tot as well. It is easier to do it right through this function since we already
+  // have retrieved the calibs
+  if (pftool::readline_bool("Run trim_tot_scan? ", true)) {
+    auto trim_tot_settings = trim_tot_scan(tgt, roc, calibs);
+  }
+
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
     settings[refvol_page]["TOT_VREF"] = target[i_link];
   }
+  for (auto [page,param] : trim_tot_settings) {
+    settings[page]["TRIM_TOT"] = param.second
+  }
+
   return settings;
 }
 
