@@ -16,7 +16,9 @@ jobs:
           curl -s https://tomeichlersmith.github.io/denv/install | sh
           denv check
       - name: basic compile and run tests
-        run: just init configure build test
-      - use: actions/upload-artifact@v5
+        run: |
+          denv init ghcr.io/ldmx-software/pflib-env:sha-8244ecf
+          just configure build test
+      - uses: actions/upload-artifact@v5
         with:
           path: build
