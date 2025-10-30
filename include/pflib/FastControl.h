@@ -32,7 +32,7 @@ class FastControl {
 
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
-  
+
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 
