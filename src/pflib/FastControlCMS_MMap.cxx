@@ -240,7 +240,7 @@ class FastControlCMS_MMap : public FastControl {
   void bx_custom(int bx_addr, int bx_mask, int bx_new)  {
     // uio_.rmw(bx_addr, bx_mask, bx_mask);
     uio_.readMasked(bx_addr, bx_mask);
-    std::cout << "here i am! " << std::endl;
+    printf("here i am!\n");
     // uio_.rmw(bx_addr, bx_mask, bx_new);
   }
 
