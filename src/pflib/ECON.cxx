@@ -342,7 +342,7 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   // decompile with little_endian and not being careful since we are not trying
   // to read all the chip values
   std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-    compiler_.decompile(chip_reg, false, true);
+      compiler_.decompile(chip_reg, false, true);
   // print by default
   if (print_values) {
     for (const auto& [page_name, params] : parameter_values) {
@@ -401,7 +401,7 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
      * to read ALL of the parameters on the chip
      */
     std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-      compiler_.decompile(register_values, true, true);
+        compiler_.decompile(register_values, true, true);
 
     YAML::Emitter out;
     out << YAML::BeginMap;
