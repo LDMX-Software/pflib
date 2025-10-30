@@ -22,7 +22,6 @@ void align_phase_word(Target* tgt) {
       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
                                 0);  // set run bit 0 while configuring
   auto econ_setup_test = econ_setup_builder.apply();
-  auto pusm_run = econ.dumpParameter(
 
   auto pusm_run = econ.dumpParameter(
       "CLOCKSANDRESETS",
