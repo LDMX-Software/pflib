@@ -75,34 +75,59 @@ def make_register_locations(address, mask, shift, size_byte):
     syntax reminder: 
        RegisterLocation(reg, min_bit, n_bits):
      - reg = register 16-bit address
-     - min_bit = param_shift for the first chunk, 0 for others
+     - min_bit = param_shift 
      - n_bits = number of 1's in the mask for the chunk
+    Any byte that contributes bits to the parameter gets n_bits > 0,
+    unused bytes get n_bits = 0.
+
+    Example: HEADER_MARKER (mask=0x01ff, shift=47, size_byte=7)
+    - returns:
+      RegisterLocation(0xf32, 0, 0)
+      RegisterLocation(0xf31, 0, 0)
+      RegisterLocation(0xf30, 0, 0)
+      RegisterLocation(0xf2f, 0, 0)
+      RegisterLocation(0xf2e, 0, 0)
+      RegisterLocation(0xf2d, 0, 8)
+      RegisterLocation(0xf2c, 0, 1)
     """
     reg_locs = []
-    remaining_mask = mask
-    curr_addr = address
-    first_chunk = True
+    n_bits_total = bin(mask).count("1")
+    if n_bits_total == 0:
+        # if no bits used all bytes get n_bits=0
+        return [f"RegisterLocation(0x{address + i:04x}, 0, 0)" for i in range(size_byte)]
 
+    # determine which byte the parameter starts in
+    start_byte_offset = shift // 8
+    start_bit_offset = shift % 8
+
+    # build the full list of bytes (from low to high address)
     for i in range(size_byte):
-        # take the lowest 8 bits for this byte
-        chunk_mask = remaining_mask & 0xFF
-        n_bits = bin(chunk_mask).count("1")
-        loc_shift = shift if first_chunk else 0
-        reg_locs.append(f"RegisterLocation(0x{curr_addr:04x}, {loc_shift}, {n_bits})")
+        curr_addr = address + i
 
-        # shift the remaining mask right by 8 bits to remove the bits we've already processed
-        remaining_mask >>= 8
-        # address increments by 1 byte
-        curr_addr += 1
-        # only the first chunk uses the original shift
-        first_chunk = False
+        # compute bits in this byte if i is part of the parameter bytes
+        param_byte_index = i - start_byte_offset
+        if 0 <= param_byte_index <= (n_bits_total + start_bit_offset - 1) // 8:
+            if param_byte_index == (n_bits_total + start_bit_offset - 1) // 8:
+                # last byte of the parameter
+                bits_in_byte = (n_bits_total + start_bit_offset) % 8
+                if bits_in_byte == 0:
+                    bits_in_byte = 8
+            elif param_byte_index == 0:
+                # first byte of the parameter
+                bits_in_byte = min(8 - start_bit_offset, n_bits_total)
+            else:
+                bits_in_byte = 8
+        else:
+            bits_in_byte = 0
 
-        # break the loop if no bits are left to process
-        if remaining_mask == 0:
-            break
+        # shift for the byte: first byte uses start_bit_offset, others 0
+        shift_for_byte = start_bit_offset if param_byte_index == 0 and bits_in_byte > 0 else 0
+
+        reg_locs.append(f"RegisterLocation(0x{curr_addr:04x}, {shift_for_byte}, {bits_in_byte})")
+
     return reg_locs
 
-def process_register(name_prefix, props, lines):
+def process_register(name_prefix, props, lines, register_byte_lut = {}):
     """
     Process recursively a register or nested subregisters and append C++ lines.
     This will split big registers (>16 bytes) into multiple Parameters with suffixes (16 bytes is the max that lpGBT can handle).
@@ -118,6 +143,9 @@ def process_register(name_prefix, props, lines):
             default_value = props.get("default_value", 0)
             size_byte = props.get("size_byte", 1)
 
+            if address not in register_byte_lut: 
+                register_byte_lut[address] = size_byte
+            
             # generate all register locations and account for multi-byte registers
             reg_locs = make_register_locations(address, mask, shift, size_byte)
             reg_locs_str = ", ".join(reg_locs)
@@ -148,13 +176,14 @@ def process_register(name_prefix, props, lines):
             if isinstance(props, dict):
                 for subkey, subval in props.items():
                     new_prefix = f"{name_prefix}_{subkey}"
-                    process_register(new_prefix, subval, lines)        
+                    process_register(new_prefix, subval, lines, register_byte_lut)        
     else:
         # look for nested subkeys if props is a dict
         if isinstance(props, dict):
             for subkey, subval in props.items():
                 new_prefix = f"{name_prefix}_{subkey}"
-                process_register(new_prefix, subval, lines)
+                process_register(new_prefix, subval, lines, register_byte_lut)
+
 
 def generate_header(input_yaml, data, econ_type):
     """Generate the C++ header content for a given page."""
@@ -164,6 +193,8 @@ def generate_header(input_yaml, data, econ_type):
     lines.append('#include "register_maps/register_maps_types.h"\n')
     lines.append(f"namespace econ{econ_type}"+" {\n")
 
+    register_byte_lut = {}
+    
     # loop through all blocks (e.g. ALIGNER, CHALIGNER)
     page_names = []
     for page_name, groups in data.items():
@@ -174,15 +205,17 @@ def generate_header(input_yaml, data, econ_type):
             if isinstance(registers, dict) and "address" in registers:
                 # single register (e.g. AlgoThreshold 0 in ECON-T)
                 name_prefix = str(group_name)
-                process_register(name_prefix, registers, lines)
+                process_register(name_prefix, registers, lines, register_byte_lut)
             else:
                 for reg_name, props in registers.items():
                     name_prefix = f"{group_name}_{reg_name}"
-                    process_register(name_prefix, props, lines)
+                    process_register(name_prefix, props, lines, register_byte_lut)
             
         page_names.append(page_var)
         lines.append("  });")
 
+    print(register_byte_lut)
+        
     lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
     for name in page_names:
         lines.append(f'  {{"{name}", {name}}},')
