@@ -224,22 +224,64 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   settings[0][0x3c6] = 0;
   settings[0][0x3c7] = 0x80;
 
+  settings[0][0xf2c] = 0;
+  settings[0][0xf2d] = 0x20;
+  settings[0][0xf2e] = 0x92;
+  settings[0][0xf2f] = 0xaa;
+  settings[0][0xf30] = 0xaa;
+  settings[0][0xf31] = 0x2a;
+  settings[0][0xf32] = 0xf3;
+
+  settings[0][0x0452] = 0xab;
+  settings[0][0x0453] = 0x89;
+  settings[0][0x0454] = 0x67;
+  settings[0][0x0455] = 0x45;
+  settings[0][0x0456] = 0x23;
+  settings[0][0x0457] = 0x01;
+
+  settings[0][0x03e4] = 0x05;
+
+  settings[0][0x03e5] = 0x05;
+
   auto chip_params = c.decompile(settings, true, true);
 
   /*
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
-      std::cout << "  " << param_name << " = " << value << "\n";
+      std::cout << "  " << param_name << " = " << std::dec << value << " (0x"
+                << std::hex << value << std::dec << ")\n";
     }
   }
   */
 
-  BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
-                      "Page ALIGNER missing in decompiled settings");
+  auto check_param = [&](const std::string& page, const std::string& param,
+                         uint64_t expected) {
+    auto p_it = chip_params.find(page);
+    BOOST_REQUIRE_MESSAGE(p_it != chip_params.end(), "Missing page: " + page);
 
-  BOOST_CHECK_MESSAGE(chip_params.find("CLOCKSANDRESETS") != chip_params.end(),
-                      "Page CLOCKSANDRESETS missing in decompiled settings");
+    const auto& params = p_it->second;
+    auto v_it = params.find(param);
+    BOOST_REQUIRE_MESSAGE(v_it != params.end(),
+                          "Missing param " + param + " in page " + page);
+
+    uint64_t value = v_it->second;
+    BOOST_CHECK_MESSAGE(value == expected,
+                        "Incorrect value for " + page + "::" + param +
+                            ". Expected " + std::to_string(expected) +
+                            ", got " + std::to_string(value));
+  };
+
+  check_param("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 255);  // 0xff
+  check_param("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN", 1);  // 0x1
+  check_param("ELINKPROCESSORS", "GLOBAL_CM_ERX_ROUTE",
+              1250999896491ULL);  // 0x123456789ab
+
+  check_param("FORMATTERBUFFER", "GLOBAL_ALIGN_SERIALIZER_4", 0);
+  check_param("FORMATTERBUFFER", "GLOBAL_ALIGN_SERIALIZER_5", 0);
+  check_param("FORMATTERBUFFER", "GLOBAL_HEADER_MARKER", 486);       // 0x1e6
+  check_param("FORMATTERBUFFER", "GLOBAL_IDLE_PATTERN", 5592405);    // 0x555555
+  check_param("FORMATTERBUFFER", "GLOBAL_LINK_RESET_PATTERN", 290);  // 0x122
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
@@ -249,15 +291,19 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   std::map<uint16_t, size_t> page_reg_byte_lut, expected;
   expected[0x0389] = 8;
   expected[0x03c5] = 3;
+  expected[0x03c5] = 3;
+  expected[0x0f2c] = 7;
+  expected[0x0452] = 6;
+  expected[0x03e4] = 1;
+  expected[0x03e5] = 1;
+
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
-    std::cout << "0x"
-              << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
-  << reg
-              << " -> "
-              << std::dec << nbytes << " bytes\n";
+    std::cout << "0x" << std::hex << std::uppercase << std::setw(4)
+              << std::setfill('0') << reg << " -> " << std::dec << nbytes
+              << " bytes\n";
   }
   */
 

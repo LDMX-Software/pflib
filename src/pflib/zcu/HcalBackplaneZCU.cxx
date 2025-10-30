@@ -16,6 +16,68 @@ static constexpr int I2C_BUS_BOARD = 0;    // TRIG
 static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
 
+/** Currently represents all elinks for dual-link configuration */
+class OptoElinksZCU : public Elinks {
+ public:
+  OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
+      : Elinks(6 * 2),
+        lp_daq_(lpdaq),
+        lp_trig_(lptrig),
+        uiodecoder_(
+            pflib::utility::string_format("standardLpGBTpair-%d", itarget)) {
+    // deactivate all the links except DAQ link 0 for now
+    for (int i = 1; i < 6 * 2; i++) markActive(i, false);
+  }
+  std::vector<uint32_t> spy(int ilink) {
+    std::vector<uint32_t> retval;
+    // spy now...
+    static constexpr int REG_CAPTURE_ENABLE = 16;
+    static constexpr int REG_CAPTURE_OLINK = 17;
+    static constexpr int REG_CAPTURE_ELINK = 18;
+    static constexpr int REG_CAPTURE_PTR = 19;
+    static constexpr int REG_CAPTURE_WINDOW = 20;
+    uiodecoder_.write(REG_CAPTURE_OLINK, ilink % 6);
+    uiodecoder_.write(REG_CAPTURE_ELINK, (ilink / 6 + 1) & 0x7);
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 1);
+    usleep(1000);
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
+    for (int i = 0; i < 64; i++) {
+      uiodecoder_.write(REG_CAPTURE_PTR, i);
+      usleep(1);
+      retval.push_back(uiodecoder_.read(REG_CAPTURE_WINDOW));
+    }
+    return retval;
+  }
+
+  virtual void setBitslip(int ilink, int bitslip) {
+    static constexpr int REG_UPLINK_PHASE = 21;
+    uint32_t val = uiodecoder_.read(REG_UPLINK_PHASE + ilink / 6);
+    uint32_t mask = 0x1F << ((ilink % 6) * 5);
+    // set to zero
+    val = val | mask;
+    val = val ^ mask;
+    // mask in new phase
+    val = val | ((bitslip & 0x1F) << ((ilink % 6) * 5));
+    uiodecoder_.write(REG_UPLINK_PHASE + ilink / 6, val);
+  }
+  virtual int getBitslip(int ilink) {
+    static constexpr int REG_UPLINK_PHASE = 21;
+    uint32_t val = uiodecoder_.read(REG_UPLINK_PHASE + (ilink / 6));
+    return (val >> ((ilink % 6) * 5)) & 0x1F;
+  }
+  virtual int scanBitslip(int ilink) { return -1; }
+  virtual uint32_t getStatusRaw(int ilink) { return 0; }
+  virtual void clearErrorCounters(int ilink) {}
+  virtual void resetHard() {
+    // not meaningful here
+  }
+
+ private:
+  lpGBT *lp_daq_, *lp_trig_;
+  UIO uiodecoder_;
+};
+
 class HcalBackplaneZCU : public Hcal {
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
@@ -28,6 +90,9 @@ class HcalBackplaneZCU : public Hcal {
         uio_coder, true, ADDR_HCAL_BACKPLANE_TRIG);
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
+
+    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
+                                              itarget);
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
@@ -51,6 +116,7 @@ class HcalBackplaneZCU : public Hcal {
       // right now its hardcoded because everyone has one of these
       // but we could modify this constructor and its calling factory
       // function in order to pass in a configuration
+
       add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
@@ -102,9 +168,7 @@ class HcalBackplaneZCU : public Hcal {
     trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
   }
 
-  virtual Elinks& elinks() override {
-    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCU::elinks not implemented");
-  }
+  virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override {
     PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCU::daq not implemented");
@@ -116,6 +180,7 @@ class HcalBackplaneZCU : public Hcal {
   std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
+  std::unique_ptr<OptoElinksZCU> elinks_;
 };
 
 class HcalBackplaneZCUTarget : public Target {

@@ -54,7 +54,7 @@ class Elinks {
   virtual std::vector<uint32_t> spy(int ilink) = 0;
 
   /**
-   * set the bitslip value for the link
+   * set the bitslip value (word-level adjustment)
    *
    * @param[in] ilink link index
    * @param[in] bitslip value for bitslip
@@ -62,7 +62,7 @@ class Elinks {
   virtual void setBitslip(int ilink, int bitslip) = 0;
 
   /**
-   * enable auto-setting of bitslip value
+   * enable auto-setting of bitslip value (word-level adjustment)
    *
    *
    * @param[in] ilink link index
@@ -70,7 +70,7 @@ class Elinks {
   virtual int scanBitslip(int ilink);
 
   /*
-   * Get the bitslip value for a given link
+   * Get the bitslip value for a given link (word-level adjustment)
    *
    * @param[in] ilink link index
    * @return value of bitslip
@@ -108,55 +108,20 @@ class Elinks {
   virtual void resetHard() = 0;
 
   /**
-   * Prepare for a big spy of the link
-   *
-   * ### Modes
-   * - 0 -> software
-   * - 1 -> L1A
-   * - 2 -> Non-idle
-   *
-   * @param[in] mode type of bigspy to setup
-   * @param[in] ilink link index
-   * @param[in] presamples number of presamples
-   */
-  //  void setupBigspy(int mode, int ilink, int presamples);
-
-  /**
-   * Read the current setup for a bigspy
-   *
-   * @param[out] mode type of bigspy to setup
-   * @param[out] ilink link index
-   * @param[out] presamples number of presamples
-   */
-  //  void getBigspySetup(int& mode, int& ilink, int& presamples);
-
-  /**
-   * Check if the current bigspy is done
-   * @return true if we are done with the bigspy
-   */
-  //  bool bigspyDone();
-
-  /**
-   * Readout the bigspy and return the data
-   * @return vector of 4-byte words readout from bigspy
-   */
-  //  std::vector<uint32_t> bigspy();
-
-  /**
-   * scan the input link attempting to align it
+   * scan the input link attempting to bitalign it
    * @param[in] ilink link index
    */
   virtual int scanAlign(int ilink, bool debug = false);
 
   /**
-   * Set the l1a delay for the input link
+   * Set the bitalign delay for the input link
    * @param[in] ilink link index
    * @param[in] idelay delay to use
    */
   virtual void setAlignPhase(int ilink, int iphase) {}
 
   /**
-   * Get the alignment phase
+   * Get the bit alignment phase
    */
   virtual int getAlignPhase(int ilink) { return -1; }
 

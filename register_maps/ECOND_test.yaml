@@ -18,3 +18,139 @@ ClocksAndResets:
       param_mask: 0x0001
       param_shift: 23
       size_byte: 3
+ELinkProcessors:
+  Global:
+    cm_erx_route:
+      access: rw
+      address: 0x0452
+      default_value: 1250999896491
+      max_value: 281474976710655
+      param_mask: 0xffffffffffff
+      param_shift: 0
+      size_byte: 6
+FormatterBuffer:
+  Global:
+    header_marker:
+      access: rw
+      address: 0x0f2c
+      default_value: 486
+      max_value: 511
+      param_mask: 0x01ff
+      param_shift: 47
+      size_byte: 7
+    idle_pattern:
+      access: rw
+      address: 0x0f2c
+      default_value: 5592405
+      max_value: 16777215
+      param_mask: 0xffffff
+      param_shift: 23
+      size_byte: 7
+    link_reset_pattern:
+      access: rw
+      address: 0x0f2c
+      default_value: 290
+      max_value: 2047
+      param_mask: 0x07ff
+      param_shift: 12
+      size_byte: 7
+    align_serializer:
+      4:
+        access: rw
+        address: 0x0f2c
+        default_value: 0
+        max_value: 63
+        param_mask: 0x003f
+        param_shift: 0
+        size_byte: 7
+      5:
+        access: rw
+        address: 0x0f2c
+        default_value: 0
+        max_value: 63
+        param_mask: 0x003f
+        param_shift: 6
+        size_byte: 7
+ERx:
+  0:
+    enable:
+      access: rw
+      address: 0x03e4
+      default_value: 1
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 0
+      size_byte: 1
+    enable_termination:
+      access: rw
+      address: 0x03e4
+      default_value: 1
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 2
+      size_byte: 1
+    equalizer:
+      access: rw
+      address: 0x03e4
+      default_value: 0
+      max_value: 3
+      param_mask: 0x0003
+      param_shift: 3
+      size_byte: 1
+    invert_data:
+      access: rw
+      address: 0x03e4
+      default_value: 0
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 1
+      size_byte: 1
+    set_common_mode:
+      access: rw
+      address: 0x03e4
+      default_value: 0
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 5
+      size_byte: 1
+  1:
+    enable:
+      access: rw
+      address: 0x03e5
+      default_value: 1
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 0
+      size_byte: 1
+    enable_termination:
+      access: rw
+      address: 0x03e5
+      default_value: 1
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 2
+      size_byte: 1
+    equalizer:
+      access: rw
+      address: 0x03e5
+      default_value: 0
+      max_value: 3
+      param_mask: 0x0003
+      param_shift: 3
+      size_byte: 1
+    invert_data:
+      access: rw
+      address: 0x03e5
+      default_value: 0
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 1
+      size_byte: 1
+    set_common_mode:
+      access: rw
+      address: 0x03e5
+      default_value: 0
+      max_value: 1
+      param_mask: 0x0001
+      param_shift: 5
+      size_byte: 1
