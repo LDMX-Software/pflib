@@ -16,8 +16,8 @@ class LPGBT_Mezz_Tester {
   void reset_lpGBT();
 
   void set_prbs_len_ms(int len);
-  void set_phase(int phase, int ilink=-1);
-  int get_phase(int ilink=-1);
+  void set_phase(int phase, int ilink = -1);
+  int get_phase(int ilink = -1);
   void set_uplink_pattern(int ilink, int pattern);
   std::vector<uint32_t> ber_rx();
   std::vector<uint32_t> ber_tx();

@@ -562,13 +562,11 @@ std::vector<uint8_t> lpGBT::i2c_read_data(int ibus) {
   return retval;
 }
 
-  void lpGBT::finalize_setup() {
-    write(REG_POWERUP2, 0x4|0x2);
-  }
-  
-  int lpGBT::status() { return read(REG_POWERUP_STATUS); }
+void lpGBT::finalize_setup() { write(REG_POWERUP2, 0x4 | 0x2); }
 
-  std::string lpGBT::status_name(int pusm) {
+int lpGBT::status() { return read(REG_POWERUP_STATUS); }
+
+std::string lpGBT::status_name(int pusm) {
   static const char* states[] = {"ARESET",
                                  "RESET1",
                                  "WAIT_VDD_STABLE",
