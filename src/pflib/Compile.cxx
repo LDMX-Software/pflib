@@ -252,24 +252,29 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
       std::size_t value_curr_min_bit = 0;
       int n_missing_regs{0};
 
-      for (const auto& [reg, byte_index] : register_byte_lut) {
-	std::cout << "Register 0x" << std::hex << reg
-		  << " -> nbytes " << std::dec << byte_index << '\n';
-      }
-      
       if (little_endian) {
         // collect all relevant registers in a vector in descending order
         std::vector<uint8_t> data;
-
-	// loop over register locations (unique and sorted)
-	std::set<uint16_t> reg_set;
+        std::set<uint16_t> reg_set;
 	for (const auto& loc : spec.registers) {
-	  reg_set.insert(loc.reg);
-	}
+	  reg_set.insert(loc.reg); 
+	  auto it = page_conf.find(loc.reg);
+	  if (it != page_conf.end()) {
+            data.push_back(it->second);
+            // pflib_log(debug) << "[DEBUG] Register 0x" << std::hex << reg
+            //<< ": byte=0x" << int(it->second);
+          } else {
+            // pflib_log(warn) << "[WARN] Missing register 0x" << std::hex <<
+            // reg
+            //<< " for parameter " << param.first;
+            n_missing_regs++;
+            data.push_back(0);  // assume 0 if missing
+          }
+        }
 
-	uint16_t start = addrs.front();
-	size_t nbytes = addrs.size();
-	    
+	uint16_t first_reg = *reg_set.begin();
+	 
+	/*
 	// get the first_reg and last_reg that span all the registers in reg_set
 	// after accounting for how many bytes each occupies according to register_byte_lut
 	uint16_t first_reg = *reg_set.begin();
@@ -296,18 +301,19 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
             data.push_back(0);  // assume 0 if missing
           }
         }
+	*/
 
 	// combine into a little endian integer
 	uint64_t value = 0;
 	for (size_t i = 0; i < data.size(); ++i)
           value |= (static_cast<uint64_t>(data[i]) << (8 * i));
 
-        pflib_log(info) << "[DEBUG] data contents for parameter " <<
+        pflib_log(debug) << "[DEBUG] data contents for parameter " <<
 	  param.first << ":"; for (size_t i = 0; i < data.size(); ++i) {
-          pflib_log(info) << "  data[" << i << "] = 0x" << std::hex <<
+          pflib_log(debug) << "  data[" << i << "] = 0x" << std::hex <<
 	    int(data[i]);
 	}
-	pflib_log(info) << "value " << std::hex << value;
+	pflib_log(debug) << "value " << std::hex << value;
 
 	size_t bit_cursor = 0;  // keeps track of which bit in pval to place each field
         for (const RegisterLocation& loc : spec.registers) {
@@ -315,18 +321,18 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
 	  size_t bit_offset = 8 * byte_offset + loc.min_bit;
 	  uint64_t field_value = (value >> bit_offset) & loc.mask;
 	  
-          pflib_log(info) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
-                          << std::hex << loc.reg
-                          << ", min_bit=" << std::dec << loc.min_bit
-                          << ", n_bits=" << loc.n_bits
-                          << ", mask=0x" << std::hex << loc.mask
-                          << ", field_value=0x" << std::hex << field_value;
-
+          pflib_log(debug) << "[DEBUG] Extracting field from RegisterLocation: reg=0x"
+			   << std::hex << loc.reg
+			   << ", min_bit=" << std::dec << loc.min_bit
+			   << ", n_bits=" << loc.n_bits
+			   << ", mask=0x" << std::hex << loc.mask
+			   << ", field_value=0x" << std::hex << field_value;
+	  
 	  pval |= field_value << bit_cursor;
 	  bit_cursor += loc.n_bits; 
         }
 	
-	pflib_log(info) << "[DEBUG] Parameter '" << param.first
+	pflib_log(debug) << "[DEBUG] Parameter '" << param.first
 			 << "' final value = 0x" << std::hex << pval;
 
       } else {

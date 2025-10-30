@@ -239,9 +239,9 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
   settings[0][0x0456] = 0x23;
   settings[0][0x0457] = 0x01;
 
-  std::map<uint16_t, size_t> page_reg_byte_lut = c.build_register_byte_lut();
-  auto chip_params = c.decompile(settings, true, true, page_reg_byte_lut);
+  auto chip_params = c.decompile(settings, true, true);
 
+  /*
   for (const auto& [page_name, params] : chip_params) {
     std::cout << "Page: " << page_name << "\n";
     for (const auto& [param_name, value] : params) {
@@ -250,12 +250,36 @@ BOOST_AUTO_TEST_CASE(full_lut_econd_decompile) {
 		<< " (0x" << std::hex << value << std::dec << ")\n";
     }
   }
+  */
 
-  BOOST_CHECK_MESSAGE(chip_params.find("ALIGNER") != chip_params.end(),
-                      "Page ALIGNER missing in decompiled settings");
+  auto check_param = [&](const std::string& page,
+                       const std::string& param,
+                       uint64_t expected) {
+    auto p_it = chip_params.find(page);
+    BOOST_REQUIRE_MESSAGE(p_it != chip_params.end(), "Missing page: " + page);
 
-  BOOST_CHECK_MESSAGE(chip_params.find("CLOCKSANDRESETS") != chip_params.end(),
-                      "Page CLOCKSANDRESETS missing in decompiled settings");
+    const auto& params = p_it->second;
+    auto v_it = params.find(param);
+    BOOST_REQUIRE_MESSAGE(v_it != params.end(),
+                          "Missing param " + param + " in page " + page);
+
+    uint64_t value = v_it->second;
+    BOOST_CHECK_MESSAGE(value == expected,
+			"Incorrect value for " + page + "::" + param +
+			". Expected " + std::to_string(expected) +
+			", got " + std::to_string(value));
+  };
+
+  check_param("ALIGNER",          "GLOBAL_MATCH_MASK_VAL",        255);               // 0xff
+  check_param("CLOCKSANDRESETS",  "GLOBAL_PUSM_RUN",              1);                 // 0x1
+  check_param("ELINKPROCESSORS",  "GLOBAL_CM_ERX_ROUTE",          1250999896491ULL);  // 0x123456789ab
+  
+  check_param("FORMATTERBUFFER",  "GLOBAL_ALIGN_SERIALIZER_4",    0);
+  check_param("FORMATTERBUFFER",  "GLOBAL_ALIGN_SERIALIZER_5",    0);
+  check_param("FORMATTERBUFFER",  "GLOBAL_HEADER_MARKER",         486);              // 0x1e6
+  check_param("FORMATTERBUFFER",  "GLOBAL_IDLE_PATTERN",          5592405);          // 0x555555
+  check_param("FORMATTERBUFFER",  "GLOBAL_LINK_RESET_PATTERN",    290);              // 0x122
+  
 }
 
 BOOST_AUTO_TEST_CASE(full_lut_econd) {
@@ -270,6 +294,7 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   expected[0x0452] = 6;
   page_reg_byte_lut = c.build_register_byte_lut();
 
+  /*
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
     std::cout << "0x"
               << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
@@ -277,6 +302,7 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
               << " -> "
               << std::dec << nbytes << " bytes\n";
   }
+  */
 
   BOOST_CHECK_MESSAGE(
       page_reg_byte_lut == expected,

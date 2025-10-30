@@ -248,7 +248,7 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
       std::vector<uint8_t> values = getValues(reg_addr, nbytes);
       for (int i = 0; i < values.size(); ++i) {
-        printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+        // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
         all_regs[reg_addr + i] = values[i];
       }
     }
@@ -259,7 +259,7 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
       if (reg_map.find(reg_addr) != reg_map.end()) {
         std::vector<uint8_t> values = getValues(reg_addr, nbytes);
         for (int i = 0; i < (int)values.size(); ++i) {
-          printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
+          // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
           all_regs[reg_addr + i] = values[i];
         }
       }
@@ -342,7 +342,7 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   // decompile with little_endian and not being careful since we are not trying
   // to read all the chip values
   std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-    compiler_.decompile(chip_reg, false, true, econ_reg_nbytes_lut_);
+    compiler_.decompile(chip_reg, false, true);
   // print by default
   if (print_values) {
     for (const auto& [page_name, params] : parameter_values) {
@@ -401,7 +401,7 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
      * to read ALL of the parameters on the chip
      */
     std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-      compiler_.decompile(register_values, true, true, econ_reg_nbytes_lut_);
+      compiler_.decompile(register_values, true, true);
 
     YAML::Emitter out;
     out << YAML::BeginMap;
