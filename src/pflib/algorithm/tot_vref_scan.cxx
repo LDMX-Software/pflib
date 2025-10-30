@@ -2,8 +2,8 @@
 
 #include "pflib/DecodeAndBuffer.h"
 #include "pflib/algorithm/get_calibs.h"
-#include "pflib/algorithm/trim_tot_scan.h"
 #include "pflib/algorithm/tp50_scan.h"
+#include "pflib/algorithm/trim_tot_scan.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 
