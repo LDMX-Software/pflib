@@ -59,7 +59,7 @@ zcu-build:
       --volume /etc/group:/etc/group \
       --volume /etc/passwd:/etc/passwd \
       --workdir ${PWD} \
-      --userns=keep-id \
+      --user $(id -u "${USER}"):$(id -g "${USER}") \
       ghcr.io/ldmx-software/pflib-env:sha-8244ecf \
       sh -c 'cmake -B build -S . && cmake --build build'
 
