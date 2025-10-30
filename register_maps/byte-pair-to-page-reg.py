@@ -100,11 +100,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('input', help='input yaml file with R0/R1 addresses')
 parser.add_argument('output', type=Path, help='output file with page/register addresses')
 parser.add_argument('--no-intermediate-yaml', action='store_true', help='do not dump intermediate page/register addresses into a yaml for comparison. Used in the CMakeLists.txt to avoid extraneous files.')
-parser.add_argument('--namespace', help='namespace to wrap LUTs with, default is stem of output file') 
+parser.add_argument('--struct', help='struct to wrap LUTs with, default is stem of output file') 
 args = parser.parse_args()
 
-if args.namespace is None:
-    args.namespace = args.output.stem
+if args.struct is None:
+    args.struct = args.output.stem
 
 with open(args.input) as f:
     byte_pair_map = yaml.safe_load(f)
@@ -196,10 +196,15 @@ if not args.no_intermediate_yaml:
 with open(args.output.with_suffix('.h'), 'w') as f:
     f.write(f'/* auto-generated LUT header from {args.input} */\n\n')
     f.write('#pragma once\n\n')
-    # the types PAGE_TYPE, PAGE_LUT_TYPE, and PARAMETER_LUT_TYPE are defined
-    # in register_maps/register_maps_types.h
     f.write('#include "register_maps/register_maps_types.h"\n\n')
-    f.write('namespace %s {\n\n'%(args.namespace))
+    f.write('struct %s {\n'%(args.struct))
+    f.write('  static const PageLUT PAGE_LUT;\n')
+    f.write('  static const ParameterLUT PARAMETER_LUT;\n')
+    f.write('}; // %s\n'%(args.struct))
+
+with open(args.output.with_suffix('.cxx'), 'w') as f:
+    f.write(f'/* auto-generated LUT implementation from {args.input} */\n\n')
+    f.write('#include "%s"\n\n'%(str(args.output.with_suffix('.h'))))
     for name, parameters in subblock_types.items():
         f.write('const Page %s = Page::Mapping({\n'%(name))
         f.write(',\n'.join(
@@ -208,19 +213,18 @@ with open(args.output.with_suffix('.h'), 'w') as f:
         ))
         f.write('\n});\n\n')
 
-    f.write('const PageLUT PAGE_LUT = PageLUT::Mapping({\n')
+    f.write('const PageLUT %s::PAGE_LUT = PageLUT::Mapping({\n'%(args.struct))
     f.write(',\n'.join(
         '  {"%s", %s }'%(name, name)
         for name in subblock_types
     ))
     f.write('\n});\n\n')
 
-    f.write('const ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({\n')
+    f.write('const ParameterLUT %s::PARAMETER_LUT = ParameterLUT::Mapping({\n'%(args.struct))
     f.write(',\n'.join(
         '  {"%s", { %d, %s }}'%(name, subblock.address, subblock.type)
         for name, subblock in subblocks.items()
     ))
     f.write('\n});\n\n')
-    f.write('} // namespace %s\n'%(args.namespace))
 
 

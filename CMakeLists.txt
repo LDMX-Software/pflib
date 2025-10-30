@@ -52,18 +52,25 @@ add_custom_command(
 add_custom_target(sipm_rocv2 DEPENDS ${reg_map_header})
 list(APPEND generate_headers sipm_rocv2)
 foreach(roc "si_roc" "si_rocv3b" "sipm_rocv3" "sipm_rocv3b")
-  set(reg_map_src "${PROJECT_SOURCE_DIR}/register_maps/${roc}_regmap.yaml")
+  set(reg_map_yml "${PROJECT_SOURCE_DIR}/register_maps/${roc}_regmap.yaml")
   set(reg_map_header "include/register_maps/${roc}.h")
+  set(reg_map_src "include/register_maps/${roc}.cxx")
   add_custom_command(
-    OUTPUT ${reg_map_header}
+    OUTPUT ${reg_map_header} ${reg_map_src}
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
     COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
-      ${reg_map_src} ${CMAKE_CURRENT_BINARY_DIR}/${reg_map_header} --no-intermediate-yaml
-    DEPENDS ${reg_map_src} ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
-    COMMENT "Generating C++ parameter LUTs from ${reg_map_src}"
+      ${reg_map_yml} ${CMAKE_CURRENT_BINARY_DIR}/${reg_map_header} --no-intermediate-yaml
+    DEPENDS ${reg_map_yml} ${PROJECT_SOURCE_DIR}/register_maps/byte-pair-to-page-reg.py
+    COMMENT "Generating C++ parameter LUTs from ${reg_map_yml}"
     VERBATIM
   )
-  add_custom_target(${roc} DEPENDS ${reg_map_header})
+  add_library(${roc} SHARED ${reg_map_src})
+  target_include_directories(${roc} PUBLIC 
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+  target_include_directories(${roc} PUBLIC 
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+    "$<INSTALL_INTERFACE:include>")
   list(APPEND generate_headers "${roc}")
 endforeach()
 
@@ -235,7 +242,7 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility ${})
 add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
 
 add_library(menu SHARED
