@@ -27,14 +27,12 @@ void align_phase_word(Target* tgt) {
   auto econ_setup_test = econ_setup_builder.apply();
   // }
 
-  // usleep(1000);
-
-  // // {  // set run value
-  // auto econ_setup_builder =
-  //     econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-  //                               1);  // set run bit = 1 AFTER inversion bit.
-  // auto econ_setup_test = econ_setup_builder.apply();
-  // // }
+  // {  // set run value
+  auto econ_setup_builder =
+      econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
+                                1);  // set run bit = 1 AFTER inversion bit.
+  auto econ_setup_test = econ_setup_builder.apply();
+  // }
 
   auto pusm_run =
       econ.dumpParameter("CLOCKSANDRESETS",
