@@ -114,7 +114,7 @@ class Elinks {
   virtual int scanAlign(int ilink, bool debug = false);
 
   /**
-   * Set the bitalign delay for the input link 
+   * Set the bitalign delay for the input link
    * @param[in] ilink link index
    * @param[in] idelay delay to use
    */
