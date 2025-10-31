@@ -238,17 +238,35 @@ class FastControlCMS_MMap : public FastControl {
       0x80000000u;  // Send a SPARE7 command (auto-clear)/>
 
   virtual void linkreset_rocs() override {
+    // turn off L1A for the moment
+    uint32_t preval=uio_.read(ADDR_CTL_REG);
+    uio_.write(ADDR_CTL_REG,((preval|CTL_ENABLE_L1AS)^CTL_ENABLE_L1AS));
+
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_roct, REQ_link_reset_roct);
     usleep(10);
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
+    // restore previous situation
+    uio_.write(ADDR_CTL_REG,preval);
   }
 
   virtual void clear_run() override {
+    // turn off L1A for the moment
+    uint32_t preval=uio_.read(ADDR_CTL_REG);
+    uio_.write(ADDR_CTL_REG,((preval|CTL_ENABLE_L1AS)^CTL_ENABLE_L1AS));
+
     uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
+    // restore previous situation
+    uio_.write(ADDR_CTL_REG,preval);
   }
 
   virtual void bufferclear() override {
+    // turn off L1A for the moment
+    uint32_t preval=uio_.read(ADDR_CTL_REG);
+    uio_.write(ADDR_CTL_REG,((preval|CTL_ENABLE_L1AS)^CTL_ENABLE_L1AS));
+
     uio_.rmw(ADDR_REQUEST, REQ_ebr, REQ_ebr);
+    // restore previous situation
+    uio_.write(ADDR_CTL_REG,preval);
   }
 
   virtual void chargepulse() override { periodic(CHARGE_PERIODIC).request(); }
