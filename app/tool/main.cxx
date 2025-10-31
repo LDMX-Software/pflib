@@ -54,6 +54,7 @@ const std::vector<std::string>& pftool::State::roc_page_names() const {
 const std::vector<std::string>& pftool::State::roc_param_names(
     const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
+
   auto param_list_it = roc_param_names_.at(iroc).find(PAGE);
   if (param_list_it == roc_param_names_.at(iroc).end()) {
     PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
