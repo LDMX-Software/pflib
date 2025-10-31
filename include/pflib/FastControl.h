@@ -39,6 +39,9 @@ class FastControl {
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 
+  /** send a orbit count reset */  // Josh
+  virtual void orbit_count_reset() = 0;
+
   /** send a single calib pulse */
   virtual void chargepulse() = 0;
 

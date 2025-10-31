@@ -250,6 +250,10 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_rocd, REQ_link_reset_rocd);
   }
 
+  virtual void orbit_count_reset() override {
+    uio_.rmw(ADDR_REQUEST, REQ_orbit_count_reset, REQ_orbit_count_reset);
+  }
+
   virtual void clear_run() override {
     uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
   }

@@ -305,6 +305,13 @@ void align_phase_word(Target* tgt) {
     }
     std::cout << std::endl;
 
+    // Does this reset the orbit count?
+    tgt->fc().orbit_count_reset();
+
+    // Try other fast commands to test counter increase
+    tgt->fc().bufferclear();
+    tgt->fc().clear_run;
+
     // Custom BX value
     int bx_new = 3000;
     int bx_addr = 3;
