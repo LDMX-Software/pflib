@@ -23,10 +23,6 @@ class DAQ {
   virtual void reset() = 0;
   ///
   virtual int getEventOccupancy() = 0;
-  /// Set the FPGA id and the link ids based on the FPGA id
-  // void setIds(int fpga_id);
-  /// Get the FPGA id
-  // int getFPGAid();
   /// Setup a link.
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) = 0;
   /// read link parameters into the passed variables
@@ -60,9 +56,10 @@ class DAQ {
   virtual void advanceLinkReadPtr() {}
 
   // get any useful debugging data
-  virtual std::map<std::string, uint32_t> get_debug() {
+  virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) {
     return std::map<std::string, uint32_t>();
   }
+  
 
  private:
   /// number of links
