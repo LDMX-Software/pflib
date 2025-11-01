@@ -27,7 +27,7 @@ void align_phase_word(Target* tgt) {
   auto econ_setup_test = econ_setup_builder.apply();
   // }
 
-  // // {  // set run value
+  // // {  // set run value   // THIS is not necessary; it doesnt seem to do anything. Just setting the inversion bit is enough to get the run bit to flip to 8. HOWEVER the inversion bit, when read, still says 0.
   // auto econ_setup_builder =
   //     econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
   //                               1);  // set run bit = 1 AFTER inversion bit.
