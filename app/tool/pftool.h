@@ -65,7 +65,7 @@ class pftool : public pflib::menu::Menu<Target*> {
         pflib::ECON econ, const std::string& page) const;
     /// index of HGCROC currently being interacted with
     int iroc{0};
-    /// index of ECON currently being interacted with
+    /// index of ECON currently being interacted with (added by Josh)
     int iecon{0};
     /// index of link currently being interacted with
     int ilink{0};
