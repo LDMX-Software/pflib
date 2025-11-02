@@ -82,7 +82,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
  public:
   HcalBackplaneZCU_Capture() : DAQ(1), capture_("econd-buffer-0") {}
   virtual void reset() {}
-  virtual int getEventOccupancy() {}
+  virtual int getEventOccupancy() {return 0;}
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
     // none of these parameters are relevant for the econd capture, which is
     // data-pattern based
@@ -93,7 +93,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
   }
   virtual void bufferStatus(int ilink, bool& empty, bool& full) {}
   virtual void setup(int econid, int samples_per_ror, int soi) {
-    ::DAQ(econid, samples_per_ror, soi);
+    pflib::DAQ::setup(econid, samples_per_ror, soi);
   }
   virtual void enable(bool doenable) {}
   virtual std::vector<uint32_t> getLinkData(int ilink) {}
