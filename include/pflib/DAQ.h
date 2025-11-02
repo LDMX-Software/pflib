@@ -59,7 +59,6 @@ class DAQ {
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) {
     return std::map<std::string, uint32_t>();
   }
-  
 
  private:
   /// number of links
