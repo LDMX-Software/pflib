@@ -234,7 +234,7 @@ class HcalBackplaneZCUTarget : public Target {
       i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
     }
 
-    // TODO make FastControl object
+    fc_=std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
   virtual std::vector<uint32_t> read_event() override {
