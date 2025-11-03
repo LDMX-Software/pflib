@@ -83,11 +83,10 @@ void align_phase_word(Target* tgt) {
           params.find("IDLEFRAME")->second;  // second because its a key value
                                              // pair mapping (See ROC.cxx)
 
-              // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
 
-              std::cout
-          << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
-          << std::dec << std::endl;
+      std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
+                << std::dec << std::endl;
     }
 
     // ----------------------------------
