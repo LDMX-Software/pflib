@@ -190,10 +190,14 @@ void align_phase_word(Target* tgt) {
       std::cout << "RunR = " << RunR << ", 0x" << std::hex << RunR << std::dec
                 << std::endl;
 
-      params = roc.getParameters("DIGITALHALF_0");
-      auto idle_0 = params.find("IDLEFRAME")->second;
-      params = roc.getParameters("DIGITALHALF_1");
-      auto idle_1 = params.find("IDLEFRAME")->second;
+      // params = roc.getParameters("DIGITALHALF_0");
+      // auto idle_0 = params.find("IDLEFRAME")->second;
+      // params = roc.getParameters("DIGITALHALF_1");
+      // auto idle_1 = params.find("IDLEFRAME")->second;
+
+      auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+      auto idle_1 = roc.dumpParameter("DIGITALHALF_1", "IDLEFRAME");
+
       std::cout << "Idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
       std::cout << "Idle_1 = " << idle_1 << ", 0x" << std::hex << idle_1
