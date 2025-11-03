@@ -42,170 +42,172 @@ void align_phase_word(Target* tgt) {
   // ----------------------------------------------------- //
   int IDLE =
       89478485;  // == 0x5555555. hardcode based on phase alignment script
-{ // Phase Aligment Scope
-  
-  // check PUSM state, run task only if state=8
-  // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
-  // get ECON to lock to FCMDs; otherwise run bit will = 3.
-  // Scope 2 builders to make this happen in sequence
+  {              // Phase Aligment Scope
 
-  // set inversion value and runbit using defined parameter map
-  std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-  int edgesel = 0;
-  int invertfcmd = 1;
-  parameters = {
-      {"FCTRL",
-       {{"GLOBAL_INVERT_COMMAND_RX",
-         invertfcmd}}}  // I set it here manually instead.
-  };
-  // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
-  auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-  econ.setRunMode(1, edgesel,
-                  invertfcmd);  // currently fcmd will not be set because the
-                                // back end code required edgesel > 0. mistake?
+    // check PUSM state, run task only if state=8
+    // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
+    // get ECON to lock to FCMDs; otherwise run bit will = 3.
+    // Scope 2 builders to make this happen in sequence
 
-  // auto econ_setup_builder = econ.testParameters().add("FCTRL",
-  // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
-  // Lock. auto econ_setup_test = econ_setup_builder.apply();
+    // set inversion value and runbit using defined parameter map
+    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+    int edgesel = 0;
+    int invertfcmd = 1;
+    parameters = {
+        {"FCTRL",
+         {{"GLOBAL_INVERT_COMMAND_RX",
+           invertfcmd}}}  // I set it here manually instead.
+    };
+    // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
+    auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
+    econ.setRunMode(
+        1, edgesel,
+        invertfcmd);  // currently fcmd will not be set because the
+                      // back end code required edgesel > 0. mistake?
 
-  // {  // set run value
-  //   auto econ_setup_builder =
-  //       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-  //                                 1);  // set run bit = 1 AFTER inversion
-  //                                 bit.
-  //   auto econ_setup_test = econ_setup_builder.apply();
-  // }
+    // auto econ_setup_builder = econ.testParameters().add("FCTRL",
+    // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
+    // Lock. auto econ_setup_test = econ_setup_builder.apply();
 
-  auto pusm_run =
-      econ.dumpParameter("CLOCKSANDRESETS",
-                         "GLOBAL_PUSM_RUN");  // dump Parameter I added to force
-                                              // this functionality to be able
-                                              // to assign to an output variable
-  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
+    // {  // set run value
+    //   auto econ_setup_builder =
+    //       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
+    //                                 1);  // set run bit = 1 AFTER inversion
+    //                                 bit.
+    //   auto econ_setup_test = econ_setup_builder.apply();
+    // }
 
-  std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex << pusm_state
-            << std::dec << std::endl;
-  std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
-            << std::dec << std::endl;
+    auto pusm_run = econ.dumpParameter(
+        "CLOCKSANDRESETS",
+        "GLOBAL_PUSM_RUN");  // dump Parameter I added to force
+                             // this functionality to be able
+                             // to assign to an output variable
+    auto pusm_state =
+        econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
-  if (pusm_state == 8) {
-    int list_channels[] = {6, 7};  // {2,3,4,5,6,7};
-    int binary_channels = 0;
-
-    for (int i = 0; i < std::size(list_channels); i++) {
-      binary_channels =
-          binary_channels |
-          (1 << list_channels[i]);  // bit wise OR comparison between e.g. 6
-                                    // and 7, and shifting the '1' bit in the
-                                    // lowest sig bit, with << operator by the
-                                    // amount of the channel #.
-    }
-
-    std::cout << "Channels to be configured: " << std::endl;
-    for (int channel : list_channels) {
-      std::cout << channel << "  " << std::endl;
-    }
-    std::cout << "Decimal value of channels: " << binary_channels << std::endl;
-
-    // ---------------------------------- SETTING ROC REGISTERS
-    // ---------------------------------- //
-    
-    auto roc_setup_builder = roc.testParameters()
-                                  .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
-                                  .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
-    auto roc_setup_test = roc_setup_builder.apply();
-    auto params = roc.getParameters(
-        "DIGITALHALF_0");  // this uses the page and returns a mapping of
-                            // all params therein
-    auto idle_0 =
-        params.find("IDLEFRAME")->second;  // second because its a key value
-                                            // pair mapping (See ROC.cxx)
-
-    // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
-
-    std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
+    std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
+              << pusm_state << std::dec << std::endl;
+    std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
               << std::dec << std::endl;
-  
 
-    // ----------------------------------
-    // --------------------------------------------------------- //
+    if (pusm_state == 8) {
+      int list_channels[] = {6, 7};  // {2,3,4,5,6,7};
+      int binary_channels = 0;
 
-    // ---------------------------------- SETTING ECON REGISTERS
-    // ---------------------------------- //
-
-    {  // scope this
-      // Set Phase Training ON
-      auto econ_setup_builder = econ.testParameters().add(
-          "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
-          1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-        econ_setup_builder.add("CHEPRXGRP", var_name, 1);
-        // std::cout << "channel, varname = " << channel << ", " << var_name
-        // << std::endl;
+      for (int i = 0; i < std::size(list_channels); i++) {
+        binary_channels =
+            binary_channels |
+            (1 << list_channels[i]);  // bit wise OR comparison between e.g. 6
+                                      // and 7, and shifting the '1' bit in the
+                                      // lowest sig bit, with << operator by the
+                                      // amount of the channel #.
       }
-      auto econ_setup_test = econ_setup_builder.apply();
-      auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
-      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
-      std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
-                << eprxgrptop << std::dec << std::endl;
-      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-                << ", 0x" << std::hex << cheprxgrp5 << std::dec
-                << std::endl;  // arbitrarily using 5 as example
-    }
 
-    {  // scope this
-      // Set Training OFF
+      std::cout << "Channels to be configured: " << std::endl;
       for (int channel : list_channels) {
-        std::string var_name =
-            std::to_string(channel) +
-            "_TRAIN_CHANNEL";  // corresponding to
-                               // configs/train_erx_phase_OFF_econ.yaml
-        auto econ_setup_builder =
-            econ.testParameters().add("CHEPRXGRP", var_name, 0);
+        std::cout << channel << "  " << std::endl;
+      }
+      std::cout << "Decimal value of channels: " << binary_channels
+                << std::endl;
+
+      // ---------------------------------- SETTING ROC REGISTERS
+      // ---------------------------------- //
+
+      auto roc_setup_builder = roc.testParameters()
+                                   .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
+                                   .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
+      auto roc_setup_test = roc_setup_builder.apply();
+      auto params = roc.getParameters(
+          "DIGITALHALF_0");  // this uses the page and returns a mapping of
+                             // all params therein
+      auto idle_0 =
+          params.find("IDLEFRAME")->second;  // second because its a key value
+                                             // pair mapping (See ROC.cxx)
+
+      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+
+      std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
+                << std::dec << std::endl;
+
+      // ----------------------------------
+      // --------------------------------------------------------- //
+
+      // ---------------------------------- SETTING ECON REGISTERS
+      // ---------------------------------- //
+
+      {  // scope this
+        // Set Phase Training ON
+        auto econ_setup_builder = econ.testParameters().add(
+            "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
+            1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
+        for (int channel : list_channels) {
+          std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+          econ_setup_builder.add("CHEPRXGRP", var_name, 1);
+          // std::cout << "channel, varname = " << channel << ", " << var_name
+          // << std::endl;
+        }
         auto econ_setup_test = econ_setup_builder.apply();
+        auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
+        auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
+        std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
+                  << eprxgrptop << std::dec << std::endl;
+        std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
+                  << ", 0x" << std::hex << cheprxgrp5 << std::dec
+                  << std::endl;  // arbitrarily using 5 as example
       }
-      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
-      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-                << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
-    }
 
-    // --------------------------------------------------------------------------------------------
-    // //
-
-    // ---------------------------------- READING ECON REGISTERS
-    // ---------------------------------- //
-    {  // scope
-      // Check channel lock
-      std::map<int, int> ch_lock_values;  // create map for storing channel -
-                                          // value. Note this is not used, but
-                                          // here just in case its needed.
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
-        ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
-                  << std::hex << ch_lock << std::dec << std::endl;
+      {  // scope this
+        // Set Training OFF
+        for (int channel : list_channels) {
+          std::string var_name =
+              std::to_string(channel) +
+              "_TRAIN_CHANNEL";  // corresponding to
+                                 // configs/train_erx_phase_OFF_econ.yaml
+          auto econ_setup_builder =
+              econ.testParameters().add("CHEPRXGRP", var_name, 0);
+          auto econ_setup_test = econ_setup_builder.apply();
+        }
+        auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
+        std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
+                  << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
       }
-    }
-    // ---------------------------------------------------------------------
-    // //
-  }else {
-    std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
-                 "aligment task."
-              << std::endl;
-  }
-}   // ----------------------------------------------------- END PHASE
-    // ALIGNMENT scope
-    // ----------------------------------------------------- //
-    // --------------------------------------------------------------------------------------------------------------------------------
-    // //
 
-    // //
-    // --------------------------------------------------------------------------------------------------------------------------------
-    // //
-    // // ----------------------------------------------------- WORD ALIGNMENT
-    // ----------------------------------------------------- //
+      // --------------------------------------------------------------------------------------------
+      // //
+
+      // ---------------------------------- READING ECON REGISTERS
+      // ---------------------------------- //
+      {  // scope
+        // Check channel lock
+        std::map<int, int> ch_lock_values;  // create map for storing channel -
+                                            // value. Note this is not used, but
+                                            // here just in case its needed.
+        for (int channel : list_channels) {
+          std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+          auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+          ch_lock_values[channel] = ch_lock;
+          std::cout << "channel_locked " << channel << " = " << ch_lock
+                    << ", 0x" << std::hex << ch_lock << std::dec << std::endl;
+        }
+      }
+      // ---------------------------------------------------------------------
+      // //
+    } else {
+      std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
+                   "aligment task."
+                << std::endl;
+    }
+  }  // ----------------------------------------------------- END PHASE
+  // ALIGNMENT scope
+  // ----------------------------------------------------- //
+  // --------------------------------------------------------------------------------------------------------------------------------
+  // //
+
+  // //
+  // --------------------------------------------------------------------------------------------------------------------------------
+  // //
+  // // ----------------------------------------------------- WORD ALIGNMENT
+  // ----------------------------------------------------- //
 
     {  // WORD ALIGNMENT SCOPE
       // re-set inversion value and runbit
@@ -284,13 +286,13 @@ void align_phase_word(Target* tgt) {
                   << bxtrig_0 << std::dec << std::endl;
         std::cout << "bxtrigger_1 = " << bxtrig_1 << ", 0x" << std::hex
                   << bxtrig_1 << std::dec << std::endl;
-      
-      //   // ----------------------------------
-      //   --------------------------------------------------------- //
 
-      //   // ---------------------------------- SETTING ECON REGISTERS
-      //   ---------------------------------- //
-      // Configure ECOND for Alignment (from econd_init_cpp.yaml)
+        //   // ----------------------------------
+        //   --------------------------------------------------------- //
+
+        //   // ---------------------------------- SETTING ECON REGISTERS
+        //   ---------------------------------- //
+        // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
         auto econ_setup_builder =
             econ.testParameters()
@@ -334,9 +336,7 @@ void align_phase_word(Target* tgt) {
         std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val
                   << ", 0x" << std::hex << global_match_pattern_val << std::dec
                   << std::endl;
-      
 
-      
         for (int channel : list_channels) {
           std::string var_name_align =
               std::to_string(channel) + "_PER_CH_ALIGN_EN";
@@ -348,24 +348,23 @@ void align_phase_word(Target* tgt) {
           // std::cout << "channel, varname_align/erx = " << channel << ", " <<
           // var_name_align << ", " << var_name_erx << std::endl;  // DEBUG line
         }
-      
 
-      // sets when snapshot is going to be taken
+        // sets when snapshot is going to be taken
 
         auto econ_setup_builder =
             econ.testParameters().add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);
         auto econ_setup_test = econ_setup_builder.apply();
 
-      //   // ----------------------------------
-      //   --------------------------------------------------------- //
+        //   // ----------------------------------
+        //   --------------------------------------------------------- //
 
-      //   // ---------------------------------- READING ECON REGISTERS
-      //   ---------------------------------- //
+        //   // ---------------------------------- READING ECON REGISTERS
+        //   ---------------------------------- //
         auto cnt_load_val =
             econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
 
-        std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x" << std::hex
-                  << cnt_load_val << std::dec << std::endl;
+        std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
+                  << std::hex << cnt_load_val << std::dec << std::endl;
         //   // ----------------------------------
         //   --------------------------------------------------------- //
 
@@ -395,14 +394,14 @@ void align_phase_word(Target* tgt) {
         int bx_mask = 0xfff000;
         tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
 
-      // //
-      // ------------------------------------------------------------------------------------------------------------
-      // //
+        // //
+        // ------------------------------------------------------------------------------------------------------------
+        // //
 
-      //   // ---------------------------------- READING ECON REGISTERS
-      //   ---------------------------------- //
-      // READ SNAPSHOT
-    
+        //   // ---------------------------------- READING ECON REGISTERS
+        //   ---------------------------------- //
+        // READ SNAPSHOT
+
         // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
         for (int channel : list_channels) {
           // loop to read 192 bit snapshot in 32 bit chunks
@@ -437,20 +436,18 @@ void align_phase_word(Target* tgt) {
                     << std::hex << ch_snap_dv << std::dec << std::endl;
           std::cout << "chAligner select " << channel << " = " << ch_select
                     << ", 0x" << std::hex << ch_select << std::dec << std::endl;
-        }
-      } else {
-          std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
-                      "aligment task."
-                    << std::endl;
-        }
+          }
+    } else {
+      std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
+                   "aligment task."
+                << std::endl;
+    }
     //   // ----------------------------------
     //   --------------------------------------------------------- //
 
-    } // // ----------------------------------------------------- END WORD
-    // ALIGNMENT SCOPE ----------------------------------------------------- //
-    // //
-    // --------------------------------------------------------------------------------------------------------------------------------
-    // //
-
-  
+  }  // // ----------------------------------------------------- END WORD
+  // ALIGNMENT SCOPE ----------------------------------------------------- //
+  // //
+  // --------------------------------------------------------------------------------------------------------------------------------
+  // //
 }
