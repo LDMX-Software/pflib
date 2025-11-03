@@ -80,14 +80,8 @@ void align_phase_word(Target* tgt) {
       roc.getParameters("DIGITALHALF_0");  // this uses the page and returns a
                                            // mapping of all params therein
       auto idle_0 =
-<<<<<<< HEAD
           params.find("IDLEFRAME")->second;  // second because its a key  value
                                              // pair mapping (See ROC.cxx)
-=======
-          params.find("IDLEFRAME")->second;  // second because its a key
-      value
-              // pair mapping (See ROC.cxx)
->>>>>>> refs/remotes/origin/pflib_joshbranch
 
               // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
 
