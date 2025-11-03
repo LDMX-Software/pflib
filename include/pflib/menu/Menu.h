@@ -371,6 +371,12 @@ class Menu : public BaseMenu {
     // go through menu options and add exit
     for (Line& l : lines_) l.render();
     lines_.emplace_back("EXIT", "leave this menu");
+    lines_.emplace_back("HELP", "print help for this menu",
+                        [this](TargetHandle _tgt) {
+                          for (const auto& line : this->lines_) {
+                            std::cout << line << std::endl;
+                          }
+                        });
   }
 
   /**
@@ -458,11 +464,6 @@ class Menu : public BaseMenu {
     do {
       if (render_func_ != 0) {
         this->render_func_(p_target);
-      }
-      // if cmd text queue is empty, then print menu for interactive user
-      if (this->cmdTextQueue_.empty()) {
-        printf("\n");
-        for (const auto& l : lines_) std::cout << l << std::endl;
       }
       std::string request = readline_cmd();
       theMatch = 0;
