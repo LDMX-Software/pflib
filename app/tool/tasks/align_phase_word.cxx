@@ -357,9 +357,9 @@ void align_phase_word(Target* tgt) {
 
       // sets when snapshot is going to be taken
 
-      auto econ_setup_builder =
+      econ_setup_builder =
           econ.testParameters().add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 0);
-      auto econ_setup_test = econ_setup_builder.apply();
+      econ_setup_test = econ_setup_builder.apply();
 
       //   // ----------------------------------
       //   --------------------------------------------------------- //
