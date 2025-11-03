@@ -50,19 +50,18 @@ void align_phase_word(Target* tgt) {
 
   // set inversion value and runbit using defined parameter map
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-  parameters = {
-      {"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX" , 1}}},
-      {"CLOCKSANDRESETS" , {{"GLOBAL_PUSM_RUN" , 1}}}
-    };
+  parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", 1}}},
+                {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
   auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-  // auto econ_setup_builder = econ.testParameters().add("FCTRL", "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can Lock.
-  // auto econ_setup_test = econ_setup_builder.apply();
-  
+  // auto econ_setup_builder = econ.testParameters().add("FCTRL",
+  // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
+  // Lock. auto econ_setup_test = econ_setup_builder.apply();
 
   // {  // set run value
   //   auto econ_setup_builder =
   //       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-  //                                 1);  // set run bit = 1 AFTER inversion bit.
+  //                                 1);  // set run bit = 1 AFTER inversion
+  //                                 bit.
   //   auto econ_setup_test = econ_setup_builder.apply();
   // }
 
@@ -271,16 +270,16 @@ void align_phase_word(Target* tgt) {
                    10760600711006082389)  // 0x95555555a5555555
               // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045) //
               // 0xa5555555
-              .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 0) 
+              .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 0)
               .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)
               .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)
               .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563);  // 0xdeb
 
       // Not needed yet
-              // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)
-              // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED",
-              //      0);
-     
+      // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)
+      // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED",
+      //      0);
+
       // .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)  // 0xffff
       // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3)
       // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)
@@ -365,21 +364,20 @@ void align_phase_word(Target* tgt) {
     {  // scope
       // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
       for (int channel : list_channels) {
-
         // loop to read 192 bit snapshot in 32 bit chunks
         uint64_t snapshot64[3];
         for (int i = 0; i < 3; ++i) {
-            snapshot64[i] = uio_.read(0x00d6 + (i * 8));   // * 4 because each read returns 64 bits (8 bytes)
+          snapshot64[i] = uio_.read(
+              0x00d6 +
+              (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
         }
-        //Output the snapshot in hex
+        // Output the snapshot in hex
         std::cout << "snapshot = 0x";
-        for (int i = 5; i >= 0; --i)
-            std::cout << std::hex << snapshot32[i];
+        for (int i = 5; i >= 0; --i) std::cout << std::hex << snapshot32[i];
         std::cout << std::dec << std::endl;
         // get channel address
         std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
         auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
-
 
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
