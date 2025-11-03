@@ -13,7 +13,7 @@ void align_phase_word(Target* tgt) {
   // //
   // ----------------------------------------------------- PHASE ALIGNMENT
   // ----------------------------------------------------- //
-  int IDLE = 89478485;  // == 5555555. hardcode based on phase alignment script
+  int IDLE = 89478485;  // == 0x5555555. hardcode based on phase alignment script
 
   // check PUSM state, run task only if state=8
   // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
@@ -82,7 +82,7 @@ void align_phase_word(Target* tgt) {
           params.find("IDLEFRAME")->second;  // second because its a key value
                                              // pair mapping (See ROC.cxx)
 
-      std::cout << "idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0
+      std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
     }
 
