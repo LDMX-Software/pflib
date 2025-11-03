@@ -363,21 +363,21 @@ void align_phase_word(Target* tgt) {
     // READ SNAPSHOT
     {  // scope
       // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
-      for (int channel : list_channels) {
-        // loop to read 192 bit snapshot in 32 bit chunks
-        uint64_t snapshot64[3];
-        for (int i = 0; i < 3; ++i) {
-          snapshot64[i] = uio_.read(
-              0x00d6 +
-              (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
-        }
-        // Output the snapshot in hex
-        std::cout << "snapshot = 0x";
-        for (int i = 5; i >= 0; --i) std::cout << std::hex << snapshot32[i];
-        std::cout << std::dec << std::endl;
-        // get channel address
-        std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
-        auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
+      // for (int channel : list_channels) {
+      //   // loop to read 192 bit snapshot in 32 bit chunks
+      //   uint64_t snapshot64[3];
+      //   for (int i = 0; i < 3; ++i) {
+      //     snapshot64[i] = uio_.read(
+      //         0x00d6 +
+      //         (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
+      //   }
+      //   // Output the snapshot in hex
+      //   std::cout << "snapshot = 0x";
+      //   for (int i = 5; i >= 0; --i) std::cout << std::hex << snapshot32[i];
+      //   std::cout << std::dec << std::endl;
+      //   // get channel address
+      //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
+      //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
 
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
