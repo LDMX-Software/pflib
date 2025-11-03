@@ -54,7 +54,7 @@ void align_phase_word(Target* tgt) {
   int invertfcmd = 1;
   econ.setRunMode(1, edgesel, invertfcmd);  // currently fcmd will not be set because the back end code required edgesel > 0. mistake?
   parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}} // so I set it here manually instead.
-              }
+              };
                 // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
   auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
   // auto econ_setup_builder = econ.testParameters().add("FCTRL",
