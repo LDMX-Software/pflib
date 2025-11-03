@@ -97,9 +97,8 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
                    SHIFT_FCMDINVERT, fcmd_invert);
 
       std::cout << "Josh debug line fcmd_invert:";
-        for (auto val : FCMD_invert)
-          std::cout << " 0x" << std::hex << (int)val;
-        std::cout << std::dec << std::endl;
+      for (auto val : FCMD_invert) std::cout << " 0x" << std::hex << (int)val;
+      std::cout << std::dec << std::endl;
 
       setValues(ADDR_FCMD, FCMD_invert);
     }
