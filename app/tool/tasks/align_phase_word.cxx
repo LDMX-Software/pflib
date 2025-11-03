@@ -307,8 +307,8 @@ void align_phase_word(Target* tgt) {
     tgt->fc().standard_setup();
     tgt->fc().linkreset_rocs();
     auto cmdcounters = tgt->fc().getCmdCounters();
-    for (uint32_t i : cmdcounters) {
-      std::cout << "i: " << i << ", ";
+    for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
+      std::cout << i << ": " << cmdcounters[i] << ", ";
     }
     std::cout << std::endl;
 
