@@ -241,7 +241,7 @@ void align_phase_word(Target* tgt) {
 
         
 
-        auto params =
+        params =
             roc.getParameters("TOP");  // this uses the page and returns a
                                       // mapping of all params therein
         auto inv_fc_rx = params.find("IN_INV_CMD_RX")
