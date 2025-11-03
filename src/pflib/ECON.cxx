@@ -95,6 +95,7 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
       std::vector<uint8_t> FCMD_invert =
           newParam(FCMDEDGE_edgesel, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDINVERT,
                    SHIFT_FCMDINVERT, fcmd_invert);
+      std::cout << "Josh debug line fcmd_invert: " << FCMD_invert << std::endl;
       setValues(ADDR_FCMD, FCMD_invert);
     }
   }
