@@ -77,17 +77,15 @@ void align_phase_word(Target* tgt) {
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
 
-      // backed up deprecated way of retrieving ROC parameter. Seemed to be
-      // inconsistent I dont fully understand why. auto params =
-      // roc.getParameters(
-      //     "DIGITALHALF_0");  // this uses the page and returns a mapping of
-      //                        // all params therein
-      // auto idle_0 =
-      //     params.find("IDLEFRAME")->second;  // second because its a key
-      //     value
-      //                                        // pair mapping (See ROC.cxx)
+      roc.getParameters(
+          "DIGITALHALF_0");  // this uses the page and returns a mapping of
+                             // all params therein
+      auto idle_0 =
+          params.find("IDLEFRAME")->second;  // second because its a key
+          value
+                                             // pair mapping (See ROC.cxx)
 
-      auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
 
       std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
@@ -191,15 +189,10 @@ void align_phase_word(Target* tgt) {
       auto RunR = params.find("RUNR")->second;
       std::cout << "RunR = " << RunR << ", 0x" << std::hex << RunR << std::dec
                 << std::endl;
-
-      // params = roc.getParameters("DIGITALHALF_0");
-      // auto idle_0 = params.find("IDLEFRAME")->second;
-      // params = roc.getParameters("DIGITALHALF_1");
-      // auto idle_1 = params.find("IDLEFRAME")->second;
-
-      auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
-      auto idle_1 = roc.dumpParameter("DIGITALHALF_1", "IDLEFRAME");
-
+      params = roc.getParameters("DIGITALHALF_0");
+      auto idle_0 = params.find("IDLEFRAME")->second;
+      params = roc.getParameters("DIGITALHALF_1");
+      auto idle_1 = params.find("IDLEFRAME")->second;
       std::cout << "Idle_0 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
       std::cout << "Idle_1 = " << idle_1 << ", 0x" << std::hex << idle_1
