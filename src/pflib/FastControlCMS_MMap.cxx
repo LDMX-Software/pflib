@@ -245,7 +245,7 @@ class FastControlCMS_MMap : public FastControl {
 
     uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
     printf("here i am! %\n");
-    uint32_t bx_out = uio_.writeMasked(bx_addr, bx_mask, bx_new);
+    uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
 
     // restore previous L1A situation
     uio_.write(ADDR_CTL_REG, preval);
