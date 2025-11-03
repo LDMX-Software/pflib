@@ -228,9 +228,9 @@ std::map<std::string, std::map<std::string, uint64_t>> ROC::readParameters(
   }
   return parameter_values;
 }
-// also addded by Josh to finish matching what is in the ECON register reading functions.
-uint64_t ROC::dumpParameter(const std::string& page,
-                             const std::string& param) {
+// also addded by Josh to finish matching what is in the ECON register reading
+// functions.
+uint64_t ROC::dumpParameter(const std::string& page, const std::string& param) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
   auto values = this->readParameters(p, false);  // get the results
