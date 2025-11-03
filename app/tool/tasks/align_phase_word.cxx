@@ -222,7 +222,7 @@ void align_phase_word(Target* tgt) {
           econ.testParameters()
               .add("ROCDAQCTRL", "GLOBAL_HGCROC_HDR_MARKER", 15)  // 0xf
               .add("ROCDAQCTRL", "GLOBAL_SYNC_HEADER", 1)
-              .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)   // 0x5555555
+              .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)  // 0x5555555
               .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", binary_channels)
               .add("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1)
               .add("ROCDAQCTRL", "GLOBAL_MATCH_THRESHOLD", 2)
@@ -231,26 +231,29 @@ void align_phase_word(Target* tgt) {
               .add("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 1)
               .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080)  // 0xc08
               .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL",
-                  //  2505397589) // 0x95555555 ; 00 and 01 are concatenated together in this case. So 25053975892773833045 becomes 10760600711006082389 which = 0x95555555a5555555
-                  10760600711006082389)                                        // 0x95555555a5555555
-              // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)    // 0xa5555555
+                   //  2505397589) // 0x95555555 ; 00 and 01 are concatenated
+                   //  together in this case. So 25053975892773833045 becomes
+                   //  10760600711006082389 which = 0x95555555a5555555
+                   10760600711006082389)  // 0x95555555a5555555
+              // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045) //
+              // 0xa5555555
               .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL",
                    0)  // is this set like this?
               .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 1)
               .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)
               .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)
-              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563)   // 0xdeb
+              .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563)  // 0xdeb
               .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)
               .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED",
                    0)
 
-              .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)   // 0xffff
+              .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)  // 0xffff
               .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3)
               .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)
               .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)   // 0xfff
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)   // 0xfff
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);   // 0xfff
+              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  // 0xfff
+              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  // 0xfff
+              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);  // 0xfff
       auto econ_setup_test = econ_setup_builder.apply();
       auto global_match_pattern_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
