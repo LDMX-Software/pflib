@@ -14,7 +14,7 @@ RUN yum -y install \
   python-yaml \
   git
 RUN mkdir src &&\
-    wget -q -O- https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz |\
+    wget -q -O- https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.6.0.tar.gz |\
       tar -xz --strip-components=1 --directory src &&\
     cmake \
       -S src/ \
