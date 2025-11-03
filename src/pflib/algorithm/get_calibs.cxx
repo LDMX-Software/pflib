@@ -4,10 +4,13 @@
 #include <cmath>
 
 #include "pflib/utility/efficiency.h"
+#include "pflib/DecodeAndBuffer.h"
+#include "pflib/utility/string_format.h"
 
 namespace pflib::algorithm {
 
-std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
+std::array<int, 72> get_calibs(Target* tgt, ROC roc, int target_adc) {
+  static auto the_log_{::pflib::logging::get("get_calibs")};
   std::array<int, 72> calibs;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
@@ -33,8 +36,12 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
       auto calib_handle =
           roc.testParameters().add(refvol_page, "CALIB", calib).apply();
       usleep(10);
-      tgt->daq_run("CHARGE", buffer, 1, pftool::state.daq_rate);
-      auto adcs = (buffer.get_buffer()).channel(ch).adc();
+      tgt->daq_run("CHARGE", buffer, 1, 100);
+      auto data = buffer.get_buffer();
+      std::vector<int> adcs(data.size());
+      for (std::size_t i{0}; i < adcs.size(); i++) {
+        adcs[i] = data[i].channel(ch).adc();
+      }
       int max_adc = *std::max_element(adcs.begin(), adcs.end());
       if (std::abs(max_adc - target_adc) <= 1) {
         calibs[ch] = calib;

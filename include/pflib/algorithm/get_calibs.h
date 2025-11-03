@@ -15,6 +15,6 @@ namespace pflib::algorithm {
  *            roc for setting params
  *            target calib value
  */
-std::array<int, 72> get_calibs(Target* tgt, ROC roc, int& target_adc);
+std::array<int, 72> get_calibs(Target* tgt, ROC roc, int target_adc);
 
 }  // namespace pflib::algorithm
