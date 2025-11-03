@@ -76,11 +76,11 @@ void align_phase_word(Target* tgt) {
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
-
-      roc.getParameters("DIGITALHALF_0");  // this uses the page and returns a
-                                           // mapping of all params therein
+      auto params = roc.getParameters(
+          "DIGITALHALF_0");  // this uses the page and returns a mapping of
+                             // all params therein
       auto idle_0 =
-          params.find("IDLEFRAME")->second;  // second because its a key  value
+          params.find("IDLEFRAME")->second;  // second because its a key value
                                              // pair mapping (See ROC.cxx)
 
               // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
