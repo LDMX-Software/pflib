@@ -85,6 +85,8 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
         RUNBIT_read, ADDR_RUNBIT, NBYTES_RUNBIT, MASK_RUNBIT, SHIFT_RUNBIT, 1);
     setValues(ADDR_RUNBIT, RUNBIT_one);
 
+    std::cout << "Josh debug line both:" << edgesel << ", " << fcmd_invert << std::endl;
+
     if (edgesel == 0 && fcmd_invert > 0) {
       // set EdgeSel to 0
       std::vector<uint8_t> FCMDEDGE_read = getValues(ADDR_FCMD, NBYTES_FCMD);
