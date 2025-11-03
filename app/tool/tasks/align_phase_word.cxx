@@ -76,12 +76,16 @@ void align_phase_word(Target* tgt) {
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
-      auto params = roc.getParameters(
-          "DIGITALHALF_0");  // this uses the page and returns a mapping of
-                             // all params therein
-      auto idle_0 =
-          params.find("IDLEFRAME")->second;  // second because its a key value
-                                             // pair mapping (See ROC.cxx)
+
+      // backed up deprecated way of retrieving ROC parameter. Seemed to be inconsistent I dont fully understand why. 
+      // auto params = roc.getParameters(
+      //     "DIGITALHALF_0");  // this uses the page and returns a mapping of
+      //                        // all params therein
+      // auto idle_0 =
+      //     params.find("IDLEFRAME")->second;  // second because its a key value
+      //                                        // pair mapping (See ROC.cxx)
+
+      auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
 
       std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
@@ -172,6 +176,7 @@ void align_phase_word(Target* tgt) {
       auto inv_fc_rx = params.find("IN_INV_CMD_RX")
                            ->second;  // second because its a key value pair
                                       // mapping (See ROC.cxx)
+      
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
                 << inv_fc_rx << std::dec << std::endl;
 
@@ -246,15 +251,16 @@ void align_phase_word(Target* tgt) {
               .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563)  // 0xdeb
               .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)
               .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED",
-                   0)
+                   0);
 
-              .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)  // 0xffff
-              .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3)
-              .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)
-              .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  // 0xfff
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  // 0xfff
-              .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);  // 0xfff
+              // Not needed yet
+              // .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)  // 0xffff
+              // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3)
+              // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)
+              // .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)
+              // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  // 0xfff
+              // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  // 0xfff
+              // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);  // 0xfff
       auto econ_setup_test = econ_setup_builder.apply();
       auto global_match_pattern_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
