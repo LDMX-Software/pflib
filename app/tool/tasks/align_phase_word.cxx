@@ -42,6 +42,27 @@ void align_phase_word(Target* tgt) {
   // ----------------------------------------------------- //
   int IDLE =
       89478485;  // == 0x5555555. hardcode based on phase alignment script
+
+  int list_channels[] = {6, 7};  // {2,3,4,5,6,7};
+  int binary_channels = 0;
+
+  for (int i = 0; i < std::size(list_channels); i++) {
+    binary_channels =
+        binary_channels |
+        (1 << list_channels[i]);  // bit wise OR comparison between e.g. 6
+                                  // and 7, and shifting the '1' bit in the
+                                  // lowest sig bit, with << operator by the
+                                  // amount of the channel #.
+  }
+
+  std::cout << "Channels to be configured: " << std::endl;
+  for (int channel : list_channels) {
+    std::cout << channel << "  " << std::endl;
+  }
+  std::cout << "Decimal value of channels: " << binary_channels
+            << std::endl;
+
+
   {              // Phase Aligment Scope
 
     // check PUSM state, run task only if state=8
@@ -91,26 +112,7 @@ void align_phase_word(Target* tgt) {
               << std::dec << std::endl;
 
     if (pusm_state == 8) {
-      int list_channels[] = {6, 7};  // {2,3,4,5,6,7};
-      int binary_channels = 0;
-
-      for (int i = 0; i < std::size(list_channels); i++) {
-        binary_channels =
-            binary_channels |
-            (1 << list_channels[i]);  // bit wise OR comparison between e.g. 6
-                                      // and 7, and shifting the '1' bit in the
-                                      // lowest sig bit, with << operator by the
-                                      // amount of the channel #.
-      }
-
-      std::cout << "Channels to be configured: " << std::endl;
-      for (int channel : list_channels) {
-        std::cout << channel << "  " << std::endl;
-      }
-      std::cout << "Decimal value of channels: " << binary_channels
-                << std::endl;
-
-      // ---------------------------------- SETTING ROC REGISTERS
+            // ---------------------------------- SETTING ROC REGISTERS
       // ---------------------------------- //
 
       auto roc_setup_builder = roc.testParameters()
