@@ -371,15 +371,16 @@ void align_phase_word(Target* tgt) {
         //       0x00d6 +
         //       (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
         // }
-      //   // Output the snapshot in hex
-      //   std::cout << "snapshot = 0x";
-      //   for (int i = 5; i >= 0; --i) std::cout << std::hex << snapshot32[i];
-      //   std::cout << std::dec << std::endl;
-      //   // get channel address
-      //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
-      //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
+        //   // Output the snapshot in hex
+        //   std::cout << "snapshot = 0x";
+        //   for (int i = 5; i >= 0; --i) std::cout << std::hex <<
+        //   snapshot32[i]; std::cout << std::dec << std::endl;
+        //   // get channel address
+        //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
+        //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
 
-        std::string var_name_align = std::to_string(channel) + "_PER_CH_ALIGN_EN";
+        std::string var_name_align =
+            std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
         std::string var_name_select = std::to_string(channel) + "_SELECT";
