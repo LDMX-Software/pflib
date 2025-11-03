@@ -13,7 +13,8 @@ void align_phase_word(Target* tgt) {
   // //
   // ----------------------------------------------------- PHASE ALIGNMENT
   // ----------------------------------------------------- //
-  int IDLE = 89478485;  // == 0x5555555. hardcode based on phase alignment script
+  int IDLE =
+      89478485;  // == 0x5555555. hardcode based on phase alignment script
 
   // check PUSM state, run task only if state=8
   // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
