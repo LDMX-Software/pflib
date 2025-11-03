@@ -9,6 +9,35 @@ void align_phase_word(Target* tgt) {
   auto roc = tgt->hcal().roc(pftool::state.iroc);
   auto econ = tgt->hcal().econ(pftool::state.iecon);
 
+  // Hardcode list from fastcontrol_axi of counter node headings
+  std::vector<std::string> counterNames = {
+      "errors",
+      "l1a_suppressed",
+      "bx_suppressed",
+      "l1a",
+      "l1a_nzs",
+      "orbit_sync",
+      "orbit_count_reset",
+      "internal_calibration_pulse",
+      "external_calibration_pulse",
+      "chipsync",
+      "ecr",
+      "ebr",
+      "link_reset_roct",
+      "link_reset_rocd",
+      "link_reset_econt",
+      "link_reset_econd",
+      "spare0",
+      "spare1",
+      "spare2",
+      "spare3",
+      "spare4",
+      "spare5",
+      "spare6",
+      "spare7",
+      "unassigned"
+  };
+
   // --------------------------------------------------------------------------------------------------------------------------------
   // //
   // ----------------------------------------------------- PHASE ALIGNMENT
@@ -308,7 +337,7 @@ void align_phase_word(Target* tgt) {
     tgt->fc().linkreset_rocs();
     auto cmdcounters = tgt->fc().getCmdCounters();
     for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
-      std::cout << i << ": " << cmdcounters[i] << ", ";
+      std::cout << counterNames[i] << ": " << cmdcounters[i] << std::endl;
     }
     std::cout << std::endl;
 
