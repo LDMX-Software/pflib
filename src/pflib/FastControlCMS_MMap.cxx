@@ -239,8 +239,16 @@ class FastControlCMS_MMap : public FastControl {
 
   void bx_custom(int bx_addr, int bx_mask, int bx_new) {
     // uio_.rmw(bx_addr, bx_mask, bx_mask);
+    // turn off L1A for the moment
+    uint32_t preval = uio_.read(ADDR_CTL_REG);
+    uio_.write(ADDR_CTL_REG, ((preval | CTL_ENABLE_L1AS) ^ CTL_ENABLE_L1AS));
+
     uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
     printf("here i am! %\n");
+    uint32_t bx_out = uio_.writeMasked(bx_addr, bx_mask, bx_new);
+
+    // restore previous L1A situation
+    uio_.write(ADDR_CTL_REG, preval);
     // uio_.rmw(bx_addr, bx_mask, bx_new);
   }
 
