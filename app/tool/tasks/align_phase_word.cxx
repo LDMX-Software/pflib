@@ -208,6 +208,21 @@ void align_phase_word(Target* tgt) {
     // ----------------------------------------------------- //
 
     {  // WORD ALIGNMENT SCOPE
+      // re-set inversion value and runbit
+      std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+      int edgesel = 0;
+      int invertfcmd = 1;
+      parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}} // I set it here manually instead.
+                  };
+      auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
+      econ.setRunMode(1, edgesel, invertfcmd);  // currently fcmd will not be set because the back end code required edgesel > 0. mistake?
+      
+      auto pusm_run =
+      econ.dumpParameter("CLOCKSANDRESETS",
+                         "GLOBAL_PUSM_RUN");  // dump Parameter I added to force
+                                              // this functionality to be able
+                                              // to assign to an output variable
+      auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
       if (pusm_state == 8) {
     // ---------------------------------- RE SETTING ROC REGISTERS
     // ---------------------------------- //
@@ -222,14 +237,7 @@ void align_phase_word(Target* tgt) {
     //   // ---------------------------------- READING ROC REGISTERS
     //   ---------------------------------- //
 
-        // re-set inversion value and runbit
-        std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-        int edgesel = 0;
-        int invertfcmd = 1;
-        parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}} // I set it here manually instead.
-                    };
-        auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-        econ.setRunMode(1, edgesel, invertfcmd);  // currently fcmd will not be set because the back end code required edgesel > 0. mistake?
+        
 
         auto params =
             roc.getParameters("TOP");  // this uses the page and returns a
