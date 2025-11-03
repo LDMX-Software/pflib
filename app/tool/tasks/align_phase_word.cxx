@@ -52,11 +52,12 @@ void align_phase_word(Target* tgt) {
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
   int edgesel = 0;
   int invertfcmd = 1;
-  econ.setRunMode(1, edgesel, invertfcmd);  // currently fcmd will not be set because the back end code required edgesel > 0. mistake?
-  parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}} // so I set it here manually instead.
+  parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}} // I set it here manually instead.
               };
                 // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
+  econ.setRunMode(1, edgesel, invertfcmd);  // currently fcmd will not be set because the back end code required edgesel > 0. mistake?
   auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
+  
   // auto econ_setup_builder = econ.testParameters().add("FCTRL",
   // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
   // Lock. auto econ_setup_test = econ_setup_builder.apply();
