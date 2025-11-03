@@ -3,8 +3,8 @@
 #include <cmath>
 
 #include "pflib/DecodeAndBuffer.h"
-#include "pflib/utility/string_format.h"
 #include "pflib/utility/efficiency.h"
+#include "pflib/utility/string_format.h"
 
 namespace pflib::algorithm {
 

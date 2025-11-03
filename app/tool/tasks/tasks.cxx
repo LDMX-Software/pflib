@@ -16,10 +16,10 @@
 #include "set_toa.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
+#include "tot_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
-#include "tot_vref_scan.h"
 
 namespace {
 auto menu_tasks =
@@ -51,9 +51,7 @@ auto menu_tasks =
         ->line("TOA_SCAN",
                "just does that bro (changes CALIB while saving only TOA)",
                toa_scan)
-        ->line("TOT_SCAN",
-               "calibrates tot_vref link-wise",
-               tot_vref_scan)
+        ->line("TOT_SCAN", "calibrates tot_vref link-wise", tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
