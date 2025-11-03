@@ -379,8 +379,9 @@ void align_phase_word(Target* tgt) {
       //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
       //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
 
-        std::string var_name_align =
-            std::to_string(channel) + "_PER_CH_ALIGN_EN";
+        // std::string var_name_align =
+        //     std::to_string(channel) + "_PER_CH_ALIGN_EN";
+        
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
         std::string var_name_select = std::to_string(channel) + "_SELECT";
