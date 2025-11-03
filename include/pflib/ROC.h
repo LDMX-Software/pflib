@@ -37,8 +37,8 @@ class ROC {
   // // Josh  Not needed.
   // uint64_t dumpParameter(const std::string& page, const std::string& param);
   // std::map<std::string, std::map<std::string, uint64_t>> readParameters(
-  //     const std::map<std::string, std::map<std::string, uint64_t>>& parameters,
-  //     bool print_values = true);
+  //     const std::map<std::string, std::map<std::string, uint64_t>>&
+  //     parameters, bool print_values = true);
 
   /**
    * set registers on the HGCROC to specific values

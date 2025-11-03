@@ -214,7 +214,8 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
 //     bool print_values) {
 //   auto touched_registers = compiler_.compile(parameters);
 //   auto chip_reg{getRegisters(touched_registers)};
-//   // decompile with little_endian and not being careful since we are not trying
+//   // decompile with little_endian and not being careful since we are not
+//   trying
 //   // to read all the chip values
 //   std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
 //       compiler_.decompile(chip_reg, false, true);
@@ -229,9 +230,11 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
 //   }
 //   return parameter_values;
 // }
-// // also addded by Josh to finish matching what is in the ECON register reading
+// // also addded by Josh to finish matching what is in the ECON register
+// reading
 // // functions.
-// uint64_t ROC::dumpParameter(const std::string& page, const std::string& param) {
+// uint64_t ROC::dumpParameter(const std::string& page, const std::string&
+// param) {
 //   std::map<std::string, std::map<std::string, uint64_t>> p;
 //   p[page][param] = 0;
 //   auto values = this->readParameters(p, false);  // get the results

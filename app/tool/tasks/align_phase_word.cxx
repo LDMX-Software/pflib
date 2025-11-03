@@ -77,17 +77,23 @@ void align_phase_word(Target* tgt) {
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
 
-      roc.getParameters(
-          "DIGITALHALF_0");  // this uses the page and returns a mapping of
-                             // all params therein
+      roc.getParameters("DIGITALHALF_0");  // this uses the page and returns a
+                                           // mapping of all params therein
       auto idle_0 =
+<<<<<<< HEAD
           params.find("IDLEFRAME")->second;  // second because its a key  value
                                              // pair mapping (See ROC.cxx)
+=======
+          params.find("IDLEFRAME")->second;  // second because its a key
+      value
+              // pair mapping (See ROC.cxx)
+>>>>>>> refs/remotes/origin/pflib_joshbranch
 
-      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+              // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
 
-      std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
-                << std::dec << std::endl;
+              std::cout
+          << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
+          << std::dec << std::endl;
     }
 
     // ----------------------------------
