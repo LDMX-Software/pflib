@@ -59,11 +59,9 @@ void align_phase_word(Target* tgt) {
   for (int channel : list_channels) {
     std::cout << channel << "  " << std::endl;
   }
-  std::cout << "Decimal value of channels: " << binary_channels
-            << std::endl;
+  std::cout << "Decimal value of channels: " << binary_channels << std::endl;
 
-
-  {              // Phase Aligment Scope
+  {  // Phase Aligment Scope
 
     // check PUSM state, run task only if state=8
     // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
@@ -112,7 +110,7 @@ void align_phase_word(Target* tgt) {
               << std::dec << std::endl;
 
     if (pusm_state == 8) {
-            // ---------------------------------- SETTING ROC REGISTERS
+      // ---------------------------------- SETTING ROC REGISTERS
       // ---------------------------------- //
 
       auto roc_setup_builder = roc.testParameters()
