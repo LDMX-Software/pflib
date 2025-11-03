@@ -59,6 +59,6 @@ zcu-build:
       --volume /etc/passwd:/etc/passwd \
       --workdir ${PWD} \
       --user $(id -u "${USER}"):$(id -g "${USER}") \
-      ghcr.io/ldmx-software/pflib-env:sha-8244ecf \
+      ghcr.io/ldmx-software/pflib-env:sha-0a36bf8 \
       sh -c 'cmake -B build -S . && cmake --build build -- -j'
 
