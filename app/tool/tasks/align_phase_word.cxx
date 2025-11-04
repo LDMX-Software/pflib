@@ -136,8 +136,8 @@ void align_phase_word(Target* tgt) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         parameters["CHEPRXGRP"][var_name] = 1;
-        std::cout << "channel, varname = " << channel << ", " << var_name
-        << std::endl;
+        // std::cout << "channel, varname = " << channel << ", " << var_name
+        // << std::endl;
       }
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
@@ -172,7 +172,7 @@ void align_phase_word(Target* tgt) {
 
       // ---- READING ECON REGISTERS ---- //
 
-      // Check channel lock
+      // Check channel lock - MAY STILL READ 0 if lock hasnt been made yet?
       std::map<int, int> ch_lock_values;  // create map for storing channel -
                                           // value. Note this is not used, but
                                           // here just in case its needed.
@@ -183,6 +183,17 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
+
+      // test latency of locking:
+      usleep(100000); // 100 ms between checks  
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+        ch_lock_values[channel] = ch_lock;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                  << std::hex << ch_lock << std::dec << std::endl;
+      }
+      
 
       // ----------------------------- //
     } else {
