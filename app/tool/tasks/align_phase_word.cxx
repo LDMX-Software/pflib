@@ -283,8 +283,8 @@ void align_phase_word(Target* tgt) {
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
-        parameters["CHALIGNER"][var_name_align] = 1;
-        // parameters["ERX"][var_name_erx] = 0;
+        // parameters["CHALIGNER"][var_name_align] = 1;
+        parameters["ERX"][var_name_erx] = 0;
       }
 
       auto test = econ.applyParameters(parameters);
