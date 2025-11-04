@@ -290,7 +290,9 @@ void align_phase_word(Target* tgt) {
       auto test = econ.applyParameters(parameters);
 
       std::map<int, int> ch_lock_values;
-      std::cout << "CHALIGNER_[ch#]_PER_CH_ALIGN_EN happens here, causing locking to be set to 1:" << std::endl;
+      std::cout << "CHALIGNER_[ch#]_PER_CH_ALIGN_EN happens here, causing "
+                   "locking to be set to 1:"
+                << std::endl;
       // test exact requirements for channel locking
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
