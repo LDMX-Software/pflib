@@ -362,10 +362,12 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   return readParameters(parameters);
 }
 
-std::map<std::string,uint64_t> ECON::readParameter(const std::string& page, const std::string& param, bool print_values) {
+std::map<std::string, uint64_t> ECON::readParameter(const std::string& page,
+                                                    const std::string& param,
+                                                    bool print_values) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
-  return this->readParameters(p,print_values)[page];
+  return this->readParameters(p, print_values)[page];
 }
 
 void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
