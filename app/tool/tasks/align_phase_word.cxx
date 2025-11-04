@@ -313,7 +313,8 @@ void align_phase_word(Target* tgt) {
           {
               "ALIGNER",
               {{"GLOBAL_MATCH_PATTERN_VAL",
-                10760600711006082389ULL}}  // 0x95555555a5555555 (unsigned longlong)
+                10760600711006082389ULL}}  // 0x95555555a5555555 (unsigned
+                                           // longlong)
           },
           {"ALIGNER", {{"GLOBAL_MATCH_MASK_VAL", 0}}},
           {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
