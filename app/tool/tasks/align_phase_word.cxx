@@ -278,14 +278,10 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
-
-      parameters = {
-          {
-          "ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}} 
-          }};
+      parameters = {{"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}}};
 
       auto test = econ.applyParameters(parameters);
- 
+
       std::map<int, int> ch_lock_values;
       // test latency of locking:
       usleep(10000);  // 100 ms between checks
@@ -297,12 +293,9 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-
-
-
       parameters = {
           {
-          "ROCDAQCTRL", {{"GLOBAL_HGCROC_HDR_MARKER", 15}}  // 0xf
+              "ROCDAQCTRL", {{"GLOBAL_HGCROC_HDR_MARKER", 15}}  // 0xf
           },
           {"ROCDAQCTRL", {{"GLOBAL_SYNC_HEADER", 1}}},
           {
@@ -355,7 +348,6 @@ void align_phase_word(Target* tgt) {
                   << global_match_pattern_val << ", 0x" << std::hex
                   << global_match_pattern_val << std::dec << std::endl;
       }
-
 
       // auto econ_setup_builder =
       //     econ.testParameters()
