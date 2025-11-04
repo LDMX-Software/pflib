@@ -150,6 +150,10 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
+
+  printf("CURRENTLY COMPILED FOR BACKPLANE USE\n");
+  return;
+
   /**
    * In order to be able to shift the trigger link delay
    * away from zero and allow us to capture a pre-sample
@@ -652,12 +656,11 @@ auto menu_daq_debug =
 
 auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
-        ->line("STATUS", "Status of the DAQ", daq_setup)
+        ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("ENABLE", "Toggle enable status", daq_setup)
         ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
-        ->line("FPGA", "Set FPGA id", daq_setup)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)
         ->line("FORMAT", "Select the output data format", daq_setup)
-        ->line("SETUP", "Setup ECON id, contrib id, samples", daq_setup);
+        ->line("CONFIG", "Setup ECON id, contrib id, samples", daq_setup);
 
 }  // namespace
