@@ -295,7 +295,7 @@ void align_phase_word(Target* tgt) {
         ch_lock_values[channel] = ch_lock;
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
-      }
+      };
 
 
 
