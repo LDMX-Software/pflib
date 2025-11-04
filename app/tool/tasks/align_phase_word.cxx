@@ -216,7 +216,6 @@ void align_phase_word(Target* tgt) {
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
-
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
 
@@ -238,7 +237,6 @@ void align_phase_word(Target* tgt) {
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
                 << inv_fc_rx << std::dec << std::endl;
 
-
       std::map<int, int> ch_lock_values;
       // test latency of locking:
       usleep(10000);  // 100 ms between checks
@@ -249,9 +247,6 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
-
-
-      
 
       params = roc.getParameters("TOP");
       auto RunL = params.find("RUNL")->second;
