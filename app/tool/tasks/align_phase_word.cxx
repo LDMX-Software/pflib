@@ -278,21 +278,20 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
-      // parameters = {{"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}}};
       for (int channel : list_channels) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
         parameters["CHALIGNER"][var_name_align] = 1;
-        parameters["ERX"][var_name_erx] = 0;
+        // parameters["ERX"][var_name_erx] = 0;
       }
 
       auto test = econ.applyParameters(parameters);
 
       std::map<int, int> ch_lock_values;
-      // test latency of locking:
-      usleep(10000);  // 100 ms between checks
+      std::cout << "CHALIGNER_[ch#]_PER_CH_ALIGN_EN happens here, causing locking to be set to 1:" << std::endl;
+      // test exact requirements for channel locking
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
