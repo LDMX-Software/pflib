@@ -30,4 +30,3 @@ void align_econ_lpgbt(Target* tgt) {
   auto result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
   printf(" Current EPRX0 Phase10 = %d\n", result);
 }
-
