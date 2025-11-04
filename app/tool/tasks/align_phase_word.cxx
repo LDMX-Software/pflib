@@ -182,7 +182,6 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-      
       // ----------------------------- //
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
@@ -228,8 +227,6 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
-
-
 
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
