@@ -278,8 +278,8 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
-
-      // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to get channel locking to be set to 1
+      // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to
+      // get channel locking to be set to 1
 
       parameters = {
           {
@@ -330,9 +330,10 @@ void align_phase_word(Target* tgt) {
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
       std::map<int, int> ch_lock_values;
-      std::cout << "ERX_[ch#]_ENABLE happened here, which is all thats required for "
-                   "locking to be set to 1:"
-                << std::endl;
+      std::cout
+          << "ERX_[ch#]_ENABLE happened here, which is all thats required for "
+             "locking to be set to 1:"
+          << std::endl;
       // test exact requirements for channel locking
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
