@@ -136,13 +136,8 @@ void align_phase_word(Target* tgt) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         parameters["CHEPRXGRP"][var_name] = 1;
-<<<<<<< HEAD
         // std::cout << "channel, varname = " << channel << ", " << var_name
         // << std::endl;
-=======
-        std::cout << "channel, varname = " << channel << ", " << var_name
-                  << std::endl;
->>>>>>> refs/remotes/origin/pflib_joshbranch
       }
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
@@ -188,7 +183,7 @@ void align_phase_word(Target* tgt) {
       }
 
       // test latency of locking:
-      usleep(100000);  // 100 ms between checks
+      usleep(100000); // 100 ms between checks  
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
@@ -196,6 +191,7 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
+
 
       // ----------------------------- //
     } else {
