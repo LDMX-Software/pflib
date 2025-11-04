@@ -36,8 +36,6 @@ void align_phase_word(Target* tgt) {
                                            "spare7",
                                            "unassigned"};
 
-  // --------------------------- //
-  // ----- PHASE ALIGNMENT ----- //
   int IDLE =
       89478485;  // == 0x5555555. hardcode based on phase alignment script
 
@@ -59,7 +57,9 @@ void align_phase_word(Target* tgt) {
   }
   std::cout << "Decimal value of channels: " << binary_channels << std::endl;
 
-  {  // Phase Aligment Scope
+  // --------------------------------- //
+  // ----- PHASE ALIGNMENT SCOPE ----- //
+  {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     int edgesel = 0;
     int invertfcmd = 1;
@@ -182,20 +182,7 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-      tgt->fc().standard_setup();
-      tgt->fc().linkreset_rocs();
-      tgt->fc().orbit_count_reset();
-
-      // test latency of locking:
-      usleep(10000);  // 100 ms between checks
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
-        ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
-                  << std::hex << ch_lock << std::dec << std::endl;
-      }
-
+      
       // ----------------------------- //
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
@@ -229,6 +216,21 @@ void align_phase_word(Target* tgt) {
                              // to assign to an output variable
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
+
+        
+        
+      // test latency of locking:
+      usleep(10000);  // 100 ms between checks
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+        ch_lock_values[channel] = ch_lock;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                  << std::hex << ch_lock << std::dec << std::endl;
+      }
+
+
+
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
 
