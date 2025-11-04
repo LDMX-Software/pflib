@@ -182,8 +182,10 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
+      tgt->fc().linkreset_rocs();
+
       // test latency of locking:
-      usleep(10000000);  // 100 ms between checks
+      usleep(10000);  // 100 ms between checks
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
@@ -309,7 +311,7 @@ void align_phase_word(Target* tgt) {
           {
               "ALIGNER",
               {{"GLOBAL_MATCH_PATTERN_VAL",
-                10760600711006082389}}  // 0x95555555a5555555
+                10760600711006082389ULL}}  // 0x95555555a5555555 (unsigned longlong)
           },
           {"ALIGNER", {{"GLOBAL_MATCH_MASK_VAL", 0}}},
           {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
