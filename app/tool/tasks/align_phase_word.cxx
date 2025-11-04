@@ -341,7 +341,7 @@ void align_phase_word(Target* tgt) {
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
-      or (int channel : list_channels) {
+      for (int channel : list_channels) {
         auto global_match_pattern_val =
             econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
         std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
