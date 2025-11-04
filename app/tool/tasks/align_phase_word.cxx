@@ -182,7 +182,6 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-      
       // ----------------------------- //
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
@@ -217,19 +216,15 @@ void align_phase_word(Target* tgt) {
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
-        
-        
-      // test latency of locking:
-      usleep(10000);  // 100 ms between checks
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
-        ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
-                  << std::hex << ch_lock << std::dec << std::endl;
-      }
-
-
+    // test latency of locking:
+    usleep(10000);  // 100 ms between checks
+    for (int channel : list_channels) {
+      std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+      auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+      ch_lock_values[channel] = ch_lock;
+      std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                << std::hex << ch_lock << std::dec << std::endl;
+    }
 
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
