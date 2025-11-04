@@ -218,7 +218,7 @@ void align_phase_word(Target* tgt) {
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
         
-        
+      std::map<int, int> ch_lock_values;
       // test latency of locking:
       usleep(10000);  // 100 ms between checks
       for (int channel : list_channels) {
