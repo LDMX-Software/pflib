@@ -278,29 +278,8 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
-      for (int channel : list_channels) {
-        // std::string var_name_align =
-        //     std::to_string(channel) + "_PER_CH_ALIGN_EN";
-        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
-        // parameters["CHALIGNER"][var_name_align] = 1;
-        parameters["ERX"][var_name_erx] = 0;
-      }
-
-      auto test = econ.applyParameters(parameters);
-
-      std::map<int, int> ch_lock_values;
-      std::cout << "ERX_[ch#]_ENABLE happens here, which is all thats required for "
-                   "locking to be set to 1:"
-                << std::endl;
-      // test exact requirements for channel locking
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
-        ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
-                  << std::hex << ch_lock << std::dec << std::endl;
-      };
+      // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to get channel locking to be set to 1
 
       parameters = {
           {
@@ -349,6 +328,19 @@ void align_phase_word(Target* tgt) {
 
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
+
+      std::map<int, int> ch_lock_values;
+      std::cout << "ERX_[ch#]_ENABLE happened here, which is all thats required for "
+                   "locking to be set to 1:"
+                << std::endl;
+      // test exact requirements for channel locking
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+        ch_lock_values[channel] = ch_lock;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                  << std::hex << ch_lock << std::dec << std::endl;
+      };
 
       for (int channel : list_channels) {
         auto global_match_pattern_val =
