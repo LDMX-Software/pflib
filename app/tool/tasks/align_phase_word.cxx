@@ -126,23 +126,30 @@ void align_phase_word(Target* tgt) {
       // -------------------------------- //
 
       // ---- SETTING ECON REGISTERS ---- //
-
+      
       // Set Phase Training ON
-      auto econ_setup_builder = econ.testParameters().add(
-          "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
-          1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
+      parameters = {
+        {"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}
+        }
+      };
+      // auto econ_setup_builder = econ.testParameters().add(
+      //     "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
+          // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-        econ_setup_builder.add("CHEPRXGRP", var_name, 1);
+        // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
+        parameters["CHEPRXGRP"][var_name] = 1;
         // std::cout << "channel, varname = " << channel << ", " << var_name
         // << std::endl;
       }
-      auto econ_setup_test = econ_setup_builder.apply();
+      // auto econ_setup_test = econ_setup_builder.apply();
+      auto econ_phase_align_currentvals = econ.applyParameters(parameters);
+
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
-      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "6_TRAIN_CHANNEL");
+      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
       std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
                 << eprxgrptop << std::dec << std::endl;
-      std::cout << "CHEPRXGRP5 (Example train_channel 6) = " << cheprxgrp5
+      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec
                 << std::endl;  // arbitrarily using 5 as example
 
@@ -427,40 +434,31 @@ void align_phase_word(Target* tgt) {
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
-        std::string var_name_snapshot1 =
-            std::to_string(channel) + "_SNAPSHOT_0";
-        std::string var_name_snapshot2 =
-            std::to_string(channel) + "_SNAPSHOT_1";
-        std::string var_name_snapshot3 =
-            std::to_string(channel) + "_SNAPSHOT_2";
+        std::string var_name_snapshot1 = std::to_string(channel) + "_SNAPSHOT_0";
+        std::string var_name_snapshot2 = std::to_string(channel) + "_SNAPSHOT_1";
+        std::string var_name_snapshot3 = std::to_string(channel) + "_SNAPSHOT_2";
         std::string var_name_select = std::to_string(channel) + "_SELECT";
         auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
         auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
         auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
         auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
-
-        auto ch_snapshot_1 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot1);
-        auto ch_snapshot_2 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot2);
-        auto ch_snapshot_3 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot3);
+        
+        auto ch_snapshot_1 = econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+        auto ch_snapshot_2 = econ.dumpParameter("CHALIGNER", var_name_snapshot2);
+        auto ch_snapshot_3 = econ.dumpParameter("CHALIGNER", var_name_snapshot3);
         // concatentate full 192 bit snapshot:
-        std::string str_channel_snapshot = std::to_string(ch_snapshot_1) +
-                                           std::to_string(ch_snapshot_2) +
-                                           std::to_string(ch_snapshot_3);
+        std::string str_channel_snapshot = std::to_string(ch_snapshot_1) 
+              + std::to_string(ch_snapshot_2) 
+              + std::to_string(ch_snapshot_3);
 
-        std::cout << "channel_snapshot1 " << channel << " = " << ch_snapshot_1
-                  << ", 0x" << std::hex << ch_snapshot_1 << std::dec
-                  << std::endl;
-        std::cout << "channel_snapshot2 " << channel << " = " << ch_snapshot_2
-                  << ", 0x" << std::hex << ch_snapshot_2 << std::dec
-                  << std::endl;
-        std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3
-                  << ", 0x" << std::hex << ch_snapshot_3 << std::dec
-                  << std::endl;
-        std::cout << "channel_snapshot_full_string " << channel << " = "
-                  << str_channel_snapshot << std::endl;
+        
+        std::cout << "channel_snapshot1 " << channel << " = " << ch_snapshot_1 << ", 0x"
+                  << std::hex << ch_snapshot_1 << std::dec << std::endl;
+        std::cout << "channel_snapshot2 " << channel << " = " << ch_snapshot_2 << ", 0x"
+                  << std::hex << ch_snapshot_2 << std::dec << std::endl;
+        std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3 << ", 0x"
+                  << std::hex << ch_snapshot_3 << std::dec << std::endl;
+        std::cout << "channel_snapshot_full_string " << channel << " = " << str_channel_snapshot << std::endl;
 
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
