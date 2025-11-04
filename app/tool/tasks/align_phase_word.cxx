@@ -236,7 +236,6 @@ void align_phase_word(Target* tgt) {
 
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
                 << inv_fc_rx << std::dec << std::endl;
-  
 
       params = roc.getParameters("TOP");
       auto RunL = params.find("RUNL")->second;
