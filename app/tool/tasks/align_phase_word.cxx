@@ -182,7 +182,9 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
+      tgt->fc().standard_setup();
       tgt->fc().linkreset_rocs();
+      tgt->fc().orbit_count_reset();
 
       // test latency of locking:
       usleep(10000);  // 100 ms between checks
