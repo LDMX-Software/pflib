@@ -79,39 +79,42 @@ class OptoElinksZCU : public Elinks {
 };
 
 class HcalBackplaneZCU_Capture : public DAQ {
-  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604;
-  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600;
+  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604/4;
+  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600/4;
   static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
-  static constexpr uint32_t ADDR_ENABLE = 0x600;
+  static constexpr uint32_t ADDR_ENABLE = 0x600/4;
   static constexpr uint32_t MASK_ENABLE = 0x00000001;
-  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100;
+  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100/4;
   static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_IO = 0x080;
+  static constexpr uint32_t ADDR_ADV_IO = 0x080/4;
   static constexpr uint32_t MASK_ADV_IO = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_AXIS = 0x080;
+  static constexpr uint32_t ADDR_ADV_AXIS = 0x080/4;
   static constexpr uint32_t MASK_ADV_AXIS = 0x00000002;
 
-  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400;
+  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400/4;
   static constexpr uint32_t MASK_ECON_ID = 0x000003FF;
   static constexpr uint32_t MASK_L1A_PER_PACKET = 0x00007C00;
   static constexpr uint32_t MASK_SOI = 0x000F8000;
   static constexpr uint32_t AXIS_ENABLE = 0x80000000;
 
-  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404;
+  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404/4;
   static constexpr uint32_t MASK_UPPER_ADDR = 0x0000003F;
-
-  static constexpr uint32_t ADDR_INFO = 0x800;
+  
+  static constexpr uint32_t ADDR_INFO = 0x800/4;
   static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
   static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
   static constexpr uint32_t MASK_AXIS_NWORDS = 0x1FFF0000;
   static constexpr uint32_t MASK_TVALID_DAQ = 0x20000000;
   static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 
+  static constexpr uint32_t ADDR_PAGED_READ = 0x800/4;
+  
  public:
   HcalBackplaneZCU_Capture() : DAQ(1), capture_("econd-buffer-0") {
+    printf("Firmware type and version: %08x\n",capture_.read(0));
     // setting up with expected capture parameters
-    capture_.write(ADDR_IDLE_PATTERN, 0x12);
-    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x0);
+    capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x154); // 0xAA followed by one bit... 
     per_econ_ = true;  // reading from the per-econ buffer, not the AXIS buffer
   }
   virtual void reset() {
@@ -119,14 +122,13 @@ class HcalBackplaneZCU_Capture : public DAQ {
   }
   virtual int getEventOccupancy() {
     capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);  // get on page 0
-    if (per_econ)
+    if (per_econ_)
       return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
     else if (capture_.readMasked(ADDR_INFO, MASK_AXIS_NWORDS) != 0)
       return 1;
     else
       return 0;
   }
->>>>>>> refs/remotes/origin/hcal-backplane-dev
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
     // none of these parameters are relevant for the econd capture, which is
     // data-pattern based
@@ -156,6 +158,10 @@ class HcalBackplaneZCU_Capture : public DAQ {
       capture_.rmw(ADDR_PACKET_SETUP, AXIS_ENABLE, AXIS_ENABLE);
     else
       capture_.rmw(ADDR_PACKET_SETUP, AXIS_ENABLE, 0);
+    pflib::DAQ::enable(doenable);
+  }
+  virtual bool enabled() {
+    return capture_.readMasked(ADDR_ENABLE,MASK_ENABLE);
   }
   virtual std::vector<uint32_t> getLinkData(int ilink) {
     uint32_t words = 0;
@@ -208,9 +214,6 @@ class HcalBackplaneZCU : public Hcal {
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
 
-    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
-                                              itarget);
-
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
     econ_i2c_->set_bus_speed(1000);
@@ -238,7 +241,10 @@ class HcalBackplaneZCU : public Hcal {
               board_i2c);
     }
 
-    // TODO create ELinks and DAQ objects
+
+    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
+                                              itarget);
+    daq_ = std::make_unique<HcalBackplaneZCU_Capture>();
 
     pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
     pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
@@ -288,7 +294,7 @@ class HcalBackplaneZCU : public Hcal {
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override {
-    PFEXCEPTION_RAISE("NoImpl", "HcalBackplaneZCU::daq not implemented");
+    return *daq_;
   }
 
  private:
@@ -298,6 +304,7 @@ class HcalBackplaneZCU : public Hcal {
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<OptoElinksZCU> elinks_;
+  std::unique_ptr<HcalBackplaneZCU_Capture> daq_;
 };
 
 class HcalBackplaneZCUTarget : public Target {

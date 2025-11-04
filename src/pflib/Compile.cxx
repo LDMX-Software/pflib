@@ -181,8 +181,10 @@ std::map<uint16_t, size_t> Compiler::build_register_byte_lut() {
   // register address -> number of bytes used
   std::map<uint16_t, size_t> reg_byte_lut;
 
-  // assume that every parameter's RegisterLocation list already covers a
-  // contiguous byte range
+  /**
+   * @note assume that every parameter's RegisterLocation list already covers a
+   * contiguous byte range
+   */
   for (const auto& page_pair : page_lut_) {
     const std::string& page_name = page_pair.first;
     const Page& page = page_pair.second;

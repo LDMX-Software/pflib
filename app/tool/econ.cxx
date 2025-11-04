@@ -74,6 +74,12 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
   }
 }
 
+
+static void econ_status(const std::string& cmd, Target* tgt) {
+  auto econ{tgt->hcal().econ(pftool::state.iecon)};
+  printf(" Fast control: %d",     econ.readParameter("FCTRL", "GLOBAL_LOCKED"));
+}
+
 /**
  * ECON menu commands
  *
@@ -175,6 +181,7 @@ static void econ(const std::string& cmd, Target* pft) {
 namespace {
 auto menu_econ =
     pftool::menu("ECON", "ECON Chip Configuration", econ_render)
+        ->line("STATUS","Status information for econs", econ_status)
         ->line("HARDRESET", "Hard reset to all ECONs", econ)
         ->line("SOFTRESET", "Soft reset to all ECONs", econ)
         ->line("IECON", "Change the active ECON number", econ)
