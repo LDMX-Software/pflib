@@ -139,10 +139,10 @@ void align_phase_word(Target* tgt) {
       }
       auto econ_setup_test = econ_setup_builder.apply();
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
-      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
+      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "6_TRAIN_CHANNEL");
       std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
                 << eprxgrptop << std::dec << std::endl;
-      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
+      std::cout << "CHEPRXGRP5 (Example train_channel 6) = " << cheprxgrp5
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec
                 << std::endl;  // arbitrarily using 5 as example
 
