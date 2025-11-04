@@ -278,7 +278,8 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
-      // parameters = {{"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}}};
+      // parameters = {{"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS",
+      // binary_channels}}}};
       for (int channel : list_channels) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
