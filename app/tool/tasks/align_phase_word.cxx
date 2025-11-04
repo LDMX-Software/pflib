@@ -127,7 +127,7 @@ void align_phase_word(Target* tgt) {
 
       // ---- SETTING ECON REGISTERS ---- //
 
-        // Set Phase Training ON
+      // Set Phase Training ON
       auto econ_setup_builder = econ.testParameters().add(
           "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
           1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
@@ -146,8 +146,7 @@ void align_phase_word(Target* tgt) {
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec
                 << std::endl;  // arbitrarily using 5 as example
 
-
-        // Set Training OFF - I DONT THINK I NEED TO DO THIS STEP
+      // Set Training OFF - I DONT THINK I NEED TO DO THIS STEP
       // for (int channel : list_channels) {
       //   std::string var_name =
       //       std::to_string(channel) +
@@ -160,7 +159,7 @@ void align_phase_word(Target* tgt) {
       // auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
       // std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
       //           << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
-      
+
       // -------------------------------- //
 
       // ---- READING ECON REGISTERS ---- //
@@ -173,8 +172,8 @@ void align_phase_word(Target* tgt) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
         ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock
-                  << ", 0x" << std::hex << ch_lock << std::dec << std::endl;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                  << std::hex << ch_lock << std::dec << std::endl;
       }
 
       // ----------------------------- //
@@ -185,7 +184,6 @@ void align_phase_word(Target* tgt) {
     }
   }  // ---- END PHASE ALIGNMENT scope ----- //
   // ----------------------------------------- //
-
 
   // ------------ WORD ALIGNMENT ----------- //
   {  // WORD ALIGNMENT SCOPE
@@ -212,8 +210,6 @@ void align_phase_word(Target* tgt) {
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
     if (pusm_state == 8) {
-
-
       // ---- RE SETTING ROC REGISTERS ---- //
 
       auto roc_setup_builder = roc.testParameters()
@@ -223,7 +219,6 @@ void align_phase_word(Target* tgt) {
       auto params = roc.getParameters(
           "DIGITALHALF_0");  // this uses the page and returns a mapping of
                              // all params therein
-
 
       // ----- READING ROC REGISTERS ----- //
       params = roc.getParameters("TOP");  // this uses the page and returns a
@@ -277,67 +272,36 @@ void align_phase_word(Target* tgt) {
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
       parameters = {
-        {"ROCDAQCTRL",
-         {{"GLOBAL_HGCROC_HDR_MARKER",
-           15}} // 0xf
-        }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_SYNC_HEADER",
-              1}}
-          }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_SYNC_BODY",
-              89478485}} // 0x5555555
-          }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_ACTIVE_ERXS",
-              binary_channels}}
-          }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_PASS_THRU_MODE",
-              1}}
-          }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_MATCH_THRESHOLD",
-              2}}
-          }
-        , {"ROCDAQCTRL",
-            {{"GLOBAL_SIMPLE_MODE",
-              1}}
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_ORBSYN_CNT_LOAD_VAL",
-              1}}
-          }
+          {
+              "ROCDAQCTRL", {{"GLOBAL_HGCROC_HDR_MARKER", 15}}  // 0xf
+          },
+          {"ROCDAQCTRL", {{"GLOBAL_SYNC_HEADER", 1}}},
+          {
+              "ROCDAQCTRL", {{"GLOBAL_SYNC_BODY", 89478485}}  // 0x5555555
+          },
+          {"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}},
+          {"ROCDAQCTRL", {{"GLOBAL_PASS_THRU_MODE", 1}}},
+          {"ROCDAQCTRL", {{"GLOBAL_MATCH_THRESHOLD", 2}}},
+          {"ROCDAQCTRL", {{"GLOBAL_SIMPLE_MODE", 1}}},
+          {"ALIGNER", {{"GLOBAL_ORBSYN_CNT_LOAD_VAL", 1}}}
 
-        // sets when snapshot is going to be taken
-        , {"ALIGNER",
-            {{"GLOBAL_ORBSYN_CNT_SNAPSHOT",
-              3080}} // 0xc08
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_MATCH_PATTERN_VAL",
-              10760600711006082389}} // 0x95555555a5555555
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_MATCH_MASK_VAL",
-              0}}
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_I2C_SNAPSHOT_EN",
-              0}}
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_SNAPSHOT_EN",
-              1}}
-          }
-        , {"ALIGNER",
-            {{"GLOBAL_ORBSYN_CNT_MAX_VAL",
-              3563}} // 0xdeb
-          }
-      };
+          // sets when snapshot is going to be taken
+          ,
+          {
+              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080}}  // 0xc08
+          },
+          {
+              "ALIGNER",
+              {{"GLOBAL_MATCH_PATTERN_VAL",
+                10760600711006082389}}  // 0x95555555a5555555
+          },
+          {"ALIGNER", {{"GLOBAL_MATCH_MASK_VAL", 0}}},
+          {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
+          {"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 1}}},
+          {
+              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_MAX_VAL", 3563}}  // 0xdeb
+          }};
 
-      
       for (int channel : list_channels) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
@@ -350,17 +314,16 @@ void align_phase_word(Target* tgt) {
         //                               .add("CHALIGNER", var_name_align, 1)
         //                               .add("ERX", var_name_erx, 1);
       }
-      
+
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
-      
+
       for (int channel : list_channels) {
         auto global_match_pattern_val =
-          econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
-        std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val
-                  << ", 0x" << std::hex << global_match_pattern_val << std::dec
-                  << std::endl;
-
+            econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
+        std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
+                  << global_match_pattern_val << ", 0x" << std::hex
+                  << global_match_pattern_val << std::dec << std::endl;
       }
 
       // auto econ_setup_builder =
@@ -380,7 +343,8 @@ void align_phase_word(Target* tgt) {
       //              //  together in this case. So 25053975892773833045 becomes
       //              //  10760600711006082389 which = 0x95555555a5555555
       //              10760600711006082389)  // 0x95555555a5555555
-      //         // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045) //
+      //         // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)
+      //         //
       //         // 0xa5555555
       //         .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 0)
       //         .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)
@@ -401,8 +365,6 @@ void align_phase_word(Target* tgt) {
       // // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);  // 0xfff
       // auto econ_setup_test = econ_setup_builder.apply();
 
-
-    
       //   ----- READING ECON REGISTERS ----- //
       auto cnt_load_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
@@ -410,7 +372,6 @@ void align_phase_word(Target* tgt) {
       std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
                 << std::hex << cnt_load_val << std::dec << std::endl;
       // ----------------------------------- //
-
 
       // ----------- FAST CONTROL ----------- //
       // // see linkreset_rocs()
@@ -485,6 +446,6 @@ void align_phase_word(Target* tgt) {
     // ------------------------------------------- //
 
   }  // -------- END WORD ALIGNMENT SCOPE ------- //
- 
+
   // ----------------------------------------------------------------- //
 }
