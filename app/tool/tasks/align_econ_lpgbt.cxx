@@ -27,6 +27,10 @@ void align_econ_lpgbt(Target* tgt) {
   lpgbt_daq.setup_erx(0, 1, 0, 3, true);  // stolen from app/lpgbt/main.cxx
 
   constexpr uint16_t REG_EPRX0CURRENTPHASE10 = 0x153;
-  auto result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
-  printf(" Current EPRX0 Phase10 = %d\n", result);
+  auto phase_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
+  printf(" Current EPRX0 Phase10 = %d\n", phase_result);
+
+  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
+  auto lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
+  printf(" Is EPRX0 locked? = %d\n", lock_result);
 }
