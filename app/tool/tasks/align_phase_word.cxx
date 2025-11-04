@@ -137,7 +137,7 @@ void align_phase_word(Target* tgt) {
         // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         parameters["CHEPRXGRP"][var_name] = 1;
         std::cout << "channel, varname = " << channel << ", " << var_name
-        << std::endl;
+                  << std::endl;
       }
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
@@ -148,11 +148,9 @@ void align_phase_word(Target* tgt) {
       std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
                 << eprxgrptop << std::dec << std::endl;
       std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-                << ", 0x" << std::hex << cheprxgrp5 << std::dec
-                << std::endl;  
+                << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
       std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
-                << ", 0x" << std::hex << cheprxgrp6 << std::dec
-                << std::endl;  
+                << ", 0x" << std::hex << cheprxgrp6 << std::dec << std::endl;
 
       // Set Training OFF - I DONT THINK I NEED TO DO THIS STEP
       // for (int channel : list_channels) {
