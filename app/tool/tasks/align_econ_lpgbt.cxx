@@ -25,4 +25,9 @@ void align_econ_lpgbt(Target* tgt) {
   auto econ_setup_test = econ_setup_builder.apply();
 
   lpgbt_daq.setup_erx(0, 1, 0, 3, true);  // stolen from app/lpgbt/main.cxx
+
+  constexpr uint16_t REG_EPRX0CURRENTPHASE10 = 0x153;
+  auto result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
+  printf(" Current EPRX0 Phase10 = %d\n", result);
 }
+
