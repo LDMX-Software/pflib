@@ -237,21 +237,7 @@ void align_phase_word(Target* tgt) {
 
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
                 << inv_fc_rx << std::dec << std::endl;
-
-
-      std::map<int, int> ch_lock_values;
-      // test latency of locking:
-      usleep(10000);  // 100 ms between checks
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
-        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
-        ch_lock_values[channel] = ch_lock;
-        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
-                  << std::hex << ch_lock << std::dec << std::endl;
-      }
-
-
-      
+  
 
       params = roc.getParameters("TOP");
       auto RunL = params.find("RUNL")->second;
@@ -348,6 +334,18 @@ void align_phase_word(Target* tgt) {
         std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
                   << global_match_pattern_val << ", 0x" << std::hex
                   << global_match_pattern_val << std::dec << std::endl;
+      }
+
+
+      std::map<int, int> ch_lock_values;
+      // test latency of locking:
+      usleep(10000);  // 100 ms between checks
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
+        auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
+        ch_lock_values[channel] = ch_lock;
+        std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
+                  << std::hex << ch_lock << std::dec << std::endl;
       }
 
       // auto econ_setup_builder =
