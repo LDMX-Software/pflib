@@ -18,4 +18,12 @@ void align_econ_lpgbt(Target* tgt) {
   int pusm_trg = lpgbt_trg.status();
   printf(" lpGBT-TRG PUSM %s (%d)\n", lpgbt_trg.status_name(pusm_trg).c_str(),
          pusm_trg);
+
+  auto econ_setup_builder =
+         econ.testParameters()
+              .add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
+
+  auto econ_setup_test = econ_setup_builder.apply();
+ 
+  lpgbt_daq.setup_erx(0, 1, 0, 3, true); // stolen from app/lpgbt/main.cxx
 }
