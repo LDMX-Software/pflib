@@ -120,6 +120,7 @@ static constexpr uint16_t REG_EPTXECCHNCNTR = 0x0ac;
 static constexpr uint16_t REG_EPTX00ChnCntr = 0x0ae;
 static constexpr uint16_t REG_EPTX01_00ChnCntr = 0x0be;
 static constexpr uint16_t REG_EPRX0CONTROL = 0x0c8;
+static constexpr uint16_t REG_EPRXTRAIN10 = 0x115; // adding for rx training
 static constexpr uint16_t REG_EPRX00CHNCNTR = 0x0d0;
 static constexpr uint16_t REG_ECLK_BASE = 0x06e;
 static constexpr uint16_t REG_POWERUP_STATUS = 0x1d9;
@@ -357,6 +358,13 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                    ((alignphase & 0xF) << 4) | ((invert) ? (0x8) : (0)) |
                        ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
   // ignore equalization for now
+ 
+  // adding for rx training
+  if (irx >= 0 && irx <= 3) {
+	uint8_t train_bit = 1 << irx;  
+  	tport_.write_reg(REG_EPRXTRAIN10, train_bit);
+	tport_.write_reg(REG_EPRXTRAIN10, 0x00);
+  }
 }
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
