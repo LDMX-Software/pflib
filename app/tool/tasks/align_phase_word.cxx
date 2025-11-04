@@ -279,8 +279,8 @@ void align_phase_word(Target* tgt) {
       // Configure ECOND for Alignment (from econd_init_cpp.yaml)
 
       for (int channel : list_channels) {
-        std::string var_name_align =
-            std::to_string(channel) + "_PER_CH_ALIGN_EN";
+        // std::string var_name_align =
+        //     std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
         // parameters["CHALIGNER"][var_name_align] = 1;
@@ -290,7 +290,7 @@ void align_phase_word(Target* tgt) {
       auto test = econ.applyParameters(parameters);
 
       std::map<int, int> ch_lock_values;
-      std::cout << "CHALIGNER_[ch#]_PER_CH_ALIGN_EN happens here, causing "
+      std::cout << "ERX_[ch#]_ENABLE happens here, which is all thats required for "
                    "locking to be set to 1:"
                 << std::endl;
       // test exact requirements for channel locking
