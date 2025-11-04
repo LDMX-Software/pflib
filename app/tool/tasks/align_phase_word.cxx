@@ -216,7 +216,6 @@ void align_phase_word(Target* tgt) {
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
-
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
 
@@ -347,6 +346,7 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
+      
 
       // auto econ_setup_builder =
       //     econ.testParameters()
