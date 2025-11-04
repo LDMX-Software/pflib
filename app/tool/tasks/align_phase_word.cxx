@@ -126,15 +126,12 @@ void align_phase_word(Target* tgt) {
       // -------------------------------- //
 
       // ---- SETTING ECON REGISTERS ---- //
-      
+
       // Set Phase Training ON
-      parameters = {
-        {"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}
-        }
-      };
+      parameters = {{"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}}};
       // auto econ_setup_builder = econ.testParameters().add(
       //     "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
-          // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
+      // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
@@ -438,31 +435,40 @@ void align_phase_word(Target* tgt) {
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
-        std::string var_name_snapshot1 = std::to_string(channel) + "_SNAPSHOT_0";
-        std::string var_name_snapshot2 = std::to_string(channel) + "_SNAPSHOT_1";
-        std::string var_name_snapshot3 = std::to_string(channel) + "_SNAPSHOT_2";
+        std::string var_name_snapshot1 =
+            std::to_string(channel) + "_SNAPSHOT_0";
+        std::string var_name_snapshot2 =
+            std::to_string(channel) + "_SNAPSHOT_1";
+        std::string var_name_snapshot3 =
+            std::to_string(channel) + "_SNAPSHOT_2";
         std::string var_name_select = std::to_string(channel) + "_SELECT";
         auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
         auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
         auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
         auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
-        
-        auto ch_snapshot_1 = econ.dumpParameter("CHALIGNER", var_name_snapshot1);
-        auto ch_snapshot_2 = econ.dumpParameter("CHALIGNER", var_name_snapshot2);
-        auto ch_snapshot_3 = econ.dumpParameter("CHALIGNER", var_name_snapshot3);
-        // concatentate full 192 bit snapshot:
-        std::string str_channel_snapshot = std::to_string(ch_snapshot_1) 
-              + std::to_string(ch_snapshot_2) 
-              + std::to_string(ch_snapshot_3);
 
-        
-        std::cout << "channel_snapshot1 " << channel << " = " << ch_snapshot_1 << ", 0x"
-                  << std::hex << ch_snapshot_1 << std::dec << std::endl;
-        std::cout << "channel_snapshot2 " << channel << " = " << ch_snapshot_2 << ", 0x"
-                  << std::hex << ch_snapshot_2 << std::dec << std::endl;
-        std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3 << ", 0x"
-                  << std::hex << ch_snapshot_3 << std::dec << std::endl;
-        std::cout << "channel_snapshot_full_string " << channel << " = " << str_channel_snapshot << std::endl;
+        auto ch_snapshot_1 =
+            econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+        auto ch_snapshot_2 =
+            econ.dumpParameter("CHALIGNER", var_name_snapshot2);
+        auto ch_snapshot_3 =
+            econ.dumpParameter("CHALIGNER", var_name_snapshot3);
+        // concatentate full 192 bit snapshot:
+        std::string str_channel_snapshot = std::to_string(ch_snapshot_1) +
+                                           std::to_string(ch_snapshot_2) +
+                                           std::to_string(ch_snapshot_3);
+
+        std::cout << "channel_snapshot1 " << channel << " = " << ch_snapshot_1
+                  << ", 0x" << std::hex << ch_snapshot_1 << std::dec
+                  << std::endl;
+        std::cout << "channel_snapshot2 " << channel << " = " << ch_snapshot_2
+                  << ", 0x" << std::hex << ch_snapshot_2 << std::dec
+                  << std::endl;
+        std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3
+                  << ", 0x" << std::hex << ch_snapshot_3 << std::dec
+                  << std::endl;
+        std::cout << "channel_snapshot_full_string " << channel << " = "
+                  << str_channel_snapshot << std::endl;
 
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
