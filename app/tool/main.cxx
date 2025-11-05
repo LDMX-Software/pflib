@@ -413,7 +413,7 @@ int main(int argc, char* argv[]) {
           case Fiberless:
             pflib_log(info) << "connecting from ZCU in Fiberless mode";
             p_pft.reset(pflib::makeTargetFiberless());
-            pftool::root()->drop({"OPTO"});
+            pftool::root()->drop({"OPTO", "ECON"});
             break;
           case Rogue:
             PFEXCEPTION_RAISE("BadComm",
