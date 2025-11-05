@@ -150,17 +150,27 @@ list(APPEND generate_headers_econ econd)
 list(APPEND generate_headers_econ econt)
 
 add_custom_command(
-  OUTPUT include/register_maps/register_maps.h
+  OUTPUT include/register_maps/register_maps.h include/register_maps/register_maps.cxx
   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/register_maps
   COMMAND python3 ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
     --roc_types ${generate_headers} --econ_types ${generate_headers_econ} --output include/register_maps/register_maps.h
-  COMMAND cp ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h include/register_maps/
-  DEPENDS ${generate_headers} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
-  DEPENDS ${generate_headers_econ} ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
+  DEPENDS
+  ${generate_headers}
+  ${generate_headers_econ}
+  ${PROJECT_SOURCE_DIR}/register_maps/register_maps_types.h
+  ${PROJECT_SOURCE_DIR}/register_maps/write-unifying-header.py
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
-add_custom_target(register_maps_header DEPENDS include/register_maps/register_maps.h)
+add_custom_target(register_maps_src
+  DEPENDS include/register_maps/register_maps.h include/register_maps/register_maps.cxx)
+add_library(register_maps SHARED include/register_maps/register_maps.cxx)
+target_include_directories(register_maps PUBLIC 
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_include_directories(register_maps PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:include>")
 
 add_library(utility SHARED
   src/pflib/utility/crc.cxx
@@ -235,8 +245,8 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility)
-add_dependencies(pflib register_maps_header direct_access lpgbt_regmap)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility register_maps)
+add_dependencies(pflib direct_access lpgbt_regmap)
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc
@@ -295,8 +305,8 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-set_target_properties(pflib packing version utility PROPERTIES PREFIX "libpflib_")
-install(TARGETS pflib packing version utility pftool pfdecoder pfdecompile pfcompile pfdefaults
+set_target_properties(pflib packing version utility register_maps PROPERTIES PREFIX "libpflib_")
+install(TARGETS pflib packing version utility register_maps pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

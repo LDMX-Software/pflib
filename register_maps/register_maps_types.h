@@ -13,6 +13,7 @@
 // need maps and strings for the LUTs
 #include <map>
 #include <string>
+#include <vector>
 
 /**
  * Structure holding a location in the registers
