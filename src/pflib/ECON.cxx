@@ -101,11 +101,13 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
 }
 
 int ECON::getPUSMRunValue() {
-  return getParam(getValues(ADDR_RUNBIT, NBYTES_RUNBIT), SHIFT_RUNBIT, MASK_RUNBIT);
+  return getParam(getValues(ADDR_RUNBIT, NBYTES_RUNBIT), SHIFT_RUNBIT,
+                  MASK_RUNBIT);
 }
 
 int ECON::getPUSMStateValue() {
-  return getParam(getValues(ADDR_PUSMSTATE, NBYTES_PUSMSTATE), SHIFT_PUSMSTATE, MASK_PUSMSTATE);
+  return getParam(getValues(ADDR_PUSMSTATE, NBYTES_PUSMSTATE), SHIFT_PUSMSTATE,
+                  MASK_PUSMSTATE);
 }
 
 bool ECON::isRunMode() {
