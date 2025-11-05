@@ -74,6 +74,44 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
   }
 }
 
+static void econ_status(const std::string& cmd, Target* tgt) {
+  auto econ{tgt->hcal().econ(pftool::state.iecon)};
+  // request that the counters are synchronously copied from internal to readable registers
+  // avoiding compiler overhead for these parameters since the compiler is very slow
+  econ.setValue(0x40f + 2, 1, 1);
+  // read fast command counters
+  static const int fctrl_base = 0x3ab;
+  static const std::vector<std::pair<std::string, int>> counters = {
+    { "LOCK_COUNT", 0x1 },
+    { "BCR", 0x2 },
+    { "OCR", 0x3 },
+    { "L1A", 0x4 },
+    { "NZS", 0x5 },
+    { "CAL_PULSE_INT", 0x6 },
+    { "CAL_PULSE_EXT", 0x7 },
+    { "EBR", 0x8 },
+    { "ECR", 0x9 },
+    { "LINK_RESET_ROC_T", 0xa },
+    { "LINK_RESET_ROC_D", 0xb },
+    { "LINK_RESET_ECON_T", 0xc },
+    { "LINK_RESET_ECON_D", 0xd },
+    // skipping spare fcmd_count slots
+    { "UNASSIGNED", 0x16 },
+    { "FC_ERROR", 0x17 }
+  };
+  static const int locked = 1;
+  static const int cmd_rx_inverted = 0;
+  printf(" %18s: %d\n", "LOCKED", ((econ.getValues(fctrl_base, 1).at(0) >> locked) & 0b1));
+  printf(" %18s: %d\n", "CMD RX Inverted", ((econ.getValues(fctrl_base, 1).at(0) >> cmd_rx_inverted) & 0b1));
+  for (const auto& [counter, offset] : counters) {
+    printf(" %18s: %d\n", counter.c_str(), econ.getValues(fctrl_base+offset, 1).at(0));
+  }
+
+  printf(" %18s: %d\n", "PUSM Run Val", econ.getPUSMRunValue());
+  printf(" %18s: %d\n", "PUSM State Val", econ.getPUSMStateValue());
+  printf(" %18s: %d\n", "Run Mode", econ.isRunMode());
+}
+
 /**
  * ECON menu commands
  *
@@ -175,6 +213,7 @@ static void econ(const std::string& cmd, Target* pft) {
 namespace {
 auto menu_econ =
     pftool::menu("ECON", "ECON Chip Configuration", econ_render)
+        ->line("STATUS", "print status and FC counters", econ_status)
         ->line("HARDRESET", "Hard reset to all ECONs", econ)
         ->line("SOFTRESET", "Soft reset to all ECONs", econ)
         ->line("IECON", "Change the active ECON number", econ)
