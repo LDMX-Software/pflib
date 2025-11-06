@@ -134,7 +134,7 @@ void align_phase_word(Target* tgt) {
       econ.applyParameters(parameters);
       usleep(1000);
 
-      //link_reset()
+      // link_reset()
       tgt->fc().linkreset_rocs();
       usleep(500);
 
