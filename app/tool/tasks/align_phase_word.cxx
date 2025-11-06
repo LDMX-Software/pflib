@@ -134,9 +134,9 @@ void align_phase_word(Target* tgt) {
       econ.applyParameters(parameters);
       usleep(1000);
 
-      // // link_reset()
-      // tgt->fc().linkreset_rocs();
-      // usleep(500);
+      // link_reset()
+      tgt->fc().linkreset_rocs();
+      usleep(500);
 
       // Toggle track mode high to start the FSM
       parameters.clear();
@@ -419,9 +419,9 @@ void align_phase_word(Target* tgt) {
       tgt->fc().orbit_count_reset();
       usleep(100);
 
-      tgt->fc().standard_setup();
-      tgt->fc().linkreset_rocs();
-      auto cmdcounters = tgt->fc().getCmdCounters();
+      // tgt->fc().standard_setup();
+      // tgt->fc().linkreset_rocs();
+      // auto cmdcounters = tgt->fc().getCmdCounters();
 
       std::cout << std::endl;
       std::cout << "Counter outputs: " << std::endl;
