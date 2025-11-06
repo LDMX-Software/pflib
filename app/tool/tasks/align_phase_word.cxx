@@ -125,10 +125,10 @@ void align_phase_word(Target* tgt) {
       // ERX + TRAIN_CHANNEL are set while track_mode = 0
       parameters.clear();
       for (int ch : list_channels) {
-        std::string train = std::to_string(ch) + "_TRAIN_CHANNEL";
-        std::string en = std::to_string(ch) + "_ENABLE";
-        parameters["CHEPRXGRP"][train] = 1;
-        parameters["ERX"][en] = 0;
+        std::string var_name = std::to_string(ch) + "_TRAIN_CHANNEL";
+        std::string var_name_erx = std::to_string(ch) + "_ENABLE";
+        parameters["CHEPRXGRP"][var_name] = 1;
+        parameters["ERX"][var_name_erx] = 0;
       };
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
       econ.applyParameters(parameters);
@@ -277,8 +277,8 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
           3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
-          2505397589;  // 0x95555555  // this will be inverted by inversion bit
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 10760600711006082389ULL;  // 0x95555555a5555555
+      // = 2505397589;  // 0x95555555  // this will be inverted by inversion bit
                        // ? 10760600711006082389ULL;  // 0x95555555a5555555
                        // (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] =
