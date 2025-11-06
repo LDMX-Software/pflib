@@ -117,7 +117,7 @@ void align_phase_word(Target* tgt) {
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
-        parameters["ERX"][var_name_erx] = 0;
+        parameters["ERX"][var_name_erx] = 1;
         parameters["CHEPRXGRP"][var_name] = 1;
       }
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
