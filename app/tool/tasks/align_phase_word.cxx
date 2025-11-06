@@ -275,7 +275,8 @@ void align_phase_word(Target* tgt) {
 
       // check values
       auto pattern = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
-      std::cout << "Pattern = 0x" << std::hex << pattern << std::dec << std::endl;  
+      std::cout << "Pattern = 0x" << std::hex << pattern << std::dec
+                << std::endl;
 
       std::map<int, int> ch_lock_values;
       std::cout
