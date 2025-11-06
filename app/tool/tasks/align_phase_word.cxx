@@ -239,37 +239,24 @@ void align_phase_word(Target* tgt) {
       // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to
       // get channel locking to be set to 1
 
-      parameters = {
-          {
-              "ROCDAQCTRL", {{"GLOBAL_HGCROC_HDR_MARKER", 15}}  // 0xf
-          },
-          {"ROCDAQCTRL", {{"GLOBAL_SYNC_HEADER", 1}}},
-          {
-              "ROCDAQCTRL", {{"GLOBAL_SYNC_BODY", 89478485}}  // 0x5555555
-          },
-          {"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}},
-          {"ROCDAQCTRL", {{"GLOBAL_PASS_THRU_MODE", 1}}},
-          {"ROCDAQCTRL", {{"GLOBAL_MATCH_THRESHOLD", 2}}},
-          {"ROCDAQCTRL", {{"GLOBAL_SIMPLE_MODE", 1}}},
-          {"ALIGNER", {{"GLOBAL_ORBSYN_CNT_LOAD_VAL", 1}}}
 
-          // sets when snapshot is going to be taken
-          ,
-          {
-              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080}}  // 0xc08
-          },
-          {
-              "ALIGNER",
-              {{"GLOBAL_MATCH_PATTERN_VAL",
-                10760600711006082389ULL}}  // 0x95555555a5555555 (unsigned
-                                           // longlong)
-          },
-          {"ALIGNER", {{"GLOBAL_MATCH_MASK_VAL", 0}}},
-          {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
-          {"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 1}}},
-          {
-          "ALIGNER", {{"GLOBAL_ORBSYN_CNT_MAX_VAL", 3563}}  // 0xdeb
-          }};
+      // re initalize empty parameters
+      parameters ={};
+      parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15; // 0xf
+      parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
+      parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
+      parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
+      parameters["ROCDAQCTRL"]["GLOBAL_PASS_THRU_MODE"] = 1;
+      parameters["ROCDAQCTRL"]["GLOBAL_MATCH_THRESHOLD"] = 2;
+      parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
+
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 1;
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3080;  // 0xc08
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
+      parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
+      parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
+      parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
 
       std::cout << "\n--- ECON parameters to apply ---\n";
       for (const auto& page_pair : parameters) {
