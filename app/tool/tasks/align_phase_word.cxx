@@ -134,6 +134,10 @@ void align_phase_word(Target* tgt) {
       econ.applyParameters(parameters);
       usleep(1000);
 
+      //link_reset()
+      tgt->fc().linkreset_rocs();
+      usleep(500);
+
       // Toggle track mode high to start the FSM
       parameters.clear();
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
