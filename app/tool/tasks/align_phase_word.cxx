@@ -92,11 +92,10 @@ void align_phase_word(Target* tgt) {
     // get ECON to lock to FCMDs; otherwise run bit will = 3.
     // set inversion value and runbit using defined parameter map
     if (pusm_state == 8) {
-
-    std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
-              << pusm_state << std::dec << std::endl;
-    std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
-              << std::dec << std::endl;
+      std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
+                << pusm_state << std::dec << std::endl;
+      std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
+                << std::dec << std::endl;
 
       // ----- SETTING ROC REGISTERS ----- //
 
@@ -460,7 +459,8 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
                   << std::hex << std::setfill('0') << std::setw(16)
                   << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                  << std::setw(16) << ch_snapshot_3 << std::dec << std::setfill(' ') << std::endl;
+                  << std::setw(16) << ch_snapshot_3 << std::dec
+                  << std::setfill(' ') << std::endl;
 
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
