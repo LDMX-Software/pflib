@@ -171,7 +171,8 @@ def process_register(name_prefix, props, lines, register_byte_lut = {}):
                     else f"{name_prefix.upper()}_{chunk_idx}"
                 )
                 chunk_str = ", ".join(chunk)
-                lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)})}},')
+                lines.append(f'  the_map["{chunk_name}"] = Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)});')
+                #lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)})}},')
                 #print(chunk_str, hex(chunk_default))
         else:
             if isinstance(props, dict):
@@ -200,7 +201,9 @@ def generate_header(input_yaml, data, econ_type):
     page_names = []
     for page_name, groups in data.items():
         page_var = page_name.upper() # uppercase page name
-        lines.append(f"const Page {page_var} = Page::Mapping({{")
+        lines.append(f"static Page::Mapping get_{page_var}() {{")
+        lines.append("  Page::Mapping the_map;")
+        #lines.append(f"const Page {page_var} = Page::Mapping({{")
         for group_name, registers in groups.items():
             # check if registers itself has an "address" key → it is a single register
             if isinstance(registers, dict) and "address" in registers:
@@ -213,7 +216,10 @@ def generate_header(input_yaml, data, econ_type):
                     process_register(name_prefix, props, lines, register_byte_lut)
             
         page_names.append(page_var)
-        lines.append("  });")
+        lines.append("  return the_map;")
+        lines.append(f"}} // get_{page_var}")
+        lines.append(f"const Page {page_var} = get_{page_var}();")
+        #lines.append("  });")
 
     # print(register_byte_lut)
         
