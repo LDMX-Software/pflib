@@ -134,11 +134,14 @@ void align_phase_word(Target* tgt) {
       // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
+        parameters["ERX"][var_name_erx] = 0;
         // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         parameters["CHEPRXGRP"][var_name] = 1;
         // std::cout << "channel, varname = " << channel << ", " << var_name
         // << std::endl;
       }
+
       // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
@@ -174,6 +177,7 @@ void align_phase_word(Target* tgt) {
       std::map<int, int> ch_lock_values;  // create map for storing channel -
                                           // value. Note this is not used, but
                                           // here just in case its needed.
+
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
