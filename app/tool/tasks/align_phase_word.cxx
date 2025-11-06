@@ -249,14 +249,16 @@ void align_phase_word(Target* tgt) {
       parameters["ROCDAQCTRL"]["GLOBAL_MATCH_THRESHOLD"] = 2;
       parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
 
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514 //1;
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532; // 0xdcc  // 3080;  // 0xc08
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514  // 1;
+          parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
+              3532;  // 0xdcc  // 3080;  // 0xc08
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
           10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
       parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
       parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
-      // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;   // this is default 0 and should stay at 0 for automatic alignment with link reset. 
+      // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;   // this is default
+      // 0 and should stay at 0 for automatic alignment with link reset.
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
 
       for (int channel : list_channels) {
@@ -359,7 +361,6 @@ void align_phase_word(Target* tgt) {
       }
       std::cout << std::endl;
 
-
       // Try other fast commands to test counter increase
       tgt->fc().bufferclear();
       tgt->fc().clear_run();
@@ -423,7 +424,8 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x"
                   << std::hex << ch_snap_dv << std::dec << std::endl;
         std::cout << "chAligner select " << channel << " = " << ch_select
-                  << ", 0x" << std::hex << ch_select << std::dec << "(0xa0 = failed alignment)" << std::endl;
+                  << ", 0x" << std::hex << ch_select << std::dec
+                  << "(0xa0 = failed alignment)" << std::endl;
       }
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
