@@ -259,7 +259,6 @@ void align_phase_word(Target* tgt) {
       // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
 
-
       for (int channel : list_channels) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
@@ -335,8 +334,7 @@ void align_phase_word(Target* tgt) {
       //   ----- READING ECON REGISTERS ----- //
       auto cnt_load_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-      auto snapshot_arm =
-          econ.dumpParameter("ALIGNER", "GLOBAL_SNAPSHOT_ARM");
+      auto snapshot_arm = econ.dumpParameter("ALIGNER", "GLOBAL_SNAPSHOT_ARM");
 
       std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
                 << std::hex << cnt_load_val << std::dec << std::endl;
