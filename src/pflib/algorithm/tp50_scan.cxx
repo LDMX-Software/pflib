@@ -5,7 +5,8 @@
 
 namespace pflib::algorithm {
 
-int tp50_scan(Target* tgt, ROC roc, std::array<int,72> calib, int tot_vref = -1) {
+int tp50_scan(Target* tgt, ROC roc, std::array<int, 72> calib,
+              int tot_vref = -1) {
   static auto the_log_{::pflib::logging::get("tp50_scan")};
 
   // If a tot_vref is NULL, then we run a bisectional search for the 50
