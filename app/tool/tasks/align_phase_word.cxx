@@ -144,12 +144,10 @@ void align_phase_word(Target* tgt) {
       econ.applyParameters(parameters);
       usleep(5000);
 
-
-
       // read out inversion bit to check
       auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
-      std::cout << "Inversion bit state after track mode set: " << inv_check  << std::endl;
-
+      std::cout << "Inversion bit state after track mode set: " << inv_check
+                << std::endl;
 
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
@@ -199,7 +197,6 @@ void align_phase_word(Target* tgt) {
   }  // ---- END PHASE ALIGNMENT scope ----- //
   // ----------------------------------------- //
 
-
   // read out inversion bit to check
   auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
   std::cout << "Inversion bit state after phase alignment: " << inv_check  << std::endl;
@@ -210,7 +207,8 @@ void align_phase_word(Target* tgt) {
 
   // read out inversion bit to check
   inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
-  std::cout << "Inversion bit state after link reset: " << inv_check  << std::endl;
+  std::cout << "Inversion bit state after link reset: " << inv_check
+            << std::endl;
 
   // ------------ WORD ALIGNMENT ----------- //
   {  // WORD ALIGNMENT SCOPE
@@ -310,8 +308,9 @@ void align_phase_word(Target* tgt) {
                 ["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =  //   BX value econ takes its
                                                   //   snapshot
           3533;  // 0xdcd //    3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;  // 0x95555555
-          // 1789569706;  // 0x6aaaaaaa;
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
+          2505397589;  // 0x95555555
+                       // 1789569706;  // 0x6aaaaaaa;
                        // 2505397589;  // 0x95555555 // =
                        // 10760600711006082389ULL;  // 0x95555555a5555555
       // = 2505397589;  // 0x95555555  // this will be inverted by inversion bit
