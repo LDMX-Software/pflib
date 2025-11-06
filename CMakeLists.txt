@@ -96,6 +96,7 @@ set(pflib_src
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
+  src/pflib/Parameters.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
@@ -157,6 +158,7 @@ add_executable(
   test/compile.cxx
   test/decoding.cxx
   test/utility.cxx
+  test/parameters.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
