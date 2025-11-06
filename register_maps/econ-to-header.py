@@ -172,7 +172,6 @@ def process_register(name_prefix, props, lines, register_byte_lut = {}):
                 )
                 chunk_str = ", ".join(chunk)
                 lines.append(f'  the_map["{chunk_name}"] = Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)});')
-                #lines.append(f'    {{"{chunk_name}", Parameter({{{chunk_str}}}, {format_cpp_int(chunk_default)})}},')
                 #print(chunk_str, hex(chunk_default))
         else:
             if isinstance(props, dict):
@@ -217,7 +216,7 @@ def generate_header(input_yaml, data, econ_type):
         page_names.append(page_var)
         lines.append("  return the_map;")
         lines.append(f"}} // get_{page_var}\n")
-        lines.append(f"const Page {page_var} = get_{page_var}();")
+        lines.append(f"const Page {page_var} = get_{page_var}();\n")
 
     # print(register_byte_lut)
         
