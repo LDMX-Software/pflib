@@ -92,12 +92,6 @@ void align_phase_word(Target* tgt) {
     // get ECON to lock to FCMDs; otherwise run bit will = 3.
     // set inversion value and runbit using defined parameter map
     if (pusm_state == 8) {
-
-    std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
-              << pusm_state << std::dec << std::endl;
-    std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
-              << std::dec << std::endl;
-
       // ----- SETTING ROC REGISTERS ----- //
 
       auto roc_setup_builder = roc.testParameters()
@@ -283,8 +277,8 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
           3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
-          2505397589;  // 0x95555555 // = 10760600711006082389ULL;  //
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 1789569706; // 0x6aaaaaaa; 
+          // 2505397589;  // 0x95555555 // = 10760600711006082389ULL;  //
                        // 0x95555555a5555555
       // = 2505397589;  // 0x95555555  // this will be inverted by inversion bit
       // ? 10760600711006082389ULL;  // 0x95555555a5555555
