@@ -201,7 +201,7 @@ void align_phase_word(Target* tgt) {
 
 
   // read out inversion bit to check
-  inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
+  auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
   std::cout << "Inversion bit state after phase alignment: " << inv_check  << std::endl;
 
   // link_reset before word alignment (necessary?)
