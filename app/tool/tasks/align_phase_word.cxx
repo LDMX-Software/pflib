@@ -192,9 +192,9 @@ void align_phase_word(Target* tgt) {
   }  // ---- END PHASE ALIGNMENT scope ----- //
   // ----------------------------------------- //
 
-  // link_reset before word alignment (necessary?)
-  tgt->fc().linkreset_rocs();
-  usleep(500);
+  // // link_reset before word alignment (necessary?)
+  // tgt->fc().linkreset_rocs();
+  // usleep(500);
 
   // ------------ WORD ALIGNMENT ----------- //
   {  // WORD ALIGNMENT SCOPE
