@@ -174,8 +174,8 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-
-      // Re enable channel for data/word alignment. Turn OFF training mode for channel (I think thats necessary for the correct sequence)
+      // Re enable channel for data/word alignment. Turn OFF training mode for
+      // channel (I think thats necessary for the correct sequence)
       parameters.clear();
       for (int ch : list_channels) {
         parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
@@ -192,14 +192,9 @@ void align_phase_word(Target* tgt) {
   }  // ---- END PHASE ALIGNMENT scope ----- //
   // ----------------------------------------- //
 
-
-
   // link_reset before word alignment (necessary?)
   tgt->fc().linkreset_rocs();
   usleep(500);
-
-
-
 
   // ------------ WORD ALIGNMENT ----------- //
   {  // WORD ALIGNMENT SCOPE
@@ -320,7 +315,8 @@ void align_phase_word(Target* tgt) {
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
         parameters["CHALIGNER"][var_name_align] = 1;
-        // parameters["ERX"][var_name_erx] = 1;  // I moved this to the end of phase alignment
+        // parameters["ERX"][var_name_erx] = 1;  // I moved this to the end of
+        // phase alignment
       }
 
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
