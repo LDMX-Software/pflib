@@ -121,7 +121,7 @@ void align_phase_word(Target* tgt) {
         parameters["ERX"][var_name_erx] = 1;
         parameters["CHEPRXGRP"][var_name] = 0;
       }
-      
+
       econ.applyParameters(parameters);
 
       // Set Phase Training OFF (toggle)
@@ -140,8 +140,6 @@ void align_phase_word(Target* tgt) {
       //   parameters["ERX"][var_name_erx] = 0;
       // };
       // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
-
-      
 
       // // link_reset()
       // tgt->fc().linkreset_rocs();
