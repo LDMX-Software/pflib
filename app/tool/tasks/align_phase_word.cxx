@@ -252,7 +252,8 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
           3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589; // 0x95555555
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2594876074; // 0x9aaaaaaa
+            // 2505397589; // 0x95555555
           // 10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] =
           0;  // 0xffffffff00000000;  // which bits significant in pattern?
