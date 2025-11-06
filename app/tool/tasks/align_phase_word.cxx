@@ -164,16 +164,7 @@ void align_phase_word(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     int edgesel = 0;
     int invertfcmd = 1;
-    // parameters = {
-    //     {"FCTRL",
-    //      {{"GLOBAL_INVERT_COMMAND_RX",
-    //        invertfcmd}}}  // I set it here manually instead. No longer needed.(See below)
-    // };
-    // auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-    econ.setRunMode(
-        1, edgesel,
-        invertfcmd);  // currently fcmd will not be set because the back end
-                      // code required edgesel > 0. mistake?  FIXED by jeremy. 
+    econ.setRunMode(1, edgesel,invertfcmd); 
 
     auto pusm_run = econ.dumpParameter(
         "CLOCKSANDRESETS",
@@ -277,8 +268,24 @@ void align_phase_word(Target* tgt) {
           {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
           {"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 1}}},
           {
-              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_MAX_VAL", 3563}}  // 0xdeb
+          "ALIGNER", {{"GLOBAL_ORBSYN_CNT_MAX_VAL", 3563}}  // 0xdeb
           }};
+
+      std::cout << "\n--- ECON parameters to apply ---\n";
+      for (const auto& page_pair : parameters) {
+          const std::string& page_name = page_pair.first;
+          const auto& param_map = page_pair.second;
+
+          std::cout << "[" << page_name << "]\n";
+          for (const auto& param_pair : param_map) {
+              const std::string& param_name = param_pair.first;
+              uint64_t value = param_pair.second;
+
+              std::cout << "  " << param_name << " = " << value
+                        << " (0x" << std::hex << value << std::dec << ")\n";
+          }
+      }
+      std::cout << "--------------------------------\n";
 
       for (int channel : list_channels) {
         std::string var_name_align =
