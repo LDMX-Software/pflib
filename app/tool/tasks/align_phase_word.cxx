@@ -92,6 +92,12 @@ void align_phase_word(Target* tgt) {
     // get ECON to lock to FCMDs; otherwise run bit will = 3.
     // set inversion value and runbit using defined parameter map
     if (pusm_state == 8) {
+
+    std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
+              << pusm_state << std::dec << std::endl;
+    std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
+              << std::dec << std::endl;
+              
       // ----- SETTING ROC REGISTERS ----- //
 
       auto roc_setup_builder = roc.testParameters()
