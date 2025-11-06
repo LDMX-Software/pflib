@@ -134,9 +134,9 @@ void align_phase_word(Target* tgt) {
       econ.applyParameters(parameters);
       usleep(1000);
 
-      // link_reset()
-      tgt->fc().linkreset_rocs();
-      usleep(500);
+      // // link_reset()
+      // tgt->fc().linkreset_rocs();
+      // usleep(500);
 
       // Toggle track mode high to start the FSM
       parameters.clear();
@@ -197,18 +197,18 @@ void align_phase_word(Target* tgt) {
   }  // ---- END PHASE ALIGNMENT scope ----- //
   // ----------------------------------------- //
 
-  // read out inversion bit to check
-  auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
-  std::cout << "Inversion bit state after phase alignment: " << inv_check  << std::endl;
+  // // read out inversion bit to check
+  // auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
+  // std::cout << "Inversion bit state after phase alignment: " << inv_check  << std::endl;
 
-  // link_reset before word alignment (necessary?)
-  tgt->fc().linkreset_rocs();
-  usleep(500);
+  // // link_reset before word alignment (necessary?)
+  // tgt->fc().linkreset_rocs();
+  // usleep(500);
 
-  // read out inversion bit to check
-  inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
-  std::cout << "Inversion bit state after link reset: " << inv_check
-            << std::endl;
+  // // read out inversion bit to check
+  // inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
+  // std::cout << "Inversion bit state after link reset: " << inv_check
+  //           << std::endl;
 
   // ------------ WORD ALIGNMENT ----------- //
   {  // WORD ALIGNMENT SCOPE
