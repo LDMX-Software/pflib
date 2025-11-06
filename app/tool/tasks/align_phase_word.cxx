@@ -69,10 +69,10 @@ void align_phase_word(Target* tgt) {
     //        invertfcmd}}}  // I set it here manually instead.
     // };
     auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-    econ.setRunMode(
-        1, edgesel,
-        invertfcmd);  // currently fcmd will not be set because the
-                      // back end code required edgesel > 0. mistake? should be fixed now.
+    econ.setRunMode(1, edgesel,
+                    invertfcmd);  // currently fcmd will not be set because the
+                                  // back end code required edgesel > 0.
+                                  // mistake? should be fixed now.
 
     auto pusm_run = econ.dumpParameter(
         "CLOCKSANDRESETS",
@@ -255,8 +255,10 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
           3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589; // 0x95555555  // this will be inverted by inversion bit ?
-          // 10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
+          2505397589;  // 0x95555555  // this will be inverted by inversion bit
+                       // ? 10760600711006082389ULL;  // 0x95555555a5555555
+                       // (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] =
           0;  // 0xffffffff00000000;  // which bits significant in pattern?
       parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
