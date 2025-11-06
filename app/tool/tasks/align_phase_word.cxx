@@ -239,10 +239,9 @@ void align_phase_word(Target* tgt) {
       // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to
       // get channel locking to be set to 1
 
-
       // re initalize empty parameters
-      parameters ={};
-      parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15; // 0xf
+      parameters = {};
+      parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15;  // 0xf
       parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
       parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
       parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
@@ -252,7 +251,8 @@ void align_phase_word(Target* tgt) {
 
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
+          10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
       parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
       parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
