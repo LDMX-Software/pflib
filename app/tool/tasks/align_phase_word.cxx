@@ -330,8 +330,7 @@ void align_phase_word(Target* tgt) {
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
 
         parameters["CHALIGNER"][var_name_align] = 1;
-        // parameters["ERX"][var_name_erx] = 1;  // I moved this to the end of
-        // phase alignment
+        parameters["ERX"][var_name_erx] = 1;  // I moved this to the end of phase alignment
       }
 
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
