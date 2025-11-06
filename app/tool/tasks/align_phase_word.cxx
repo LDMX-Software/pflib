@@ -129,7 +129,7 @@ void align_phase_word(Target* tgt) {
         std::string en = std::to_string(ch) + "_ENABLE";
         parameters["CHEPRXGRP"][train] = 1;
         parameters["ERX"][en] = 1;
-      }
+      };
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
       econ.applyParameters(parameters);
       usleep(1000);
@@ -141,12 +141,14 @@ void align_phase_word(Target* tgt) {
       usleep(5000);
 
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP",
-      "GLOBAL_TRACK_MODE"); auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP",
-      "5_TRAIN_CHANNEL"); auto cheprxgrp6 = econ.dumpParameter("CHEPRXGRP",
-      "6_TRAIN_CHANNEL"); auto cheprxgrp7 = econ.dumpParameter("CHEPRXGRP",
-      "7_TRAIN_CHANNEL"); std::cout << "EPRXGRPTOP = " << eprxgrptop << ",
-      0x" << std::hex
-                << eprxgrptop << std::dec << std::endl;
+      "GLOBAL_TRACK_MODE"); 
+      auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP",
+      "5_TRAIN_CHANNEL"); 
+      auto cheprxgrp6 = econ.dumpParameter("CHEPRXGRP",
+      "6_TRAIN_CHANNEL"); 
+      auto cheprxgrp7 = econ.dumpParameter("CHEPRXGRP",
+      "7_TRAIN_CHANNEL"); 
+      std::cout << "EPRXGRPTOP = " << eprxgrptop << ",0x" << std::hex << eprxgrptop << std::dec << std::endl;
       std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
       std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
