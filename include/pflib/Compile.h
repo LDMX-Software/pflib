@@ -27,7 +27,8 @@ class Node;
  * If you are tempted to access these directly, you probably need
  * to patch a bug or add a feature to the Compiler instead.
  */
-template <typename Key, typename Val> class NoCopyMap;
+template <typename Key, typename Val>
+class NoCopyMap;
 class Parameter;
 using Page = NoCopyMap<std::string, Parameter>;
 using PageLUT = NoCopyMap<std::string, const Page&>;
