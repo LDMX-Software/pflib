@@ -256,23 +256,9 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
       parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
       parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
+      // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
 
-      std::cout << "\n--- ECON parameters to apply ---\n";
-      for (const auto& page_pair : parameters) {
-        const std::string& page_name = page_pair.first;
-        const auto& param_map = page_pair.second;
-
-        std::cout << "[" << page_name << "]\n";
-        for (const auto& param_pair : param_map) {
-          const std::string& param_name = param_pair.first;
-          uint64_t value = param_pair.second;
-
-          std::cout << "  " << param_name << " = " << value << " (0x"
-                    << std::hex << value << std::dec << ")\n";
-        }
-      }
-      std::cout << "--------------------------------\n";
 
       for (int channel : list_channels) {
         std::string var_name_align =
@@ -283,7 +269,6 @@ void align_phase_word(Target* tgt) {
         parameters["ERX"][var_name_erx] = 0;
       }
 
-      // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
       std::map<int, int> ch_lock_values;
@@ -350,9 +335,13 @@ void align_phase_word(Target* tgt) {
       //   ----- READING ECON REGISTERS ----- //
       auto cnt_load_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
+      auto snapshot_arm =
+          econ.dumpParameter("ALIGNER", "GLOBAL_SNAPSHOT_ARM");
 
       std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
                 << std::hex << cnt_load_val << std::dec << std::endl;
+      std::cout << "Global snapshot ARM = " << snapshot_arm << ", 0x"
+                << std::hex << snapshot_arm << std::dec << std::endl;
       // ----------------------------------- //
 
       // ----------- FAST CONTROL ----------- //
