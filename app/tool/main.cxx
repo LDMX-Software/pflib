@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include "pflib/Parameters.h"
 #include "pflib/Compile.h"
-#include "pflib/menu/Rcfile.h"
 #include "pflib/version/Version.h"
 #include "pftool.h"
 
@@ -180,38 +180,7 @@ auto log_line = pftool::root()->line(
 }  // namespace
 
 /**
- * List the options that could be provided within the RC file
- *
- * @param[in] rcfile RC file prepare
- */
-void prepareOpts(pflib::menu::Rcfile& rcfile) {
-  rcfile.declareVBool("roclinks",
-                      "Vector Bool[8] indicating which roc links are active");
-  rcfile.declareString("ipbus_map_path",
-                       "Full path to directory containgin IP-bus mapping. Only "
-                       "required for uHal comm.");
-  rcfile.declareString("default_hostname",
-                       "Hostname of polarfire to connect to if none are given "
-                       "on the command line");
-  rcfile.declareString(
-      "default_output_directory",
-      "Path to default output directory for creating default output filepaths");
-  rcfile.declareString("timestamp_format",
-                       "C format string for creating timestamp appended to "
-                       "default output filepaths");
-  rcfile.declareString(
-      "runnumber_file",
-      "Full path to a file which contains the last run number");
-  rcfile.declareInt("log_level",
-                    "Level (and above) to print logging for (trace=-1 up to "
-                    "fatal=4, default info=2)");
-}
-
-/**
  * This is the main executable for the pftool.
- *
- * The options are prepared first so their help information
- * is available for the usage information.
  *
  * If '-h' or '--help' is the only parameter provided,
  * the usage information is printed and we exit; otherwise,
@@ -231,9 +200,6 @@ void prepareOpts(pflib::menu::Rcfile& rcfile) {
 int main(int argc, char* argv[]) {
   pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pftool")};
-
-  pflib::menu::Rcfile options;
-  prepareOpts(options);
 
   int boardmask = 0xF;
   int ilink = 0;
@@ -257,7 +223,6 @@ int main(int argc, char* argv[]) {
     printf(
         " Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, "
         "${HOME}/.pftoolrc with priority in this order.\n");
-    options.help();
 
     printf("\n");
     return 1;
@@ -266,11 +231,12 @@ int main(int argc, char* argv[]) {
   /*****************************************************************************
    * Load RC File
    ****************************************************************************/
+  pflib::Parameters pftool_params;
   std::string home = getenv("HOME");
   if (getenv("PFTOOLRC")) {
     if (std::filesystem::exists(getenv("PFTOOLRC"))) {
       pflib_log(info) << "Loading " << getenv("PFTOOLRC");
-      options.load(getenv("PFTOOLRC"));
+      pftool_params.from_yaml(getenv("PFTOOLRC"), true);
     } else {
       pflib_log(warn) << "PFTOOLRC=" << getenv("PFTOOLRC")
                       << " is not loaded because it doesn't exist.";
@@ -278,25 +244,23 @@ int main(int argc, char* argv[]) {
   }
   if (std::filesystem::exists("pftoolrc")) {
     pflib_log(info) << "Loading ${CWD}/pftoolrc";
-    options.load("pftoolrc");
+    pftool_params.from_yaml("pftoolrc", true);
   }
   if (std::filesystem::exists(home + "/.pftoolrc")) {
     pflib_log(info) << "Loading ~/.pftoolrc";
-    options.load(home + "/.pftoolrc");
+    pftool_params.from_yaml(home + "/.pftoolrc", true);
   }
 
-  if (options.contents().has_key("log_level")) {
-    int lvl = options.contents().getInt("log_level");
-    pflib::logging::set(pflib::logging::convert(lvl));
+  if (pftool_params.exists("log_level")) {
+    pflib::logging::set(pflib::logging::convert(pftool_params.get<int>("log_level")));
   }
 
-  if (options.contents().has_key("default_output_directory")) {
-    pftool::output_directory =
-        options.contents().getString("default_output_directory");
+  if (pftool_params.exists("default_output_directory")) {
+    pftool::output_directory = pftool_params.get<std::string>("default_output_directory");
   }
 
-  if (options.contents().has_key("timestamp_format")) {
-    pftool::timestamp_format = options.contents().getString("timestamp_format");
+  if (pftool_params.exists("timestamp_format")) {
+    pftool::timestamp_format = pftool_params.get<std::string>("timestampe_format");
   }
 
   /*****************************************************************************
@@ -368,7 +332,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (hostnames.size() == 0 && mode == Rogue) {
-    std::string hn = options.contents().getString("default_hostname");
+    std::string hn = pftool_params.get<std::string>("default_hostname");
     if (hn.empty()) {
       pflib_log(fatal) << "No hostnames to connect to provided on the command "
                           "line or in RC file";
@@ -438,9 +402,8 @@ int main(int argc, char* argv[]) {
         return 3;
       }
 
-      if (options.contents().has_key("runnumber_file")) {
-        pftool::state.last_run_file =
-            options.contents().getString("runnumber_file");
+      if (pftool_params.exists("runnumber_file")) {
+        pftool::state.last_run_file = pftool_params.get<std::string>("runnumber-file");
       }
 
       pftool::state.init(p_pft.get(), readout_cfg);

@@ -40,7 +40,7 @@ std::any extract_sequence(const YAML::Node& node) {
 }
 
 // Null, Scalar, Sequence, Map
-void extract(const YAML::Node& yaml_config, Parameters& deduced_config) {
+void extract(const YAML::Node& yaml_config, Parameters& deduced_config, bool overlay) {
   if (not yaml_config.IsMap()) {
     // if there isn't a map, then this is not a YAML file providing
     // configuration parameters
@@ -59,14 +59,14 @@ void extract(const YAML::Node& yaml_config, Parameters& deduced_config) {
     }
     std::string keyname = key.as<std::string>();
     if (val.Type() == YAML::NodeType::Scalar) {
-      deduced_config.add(keyname, extract_scalar(val));
+      deduced_config.add(keyname, extract_scalar(val), overlay);
     } else if (val.Type() == YAML::NodeType::Sequence) {
-      deduced_config.add(keyname, extract_sequence(val));
+      deduced_config.add(keyname, extract_sequence(val), overlay);
     } else if (val.Type() == YAML::NodeType::Map) {
       // recursion
       Parameters sub_parameters;
-      extract(val, sub_parameters);
-      deduced_config.add(keyname, sub_parameters);
+      extract(val, sub_parameters, overlay);
+      deduced_config.add(keyname, sub_parameters, overlay);
     } else {
       // Null or something else
       // silently skip to allow for comments
@@ -75,7 +75,17 @@ void extract(const YAML::Node& yaml_config, Parameters& deduced_config) {
   }
 }
 
-Parameters Parameters::from_yaml(const std::string& filepath) {
+bool Parameters::exists(const std::string& name) const {
+  return parameters_.find(name) != parameters_.end();
+}
+
+std::vector<std::string> Parameters::keys() const {
+  std::vector<std::string> key;
+  for (auto i : parameters_) key.push_back(i.first);
+  return key;
+}
+
+void  Parameters::from_yaml(const std::string& filepath, bool overlay) {
   YAML::Node config;
   try {
     config = YAML::LoadFile(filepath);
@@ -83,9 +93,7 @@ Parameters Parameters::from_yaml(const std::string& filepath) {
     PFEXCEPTION_RAISE("BadFile", "Unable to load file " + filepath);
   }
 
-  Parameters p;
-  extract(config, p);
-  return p;
+  extract(config, *this, overlay);
 }
 
 }  // namespace pflib

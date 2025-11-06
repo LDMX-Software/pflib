@@ -31,14 +31,6 @@ namespace pflib {
 class Parameters {
  public:
   /**
-   * Load parameters from a YAML file
-   *
-   * @param[in] filepath path to YAML file to load
-   * @return Parameters loaded
-   */
-  static Parameters from_yaml(const std::string& filepath);
-
-  /**
    * Add a parameter to the parameter list.  If the parameter already
    * exists in the list, throw an exception.
    *
@@ -49,8 +41,8 @@ class Parameters {
    *  the list.
    */
   template <typename T>
-  void add(const std::string& name, const T& value) {
-    if (exists(name)) {
+  void add(const std::string& name, const T& value, bool overlay = false) {
+    if (not overlay and exists(name)) {
       PFEXCEPTION_RAISE("Config",
                         "The parameter " + name +
                             " already exists in the list of parameters.");
@@ -65,9 +57,7 @@ class Parameters {
    * @param[in] name name of parameter to check
    * @return true if parameter exists in configuration set
    */
-  bool exists(const std::string& name) const {
-    return parameters_.find(name) != parameters_.end();
-  }
+  bool exists(const std::string& name) const;
 
   /**
    * Retrieve the parameter of the given name.
@@ -127,12 +117,15 @@ class Parameters {
    *
    * @return list of all keys in this map of parameters
    */
-  std::vector<std::string> keys() const {
-    std::vector<std::string> key;
-    for (auto i : parameters_) key.push_back(i.first);
-    return key;
-  }
+  std::vector<std::string> keys() const;
 
+  /**
+   * Load parameters from a YAML file
+   *
+   * @param[in] filepath path to YAML file to load into us
+   * @param[in] overlay allow the input YAML to overwrite current parameters
+   */
+  void from_yaml(const std::string& filepath, bool overlay = true);
  private:
   /// container holding parameter names and their values
   std::map<std::string, std::any> parameters_;

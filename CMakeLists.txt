@@ -143,10 +143,7 @@ add_library(pypflib SHARED
   src/pflib/python/bindings.cxx)
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
-add_library(menu SHARED
-  src/pflib/menu/Menu.cc
-  src/pflib/menu/Rcfile.cc
-)
+add_library(menu SHARED src/pflib/menu/Menu.cc)
 target_link_libraries(menu PUBLIC readline pflib)
 target_include_directories(menu PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

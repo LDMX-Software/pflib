@@ -25,7 +25,8 @@ sub:
   one: 1.0
   two: ["one", "two"]
 )YAML");
-  auto p{pflib::Parameters::from_yaml(t.file_path_)};
+  pflib::Parameters p;
+  p.from_yaml(t.file_path_);
   BOOST_CHECK_EQUAL(p.get<int>("one"), 1);
   BOOST_CHECK_EQUAL(p.get<double>("two"), 2.0);
   BOOST_CHECK_EQUAL(p.get<std::string>("three"), "three");
@@ -43,6 +44,10 @@ sub:
   std::vector<std::string> sub_two = {"one", "two"};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_sub_two.begin(), read_sub_two.end(),
                                 sub_two.begin(), sub_two.end());
+
+  TempFile another("overlay.yaml", "one: 2\n");
+  p.from_yaml(another.file_path_, true);
+  BOOST_CHECK_EQUAL(p.get<int>("one"), 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
