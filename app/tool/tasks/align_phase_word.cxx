@@ -194,7 +194,6 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-    
       // ----------------------------- //
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
@@ -343,7 +342,7 @@ void align_phase_word(Target* tgt) {
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] =
             1;  // I moved this to the end of phase alignment
-        parameters["ERX"][var_name_erxINV] =   1; 
+        parameters["ERX"][var_name_erxINV] = 1;
       }
 
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
