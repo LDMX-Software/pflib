@@ -122,20 +122,6 @@ void align_phase_word(Target* tgt) {
       // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       // auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
-      // auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP",
-      // "GLOBAL_TRACK_MODE"); auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP",
-      // "5_TRAIN_CHANNEL"); auto cheprxgrp6 = econ.dumpParameter("CHEPRXGRP",
-      // "6_TRAIN_CHANNEL"); auto cheprxgrp7 = econ.dumpParameter("CHEPRXGRP",
-      // "7_TRAIN_CHANNEL"); std::cout << "EPRXGRPTOP = " << eprxgrptop << ",
-      // 0x" << std::hex
-      //           << eprxgrptop << std::dec << std::endl;
-      // std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-      //           << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
-      // std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
-      //           << ", 0x" << std::hex << cheprxgrp6 << std::dec << std::endl;
-      // std::cout << "CHEPRXGRP7 (Example train_channel 7) = " << cheprxgrp7
-      //           << ", 0x" << std::hex << cheprxgrp7 << std::dec << std::endl;
-
       // ERX + TRAIN_CHANNEL are set while track_mode = 0
       parameters.clear();
       for (int ch : list_channels) {
@@ -153,6 +139,20 @@ void align_phase_word(Target* tgt) {
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       econ.applyParameters(parameters);
       usleep(5000);
+
+      auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP",
+      "GLOBAL_TRACK_MODE"); auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP",
+      "5_TRAIN_CHANNEL"); auto cheprxgrp6 = econ.dumpParameter("CHEPRXGRP",
+      "6_TRAIN_CHANNEL"); auto cheprxgrp7 = econ.dumpParameter("CHEPRXGRP",
+      "7_TRAIN_CHANNEL"); std::cout << "EPRXGRPTOP = " << eprxgrptop << ",
+      0x" << std::hex
+                << eprxgrptop << std::dec << std::endl;
+      std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
+                << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
+      std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
+                << ", 0x" << std::hex << cheprxgrp6 << std::dec << std::endl;
+      std::cout << "CHEPRXGRP7 (Example train_channel 7) = " << cheprxgrp7
+                << ", 0x" << std::hex << cheprxgrp7 << std::dec << std::endl;
 
       // -------------------------------- //
 
