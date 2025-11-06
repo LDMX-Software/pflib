@@ -129,8 +129,6 @@ add_custom_command(
   COMMENT "Writing unifying header for parameter LUTs"
   VERBATIM
 )
-add_custom_target(register_maps_src
-  DEPENDS include/register_maps/register_maps.h register_maps.cxx)
 add_library(register_maps SHARED register_maps.cxx)
 target_include_directories(register_maps PUBLIC 
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
