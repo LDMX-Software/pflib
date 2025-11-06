@@ -167,13 +167,15 @@ void align_phase_word(Target* tgt) {
     // parameters = {
     //     {"FCTRL",
     //      {{"GLOBAL_INVERT_COMMAND_RX",
-    //        invertfcmd}}}  // I set it here manually instead. No longer needed.(See below)
+    //        invertfcmd}}}  // I set it here manually instead. No longer
+    //        needed.(See below)
     // };
-    // auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
+    // auto econ_inversion_runbit_currentvals =
+    // econ.applyParameters(parameters);
     econ.setRunMode(
         1, edgesel,
         invertfcmd);  // currently fcmd will not be set because the back end
-                      // code required edgesel > 0. mistake?  FIXED by jeremy. 
+                      // code required edgesel > 0. mistake?  FIXED by jeremy.
 
     auto pusm_run = econ.dumpParameter(
         "CLOCKSANDRESETS",
