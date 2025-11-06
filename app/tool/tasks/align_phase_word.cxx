@@ -111,26 +111,29 @@ void align_phase_word(Target* tgt) {
       // -------------------------------- //
 
       // ---- SETTING ECON REGISTERS ---- //
+      parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
+      auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
       // Set Phase Training ON
-      // for (int channel : list_channels) {
-      //   std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-      //   std::string var_name_erx = std::to_string(channel) + "_ENABLE";
-      //   parameters["ERX"][var_name_erx] = 1;
-      //   parameters["CHEPRXGRP"][var_name] = 1;
-      // }
-      // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
-      // auto econ_phase_align_currentvals = econ.applyParameters(parameters);
-
-      // ERX + TRAIN_CHANNEL are set while track_mode = 0
-      parameters.clear();
-      for (int ch : list_channels) {
-        std::string var_name = std::to_string(ch) + "_TRAIN_CHANNEL";
-        std::string var_name_erx = std::to_string(ch) + "_ENABLE";
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
+        parameters["ERX"][var_name_erx] = 1;
         parameters["CHEPRXGRP"][var_name] = 1;
-        parameters["ERX"][var_name_erx] = 0;
-      };
-      parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
+      }
+      
+
+      // // ERX + TRAIN_CHANNEL are set while track_mode = 0
+      // parameters.clear();
+      // for (int ch : list_channels) {
+      //   std::string var_name = std::to_string(ch) + "_TRAIN_CHANNEL";
+      //   std::string var_name_erx = std::to_string(ch) + "_ENABLE";
+      //   parameters["CHEPRXGRP"][var_name] = 1;
+      //   parameters["ERX"][var_name_erx] = 0;
+      // };
+      // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
+
+
       econ.applyParameters(parameters);
 
       // // link_reset()
@@ -138,9 +141,9 @@ void align_phase_word(Target* tgt) {
       // usleep(500);
 
       // Toggle track mode high to start the FSM
-      parameters.clear();
-      parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
-      econ.applyParameters(parameters);
+      // parameters.clear();
+      // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
+      // econ.applyParameters(parameters);
 
       // read out inversion bit to check
       auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
