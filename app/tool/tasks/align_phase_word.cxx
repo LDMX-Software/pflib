@@ -250,8 +250,9 @@ void align_phase_word(Target* tgt) {
       parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
 
 <<<<<<< HEAD
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; //1;
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532; // 0xdcc  // 3080;  // 0xc08
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 1;
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
+          3532;  // 0xdcc  // 3080;  // 0xc08
 =======
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514  // 1;
           parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
