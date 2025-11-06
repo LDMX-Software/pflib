@@ -19,6 +19,6 @@ namespace pflib::algorithm {
  *
  * @note Only functional for single-ROC targets
  */
-int tp50_scan(Target* tgt, ROC roc, int calib, int tot_vref);
+int tp50_scan(Target* tgt, ROC roc, std::array<int,72> calib, int tot_vref);
 
 }  // namespace pflib::algorithm
