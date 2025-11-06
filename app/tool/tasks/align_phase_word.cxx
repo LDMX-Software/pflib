@@ -249,14 +249,8 @@ void align_phase_word(Target* tgt) {
       parameters["ROCDAQCTRL"]["GLOBAL_MATCH_THRESHOLD"] = 2;
       parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
 
-<<<<<<< HEAD
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; //1;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532; // 0xdcc  // 3080;  // 0xc08
-=======
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514  // 1;
-          parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =
-              3532;  // 0xdcc  // 3080;  // 0xc08
->>>>>>> refs/remotes/origin/pflib_joshbranch
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] =
           10760600711006082389ULL;  // 0x95555555a5555555 (unsigned longlong)
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
