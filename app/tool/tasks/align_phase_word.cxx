@@ -128,7 +128,7 @@ void align_phase_word(Target* tgt) {
         std::string train = std::to_string(ch) + "_TRAIN_CHANNEL";
         std::string en = std::to_string(ch) + "_ENABLE";
         parameters["CHEPRXGRP"][train] = 1;
-        parameters["ERX"][en] = 1;
+        parameters["ERX"][en] = 0;
       };
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
       econ.applyParameters(parameters);
