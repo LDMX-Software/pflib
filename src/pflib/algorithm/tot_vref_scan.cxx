@@ -26,25 +26,9 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   std::array<int, 2>
       target;  // tot_vref is a global parameter (1 value per link)
-
-  for (int ch = 0; ch < 72; ch++) {
-    // Set calib
-    int i_link = ch / 36;
-    auto refvol_page =
-        pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-    auto calib_handle =
-        roc.testParameters().add(refvol_page, "CALIB", calibs[ch]).apply();
-    // Run the threshold scan TP50 (threshold point at 50%) that gives the
-    // tot_vref value as output
-    int tot_vref = 0;
-    if (target[i_link]) {
-      tot_vref = tp50_scan(tgt, roc, calibs[ch], tot_vref = target[i_link]);
-    } else {
-      tot_vref = tp50_scan(tgt, roc, calibs[ch], -1);
-    }
-    // Save to target
-    target[i_link] = tot_vref;
-  }
+  
+  // Get tot_vref values
+  target = tp50_scan(tgt, roc, calibs)
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {

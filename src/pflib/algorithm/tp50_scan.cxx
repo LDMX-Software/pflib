@@ -5,15 +5,13 @@
 
 namespace pflib::algorithm {
 
-int tp50_scan(Target* tgt, ROC roc, std::array<int, 72> calib,
-              int tot_vref = -1) {
+std::array<int,2> tp50_scan(Target* tgt, ROC roc, std::array<int,72> calibs) {
   static auto the_log_{::pflib::logging::get("tp50_scan")};
 
-  // If a tot_vref is NULL, then we run a bisectional search for the 50
-  // efficiency mark. If tot_vref is given, we raise the tot_vref if it is above
-  // 50% until it is below.
+  std::array<int,2> target;
 
-  return tot_vref;
+
+  return target;
 }
 
 }  // namespace pflib::algorithm
