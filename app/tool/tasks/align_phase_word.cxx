@@ -114,11 +114,20 @@ void align_phase_word(Target* tgt) {
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
-      // Set Phase Training ON
+      // Set Phase Training OFF
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
         parameters["ERX"][var_name_erx] = 1;
+        parameters["CHEPRXGRP"][var_name] = 0;
+      }
+      
+      econ.applyParameters(parameters);
+
+      // Set Phase Training OFF (toggle)
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
         parameters["CHEPRXGRP"][var_name] = 1;
       }
       
@@ -134,7 +143,7 @@ void align_phase_word(Target* tgt) {
       // parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
 
 
-      econ.applyParameters(parameters);
+      
 
       // // link_reset()
       // tgt->fc().linkreset_rocs();
