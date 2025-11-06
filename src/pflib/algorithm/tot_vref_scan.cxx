@@ -26,11 +26,12 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   std::array<int, 2>
       target;  // tot_vref is a global parameter (1 value per link)
-  
+
   // Get tot_vref values
   target = tp50_scan(tgt, roc, calibs)
 
-  std::map<std::string, std::map<std::string, uint64_t>> settings;
+      std::map<std::string, std::map<std::string, uint64_t>>
+          settings;
   for (int i_link{0}; i_link < 2; i_link++) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
