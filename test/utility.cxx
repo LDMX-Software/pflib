@@ -3,7 +3,6 @@
 #include <cstdio>
 
 #include "helpers.h"
-
 #include "pflib/utility/crc.h"
 #include "pflib/utility/load_integer_csv.h"
 
@@ -62,7 +61,8 @@ BOOST_AUTO_TEST_CASE(parse_header) {
 }
 
 BOOST_AUTO_TEST_CASE(multiline_header) {
-  TempFile t("pflib-test.csv", "# some extra comment\nheader, row,uncommented\n1,2,3\n4,5,6");
+  TempFile t("pflib-test.csv",
+             "# some extra comment\nheader, row,uncommented\n1,2,3\n4,5,6");
   int val = 0;
   pflib::utility::load_integer_csv(
       t.file_path_,

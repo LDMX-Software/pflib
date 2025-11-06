@@ -20,7 +20,8 @@
 namespace pflib {
 
 /**
- * Class encapsulating parameters for generically holding configuration parameters
+ * Class encapsulating parameters for generically holding configuration
+ * parameters
  *
  * The storage of arbitrary parameters recursively is done using a map
  * from parameter names (std::string) to parameter values. The values
@@ -52,7 +53,7 @@ class Parameters {
     if (exists(name)) {
       PFEXCEPTION_RAISE("Config",
                         "The parameter " + name +
-                          " already exists in the list of parameters.");
+                            " already exists in the list of parameters.");
     }
 
     parameters_[name] = value;
@@ -83,8 +84,9 @@ class Parameters {
     // Check if the variable exists in the map.  If it doesn't,
     // raise an exception.
     if (not exists(name)) {
-      PFEXCEPTION_RAISE("Config", "Parameter '" + name +
-                                      "' does not exist in list of parameters.");
+      PFEXCEPTION_RAISE(
+          "Config",
+          "Parameter '" + name + "' does not exist in list of parameters.");
     }
 
     try {

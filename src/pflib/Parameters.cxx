@@ -42,16 +42,20 @@ std::any extract_sequence(const YAML::Node& node) {
 // Null, Scalar, Sequence, Map
 void extract(const YAML::Node& yaml_config, Parameters& deduced_config) {
   if (not yaml_config.IsMap()) {
-    // if there isn't a map, then this is not a YAML file providing configuration parameters
-    PFEXCEPTION_RAISE("BadFile", "YAML file specifying parameters needs to be a map.");
+    // if there isn't a map, then this is not a YAML file providing
+    // configuration parameters
+    PFEXCEPTION_RAISE("BadFile",
+                      "YAML file specifying parameters needs to be a map.");
   }
 
-  for (YAML::const_iterator it = yaml_config.begin(); it != yaml_config.end(); it++) {
+  for (YAML::const_iterator it = yaml_config.begin(); it != yaml_config.end();
+       it++) {
     auto key = it->first;
     auto val = it->second;
     if (not key.IsScalar()) {
       // key needs to be a scalar
-      PFEXCEPTION_RAISE("BadSchema", "The Key in a YAML Map is somehow not a scalar.");
+      PFEXCEPTION_RAISE("BadSchema",
+                        "The Key in a YAML Map is somehow not a scalar.");
     }
     std::string keyname = key.as<std::string>();
     if (val.Type() == YAML::NodeType::Scalar) {
@@ -84,4 +88,4 @@ Parameters Parameters::from_yaml(const std::string& filepath) {
   return p;
 }
 
-}
+}  // namespace pflib
