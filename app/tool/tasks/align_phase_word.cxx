@@ -152,7 +152,7 @@ void align_phase_word(Target* tgt) {
       parameters.clear();
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       econ.applyParameters(parameters);
-      usleep(2000);
+      usleep(5000);
 
 
 
