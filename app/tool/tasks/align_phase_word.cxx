@@ -422,7 +422,7 @@ void align_phase_word(Target* tgt) {
 
       // tgt->fc().standard_setup();
       // tgt->fc().linkreset_rocs();
-      // auto cmdcounters = tgt->fc().getCmdCounters();
+      auto cmdcounters = tgt->fc().getCmdCounters();
 
       std::cout << std::endl;
       std::cout << "Counter outputs: " << std::endl;
