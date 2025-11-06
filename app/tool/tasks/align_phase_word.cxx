@@ -68,24 +68,11 @@ void align_phase_word(Target* tgt) {
          {{"GLOBAL_INVERT_COMMAND_RX",
            invertfcmd}}}  // I set it here manually instead.
     };
-    // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
     auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
     econ.setRunMode(
         1, edgesel,
         invertfcmd);  // currently fcmd will not be set because the
                       // back end code required edgesel > 0. mistake?
-
-    // auto econ_setup_builder = econ.testParameters().add("FCTRL",
-    // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
-    // Lock. auto econ_setup_test = econ_setup_builder.apply();
-
-    // {  // set run value
-    //   auto econ_setup_builder =
-    //       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-    //                                 1);  // set run bit = 1 AFTER inversion
-    //                                 bit.
-    //   auto econ_setup_test = econ_setup_builder.apply();
-    // }
 
     auto pusm_run = econ.dumpParameter(
         "CLOCKSANDRESETS",
@@ -118,8 +105,6 @@ void align_phase_word(Target* tgt) {
           params.find("IDLEFRAME")->second;  // second because its a key value
                                              // pair mapping (See ROC.cxx)
 
-      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
-
       std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
 
@@ -129,20 +114,12 @@ void align_phase_word(Target* tgt) {
 
       // Set Phase Training ON
       parameters = {{"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}}};
-      // auto econ_setup_builder = econ.testParameters().add(
-      //     "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
-      // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
         parameters["ERX"][var_name_erx] = 0;
-        // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
         parameters["CHEPRXGRP"][var_name] = 1;
-        // std::cout << "channel, varname = " << channel << ", " << var_name
-        // << std::endl;
       }
-
-      // auto econ_setup_test = econ_setup_builder.apply();
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
@@ -154,20 +131,6 @@ void align_phase_word(Target* tgt) {
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
       std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
                 << ", 0x" << std::hex << cheprxgrp6 << std::dec << std::endl;
-
-      // Set Training OFF - I DONT THINK I NEED TO DO THIS STEP
-      // for (int channel : list_channels) {
-      //   std::string var_name =
-      //       std::to_string(channel) +
-      //       "_TRAIN_CHANNEL";  // corresponding to
-      //                           // configs/train_erx_phase_OFF_econ.yaml
-      //   auto econ_setup_builder =
-      //       econ.testParameters().add("CHEPRXGRP", var_name, 0);
-      //   auto econ_setup_test = econ_setup_builder.apply();
-      // }
-      // auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
-      // std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-      //           << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
 
       // -------------------------------- //
 
@@ -201,16 +164,16 @@ void align_phase_word(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     int edgesel = 0;
     int invertfcmd = 1;
-    parameters = {
-        {"FCTRL",
-         {{"GLOBAL_INVERT_COMMAND_RX",
-           invertfcmd}}}  // I set it here manually instead.
-    };
-    auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
+    // parameters = {
+    //     {"FCTRL",
+    //      {{"GLOBAL_INVERT_COMMAND_RX",
+    //        invertfcmd}}}  // I set it here manually instead. No longer needed.(See below)
+    // };
+    // auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
     econ.setRunMode(
         1, edgesel,
         invertfcmd);  // currently fcmd will not be set because the back end
-                      // code required edgesel > 0. mistake?
+                      // code required edgesel > 0. mistake?  FIXED by jeremy. 
 
     auto pusm_run = econ.dumpParameter(
         "CLOCKSANDRESETS",
@@ -324,10 +287,6 @@ void align_phase_word(Target* tgt) {
 
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] = 0;
-
-        // auto econ_setup_builder = econ.testParameters()
-        //                               .add("CHALIGNER", var_name_align, 1)
-        //                               .add("ERX", var_name_erx, 1);
       }
 
       // auto econ_setup_test = econ_setup_builder.apply();
@@ -403,8 +362,6 @@ void align_phase_word(Target* tgt) {
       // ----------------------------------- //
 
       // ----------- FAST CONTROL ----------- //
-      // // see linkreset_rocs()
-
       // LINK_RESET
       tgt->fc().standard_setup();
       tgt->fc().linkreset_rocs();
@@ -437,21 +394,6 @@ void align_phase_word(Target* tgt) {
 
       // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
       for (int channel : list_channels) {
-        // loop to read 192 bit snapshot in 32 bit chunks
-        // uint64_t snapshot64[3];
-        // for (int i = 0; i < 3; ++i) {
-        //   snapshot64[i] = uio_.read(
-        //       0x00d6 +
-        //       (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
-        // }
-        //   // Output the snapshot in hex
-        //   std::cout << "snapshot = 0x";
-        //   for (int i = 5; i >= 0; --i) std::cout << std::hex <<
-        //   snapshot32[i]; std::cout << std::dec << std::endl;
-        //   // get channel address
-        //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
-        //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
-
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
