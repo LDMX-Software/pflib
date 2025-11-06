@@ -201,12 +201,15 @@ with open(args.output.with_suffix('.h'), 'w') as f:
     f.write('#include "register_maps/register_maps_types.h"\n\n')
     f.write('namespace %s {\n\n'%(args.namespace))
     for name, parameters in subblock_types.items():
-        f.write('const Page %s = Page::Mapping({\n'%(name))
-        f.write(',\n'.join(
-            '  {"%s", %s }'%(parameter_name, parameter_spec.to_cpp())
+        f.write('static Page::Mapping get_%s() {\n'%(name))
+        f.write('  Page::Mapping the_map;\n')
+        f.write('\n'.join(
+            '  the_map["%s"] = %s;'%(parameter_name, parameter_spec.to_cpp())
             for parameter_name, parameter_spec in parameters.items()
         ))
-        f.write('\n});\n\n')
+        f.write('  return the_map;\n')
+        f.write('} // get_%s()\n'%(name))
+        f.write('\nconst Page %s = get_%s();\n\n'%(name,name))
 
     f.write('const PageLUT PAGE_LUT = PageLUT::Mapping({\n')
     f.write(',\n'.join(
