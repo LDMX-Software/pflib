@@ -203,7 +203,6 @@ def generate_header(input_yaml, data, econ_type):
         page_var = page_name.upper() # uppercase page name
         lines.append(f"static Page::Mapping get_{page_var}() {{")
         lines.append("  Page::Mapping the_map;")
-        #lines.append(f"const Page {page_var} = Page::Mapping({{")
         for group_name, registers in groups.items():
             # check if registers itself has an "address" key → it is a single register
             if isinstance(registers, dict) and "address" in registers:
@@ -217,9 +216,8 @@ def generate_header(input_yaml, data, econ_type):
             
         page_names.append(page_var)
         lines.append("  return the_map;")
-        lines.append(f"}} // get_{page_var}")
+        lines.append(f"}} // get_{page_var}\n")
         lines.append(f"const Page {page_var} = get_{page_var}();")
-        #lines.append("  });")
 
     # print(register_byte_lut)
         
