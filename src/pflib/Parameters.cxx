@@ -26,13 +26,13 @@ std::any extract_scalar(const YAML::Node& node) {
 std::any extract_sequence(const YAML::Node& node) {
   try {
     return node.as<std::vector<int>>();
-  } catch (const YAML::TypedBadConversion<std::vector<int>>&) {
+  } catch (const YAML::TypedBadConversion<int>&) {
     try {
       return node.as<std::vector<double>>();
-    } catch (const YAML::TypedBadConversion<std::vector<double>>&) {
+    } catch (const YAML::TypedBadConversion<double>&) {
       try {
         return node.as<std::vector<std::string>>();
-      } catch (const YAML::TypedBadConversion<std::vector<std::string>>&) {
+      } catch (const YAML::TypedBadConversion<std::string>&) {
         PFEXCEPTION_RAISE("BadType", "Unrecognized YAML::Scalar type.");
       }
     }

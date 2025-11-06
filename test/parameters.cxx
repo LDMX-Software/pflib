@@ -10,7 +10,7 @@
 
 BOOST_AUTO_TEST_SUITE(parameters)
 
-BOOST_AUTO_TEST_CASE(one_depth) {
+BOOST_AUTO_TEST_CASE(syntax_as_designed) {
   TempFile t("pflib-parameters-test.yaml",
              R"YAML(# this is a shallow yaml
 one: 1
@@ -19,8 +19,8 @@ three: "three"
 four: [1, 2, 3, 4]
 five:
 - 1.0
-- 2.0
-- 3.0
+- 2
+- 3
 sub:
   one: 1.0
   two: ["one", "two"]
