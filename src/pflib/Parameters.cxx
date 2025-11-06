@@ -40,7 +40,8 @@ std::any extract_sequence(const YAML::Node& node) {
 }
 
 // Null, Scalar, Sequence, Map
-void extract(const YAML::Node& yaml_config, Parameters& deduced_config, bool overlay) {
+void extract(const YAML::Node& yaml_config, Parameters& deduced_config,
+             bool overlay) {
   if (not yaml_config.IsMap()) {
     // if there isn't a map, then this is not a YAML file providing
     // configuration parameters
@@ -85,7 +86,7 @@ std::vector<std::string> Parameters::keys() const {
   return key;
 }
 
-void  Parameters::from_yaml(const std::string& filepath, bool overlay) {
+void Parameters::from_yaml(const std::string& filepath, bool overlay) {
   YAML::Node config;
   try {
     config = YAML::LoadFile(filepath);

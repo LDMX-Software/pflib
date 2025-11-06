@@ -126,6 +126,7 @@ class Parameters {
    * @param[in] overlay allow the input YAML to overwrite current parameters
    */
   void from_yaml(const std::string& filepath, bool overlay = true);
+
  private:
   /// container holding parameter names and their values
   std::map<std::string, std::any> parameters_;

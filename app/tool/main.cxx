@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
-#include "pflib/Parameters.h"
 #include "pflib/Compile.h"
+#include "pflib/Parameters.h"
 #include "pflib/version/Version.h"
 #include "pftool.h"
 
@@ -207,7 +207,8 @@ int main(int argc, char* argv[]) {
   // print help before attempting to load RC file incase the RC file is broken
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
-    printf("   %s [-s SCRIPT] [-h | --help] [-d | --dump] config.yaml\n\n", argv[0]);
+    printf("   %s [-s SCRIPT] [-h | --help] [-d | --dump] config.yaml\n\n",
+           argv[0]);
     printf("OPTIONS:\n");
     printf("  -s : pass a script of commands to run through pftool\n");
     printf("  -h|--help : print this help and exit\n");
@@ -224,15 +225,18 @@ int main(int argc, char* argv[]) {
   auto pftool_params{configuration.get<pflib::Parameters>("pftool")};
 
   if (pftool_params.exists("log_level")) {
-    pflib::logging::set(pflib::logging::convert(pftool_params.get<int>("log_level")));
+    pflib::logging::set(
+        pflib::logging::convert(pftool_params.get<int>("log_level")));
   }
 
   if (pftool_params.exists("default_output_directory")) {
-    pftool::output_directory = pftool_params.get<std::string>("default_output_directory");
+    pftool::output_directory =
+        pftool_params.get<std::string>("default_output_directory");
   }
 
   if (pftool_params.exists("timestamp_format")) {
-    pftool::timestamp_format = pftool_params.get<std::string>("timestampe_format");
+    pftool::timestamp_format =
+        pftool_params.get<std::string>("timestampe_format");
   }
 
   /*****************************************************************************
@@ -375,7 +379,8 @@ int main(int argc, char* argv[]) {
       }
 
       if (pftool_params.exists("runnumber_file")) {
-        pftool::state.last_run_file = pftool_params.get<std::string>("runnumber-file");
+        pftool::state.last_run_file =
+            pftool_params.get<std::string>("runnumber-file");
       }
 
       pftool::state.init(p_pft.get(), readout_cfg);
