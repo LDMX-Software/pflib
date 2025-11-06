@@ -131,6 +131,8 @@ void align_phase_word(Target* tgt) {
         parameters["CHEPRXGRP"][var_name] = 1;
       }
 
+      econ.applyParameters(parameters);
+      
       // // ERX + TRAIN_CHANNEL are set while track_mode = 0
       // parameters.clear();
       // for (int ch : list_channels) {
