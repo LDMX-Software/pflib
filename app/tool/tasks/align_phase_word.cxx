@@ -233,7 +233,7 @@ void align_phase_word(Target* tgt) {
       auto roc_setup_builder = roc.testParameters()
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
-                                   .add("TOP", "IN_INV_CMD_RX", 1);
+      .add("TOP", "IN_INV_CMD_RX", 1);
       auto roc_setup_test = roc_setup_builder.apply();
       auto params = roc.getParameters(
           "DIGITALHALF_0");  // this uses the page and returns a mapping of
