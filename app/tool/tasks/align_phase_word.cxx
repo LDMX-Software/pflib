@@ -194,15 +194,7 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       }
 
-      // Re enable channel for data/word alignment. Turn OFF training mode for
-      // channel (I think thats necessary for the correct sequence)
-      parameters.clear();
-      for (int ch : list_channels) {
-        parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
-        parameters["ERX"][std::to_string(ch) + "_ENABLE"] = 1;
-      }
-      econ.applyParameters(parameters);
-
+    
       // ----------------------------- //
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
@@ -346,10 +338,12 @@ void align_phase_word(Target* tgt) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
+        std::string var_name_erxINV = std::to_string(channel) + "_INVERT_DATA";
 
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] =
             1;  // I moved this to the end of phase alignment
+        parameters["ERX"][var_name_erxINV] =   1; 
       }
 
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
