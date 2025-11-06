@@ -294,7 +294,7 @@ void align_phase_word(Target* tgt) {
                 ["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =  //   BX value econ takes its
                                                   //   snapshot
           3533;  // 0xdcd //    3532;  // 0xdcc  // 3080;  // 0xc08
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 10760600711006082389ULL;  // 0x95555555a5555555
+      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;  // 0x95555555
           // 1789569706;  // 0x6aaaaaaa;
                        // 2505397589;  // 0x95555555 // =
                        // 10760600711006082389ULL;  // 0x95555555a5555555
