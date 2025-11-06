@@ -454,7 +454,8 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
                   << std::hex << std::setfill('0') << std::setw(16)
                   << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                  << std::setw(16) << ch_snapshot_3 << std::dec << std::setfill(' ') << std::endl;
+                  << std::setw(16) << ch_snapshot_3 << std::dec
+                  << std::setfill(' ') << std::endl;
 
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
