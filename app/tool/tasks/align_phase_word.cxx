@@ -124,11 +124,18 @@ void align_phase_word(Target* tgt) {
 
       econ.applyParameters(parameters);
 
-      // Set Phase Training OFF (toggle)
+      // Set Phase Training ON (toggle)
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
         parameters["CHEPRXGRP"][var_name] = 1;
+      }
+
+      econ.applyParameters(parameters);
+
+      // Set Phase Training Off (toggle)
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        parameters["CHEPRXGRP"][var_name] = 0;
       }
 
       econ.applyParameters(parameters);
