@@ -233,7 +233,8 @@ void align_phase_word(Target* tgt) {
       auto roc_setup_builder = roc.testParameters()
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
-                                  //  .add("TOP", "IN_INV_CMD_RX", 1);     // I THINK this must match the other inversion bit? This just causes nonsense
+      //  .add("TOP", "IN_INV_CMD_RX", 1);     // I THINK this must match the
+      //  other inversion bit? This just causes nonsense
       auto roc_setup_test = roc_setup_builder.apply();
       auto params = roc.getParameters(
           "DIGITALHALF_0");  // this uses the page and returns a mapping of
@@ -310,10 +311,21 @@ void align_phase_word(Target* tgt) {
                 ["GLOBAL_ORBSYN_CNT_SNAPSHOT"] =  //   BX value econ takes its
                                                   //   snapshot
           3533;  // 0xdcd //    3532;  // 0xdcc  // 3080;  // 0xc08
+<<<<<<< HEAD
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;  // 0x95555555
                        // 1789569706;  // 0x6aaaaaaa;
                        // 2505397589;  // 0x95555555 // =
                        // 10760600711006082389ULL;  // 0x95555555a5555555
+=======
+      parameters
+          ["ALIGNER"]
+          ["GLOBAL_MATCH_PATTERN_VAL"] 2505397589;  // 0x95555555
+                                                    // 1789569706;  //
+                                                    // 0x6aaaaaaa; 2505397589;
+                                                    // // 0x95555555 // =
+                                                    // 10760600711006082389ULL;
+                                                    // // 0x95555555a5555555
+>>>>>>> refs/remotes/origin/pflib_joshbranch
       // = 2505397589;  // 0x95555555  // this will be inverted by inversion bit
       // ? 10760600711006082389ULL;  // 0x95555555a5555555
       // (unsigned longlong)
