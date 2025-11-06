@@ -15,15 +15,20 @@ parser.add_argument(
     nargs='+'
 )
 parser.add_argument(
-    '--output',
+    '--output-header',
     type=Path,
     help='where to write header to'
+)
+parser.add_argument(
+    '--output-src',
+    type=Path,
+    help='where source file should be written to'
 )
 args = parser.parse_args()
 
 lut_of_luts_type = 'const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>'
 
-with open(args.output.with_suffix('.h'), 'w') as f:
+with open(args.output_header, 'w') as f:
     f.write('/* auto generated from scratch */\n\n')
     f.write('#pragma once\n\n')
     f.write('#include "register_maps/register_maps_types.h"\n\n')
@@ -32,9 +37,9 @@ with open(args.output.with_suffix('.h'), 'w') as f:
     f.write('get();\n')
     f.write('\n}\n')
 
-with open(args.output.with_suffix('.cxx'), 'w') as f:
+with open(args.output_src, 'w') as f:
     f.write('/* auto generated from scratch */\n\n')
-    f.write('#include "register_maps.h"\n')
+    f.write('#include "register_maps/register_maps.h"\n')
     f.write('namespace pflib::register_maps {\n\n')
     f.write('// include the register maps for each ROC type/version\n')
     for rt in args.roc_types:
