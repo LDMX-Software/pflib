@@ -132,7 +132,6 @@ void align_phase_word(Target* tgt) {
       };
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
       econ.applyParameters(parameters);
-      usleep(1000);
 
       // // link_reset()
       // tgt->fc().linkreset_rocs();
@@ -142,7 +141,6 @@ void align_phase_word(Target* tgt) {
       parameters.clear();
       parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       econ.applyParameters(parameters);
-      usleep(5000);
 
       // read out inversion bit to check
       auto inv_check = econ.dumpParameter("FCTRL", "GLOBAL_INVERT_COMMAND_RX");
