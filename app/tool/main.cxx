@@ -205,51 +205,23 @@ int main(int argc, char* argv[]) {
   int ilink = 0;
 
   // print help before attempting to load RC file incase the RC file is broken
-  if (argc == 2 and (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
-    printf("\nUSAGE: (HCal HGCROC fiberless mode)\n");
-    printf("   %s OPTIONS\n\n", argv[0]);
+  if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
+    printf("\nUSAGE:\n");
+    printf("   %s [-s SCRIPT] [-h | --help] [-d | --dump] config.yaml\n\n", argv[0]);
     printf("OPTIONS:\n");
-    printf("  -z : required for fiberless (no-polarfire, zcu102-based) mode\n");
-    printf("  -z0 : fiber-based ZCU, backplane 0 (SFP0/SFP1)\n");
-    printf("  -z1 : fiber-based ZCU, backplane 1 (SFP2/SFP3)\n");
     printf("  -s : pass a script of commands to run through pftool\n");
     printf("  -h|--help : print this help and exit\n");
     printf(
         "  -d|--dump : print out the entire pftool menu and submenus with "
         "their command descriptions\n");
     printf("\n");
-
-    printf("CONFIG:\n");
-    printf(
-        " Reading RC files from ${PFTOOLRC}, ${CWD}/pftoolrc, "
-        "${HOME}/.pftoolrc with priority in this order.\n");
-
-    printf("\n");
     return 1;
   }
 
-  /*****************************************************************************
-   * Load RC File
-   ****************************************************************************/
-  pflib::Parameters pftool_params;
-  std::string home = getenv("HOME");
-  if (getenv("PFTOOLRC")) {
-    if (std::filesystem::exists(getenv("PFTOOLRC"))) {
-      pflib_log(info) << "Loading " << getenv("PFTOOLRC");
-      pftool_params.from_yaml(getenv("PFTOOLRC"), true);
-    } else {
-      pflib_log(warn) << "PFTOOLRC=" << getenv("PFTOOLRC")
-                      << " is not loaded because it doesn't exist.";
-    }
-  }
-  if (std::filesystem::exists("pftoolrc")) {
-    pflib_log(info) << "Loading ${CWD}/pftoolrc";
-    pftool_params.from_yaml("pftoolrc", true);
-  }
-  if (std::filesystem::exists(home + "/.pftoolrc")) {
-    pflib_log(info) << "Loading ~/.pftoolrc";
-    pftool_params.from_yaml(home + "/.pftoolrc", true);
-  }
+  pflib::Parameters configuration;
+  configuration.from_yaml(argv[1]);
+
+  auto pftool_params{configuration.get<pflib::Parameters>("pftool")};
 
   if (pftool_params.exists("log_level")) {
     pflib::logging::set(pflib::logging::convert(pftool_params.get<int>("log_level")));
