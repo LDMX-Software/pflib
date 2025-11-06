@@ -113,13 +113,13 @@ void align_phase_word(Target* tgt) {
       // ---- SETTING ECON REGISTERS ---- //
 
       // Set Phase Training ON
-      parameters = {{"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}}};
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
         parameters["ERX"][var_name_erx] = 1;
         parameters["CHEPRXGRP"][var_name] = 1;
       }
+      parameters = {{"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}}};
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
