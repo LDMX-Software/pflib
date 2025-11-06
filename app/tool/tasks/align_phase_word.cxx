@@ -63,11 +63,11 @@ void align_phase_word(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     int edgesel = 0;
     int invertfcmd = 1;
-    // parameters = {
-    //     {"FCTRL",
-    //      {{"GLOBAL_INVERT_COMMAND_RX",
-    //        invertfcmd}}}  // I set it here manually instead.
-    // };
+    parameters = {
+        {"FCTRL",
+         {{"GLOBAL_INVERT_COMMAND_RX",
+           invertfcmd}}}  // I set it here manually instead.
+    };
     auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
     econ.setRunMode(1, edgesel,
                     invertfcmd);  // currently fcmd will not be set because the
@@ -97,7 +97,7 @@ void align_phase_word(Target* tgt) {
               << pusm_state << std::dec << std::endl;
     std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
               << std::dec << std::endl;
-              
+
       // ----- SETTING ROC REGISTERS ----- //
 
       auto roc_setup_builder = roc.testParameters()
@@ -460,7 +460,7 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
                   << std::hex << std::setfill('0') << std::setw(16)
                   << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                  << std::setw(16) << ch_snapshot_3 << std::dec << std::endl;
+                  << std::setw(16) << ch_snapshot_3 << std::dec << std::setfill(' ') << std::endl;
 
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
