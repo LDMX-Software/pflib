@@ -232,9 +232,9 @@ void align_phase_word(Target* tgt) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; 
       //0xdba
 
-      // // BX value econ takes snapshot
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;  
-      // // 0xdcc   
+      // // // BX value econ takes snapshot
+      // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;  
+      // // // 0xdcc   
 
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
       // 0x95555555
@@ -290,42 +290,55 @@ void align_phase_word(Target* tgt) {
       // ----------------------------------- //
 
 
-      // --- SCAN BUNCH CROSSINGS --- //
-      std::vector<int> snapshot_range;
+      // ------- SCAN BUNCH CROSSINGS ------- //
+      int snapshot_6bx;
       int start_val = 0;  // near your orbit region of interest
       int end_val   = 3563;  // up to orbit rollover
 
-      // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 6) {
-      //   parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
-      //   auto econ_word_align_currentvals = econ.applyParameters(parameters);
+      for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 6) {
+        parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+        auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
-      // ----------- FAST CONTROL ----------- //
-      // LINK_RESET
-      tgt->fc().orbit_count_reset();
-      // usleep(100);
-      tgt->fc().standard_setup();
-      tgt->fc().linkreset_rocs();
+        // FAST CONTROL - LINK_RESET
+        tgt->fc().orbit_count_reset();
+        // usleep(100);
+        tgt->fc().standard_setup();
+        tgt->fc().linkreset_rocs();
 
-      // // print out command counters
-      // auto cmdcounters = tgt->fc().getCmdCounters();
-      // std::cout << std::endl;
-      // std::cout << "Counter outputs: " << std::endl;
-      // for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
-      //   std::cout << counterNames[i] << ": " << cmdcounters[i] << std::endl;
-      // }
-      // std::cout << std::endl;
+        // print out snapshot
+        for (int channel : list_channels) {
+          std::string var_name_snapshot1 =
+              std::to_string(channel) + "_SNAPSHOT_0";
+          std::string var_name_snapshot2 =
+              std::to_string(channel) + "_SNAPSHOT_1";
+          std::string var_name_snapshot3 =
+              std::to_string(channel) + "_SNAPSHOT_2";
+          auto ch_snapshot_1 =
+            econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+          auto ch_snapshot_2 =
+              econ.dumpParameter("CHALIGNER", var_name_snapshot2);
+          auto ch_snapshot_3 =
+              econ.dumpParameter("CHALIGNER", var_name_snapshot3);
+        }
 
-      // Try other fast commands to test counter increase
-      tgt->fc().bufferclear();
-      tgt->fc().clear_run();
+        std::ostringstream hexstring;
+        hexstring << std::hex << std::setfill('0')
+                  << std::setw(16) << ch_snapshot_1
+                  << std::setw(16) << ch_snapshot_2
+                  << std::setw(16) << ch_snapshot_3;
+        std::string snapshot_hex = hexstring.str();
 
-      // Custom BX value
-      int bx_new = 3000;
-      int bx_addr = 3;
-      int bx_mask = 0xfff000;
-      tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+        if (snapshot_hex.find("95555555") != std::string::npos) {
+          std::cout << "Header match near BX "
+                    << snapshot_val
+                    << " (channel " << channel << ") "
+                    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+          snapshot_6bx=snapshot_val;
+        }
+      }
+    // -------------- END BX SCAN ------------ //
 
-      // -------------------------------------- //
+
 
       // ------- READING ECON REGISTERS ------- //
       // READ SNAPSHOT
@@ -381,7 +394,14 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner select " << channel << " = " << ch_select
                   << ", 0x" << std::hex << ch_select << std::dec
                   << "(0xa0 = failed alignment)" << std::endl;
-      }
+      } 
+      
+      // // Custom BX value
+      // int bx_new = 3000;
+      // int bx_addr = 3;
+      // int bx_mask = 0xfff000;
+      // tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
                    "aligment task."

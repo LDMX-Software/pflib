@@ -244,8 +244,9 @@ class FastControlCMS_MMap : public FastControl {
     uio_.write(ADDR_CTL_REG, ((preval | CTL_ENABLE_L1AS) ^ CTL_ENABLE_L1AS));
 
     uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
-    printf("here i am! %\n");
+    std::cout << "readMasked: " << bx_out << std::endl;
     // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
+    std::cout << "readMasked (after write): " << bx_out << std::endl;
 
     // restore previous L1A situation
     uio_.write(ADDR_CTL_REG, preval);
