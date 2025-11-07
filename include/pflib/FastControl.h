@@ -33,6 +33,9 @@ class FastControl {
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
 
+  /** send a link reset to the ECONs*/
+  virtual void linkreset_econs() { };
+
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 
