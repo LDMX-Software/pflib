@@ -12,7 +12,7 @@ _test *ARGS:
 
 # init a local denv for development
 init:
-    denv init ghcr.io/ldmx-software/pflib-env:latest
+    denv init ghcr.io/ldmx-software/pflib-env:sha-a32e988
 
 # configure pflib build
 configure: _cmake

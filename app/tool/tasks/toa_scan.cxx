@@ -1,7 +1,8 @@
 #include "toa_scan.h"
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 
 ENABLE_LOGGING();
 
@@ -17,11 +18,11 @@ void toa_scan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["scan_type"] = "CH_#.TOA sweep";
         header["trigger"] = "CHARGE";
         header["nevents_per_point"] = nevents;
-        f << "# " << boost::json::serialize(header) << "\n"
+        f << "# " << header << "\n"
           << "CALIB";
         for (int ch{0}; ch < 72; ch++) {
           f << "," << ch;

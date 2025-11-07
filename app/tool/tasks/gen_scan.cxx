@@ -1,10 +1,10 @@
 #include "gen_scan.h"
 
 #include <filesystem>
+#include <nlohmann/json.hpp>
 
 #include "load_parameter_points.h"
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 
 ENABLE_LOGGING();
 
@@ -56,27 +56,23 @@ void gen_scan(Target* tgt) {
       pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
 
   auto roc{tgt->hcal().roc(pftool::state.iroc)};
-  boost::json::object header;
+  nlohmann::json header;
   header["parameter_points_file"] = std::string(parameter_points_file);
   header["channel"] = channel;
   header["nevents_per_point"] = nevents;
   header["trigger"] = trigger;
-  boost::json::object swp;
   for (const auto& [page, params] : scan_wide_params) {
-    boost::json::object page_json;
     for (const auto& [name, val] : params) {
-      page_json[name] = val;
+      header["scan_wide_params"][page][name] = val;
     }
-    swp[page] = page_json;
   }
-  header["scan_wide_params"] = swp;
   auto scan_wide_param_hold = pflib::ROC::TestParameters(roc, scan_wide_params);
 
   std::size_t i_param_point{0};
   pflib::DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
-        f << std::boolalpha << "# " << boost::json::serialize(header) << '\n';
+        f << std::boolalpha << "# " << header << '\n';
         for (const auto& [page, parameter] : param_names) {
           f << page << '.' << parameter << ',';
         }

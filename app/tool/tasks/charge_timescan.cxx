@@ -1,7 +1,8 @@
 #include "charge_timescan.h"
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -61,12 +62,12 @@ void charge_timescan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["channel"] = channel;
         header["calib"] = calib;
         header["highrange"] = highrange;
         header["ledflash"] = isLED;
-        f << std::boolalpha << "# " << boost::json::serialize(header) << '\n'
+        f << std::boolalpha << "# " << header << '\n'
           << "time," << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
