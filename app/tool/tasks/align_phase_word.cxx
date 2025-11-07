@@ -2,7 +2,6 @@
 
 #include "pflib/DecodeAndWrite.h"
 #include "pflib/utility/json.h"
-#include "pflib/zcu/UIO.h"
 
 ENABLE_LOGGING();
 
@@ -303,7 +302,6 @@ void align_phase_word(Target* tgt) {
       int bx_addr = 3;
       int bx_mask = 0xfff000;
       tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
-      uio_.read(3);
 
 
 
