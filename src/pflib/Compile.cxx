@@ -10,6 +10,8 @@
 #include <numeric>
 
 #include "pflib/Exception.h"
+#include "register_maps/register_maps.h"
+#include "register_maps/register_maps_types.h"
 
 namespace pflib {
 
@@ -19,30 +21,9 @@ std::string upper_cp(const std::string& str) {
   return STR;
 }
 
-#include "register_maps/register_maps.h"
-
 Compiler Compiler::get(const std::string& type_version) {
-  auto chip_it = REGISTER_MAP_BY_TYPE.find(type_version);
-  if (chip_it != REGISTER_MAP_BY_TYPE.end()) {
-    // printf("[DEBUG] Found type: %s\n", type_version.c_str());
-
-    // print out the first few page names
-    /*
-    const auto& page_lut = chip_it->second.first;
-    printf("[DEBUG] PAGE_LUT addr: %p, size=%zu\n",
-           (void*)&page_lut, page_lut.size());
-    if (!page_lut.empty()) {
-      printf("[DEBUG] First few pages:\n");
-      int count = 0;
-      for (const auto& p : page_lut) {
-        printf("    %s\n", p.first.c_str());
-        if (++count > 5) break;
-      }
-    } else {
-      printf("[WARN] PAGE_LUT is empty!\n");
-    }
-    */
-
+  auto chip_it = register_maps::get().find(type_version);
+  if (chip_it != register_maps::get().end()) {
     return Compiler(chip_it->second.second, chip_it->second.first);
   }
 

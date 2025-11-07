@@ -21,6 +21,8 @@ class ECON {
 
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);
+  int getPUSMRunValue();
+  int getPUSMStateValue();
   bool isRunMode();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
