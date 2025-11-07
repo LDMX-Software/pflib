@@ -20,9 +20,10 @@ static void print_daq_status(Target* pft) {
             << std::endl;
 
   std::map<std::string, uint32_t> dbg;
-  dbg=daq.get_debug(0);
+  dbg = daq.get_debug(0);
   for (auto x : dbg) {
-    std::cout << "   " << x.first << ": 0x" << std::hex << x.second << std::dec << std::endl;
+    std::cout << "   " << x.first << ": 0x" << std::hex << x.second << std::dec
+              << std::endl;
   }
 }
 
@@ -157,9 +158,7 @@ static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
 
-
-  if (pftool::state.readout_config()==pftool::State::CFG_HCALFMC) {
-
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
     /**
      * In order to be able to shift the trigger link delay
      * away from zero and allow us to capture a pre-sample
@@ -179,16 +178,16 @@ static void daq_setup_standard(Target* tgt) {
     auto& daq{tgt->hcal().daq()};
     for (int i = 0; i < daq.nlinks(); i++) {
       if (i < 2) {
-	/// DAQ link, timed in with pedestals and idles
-	daq.setupLink(i, 12, 40);
+        /// DAQ link, timed in with pedestals and idles
+        daq.setupLink(i, 12, 40);
       } else {
-	/**
-	 * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
-	 *
-	 * There is only one word per crossing per trigger link,
-	 * but we capture four (one pre-sample and 2 following samples).
-	 */
-	daq.setupLink(i, 3, 4);
+        /**
+         * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
+         *
+         * There is only one word per crossing per trigger link,
+         * but we capture four (one pre-sample and 2 following samples).
+         */
+        daq.setupLink(i, 3, 4);
       }
     }
   }

@@ -22,7 +22,7 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 }
 
 void pftool::State::init(Target* tgt, int cfg) {
-  cfg_=cfg;
+  cfg_ = cfg;
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->hcal().roc_ids()};
   for (int id : roc_ids) {
@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
 
       // initialize connection
       std::unique_ptr<Target> p_pft;
-      int readout_cfg=0;
+      int readout_cfg = 0;
       try {
         switch (mode) {
           case Fiberless:
@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
             break;
           case UIO_ZCU:
             p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
-	    readout_cfg=pftool::State::CFG_HCALOPTO;
+            readout_cfg = pftool::State::CFG_HCALOPTO;
             break;
           default:
             PFEXCEPTION_RAISE(
@@ -443,7 +443,7 @@ int main(int argc, char* argv[]) {
             options.contents().getString("runnumber_file");
       }
 
-      pftool::state.init(p_pft.get(),readout_cfg);
+      pftool::state.init(p_pft.get(), readout_cfg);
 
       if (p_pft) {
         // prepare the links
