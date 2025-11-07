@@ -79,28 +79,28 @@ class OptoElinksZCU : public Elinks {
 };
 
 class HcalBackplaneZCU_Capture : public DAQ {
-  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604/4;
-  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600/4;
+  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604 / 4;
+  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600 / 4;
   static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
-  static constexpr uint32_t ADDR_ENABLE = 0x600/4;
+  static constexpr uint32_t ADDR_ENABLE = 0x600 / 4;
   static constexpr uint32_t MASK_ENABLE = 0x00000001;
-  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100/4;
+  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100 / 4;
   static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_IO = 0x080/4;
+  static constexpr uint32_t ADDR_ADV_IO = 0x080 / 4;
   static constexpr uint32_t MASK_ADV_IO = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_AXIS = 0x080/4;
+  static constexpr uint32_t ADDR_ADV_AXIS = 0x080 / 4;
   static constexpr uint32_t MASK_ADV_AXIS = 0x00000002;
 
-  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400/4;
+  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400 / 4;
   static constexpr uint32_t MASK_ECON_ID = 0x000003FF;
   static constexpr uint32_t MASK_L1A_PER_PACKET = 0x00007C00;
   static constexpr uint32_t MASK_SOI = 0x000F8000;
   static constexpr uint32_t AXIS_ENABLE = 0x80000000;
 
-  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404/4;
+  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404 / 4;
   static constexpr uint32_t MASK_UPPER_ADDR = 0x0000003F;
-  
-  static constexpr uint32_t ADDR_INFO = 0x800/4;
+
+  static constexpr uint32_t ADDR_INFO = 0x800 / 4;
   static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
   static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
   static constexpr uint32_t MASK_AXIS_NWORDS = 0x1FFF0000;
@@ -162,7 +162,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
     pflib::DAQ::enable(doenable);
   }
   virtual bool enabled() {
-    return capture_.readMasked(ADDR_ENABLE,MASK_ENABLE);
+    return capture_.readMasked(ADDR_ENABLE, MASK_ENABLE);
   }
   virtual std::vector<uint32_t> getLinkData(int ilink) {
     uint32_t words = 0;
@@ -262,7 +262,6 @@ class HcalBackplaneZCU : public Hcal {
               board_i2c);
     }
 
-
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<HcalBackplaneZCU_Capture>();
@@ -314,9 +313,7 @@ class HcalBackplaneZCU : public Hcal {
 
   virtual Elinks& elinks() override { return *elinks_; }
 
-  virtual DAQ& daq() override {
-    return *daq_;
-  }
+  virtual DAQ& daq() override { return *daq_; }
 
  private:
   /// let the target that holds this Hcal see our members
@@ -345,7 +342,7 @@ class HcalBackplaneZCUTarget : public Target {
       i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
     }
 
-    fc_=std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
   virtual std::vector<uint32_t> read_event() override {
