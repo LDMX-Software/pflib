@@ -55,6 +55,8 @@ void align_phase_word(Target* tgt) {
   std::cout << "Decimal value of channels: " << binary_channels << std::endl;
 
 
+
+
   // ----- PHASE ALIGNMENT SCOPE ----- //
   {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -159,7 +161,10 @@ void align_phase_word(Target* tgt) {
                 << std::endl;
     }
   }  
-  // ------ END PHASE ALIGNMENT scope ------ //
+  // ------------ END PHASE ALIGNMENT scope ------------ //
+
+
+
 
 
   // ------------ WORD ALIGNMENT scope ----------- //
@@ -273,12 +278,13 @@ void align_phase_word(Target* tgt) {
       parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
 
       // BX value econ resets to when it recieves BCR (linkreset)
+      // Overall phase marker between ROC and ECON
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; 
       //0xdba
 
-      // BX value econ takes snapshot
+      // // BX value econ takes snapshot
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;  
-      // 0xdcc   
+      // // 0xdcc   
 
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;  
       // 0x95555555
@@ -301,17 +307,10 @@ void align_phase_word(Target* tgt) {
         parameters["ERX"][var_name_erx] = 1;
         parameters["ERX"][var_name_erxINV] = 1;
       }
-      auto econ_word_align_currentvals = econ.applyParameters(parameters);
+      auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
 
     //   ----- READING ECON REGISTERS ----- //
-      auto pattern = econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
-      std::cout 
-        << "Pattern = 0x" 
-        << std::hex << pattern 
-        << std::dec
-        << std::endl;
-
       std::map<int, int> ch_lock_values;
 
       // Channel Locking print outs
@@ -342,11 +341,11 @@ void align_phase_word(Target* tgt) {
         "ALIGNER", 
         "GLOBAL_SNAPSHOT_ARM");
 
-      std::cout 
-        << "Orbsyn_cnt_load_val = " << cnt_load_val 
-        << ", 0x" << std::hex << cnt_load_val 
-        << std::dec 
-        << std::endl;
+      // std::cout 
+      //   << "Orbsyn_cnt_load_val = " << cnt_load_val 
+      //   << ", 0x" << std::hex << cnt_load_val 
+      //   << std::dec 
+      //   << std::endl;
       std::cout 
         << "Global snapshot ARM = " << snapshot_arm 
         << ", 0x" << std::hex << snapshot_arm 
@@ -354,21 +353,31 @@ void align_phase_word(Target* tgt) {
         << std::endl;
     // ----------------------------------- //
 
+
+      // --- SCAN BUNCH CROSSINGS --- //
+      std::vector<int> snapshot_range;
+      int start_val = 0;  // near your orbit region of interest
+      int end_val   = 3563;  // up to orbit rollover
+
+      // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 6) {
+      //   parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+      //   auto econ_word_align_currentvals = econ.applyParameters(parameters);
+
       // ----------- FAST CONTROL ----------- //
       // LINK_RESET
       tgt->fc().orbit_count_reset();
-      usleep(100);
+      // usleep(100);
       tgt->fc().standard_setup();
       tgt->fc().linkreset_rocs();
 
-      // print out command counters
-      auto cmdcounters = tgt->fc().getCmdCounters();
-      std::cout << std::endl;
-      std::cout << "Counter outputs: " << std::endl;
-      for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
-        std::cout << counterNames[i] << ": " << cmdcounters[i] << std::endl;
-      }
-      std::cout << std::endl;
+      // // print out command counters
+      // auto cmdcounters = tgt->fc().getCmdCounters();
+      // std::cout << std::endl;
+      // std::cout << "Counter outputs: " << std::endl;
+      // for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
+      //   std::cout << counterNames[i] << ": " << cmdcounters[i] << std::endl;
+      // }
+      // std::cout << std::endl;
 
       // Try other fast commands to test counter increase
       tgt->fc().bufferclear();
