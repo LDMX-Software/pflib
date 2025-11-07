@@ -243,12 +243,20 @@ void adc(const std::string& cmd, ToolBox* target) {
 }
 
 void elink(const std::string& cmd, ToolBox* target) {
+  static int ilink = 0;
   if (cmd == "SPY") {
     LPGBT_Mezz_Tester mezz(target->olink->coder());
-    bool isrx = tool::readline_bool("Spy on an RX? (false for TX) ", false);
-    int ilink = tool::readline_int("Which elink to spy", 0);
+    static bool isrx = false;
+    isrx = tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
+    ilink = tool::readline_int("Which elink to spy", ilink);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
     for (size_t i = 0; i < words.size(); i++) printf("%3d %08x\n", i, words[i]);
+  }
+  if (cmd == "PHASE") {
+    LPGBT_Mezz_Tester mezz(target->olink->coder());
+    ilink = tool::readline_int("Which elink to adjust phase for", ilink);
+    int phase = tool::readline_int("New phase", mezz.get_phase(ilink));
+    mezz.set_phase(phase, ilink);
   }
   if (cmd == "ECSPY") {
     int magic = tool::readline_int("Magic for setup", 0);
@@ -734,7 +742,7 @@ auto gen =
     tool::menu("GENERAL", "GENERAL funcations")
         ->line("STATUS", "Status summary", general)
         ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
-        ->line("STANDARD_HCA", "Apply standard HCAL lpGBT setups", general)
+        ->line("STANDARD_HCAL", "Apply standard HCAL lpGBT setups", general)
         ->line("EXPERT_STANDARD_HCAL_DAQ",
                "Apply just standard HCAL DAQ lpGBT setup", general)
         ->line("EXPERT_STANDARD_HCAL_TRIG",
@@ -763,6 +771,7 @@ auto mgpio = tool::menu("GPIO", "GPIO controls")
 auto melink = tool::menu("ELINK", "Elink-related items")
                   ->line("SETUP", "Setup a pin", elink)
                   ->line("PATTERN", "Pattern selection for", elink)
+                  ->line("PHASE", "Set the bitslip for an eRx", elink)
                   ->line("SPY", "Spy on one or more pins", elink)
                   ->line("ECSPY", "Spy on the EC link", elink)
                   ->line("ICSPY", "Spy on the IC link", elink);

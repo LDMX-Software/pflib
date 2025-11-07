@@ -83,6 +83,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
   // trim_toa is a channel-wise parameter (1 value per channel)
   std::array<uint64_t, 72> target;
+
   // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency
   // here.
   std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
@@ -189,6 +190,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   // now, write the settings, but this is just placeholder for now!
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
+
   std::array<int, 2> targetss = {0, 0};
   for (int i_link{0}; i_link < 2; i_link++) {
     std::string page{pflib::utility::string_format("CH_%d", i_link)};
