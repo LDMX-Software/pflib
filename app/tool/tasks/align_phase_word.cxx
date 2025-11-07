@@ -229,18 +229,12 @@ void align_phase_word(Target* tgt) {
 
       // BX value econ resets to when it recieves BCR (linkreset)
       // Overall phase marker between ROC and ECON
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;
-      // 0xdba
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; 
+      //0xdba
 
-<<<<<<< HEAD
       // // // BX value econ takes snapshot
       // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;  
       // // // 0xdcc   
-=======
-      // // BX value econ takes snapshot
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
-      // // 0xdcc
->>>>>>> 0f8c5f527cfb9af46b073daf24f8fd3cd6cd27d1
 
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
       // 0x95555555
@@ -263,7 +257,8 @@ void align_phase_word(Target* tgt) {
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
-      //   ----- READING ECON REGISTERS ----- //
+
+    //   ----- READING ECON REGISTERS ----- //
       std::map<int, int> ch_lock_values;
 
       // Channel Locking print outs
@@ -294,7 +289,6 @@ void align_phase_word(Target* tgt) {
                 << std::hex << snapshot_arm << std::dec << std::endl;
       // ----------------------------------- //
 
-<<<<<<< HEAD
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
@@ -304,17 +298,6 @@ void align_phase_word(Target* tgt) {
       for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 6) {
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
-=======
-      // --- SCAN BUNCH CROSSINGS --- //
-      std::vector<int> snapshot_range;
-      int start_val = 0;   // near your orbit region of interest
-      int end_val = 3563;  // up to orbit rollover
-
-      // for (int snapshot_val = start_val; snapshot_val <= end_val;
-      // snapshot_val += 6) {
-      //   parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
-      //   auto econ_word_align_currentvals = econ.applyParameters(parameters);
->>>>>>> 0f8c5f527cfb9af46b073daf24f8fd3cd6cd27d1
 
         // FAST CONTROL - LINK_RESET
         tgt->fc().orbit_count_reset();
@@ -413,11 +396,11 @@ void align_phase_word(Target* tgt) {
                   << "(0xa0 = failed alignment)" << std::endl;
       } 
       
-      // // Custom BX value
-      // int bx_new = 3000;
-      // int bx_addr = 3;
-      // int bx_mask = 0xfff000;
-      // tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+      // Custom BX value
+      int bx_new = 3000;
+      int bx_addr = 3;
+      int bx_mask = 0xfff000;
+      tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
 
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
