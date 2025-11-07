@@ -13,6 +13,9 @@ ERX:
   11_ENABLE: 0
 ETX:
   0_INVERT_DATA: 1 # invert data
+ELINKPROCESSORS:
+  GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same 
+  GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
 FORMATTERBUFFER:
   GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
   GLOBAL_IDLE_PATTERN: 0x1277cc
