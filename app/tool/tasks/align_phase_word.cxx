@@ -253,7 +253,7 @@ void align_phase_word(Target* tgt) {
 
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] = 1;
-        parameters["ERX"][var_name_erxINV] = 0;
+        parameters["ERX"][var_name_erxINV] = 1;
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
       econ.setValue(0x0381, 0x95555555a5555555, 8); 
