@@ -297,11 +297,18 @@ void align_phase_word(Target* tgt) {
 
 
 
+      // Custom BX value
+      int bx_new = 3000;
+      int bx_addr = 3;
+      int bx_mask = 0xfff000;
+      tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+
       // FAST CONTROL - LINK_RESET
       tgt->fc().orbit_count_reset();
       // usleep(100);
       tgt->fc().standard_setup();
       tgt->fc().linkreset_rocs();
+      
 
       for (int snapshot_val = start_val; snapshot_val <= end_val;
            snapshot_val += 5) {
@@ -429,11 +436,7 @@ void align_phase_word(Target* tgt) {
                   << "(0xa0 = failed alignment)" << std::endl;
       }
 
-      // Custom BX value
-      int bx_new = 3000;
-      int bx_addr = 3;
-      int bx_mask = 0xfff000;
-      tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+      
 
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
