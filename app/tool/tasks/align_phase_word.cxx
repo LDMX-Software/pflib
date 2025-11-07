@@ -253,7 +253,7 @@ void align_phase_word(Target* tgt) {
 
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] = 1;
-        parameters["ERX"][var_name_erxINV] = 1;
+        parameters["ERX"][var_name_erxINV] = 0;
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
       econ.setValue(0x0381, 0x95555555a5555555, 8); 
@@ -291,16 +291,23 @@ void align_phase_word(Target* tgt) {
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
-      int start_val = 3503; //0;   // near your orbit region of interest
+      int start_val = 0; //0;   // near your orbit region of interest
       int end_val = 3563;  // up to orbit rollover
       int testval = 3532; 
 
+
+
+      // FAST CONTROL - LINK_RESET
+      tgt->fc().orbit_count_reset();
+      // usleep(100);
+      tgt->fc().standard_setup();
+      tgt->fc().linkreset_rocs();
+
       for (int snapshot_val = start_val; snapshot_val <= end_val;
-           snapshot_val += 6) {
+           snapshot_val += 5) {
         // int snapshot_val = testval;
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
-
 
 
         auto tmp_load_val =
@@ -310,9 +317,6 @@ void align_phase_word(Target* tgt) {
                   
 
         // FAST CONTROL - LINK_RESET
-        tgt->fc().orbit_count_reset();
-        // usleep(100);
-        tgt->fc().standard_setup();
         tgt->fc().linkreset_rocs();
 
         // print out snapshot
