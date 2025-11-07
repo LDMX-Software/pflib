@@ -16,13 +16,18 @@
  * - LINKTRICK : try a simple trick to re-align the optical links
  */
 void opto(const std::string& cmd, Target* target) {
-  static const int irx = 8;
-  static const int itx = 8;
-  static const std::string target_name = "standardLpGBTpair-0";
-  static pflib::zcu::OptoLink olink(target_name);
+  static const int iolink = 0;
+  const std::vector<pflib::OptoLink*>& olinks=target->optoLinks();
+
+  if (olinks.size()<=iolink) {
+    printf("Requested optical link does not exist\n");
+    return;
+  }
+  pflib::OptoLink& olink=*olinks[iolink];
+
   if (cmd == "FULLSTATUS") {
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_polarity(itx, false),
-           olink.get_polarity(irx, true));
+    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
+           olink.get_rx_polarity());
     std::map<std::string, uint32_t> info;
     info = olink.opto_status();
     printf("Optical status:\n");
@@ -41,22 +46,15 @@ void opto(const std::string& cmd, Target* target) {
   }
   if (cmd == "POLARITY") {
     bool change;
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_polarity(itx, false),
-           olink.get_polarity(irx, true));
+    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
+           olink.get_rx_polarity());
     change = pftool::readline_bool("Change TX polarity? ", false);
-    if (change) olink.set_polarity(!olink.get_polarity(itx, false), itx, false);
+    if (change) olink.set_tx_polarity(!olink.get_tx_polarity());
     change = pftool::readline_bool("Change RX polarity? ", false);
-    if (change) olink.set_polarity(!olink.get_polarity(irx, true), irx, true);
+    if (change) olink.set_rx_polarity(!olink.get_tx_polarity());
   }
   if (cmd == "LINKTRICK") {
-    // configure lpGBT for Internal Communication (IC)
-    int chipaddr = 0x78 | 0x04;
-    pflib::zcu::lpGBT_ICEC_Simple ic(target_name, false, chipaddr);
-    // pass configuration to lpGBT object
-    pflib::lpGBT lpgbt(ic);
-    lpgbt.write(0x128, 0x5);
-    sleep(1);
-    lpgbt.write(0x128, 0x0);
+    olink.run_linktrick();
   }
 }
 

@@ -17,20 +17,19 @@ struct ToolBox {
   pflib::lpGBT* lpgbt_i2c{0};
   pflib::lpGBT* lpgbt_ic{0};
   pflib::lpGBT* lpgbt_ec{0};
-  pflib::zcu::OptoLink* olink{0};
+  pflib::OptoLink* olink_daq{0};
+  pflib::OptoLink* olink_trig{0};
   pflib::power_ctl_mezz* p_ctl{0};
+  std::string coder_name;
 };
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
 void opto(const std::string& cmd, ToolBox* target) {
-  static const int irx = 8;
-  static const int itx = 8;
-
-  pflib::zcu::OptoLink& olink = *(target->olink);
+  pflib::OptoLink& olink = *(target->olink_daq);
   if (cmd == "FULLSTATUS") {
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_polarity(itx, false),
-           olink.get_polarity(irx, true));
+    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
+           olink.get_rx_polarity());
     std::map<std::string, uint32_t> info;
     info = olink.opto_status();
     printf("Optical status:\n");
@@ -49,17 +48,16 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "POLARITY") {
     bool change;
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_polarity(itx, false),
-           olink.get_polarity(irx, true));
+    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
+           olink.get_rx_polarity());
     change = tool::readline_bool("Change TX polarity? ", false);
-    if (change) olink.set_polarity(!olink.get_polarity(itx, false), itx, false);
+    if (change) olink.set_tx_polarity(!olink.get_tx_polarity());
     change = tool::readline_bool("Change RX polarity? ", false);
-    if (change) olink.set_polarity(!olink.get_polarity(irx, true), irx, true);
+    if (change) olink.set_rx_polarity(!olink.get_rx_polarity());
   }
   if (cmd == "LINKTRICK") {
-    target->lpgbt->write(0x128, 0x5);
-    sleep(1);
-    target->lpgbt->write(0x128, 0x0);
+    if (target->olink_daq!=0) target->olink_daq->run_linktrick();
+    if (target->olink_trig!=0) target->olink_trig->run_linktrick();
   }
 }
 
@@ -135,7 +133,7 @@ void general(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "RESET") {
     if (target->lpgbt_i2c != 0) {
-      LPGBT_Mezz_Tester tester(target->olink->coder());
+      LPGBT_Mezz_Tester tester(target->coder_name);
       tester.reset_lpGBT();
     } else {  // resets the TRIGGER lpGBT
       target->lpgbt_ic->gpio_set(11, false);
@@ -151,7 +149,7 @@ void general(const std::string& cmd, ToolBox* target) {
     printf("Applied standard HCAL TRIG configuration\n");
   }
   if (cmd == "MODE") {
-    LPGBT_Mezz_Tester tester(target->olink->coder());
+    LPGBT_Mezz_Tester tester(target->coder_name);
     printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-only\n");
     bool wasMode, wasAddr;
     tester.get_mode(wasAddr, wasMode);
@@ -245,7 +243,7 @@ void adc(const std::string& cmd, ToolBox* target) {
 void elink(const std::string& cmd, ToolBox* target) {
   static int ilink = 0;
   if (cmd == "SPY") {
-    LPGBT_Mezz_Tester mezz(target->olink->coder());
+    LPGBT_Mezz_Tester mezz(target->coder_name);
     static bool isrx = false;
     isrx = tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
     ilink = tool::readline_int("Which elink to spy", ilink);
@@ -259,20 +257,21 @@ void elink(const std::string& cmd, ToolBox* target) {
     mezz.set_phase(phase, ilink);
   }
   if (cmd == "ECSPY") {
+    LPGBT_Mezz_Tester mezz(target->coder_name);
     int magic = tool::readline_int("Magic for setup", 0);
     if (magic == 1) {
-      ::pflib::UIO& raw = target->olink->coder();
+      ::pflib::UIO& raw = mezz.coder();
       raw.write(67, 0 << 8);            // disable external
       raw.write(69, 0 << (8 + 3 + 4));  // disable prbs and clear
     }
     if (magic == 2) {
-      ::pflib::UIO& raw = target->olink->coder();
+      ::pflib::UIO& raw = mezz.coder();
       raw.write(67, 1 << 8);            // enable external
       raw.write(69, 0 << (8 + 3 + 4));  // disable prbs and clear
     }
     int imode = tool::readline_int("Which mode (zero for immediate)", 0);
     std::vector<uint8_t> tx, rx;
-    target->olink->capture_ec(imode, tx, rx);
+    target->olink_daq->capture_ec(imode, tx, rx);
     std::string stx, srx;
     for (size_t i = 0; i < tx.size(); i++) {
       stx += (tx[i] & 0x2) ? ("1") : ("0");
@@ -289,7 +288,7 @@ void elink(const std::string& cmd, ToolBox* target) {
   if (cmd == "ICSPY") {
     int imode = tool::readline_int("Which mode (zero for immediate)", 0);
     std::vector<uint8_t> tx, rx;
-    target->olink->capture_ic(imode, tx, rx);
+    target->olink_daq->capture_ic(imode, tx, rx);
     std::string stx, srx;
     for (size_t i = 0; i < tx.size(); i++) {
       stx += (tx[i] & 0x2) ? ("1") : ("0");
@@ -310,8 +309,8 @@ void elink(const std::string& cmd, ToolBox* target) {
     if (isrx) {
     } else {
       int mode = tool::readline_int("Change to mode",
-                                    target->olink->get_elink_tx_mode(ilink));
-      target->olink->set_elink_tx_mode(ilink, mode);
+                                    target->olink_daq->get_elink_tx_mode(ilink));
+      target->olink_daq->set_elink_tx_mode(ilink, mode);
     }
   }
 }
@@ -535,13 +534,13 @@ bool test_adc(ToolBox* target) {
 }
 
 bool test_ctl(ToolBox* target) {
-  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  LPGBT_Mezz_Tester mezz(target->coder_name);
   printf("CTL Elink PRBS scan\n");
   std::vector<int> nok(7, 0), nbad(7, 0);
   // ensure that the lpGBT is setup properly for transmitting the fast control
   for (int i = 0; i < 7; i++) target->lpgbt->setup_etx(i, true);
   // set all the CTL links to mode (4) (just 4 links in this counting...)
-  for (int i = 0; i < 4; i++) target->olink->set_elink_tx_mode(i, 4);
+  for (int i = 0; i < 4; i++) target->olink_daq->set_elink_tx_mode(i, 4);
 
   bool ok = true;
   for (int ilink = 0; ilink < 7; ilink++) {
@@ -588,9 +587,9 @@ bool test_ec(ToolBox* target) {
   // using the capture as a weak replacement for now
   printf("EC PRBS scan\n");
 
-  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  LPGBT_Mezz_Tester mezz(target->coder_name);
   // very very magic
-  ::pflib::UIO& raw = target->olink->coder();
+  ::pflib::UIO& raw = mezz.coder();
 
   target->lpgbt->setup_ec(true, 4, true, 0);  // need to invert one or the other
 
@@ -607,7 +606,7 @@ bool test_ec(ToolBox* target) {
     uint32_t errors = 0;
 
     for (int cycle = 0; cycle < 100; cycle++) {
-      target->olink->capture_ec(0, tx, rx);
+      target->olink_daq->capture_ec(0, tx, rx);
 
       std::vector<bool> srx;
       for (size_t i = 0; i < tx.size(); i++) {
@@ -634,7 +633,7 @@ bool test_ec(ToolBox* target) {
 }
 
 bool test_elinks(ToolBox* target) {
-  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  LPGBT_Mezz_Tester mezz(target->coder_name);
   printf("Data/Trigger Elink PRBS scan\n");
   std::vector<int> nok(6, 0), nbad(6, 0);
   // ensure that the lpGBT is setup properly for receiving the data
@@ -678,7 +677,7 @@ bool test_elinks(ToolBox* target) {
 }
 
 bool test_eclk(ToolBox* target) {
-  LPGBT_Mezz_Tester mezz(target->olink->coder());
+  LPGBT_Mezz_Tester mezz(target->coder_name);
   int errors = 0;
   for (int iclk = 0; iclk < 8; iclk++) {
     static constexpr int BIN[4] = {40, 80, 160, 320};
@@ -859,10 +858,13 @@ int main(int argc, char* argv[]) {
 
   ToolBox t;
 
-  pflib::zcu::OptoLink olink(target_name.c_str());
+  pflib::zcu::ZCUOptoLink olink(target_name);
+  pflib::zcu::ZCUOptoLink olinkt(target_name,1,false);
+  t.coder_name=target_name;
+  
   int chipaddr = 0x78;
   if (wired) {
-    LPGBT_Mezz_Tester tester(olink.coder());
+    LPGBT_Mezz_Tester tester(t.coder_name);
     bool addr, mode1;
     tester.get_mode(addr, mode1);  // need to determine address
     if (addr) chipaddr |= 0x1;
@@ -887,7 +889,8 @@ int main(int argc, char* argv[]) {
     t.lpgbt = t.lpgbt_i2c;
   else
     t.lpgbt = t.lpgbt_ic;
-  t.olink = &olink;
+  t.olink_daq = &olink;
+  t.olink_trig = &olinkt;
 
   /// need to make sure the voltage is at a safe level, will be done
   /// automatically here

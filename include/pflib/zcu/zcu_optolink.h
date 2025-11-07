@@ -1,41 +1,51 @@
 #ifndef ZCU_OPTOLINK_INCLUDED
 #define ZCU_OPTOLINK_INCLUDED 1
 
-#include <map>
-#include <vector>
-
+#include "pflib/OptoLink.h"
 #include "pflib/zcu/UIO.h"
+#include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
+#include <memory>
 
 namespace pflib {
 namespace zcu {
 
-class OptoLink {
- public:
-  OptoLink(const std::string& name = "singleLPGBT");
+  class ZCUOptoLink : public pflib::OptoLink {
+  public:
+    ZCUOptoLink(const std::string& name = "singleLPGBT", int ilink=0, bool isdaq=true);
 
-  void reset_link();
+    virtual int ilink() { return ilink_; }
+    virtual bool is_bidirectional() { return isdaq_; }
+    virtual void reset_link();
+    virtual void run_linktrick();
 
-  bool get_polarity(int ichan, bool is_rx = true);
-  void set_polarity(bool polarity, int ichan, bool is_rx = true);
+    virtual bool get_rx_polarity();
+    virtual bool get_tx_polarity();
+    virtual void set_rx_polarity(bool polarity);
+    virtual void set_tx_polarity(bool polarity);
 
-  std::map<std::string, uint32_t> opto_status();
-  std::map<std::string, uint32_t> opto_rates();
+    virtual std::map<std::string, uint32_t> opto_status();
+    virtual std::map<std::string, uint32_t> opto_rates();
 
-  ::pflib::UIO& coder() { return coder_; }
+    virtual lpGBT_ConfigTransport& lpgbt_transport() { return *transport_; }
 
-  // setup various aspects
-  /// there are four TX elinks configured in the coder block
-  int get_elink_tx_mode(int ilink);
-  void set_elink_tx_mode(int ilink, int mode);
+    ::pflib::UIO& coder() { return coder_; }
+    
+    // setup various aspects
+    /// there are four TX elinks configured in the coder block
+    virtual int get_elink_tx_mode(int elink);
+    virtual void set_elink_tx_mode(int elink, int mode);
 
-  void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
-  void capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
+    virtual void capture_ec(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
+    virtual void capture_ic(int mode, std::vector<uint8_t>& tx, std::vector<uint8_t>& rx);
 
- private:
-  ::pflib::UIO transright_;
-  ::pflib::UIO coder_;
-  std::string coder_name_;
-};
+  private:
+    std::unique_ptr<::pflib::zcu::lpGBT_ICEC_Simple> transport_;
+    ::pflib::UIO transright_;
+    ::pflib::UIO coder_;
+    std::string coder_name_;
+    int ilink_;
+    bool isdaq_;
+  };
 
 }  // namespace zcu
 }  // namespace pflib
