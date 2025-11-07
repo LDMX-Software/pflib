@@ -2,6 +2,7 @@
 
 #include "pflib/DecodeAndWrite.h"
 #include "pflib/utility/json.h"
+#include "pflib/zcu/UIO.h"
 
 ENABLE_LOGGING();
 
