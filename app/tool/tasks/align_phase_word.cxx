@@ -389,8 +389,8 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner select " << channel << " = " << ch_select
                   << ", 0x" << std::hex << ch_select << std::dec
                   << "(0xa0 = failed alignment)" << std::endl;
-      } 
-      
+      }
+
       // Custom BX value
       int bx_new = 3000;
       int bx_addr = 3;
