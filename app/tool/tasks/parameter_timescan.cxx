@@ -1,8 +1,7 @@
 #include "parameter_timescan.h"
 
-#include <nlohmann/json.hpp>
-
 #include <filesystem>
+#include <nlohmann/json.hpp>
 
 #include "load_parameter_points.h"
 #include "pflib/DecodeAndWrite.h"
@@ -91,8 +90,7 @@ void parameter_timescan(Target* tgt) {
         nlohmann::json header;
         header["highrange"] = highrange;
         header["preCC"] = preCC;
-        f << std::boolalpha << "# " << header << '\n'
-          << "time,";
+        f << std::boolalpha << "# " << header << '\n' << "time,";
         for (const auto& [page, parameter] : param_names) {
           f << page << '.' << parameter << ',';
         }

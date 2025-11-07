@@ -1,7 +1,6 @@
 #include "gen_scan.h"
 
 #include <filesystem>
-
 #include <nlohmann/json.hpp>
 
 #include "load_parameter_points.h"
