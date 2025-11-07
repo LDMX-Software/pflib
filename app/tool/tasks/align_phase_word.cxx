@@ -302,6 +302,9 @@ void align_phase_word(Target* tgt) {
       int bx_addr = 3;
       int bx_mask = 0xfff000;
       tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
+      // auto bxread = uio_.read(3);
+
+
 
       // FAST CONTROL - LINK_RESET
       tgt->fc().orbit_count_reset();
@@ -314,10 +317,10 @@ void align_phase_word(Target* tgt) {
            snapshot_val += 5) {
         // int snapshot_val = testval;
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
-        parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 1;
+        // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 1;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
-        parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
-        econ_word_align_currentvals = econ.applyParameters(parameters);
+        // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+        // econ_word_align_currentvals = econ.applyParameters(parameters);
 
 
         auto tmp_load_val =
