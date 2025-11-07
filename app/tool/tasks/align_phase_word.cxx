@@ -302,7 +302,7 @@ void align_phase_word(Target* tgt) {
       int bx_addr = 3;
       int bx_mask = 0xfff000;
       tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
-      // auto bxread = uio_.read(3);
+      uio_.read(3);
 
 
 
