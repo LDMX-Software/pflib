@@ -10,7 +10,7 @@
 #include <numeric>
 
 #include "pflib/Exception.h"
-#include "register_maps/register_maps.h" 
+#include "register_maps/register_maps.h"
 #include "register_maps/register_maps_types.h"
 
 namespace pflib {
