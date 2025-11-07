@@ -234,7 +234,7 @@ void align_phase_word(Target* tgt) {
 
 <<<<<<< HEAD
       // // // BX value econ takes snapshot
-      // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;  
+      // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
       // // // 0xdcc   
 =======
       // // BX value econ takes snapshot
@@ -298,10 +298,11 @@ void align_phase_word(Target* tgt) {
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
-      int start_val = 0;  // near your orbit region of interest
-      int end_val   = 3563;  // up to orbit rollover
+      int start_val = 0;   // near your orbit region of interest
+      int end_val = 3563;  // up to orbit rollover
 
-      for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 6) {
+      for (int snapshot_val = start_val; snapshot_val <= end_val;
+           snapshot_val += 6) {
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
 =======
@@ -331,7 +332,7 @@ void align_phase_word(Target* tgt) {
           std::string var_name_snapshot3 =
               std::to_string(channel) + "_SNAPSHOT_2";
           auto ch_snapshot_1 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+              econ.dumpParameter("CHALIGNER", var_name_snapshot1);
           auto ch_snapshot_2 =
               econ.dumpParameter("CHALIGNER", var_name_snapshot2);
           auto ch_snapshot_3 =
@@ -339,23 +340,19 @@ void align_phase_word(Target* tgt) {
         }
 
         std::ostringstream hexstring;
-        hexstring << std::hex << std::setfill('0')
-                  << std::setw(16) << ch_snapshot_1
-                  << std::setw(16) << ch_snapshot_2
+        hexstring << std::hex << std::setfill('0') << std::setw(16)
+                  << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
                   << std::setw(16) << ch_snapshot_3;
         std::string snapshot_hex = hexstring.str();
 
         if (snapshot_hex.find("95555555") != std::string::npos) {
-          std::cout << "Header match near BX "
-                    << snapshot_val
-                    << " (channel " << channel << ") "
+          std::cout << "Header match near BX " << snapshot_val << " (channel "
+                    << channel << ") "
                     << "snapshot_hex: 0x" << snapshot_hex << std::endl;
-          snapshot_6bx=snapshot_val;
+          snapshot_6bx = snapshot_val;
         }
       }
-    // -------------- END BX SCAN ------------ //
-
-
+      // -------------- END BX SCAN ------------ //
 
       // ------- READING ECON REGISTERS ------- //
       // READ SNAPSHOT
@@ -411,8 +408,8 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner select " << channel << " = " << ch_select
                   << ", 0x" << std::hex << ch_select << std::dec
                   << "(0xa0 = failed alignment)" << std::endl;
-      } 
-      
+      }
+
       // // Custom BX value
       // int bx_new = 3000;
       // int bx_addr = 3;
