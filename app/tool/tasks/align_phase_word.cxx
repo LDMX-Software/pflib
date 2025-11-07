@@ -173,7 +173,7 @@ void align_phase_word(Target* tgt) {
       // auto params = roc.getParameters("DIGITALHALF_0");
 
       // ----- READING ROC REGISTERS ----- //
-      params = roc.getParameters("TOP");
+      auto params = roc.getParameters("TOP");
       auto inv_fc_rx = params.find("IN_INV_CMD_RX")->second;
 
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
