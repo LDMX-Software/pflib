@@ -336,6 +336,22 @@ void align_phase_word(Target* tgt) {
                     << std::setw(16) << ch_snapshot_3;
           std::string snapshot_hex = hexstring.str();
 
+
+
+          // 192-bit >> 1 shift
+          uint64_t w0_shifted = (ch_snapshot_1 >> 1);
+          uint64_t w1_shifted = (ch_snapshot_2 >> 1) | ((ch_snapshot_1 & 1ULL) << 63);
+          uint64_t w2_shifted = (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
+
+          std::ostringstream hexstring_sh;
+          hexstring_sh << std::hex << std::setfill('0')
+                    << std::setw(16) << w2_shifted
+                    << std::setw(16) << w1_shifted
+                    << std::setw(16) << w0_shifted;
+          snapshot_hex = hexstring_sh.str();
+
+
+
           if (snapshot_hex.find("95555555") != std::string::npos) {
             std::cout << "Header match near BX " << snapshot_val << " (channel "
                       << channel << ") "
