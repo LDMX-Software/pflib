@@ -18,6 +18,12 @@ static void print_daq_status(Target* pft) {
             << "              SoI: " << daq.soi() << "\n"
             << "  Event Occupancy: " << daq.getEventOccupancy() << "\n"
             << std::endl;
+
+  std::map<std::string, uint32_t> dbg;
+  dbg=daq.get_debug(0);
+  for (auto x : dbg) {
+    std::cout << "   " << x.first << ": 0x" << std::hex << x.second << std::dec << std::endl;
+  }
 }
 
 /**
@@ -151,38 +157,39 @@ static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
 
-  printf("CURRENTLY COMPILED FOR BACKPLANE USE\n");
-  return;
 
-  /**
-   * In order to be able to shift the trigger link delay
-   * away from zero and allow us to capture a pre-sample
-   * in the trigger path, we need to bring the L1A closer
-   * in time to the injected charge pulse.
-   */
-  tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
-  /// this then requires us to lower the L1OFFSET as well
-  std::map<std::string, std::map<std::string, uint64_t>> l1offsets;
-  l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
-  l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
-  /// @note only correct right now for the single-board readout
-  auto roc{tgt->hcal().roc(pftool::state.iroc)};
-  roc.applyParameters(l1offsets);
-  roc.setRunMode(true);
-  pflib::Elinks& elinks = tgt->hcal().elinks();
-  auto& daq{tgt->hcal().daq()};
-  for (int i = 0; i < daq.nlinks(); i++) {
-    if (i < 2) {
-      /// DAQ link, timed in with pedestals and idles
-      daq.setupLink(i, 12, 40);
-    } else {
-      /**
-       * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
-       *
-       * There is only one word per crossing per trigger link,
-       * but we capture four (one pre-sample and 2 following samples).
-       */
-      daq.setupLink(i, 3, 4);
+  if (pftool::state.readout_config()==pftool::State::CFG_HCALFMC) {
+
+    /**
+     * In order to be able to shift the trigger link delay
+     * away from zero and allow us to capture a pre-sample
+     * in the trigger path, we need to bring the L1A closer
+     * in time to the injected charge pulse.
+     */
+    tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
+    /// this then requires us to lower the L1OFFSET as well
+    std::map<std::string, std::map<std::string, uint64_t>> l1offsets;
+    l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
+    l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
+    /// @note only correct right now for the single-board readout
+    auto roc{tgt->hcal().roc(pftool::state.iroc)};
+    roc.applyParameters(l1offsets);
+    roc.setRunMode(true);
+    pflib::Elinks& elinks = tgt->hcal().elinks();
+    auto& daq{tgt->hcal().daq()};
+    for (int i = 0; i < daq.nlinks(); i++) {
+      if (i < 2) {
+	/// DAQ link, timed in with pedestals and idles
+	daq.setupLink(i, 12, 40);
+      } else {
+	/**
+	 * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
+	 *
+	 * There is only one word per crossing per trigger link,
+	 * but we capture four (one pre-sample and 2 following samples).
+	 */
+	daq.setupLink(i, 3, 4);
+      }
     }
   }
 }
@@ -219,6 +226,9 @@ static void daq(const std::string& cmd, Target* pft) {
 #endif
   if (cmd == "RESET") {
     daq.reset();
+  }
+  if (cmd == "LINK_ECON") {
+    pft->fc().linkreset_econs();
   }
   /*
   if (cmd=="EXTERNAL") {
@@ -587,6 +597,7 @@ auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
+        ->line("LINK_ECON", "Reset ECON links", daq)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq);
 
