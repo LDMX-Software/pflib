@@ -291,7 +291,7 @@ void align_phase_word(Target* tgt) {
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
-      int start_val = 3500; //0;   // near your orbit region of interest
+      int start_val = 0; //0;   // near your orbit region of interest
       int end_val = 3563;  // up to orbit rollover
       int testval = 3532; 
 
