@@ -298,6 +298,12 @@ void align_phase_word(Target* tgt) {
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
+        auto tmp_load_val = econ.dumpParameter(
+          "ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
+
+        std::cout << "Current load_val = " << tmp_load_val << ", 0x"
+                  << std::hex << tmp_load_val << std::dec << std::endl;
+
         // FAST CONTROL - LINK_RESET
         tgt->fc().orbit_count_reset();
         // usleep(100);
