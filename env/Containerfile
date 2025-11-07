@@ -9,7 +9,7 @@ RUN yum -y install \
   cmake \
   readline-devel \
   boost-devel \
-  json-devel \
+  nlohmann-json-devel \
   wget \
   python3 \
   python-yaml \
