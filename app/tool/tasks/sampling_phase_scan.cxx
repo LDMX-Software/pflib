@@ -1,7 +1,8 @@
 #include "sampling_phase_scan.h"
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 
 ENABLE_LOGGING();
 
@@ -17,11 +18,11 @@ void sampling_phase_scan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       fname,  // output file name
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["scan_type"] = "CH_#.PHASE_CK sweep";
         header["trigger"] = "PEDESTAL";
         header["nevents_per_point"] = nevents;
-        f << "#" << boost::json::serialize(header) << "\n"
+        f << "#" << header << "\n"
           << "PHASE_CK";
         for (int ch{0}; ch < 72; ch++) {
           f << "," << ch;

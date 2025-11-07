@@ -1,10 +1,11 @@
 #include "parameter_timescan.h"
 
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 
 #include "load_parameter_points.h"
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -87,10 +88,10 @@ void parameter_timescan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["highrange"] = highrange;
         header["preCC"] = preCC;
-        f << std::boolalpha << "# " << boost::json::serialize(header) << '\n'
+        f << std::boolalpha << "# " << header << '\n'
           << "time,";
         for (const auto& [page, parameter] : param_names) {
           f << page << '.' << parameter << ',';
