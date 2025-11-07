@@ -39,10 +39,11 @@ class pftool : public pflib::menu::Menu<Target*> {
  public:
   /// static variables to share across menu
   class State {
-  public:
-    static constexpr int CFG_HCALFMC   = 1;
-    static constexpr int CFG_HCALOPTO  = 2;
-  private:
+   public:
+    static constexpr int CFG_HCALFMC = 1;
+    static constexpr int CFG_HCALOPTO = 2;
+
+   private:
     /// list of page names for tab completion per ROC ID
     std::map<int, std::vector<std::string>> roc_page_names_;
     /// list of parameter names for tab-completion per ROC ID
