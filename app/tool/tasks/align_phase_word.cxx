@@ -352,7 +352,8 @@ void align_phase_word(Target* tgt) {
 
 
 
-          if (snapshot_hex.find("95555555") != std::string::npos) {
+          // if (snapshot_hex.find("95555555") != std::string::npos) {
+          if (snapshot_hex.find("955") != std::string::npos) {
             std::cout << "Header match near BX " << snapshot_val << " (channel "
                       << channel << ") "
                       << "snapshot_hex: 0x" << snapshot_hex << std::endl;
