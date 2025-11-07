@@ -291,7 +291,7 @@ void align_phase_word(Target* tgt) {
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
-      int start_val = 0;   // near your orbit region of interest
+      int start_val = 3530; //0;   // near your orbit region of interest
       int end_val = 3563;  // up to orbit rollover
       int testval = 3532; 
 
@@ -304,8 +304,8 @@ void align_phase_word(Target* tgt) {
 
 
         auto tmp_load_val =
-          econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-        std::cout << "Orbsyn_cnt_load_val = " << tmp_load_val << ", 0x"
+          econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
+        std::cout << "temp snapshot val = " << tmp_load_val << ", 0x"
                   << std::hex << tmp_load_val << std::dec << std::endl;
                   
 
