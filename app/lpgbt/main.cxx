@@ -251,7 +251,7 @@ void elink(const std::string& cmd, ToolBox* target) {
     for (size_t i = 0; i < words.size(); i++) printf("%3d %08x\n", i, words[i]);
   }
   if (cmd == "PHASE") {
-    LPGBT_Mezz_Tester mezz(target->olink->coder());
+    LPGBT_Mezz_Tester mezz(target->coder_name);
     ilink = tool::readline_int("Which elink to adjust phase for", ilink);
     int phase = tool::readline_int("New phase", mezz.get_phase(ilink));
     mezz.set_phase(phase, ilink);
