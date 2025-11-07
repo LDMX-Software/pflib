@@ -76,6 +76,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
 
 static void econ_status(const std::string& cmd, Target* tgt) {
   auto econ{tgt->hcal().econ(pftool::state.iecon)};
+
   // request that the counters are synchronously copied from internal to
   // readable registers avoiding compiler overhead for these parameters since
   // the compiler is very slow

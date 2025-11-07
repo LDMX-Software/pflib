@@ -1,0 +1,28 @@
+ERX:
+  0_ENABLE: 0
+  1_ENABLE: 0
+  2_ENABLE: 0
+  3_ENABLE: 0
+  4_ENABLE: 0
+  5_ENABLE: 0
+  6_ENABLE: 1 # for a HGCROC board connected in HGCROC1 in backplane
+  7_ENABLE: 1 # for a HGCROC board connected in HGCROC1 in backplane
+  8_ENABLE: 0
+  9_ENABLE: 0
+  10_ENABLE: 0
+  11_ENABLE: 0
+ETX:
+  0_INVERT_DATA: 1 # invert data
+ELINKPROCESSORS:
+  GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same 
+  GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
+FORMATTERBUFFER:
+  GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
+  GLOBAL_IDLE_PATTERN: 0x1277cc
+ROCDAQCTRL:
+  GLOBAL_PASS_THRU_MODE: 1
+  GLOBAL_MATCH_THRESHOLD: 0
+  GLOBAL_ACTIVE_ERXS: 0xC0 # active erx, 6 and 7 from HGCROC1
+ALIGNER:
+  GLOBAL_FREEZE_OUTPUT_ENABLE: 0 # use this since channels might not be locked
+  GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED: 0

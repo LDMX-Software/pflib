@@ -36,6 +36,9 @@ class FastControl {
   /** set custom bunch crossing */
   virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) = 0;
 
+  /** send a link reset to the ECONs*/
+  virtual void linkreset_econs() {};
+
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 

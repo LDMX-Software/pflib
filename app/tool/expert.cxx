@@ -99,7 +99,7 @@ static void i2c(const std::string& cmd, Target* target) {
  * - SPY : pflib::Elinks::spy
  * - AUTO :
  * - BITSLIP : pflib::Elinks::setBitslip
- * - BIGSPY : Target::elinksBigSpy
+ * - SPY : Target::Elinks::spy
  * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
@@ -304,8 +304,7 @@ auto menu_elinks =
         ->line("AUTO", "Attempt to re-align automatically", elinks)
         ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
         ->line("SCAN", "Scan on an elink", elinks)
-        ->line("DELAY", "Set the delay on an elink", elinks)
-        ->line("BIGSPY", "Take a spy of a specific channel at 32-bits", elinks);
+        ->line("DELAY", "Set the delay on an elink", elinks);
 
 auto menu_fc =
     menu_expert
