@@ -236,8 +236,8 @@ void align_phase_word(Target* tgt) {
       // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
       // // // 0xdcc
 
-      parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
-      // 0x95555555
+      // parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
+      // // 0x95555555
 
       parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
       parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
@@ -256,6 +256,7 @@ void align_phase_word(Target* tgt) {
         parameters["ERX"][var_name_erxINV] = 1;
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
+      econ.setValue(0x0381, 0x95555555a5555555, 8); 
 
       //   ----- READING ECON REGISTERS ----- //
       std::map<int, int> ch_lock_values;
