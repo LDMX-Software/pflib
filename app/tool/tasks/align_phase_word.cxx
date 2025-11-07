@@ -391,7 +391,6 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner select " << channel << " = " << ch_select
                   << ", 0x" << std::hex << ch_select << std::dec
                   << "(0xa0 = failed alignment)" << std::endl;
-<<<<<<< HEAD
       } 
       
       // Custom BX value
@@ -399,15 +398,6 @@ void align_phase_word(Target* tgt) {
       int bx_addr = 3;
       int bx_mask = 0xfff000;
       tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
-=======
-      }
-
-      // // Custom BX value
-      // int bx_new = 3000;
-      // int bx_addr = 3;
-      // int bx_mask = 0xfff000;
-      // tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
->>>>>>> 475cd1c11d4ead6817b1c74fe0e708b64a36a4fc
 
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
