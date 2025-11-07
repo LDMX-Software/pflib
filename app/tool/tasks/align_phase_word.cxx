@@ -229,12 +229,12 @@ void align_phase_word(Target* tgt) {
 
       // BX value econ resets to when it recieves BCR (linkreset)
       // Overall phase marker between ROC and ECON
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; 
-      //0xdba
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;
+      // 0xdba
 
       // // // BX value econ takes snapshot
       // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
-      // // // 0xdcc   
+      // // // 0xdcc
 
       parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
       // 0x95555555
@@ -257,8 +257,7 @@ void align_phase_word(Target* tgt) {
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
-
-    //   ----- READING ECON REGISTERS ----- //
+      //   ----- READING ECON REGISTERS ----- //
       std::map<int, int> ch_lock_values;
 
       // Channel Locking print outs
@@ -288,7 +287,6 @@ void align_phase_word(Target* tgt) {
       std::cout << "Global snapshot ARM = " << snapshot_arm << ", 0x"
                 << std::hex << snapshot_arm << std::dec << std::endl;
       // ----------------------------------- //
-
 
       // ------- SCAN BUNCH CROSSINGS ------- //
       int snapshot_6bx;
