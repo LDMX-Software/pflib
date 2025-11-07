@@ -13,6 +13,7 @@
 // need maps and strings for the LUTs
 #include <map>
 #include <string>
+#include <vector>
 
 /**
  * Structure holding a location in the registers
@@ -43,15 +44,17 @@ struct RegisterLocation {
  */
 struct Parameter {
   /// the default parameter value
-  const uint64_t def;
+  uint64_t def;
   /// the locations that the parameter is split over
-  const std::vector<RegisterLocation> registers;
+  std::vector<RegisterLocation> registers;
   /// pass locations and default value of parameter
   Parameter(std::initializer_list<RegisterLocation> r, uint64_t def)
       : def{def}, registers{r} {}
   /// short constructor for single-location parameters
   Parameter(int r, int m, int n, uint64_t def)
       : Parameter({RegisterLocation(r, m, n)}, def) {}
+  /// default constructor for building maps
+  Parameter() : def{0}, registers{} {}
 };
 
 /**

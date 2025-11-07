@@ -15,11 +15,24 @@
 
 #include "pflib/Logging.h"
 #include "pflib/utility/str_to_int.h"
-#include "register_maps/register_maps_types.h"
 
 namespace YAML {
 class Node;
 }
+
+/**
+ * forward declare register map LUT types
+ *
+ * These should **not** be used directly when using the Compiler.
+ * If you are tempted to access these directly, you probably need
+ * to patch a bug or add a feature to the Compiler instead.
+ */
+template <typename Key, typename Val>
+class NoCopyMap;
+class Parameter;
+using Page = NoCopyMap<std::string, Parameter>;
+using PageLUT = NoCopyMap<std::string, const Page&>;
+using ParameterLUT = NoCopyMap<std::string, std::pair<int, const Page&>>;
 
 namespace pflib {
 
