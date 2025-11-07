@@ -249,11 +249,11 @@ void align_phase_word(Target* tgt) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
-        // std::string var_name_erxINV = std::to_string(channel) + "_INVERT_DATA";
+        std::string var_name_erxINV = std::to_string(channel) + "_INVERT_DATA";
 
         parameters["CHALIGNER"][var_name_align] = 1;
         parameters["ERX"][var_name_erx] = 1;
-        // parameters["ERX"][var_name_erxINV] = 1;
+        parameters["ERX"][var_name_erxINV] = 0;
       }
       auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
       econ.setValue(0x0381, 0x95555555a5555555, 8); 
