@@ -359,6 +359,12 @@ void align_phase_word(Target* tgt) {
                       << "snapshot_hex: 0x" << snapshot_hex << std::endl;
             snapshot_6bx = snapshot_val;
           }
+
+          std::cout << " (channel "
+                      << channel << ") "
+                      << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+
+
         }
       }
       // -------------- END BX SCAN ------------ //
