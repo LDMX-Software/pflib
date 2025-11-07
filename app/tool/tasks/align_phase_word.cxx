@@ -314,7 +314,10 @@ void align_phase_word(Target* tgt) {
            snapshot_val += 5) {
         // int snapshot_val = testval;
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+        parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 1;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
+        parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+        econ_word_align_currentvals = econ.applyParameters(parameters);
 
 
         auto tmp_load_val =
