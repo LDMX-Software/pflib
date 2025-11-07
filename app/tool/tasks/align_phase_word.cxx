@@ -318,19 +318,19 @@ void align_phase_word(Target* tgt) {
               econ.dumpParameter("CHALIGNER", var_name_snapshot2);
           auto ch_snapshot_3 =
               econ.dumpParameter("CHALIGNER", var_name_snapshot3);
-        }
+        
+          std::ostringstream hexstring;
+          hexstring << std::hex << std::setfill('0') << std::setw(16)
+                    << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+                    << std::setw(16) << ch_snapshot_3;
+          std::string snapshot_hex = hexstring.str();
 
-        std::ostringstream hexstring;
-        hexstring << std::hex << std::setfill('0') << std::setw(16)
-                  << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                  << std::setw(16) << ch_snapshot_3;
-        std::string snapshot_hex = hexstring.str();
-
-        if (snapshot_hex.find("95555555") != std::string::npos) {
-          std::cout << "Header match near BX " << snapshot_val << " (channel "
-                    << channel << ") "
-                    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
-          snapshot_6bx = snapshot_val;
+          if (snapshot_hex.find("95555555") != std::string::npos) {
+            std::cout << "Header match near BX " << snapshot_val << " (channel "
+                      << channel << ") "
+                      << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+            snapshot_6bx = snapshot_val;
+          }
         }
       }
       // -------------- END BX SCAN ------------ //
