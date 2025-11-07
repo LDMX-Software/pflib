@@ -292,17 +292,13 @@ void align_phase_word(Target* tgt) {
       int snapshot_6bx;
       int start_val = 0;   // near your orbit region of interest
       int end_val = 3563;  // up to orbit rollover
+      int testval = 3532; 
 
-      for (int snapshot_val = start_val; snapshot_val <= end_val;
-           snapshot_val += 6) {
+      // for (int snapshot_val = start_val; snapshot_val <= end_val;
+      //      snapshot_val += 6) {
+        int snapshot_val = testval;
         parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
         auto econ_word_align_currentvals = econ.applyParameters(parameters);
-
-        auto tmp_load_val = econ.dumpParameter(
-          "ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-
-        std::cout << "Current load_val = " << tmp_load_val << ", 0x"
-                  << std::hex << tmp_load_val << std::dec << std::endl;
 
         // FAST CONTROL - LINK_RESET
         tgt->fc().orbit_count_reset();
@@ -337,7 +333,7 @@ void align_phase_word(Target* tgt) {
                       << "snapshot_hex: 0x" << snapshot_hex << std::endl;
             snapshot_6bx = snapshot_val;
           }
-        }
+        // }
       }
       // -------------- END BX SCAN ------------ //
 
