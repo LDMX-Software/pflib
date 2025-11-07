@@ -460,6 +460,13 @@ class Menu : public BaseMenu {
    */
   void steer(TargetHandle p_target) const {
     this->cmd_options_ = this->command_options();  // we are the captain now
+    if (this->cmdTextQueue_.empty()) {
+      /// print the list of menu commands now that we've entered this
+      /// menu if we don't have commands already in the queue
+      /// (i.e. we are not in a script)
+      std::cout << "\n";
+      for (const auto& l : lines_) std::cout << l << std::endl;
+    }
     const Line* theMatch = 0;
     do {
       if (render_func_ != 0) {
