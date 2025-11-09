@@ -419,7 +419,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Check PRBS error flag
   if (tport_.read_reg(REG_BERTSTATUS) & (1 << 1)) {
     tport_.write_reg(REG_BERTCONFIG, 0x00);
-    printf("BERT error flag set");
+    printf("\n BERT error flag set");
   }
 
   // Get error count
@@ -441,7 +441,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
       errors / 3.0;  // PRBS check overestimates errors according to v1 manual
   double ber = corrected_errors / bits_checked;
 
-  printf("Group %d, Channel %d BER = %.6e (%.2f errors in %ld bits", group,
+  printf("\n Group %d, Channel %d BER = %.6e (%.2f errors in %ld bits", group,
          channel, ber, corrected_errors, bits_checked);
 }
 
