@@ -36,6 +36,7 @@ void align_econ_lpgbt(Target* tgt) {
     printf(" Checking lpGBT PRBS on group 0, channel %d...\n", ch);
     lpgbt_daq.check_prbs_errors_erx(0, ch, true);
   }
+
   auto econ_setup_builder =
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
 
@@ -58,7 +59,8 @@ void align_econ_lpgbt(Target* tgt) {
 
   auto econ_finish_builder =
       econ.testParameters()
-          .add("ALIGNER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
+          .add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0)
+          .add("CHALIGNER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
           .add("ELINKPROCESSORS", "GLOBAL_LINK_RESET_ECON_D_FCMD_COUNT", 1);
 
   auto econ_finish_test = econ_finish_builder.apply();
