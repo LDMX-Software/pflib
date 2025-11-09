@@ -33,8 +33,8 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" PRE: Is EPRX0 locked? = %d\n", pre_lock_result);
 
   for (int ch = 0; ch < 4; ++ch) {
-          printf(" Checking lpGBT PRBS on group 0, channel %d...\n", ch);
-	  lpgbt_daq.check_prbs_errors_erx(0, ch, true);
+    printf(" Checking lpGBT PRBS on group 0, channel %d...\n", ch);
+    lpgbt_daq.check_prbs_errors_erx(0, ch, true);
   }
   auto econ_setup_builder =
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
@@ -42,9 +42,9 @@ void align_econ_lpgbt(Target* tgt) {
   auto econ_setup_test = econ_setup_builder.apply();
 
   for (int ch = 0; ch < 4; ++ch) {
-	  printf(" Checking ECOND PRBS on group 0, channel %d...\n", ch);
-	  lpgbt_daq.check_prbs_errors_erx(0, ch, false);
-  } 
+    printf(" Checking ECOND PRBS on group 0, channel %d...\n", ch);
+    lpgbt_daq.check_prbs_errors_erx(0, ch, false);
+  }
   // lpgbt_daq.check_prbs_errors_erx(0, 0,
   //                                 false);  // group 0, ch 0, false for ECON
 
@@ -56,9 +56,10 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" POST: Current EPRX0 Phase32 = %d\n", post_phase32_result);
   printf(" POST: Is EPRX0 locked? = %d\n", post_lock_result);
 
-  auto econ_finish_builder = econ.testParameters()
-	  .add("ALIGNER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
-	  .add("ELINKPROCESSORS", "GLOBAL_LINK_RESET_ECON_D_FCMD_COUNT", 1);
+  auto econ_finish_builder =
+      econ.testParameters()
+          .add("ALIGNER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
+          .add("ELINKPROCESSORS", "GLOBAL_LINK_RESET_ECON_D_FCMD_COUNT", 1);
 
   auto econ_finish_test = econ_finish_builder.apply();
 }
