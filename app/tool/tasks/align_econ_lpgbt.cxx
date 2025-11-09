@@ -60,8 +60,8 @@ void align_econ_lpgbt(Target* tgt) {
   auto econ_finish_builder =
       econ.testParameters()
           .add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0)
-          .add("CHALIGNER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
-          .add("ELINKPROCESSORS", "GLOBAL_LINK_RESET_ECON_D_FCMD_COUNT", 1);
+          .add("FORMATTERBUFFER", "GLOBAL_ALIGN_SERIALIZER_0", 1)
+          .add("FCTRL", "GLOBAL_LINK_RESET_ECON_D_FCMD_COUNT", 1);
 
   auto econ_finish_test = econ_finish_builder.apply();
 }
