@@ -360,19 +360,21 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
   // ignore equalization for now
 
   // adding for rx training
-  uint8_t train_bit = (1 << 4) | (1 << 0); // decimal = 17, should train ch 0 for both groups
+  uint8_t train_bit =
+      (1 << 4) | (1 << 0);  // decimal = 17, should train ch 0 for both groups
   tport_.write_reg(REG_EPRXTRAIN10, train_bit);
   usleep(1000);
-  tport_.write_reg(REG_EPRXTRAIN10, 0x00); // dessert per manual
+  tport_.write_reg(REG_EPRXTRAIN10, 0x00);  // dessert per manual
 }
 
-void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only, int data_rate_code, uint8_t bert_time_code) {
-  //if (group < 0 || group > 6 || channel < 0 || channel > 3) {
-  //  std::cout << "Error: Invalid group or channel index (group=" 
-  //        << group << ", channel=" << channel << ")." << std::endl;
-  //  return;
-  //}
-   
+void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
+                                  int data_rate_code, uint8_t bert_time_code) {
+  // if (group < 0 || group > 6 || channel < 0 || channel > 3) {
+  //   std::cout << "Error: Invalid group or channel index (group="
+  //         << group << ", channel=" << channel << ")." << std::endl;
+  //   return;
+  // }
+
   static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
   static uint16_t REG_EPRXPRBSBASE = 0x135;
   static uint16_t REG_EPRXTRAINBASE = 0x115 + (group / 2);
@@ -385,24 +387,24 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only, int d
   // Enable channel in specified group
   uint8_t ctrl_reg = REG_EPRXCONTROLBASE + group;
   tport_.write_reg(ctrl_reg, (1 << channel));
-  
+
   // Enable internal PRBS signal (only for group 0 right now)
   // uint8_t prbs_reg = REG_EPRXCONTROLBASE - group;
   if (lpgbt_only) {
     tport_.write_reg(REG_EPRXCONTROLBASE, (1 << channel));
   }
-  
+
   // Train channel
   tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
   usleep(1000);
   tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
-  
+
   // Wait for channel lock?
-  
 
   // Have BERT monitor channel
-  uint16_t group_code = 1 + group; // 0 disables checker
-  uint16_t bert_source = channel + 4 * (data_rate_code - 1); // table 14.6 in v1 manual
+  uint16_t group_code = 1 + group;  // 0 disables checker
+  uint16_t bert_source =
+      channel + 4 * (data_rate_code - 1);  // table 14.6 in v1 manual
   uint16_t bert_source_val = (group_code << 4) | bert_source;
   tport_.write_reg(REG_BERTSOURCE, bert_source_val);
 
@@ -411,36 +413,37 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only, int d
 
   // Wait for BERT to finish
   while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
-	  usleep(1000);
+    usleep(1000);
   }
 
   // Check PRBS error flag
   if (tport_.read_reg(REG_BERTSTATUS) & (1 << 1)) {
-	  tport_.write_reg(REG_BERTCONFIG, 0x00);
-	  printf("BERT error flag set");
+    tport_.write_reg(REG_BERTCONFIG, 0x00);
+    printf("BERT error flag set");
   }
 
   // Get error count
   uint64_t errors = 0;
   for (int i = 0; i < 5; i++) {
-	  errors |= (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
+    errors |=
+        (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
   tport_.write_reg(REG_BERTCONFIG, 0x00);
-  
+
   // Calculate BER
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
-  uint64_t bits_per_cycle = (data_rate_code == 1 ? 8 :
-		  data_rate_code == 2 ? 4 :
-		  data_rate_code == 3 ? 2 : 0);
+  uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
+                             : data_rate_code == 2 ? 4
+                             : data_rate_code == 3 ? 2
+                                                   : 0);
   uint64_t bits_checked = clocks * bits_per_cycle;
-  double corrected_errors = errors / 3.0; // PRBS check overestimates errors according to v1 manual
+  double corrected_errors =
+      errors / 3.0;  // PRBS check overestimates errors according to v1 manual
   double ber = corrected_errors / bits_checked;
 
-  printf("Group %d, Channel %d BER = %.6e (%.2f errors in %ld bits",
-		  group, channel, ber, corrected_errors, bits_checked);
-
+  printf("Group %d, Channel %d BER = %.6e (%.2f errors in %ld bits", group,
+         channel, ber, corrected_errors, bits_checked);
 }
-
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
                       int pe_strength, int pe_width) {
