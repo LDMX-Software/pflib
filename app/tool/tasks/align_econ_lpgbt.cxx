@@ -38,7 +38,8 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" PRE: Is EPRX0 locked? = %d\n", pre_lock_result);
 
   // lpgbt_daq.setup_erx(0, 1, 0, 3, true);  // stolen from app/lpgbt/main.cxx
-  lpgbt_daq.check_prbs_errors_erx(0, 0, false); // group 0, ch 0, false for ECON
+  lpgbt_daq.check_prbs_errors_erx(0, 0,
+                                  false);  // group 0, ch 0, false for ECON
 
   auto post_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
   auto post_phase32_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE32});
