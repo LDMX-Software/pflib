@@ -360,12 +360,35 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
   // ignore equalization for now
 
   // adding for rx training
-  if (irx >= 0 && irx <= 3) {
-    uint8_t train_bit = 1 << irx;
-    tport_.write_reg(REG_EPRXTRAIN10, train_bit);
-    tport_.write_reg(REG_EPRXTRAIN10, 0x00);
-  }
+  uint8_t train_bit = (1 << 4) | (1 << 0); // decimal = 17, should train ch 0 for both groups
+  tport_.write_reg(REG_EPRXTRAIN10, train_bit);
+  usleep(1000);
+  tport_.write_reg(REG_EPRXTRAIN10, 0x00); // dessert per manual
 }
+
+void lpGBT::check_prbs_errors_erx(int group, int channel, int data_rate_code = 1, uint8_t bert_time_code = 4) {
+  if (group < 0 || group > 6 || channel < 0 || channel > 3) {
+    throw std::invalid_argument("Invalid group or channel.");
+  }
+   
+  const uint8_t REG_EPRXCONTROLBASE = 0x0c8;
+  const uint8_t REG_EPRXPRBSBASE = 0x135;
+  const uint8_t REG_EPRXTRAINBASE = 0x115 + (group / 2);
+  const uint8_t REG_EPRXLOCKEDBASE = 0x152;
+  const uint8_t REG_BERTSOURCE = 0x136;
+  const uint8_t REG_BERTCONFIG = 0x137;
+  const uint8_t REG_BERTSTATUS = 0x1d1;
+  const uint8_t REG_BERTRESULT[5] = {0x1d2, 0x1d3, 0x1d4, 0x1d5, 0x1d6};
+
+  uint8_t ctrl_reg = REG_EPRXCONTROLBASE + group;
+  tport_.write_reg(ctrl_reg, (1 << channel));
+
+  uint8_t prbs_reg = REG_EPRXCONTROLBASE - group;
+  write_reg(prbs_reg, (1 << channel));
+
+
+}
+
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
                       int pe_strength, int pe_width) {
