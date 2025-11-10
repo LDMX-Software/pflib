@@ -245,7 +245,7 @@ void align_phase_word(Target* tgt) {
         
         //if (snapshot_hex.find("955") != std::string::npos) {
         if(ch_pm == 1) {
-          std::cout << "Header match" << std::endl << " (channel "
+          std::cout << "Header match in Snapshot: " << snapshot_val << std::endl << " (channel "
               << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted << std::endl;
 
