@@ -176,26 +176,27 @@ void align_phase_word(Target* tgt) {
     int end_val = 3540;  // up to orbit rollover
     int testval = 3532; 
 
-    for (int channel : channels) {
-      bool header_found = false;
-      for (int snapshot_val = start_val; snapshot_val <= end_val;
-        snapshot_val += 1) {
-        std::cout << " --------------------------------------------------- " 
-          << std::endl;
+    
+    bool header_found = false;
+    for (int snapshot_val = start_val; snapshot_val <= end_val;
+      snapshot_val += 1) {
+      std::cout << " --------------------------------------------------- " 
+        << std::endl;
 
-        // int snapshot_val = testval;
-        parameters.clear();
-        parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
-        auto econ_word_align_currentvals = econ.applyParameters(parameters);
-        
-        auto tmp_load_val =
-          econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
-        std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
-      << std::hex << tmp_load_val << std::dec << std::endl;
-        
-        // FAST CONTROL - LINK_RESET
-        tgt->fc().linkreset_rocs();
+      // int snapshot_val = testval;
+      parameters.clear();
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+      auto econ_word_align_currentvals = econ.applyParameters(parameters);
+      
+      auto tmp_load_val =
+        econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
+      std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
+    << std::hex << tmp_load_val << std::dec << std::endl;
+      
+      // FAST CONTROL - LINK_RESET
+      tgt->fc().linkreset_rocs();
 
+      for (int channel : channels) {
         // print out snapshot
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
@@ -254,8 +255,8 @@ void align_phase_word(Target* tgt) {
               << ", 0x" << std::hex << ch_select << std::dec
               << std::endl;
 
-          std::cout << "break here? " << std::endl;
           header_found = true;
+          break; // out of channel loop
         }
         else if (debug_checks)
         {
@@ -268,8 +269,9 @@ void align_phase_word(Target* tgt) {
               << std::setw(16) << ch_snapshot_3 << std::dec
               << std::setfill(' ') << std::endl;
         }
-        if (header_found) break;  // out of loop over snapshots
+        
       } // end loop over snapshots for single channel
+      if (header_found) break;  // out of loop over snapshots
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
         
