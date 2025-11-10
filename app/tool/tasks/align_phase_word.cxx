@@ -93,14 +93,14 @@ void align_phase_word(Target* tgt) {
     // Enable the ERX and set channel to train
     for (int ch : channels) {
       parameters["ERX"][std::to_string(ch) + "_ENABLE"] = 1;
-      parameters["ERX"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
+      parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
     }
     econ.applyParameters(parameters);
 
     // Toggle Phase Training off
     parameters.clear();
     for (int ch : channels) {
-      parameters["ERX"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
+      parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
     }
     econ.applyParameters(parameters);
 
