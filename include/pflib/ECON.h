@@ -21,6 +21,8 @@ class ECON {
 
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);
+  int getPUSMRunValue();
+  int getPUSMStateValue();
   bool isRunMode();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
@@ -41,7 +43,9 @@ class ECON {
       bool print_values = true);
   std::map<std::string, std::map<std::string, uint64_t>> readParameters(
       const std::string& file_path);
-  void readParameter(const std::string& page, const std::string& param);
+  std::map<std::string, uint64_t> readParameter(const std::string& page,
+                                                const std::string& param,
+                                                bool print_values = true);
 
   void dumpSettings(const std::string& filename, bool should_decompile);
 

@@ -100,19 +100,18 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
   }
 }
 
+int ECON::getPUSMRunValue() {
+  return getParam(getValues(ADDR_RUNBIT, NBYTES_RUNBIT), SHIFT_RUNBIT,
+                  MASK_RUNBIT);
+}
+
+int ECON::getPUSMStateValue() {
+  return getParam(getValues(ADDR_PUSMSTATE, NBYTES_PUSMSTATE), SHIFT_PUSMSTATE,
+                  MASK_PUSMSTATE);
+}
+
 bool ECON::isRunMode() {
-  // Read 3-byte register at 0x03C5 and extract run bit
-  std::vector<uint8_t> PUSM_read = getValues(ADDR_RUNBIT, NBYTES_RUNBIT);
-  uint32_t pusm_run_value = getParam(PUSM_read, SHIFT_RUNBIT, MASK_RUNBIT);
-  std::cout << "PUSM run value: " << pusm_run_value << std::endl;
-
-  // Read 4-byte register at 0x03DF and extract PUSM state
-  std::vector<uint8_t> PUSM_state = getValues(ADDR_PUSMSTATE, NBYTES_PUSMSTATE);
-  uint32_t pusm_state_value =
-      getParam(PUSM_state, SHIFT_PUSMSTATE, MASK_PUSMSTATE);
-  std::cout << "PUSM state value: " << pusm_state_value << std::endl;
-
-  return pusm_run_value == 1 && pusm_state_value == 8;
+  return getPUSMRunValue() == 1 && getPUSMRunValue() == 8;
 }
 
 std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
@@ -362,10 +361,12 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   return readParameters(parameters);
 }
 
-void ECON::readParameter(const std::string& page, const std::string& param) {
+std::map<std::string, uint64_t> ECON::readParameter(const std::string& page,
+                                                    const std::string& param,
+                                                    bool print_values) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
-  this->readParameters(p);
+  return this->readParameters(p, print_values)[page];
 }
 
 void ECON::dumpSettings(const std::string& filename, bool should_decompile) {

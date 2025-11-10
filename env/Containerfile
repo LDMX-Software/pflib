@@ -14,6 +14,15 @@ RUN yum -y install \
   python-yaml \
   git
 RUN mkdir src &&\
+    wget -q -O- https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz |\
+      tar -xz --strip-components=1 --directory src &&\
+    cmake \
+      -S src\
+      -B src/build \
+      -DJSON_BuildTests=OFF &&\
+    cmake --build src/build --target install &&\
+    rm -rf src
+RUN mkdir src &&\
     wget -q -O- https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz |\
       tar -xz --strip-components=1 --directory src &&\
     cmake \

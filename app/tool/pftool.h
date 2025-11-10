@@ -39,6 +39,11 @@ class pftool : public pflib::menu::Menu<Target*> {
  public:
   /// static variables to share across menu
   class State {
+   public:
+    static constexpr int CFG_HCALFMC = 1;
+    static constexpr int CFG_HCALOPTO = 2;
+
+   private:
     /// list of page names for tab completion per ROC ID
     std::map<int, std::vector<std::string>> roc_page_names_;
     /// list of parameter names for tab-completion per ROC ID
@@ -49,10 +54,12 @@ class pftool : public pflib::menu::Menu<Target*> {
     /// list of parameter names for tab-completion per ECON type
     std::map<std::string, std::map<std::string, std::vector<std::string>>>
         econ_param_names_;
+    /// readout configuration
+    int cfg_;
 
    public:
     /// initialize the state with a Target
-    void init(Target* tgt);
+    void init(Target* tgt, int readout_config);
     /// get page names for tab completion
     const std::vector<std::string>& roc_page_names() const;
     /// get the parameter names for tab completion
@@ -63,6 +70,8 @@ class pftool : public pflib::menu::Menu<Target*> {
     /// get the parameter names for tab completion
     const std::vector<std::string>& econ_param_names(
         pflib::ECON econ, const std::string& page) const;
+    /// get the readout configurion
+    int readout_config() const { return cfg_; }
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with

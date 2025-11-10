@@ -1,7 +1,8 @@
 #include "noinv_vref_scan.h"
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 
 ENABLE_LOGGING();
 
@@ -17,11 +18,11 @@ void noinv_vref_scan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["scan_type"] = "CH_#.NOINV_VREF sweep";
         header["trigger"] = "PEDESTAL";
         header["nevents_per_point"] = nevents;
-        f << "# " << boost::json::serialize(header) << "\n"
+        f << "# " << header << "\n"
           << "NOINV_VREF";
         for (int ch{0}; ch < 72; ch++) {
           f << ',' << ch;

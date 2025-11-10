@@ -21,7 +21,8 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   return pflib::logging::get("pftool." + relative);
 }
 
-void pftool::State::init(Target* tgt) {
+void pftool::State::init(Target* tgt, int cfg) {
+  cfg_ = cfg;
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->hcal().roc_ids()};
   for (int id : roc_ids) {
@@ -54,6 +55,7 @@ const std::vector<std::string>& pftool::State::roc_page_names() const {
 const std::vector<std::string>& pftool::State::roc_param_names(
     const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
+
   auto param_list_it = roc_param_names_.at(iroc).find(PAGE);
   if (param_list_it == roc_param_names_.at(iroc).end()) {
     PFEXCEPTION_RAISE("BadPage", "Page name " + page + " not a known page.");
@@ -408,12 +410,14 @@ int main(int argc, char* argv[]) {
 
       // initialize connection
       std::unique_ptr<Target> p_pft;
+      int readout_cfg = 0;
       try {
         switch (mode) {
           case Fiberless:
             pflib_log(info) << "connecting from ZCU in Fiberless mode";
             p_pft.reset(pflib::makeTargetFiberless());
-            pftool::root()->drop({"OPTO"});
+            readout_cfg = pftool::State::CFG_HCALFMC;
+            pftool::root()->drop({"OPTO", "ECON"});
             break;
           case Rogue:
             PFEXCEPTION_RAISE("BadComm",
@@ -421,6 +425,7 @@ int main(int argc, char* argv[]) {
             break;
           case UIO_ZCU:
             p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
+            readout_cfg = pftool::State::CFG_HCALOPTO;
             break;
           default:
             PFEXCEPTION_RAISE(
@@ -438,7 +443,7 @@ int main(int argc, char* argv[]) {
             options.contents().getString("runnumber_file");
       }
 
-      pftool::state.init(p_pft.get());
+      pftool::state.init(p_pft.get(), readout_cfg);
 
       if (p_pft) {
         // prepare the links

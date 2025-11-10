@@ -13,15 +13,16 @@ ERX:
   11_ENABLE: 0
 ETX:
   0_INVERT_DATA: 1 # invert data
+ELINKPROCESSORS:
+  GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same 
+  GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
 FORMATTERBUFFER:
   GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
+  GLOBAL_IDLE_PATTERN: 0x1277cc
 ROCDAQCTRL:
-  GLOBAL_PASS_THRU_MODE: 1 # pass through mode 
-  GLOBAL_MATCH_THRESHOLD: 0 # number of eRx that must agree on a Header Word for that word to be considered a Header Word
+  GLOBAL_PASS_THRU_MODE: 1
+  GLOBAL_MATCH_THRESHOLD: 0
   GLOBAL_ACTIVE_ERXS: 0xC0 # active erx, 6 and 7 from HGCROC1
-ELINKPROCESSORS:
-  GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same EBO for the vertical reconstruction (sums the number of 1s and 0s in the bit values from all 12 eRx) to be successful
-  GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as acceptable
 ALIGNER:
   GLOBAL_FREEZE_OUTPUT_ENABLE: 0 # use this since channels might not be locked
   GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED: 0

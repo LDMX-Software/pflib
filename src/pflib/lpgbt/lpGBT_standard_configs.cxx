@@ -57,6 +57,9 @@ void setup_hcal_daq(pflib::lpGBT& lpgbt) {
 
   // setup the EC link
   lpgbt.setup_ec(false, 4, false, 0, false, true, false, true);
+
+  // finalize the setup
+  lpgbt.finalize_setup();
 }
 
 void setup_hcal_trig(pflib::lpGBT& lpgbt) {
@@ -98,6 +101,8 @@ void setup_hcal_trig(pflib::lpGBT& lpgbt) {
   for (int i = 0; i < 6; i++) {
     lpgbt.setup_erx(i, 0);
   }
+  // finalize the setup
+  lpgbt.finalize_setup();
 }
 
 void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
