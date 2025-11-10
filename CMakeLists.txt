@@ -34,6 +34,8 @@ endif()
 # Boost for CRC calculator, Test, and Logging
 find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
 
+find_package(Rogue)
+
 # construct a register_maps library that the compiler can use
 # to lookup registers given parameter names for a chip type
 # hiding the ugly CMake code necessary to auto-gen the C++
@@ -71,7 +73,7 @@ target_link_libraries(packing PUBLIC utility)
 #
 #  src/pflib/FastControl.cxx
   
-add_library(pflib SHARED
+set(pflib_src
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
   src/pflib/ECON.cxx
@@ -105,7 +107,16 @@ add_library(pflib SHARED
   src/pflib/algorithm/toa_vref_scan.cxx
   src/pflib/algorithm/trim_toa_scan.cxx
   src/pflib/algorithm/get_toa_efficiencies.cxx
-)
+  )
+
+if (${Rogue_FOUND})
+  list(APPEND pflib_src
+    src/pflib/bittware/bittware_axilite.cxx
+    )
+endif()
+
+add_library(pflib SHARED ${pflib_src})
+
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -113,6 +124,10 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility register_maps)
+if (${Rogue_FOUND})
+  target_include_directories(pflib PUBLIC ${ROGUE_INCLUDE_ONLY})
+endif()
+
 add_dependencies(pflib direct_access lpgbt_regmap)
 
 add_library(menu SHARED
