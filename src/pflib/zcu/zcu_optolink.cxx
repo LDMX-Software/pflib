@@ -1,22 +1,28 @@
 #include "pflib/zcu/zcu_optolink.h"
-
 namespace pflib {
 namespace zcu {
 
-OptoLink::OptoLink(const std::string& coder_name)
+ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
     : transright_("transceiver_right"),
       coder_(coder_name),
-      coder_name_(coder_name) {
+      coder_name_(coder_name),
+      ilink_(ilink),
+      isdaq_(isdaq) {
   // enable all SFPs, use internal clock
   transright_.write(0x2, 0xF0000);
+  int chipaddr = 0x78;          // EC
+  if (isdaq) chipaddr |= 0x04;  // IC
+
+  transport_ =
+      std::make_unique<lpGBT_ICEC_Simple>(coder_name, !isdaq, chipaddr);
 }
 
 static const uint32_t REG_STATUS = 3;
 
-void OptoLink::reset_link() {
-  transright_.write(0x0, 0x2);  // TX_RESET
-  transright_.write(0x0, 0x1);  // GTH_RESET
-  transright_.write(0x0, 0x4);  // RX_RESET
+void ZCUOptoLink::reset_link() {  // actually affects all links in a block
+  transright_.write(0x0, 0x2);    // TX_RESET
+  transright_.write(0x0, 0x1);    // GTH_RESET
+  transright_.write(0x0, 0x4);    // RX_RESET
 
   int done;
   int attempts = 1;
@@ -28,7 +34,7 @@ void OptoLink::reset_link() {
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
       /*
-      printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
+        printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
         attempts,done);
       */
     } else {
@@ -36,7 +42,7 @@ void OptoLink::reset_link() {
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
       /*
-      printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
+        printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
         attempts,done);
       */
     }
@@ -52,26 +58,46 @@ void OptoLink::reset_link() {
   coder_.write(67, 0x00000000);  // reset EC
 }
 
+void ZCUOptoLink::run_linktrick() {
+  transport_->write_reg(0x128, 5);
+  sleep(1);
+  transport_->write_reg(0x128, 0);
+}
+
 static const uint32_t REG_POLARITY = 0x1;
 static const uint32_t MASK_POLARITY_RX = 0x00000FFF;
 static const uint32_t MASK_POLARITY_TX = 0x0FFF0000;
 static const uint32_t REG_DOWNLINK_MODE0 = 48;
 static const uint32_t MASK_DOWNLINK_MODE = 0x0000FFFF;
 
-bool OptoLink::get_polarity(int ichan, bool is_rx) {
-  return (transright_.readMasked(
-              REG_POLARITY, (is_rx) ? (MASK_POLARITY_RX) : (MASK_POLARITY_TX)) &
-          (1 << ichan)) != 0;
+static const int SFP0_OFFSET = 8;  // start with SFP0
+
+bool ZCUOptoLink::get_rx_polarity() {
+  return (transright_.readMasked(REG_POLARITY, MASK_POLARITY_RX) &
+          (1 << (ilink_ + SFP0_OFFSET))) != 0;
+}
+bool ZCUOptoLink::get_tx_polarity() {
+  return (transright_.readMasked(REG_POLARITY, MASK_POLARITY_TX) &
+          (1 << (ilink_ + SFP0_OFFSET))) != 0;
 }
 
-void OptoLink::set_polarity(bool polarity, int ichan, bool is_rx) {
-  int ibit = ichan + (is_rx ? (0) : (16));
+void ZCUOptoLink::set_rx_polarity(bool polarity) {
+  int ibit = ilink_ + SFP0_OFFSET;
   uint32_t val = transright_.read(REG_POLARITY);
-  val = val ^ (1 << ibit);
+  val = val | (1 << ibit);
+  if (!polarity) val = val ^ (1 << ibit);
   transright_.write(REG_POLARITY, val);
 }
 
-std::map<std::string, uint32_t> OptoLink::opto_status() {
+void ZCUOptoLink::set_tx_polarity(bool polarity) {
+  int ibit = ilink_ + SFP0_OFFSET + 16;
+  uint32_t val = transright_.read(REG_POLARITY);
+  val = val | (1 << ibit);
+  if (!polarity) val = val ^ (1 << ibit);
+  transright_.write(REG_POLARITY, val);
+}
+
+std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
   uint32_t val = transright_.read(REG_STATUS);
   retval["TX_RESETDONE"] = (val >> 0) & 0x1;
@@ -89,16 +115,25 @@ std::map<std::string, uint32_t> OptoLink::opto_status() {
   return retval;
 }
 
-std::map<std::string, uint32_t> OptoLink::opto_rates() {
+std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   std::map<std::string, uint32_t> retval;
 
+  /*
   const char* tnames[] = {
-      "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK", "RX00", "RX01",
-      "RX02",       "RX03",     "RX04",       "RX05",       "RX06", "RX07",
-      "RX08",       "RX09",     "RX10",       "RX11",       0};
+    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK", "RX00", "RX01",
+    "RX02",       "RX03",     "RX04",       "RX05",       "RX06", "RX07",
+    "RX08",       "RX09",     "RX10",       "RX11",       0};
+  */
+  const char* tnames[] = {"S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK",
+                          0};
+  const int twhich[] = {0, 1, 2, 3, -1};
+
   const int TRIGHT_RATES_OFFSET = 16;
   for (int i = 0; tnames[i] != 0; i++)
-    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + i);
+    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + twhich[i]);
+
+  retval["RX-LINK"] =
+      transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
     const char* cnames[] = {"LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40",
@@ -119,17 +154,17 @@ std::map<std::string, uint32_t> OptoLink::opto_rates() {
   return retval;
 }
 
-int OptoLink::get_elink_tx_mode(int i) {
-  if (i < 0 || i > 3) return -1;
-  return coder_.read(REG_DOWNLINK_MODE0 + i);
+int ZCUOptoLink::get_elink_tx_mode(int elink) {
+  if (elink < 0 || elink > 3 || !isdaq_) return -1;
+  return coder_.read(REG_DOWNLINK_MODE0 + elink);
 }
-void OptoLink::set_elink_tx_mode(int i, int mode) {
-  if (i < 0 || i > 3) return;
-  coder_.write(REG_DOWNLINK_MODE0 + i, mode & MASK_DOWNLINK_MODE);
+void ZCUOptoLink::set_elink_tx_mode(int elink, int mode) {
+  if (elink < 0 || elink > 3 || !isdaq_) return;
+  coder_.write(REG_DOWNLINK_MODE0 + elink, mode & MASK_DOWNLINK_MODE);
 }
 
-void OptoLink::capture_ec(int mode, std::vector<uint8_t>& tx,
-                          std::vector<uint8_t>& rx) {
+void ZCUOptoLink::capture_ec(int mode, std::vector<uint8_t>& tx,
+                             std::vector<uint8_t>& rx) {
   static constexpr int REG_SPY_CTL = 67;
   static constexpr int REG_READ = 69;
 
@@ -165,8 +200,8 @@ void OptoLink::capture_ec(int mode, std::vector<uint8_t>& tx,
   }
 }
 
-void OptoLink::capture_ic(int mode, std::vector<uint8_t>& tx,
-                          std::vector<uint8_t>& rx) {
+void ZCUOptoLink::capture_ic(int mode, std::vector<uint8_t>& tx,
+                             std::vector<uint8_t>& rx) {
   static constexpr int REG_SPY_CTL = 65;
   static constexpr int REG_READ = 68;
 
