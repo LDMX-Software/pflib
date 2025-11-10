@@ -15,8 +15,7 @@ constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
 // ECON PUSM State READY
 constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 
-// temporary tool to print hex
-using to_hex = pflib::packing::hex;
+using pflib::packing::hex;
 
 uint32_t build_channel_mask(std::vector<int>& channels) {
   /*
@@ -44,9 +43,9 @@ void print_roc_status(pflib::ROC& roc) {
     auto bx      = params.at("BX_OFFSET");
     auto bxtrig  = params.at("BX_TRIGGER");
 
-    std::cout << "Idle_"      << half << " = " << idle   << ", " << to_hex(idle)   << '\n'
-              << "bxoffset_"  << half << " = " << bx     << ", " << to_hex(bx)     << '\n'
-              << "bxtrigger_" << half << " = " << bxtrig << ", " << to_hex(bxtrig) << '\n';
+    std::cout << "Idle_"      << half << " = " << idle   << ", " << hex(idle)   << '\n'
+              << "bxoffset_"  << half << " = " << bx     << ", " << hex(bx)     << '\n'
+              << "bxtrigger_" << half << " = " << bxtrig << ", " << hex(bxtrig) << '\n';
   }
 }
 
@@ -65,7 +64,7 @@ void align_phase_word(Target* tgt) {
   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
   if(debug_checks){
     std::cout << "Decimal value of channels: " << binary_channels << std::endl;
-    std::cout << "PUSM_STATE = " << pusm_state << ", " << to_hex(pusm_state) << std::endl;
+    std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state) << std::endl;
   }
 
   if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
@@ -106,7 +105,7 @@ void align_phase_word(Target* tgt) {
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
       auto val = econ.dumpParameter("CHEPRXGRP", name);
-      std::cout << "Channel_locked " << ch << " = " << val << ", " << to_hex(val)
+      std::cout << "Channel_locked " << ch << " = " << val << ", " << hex(val)
                   << std::endl;
     }
   }
@@ -147,7 +146,7 @@ void align_phase_word(Target* tgt) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
       auto val = econ.dumpParameter("CHEPRXGRP", name);
       if(debug_checks){
-        std::cout << "channel_locked " << ch << " = " << val << ", " << to_hex(val)
+        std::cout << "channel_locked " << ch << " = " << val << ", " << hex(val)
                     << std::endl;
       }
     }
