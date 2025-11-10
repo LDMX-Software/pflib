@@ -251,7 +251,7 @@ void align_phase_word(Target* tgt) {
         std::ostringstream hexstring_sh;
         hexstring_sh << std::hex << std::setfill('0') << std::setw(16)
                      << w2_shifted << std::setw(16) << w1_shifted
-                     << std::setw(16) << w0_shifted;
+                     << std::setw(16) << w0_shifted << std::setfill(' ');;
         std::string snapshot_hex_shifted = hexstring_sh.str();
 
         // if (snapshot_hex.find("955") != std::string::npos) {
