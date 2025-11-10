@@ -17,13 +17,13 @@
  */
 void opto(const std::string& cmd, Target* target) {
   static const int iolink = 0;
-  const std::vector<pflib::OptoLink*>& olinks=target->optoLinks();
+  const std::vector<pflib::OptoLink*>& olinks = target->optoLinks();
 
-  if (olinks.size()<=iolink) {
+  if (olinks.size() <= iolink) {
     printf("Requested optical link does not exist\n");
     return;
   }
-  pflib::OptoLink& olink=*olinks[iolink];
+  pflib::OptoLink& olink = *olinks[iolink];
 
   if (cmd == "FULLSTATUS") {
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),

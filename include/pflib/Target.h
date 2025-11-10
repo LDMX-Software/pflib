@@ -7,8 +7,8 @@
 
 namespace pflib {
 
-  class OptoLink;
-  
+class OptoLink;
+
 /**
  * @class Target class for encapulating a given setup's access rules
  */
@@ -24,7 +24,7 @@ class Target {
   FastControl& fc() { return *fc_; }
 
   const std::vector<OptoLink*>& optoLinks() const { return opto_; }
-  
+
   /**
    * types of daq formats that we can do
    */

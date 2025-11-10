@@ -26,7 +26,7 @@ class LPGBT_Mezz_Tester {
   std::vector<uint32_t> capture(int ilink, bool is_rx = false);
 
   pflib::UIO& coder() { return opto_; }
-  
+
  private:
   pflib::UIO opto_;
   pflib::UIO* wired_;

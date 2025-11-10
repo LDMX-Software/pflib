@@ -56,8 +56,8 @@ void opto(const std::string& cmd, ToolBox* target) {
     if (change) olink.set_rx_polarity(!olink.get_rx_polarity());
   }
   if (cmd == "LINKTRICK") {
-    if (target->olink_daq!=0) target->olink_daq->run_linktrick();
-    if (target->olink_trig!=0) target->olink_trig->run_linktrick();
+    if (target->olink_daq != 0) target->olink_daq->run_linktrick();
+    if (target->olink_trig != 0) target->olink_trig->run_linktrick();
   }
 }
 
@@ -308,8 +308,8 @@ void elink(const std::string& cmd, ToolBox* target) {
 
     if (isrx) {
     } else {
-      int mode = tool::readline_int("Change to mode",
-                                    target->olink_daq->get_elink_tx_mode(ilink));
+      int mode = tool::readline_int(
+          "Change to mode", target->olink_daq->get_elink_tx_mode(ilink));
       target->olink_daq->set_elink_tx_mode(ilink, mode);
     }
   }
@@ -859,9 +859,9 @@ int main(int argc, char* argv[]) {
   ToolBox t;
 
   pflib::zcu::ZCUOptoLink olink(target_name);
-  pflib::zcu::ZCUOptoLink olinkt(target_name,1,false);
-  t.coder_name=target_name;
-  
+  pflib::zcu::ZCUOptoLink olinkt(target_name, 1, false);
+  t.coder_name = target_name;
+
   int chipaddr = 0x78;
   if (wired) {
     LPGBT_Mezz_Tester tester(t.coder_name);
