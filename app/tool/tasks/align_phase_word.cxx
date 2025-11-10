@@ -121,24 +121,17 @@ void align_phase_word(Target* tgt) {
 
     // ---- SETTING ECON REGISTERS ---- //
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-    parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15;  // 0xf
-    parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
-    parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
-    parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
-    parameters["ROCDAQCTRL"]["GLOBAL_PASS_THRU_MODE"] = 1;
-    parameters["ROCDAQCTRL"]["GLOBAL_MATCH_THRESHOLD"] = 2;
-    parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
+    //parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15;  // 0xf
+    //parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
+    //parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
+    //parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
     
     // BX value econ resets to when it recieves BCR (linkreset)
     // Overall phase marker between ROC and ECON
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; // 0xdba
-    
-    // // // BX value econ takes snapshot
-    // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
-    // // // 0xdcc
-    
     parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
     parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
+    parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
     
@@ -147,16 +140,14 @@ void align_phase_word(Target* tgt) {
       std::string var_name_align =
 	std::to_string(channel) + "_PER_CH_ALIGN_EN";
       std::string var_name_erx = std::to_string(channel) + "_ENABLE";
-      std::string var_name_erxINV = std::to_string(channel) + "_INVERT_DATA";
       
       parameters["CHALIGNER"][var_name_align] = 1;
       parameters["ERX"][var_name_erx] = 1;
-      parameters["ERX"][var_name_erxINV] = 0;
     }
-
-    // Set Global Match Pattern Value
     auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
-    econ.setValue(0x0381, 0x95555555a5555555, 8); 
+
+    // Set GLOBAL_MATCH_PATTERN_VAL
+    econ.setValue(0x0381, 0x95555555A5555555, 8); 
     
     // Channel Locking print outs
     for (int ch : channels) {
@@ -181,27 +172,22 @@ void align_phase_word(Target* tgt) {
 	      << std::hex << snapshot_arm << std::dec << std::endl;
     // ----------------------------------- //
 
-    // ------- SCAN BUNCH CROSSINGS ------- //
-    int snapshot_6bx;
-    int start_val = 0; //0;   // near your orbit region of interest
-    int end_val = 3563;  // up to orbit rollover
-    int testval = 3532; 
-    
-    
-    // Custom BX value
-    int bx_new = 3000;
-    int bx_addr = 3;
-    int bx_mask = 0xfff000;
-    tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
-
-    // FAST CONTROL - LINK_RESET
+    // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
     tgt->fc().standard_setup();
-    tgt->fc().linkreset_rocs();
+
+    // Read BX value of link reset rocd
+    tgt->fc().bx_custom(3, 0xfff000, 3000);    
     
+    // ------- Scan when the ECON takes snapshot -----
+    int snapshot_6bx;
+    int start_val = 3528; // near your orbit region of interest
+    int end_val = 3540;  // up to orbit rollover
+    int testval = 3532; 
 
     for (int snapshot_val = start_val; snapshot_val <= end_val;
-	 snapshot_val += 5) {
+	 snapshot_val += 1) {
       // int snapshot_val = testval;
+      parameters.clear();
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
       
@@ -209,8 +195,7 @@ void align_phase_word(Target* tgt) {
 	econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
       std::cout << "temp snapshot val = " << tmp_load_val << ", 0x"
 		<< std::hex << tmp_load_val << std::dec << std::endl;
-      
-      
+       
       // FAST CONTROL - LINK_RESET
       tgt->fc().linkreset_rocs();
       
