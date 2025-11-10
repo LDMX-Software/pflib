@@ -231,7 +231,7 @@ void align_phase_word(Target* tgt) {
                             (boost::multiprecision::uint256_t(ch_snapshot_2) << 64) |
                             boost::multiprecision::uint256_t(ch_snapshot_1);
         std::cout << "256bit snap: " << snapshot << std::endl;
-        uint256_t shifted = (snapshot >> (select - 32)) & 0xffffffffffffffffULL;
+        boost::multiprecision::uint256_t shifted = (snapshot >> (select - 32)) & 0xffffffffffffffffULL;
         std::cout << "Shifted and masked: " << shifted << std::endl;
 
         // 192-bit >> 1 shift
