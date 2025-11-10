@@ -75,15 +75,14 @@ void align_phase_word(Target* tgt) {
     return;
   }
 
+  // Set IDLEs in ROC with enough bit transitions
+  auto roc_setup_builder = roc.testParameters()
+    .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+    .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME);
+  auto roc_test_params = roc_setup_builder.apply();
 
   // ----- PHASE ALIGNMENT ----- //
   {
-    // Set Idles in ROC
-    auto roc_setup_builder = roc.testParameters()
-      .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-      .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME);
-    auto roc_test_params = roc_setup_builder.apply();
-
     print_roc_status(roc);
 
     // Set ECON registers
