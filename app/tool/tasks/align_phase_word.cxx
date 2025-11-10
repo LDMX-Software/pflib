@@ -233,8 +233,8 @@ void align_phase_word(Target* tgt) {
         
         //if (snapshot_hex.find("955") != std::string::npos) {
         if(ch_pm == 1) {
-          std::cout << "Header match near BX " << snapshot_val << " (channel "
-              << channel << ") "
+          std::cout << "Header match near BX " << snapshot_val << std::endl << " (channel "
+              << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted << std::endl;
 
                 std::cout << "snapshot_hex: 0x" << std::hex << std::setfill('0') << std::setw(16)
@@ -259,7 +259,7 @@ void align_phase_word(Target* tgt) {
               << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex << std::endl;
           
-          std::cout << " " << std::hex << std::setfill('0') << std::setw(16)
+          std::cout << "snapshot_hex: 0x " << std::hex << std::setfill('0') << std::setw(16)
               << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
               << std::setw(16) << ch_snapshot_3 << std::dec
               << std::setfill(' ') << std::endl;
