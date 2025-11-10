@@ -172,12 +172,12 @@ void align_phase_word(Target* tgt) {
     // tgt->fc().bx_custom(3, 0xfff000, 3000);    
     
     // ------- Scan when the ECON takes snapshot -----
-    int start_val = 3528; // near your orbit region of interest
+    int start_val = 3531; // near your orbit region of interest
     int end_val = 3540;  // up to orbit rollover
     int testval = 3532; 
-    bool header_found = false;
 
     for (int channel : channels) {
+      bool header_found = false;
       for (int snapshot_val = start_val; snapshot_val <= end_val;
         snapshot_val += 1) {
         std::cout << " --------------------------------------------------- " 
@@ -268,7 +268,7 @@ void align_phase_word(Target* tgt) {
               << std::setw(16) << ch_snapshot_3 << std::dec
               << std::setfill(' ') << std::endl;
         }
-        // if (header_found) break;  // out of loop over snapshots
+        if (header_found) break;  // out of loop over snapshots
       } // end loop over snapshots for single channel
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
