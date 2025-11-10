@@ -227,9 +227,9 @@ void align_phase_word(Target* tgt) {
         std::string snapshot_hex = hexstring.str();
 
         // Combine 3 × 64-bit words into one 192-bit integer
-        uint256_t snapshot = (uint256_t(ch_snapshot_3) << 128) |
-                            (uint256_t(ch_snapshot_2) << 64) |
-                            uint256_t(ch_snapshot_1);
+        boost::multiprecision::uint256_t snapshot = (boost::multiprecision::uint256_t(ch_snapshot_3) << 128) |
+                            (boost::multiprecision::uint256_t(ch_snapshot_2) << 64) |
+                            boost::multiprecision::uint256_t(ch_snapshot_1);
         std::cout << "256bit snap: " << snapshot << std::endl;
 
         // 192-bit >> 1 shift
