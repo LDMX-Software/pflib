@@ -1,7 +1,8 @@
 #include "vt50_scan.h"
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -62,12 +63,11 @@ void vt50_scan(Target* tgt) {
   pflib::DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
-        boost::json::object header;
+        nlohmann::json header;
         header["channel"] = channel;
         header["highrange"] = highrange;
         header["preCC"] = preCC;
-        f << std::boolalpha << "# " << boost::json::serialize(header) << '\n'
-          << "time,";
+        f << std::boolalpha << "# " << header << '\n' << "time,";
         f << vref_page << '.' << vref_name << ',' << calib_page << '.'
           << calib_name << ',';
         f << pflib::packing::Sample::to_csv_header << '\n';
