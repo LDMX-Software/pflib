@@ -65,11 +65,13 @@ void align_phase_word(Target* tgt) {
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
   std::cout << std::endl;
-  std::cout << "Decimal value of channels: " << binary_channels << std::endl;
 
   // Check PUSM state
   auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
-  std::cout << "PUSM_STATE = " << pusm_state << ", " << to_hex(pusm_state) << std::endl;
+  if(debug_checks){
+    std::cout << "Decimal value of channels: " << binary_channels << std::endl;
+    std::cout << "PUSM_STATE = " << pusm_state << ", " << to_hex(pusm_state) << std::endl;
+  }
 
   if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
     std::cout << "PUSM_STATE / runbit does not equal " << ECON_EXPECTED_PUSM_STATE
@@ -109,7 +111,7 @@ void align_phase_word(Target* tgt) {
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
       auto val = econ.dumpParameter("CHEPRXGRP", name);
-      std::cout << "channel_locked " << ch << " = " << val << ", " << to_hex(val)
+      std::cout << "Channel_locked " << ch << " = " << val << ", " << to_hex(val)
                   << std::endl;
     }
   }
