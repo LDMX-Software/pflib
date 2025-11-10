@@ -271,7 +271,7 @@ void align_phase_word(Target* tgt) {
         }
         
       } // end loop over snapshots for single channel
-      if (header_found) break;  // out of loop over snapshots
+      // if (header_found) break;  // out of loop over snapshots
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
         
