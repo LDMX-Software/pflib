@@ -85,7 +85,7 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   {
-    if(debug_checks){print_roc_status(roc)};
+    if(debug_checks){print_roc_status(roc);}
 
     // Set ECON registers
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -118,7 +118,7 @@ void align_phase_word(Target* tgt) {
   // ------------ WORD ALIGNMENT ----------- //
   {
     // print ROC status
-    if(debug_checks){print_roc_status(roc)};
+    if(debug_checks){print_roc_status(roc);}
 
     // ---- SETTING ECON REGISTERS ---- //
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
