@@ -439,6 +439,30 @@ class Menu : public BaseMenu {
   }
 
   /**
+   * entered this menu
+   *
+   * There are a few tasks we do when entering this menu:
+   * 1. copy our command_options into the static command options
+   *    for tab completion
+   * 2. call the user-provided render function
+   * 3. printout the list of commands in this menu
+   *
+   * These tasks are only done if the command queue is empty
+   * signalling that we are not in a script.
+   */
+  void enter(TargetHandle tgt) const {
+    if (cmdTextQueue_.empty()) {
+      // copy over command options for tab complete
+      this->cmd_options_ = this->command_options();
+      if (render_func_) {
+        render_func_(tgt);
+      }
+      std::cout << "\n";
+      for (const auto& l : lines_) std::cout << l << std::endl;
+    }
+  }
+
+  /**
    * give control over the target to this menu
    *
    * We enter a do-while loop that continues until the user selects
@@ -459,14 +483,7 @@ class Menu : public BaseMenu {
    * @param[in] p_target pointer to the target
    */
   void steer(TargetHandle p_target) const {
-    this->cmd_options_ = this->command_options();  // we are the captain now
-    if (this->cmdTextQueue_.empty()) {
-      /// print the list of menu commands now that we've entered this
-      /// menu if we don't have commands already in the queue
-      /// (i.e. we are not in a script)
-      std::cout << "\n";
-      for (const auto& l : lines_) std::cout << l << std::endl;
-    }
+    enter(p_target);
     const Line* theMatch = 0;
     do {
       if (render_func_ != 0) {
@@ -489,7 +506,7 @@ class Menu : public BaseMenu {
         add_to_history(theMatch->name());
         if (theMatch->execute(p_target)) {
           // resume control when the chosen line was a submenu
-          this->cmd_options_ = this->command_options();
+          enter(p_target);
         }
       }
     } while (theMatch == 0 or not theMatch->empty());
