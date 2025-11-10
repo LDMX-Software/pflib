@@ -3,6 +3,7 @@
 #include "pflib/DecodeAndWrite.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #include "pflib/ROC.h"
+#include "pflib/packing/Hex.h"
 
 ENABLE_LOGGING();
 
@@ -15,12 +16,7 @@ constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
 constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 
 // temporary tool to print hex
-template <typename T>
-std::string to_hex(T v) {
-  std::ostringstream oss;
-  oss << "0x" << std::hex << std::uppercase << v << std::dec;
-  return oss.str();
-}
+using to_hex = pflib::packing::hex;
 
 uint32_t build_channel_mask(std::vector<int>& channels) {
   /*
