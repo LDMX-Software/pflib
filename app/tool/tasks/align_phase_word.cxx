@@ -249,7 +249,7 @@ void align_phase_word(Target* tgt) {
           auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
           std::cout << " select " << channel << " = " << ch_select
               << ", 0x" << std::hex << ch_select << std::dec
-              << "(0xa0 = failed alignment)" << std::endl;
+              << std::endl;
 
           std::cout << "break here? " << std::endl;
           break;
