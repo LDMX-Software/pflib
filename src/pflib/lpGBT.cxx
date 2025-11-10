@@ -379,6 +379,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   static uint16_t REG_EPRXPRBSBASE = 0x135;
   static uint16_t REG_EPRXTRAINBASE = 0x115 + (group / 2);
   static uint16_t REG_EPRXLOCKEDBASE = 0x152;
+  static uint16_t REG_EPRXPRBS0 = 0x135;
   static uint16_t REG_BERTSOURCE = 0x136;
   static uint16_t REG_BERTCONFIG = 0x137;
   static uint16_t REG_BERTSTATUS = 0x1d1;
@@ -391,7 +392,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Enable internal PRBS signal (only for group 0 right now)
   // uint8_t prbs_reg = REG_EPRXCONTROLBASE - group;
   if (lpgbt_only) {
-    tport_.write_reg(REG_EPRXCONTROLBASE, (1 << channel));
+    tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
   }
 
   // Train channel
