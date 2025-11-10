@@ -230,6 +230,7 @@ class HcalBackplaneZCU : public Hcal {
     // first, setup the optical links
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
+
     daq_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
         uio_coder, false, ADDR_HCAL_BACKPLANE_DAQ);
     trig_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
