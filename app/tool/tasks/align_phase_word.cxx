@@ -269,8 +269,8 @@ void align_phase_word(Target* tgt) {
               << std::setw(16) << ch_snapshot_3 << std::dec
               << std::setfill(' ') << std::endl;
         }
-      } // end loop over channels
-      if (header_found) break;  // out of loop over snapshots
+        if (header_found) break;  // out of loop over snapshots
+      } // end loop over snapshots for single channel
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
         
