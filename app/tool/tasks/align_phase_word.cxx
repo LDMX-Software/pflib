@@ -7,7 +7,7 @@
 
 ENABLE_LOGGING();
 
-bool debug_checks = false;
+bool debug_checks = true;
 
 // ROC Idle Frame
 constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
