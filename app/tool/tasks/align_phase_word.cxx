@@ -192,19 +192,10 @@ void align_phase_word(Target* tgt) {
       for (int channel : channels) {
 	std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
 	auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
-	std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
-	auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
-	std::string var_name_select = std::to_string(channel) + "_SELECT";
-        auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
 
-	std::cout << "chAligner pattern_match = " << ch_pm << ", 0x" << std::hex
-                  << ch_pm << std::dec << std::endl;
-        std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x"
-                  << std::hex << ch_snap_dv << std::dec << std::endl;
-        std::cout << "chAligner select " << channel << " = " << ch_select
-                  << ", 0x" << std::hex << ch_select << std::dec
-                  << "(0xa0 = failed alignment)" << std::endl;
-	
+	// TODO read only in debug
+	//std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
+	//auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
 	std::string var_name_snapshot1 =
 	  std::to_string(channel) + "_SNAPSHOT_0";
 	std::string var_name_snapshot2 =
@@ -241,6 +232,22 @@ void align_phase_word(Target* tgt) {
 	  std::cout << "Header match near BX " << snapshot_val << " (channel "
 		    << channel << ") "
 		    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+
+          std::cout << " " << std::hex << std::setfill('0') << std::setw(16)
+                    << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+                    << std::setw(16) << ch_snapshot_3 << std::dec
+                    << std::setfill(' ') << std::endl;
+
+	  std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
+		    << ch_pm << std::dec << std::endl;
+
+	  std::string var_name_select = std::to_string(channel) + "_SELECT";
+	  auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
+	  std::cout << " select " << channel << " = " << ch_select
+		    << ", 0x" << std::hex << ch_select << std::dec
+		    << "(0xa0 = failed alignment)" << std::endl;
+
+	  
 	  break;
 	}
 	else {
@@ -248,8 +255,7 @@ void align_phase_word(Target* tgt) {
 		    << channel << ") "
 		    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
 	  
-	  std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
-		    << std::hex << std::setfill('0') << std::setw(16)
+	  std::cout << " " << std::hex << std::setfill('0') << std::setw(16)
 		    << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
 		    << std::setw(16) << ch_snapshot_3 << std::dec
 		    << std::setfill(' ') << std::endl;
