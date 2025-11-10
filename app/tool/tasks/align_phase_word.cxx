@@ -7,6 +7,8 @@
 
 ENABLE_LOGGING();
 
+bool debug_checks = true;
+
 // ROC Idle Frame
 constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
 
@@ -186,7 +188,7 @@ void align_phase_word(Target* tgt) {
       
       auto tmp_load_val =
 	      econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
-      std::cout << "Current snapshot val = " << tmp_load_val << ", 0x"
+      std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
 		<< std::hex << tmp_load_val << std::dec << std::endl;
        
       // FAST CONTROL - LINK_RESET
@@ -233,7 +235,7 @@ void align_phase_word(Target* tgt) {
         
         //if (snapshot_hex.find("955") != std::string::npos) {
         if(ch_pm == 1) {
-          std::cout << "Header match near BX " << snapshot_val << std::endl << " (channel "
+          std::cout << "Header match" << std::endl << " (channel "
               << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted << std::endl;
 
@@ -252,9 +254,10 @@ void align_phase_word(Target* tgt) {
               << std::endl;
 
           std::cout << "break here? " << std::endl;
-          break;
+          // break;
         }
-        else {
+        else if (debug_checks)
+        {
           std::cout << " (Channel "
               << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted << std::endl;
