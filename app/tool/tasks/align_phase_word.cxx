@@ -175,9 +175,10 @@ void align_phase_word(Target* tgt) {
     int start_val = 3528; // near your orbit region of interest
     int end_val = 3540;  // up to orbit rollover
     int testval = 3532; 
+    bool header_found = false;
 
     for (int snapshot_val = start_val; snapshot_val <= end_val;
-	 snapshot_val += 1) {
+	    snapshot_val += 1) {
       std::cout << " --------------------------------------------------- " 
         << std::endl;
 
@@ -254,7 +255,8 @@ void align_phase_word(Target* tgt) {
               << std::endl;
 
           std::cout << "break here? " << std::endl;
-          // break;
+          header_found = true;
+          break;  // out of IF block
         }
         else if (debug_checks)
         {
@@ -267,6 +269,8 @@ void align_phase_word(Target* tgt) {
               << std::setw(16) << ch_snapshot_3 << std::dec
               << std::setfill(' ') << std::endl;
         }
+        if (header_found) break;  // out of loop over snapshots
+
       } // end loop over channels
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
