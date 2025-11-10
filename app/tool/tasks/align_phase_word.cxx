@@ -251,7 +251,7 @@ void align_phase_word(Target* tgt) {
               << ", 0x" << std::hex << ch_select << std::dec
               << "(0xa0 = failed alignment)" << std::endl;
 
-          
+          std::cout << "break here? " << std::endl;
           break;
         }
         else {
