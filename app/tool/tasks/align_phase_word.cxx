@@ -260,7 +260,7 @@ void align_phase_word(Target* tgt) {
               << ", 0x" << std::hex << ch_select << std::dec
               << std::endl;
             
-          std::cout << "256bit snapshot: " << std::hex << std:uppercase << snapshot 
+          std::cout << "256bit snapshot: " << std::hex << std::uppercase << snapshot 
           << std::dec << std::endl;
           boost::multiprecision::uint256_t shifted = (snapshot >> (ch_select - 32)) & 0xffffffffffffffffULL;
           std::cout << "Shifted and masked: 0x" << std::hex << std::uppercase << shifted 
