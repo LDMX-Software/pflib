@@ -120,12 +120,7 @@ void align_phase_word(Target* tgt) {
 
     // ---- SETTING ECON REGISTERS ---- //
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-    //parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15;  // 0xf
-    //parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
-    //parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
-    //parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
-    
-    // BX value econ resets to when it recieves BCR (linkreset)
+    // BX value econ resets to when it receives BCR (linkreset)
     // Overall phase marker between ROC and ECON
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514; // 0xdba
     parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
@@ -148,7 +143,7 @@ void align_phase_word(Target* tgt) {
     // Set GLOBAL_MATCH_PATTERN_VAL
     econ.setValue(0x0381, 0x95555555A5555555, 8); 
     
-    // Channel Locking print outs
+    // Verify that channels are still locked
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
       auto val = econ.dumpParameter("CHEPRXGRP", name);
@@ -160,16 +155,12 @@ void align_phase_word(Target* tgt) {
       econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
     auto cnt_load_val =
       econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-    auto snapshot_arm = econ.dumpParameter("ALIGNER", "GLOBAL_SNAPSHOT_ARM");
     
     std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
 	      << global_match_pattern_val << ", 0x" << std::hex
 	      << global_match_pattern_val << std::dec << std::endl;    
     std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
 	      << std::hex << cnt_load_val << std::dec << std::endl;
-    std::cout << "Global snapshot ARM = " << snapshot_arm << ", 0x"
-	      << std::hex << snapshot_arm << std::dec << std::endl;
-    // ----------------------------------- //
 
     // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
     tgt->fc().standard_setup();
@@ -178,7 +169,6 @@ void align_phase_word(Target* tgt) {
     tgt->fc().bx_custom(3, 0xfff000, 3000);    
     
     // ------- Scan when the ECON takes snapshot -----
-    int snapshot_6bx;
     int start_val = 3528; // near your orbit region of interest
     int end_val = 3540;  // up to orbit rollover
     int testval = 3532; 
@@ -197,9 +187,24 @@ void align_phase_word(Target* tgt) {
        
       // FAST CONTROL - LINK_RESET
       tgt->fc().linkreset_rocs();
-      
+
       // print out snapshot
       for (int channel : channels) {
+	std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
+	auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
+	std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
+	auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
+	std::string var_name_select = std::to_string(channel) + "_SELECT";
+        auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
+
+	std::cout << "chAligner pattern_match = " << ch_pm << ", 0x" << std::hex
+                  << ch_pm << std::dec << std::endl;
+        std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x"
+                  << std::hex << ch_snap_dv << std::dec << std::endl;
+        std::cout << "chAligner select " << channel << " = " << ch_select
+                  << ", 0x" << std::hex << ch_select << std::dec
+                  << "(0xa0 = failed alignment)" << std::endl;
+	
 	std::string var_name_snapshot1 =
 	  std::to_string(channel) + "_SNAPSHOT_0";
 	std::string var_name_snapshot2 =
@@ -231,75 +236,28 @@ void align_phase_word(Target* tgt) {
 		     << std::setw(16) << w0_shifted;
 	snapshot_hex = hexstring_sh.str();
 	
-	if (snapshot_hex.find("955") != std::string::npos) {
+	//if (snapshot_hex.find("955") != std::string::npos) {
+	if(ch_pm == 1) {
 	  std::cout << "Header match near BX " << snapshot_val << " (channel "
 		    << channel << ") "
 		    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
-	  snapshot_6bx = snapshot_val;
+	  break;
 	}
-	
-	std::cout << " (channel "
-		  << channel << ") "
-		  << "snapshot_hex: 0x" << snapshot_hex << std::endl;
-      }
+	else {
+	  std::cout << " (channel "
+		    << channel << ") "
+		    << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+	  
+	  std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
+		    << std::hex << std::setfill('0') << std::setw(16)
+		    << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+		    << std::setw(16) << ch_snapshot_3 << std::dec
+		    << std::setfill(' ') << std::endl;
+	}
+      } // end loop over channels
     }
-    // -------------- END BX SCAN ------------ //
-    
-    // ------- READING ECON REGISTERS ------- //
-    for (int channel : channels) {
-      std::string var_name_align =
-	std::to_string(channel) + "_PER_CH_ALIGN_EN";
-      std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
-      std::string var_name_snap_dv = std::to_string(channel) + "_SNAPSHOT_DV";
-      std::string var_name_snapshot1 =
-	std::to_string(channel) + "_SNAPSHOT_0";
-      std::string var_name_snapshot2 =
-            std::to_string(channel) + "_SNAPSHOT_1";
-      std::string var_name_snapshot3 =
-	std::to_string(channel) + "_SNAPSHOT_2";
-      std::string var_name_select = std::to_string(channel) + "_SELECT";
-      
-      auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
-      auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
-      auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
-      auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
-      
-      auto ch_snapshot_1 =
-	econ.dumpParameter("CHALIGNER", var_name_snapshot1);
-      auto ch_snapshot_2 =
-	econ.dumpParameter("CHALIGNER", var_name_snapshot2);
-      auto ch_snapshot_3 =
-	econ.dumpParameter("CHALIGNER", var_name_snapshot3);
-      // concatentate full 192 bit snapshot:
-      std::string str_channel_snapshot = std::to_string(ch_snapshot_1) +
-	std::to_string(ch_snapshot_2) +
-	std::to_string(ch_snapshot_3);
-      
-      std::cout << "channel_snapshot1 " << channel << " = " << ch_snapshot_1
-		<< ", 0x" << std::hex << ch_snapshot_1 << std::dec
-		<< std::endl;
-      std::cout << "channel_snapshot2 " << channel << " = " << ch_snapshot_2
-		<< ", 0x" << std::hex << ch_snapshot_2 << std::dec
-		<< std::endl;
-      std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3
-		<< ", 0x" << std::hex << ch_snapshot_3 << std::dec
-                  << std::endl;
-      std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
-		<< std::hex << std::setfill('0') << std::setw(16)
-		<< ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-		<< std::setw(16) << ch_snapshot_3 << std::dec
-		<< std::setfill(' ') << std::endl;
-      std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
-		<< std::hex << ch_snap << std::dec << std::endl;
-      std::cout << "chAligner pattern_match = " << ch_pm << ", 0x" << std::hex
-		<< ch_pm << std::dec << std::endl;
-      std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x"
-		<< std::hex << ch_snap_dv << std::dec << std::endl;
-      std::cout << "chAligner select " << channel << " = " << ch_select
-		<< ", 0x" << std::hex << ch_select << std::dec
-		<< "(0xa0 = failed alignment)" << std::endl;
-    }
-    
-  }  // -------- END WORD ALIGNMENT SCOPE ------- //
+    // -------------- END SNAPSHOT BX SCAN ------------ //
+        
+  }  // -------- END WORD ALIGNMENT ------- //
   
 }  // End
