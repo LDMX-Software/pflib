@@ -2,7 +2,7 @@
 
 #include "pflib/DecodeAndWrite.h"
 #include "pflib/utility/json.h"
-
+#include <boost/multiprecision/cpp_int.hpp>
 #include "pflib/ROC.h"
 
 ENABLE_LOGGING();
@@ -190,8 +190,10 @@ void align_phase_word(Target* tgt) {
       
       auto tmp_load_val =
         econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
-      std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
-    << std::hex << tmp_load_val << std::dec << std::endl;
+      if(debug_checks){
+        std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
+        << std::hex << tmp_load_val << std::dec << std::endl;
+      }
       
       // FAST CONTROL - LINK_RESET
       tgt->fc().linkreset_rocs();
@@ -220,9 +222,16 @@ void align_phase_word(Target* tgt) {
         std::ostringstream hexstring;
         hexstring << std::hex << std::setfill('0') << std::setw(16)
             << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-            << std::setw(16) << ch_snapshot_3;
+            << std::setw(16) << ch_snapshot_3 << std::dec
+            << std::setfill(' ');
         std::string snapshot_hex = hexstring.str();
-        
+
+        // Combine 3 × 64-bit words into one 192-bit integer
+        uint256_t snapshot = (uint256_t(ch_snapshot_3) << 128) |
+                            (uint256_t(ch_snapshot_2) << 64) |
+                            uint256_t(ch_snapshot_1);
+        std::cout << "256bit snap: " << snapshot << std::endl;
+
         // 192-bit >> 1 shift
         uint64_t w0_shifted = (ch_snapshot_1 >> 1);
         uint64_t w1_shifted = (ch_snapshot_2 >> 1) | ((ch_snapshot_1 & 1ULL) << 63);
@@ -241,10 +250,7 @@ void align_phase_word(Target* tgt) {
               << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted << std::endl;
 
-                std::cout << "snapshot_hex: 0x" << std::hex << std::setfill('0') << std::setw(16)
-                          << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                          << std::setw(16) << ch_snapshot_3 << std::dec
-                          << std::setfill(' ') << std::endl;
+                std::cout << "snapshot_hex: 0x" << snapshot_hex << std::endl;
 
           std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
               << ch_pm << std::dec << std::endl;
