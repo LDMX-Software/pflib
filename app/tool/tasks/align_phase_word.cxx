@@ -36,144 +36,104 @@ void align_phase_word(Target* tgt) {
                                            "spare7",
                                            "unassigned"};
 
-  int IDLE =
-      89478485;  // == 0x5555555. hardcode based on phase alignment script
+  int IDLE = 89478485;  // == 0x5555555
 
-  int list_channels[] = {6, 7};  // {2,3,4,5,6,7};
+  int list_channels[] = {6, 7};
   int binary_channels = 0;
 
   for (int i = 0; i < std::size(list_channels); i++) {
-    binary_channels =
-        binary_channels |
-        (1 << list_channels[i]);  // bit wise OR comparison between e.g. 6
-                                  // and 7, and shifting the '1' bit in the
-                                  // lowest sig bit, with << operator by the
-                                  // amount of the channel #.
+    binary_channels = binary_channels | (1 << list_channels[i]);
   }
 
+  // print outs
   std::cout << "Channels to be configured: " << std::endl;
   for (int channel : list_channels) {
     std::cout << channel << "  " << std::endl;
   }
   std::cout << "Decimal value of channels: " << binary_channels << std::endl;
 
-  // --------------------------------- //
   // ----- PHASE ALIGNMENT SCOPE ----- //
   {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+
+    // set inversion bit on ECON
     int edgesel = 0;
     int invertfcmd = 1;
-    parameters = {
-        {"FCTRL",
-         {{"GLOBAL_INVERT_COMMAND_RX",
-           invertfcmd}}}  // I set it here manually instead.
-    };
-    // {"CLOCKSANDRESETS", {{"GLOBAL_PUSM_RUN", 1}}}};
+    parameters = {{"FCTRL", {{"GLOBAL_INVERT_COMMAND_RX", invertfcmd}}}};
     auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-    econ.setRunMode(
-        1, edgesel,
-        invertfcmd);  // currently fcmd will not be set because the
-                      // back end code required edgesel > 0. mistake?
 
-    // auto econ_setup_builder = econ.testParameters().add("FCTRL",
-    // "GLOBAL_INVERT_COMMAND_RX",1);  // set fctrl inversion so that ECON can
-    // Lock. auto econ_setup_test = econ_setup_builder.apply();
+    // set econ run mode
+    econ.setRunMode(1, edgesel, invertfcmd);
 
-    // {  // set run value
-    //   auto econ_setup_builder =
-    //       econ.testParameters().add("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN",
-    //                                 1);  // set run bit = 1 AFTER inversion
-    //                                 bit.
-    //   auto econ_setup_test = econ_setup_builder.apply();
-    // }
-
-    auto pusm_run = econ.dumpParameter(
-        "CLOCKSANDRESETS",
-        "GLOBAL_PUSM_RUN");  // dump Parameter I added to force
-                             // this functionality to be able
-                             // to assign to an output variable
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN");
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
+    // print outs
     std::cout << "PUSM_STATE = " << pusm_state << ", 0x" << std::hex
               << pusm_state << std::dec << std::endl;
     std::cout << "PUSM_RUN = " << pusm_run << ", 0x" << std::hex << pusm_run
               << std::dec << std::endl;
 
-    // check PUSM state, run task only if state=8
-    // SET and Read PUSH runbit; also ensure GLOBAL_INVERT_COMMAND_RX is set to
-    // get ECON to lock to FCMDs; otherwise run bit will = 3.
-    // set inversion value and runbit using defined parameter map
     if (pusm_state == 8) {
       // ----- SETTING ROC REGISTERS ----- //
-
       auto roc_setup_builder = roc.testParameters()
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
-      auto params = roc.getParameters(
-          "DIGITALHALF_0");  // this uses the page and returns a mapping of
-                             // all params therein
-      auto idle_0 =
-          params.find("IDLEFRAME")->second;  // second because its a key value
-                                             // pair mapping (See ROC.cxx)
-
-      // auto idle_0 = roc.dumpParameter("DIGITALHALF_0", "IDLEFRAME");
+      auto params = roc.getParameters("DIGITALHALF_0");
+      auto idle_0 = params.find("IDLEFRAME")->second;
 
       std::cout << "roc idle_0,1 = " << idle_0 << ", 0x" << std::hex << idle_0
                 << std::dec << std::endl;
-
       // -------------------------------- //
 
       // ---- SETTING ECON REGISTERS ---- //
-
-      // Set Phase Training ON
-      parameters = {{"EPRXGRPTOP", {{"GLOBAL_TRACK_MODE", 1}}}};
-      // auto econ_setup_builder = econ.testParameters().add(
-      //     "EPRXGRPTOP", "GLOBAL_TRACK_MODE",
-      // 1);  // corresponding to configs/train_erx_phase_ON_econ.yaml
-      for (int channel : list_channels) {
-        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
-        // econ_setup_builder.add("CHEPRXGRP", var_name, 1);
-        parameters["CHEPRXGRP"][var_name] = 1;
-        // std::cout << "channel, varname = " << channel << ", " << var_name
-        // << std::endl;
-      }
-      // auto econ_setup_test = econ_setup_builder.apply();
+      // Set track mode ON
+      parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
       auto econ_phase_align_currentvals = econ.applyParameters(parameters);
 
+      // Set Phase Training OFF, channel enable ON
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        std::string var_name_erx = std::to_string(channel) + "_ENABLE";
+        parameters["ERX"][var_name_erx] = 1;
+        parameters["CHEPRXGRP"][var_name] = 0;
+      }
+      econ.applyParameters(parameters);
+
+      // Toggle Phase Training ON
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        parameters["CHEPRXGRP"][var_name] = 1;
+      }
+      econ.applyParameters(parameters);
+
+      // Toggle Phase Training Off
+      for (int channel : list_channels) {
+        std::string var_name = std::to_string(channel) + "_TRAIN_CHANNEL";
+        parameters["CHEPRXGRP"][var_name] = 0;
+      }
+      econ.applyParameters(parameters);
+
+      // Print outs
       auto eprxgrptop = econ.dumpParameter("EPRXGRPTOP", "GLOBAL_TRACK_MODE");
       auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
       auto cheprxgrp6 = econ.dumpParameter("CHEPRXGRP", "6_TRAIN_CHANNEL");
-      std::cout << "EPRXGRPTOP = " << eprxgrptop << ", 0x" << std::hex
+      auto cheprxgrp7 = econ.dumpParameter("CHEPRXGRP", "7_TRAIN_CHANNEL");
+      std::cout << "EPRXGRPTOP = " << eprxgrptop << ",0x" << std::hex
                 << eprxgrptop << std::dec << std::endl;
       std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
                 << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
       std::cout << "CHEPRXGRP6 (Example train_channel 6) = " << cheprxgrp6
                 << ", 0x" << std::hex << cheprxgrp6 << std::dec << std::endl;
-
-      // Set Training OFF - I DONT THINK I NEED TO DO THIS STEP
-      // for (int channel : list_channels) {
-      //   std::string var_name =
-      //       std::to_string(channel) +
-      //       "_TRAIN_CHANNEL";  // corresponding to
-      //                           // configs/train_erx_phase_OFF_econ.yaml
-      //   auto econ_setup_builder =
-      //       econ.testParameters().add("CHEPRXGRP", var_name, 0);
-      //   auto econ_setup_test = econ_setup_builder.apply();
-      // }
-      // auto cheprxgrp5 = econ.dumpParameter("CHEPRXGRP", "5_TRAIN_CHANNEL");
-      // std::cout << "CHEPRXGRP5 (Example train_channel 5) = " << cheprxgrp5
-      //           << ", 0x" << std::hex << cheprxgrp5 << std::dec << std::endl;
-
+      std::cout << "CHEPRXGRP7 (Example train_channel 7) = " << cheprxgrp7
+                << ", 0x" << std::hex << cheprxgrp7 << std::dec << std::endl;
       // -------------------------------- //
 
       // ---- READING ECON REGISTERS ---- //
-
-      // Check channel lock - MAY STILL READ 0 if lock hasnt been made yet?
-      std::map<int, int> ch_lock_values;  // create map for storing channel -
-                                          // value. Note this is not used, but
-                                          // here just in case its needed.
+      // Check channel locks
+      std::map<int, int> ch_lock_values;
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
@@ -181,58 +141,40 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_locked " << channel << " = " << ch_lock << ", 0x"
                   << std::hex << ch_lock << std::dec << std::endl;
       }
-
       // ----------------------------- //
+
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
                    "aligment task."
                 << std::endl;
     }
-  }  // ---- END PHASE ALIGNMENT scope ----- //
-  // ----------------------------------------- //
+  }
+  // ------ END PHASE ALIGNMENT scope ------ //
 
-  // ------------ WORD ALIGNMENT ----------- //
-  {  // WORD ALIGNMENT SCOPE
+  // ------------ WORD ALIGNMENT scope ----------- //
+  {
     // re-set inversion value and runbit
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     int edgesel = 0;
     int invertfcmd = 1;
-    parameters = {
-        {"FCTRL",
-         {{"GLOBAL_INVERT_COMMAND_RX",
-           invertfcmd}}}  // I set it here manually instead.
-    };
-    auto econ_inversion_runbit_currentvals = econ.applyParameters(parameters);
-    econ.setRunMode(
-        1, edgesel,
-        invertfcmd);  // currently fcmd will not be set because the back end
-                      // code required edgesel > 0. mistake?
+    econ.setRunMode(1, edgesel, invertfcmd);
 
-    auto pusm_run = econ.dumpParameter(
-        "CLOCKSANDRESETS",
-        "GLOBAL_PUSM_RUN");  // dump Parameter I added to force
-                             // this functionality to be able
-                             // to assign to an output variable
+    auto pusm_run = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_RUN");
     auto pusm_state =
         econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
 
     if (pusm_state == 8) {
       // ---- RE SETTING ROC REGISTERS ---- //
-
       auto roc_setup_builder = roc.testParameters()
                                    .add("DIGITALHALF_0", "IDLEFRAME", IDLE)
                                    .add("DIGITALHALF_1", "IDLEFRAME", IDLE);
       auto roc_setup_test = roc_setup_builder.apply();
-      auto params = roc.getParameters(
-          "DIGITALHALF_0");  // this uses the page and returns a mapping of
-                             // all params therein
+
+      // auto params = roc.getParameters("DIGITALHALF_0");
 
       // ----- READING ROC REGISTERS ----- //
-      params = roc.getParameters("TOP");  // this uses the page and returns a
-                                          // mapping of all params therein
-      auto inv_fc_rx = params.find("IN_INV_CMD_RX")
-                           ->second;  // second because its a key value pair
-                                      // mapping (See ROC.cxx)
+      auto params = roc.getParameters("TOP");
+      auto inv_fc_rx = params.find("IN_INV_CMD_RX")->second;
 
       std::cout << "inv_fc_rx = " << inv_fc_rx << ", 0x" << std::hex
                 << inv_fc_rx << std::dec << std::endl;
@@ -246,6 +188,7 @@ void align_phase_word(Target* tgt) {
       auto RunR = params.find("RUNR")->second;
       std::cout << "RunR = " << RunR << ", 0x" << std::hex << RunR << std::dec
                 << std::endl;
+
       params = roc.getParameters("DIGITALHALF_0");
       auto idle_0 = params.find("IDLEFRAME")->second;
       params = roc.getParameters("DIGITALHALF_1");
@@ -272,69 +215,53 @@ void align_phase_word(Target* tgt) {
                 << bxtrig_0 << std::dec << std::endl;
       std::cout << "bxtrigger_1 = " << bxtrig_1 << ", 0x" << std::hex
                 << bxtrig_1 << std::dec << std::endl;
-
       // ---------------------------------- //
 
       // ---- SETTING ECON REGISTERS ---- //
-      // Configure ECOND for Alignment (from econd_init_cpp.yaml)
+      parameters = {};
+      parameters["ROCDAQCTRL"]["GLOBAL_HGCROC_HDR_MARKER"] = 15;  // 0xf
+      parameters["ROCDAQCTRL"]["GLOBAL_SYNC_HEADER"] = 1;
+      parameters["ROCDAQCTRL"]["GLOBAL_SYNC_BODY"] = 89478485;  // 0x5555555
+      parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = binary_channels;
+      parameters["ROCDAQCTRL"]["GLOBAL_PASS_THRU_MODE"] = 1;
+      parameters["ROCDAQCTRL"]["GLOBAL_MATCH_THRESHOLD"] = 2;
+      parameters["ROCDAQCTRL"]["GLOBAL_SIMPLE_MODE"] = 1;
 
-      // Josh: I confirmed here that ERX_[ch#]_ENABLE is all thats required to
-      // get channel locking to be set to 1
+      // BX value econ resets to when it recieves BCR (linkreset)
+      // Overall phase marker between ROC and ECON
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;
+      // 0xdba
 
-      parameters = {
-          {
-              "ROCDAQCTRL", {{"GLOBAL_HGCROC_HDR_MARKER", 15}}  // 0xf
-          },
-          {"ROCDAQCTRL", {{"GLOBAL_SYNC_HEADER", 1}}},
-          {
-              "ROCDAQCTRL", {{"GLOBAL_SYNC_BODY", 89478485}}  // 0x5555555
-          },
-          {"ROCDAQCTRL", {{"GLOBAL_ACTIVE_ERXS", binary_channels}}},
-          {"ROCDAQCTRL", {{"GLOBAL_PASS_THRU_MODE", 1}}},
-          {"ROCDAQCTRL", {{"GLOBAL_MATCH_THRESHOLD", 2}}},
-          {"ROCDAQCTRL", {{"GLOBAL_SIMPLE_MODE", 1}}},
-          {"ALIGNER", {{"GLOBAL_ORBSYN_CNT_LOAD_VAL", 1}}}
+      // // // BX value econ takes snapshot
+      // parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = 3532;
+      // // // 0xdcc
 
-          // sets when snapshot is going to be taken
-          ,
-          {
-              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080}}  // 0xc08
-          },
-          {
-              "ALIGNER",
-              {{"GLOBAL_MATCH_PATTERN_VAL",
-                10760600711006082389ULL}}  // 0x95555555a5555555 (unsigned
-                                           // longlong)
-          },
-          {"ALIGNER", {{"GLOBAL_MATCH_MASK_VAL", 0}}},
-          {"ALIGNER", {{"GLOBAL_I2C_SNAPSHOT_EN", 0}}},
-          {"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 1}}},
-          {
-              "ALIGNER", {{"GLOBAL_ORBSYN_CNT_MAX_VAL", 3563}}  // 0xdeb
-          }};
+      // parameters["ALIGNER"]["GLOBAL_MATCH_PATTERN_VAL"] = 2505397589;
+      // // 0x95555555
 
+      parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
+      parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
+      parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
+
+      // Channel settings
       for (int channel : list_channels) {
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_erx = std::to_string(channel) + "_ENABLE";
+        std::string var_name_erxINV = std::to_string(channel) + "_INVERT_DATA";
 
         parameters["CHALIGNER"][var_name_align] = 1;
-        parameters["ERX"][var_name_erx] = 0;
-
-        // auto econ_setup_builder = econ.testParameters()
-        //                               .add("CHALIGNER", var_name_align, 1)
-        //                               .add("ERX", var_name_erx, 1);
+        parameters["ERX"][var_name_erx] = 1;
+        parameters["ERX"][var_name_erxINV] = 0;
       }
+      auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
+      econ.setValue(0x0381, 0x95555555a5555555, 8); 
 
-      // auto econ_setup_test = econ_setup_builder.apply();
-      auto econ_word_align_currentvals = econ.applyParameters(parameters);
-
+      //   ----- READING ECON REGISTERS ----- //
       std::map<int, int> ch_lock_values;
-      std::cout
-          << "ERX_[ch#]_ENABLE happened here, which is all thats required for "
-             "locking to be set to 1:"
-          << std::endl;
-      // test exact requirements for channel locking
+
+      // Channel Locking print outs
       for (int channel : list_channels) {
         std::string var_name = std::to_string(channel) + "_CHANNEL_LOCKED";
         auto ch_lock = econ.dumpParameter("CHEPRXGRP", var_name);
@@ -343,6 +270,7 @@ void align_phase_word(Target* tgt) {
                   << std::hex << ch_lock << std::dec << std::endl;
       };
 
+      // Snapshot match value print out
       for (int channel : list_channels) {
         auto global_match_pattern_val =
             econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
@@ -351,74 +279,23 @@ void align_phase_word(Target* tgt) {
                   << global_match_pattern_val << std::dec << std::endl;
       }
 
-      // auto econ_setup_builder =
-      //     econ.testParameters()
-      //         .add("ROCDAQCTRL", "GLOBAL_HGCROC_HDR_MARKER", 15)  // 0xf
-      //         .add("ROCDAQCTRL", "GLOBAL_SYNC_HEADER", 1)
-      //         .add("ROCDAQCTRL", "GLOBAL_SYNC_BODY", 89478485)  // 0x5555555
-      //         .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", binary_channels)
-      //         .add("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1)
-      //         .add("ROCDAQCTRL", "GLOBAL_MATCH_THRESHOLD", 2)
-      //         .add("ROCDAQCTRL", "GLOBAL_SIMPLE_MODE", 1)
-
-      //         .add("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 1)
-      //         .add("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT", 3080)  // 0xc08
-      //         .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL",
-      //              //  2505397589) // 0x95555555 ; 00 and 01 are concatenated
-      //              //  together in this case. So 25053975892773833045 becomes
-      //              //  10760600711006082389 which = 0x95555555a5555555
-      //              10760600711006082389)  // 0x95555555a5555555
-      //         // .add("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL_01", 2773833045)
-      //         //
-      //         // 0xa5555555
-      //         .add("ALIGNER", "GLOBAL_MATCH_MASK_VAL", 0)
-      //         .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 0)
-      //         .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)
-      //         .add("ALIGNER", "GLOBAL_ORBSYN_CNT_MAX_VAL", 3563);  // 0xdeb
-
-      // // Not needed yet
-      // // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE", 0)
-      // // .add("ALIGNER", "GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED",
-      // //      0);
-
-      // // .add("ELINKPROCESSORS", "GLOBAL_VETO_PASS_FAIL", 65535)  // 0xffff
-      // // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_RESULT", 3)
-      // // .add("ELINKPROCESSORS", "GLOBAL_RECON_MODE_CHOICE", 0)
-      // // .add("ELINKPROCESSORS", "GLOBAL_V_RECONSTRUCT_THRESH", 2)
-      // // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_EBO", 4095)  // 0xfff
-      // // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_CRC", 4095)  // 0xfff
-      // // .add("ELINKPROCESSORS", "GLOBAL_ERX_MASK_HT", 4095);  // 0xfff
-      // auto econ_setup_test = econ_setup_builder.apply();
-
-      //   ----- READING ECON REGISTERS ----- //
       auto cnt_load_val =
           econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
+      auto snapshot_arm = econ.dumpParameter("ALIGNER", "GLOBAL_SNAPSHOT_ARM");
 
       std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
                 << std::hex << cnt_load_val << std::dec << std::endl;
+      std::cout << "Global snapshot ARM = " << snapshot_arm << ", 0x"
+                << std::hex << snapshot_arm << std::dec << std::endl;
       // ----------------------------------- //
 
-      // ----------- FAST CONTROL ----------- //
-      // // see linkreset_rocs()
+      // ------- SCAN BUNCH CROSSINGS ------- //
+      int snapshot_6bx;
+      int start_val = 0; //0;   // near your orbit region of interest
+      int end_val = 3563;  // up to orbit rollover
+      int testval = 3532; 
 
-      // LINK_RESET
-      tgt->fc().standard_setup();
-      tgt->fc().linkreset_rocs();
-      auto cmdcounters = tgt->fc().getCmdCounters();
 
-      std::cout << std::endl;
-      std::cout << "Counter outputs: " << std::endl;
-      for (uint32_t i = 0; i < std::size(cmdcounters); i++) {
-        std::cout << counterNames[i] << ": " << cmdcounters[i] << std::endl;
-      }
-      std::cout << std::endl;
-
-      // Does this reset the orbit count?
-      tgt->fc().orbit_count_reset();
-
-      // Try other fast commands to test counter increase
-      tgt->fc().bufferclear();
-      tgt->fc().clear_run();
 
       // Custom BX value
       int bx_new = 3000;
@@ -426,28 +303,91 @@ void align_phase_word(Target* tgt) {
       int bx_mask = 0xfff000;
       tgt->fc().bx_custom(bx_addr, bx_mask, bx_new);
 
-      // -------------------------------------- //
+
+
+      // FAST CONTROL - LINK_RESET
+      tgt->fc().orbit_count_reset();
+      // usleep(100);
+      tgt->fc().standard_setup();
+      tgt->fc().linkreset_rocs();
+
+
+      for (int snapshot_val = start_val; snapshot_val <= end_val;
+           snapshot_val += 5) {
+        // int snapshot_val = testval;
+        parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+        // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 1;
+        auto econ_word_align_currentvals = econ.applyParameters(parameters);
+        // parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+        // econ_word_align_currentvals = econ.applyParameters(parameters);
+
+
+        auto tmp_load_val =
+          econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
+        std::cout << "temp snapshot val = " << tmp_load_val << ", 0x"
+                  << std::hex << tmp_load_val << std::dec << std::endl;
+                  
+
+        // FAST CONTROL - LINK_RESET
+        tgt->fc().linkreset_rocs();
+
+        // print out snapshot
+        for (int channel : list_channels) {
+          std::string var_name_snapshot1 =
+              std::to_string(channel) + "_SNAPSHOT_0";
+          std::string var_name_snapshot2 =
+              std::to_string(channel) + "_SNAPSHOT_1";
+          std::string var_name_snapshot3 =
+              std::to_string(channel) + "_SNAPSHOT_2";
+          auto ch_snapshot_1 =
+              econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+          auto ch_snapshot_2 =
+              econ.dumpParameter("CHALIGNER", var_name_snapshot2);
+          auto ch_snapshot_3 =
+              econ.dumpParameter("CHALIGNER", var_name_snapshot3);
+        
+          std::ostringstream hexstring;
+          hexstring << std::hex << std::setfill('0') << std::setw(16)
+                    << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+                    << std::setw(16) << ch_snapshot_3;
+          std::string snapshot_hex = hexstring.str();
+
+
+
+          // 192-bit >> 1 shift
+          uint64_t w0_shifted = (ch_snapshot_1 >> 1);
+          uint64_t w1_shifted = (ch_snapshot_2 >> 1) | ((ch_snapshot_1 & 1ULL) << 63);
+          uint64_t w2_shifted = (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
+
+          std::ostringstream hexstring_sh;
+          hexstring_sh << std::hex << std::setfill('0')
+                    << std::setw(16) << w2_shifted
+                    << std::setw(16) << w1_shifted
+                    << std::setw(16) << w0_shifted;
+          snapshot_hex = hexstring_sh.str();
+
+
+
+          // if (snapshot_hex.find("95555555") != std::string::npos) {
+          if (snapshot_hex.find("955") != std::string::npos) {
+            std::cout << "Header match near BX " << snapshot_val << " (channel "
+                      << channel << ") "
+                      << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+            snapshot_6bx = snapshot_val;
+          }
+
+          std::cout << " (channel "
+                      << channel << ") "
+                      << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+
+
+        }
+      }
+      // -------------- END BX SCAN ------------ //
 
       // ------- READING ECON REGISTERS ------- //
       // READ SNAPSHOT
-
-      // Check ROC D pattern in each eRx   (from read_snapshot.yaml)
       for (int channel : list_channels) {
-        // loop to read 192 bit snapshot in 32 bit chunks
-        // uint64_t snapshot64[3];
-        // for (int i = 0; i < 3; ++i) {
-        //   snapshot64[i] = uio_.read(
-        //       0x00d6 +
-        //       (i * 8));  // * 4 because each read returns 64 bits (8 bytes)
-        // }
-        //   // Output the snapshot in hex
-        //   std::cout << "snapshot = 0x";
-        //   for (int i = 5; i >= 0; --i) std::cout << std::hex <<
-        //   snapshot32[i]; std::cout << std::dec << std::endl;
-        //   // get channel address
-        //   std::string var_name_addr = std::to_string(channel) + "_SNAPSHOT";
-        //   auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
-
         std::string var_name_align =
             std::to_string(channel) + "_PER_CH_ALIGN_EN";
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
@@ -459,6 +399,7 @@ void align_phase_word(Target* tgt) {
         std::string var_name_snapshot3 =
             std::to_string(channel) + "_SNAPSHOT_2";
         std::string var_name_select = std::to_string(channel) + "_SELECT";
+
         auto ch_snap = econ.dumpParameter("CHALIGNER", var_name_align);
         auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
         auto ch_snap_dv = econ.dumpParameter("CHALIGNER", var_name_snap_dv);
@@ -484,9 +425,11 @@ void align_phase_word(Target* tgt) {
         std::cout << "channel_snapshot3 " << channel << " = " << ch_snapshot_3
                   << ", 0x" << std::hex << ch_snapshot_3 << std::dec
                   << std::endl;
-        std::cout << "channel_snapshot_full_string " << channel << " = "
-                  << str_channel_snapshot << std::endl;
-
+        std::cout << "channel_snapshot_full_hexstring " << channel << " = 0x"
+                  << std::hex << std::setfill('0') << std::setw(16)
+                  << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+                  << std::setw(16) << ch_snapshot_3 << std::dec
+                  << std::setfill(' ') << std::endl;
         std::cout << "channel_snap " << channel << " = " << ch_snap << ", 0x"
                   << std::hex << ch_snap << std::dec << std::endl;
         std::cout << "chAligner pattern_match = " << ch_pm << ", 0x" << std::hex
@@ -494,8 +437,12 @@ void align_phase_word(Target* tgt) {
         std::cout << "chAligner snapshot_dv = " << ch_snap_dv << ", 0x"
                   << std::hex << ch_snap_dv << std::dec << std::endl;
         std::cout << "chAligner select " << channel << " = " << ch_select
-                  << ", 0x" << std::hex << ch_select << std::dec << std::endl;
+                  << ", 0x" << std::hex << ch_select << std::dec
+                  << "(0xa0 = failed alignment)" << std::endl;
       }
+
+      
+
     } else {
       std::cout << "PUSM_STATE / runbit does not equal 8. Not running phase "
                    "aligment task."
@@ -504,6 +451,4 @@ void align_phase_word(Target* tgt) {
     // ------------------------------------------- //
 
   }  // -------- END WORD ALIGNMENT SCOPE ------- //
-
-  // ----------------------------------------------------------------- //
-}
+}  // End

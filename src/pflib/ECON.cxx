@@ -95,7 +95,6 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
       std::vector<uint8_t> FCMD_invert =
           newParam(FCMDEDGE_edgesel, ADDR_FCMD, NBYTES_FCMD, MASK_FCMDINVERT,
                    SHIFT_FCMDINVERT, fcmd_invert);
-
       setValues(ADDR_FCMD, FCMD_invert);
     }
   }
@@ -362,10 +361,12 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   return readParameters(parameters);
 }
 
-void ECON::readParameter(const std::string& page, const std::string& param) {
+std::map<std::string, uint64_t> ECON::readParameter(const std::string& page,
+                                                    const std::string& param,
+                                                    bool print_values) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
-  this->readParameters(p);
+  return this->readParameters(p, print_values)[page];
 }
 
 // added by Josh to get the actual value out in the script
