@@ -230,9 +230,6 @@ void align_phase_word(Target* tgt) {
         boost::multiprecision::uint256_t snapshot = (boost::multiprecision::uint256_t(ch_snapshot_3) << 128) |
                             (boost::multiprecision::uint256_t(ch_snapshot_2) << 64) |
                             boost::multiprecision::uint256_t(ch_snapshot_1);
-        std::cout << "256bit snap: " << snapshot << std::endl;
-        boost::multiprecision::uint256_t shifted = (snapshot >> (select - 32)) & 0xffffffffffffffffULL;
-        std::cout << "Shifted and masked: " << shifted << std::endl;
 
         // 192-bit >> 1 shift
         uint64_t w0_shifted = (ch_snapshot_1 >> 1);
@@ -262,6 +259,10 @@ void align_phase_word(Target* tgt) {
           std::cout << " select " << channel << " = " << ch_select
               << ", 0x" << std::hex << ch_select << std::dec
               << std::endl;
+            
+          std::cout << "256bit snap: " << snapshot << std::endl;
+          boost::multiprecision::uint256_t shifted = (snapshot >> (select - 32)) & 0xffffffffffffffffULL;
+          std::cout << "Shifted and masked: " << shifted << std::endl;
 
           header_found = true;
           break; // out of channel loop
