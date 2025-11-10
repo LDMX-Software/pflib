@@ -1,7 +1,6 @@
 #include "align_phase_word.h"
 
 #include "pflib/DecodeAndWrite.h"
-#include "pflib/utility/json.h"
 #include <boost/multiprecision/cpp_int.hpp>
 #include "pflib/ROC.h"
 
