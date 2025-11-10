@@ -7,6 +7,8 @@
 
 namespace pflib {
 
+class OptoLink;
+
 /**
  * @class Target class for encapulating a given setup's access rules
  */
@@ -20,6 +22,8 @@ class Target {
   Hcal& hcal() { return *hcal_; }
 
   FastControl& fc() { return *fc_; }
+
+  const std::vector<OptoLink*>& optoLinks() const { return opto_; }
 
   /**
    * types of daq formats that we can do
@@ -63,6 +67,7 @@ class Target {
 
   std::shared_ptr<Hcal> hcal_;
   std::shared_ptr<FastControl> fc_;
+  std::vector<OptoLink*> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
 };
 

@@ -44,7 +44,6 @@ add_library(utility SHARED
   src/pflib/utility/crc.cxx
   src/pflib/utility/ends_with.cxx
   src/pflib/utility/load_integer_csv.cxx
-  src/pflib/utility/json.cxx
   src/pflib/utility/str_to_int.cxx
   src/pflib/utility/median.cxx
   src/pflib/utility/efficiency.cxx
@@ -144,9 +143,10 @@ add_executable(
 )
 target_link_libraries(test-pflib-on-zcu PRIVATE Boost::unit_test_framework pflib packing)
 
+find_package(nlohmann_json 3.10.5 REQUIRED)
 file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
 add_executable(pftool ${pftool_sources})
-target_link_libraries(pftool PRIVATE pflib menu)
+target_link_libraries(pftool PRIVATE pflib menu nlohmann_json::nlohmann_json)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
   app/lpgbt/lpgbt_mezz_tester.cc

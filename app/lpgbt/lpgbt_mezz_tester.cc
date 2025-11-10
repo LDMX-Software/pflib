@@ -2,7 +2,7 @@
 #include <boost/process.hpp>
 #include "pflib/Exception.h"
 
-LPGBT_Mezz_Tester::LPGBT_Mezz_Tester(pflib::UIO& opto) : opto_{opto}, wired_(0) {
+LPGBT_Mezz_Tester::LPGBT_Mezz_Tester(const std::string& tname) : opto_(tname) {
   try {
     wired_=new pflib::UIO("lpgbtmezz_test");
   } catch (pflib::Exception e) {
