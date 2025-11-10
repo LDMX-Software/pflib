@@ -239,22 +239,14 @@ class FastControlCMS_MMap : public FastControl {
 
 
   void bx_custom(int bx_addr, int bx_mask, int bx_new) {
-    // uio_.rmw(bx_addr, bx_mask, bx_mask);
-    // turn off L1A for the moment
-    uint32_t preval = uio_.read(ADDR_CTL_REG);
-    uio_.write(ADDR_CTL_REG, ((preval | CTL_ENABLE_L1AS) ^ CTL_ENABLE_L1AS));
-
-      uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
-      uint32_t bxout2 = uio_.read(3);
-      printf("readMasked: ", bxout2);
-      printf("\n");
-      // // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
-      // std::cout << "readMasked (after write): " << bx_out << std::endl;
+    uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
+    uint32_t bxout2 = uio_.read(bx_addr);
+    printf("Read FC BX: ", bxout2);
+    printf("\n");
+    // // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
+    // std::cout << "readMasked (after write): " << bx_out << std::endl;
     
-      // restore previous L1A situation
-      uio_.write(ADDR_CTL_REG, preval);
-      // uio_.rmw(bx_addr, bx_mask, bx_new);
-    }
+  }
 
   virtual void linkreset_rocs() override {
     // turn off L1A for the moment

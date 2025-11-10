@@ -207,40 +207,6 @@ std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
   return chip_params[PAGE];
 }
 
-// Not needed
-// // added by Josh to get the actual value out in the script
-// std::map<std::string, std::map<std::string, uint64_t>> ROC::readParameters(
-//     const std::map<std::string, std::map<std::string, uint64_t>>& parameters,
-//     bool print_values) {
-//   auto touched_registers = compiler_.compile(parameters);
-//   auto chip_reg{getRegisters(touched_registers)};
-//   // decompile with little_endian and not being careful since we are not
-//   trying
-//   // to read all the chip values
-//   std::map<std::string, std::map<std::string, uint64_t>> parameter_values =
-//       compiler_.decompile(chip_reg, false, true);
-//   // print by default
-//   if (print_values) {
-//     for (const auto& [page_name, params] : parameter_values) {
-//       printf("%s:\n", page_name.c_str());
-//       for (const auto& [param_name, value] : params) {
-//         printf("  %s: 0x%lx (%lu)\n", param_name.c_str(), value, value);
-//       }
-//     }
-//   }
-//   return parameter_values;
-// }
-// // also addded by Josh to finish matching what is in the ECON register
-// reading
-// // functions.
-// uint64_t ROC::dumpParameter(const std::string& page, const std::string&
-// param) {
-//   std::map<std::string, std::map<std::string, uint64_t>> p;
-//   p[page][param] = 0;
-//   auto values = this->readParameters(p, false);  // get the results
-//   return values[page][param];  // return the actual register value
-// }
-
 std::map<std::string, std::map<std::string, uint64_t>> ROC::defaults() {
   return compiler_.defaults();
 }

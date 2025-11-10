@@ -74,7 +74,7 @@ class pftool : public pflib::menu::Menu<Target*> {
     int readout_config() const { return cfg_; }
     /// index of HGCROC currently being interacted with
     int iroc{0};
-    /// index of ECON currently being interacted with (added by Josh)
+    /// index of ECON currently being interacted with
     int iecon{0};
     /// index of link currently being interacted with
     int ilink{0};
