@@ -85,7 +85,7 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   {
-    print_roc_status(roc);
+    if(debug_checks{print_roc_status(roc)};
 
     // Set ECON registers
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -118,7 +118,7 @@ void align_phase_word(Target* tgt) {
   // ------------ WORD ALIGNMENT ----------- //
   {
     // print ROC status
-    print_roc_status(roc);
+    if(debug_checks{print_roc_status(roc)};
 
     // ---- SETTING ECON REGISTERS ---- //
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -149,8 +149,10 @@ void align_phase_word(Target* tgt) {
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
       auto val = econ.dumpParameter("CHEPRXGRP", name);
-      std::cout << "channel_locked " << ch << " = " << val << ", " << to_hex(val)
-                  << std::endl;
+      if(debug_checks){
+        std::cout << "channel_locked " << ch << " = " << val << ", " << to_hex(val)
+                    << std::endl;
+      }
     }
 
     auto global_match_pattern_val =
@@ -158,11 +160,13 @@ void align_phase_word(Target* tgt) {
     auto cnt_load_val =
       econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
     
-    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
-	      << global_match_pattern_val << ", 0x" << std::hex
-	      << global_match_pattern_val << std::dec << std::endl;    
-    std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
-	      << std::hex << cnt_load_val << std::dec << std::endl;
+    if(debug_checks){
+      std::cout << "GLOBAL_MATCH_PATTERN_VAL test: "
+          << global_match_pattern_val << ", 0x" << std::hex
+          << global_match_pattern_val << std::dec << std::endl;    
+      std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x"
+          << std::hex << cnt_load_val << std::dec << std::endl;
+    }
 
     // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
     tgt->fc().standard_setup();
@@ -176,7 +180,8 @@ void align_phase_word(Target* tgt) {
     int end_val = 3540;  // up to orbit rollover
     int testval = 3532; 
 
-    
+    std::cout << "Iterating over snapshots to find SPECIAL HEADER: " 
+        << std::endl;
     bool header_found = false;
     for (int snapshot_val = start_val; snapshot_val <= end_val;
       snapshot_val += 1) {
