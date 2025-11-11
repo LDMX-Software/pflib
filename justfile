@@ -11,7 +11,7 @@ _test *ARGS:
     cd build && denv ./test-pflib {{ ARGS }}
 
 # init a local denv for development ("zcu" or "bittware-host")
-init host="zcu":
+init host:
     denv init ghcr.io/ldmx-software/pflib-env:{{host}}-sha-8afd3be
 
 # configure pflib build
