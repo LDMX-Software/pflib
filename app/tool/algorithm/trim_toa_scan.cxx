@@ -1,7 +1,7 @@
 #include "trim_toa_scan.h"
-#include "get_toa_efficiencies.h"
 
 #include "../daq_run.h"
+#include "get_toa_efficiencies.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 

@@ -2,14 +2,14 @@
 
 #include <stdio.h>
 
-#include <string>
+#include <fstream>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
-#include <fstream>
 
-#include "pflib/Target.h"
 #include "pflib/Logging.h"
+#include "pflib/Target.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 
 /**
@@ -32,9 +32,8 @@ class DAQRunConsumer {
  * @param[in] nevents number of events to collect
  * @param[in] rate how fast to collect events, default 100
  */
-void daq_run(pflib::Target *tgt, const std::string& cmd, DAQRunConsumer& consumer,
-             int nevents, int rate = 100);
-
+void daq_run(pflib::Target* tgt, const std::string& cmd,
+             DAQRunConsumer& consumer, int nevents, int rate = 100);
 
 /**
  * just copy input event packets to the output file as binary

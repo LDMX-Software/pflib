@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-#include "load_parameter_points.h"
 #include "../daq_run.h"
+#include "load_parameter_points.h"
 
 ENABLE_LOGGING();
 

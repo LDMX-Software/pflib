@@ -1,7 +1,7 @@
 #include "toa_vref_scan.h"
-#include "get_toa_efficiencies.h"
 
 #include "../daq_run.h"
+#include "get_toa_efficiencies.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 

@@ -2,10 +2,10 @@
  * @file daq.cxx
  * DAQ menu (and submenus) command definitions
  */
+#include "daq_run.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
-#include "daq_run.h"
 
 ENABLE_LOGGING();
 

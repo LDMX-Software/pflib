@@ -1,10 +1,10 @@
 #include "daq_run.h"
-#include "pftool.h"
 
 #include <sys/time.h>
 
 #include "pflib/Exception.h"
 #include "pflib/packing/BufferReader.h"
+#include "pftool.h"
 
 ENABLE_LOGGING();
 
