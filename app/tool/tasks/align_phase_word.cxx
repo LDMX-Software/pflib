@@ -8,7 +8,7 @@
 
 ENABLE_LOGGING();
 
-bool debug_checks = false;
+ bool debug_checks = false;
 
 // ROC Idle Frame
 constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
@@ -17,6 +17,13 @@ constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
 constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 
 using pflib::packing::hex;
+
+bool get_debug_input() {
+  char choice;
+  std::cout << "Enable debug checks? (y/n) (default n): ";
+  std::cin >> choice;
+  return (choice == 'y' || choice == 'Y');
+}
 
 uint32_t build_channel_mask(std::vector<int>& channels) {
   /*
@@ -51,6 +58,9 @@ void print_roc_status(pflib::ROC& roc) {
 }
 
 void align_phase_word(Target* tgt) {
+
+  debug_checks = get_debug_input();
+
   auto roc = tgt->hcal().roc(pftool::state.iroc);
   auto econ = tgt->hcal().econ(pftool::state.iecon);
 
