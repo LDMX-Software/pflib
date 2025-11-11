@@ -293,7 +293,7 @@ void align_phase_word(Target* tgt) {
           break;  // out of channel loop
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << shifted1
+                    << "snapshot_hex_shifted: 0x"  << std::hex << std::uppercase << shifted1 << std::dec 
                     << std::endl;
 
           std::cout << "snapshot_hex: 0x" << snapshot << std::endl;
@@ -303,7 +303,7 @@ void align_phase_word(Target* tgt) {
           //           << ch_snapshot_2 << std::setw(16) << ch_snapshot_3
           //           << std::dec << std::setfill(' ') << std::endl;
         }else{
-          std::cout << "No header pattern match found in Snapshot:  " << snapshot_val << std::endl;
+          std::cout << "No header pattern match found in Snapshot:  "   << std::hex << std::uppercase << snapshot_val  << std::dec << std::endl;
           break;  // out of channel loop
         }
 
