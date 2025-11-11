@@ -10,9 +10,9 @@ _build *ARGS:
 _test *ARGS:
     cd build && denv ./test-pflib {{ ARGS }}
 
-# init a local denv for development
-init:
-    denv init ghcr.io/ldmx-software/pflib-env:latest
+# init a local denv for development ("zcu" or "bittware-host")
+init host="zcu":
+    denv init ghcr.io/ldmx-software/pflib-env:{{host}}-latest
 
 # configure pflib build
 configure: _cmake
