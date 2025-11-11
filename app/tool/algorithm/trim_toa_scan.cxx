@@ -1,7 +1,7 @@
-#include "pflib/algorithm/trim_toa_scan.h"
+#include "trim_toa_scan.h"
 
-#include "pflib/DecodeAndBuffer.h"
-#include "pflib/algorithm/get_toa_efficiencies.h"
+#include "../daq_run.h"
+#include "get_toa_efficiencies.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 
@@ -112,7 +112,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
                             .add("REFERENCEVOLTAGE_1", "CALIB", calib)
                             .apply();
       usleep(10);
-      tgt->daq_run("CHARGE", buffer, n_events, 100);
+      daq_run(tgt, "CHARGE", buffer, n_events, 100);
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa
                        << ", and calib = " << calib << ", getting efficiencies";

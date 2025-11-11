@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "pflib/algorithm/toa_vref_scan.h"
+#include "../algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
   auto roc{tgt->hcal().roc(pftool::state.iroc)};

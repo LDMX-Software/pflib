@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 
 ENABLE_LOGGING();
 
@@ -17,7 +17,7 @@ void trim_inv_dacb_scan(Target* tgt) {
   int trim_inv = 0;
   int dacb = 0;
 
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -56,7 +56,7 @@ void trim_inv_dacb_scan(Target* tgt) {
     auto dacb_test = dacb_test_builder.apply();
 
     pflib_log(info) << "Running DACB = " << dacb;
-    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 
   // reset dacb to 0
@@ -77,6 +77,6 @@ void trim_inv_dacb_scan(Target* tgt) {
                                 trim_inv);
     }
     auto trim_inv_test = trim_inv_test_builder.apply();
-    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }

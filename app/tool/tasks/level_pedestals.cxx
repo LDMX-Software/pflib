@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "pflib/algorithm/level_pedestals.h"
+#include "../algorithm/level_pedestals.h"
 
 void level_pedestals(Target* tgt) {
   auto roc{tgt->hcal().roc(pftool::state.iroc)};

@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#include "../daq_run.h"
 #include "load_parameter_points.h"
-#include "pflib/DecodeAndWrite.h"
 
 ENABLE_LOGGING();
 
@@ -69,7 +69,7 @@ void gen_scan(Target* tgt) {
   auto scan_wide_param_hold = pflib::ROC::TestParameters(roc, scan_wide_params);
 
   std::size_t i_param_point{0};
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
         f << std::boolalpha << "# " << header << '\n';
@@ -97,6 +97,6 @@ void gen_scan(Target* tgt) {
     auto test_param = test_param_builder.apply();
     pflib_log(info) << "running test parameter point " << i_param_point << " / "
                     << param_values.size();
-    tgt->daq_run(trigger, writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
   }
 }

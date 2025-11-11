@@ -6,6 +6,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        host:
+          - zcu
+          - bittware-host
     steps:
       - name: checkout repository
         uses: actions/checkout@v5
@@ -16,4 +21,6 @@ jobs:
           curl -s https://tomeichlersmith.github.io/denv/install | sh
           denv check
       - name: basic compile and run tests
-        run: just init configure build test
+        run: |
+          just init ${{ matrix.host }}
+          just configure build test
