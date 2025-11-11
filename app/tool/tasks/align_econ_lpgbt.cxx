@@ -44,7 +44,8 @@ void align_econ_lpgbt(Target* tgt) {
 
   for (int ch = 0; ch < 4; ++ch) {
     printf(" Checking ECOND PRBS on group 0, channel %d...\n", ch);
-    lpgbt_daq.check_prbs_errors_erx(0, ch, false); // group 0, ch 0, false for ECON
+    lpgbt_daq.check_prbs_errors_erx(0, ch,
+                                    false);  // group 0, ch 0, false for ECON
   }
 
   auto post_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
@@ -56,8 +57,7 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" POST: Is EPRX0 locked? = %d\n", post_lock_result);
 
   auto econ_finish_builder =
-      econ.testParameters()
-          .add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
+      econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
 
   auto econ_finish_test = econ_finish_builder.apply();
 }
