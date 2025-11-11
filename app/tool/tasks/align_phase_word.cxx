@@ -262,8 +262,7 @@ void align_phase_word(Target* tgt) {
                      << w2_shifted << std::setw(16) << w1_shifted
                      << std::setw(16) << w0_shifted << std::setfill(' ');
         std::string snapshot_hex_shifted = hexstring_sh.str();
-
-        // if (snapshot_hex.find("955") != std::string::npos) {
+        
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                     << " (channel " << channel << ") " << std::endl
@@ -297,6 +296,8 @@ void align_phase_word(Target* tgt) {
                     << std::setw(16) << ch_snapshot_1 << std::setw(16)
                     << ch_snapshot_2 << std::setw(16) << ch_snapshot_3
                     << std::dec << std::setfill(' ') << std::endl;
+        }else{
+          std::cout << "No header pattern match found in Snapshot:  " << snapshot_val << std::endl;
         }
 
       }  // end loop over snapshots for single channel
