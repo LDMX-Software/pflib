@@ -298,6 +298,7 @@ void align_phase_word(Target* tgt) {
                     << std::dec << std::setfill(' ') << std::endl;
         }else{
           std::cout << "No header pattern match found in Snapshot:  " << snapshot_val << std::endl;
+          break;  // out of channel loop
         }
 
       }  // end loop over snapshots for single channel
