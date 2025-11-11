@@ -19,9 +19,13 @@ constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 using pflib::packing::hex;
 
 bool get_debug_input() {
-  char choice;
+  std::string line;
   std::cout << "Enable debug checks? (y/n) (default n): ";
-  std::cin >> choice;
+  std::getline(std::cin, line);
+
+  if (line.empty())
+    return false;  // default n
+  char choice = line[0];
   return (choice == 'y' || choice == 'Y');
 }
 
