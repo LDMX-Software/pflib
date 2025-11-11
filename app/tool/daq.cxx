@@ -54,17 +54,22 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     daq.enable(!daq.enabled());
   }
   if (cmd == "FORMAT") {
-    printf("Format options:\n");
-    printf(" (1) ROC with ad-hoc headers as in TB2022\n");
-    printf(" (2) ECON with full readout\n");
-    // printf(" (3) ECON with ZS\n");
-    int i_format = pftool::readline_int(
-        " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
-    if (i_format < 1 or i_format > 2) {
-      PFEXCEPTION_RAISE(
-          "BadSel", std::to_string(i_format) + " is not a valid selection.");
+    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+      printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
+      pftool::state.daq_format_mode=Target::DaqFormat::ECOND_SW_HEADERS;
+    } else {	  
+      printf("Format options:\n");
+      printf(" (1) ROC with ad-hoc headers as in TB2022\n");
+      printf(" (2) ECON with full readout\n");
+      // printf(" (3) ECON with ZS\n");
+      int i_format = pftool::readline_int(
+					  " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
+      if (i_format < 1 or i_format > 2) {
+	PFEXCEPTION_RAISE(
+			  "BadSel", std::to_string(i_format) + " is not a valid selection.");
+      }
+      pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
     }
-    pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
   }
   if (cmd == "CONFIG") {
     pftool::state.daq_contrib_id = pftool::readline_int(
@@ -157,6 +162,9 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+    pftool::state.daq_format_mode=Target::DaqFormat::ECOND_SW_HEADERS;
+  }
 
   if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
     /**

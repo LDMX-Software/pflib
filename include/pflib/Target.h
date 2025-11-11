@@ -32,7 +32,9 @@ class Target {
     /// simple format for direct HGCROC connection
     SIMPLEROC = 1,
     /// ECON-D without applying zero suppression
-    ECOND_NO_ZS = 2
+    ECOND_NO_ZS = 2,
+    /// ECON-D with headers
+    ECOND_SW_HEADERS = 3
   };
 
   virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
