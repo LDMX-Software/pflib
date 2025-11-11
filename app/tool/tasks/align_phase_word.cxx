@@ -59,7 +59,6 @@ void print_roc_status(pflib::ROC& roc) {
               << "bxtrigger_" << half << " = " << bxtrig << ", " << hex(bxtrig)
               << '\n';
   }
-  std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
 }
 
 void align_phase_word(Target* tgt) {
@@ -242,12 +241,12 @@ void align_phase_word(Target* tgt) {
         auto ch_snapshot_3 =
             econ.dumpParameter("CHALIGNER", var_name_snapshot3);
 
-        std::ostringstream hexstring;
-        hexstring << std::hex << std::setfill('0') << std::setw(16)
-                  << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
-                  << std::setw(16) << ch_snapshot_3 << std::dec
-                  << std::setfill(' ');
-        std::string snapshot_hex = hexstring.str();
+        // std::ostringstream hexstring;
+        // hexstring << std::hex << std::setfill('0') << std::setw(16)
+        //           << ch_snapshot_1 << std::setw(16) << ch_snapshot_2
+        //           << std::setw(16) << ch_snapshot_3 << std::dec
+        //           << std::setfill(' ');
+        // std::string snapshot_hex = hexstring.str();
 
         // Combine 3 × 64-bit words into one 192-bit integer
         boost::multiprecision::uint256_t snapshot =
@@ -262,19 +261,25 @@ void align_phase_word(Target* tgt) {
         uint64_t w2_shifted =
             (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
 
-        std::ostringstream hexstring_sh;
-        hexstring_sh << std::hex << std::setfill('0') << std::setw(16)
-                     << w2_shifted << std::setw(16) << w1_shifted
-                     << std::setw(16) << w0_shifted << std::setfill(' ');
-        std::string snapshot_hex_shifted = hexstring_sh.str();
+        // shift by 1
+        boost::multiprecision::uint256_t shifted1 =
+            (snapshot >> 1);
+        std::cout << "Shifted by 1: 0x" << std::hex << std::uppercase
+                  << shifted1 << std::dec << std::endl;
+
+        // std::ostringstream hexstring_sh;
+        // hexstring_sh << std::hex << std::setfill('0') << std::setw(16)
+        //              << w2_shifted << std::setw(16) << w1_shifted
+        //              << std::setw(16) << w0_shifted << std::setfill(' ');
+        // std::string snapshot_hex_shifted = hexstring_sh.str();
         
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                     << " (channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted
+                    << "snapshot_hex_shifted: 0x" << shifted1
                     << std::endl;
 
-          std::cout << "snapshot_hex: 0x" << snapshot_hex << std::endl;
+          std::cout << "snapshot_hex: 0x" << snapshot << std::endl;
 
           std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
                     << ch_pm << std::dec << std::endl;
@@ -294,13 +299,15 @@ void align_phase_word(Target* tgt) {
           break;  // out of channel loop
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << snapshot_hex_shifted
+                    << "snapshot_hex_shifted: 0x" << shifted1
                     << std::endl;
 
-          std::cout << "snapshot_hex: 0x" << std::hex << std::setfill('0')
-                    << std::setw(16) << ch_snapshot_1 << std::setw(16)
-                    << ch_snapshot_2 << std::setw(16) << ch_snapshot_3
-                    << std::dec << std::setfill(' ') << std::endl;
+          std::cout << "snapshot_hex: 0x" << snapshot << std::endl;
+
+          // std::cout << "snapshot_hex: 0x" << std::hex << std::setfill('0')
+          //           << std::setw(16) << ch_snapshot_1 << std::setw(16)
+          //           << ch_snapshot_2 << std::setw(16) << ch_snapshot_3
+          //           << std::dec << std::setfill(' ') << std::endl;
         }else{
           std::cout << "No header pattern match found in Snapshot:  " << snapshot_val << std::endl;
           break;  // out of channel loop
@@ -312,6 +319,6 @@ void align_phase_word(Target* tgt) {
     // -------------- END SNAPSHOT BX SCAN ------------ //
 
   }  // -------- END WORD ALIGNMENT ------- //
-  std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
+  // std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
 
 }  // End
