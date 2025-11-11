@@ -19,10 +19,11 @@ jobs:
     permissions:
       contents: read
       packages: write
-    matrix:
-      hosttype:
-        - zcu
-        - bittware-host
+    strategy:
+      matrix:
+        hosttype:
+          - zcu
+          - bittware-host
     steps:
     - uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
