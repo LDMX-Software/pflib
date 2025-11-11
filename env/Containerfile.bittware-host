@@ -5,6 +5,8 @@ RUN apt-get update &&\
       gcc \
       g++ \
       cmake \
+      clang \
+      clang-extra-tools \
       libreadline-dev \
       libboost-all-dev \
       wget \
