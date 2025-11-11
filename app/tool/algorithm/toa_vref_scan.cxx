@@ -1,7 +1,7 @@
-#include "pflib/algorithm/toa_vref_scan.h"
+#include "toa_vref_scan.h"
+#include "get_toa_efficiencies.h"
 
-#include "pflib/DecodeAndBuffer.h"
-#include "pflib/algorithm/get_toa_efficiencies.h"
+#include "../daq_run.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 
@@ -34,7 +34,7 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
                            .add("REFERENCEVOLTAGE_1", "TOA_VREF", toa_vref)
                            .apply();
     usleep(10);
-    tgt->daq_run("PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "finished toa_vref = " << toa_vref
                      << ", getting efficiencies";
     auto efficiencies = get_toa_efficiencies(buffer.get_buffer());

@@ -1,4 +1,4 @@
-#include "pflib/algorithm/get_toa_efficiencies.h"
+#include "get_toa_efficiencies.h"
 
 #include "pflib/utility/efficiency.h"
 

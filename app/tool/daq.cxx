@@ -2,11 +2,10 @@
  * @file daq.cxx
  * DAQ menu (and submenus) command definitions
  */
-#include "pflib/DecodeAndWrite.h"
-#include "pflib/WriteToBinaryFile.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
+#include "daq_run.h"
 
 ENABLE_LOGGING();
 
@@ -343,12 +342,11 @@ static void daq(const std::string& cmd, Target* pft) {
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
     if (decoding) {
-      pflib::DecodeAndWriteToCSV writer{
-          pflib::all_channels_to_csv(fname + ".csv")};
-      pft->daq_run(cmd, writer, nevents, pftool::state.daq_rate);
+      DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
+      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
     } else {
-      pflib::WriteToBinaryFile writer{fname + ".raw"};
-      pft->daq_run(cmd, writer, nevents, pftool::state.daq_rate);
+      WriteToBinaryFile writer{fname + ".raw"};
+      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
     }
   }
 }
@@ -640,8 +638,7 @@ auto menu_daq_debug =
               std::string fname = pftool::readline_path("charge-timein");
               tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
                              pftool::state.daq_contrib_id);
-              pflib::DecodeAndWriteToCSV writer{
-                  pflib::all_channels_to_csv(fname + ".csv")};
+              DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
               pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
               auto test_param_handle =
                   roc.testParameters()
@@ -655,7 +652,7 @@ auto menu_daq_debug =
                 usleep(10);
                 pflib_log(info) << "run with FAST_CONTROL.CALIB = "
                                 << tgt->fc().fc_get_setup_calib();
-                tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+                daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
               }
             })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
