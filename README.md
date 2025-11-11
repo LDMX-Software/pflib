@@ -26,6 +26,8 @@ make install
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:path/to/install/lib
 PYTHONPATH=${PYTHONPATH}:path/to/install/lib
 ```
+- `PYTHONPATH` tells Python where it can find `pypflib`
+- `LD_LIBRARY_PATH` allows `pypflib` to link to the other pflib libraries
 
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)
