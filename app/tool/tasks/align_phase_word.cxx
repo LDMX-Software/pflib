@@ -59,6 +59,7 @@ void print_roc_status(pflib::ROC& roc) {
               << "bxtrigger_" << half << " = " << bxtrig << ", " << hex(bxtrig)
               << '\n';
   }
+  std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
 }
 
 void align_phase_word(Target* tgt) {
