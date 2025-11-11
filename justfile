@@ -12,7 +12,7 @@ _test *ARGS:
 
 # init a local denv for development ("zcu" or "bittware-host")
 init host="zcu":
-    denv init ghcr.io/ldmx-software/pflib-env:{{host}}-latest
+    denv init ghcr.io/ldmx-software/pflib-env:{{host}}-sha-8afd3be
 
 # configure pflib build
 configure: _cmake
