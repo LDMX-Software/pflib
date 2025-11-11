@@ -296,6 +296,7 @@ void align_phase_word(Target* tgt) {
     // -------------- END SNAPSHOT BX SCAN ------------ //
 
   }  // -------- END WORD ALIGNMENT ------- //
-  std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
+  std::cout << std::dec
+            << std::setfill(' ');  // ensure o remaining 0's filling cout
 
 }  // End
