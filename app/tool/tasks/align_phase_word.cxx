@@ -264,8 +264,8 @@ void align_phase_word(Target* tgt) {
         // shift by 1
         boost::multiprecision::uint256_t shifted1 =
             (snapshot >> 1);
-        std::cout << "Shifted by 1: 0x" << std::hex << std::uppercase
-                  << shifted1 << std::dec << std::endl;
+        // std::cout << "Shifted by 1: 0x" << std::hex << std::uppercase
+        //           << shifted1 << std::dec << std::endl;
 
         // std::ostringstream hexstring_sh;
         // hexstring_sh << std::hex << std::setfill('0') << std::setw(16)
@@ -276,10 +276,10 @@ void align_phase_word(Target* tgt) {
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                     << " (channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << shifted1
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase << shifted1 << std::dec
                     << std::endl;
 
-          std::cout << "snapshot_hex: 0x" << snapshot << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
 
           std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
                     << ch_pm << std::dec << std::endl;
