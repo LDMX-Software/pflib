@@ -1,6 +1,6 @@
 #include "set_toa.h"
 
-#include "pflib/DecodeAndBuffer.h"
+#include "../daq_run.h"
 #include "pflib/Exception.h"
 #include "pflib/utility/string_format.h"
 
@@ -24,14 +24,14 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
-  pflib::DecodeAndBuffer buffer(nevents);
+  DecodeAndBuffer buffer(nevents);
 
   tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
                  1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
     auto test_handle =
         roc.testParameters().add(refvol_page, "TOA_VREF", toa_vref).apply();
-    tgt->daq_run("CHARGE", buffer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
     for (const pflib::packing::SingleROCEventPacket& ep : buffer.get_buffer()) {
       auto toa = ep.channel(channel).toa();

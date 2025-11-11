@@ -33,11 +33,17 @@ class FastControl {
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
 
+  /** set custom bunch crossing */
+  virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) = 0;
+
   /** send a link reset to the ECONs*/
   virtual void linkreset_econs() {};
 
   /** send a buffer clear */
   virtual void bufferclear() = 0;
+
+  /** send a orbit count reset */  // Josh
+  virtual void orbit_count_reset() = 0;
 
   /** send a single calib pulse */
   virtual void chargepulse() = 0;
