@@ -174,7 +174,7 @@ add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 set_target_properties(pflib packing version utility register_maps PROPERTIES PREFIX "libpflib_")
-install(TARGETS pflib packing version utility register_maps pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib packing version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
