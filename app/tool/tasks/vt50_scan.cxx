@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -60,7 +60,7 @@ void vt50_scan(Target* tgt) {
   int vref_value{0};
 
   std::vector<pflib::packing::SingleROCEventPacket> buffer;
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -134,7 +134,7 @@ void vt50_scan(Target* tgt) {
       buffer.clear();
 
       // daq run
-      tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+      daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
 
       std::vector<double> tot_list;
       for (pflib::packing::SingleROCEventPacket ep : buffer) {

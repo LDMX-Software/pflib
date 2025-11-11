@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 
 ENABLE_LOGGING();
 
@@ -18,7 +18,7 @@ void inv_vref_scan(Target* tgt) {
 
   int inv_vref = 0;
 
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -52,6 +52,6 @@ void inv_vref_scan(Target* tgt) {
                           .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
                           .apply();
     // store current scan state in header for writer access
-    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }

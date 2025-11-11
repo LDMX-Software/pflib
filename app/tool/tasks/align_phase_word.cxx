@@ -2,7 +2,6 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "pflib/DecodeAndWrite.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 

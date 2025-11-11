@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 
 ENABLE_LOGGING();
 
@@ -15,7 +15,7 @@ void toa_scan(Target* tgt) {
 
   int calib = 0;
 
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -58,6 +58,6 @@ void toa_scan(Target* tgt) {
                           .add("REFERENCEVOLTAGE_0", "CALIB", calib)
                           .add("REFERENCEVOLTAGE_1", "CALIB", calib)
                           .apply();
-    tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
   }
 }

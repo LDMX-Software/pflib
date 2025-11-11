@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -59,7 +59,7 @@ void charge_timescan(Target* tgt) {
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -101,9 +101,9 @@ void charge_timescan(Target* tgt) {
       time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
              phase_strobe * clock_cycle / n_phase_strobe;
       if (isLED) {
-        tgt->daq_run("LED", writer, nevents, pftool::state.daq_rate);
+        daq_run(tgt, "LED", writer, nevents, pftool::state.daq_rate);
       } else {
-        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+        daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
       }
     }
   }
