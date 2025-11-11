@@ -31,8 +31,10 @@ if (NOT TARGET yaml-cpp::yaml-cpp)
   add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
 endif()
 
-# Boost for CRC calculator, Test, and Logging
-find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
+# Boost for CRC calculator, Test, Logging, and Python bindings
+find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
+# Python for Python bindings
+find_package(Python3 COMPONENTS Interpreter Development)
 
 # construct a register_maps library that the compiler can use
 # to lookup registers given parameter names for a chip type
@@ -108,6 +110,10 @@ target_include_directories(pflib PUBLIC
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility register_maps)
 add_dependencies(pflib direct_access lpgbt_regmap)
+
+add_library(pypflib SHARED src/pflib/python/bindings.cxx)
+target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
+set_target_properties(pypflib PROPERTIES PREFIX "") # remove 'lib' prefix so we can import pypflib
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc
