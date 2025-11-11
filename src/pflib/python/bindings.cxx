@@ -7,12 +7,12 @@
 // had not made it into Boost.Python for the version we are using
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
-#include <boost/python/dict.hpp>
-#include <boost/python/tuple.hpp>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/extract.hpp>
-#include <boost/python/str.hpp>
 #include <boost/python.hpp>
+#include <boost/python/dict.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/stl_iterator.hpp>
+#include <boost/python/str.hpp>
+#include <boost/python/tuple.hpp>
 using namespace boost::python;
 
 #include "pflib/Target.h"
@@ -20,12 +20,14 @@ using namespace boost::python;
 
 class PyTarget {
   std::shared_ptr<pflib::Target> tgt_;
+
  public:
   PyTarget(dict config) {
     // where we std::make_shared a dervied type of pflib::Target
     // depending on the setup
     std::cout << "creating { ";
-    for (auto it = stl_input_iterator<tuple>(config.items()); it != stl_input_iterator<tuple>(); it++) {
+    for (auto it = stl_input_iterator<tuple>(config.items());
+         it != stl_input_iterator<tuple>(); it++) {
       tuple kv = *it;
       auto key = extract<const char*>(str(kv[0]));
       auto val = extract<const char*>(str(kv[1]));
@@ -50,10 +52,9 @@ class PyTarget {
 BOOST_PYTHON_MODULE(pypflib) {
   using namespace boost::python;
   class_<PyTarget>("PyTarget", init<boost::python::dict>())
-    .def("configure", &PyTarget::configure)
-    .def("start_run", &PyTarget::start_run)
-    .def("end_run", &PyTarget::end_run)
-  ;
+      .def("configure", &PyTarget::configure)
+      .def("start_run", &PyTarget::start_run)
+      .def("end_run", &PyTarget::end_run);
 
   def("version_tag", pflib::version::tag);
   def("version_git_describe", pflib::version::git_describe);
