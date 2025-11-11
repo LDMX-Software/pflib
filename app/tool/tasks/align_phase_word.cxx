@@ -217,7 +217,7 @@ void align_phase_word(Target* tgt) {
         // print out snapshot
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
-        
+
         std::string var_name_snapshot1 =
             std::to_string(channel) + "_SNAPSHOT_0";
         std::string var_name_snapshot2 =
@@ -276,7 +276,7 @@ void align_phase_word(Target* tgt) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x"  << std::hex << std::uppercase << shifted1 << std::dec 
                     << std::endl;
-          std::cout << "snapshot_hex: 0x" << snapshot << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
         }else{
           std::cout << "No header pattern match found in Snapshot:  "  << snapshot_val << std::endl;
           break;  // out of channel loop
