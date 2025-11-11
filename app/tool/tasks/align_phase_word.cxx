@@ -62,7 +62,7 @@ void align_phase_word(Target* tgt) {
   std::cout << std::endl;
 
   // Check PUSM state
-  auto pusm_state = econ.dumpParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
+  auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
   if (debug_checks) {
     std::cout << "Decimal value of channels: " << binary_channels << std::endl;
     std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state)
@@ -85,9 +85,8 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   {
-    if (debug_checks) {
-      print_roc_status(roc);
-    }
+
+    print_roc_status(roc);
 
     // Set ECON registers
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -110,7 +109,7 @@ void align_phase_word(Target* tgt) {
     // Check channel locks
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
-      auto val = econ.dumpParameter("CHEPRXGRP", name);
+      auto val = econ.readParameter("CHEPRXGRP", name);
       std::cout << "Channel_locked " << ch << " = " << val << ", " << hex(val)
                 << std::endl;
     }
@@ -151,7 +150,7 @@ void align_phase_word(Target* tgt) {
     // Verify that channels are still locked
     for (int ch : channels) {
       std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
-      auto val = econ.dumpParameter("CHEPRXGRP", name);
+      auto val = econ.readParameter("CHEPRXGRP", name);
       if (debug_checks) {
         std::cout << "channel_locked " << ch << " = " << val << ", " << hex(val)
                   << std::endl;
@@ -159,9 +158,9 @@ void align_phase_word(Target* tgt) {
     }
 
     auto global_match_pattern_val =
-        econ.dumpParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
+        econ.readParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
     auto cnt_load_val =
-        econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
+        econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
 
     if (debug_checks) {
       std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val
@@ -197,7 +196,7 @@ void align_phase_word(Target* tgt) {
       auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
       auto tmp_load_val =
-          econ.dumpParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
+          econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
       if (debug_checks) {
         std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
                   << std::hex << tmp_load_val << std::dec << std::endl;
@@ -209,11 +208,11 @@ void align_phase_word(Target* tgt) {
       for (int channel : channels) {
         // print out snapshot
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
-        auto ch_pm = econ.dumpParameter("CHALIGNER", var_name_pm);
+        auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
 
         // TODO read only in debug
         // std::string var_name_snap_dv = std::to_string(channel) +
-        // "_SNAPSHOT_DV"; auto ch_snap_dv = econ.dumpParameter("CHALIGNER",
+        // "_SNAPSHOT_DV"; auto ch_snap_dv = econ.readParameter("CHALIGNER",
         // var_name_snap_dv);
         std::string var_name_snapshot1 =
             std::to_string(channel) + "_SNAPSHOT_0";
@@ -222,11 +221,11 @@ void align_phase_word(Target* tgt) {
         std::string var_name_snapshot3 =
             std::to_string(channel) + "_SNAPSHOT_2";
         auto ch_snapshot_1 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot1);
+            econ.readParameter("CHALIGNER", var_name_snapshot1);
         auto ch_snapshot_2 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot2);
+            econ.readParameter("CHALIGNER", var_name_snapshot2);
         auto ch_snapshot_3 =
-            econ.dumpParameter("CHALIGNER", var_name_snapshot3);
+            econ.readParameter("CHALIGNER", var_name_snapshot3);
 
         std::ostringstream hexstring;
         hexstring << std::hex << std::setfill('0') << std::setw(16)
@@ -267,7 +266,7 @@ void align_phase_word(Target* tgt) {
                     << ch_pm << std::dec << std::endl;
 
           std::string var_name_select = std::to_string(channel) + "_SELECT";
-          auto ch_select = econ.dumpParameter("CHALIGNER", var_name_select);
+          auto ch_select = econ.readParameter("CHALIGNER", var_name_select);
           std::cout << " select " << channel << " = " << ch_select << ", 0x"
                     << std::hex << ch_select << std::dec << std::endl;
 
