@@ -113,7 +113,6 @@ add_dependencies(pflib direct_access lpgbt_regmap)
 
 add_library(pypflib SHARED src/pflib/python/bindings.cxx)
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
-set_target_properties(pypflib PROPERTIES PREFIX "") # remove 'lib' prefix so we can import pypflib
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc
@@ -173,7 +172,10 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
+# add pflib prefix to all our pflib libraries
 set_target_properties(pflib packing version utility register_maps PROPERTIES PREFIX "libpflib_")
+# remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
+set_target_properties(pypflib PROPERTIES PREFIX "")
 install(TARGETS pflib packing version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib

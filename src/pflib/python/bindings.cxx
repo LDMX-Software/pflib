@@ -16,6 +16,7 @@
 using namespace boost::python;
 
 #include "pflib/Target.h"
+#include "pflib/version/Version.h"
 
 class PyTarget {
   std::shared_ptr<pflib::Target> tgt_;
@@ -53,4 +54,7 @@ BOOST_PYTHON_MODULE(pypflib) {
     .def("start_run", &PyTarget::start_run)
     .def("end_run", &PyTarget::end_run)
   ;
+
+  def("version_tag", pflib::version::tag);
+  def("version_git_describe", pflib::version::git_describe);
 }
