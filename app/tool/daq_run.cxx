@@ -77,7 +77,8 @@ void WriteToBinaryFile::consume(std::vector<uint32_t>& event) {
   fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
 }
 
-void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
+template<class EventPacket>
+void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
   // we have to manually check the size so that we can do the reinterpret_cast
   if (event.size() == 0) {
     pflib_log(warn) << "event with zero words passed in, skipping";
@@ -91,13 +92,13 @@ void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
   write_event(ep_);
 }
 
-DecodeAndWriteToCSV::DecodeAndWriteToCSV(
+template<class EventPacket>
+DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV<EventPacket>(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream& f,
-                       const pflib::packing::SingleROCEventPacket&)>
+    std::function<void(std::ofstream& f, const EventPacket&)>
         write_event)
-    : DecodeAndWrite(), file_{file_name}, write_event_{write_event} {
+    : DecodeAndWrite<EventPacket>(), file_{file_name}, write_event_{write_event} {
   if (not file_) {
     PFEXCEPTION_RAISE("FileOpen",
                       "unable to open " + file_name + " for writing");
@@ -105,29 +106,31 @@ DecodeAndWriteToCSV::DecodeAndWriteToCSV(
   write_header(file_);
 }
 
-void DecodeAndWriteToCSV::write_event(
-    const pflib::packing::SingleROCEventPacket& ep) {
+template<class EventPacket>
+void DecodeAndWriteToCSV<EventPacket>::write_event(const EventPacket& ep) {
   write_event_(file_, ep);
 }
 
-DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name) {
-  return DecodeAndWriteToCSV(
+template<class EventPacket>
+DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(const std::string& file_name) {
+  return DecodeAndWriteToCSV<EventPacket>(
       file_name,
       [](std::ofstream& f) {
         f << std::boolalpha;
-        f << pflib::packing::SingleROCEventPacket::to_csv_header << '\n';
+        f << EventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      [](std::ofstream& f, const EventPacket& ep) {
         ep.to_csv(f);
       });
 }
 
-DecodeAndBuffer::DecodeAndBuffer(int nevents) : DecodeAndWrite() {
+template<class EventPacket>
+DecodeAndBuffer<EventPacket>::DecodeAndBuffer<EventPacket>(int nevents) : DecodeAndWrite<EventPacket>() {
   set_buffer_size(nevents);
 }
 
-void DecodeAndBuffer::write_event(
-    const pflib::packing::SingleROCEventPacket& ep) {
+template<class EventPacket>
+void DecodeAndBuffer<EventPacket>::write_event(const EventPacket& ep) {
   if (ep_buffer_.size() > ep_buffer_.capacity()) {
     pflib_log(warn) << "Trying to push more elements to buffer than allocated "
                        "capacity. Skipping!";
@@ -135,14 +138,16 @@ void DecodeAndBuffer::write_event(
   }
   ep_buffer_.push_back(ep);
 }
+  
+template<class EventPacket>
+void DecodeAndBuffer<EventPacket>::start_run() { ep_buffer_.clear(); }
 
-void DecodeAndBuffer::start_run() { ep_buffer_.clear(); }
-
-const std::vector<pflib::packing::SingleROCEventPacket>&
-DecodeAndBuffer::get_buffer() const {
+template<class EventPacket>
+const std::vector<EventPacket>& DecodeAndBuffer<EventPacket>::get_buffer() const {
   return ep_buffer_;
 }
 
-void DecodeAndBuffer::set_buffer_size(int nevents) {
+template<class EventPacket>
+void DecodeAndBuffer<EventPacket>::set_buffer_size(int nevents) {
   ep_buffer_.reserve(nevents);
 }

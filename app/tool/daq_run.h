@@ -55,6 +55,7 @@ class WriteToBinaryFile : public DAQRunConsumer {
  * other code just needs to write functions that define how the
  * decoded data should be written out.
  */
+template<class EventPacket>
 class DecodeAndWrite : public DAQRunConsumer {
  public:
   virtual ~DecodeAndWrite() = default;
@@ -65,7 +66,7 @@ class DecodeAndWrite : public DAQRunConsumer {
   virtual void consume(std::vector<uint32_t>& event) final;
 
   /// pure virtual function for writing out decoded event
-  virtual void write_event(const pflib::packing::SingleROCEventPacket& ep) = 0;
+  virtual void write_event(const EventPacket& ep) = 0;
 
  protected:
   /// logging for warning messages on empty events
@@ -73,35 +74,32 @@ class DecodeAndWrite : public DAQRunConsumer {
 
  private:
   /// event packet for decoding
-  pflib::packing::SingleROCEventPacket ep_;
+  EventPacket ep_;
 };
 
 /**
  * specializatin of DecodeAndWrite that holds a std::ofstream
  * for the user with functions for writing the header and events
  */
-class DecodeAndWriteToCSV : public DecodeAndWrite {
+template<class EventPacket>
+class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
   /// output file writing to
   std::ofstream file_;
   /// function that writes row(s) to csv given an event
-  std::function<void(std::ofstream&,
-                     const pflib::packing::SingleROCEventPacket&)>
-      write_event_;
+  std::function<void(std::ofstream&, const EventPacket&)> write_event_;
 
  public:
   DecodeAndWriteToCSV(
       const std::string& file_name,
       std::function<void(std::ofstream&)> write_header,
-      std::function<void(std::ofstream&,
-                         const pflib::packing::SingleROCEventPacket&)>
-          write_event);
+      std::function<void(std::ofstream&, EventPacket&)> write_event);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
-  virtual void write_event(
-      const pflib::packing::SingleROCEventPacket& ep) final;
+  virtual void write_event(const EventPacket& ep) final;
 };
 
-DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name);
+template<class EventPacket>
+DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(const std::string& file_name);
 
 /**
  * Consume an event packet, decode it, and save to buffer.
@@ -119,21 +117,21 @@ DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name);
  * const auto& events{buffer.get_buffer()};
  * ```
  */
-class DecodeAndBuffer : public DecodeAndWrite {
+template<typename EventPacket>
+class DecodeAndBuffer : public DecodeAndWrite<EventPacket> {
  public:
   DecodeAndBuffer(int nevents);
   virtual ~DecodeAndBuffer() = default;
   /// get buffer
-  const std::vector<pflib::packing::SingleROCEventPacket>& get_buffer() const;
+  const std::vector<EventPacket>& get_buffer() const;
   /// Set the buffer size
   void set_buffer_size(int nevents);
   /// Save to buffer
-  virtual void write_event(
-      const pflib::packing::SingleROCEventPacket& ep) override;
+  virtual void write_event(const EventPacket& ep) override;
   /// Check that the buffer was read and flushed since last run
   virtual void start_run() override;
 
  private:
   /// Buffer for event packets
-  std::vector<pflib::packing::SingleROCEventPacket> ep_buffer_;
+  std::vector<EventPacket> ep_buffer_;
 };
