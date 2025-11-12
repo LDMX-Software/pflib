@@ -47,12 +47,12 @@ class PyTarget {
   void start_run() {
     // prepare to collect data
     std::cout << "start_run" << std::endl;
-    tgt_->setup_run(1 /*run*/, pflib::Target::ECOND_SW_HEADER, 42 /* contrib_id */);
+    tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS, 42 /* contrib_id */);
   }
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
     usleep(100);
-    std::vector<uint32_t> event = tgt_->read_event();
+    return tgt_->read_event();
   }
   void end_run() {
     // stop data collection
