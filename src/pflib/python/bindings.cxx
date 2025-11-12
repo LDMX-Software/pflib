@@ -99,11 +99,6 @@ frame.shape(0); i++) { cpp_frame[i] = *(frame_ptr + i);
 }
 */
 
-/// do std::vector -> std::span conversion on C++ side
-void _from(pflib::packing::ECONDEventPacket& ep, std::vector<uint32_t>& frame) {
-  ep.from(frame);
-}
-
 /**
  * Initialize a submodule within the parent modulen named 'pypflib'.
  *
@@ -154,7 +149,22 @@ BOOST_PYTHON_MODULE(pypflib) {
   bp::class_<std::vector<uint32_t>>("WordVector")
       .def(bp::vector_indexing_suite<std::vector<uint32_t>>());
 
+  bp::class_<pflib::packing::Sample>("Sample", bp::init<>())
+      .add_property("Tc", &pflib::packing::Sample::Tc)
+      .add_property("Tp", &pflib::packing::Sample::Tp)
+      .add_property("toa", &pflib::packing::Sample::toa)
+      .add_property("adc_tm1", &pflib::packing::Sample::adc_tm1)
+      .add_property("adc", &pflib::packing::Sample::adc)
+      .add_property("tot", &pflib::packing::Sample::tot)
+      .def_readwrite("word", &pflib::packing::Sample::word);
+
   bp::class_<pflib::packing::ECONDEventPacket>("ECONDEventPacket",
                                                bp::init<std::size_t>())
-      .def("_from", &_from);
+      .def("from_word_vector", [](pflib::packing::ECONDEventPacket& ep, std::vector<uint32_t>& wv) {
+        ep.from(wv);
+      })
+      .def("adc_cm0", &pflib::packing::ECONDEventPacket::adc_cm0)
+      .def("adc_cm1", &pflib::packing::ECONDEventPacket::adc_cm1)
+      .def("channel", &pflib::packing::ECONDEventPacket::channel)
+      .def("calib", &pflib::packing::ECONDEventPacket::calib);
 }
