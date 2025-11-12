@@ -38,7 +38,8 @@ class PyTarget {
     }
     std::cout << "}" << std::endl;
 
-    tgt_.reset(pflib::makeTargetHcalBackplaneZCU(0/*ilink*/, 0xf /*boardmask*/));
+    tgt_.reset(
+        pflib::makeTargetHcalBackplaneZCU(0 /*ilink*/, 0xf /*boardmask*/));
   }
   void configure() {
     // apply configuration stuff
@@ -47,7 +48,8 @@ class PyTarget {
   void start_run() {
     // prepare to collect data
     std::cout << "start_run" << std::endl;
-    tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS, 42 /* contrib_id */);
+    tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS,
+                    42 /* contrib_id */);
   }
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
