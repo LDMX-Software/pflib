@@ -371,10 +371,11 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
 
 // added by Josh to get the actual value out in the script - replaceing readParameter above
 uint64_t ECON::readParameter(const std::string& page,
-                             const std::string& param) {
+                             const std::string& param,
+                            bool print_values) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
-  auto values = this->readParameters(p, false);  // get the results
+  auto values = this->readParameters(p, print_values);  // get the results
   return values[page][param];  // return the actual register value
 }
 
