@@ -43,15 +43,8 @@ class ECON {
       bool print_values = true);
   std::map<std::string, std::map<std::string, uint64_t>> readParameters(
       const std::string& file_path);
-<<<<<<< HEAD
-  // std::map<std::string, uint64_t> readParameter(const std::string& page,
-  //                                               const std::string& param,
-  //                                               bool print_values = true);
-  uint64_t readParameter(const std::string& page, const std::string& param, bool print_values=false);
-=======
   uint64_t readParameter(const std::string& page, const std::string& param,
                          bool print_values = false);
->>>>>>> origin/main
 
   void dumpSettings(const std::string& filename, bool should_decompile);
 
