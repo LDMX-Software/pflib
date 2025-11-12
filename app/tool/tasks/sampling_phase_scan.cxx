@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pflib/DecodeAndWrite.h"
+#include "../daq_run.h"
 
 ENABLE_LOGGING();
 
@@ -15,7 +15,7 @@ void sampling_phase_scan(Target* tgt) {
 
   int phase_ck = 0;
 
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       fname,  // output file name
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -45,6 +45,6 @@ void sampling_phase_scan(Target* tgt) {
     pflib_log(info) << "Scanning phase_ck = " << phase_ck;
     auto phase_test_handle =
         roc.testParameters().add("TOP", "PHASE_CK", phase_ck).apply();
-    tgt->daq_run("PEDESTAL", writer, nevents, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
