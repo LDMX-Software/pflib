@@ -37,7 +37,7 @@ class BWOptoLink : public pflib::OptoLink {
   virtual std::map<std::string, uint32_t> opto_status();
   virtual std::map<std::string, uint32_t> opto_rates();
 
-  virtual lpGBT_ConfigTransport& lpgbt_transport() { return transport_; }
+  virtual lpGBT_ConfigTransport& lpgbt_transport() { return *transport_; }
 
   // setup various aspects
   /// there are four TX elinks configured in the coder block
@@ -51,9 +51,10 @@ class BWOptoLink : public pflib::OptoLink {
 
  private:
   AxiLite gtys_;
+  std::unique_ptr<AxiLite> coder_;
   int ilink_;
   bool isdaq_;
-  BWlpGBT_Transport transport_;
+  std::unique_ptr<BWlpGBT_Transport> transport_;
 };
 
 }  // namespace bittware

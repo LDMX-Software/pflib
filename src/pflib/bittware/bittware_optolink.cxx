@@ -2,14 +2,16 @@
 namespace pflib {
 namespace bittware {
 
-static constexpr uint32_t QUAD_BASE_ADDRESS = 0x2000; // compiled into the firmware
+static constexpr uint32_t GTY_QUAD_BASE_ADDRESS = 0x2000; // compiled into the firmware
+static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000; // compiled into the firmware
 
 BWOptoLink::BWOptoLink(int ilink, bool isdaq)
-    : gtys_(QUAD_BASE_ADDRESS,0xFFF),
+    : gtys_(GTY_QUAD_BASE_ADDRESS,0xFFF),
       ilink_(ilink),
-      isdaq_(isdaq),
-      transport_(gtys_,ilink) // actually the wrong AxiLite...
+      isdaq_(isdaq)
 {
+  coder_=std::make_unique<AxiLite>(QUAD_CODER0_BASE_ADDRESS,0xFFF);
+  transport_=std::make_unique<BWlpGBT_Transport>(*coder_,ilink);
   /*
   int chipaddr = 0x78;          // EC
   if (isdaq) chipaddr |= 0x04;  // IC
@@ -20,6 +22,7 @@ BWOptoLink::BWOptoLink(int ilink, bool isdaq)
 }
 
 void BWOptoLink::reset_link() {  // actually affects all links in a block
+  if (!isdaq_) return; // only do these items for DAQ links for now
   gtys_.write(0x080, 0x2); // TX_RESET
   gtys_.write(0x080, 0x1); // GTH_RESET
   gtys_.write(0x080, 0x4); // RX_RESET
@@ -50,23 +53,23 @@ void BWOptoLink::reset_link() {  // actually affects all links in a block
     }
     attempts += 1;
   }
-  /*
-  coder_.write(0, 1);  // reset the DECODER
+
+  uint32_t REG_DECODER_RESET=0x100;
+ 
+  coder_->write(REG_DECODER_RESET, 1<<ilink_);  // reset the DECODER
+  uint32_t REG_ICEC_RESET=0x104+(ilink_/2)*4;
+  int BIT_IC_RESET=(ilink_%2)?(16+6):(6);
+  int BIT_EC_RESET=(ilink_%2)?(16+6+8):(6+8);
   usleep(1000);
-  coder_.write(65, 0x40000000);  // reset IC
-  coder_.write(67, 0x40000000);  // reset EC
+  coder_->setclear(REG_ICEC_RESET,BIT_IC_RESET,true); // self clearing
+  coder_->setclear(REG_ICEC_RESET,BIT_EC_RESET,true); // self clearing
   usleep(1000);
-  coder_.write(65, 0x00000000);  // reset IC
-  coder_.write(67, 0x00000000);  // reset EC
-  */
 }
 
 void BWOptoLink::run_linktrick() {
-  /*
-  transport_->write_reg(0x128, 5);
+  lpgbt_transport().write_reg(0x128, 5);
   sleep(1);
-  transport_->write_reg(0x128, 0);
-  */
+  lpgbt_transport().write_reg(0x128, 0);
 }
 
 static const uint32_t REG_POLARITY = 0x400;
@@ -108,13 +111,11 @@ std::map<std::string, uint32_t> BWOptoLink::opto_status() {
   retval["BUFFBYPASS_DONE"] = (val >> 0) & 0x1;
   retval["BUFFBYPASS_ERROR"] = (val >> 1) & 0x1;
 
-  /*
-  val = coder_.read(2);
-  retval["READY"] = (val >> 0) & 0x1;
-  retval["NOT_IN_RESET"] = (val >> 1) & 0x1;
-  retval["LINK_ERRORS"] = coder_.read(4) & 0xFFFFFF;
-  */
   
+  val = coder_->read(0xC00);
+  retval["READY"] = (val >> ilink_) & 0x1;
+  //  retval["LINK_ERRORS"] = coder_.read(4) & 0xFFFFFF;
+    
   return retval;
 }
 
@@ -135,27 +136,15 @@ std::map<std::string, uint32_t> BWOptoLink::opto_rates() {
   const int twhich[] = {0, 1, 2, 3, 4, -1};
 
   for (int i = 0; tnames[i] != 0; i++)
-    retval[tnames[i]] = gtys_.read(REG_GTYS_RATES + 4*twhich[i]);
+    retval[tnames[i]] = gtys_.read(REG_GTYS_RATES + 4*twhich[i])/1000.0;
 
   retval["RX-LINK"] =
-      gtys_.read(REG_GTYS_RATES + 0x14 + 4*ilink_);
-  /*
-  if (coder_name_ == "singleLPGBT") {
-    const char* cnames[] = {"LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40",
-                            0};
-    const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
-      retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
-  } else {
-    const char* cnames[] = {"DAQ_LINK_WORD",  "TRIG_LINK_WORD",
-                            "DAQ_LINK_ERROR", "TRIG_LINK_ERROR",
-                            "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
-                            "CLOCK_40",       0};
-    const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
-      retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
-  }
-  */
+      gtys_.read(REG_GTYS_RATES + 0x14 + 4*ilink_)/1000.0;
+
+
+  retval["LINK_WORD"]=coder_->read(0x900+ilink_*8)/1000.0;
+  retval["LINK_ERROR"]=coder_->read(0x904+ilink_*8)/1000.0;
+  
   return retval;
 }
 

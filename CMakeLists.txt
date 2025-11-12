@@ -166,7 +166,10 @@ target_link_libraries(pftool PRIVATE pflib menu nlohmann_json::nlohmann_json)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
   app/lpgbt/lpgbt_mezz_tester.cc
-)
+  )
+if (${Rogue_FOUND})
+  target_compile_definitions(pflpgbt PRIVATE USE_ROGUE)
+endif()
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments

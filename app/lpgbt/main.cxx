@@ -11,6 +11,9 @@
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 #include "pflib/zcu/zcu_optolink.h"
 #include "power_ctl_mezz.h"
+#ifdef USE_ROGUE
+#include "pflib/bittware/bittware_optolink.h"
+#endif
 
 struct ToolBox {
   pflib::lpGBT* lpgbt{0};
@@ -803,7 +806,9 @@ int main(int argc, char* argv[]) {
     printf("   %s OPTIONS\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf(
-        "  --do [number] : Dual-optical configuration, implies no mezzanine\n");
+        "  --do [number] : Dual-optical ZCU configuration, implies no mezzanine\n");
+    printf(
+        "  --bw [number] : Bittware configuration, implies no mezzanine\n");
     printf("  -o : Use optical communication by default\n");
     printf("  --nm : No mezzanine\n");
     printf("  -s [file] : pass a script of commands to run through\n");
@@ -814,6 +819,7 @@ int main(int argc, char* argv[]) {
 
   bool wired = true;
   bool nomezz = false;
+  bool bittware = false;
   std::string target_name("singleLPGBT");
 
   for (int i = 1; i < argc; i++) {
@@ -827,6 +833,14 @@ int main(int argc, char* argv[]) {
       target_name = "standardLpGBTpair-";
       target_name += argv[i][0];
       printf("%s\n", target_name.c_str());
+    }
+    if (arg == "--bw") {
+      wired = false;
+      nomezz = true;
+      bittware = true;
+      i++;
+      target_name = "";
+      // eventually extract link from the argv[i]
     }
 
     if (arg == "-s") {
@@ -858,9 +872,16 @@ int main(int argc, char* argv[]) {
 
   ToolBox t;
 
-  pflib::zcu::ZCUOptoLink olink(target_name);
-  pflib::zcu::ZCUOptoLink olinkt(target_name, 1, false);
-  t.coder_name = target_name;
+  if (!bittware) {
+    t.olink_daq = new pflib::zcu::ZCUOptoLink(target_name);
+    t.olink_trig = new pflib::zcu::ZCUOptoLink(target_name, 1, false);
+    t.coder_name = target_name;
+  } else {
+#ifdef USE_ROGUE
+    t.olink_daq = new pflib::bittware::BWOptoLink(0);
+    t.olink_trig = new pflib::bittware::BWOptoLink(1, false);
+#endif
+  }
 
   int chipaddr = 0x78;
   if (wired) {
@@ -877,11 +898,9 @@ int main(int argc, char* argv[]) {
     chipaddr |= 0x4;
   }
 
-  pflib::zcu::lpGBT_ICEC_Simple ic(target_name, false, chipaddr);
-  pflib::lpGBT lpgbt_ic(ic);
-  pflib::zcu::lpGBT_ICEC_Simple ec(target_name, true,
-                                   0x78);  // correct for HCAL
-  pflib::lpGBT lpgbt_ec(ec);
+  pflib::lpGBT lpgbt_ic(t.olink_daq->lpgbt_transport());
+  pflib::lpGBT lpgbt_ec(t.olink_trig->lpgbt_transport());
+
   tool::set_history_filepath("~/.pflpgbt-history");
   t.lpgbt_ic = &lpgbt_ic;
   t.lpgbt_ec = &lpgbt_ec;
@@ -889,8 +908,6 @@ int main(int argc, char* argv[]) {
     t.lpgbt = t.lpgbt_i2c;
   else
     t.lpgbt = t.lpgbt_ic;
-  t.olink_daq = &olink;
-  t.olink_trig = &olinkt;
 
   /// need to make sure the voltage is at a safe level, will be done
   /// automatically here

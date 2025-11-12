@@ -31,6 +31,7 @@ class AxiLite {
  private:
   uint32_t base_; // base address
   uint32_t mask_; // mask (for safety)
+  uint32_t antimask_; // mask (for safety)
   int handle_;  
 };
 
