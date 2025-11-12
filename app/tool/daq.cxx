@@ -350,8 +350,34 @@ static void daq(const std::string& cmd, Target* pft) {
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
     if (decoding) {
-      DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
-      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
+      std::unique_ptr<DaqRunConsumer> consumer;
+      switch(pftool::state.daq_format_mode) {
+        case Target::DaqFormat::ECOND_SW_HEADERS:
+          consumer = std::make_unique<DecodeAndWriteToCSV<pflib::packing::SoftWrappedECONDEventPacket>>(
+              fname+".csv",
+              [](std::ofstream& f) {
+                f << std::boolalpha;
+                f << pflib::packing::SoftWrappedECONDEventPacket::to_csv_header << '\n';
+              },
+              [](std::ofstream& f, const pflib::packing::SoftWrappedECONDEventPacket& ep) {
+                ep.to_csv(f);
+              });
+          break;
+        case Target::DaqFormat::SIMPLEROC:
+          consumer = std::make_unique<DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>>(
+              fname+".csv",
+              [](std::ofstream& f) {
+                f << std::boolalpha;
+                f << pflib::packing::SingleROCEventPacket::to_csv_header << '\n';
+              },
+              [](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+                ep.to_csv(f);
+              });
+          break;
+        default:
+          PFEXCEPTION_RAISE("BadConf", "Unable to do live decoding for the currently configured format.");
+      }
+      daq_run(pft, cmd, *consumer, nevents, pftool::state.daq_rate);
     } else {
       WriteToBinaryFile writer{fname + ".raw"};
       daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
