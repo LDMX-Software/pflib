@@ -54,6 +54,12 @@ target_include_directories(utility PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 
+add_library(logging SHARED src/pflib/Logging.cxx)
+target_include_directories(logging PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(logging PUBLIC Boost::log)
+
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
@@ -79,7 +85,6 @@ add_library(pflib SHARED
   src/pflib/ROC.cxx
   src/pflib/ECON.cxx
   src/pflib/Compile.cxx
-  src/pflib/Logging.cxx
   src/pflib/Hcal.cxx
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
@@ -108,7 +113,7 @@ target_include_directories(pflib PUBLIC
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility register_maps)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
 add_dependencies(pflib direct_access lpgbt_regmap)
 
 add_library(pypflib SHARED src/pflib/python/bindings.cxx)
@@ -173,10 +178,10 @@ add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 # add pflib prefix to all our pflib libraries
-set_target_properties(pflib packing version utility register_maps PROPERTIES PREFIX "libpflib_")
+set_target_properties(pflib packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
-install(TARGETS pflib packing version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

@@ -52,3 +52,7 @@ econd-decoder *args:
 # open the test menu
 test-menu:
     denv ./build/test-menu
+
+# test decoding in python bindings
+test-py-decoding:
+    denv 'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
