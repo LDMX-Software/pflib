@@ -42,7 +42,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
