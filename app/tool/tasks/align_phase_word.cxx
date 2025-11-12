@@ -2,7 +2,6 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "pflib/DecodeAndWrite.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 
@@ -93,7 +92,6 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   {
-
     print_roc_status(roc);
 
     // Set ECON registers
@@ -251,10 +249,11 @@ void align_phase_word(Target* tgt) {
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                     << " (channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase << shifted1 << std::dec
-                    << std::endl;
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << shifted1 << std::dec << std::endl;
 
-          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+                    << snapshot << std::dec << std::endl;
 
           std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
                     << ch_pm << std::dec << std::endl;
@@ -274,11 +273,13 @@ void align_phase_word(Target* tgt) {
           break;  // out of channel loop
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x"  << std::hex << std::uppercase << shifted1 << std::dec 
-                    << std::endl;
-          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
-        }else{
-          std::cout << "No header pattern match found in Snapshot:  "  << snapshot_val << std::endl;
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << shifted1 << std::dec << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+                    << snapshot << std::dec << std::endl;
+        } else {
+          std::cout << "No header pattern match found in Snapshot:  "
+                    << snapshot_val << std::endl;
           break;  // out of channel loop
         }
 
@@ -288,6 +289,7 @@ void align_phase_word(Target* tgt) {
     // -------------- END SNAPSHOT BX SCAN ------------ //
 
   }  // -------- END WORD ALIGNMENT ------- //
-  std::cout << std::dec << std::setfill(' ');  // ensure o remaining 0's filling cout
+  // ensure 0 remaining 0's filling cout
+  std::cout << std::dec << std::setfill(' ');
 
 }  // End
