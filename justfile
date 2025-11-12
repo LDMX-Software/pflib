@@ -42,8 +42,12 @@ hexdump *args:
     hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
    
 # run the decoder
-decode *args:
+pfdecoder *args:
     denv ./build/pfdecoder {{ args }}
+
+# run the econd-decoder
+econd-decoder *args:
+    denv ./build/econd-decoder {{ args }}
 
 # open the test menu
 test-menu:
