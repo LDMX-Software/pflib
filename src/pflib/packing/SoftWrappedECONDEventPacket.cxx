@@ -19,17 +19,16 @@ void SoftWrappedECONDEventPacket::from(std::span<uint32_t> frame) {
    * - ECOND ID is what it was configured in the software to be
    * - il1a is the index of the sample relative to this event
    * - S signals if this is the sample of interest (1) or not (0)
-   * - length is the total length of this link subpacket including this header
-   * word
+   * - length is the length of the econd subpacket NOT including this header
    */
   std::size_t offset{0};
-  uint32_t link_len = (frame[offset] & mask<8>);
+  uint32_t econd_len = (frame[offset] & mask<8>);
   is_soi = (((frame[offset] >> (8 + 4)) & mask<1>) == 1);
   il1a = ((frame[offset] >> (8 + 4 + 1)) & mask<4>);
   contrib_id = ((frame[offset] >> (8 + 4 + 1 + 4)) & mask<9>);
   uint32_t vers = ((frame[offset] >> 28) & mask<4>);
   pflib_log(trace) << hex(frame[offset])
-                   << " -> link_len, il1a, contrib_id, is_soi = " << link_len
+                   << " -> econd_len, il1a, contrib_id, is_soi = " << econd_len
                    << ", " << il1a << ", " << contrib_id << ", " << is_soi;
 
   corruption[0] = (vers != 1);
@@ -37,7 +36,7 @@ void SoftWrappedECONDEventPacket::from(std::span<uint32_t> frame) {
     pflib_log(warn) << "version transmitted in header " << vers << " != 1";
   }
 
-  data.from(frame.subspan(offset + 1, link_len));
+  data.from(frame.subspan(offset + 1, econd_len));
 }
 
 Reader& SoftWrappedECONDEventPacket::read(Reader& r) {
