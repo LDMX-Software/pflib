@@ -12,17 +12,25 @@ namespace bittware {
 
 class BWlpGBT_Transport : public pflib::lpGBT_ConfigTransport {
  public:
-  BWlpGBT_Transport(AxiLite& coder, int ilink) : coder_(coder), ilink_(ilink) {  }
-  virtual uint8_t read_reg(uint16_t reg) { return 0; }
-  virtual void write_reg(uint16_t reg, uint8_t value) { }
+  BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr, bool isic=true);
+  virtual uint8_t read_reg(uint16_t reg);
+  virtual std::vector<uint8_t> read_regs(uint16_t reg, int n);
+  virtual void write_reg(uint16_t reg, uint8_t value);
+  virtual void write_regs(uint16_t reg, const std::vector<uint8_t>& value);
  private:
-  AxiLite& coder_;
+  AxiLite& transport_;
   int ilink_;
+  int chipaddr_;
+  bool isic_;
+  int ctloffset_, stsreg_;
+  uint32_t stsmask_;
+  int pulsereg_, pulseshift_;
 };
 
 class BWOptoLink : public pflib::OptoLink {
  public:
-  BWOptoLink(int ilink = 0, bool isdaq = true);
+  BWOptoLink(int ilink = 0); // for a daq link
+  BWOptoLink(int ilink = 0, BWOptoLink& daqlink); // for a trigger link
 
   virtual int ilink() { return ilink_; }
   virtual bool is_bidirectional() { return isdaq_; }
@@ -51,7 +59,8 @@ class BWOptoLink : public pflib::OptoLink {
 
  private:
   AxiLite gtys_;
-  std::unique_ptr<AxiLite> coder_;
+  std::shared_ptr<AxiLite> coder_;
+  std::shared_ptr<AxiLite> iceccoder_;
   int ilink_;
   bool isdaq_;
   std::unique_ptr<BWlpGBT_Transport> transport_;

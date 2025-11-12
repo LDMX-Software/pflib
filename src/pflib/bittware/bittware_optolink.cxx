@@ -5,20 +5,32 @@ namespace bittware {
 static constexpr uint32_t GTY_QUAD_BASE_ADDRESS = 0x2000; // compiled into the firmware
 static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000; // compiled into the firmware
 
-BWOptoLink::BWOptoLink(int ilink, bool isdaq)
+BWOptoLink::BWOptoLink(int ilink)
     : gtys_(GTY_QUAD_BASE_ADDRESS,0xFFF),
       ilink_(ilink),
-      isdaq_(isdaq)
+      isdaq_(true)
 {
-  coder_=std::make_unique<AxiLite>(QUAD_CODER0_BASE_ADDRESS,0xFFF);
-  transport_=std::make_unique<BWlpGBT_Transport>(*coder_,ilink);
-  /*
-  int chipaddr = 0x78;          // EC
-  if (isdaq) chipaddr |= 0x04;  // IC
+  coder_=std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS,0xFFF);
+  icecoder=coder_;
 
-  transport_ =
-      std::make_unique<lpGBT_ICEC_Simple>(coder_name, !isdaq, chipaddr);
-  */
+  int chipaddr = 0x78;          // EC
+  if (isdaq_) chipaddr |= 0x04;  // IC
+
+  transport_=std::make_unique<BWlpGBT_Transport>(*iceccoder_,ilink,chipaddr,isdaq_);
+}
+
+BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
+    : gtys_(GTY_QUAD_BASE_ADDRESS,0xFFF),
+      ilink_(ilink),
+      isdaq_(false)
+{
+  coder_=std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS,0xFFF);
+  iceccoder_=daqlink.iceccoder_;
+  
+  int chipaddr = 0x78;          // EC
+  if (isdaq_) chipaddr |= 0x04;  // IC
+
+  transport_=std::make_unique<BWlpGBT_Transport>(iceccoder_,ilink,chipaddr,isdaq_);
 }
 
 void BWOptoLink::reset_link() {  // actually affects all links in a block
@@ -232,6 +244,122 @@ void BWOptoLink::capture_ic(int mode, std::vector<uint8_t>& tx,
   }
   */
 }
+
+static constexpr int REG_ADDR_TX_DATA = 0x604;  
+static constexpr int REG_CTL_N_READ   = 0x608;
+static constexpr uint32_t MASK_N_READ = 0x000000FF;
+
+
+static constexpr int BIT_START_READ  = 3;
+static constexpr int BIT_START_WRITE = 2;
+static constexpr int BIT_ADV_WRITE   = 4;
+static constexpr int BIT_ADV_READ    = 5;
+static constexpr uint32_t MASK_RX_DATA  = 0x00FF;
+static constexpr uint32_t MASK_RX_EMPTY = 0x0100;
+static constexpr uint32_t MASK_TX_EMPTY = 0x0200;
+
+BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr, bool isic) : transport_{coder}, ilink_{ilink}, chipaddr_{chipaddr}, isic_{isic} {
+  ctloffset_=16*ilink+(isic_)?(0):(8);
+  stsreg_=0xC08+4*ilink;
+  stsmask_=(isic_)?(0xFFFF):(0xFFFF0000u);
+  pulsereg_=(0x104)+(ilink/2)*4;
+  pulseshift_=(ilink%2)*16+(isic_)?(0):(8);
+  transport_.write(ctloffset_+REG_CTL_N_READ,0); // choose internal operation, disable spies, etc
+}
+
+uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {
+  std::vector<uint8_t> retval = read_regs(reg, 1);
+  return retval[0];
+}
+
+std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
+  std::vector<uint8_t> retval;
+  int wc = 0;
+  
+  if (n > 8) {
+    retval = read_regs(reg, 8);
+    std::vector<uint8_t> later = read_regs(reg + 8, n - 8);
+    retval.insert(retval.end(), later.begin(), later.end());
+    return retval;
+  }
+
+  uint32_t val;
+  // set addresses
+  val = (uint32_t(reg) << 16) | (uint32_t(chipaddr_) << 8);
+  transport_.write(ctloffset_ + REG_ADDR_TX_DATA, val);
+  // set length and start
+  val = n;
+  transport_.writeMasked(ctloffset_ + REG_CTL_N_READ, MASK_N_READ, val);
+  // start
+  transport_.write(pulsereg_,1<<(BIT_START_READ+pulseshift_));
+
+  // wait for done...
+  int timeout = 1000;
+  for (val = transport_.readMasked(stsreg_,stsmask_);
+       (val & MASK_RX_EMPTY);
+       val = transport_.readMasked(stsreg_,stsmask_)) {
+    usleep(1);
+    timeout--;
+    if (timeout == 0) {
+      char message[256];
+      snprintf(message, 256, "Read register 0x%x timeout", reg);
+      PFEXCEPTION_RAISE("ICEC_Timeout", message);
+    }
+  }
+  wc = 0;
+  while (!(val & MASK_RX_EMPTY)) {
+    uint8_t abyte = uint8_t(val & MASK_RX_DATA);
+    transport_.write(pulsereg_,1<<(BIT_ADV_READ+pulseshift_));
+    if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
+    wc++;
+    val = transport_.readMasked(stsreg_,stsmask_);    
+  }
+
+  return retval;
+}
+
+void BWlpGBT_Transport::write_reg(uint16_t reg, uint8_t value) {
+  std::vector<uint8_t> vv(1, value);
+  write_regs(reg, vv);
+}
+
+void BWlpGBT_Transport::write_regs(uint16_t reg,
+                                   const std::vector<uint8_t>& value) {
+  size_t wc = 0;
+
+  uint32_t baseval;
+  // set addresses
+  baseval = (uint32_t(reg) << 16) | (uint32_t(chipaddr_) << 8);
+
+  int ic = 0;
+  while (wc < value.size()) {
+    transport_.write(ctloffset_ + REG_ADDR_TX_DATA, baseval | uint32_t(value[wc]));
+    wc++;
+    ic++;
+    transport_.write(pulsereg_,1<<(BIT_ADV_WRITE+pulseshift_));
+    if (ic == 8 || wc == value.size()) {
+      transport_.write(pulsereg_,1<<(BIT_START_WRITE+pulseshift_));
+      // wait for tx to be done
+      int timeout = 1000;
+
+      for (uint32_t val = transport_.readMasked(stsreg_,stsmask_);
+           (val & MASK_TX_EMPTY);
+           val = transport_.readMasked(stsreg_,stsmask_)) {
+        //	printf("%02x\n",val);
+        usleep(1);
+        timeout--;
+        if (timeout == 0) {
+          char message[256];
+          snprintf(message, 256, "Write register 0x%x (+%d) timeout (%x)", reg,
+                   ic, lpgbt_i2c_addr_);
+          PFEXCEPTION_RAISE("ICEC_Timeout", message);
+        }
+      }
+      ic = 0;
+    }
+  }
+}
+
 
 }  // namespace bittware
 }  // namespace pflib

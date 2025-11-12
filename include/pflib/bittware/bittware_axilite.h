@@ -19,7 +19,7 @@ class AxiLite {
   uint32_t read(uint32_t addr); 
   /// Write a register, throws an exception if bits are set outside the addr mask space (or in the two LSB)
   void write(uint32_t addr, uint32_t value); 
-  /// Read a register, doing shifts as necessarythrows an exception if bits are set outside the addr mask space (or in the two LSB)
+  /// Read a register, doing shifts as necessary, throws an exception if bits are set outside the addr mask space (or in the two LSB)
   uint32_t readMasked(uint32_t addr, uint32_t mask); 
   /// Write a register, doing shifts as necessary, throws an exception if bits are set outside the addr mask space (or in the two LSB)
   void writeMasked(uint32_t addr, uint32_t mask, uint32_t value); 
