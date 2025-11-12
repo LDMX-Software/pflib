@@ -361,15 +361,6 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   return readParameters(parameters);
 }
 
-// std::map<std::string, uint64_t> ECON::readParameter(const std::string& page,
-//                                                     const std::string& param,
-//                                                     bool print_values) {
-//   std::map<std::string, std::map<std::string, uint64_t>> p;
-//   p[page][param] = 0;
-//   return this->readParameters(p, print_values)[page];
-// }
-
-// added by Josh to get the actual value out in the script - replaceing readParameter above
 uint64_t ECON::readParameter(const std::string& page,
                              const std::string& param,
                             bool print_values) {

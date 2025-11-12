@@ -18,11 +18,6 @@ constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 
 using pflib::packing::hex;
 
-bool get_debug_input() {
-  auto resp = pftool::readline("Enable debug checks? (y/n) (default n): ");
-  return (!resp.empty() && (resp[0] == 'y' || resp[0] == 'Y'));
-}
-
 uint32_t build_channel_mask(std::vector<int>& channels) {
   /*
     Bit wise OR comparsion between e.g. 6 and 7,
@@ -57,7 +52,7 @@ void print_roc_status(pflib::ROC& roc) {
 
 void align_phase_word(Target* tgt) {
 
-  debug_checks = get_debug_input();
+  debug_checks = pftool::readline_bool("Enable debug checks?", false);
 
   auto roc = tgt->hcal().roc(pftool::state.iroc);
   auto econ = tgt->hcal().econ(pftool::state.iecon);
