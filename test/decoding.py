@@ -93,4 +93,6 @@ pypflib.logging.open(True)
 ep = pypflib.ECONDEventPacket(1)
 v = pypflib.WordVector()
 v.extend(single_packet)
-ep._from(v)
+ep.from_word_vector(v)
+
+print(ep.channel(0,10).adc)

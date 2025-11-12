@@ -356,11 +356,11 @@ int ECONDEventPacket::adc_cm1(int i_link) const {
 }
 
 Sample ECONDEventPacket::channel(int i_link, int i_ch) const {
-  return link.at(i_link).channels.at(i_ch);
+  return links.at(i_link).channels.at(i_ch);
 }
 
 Sample ECONDEventPacket::calib(int i_link) const {
-  return link.at(i_link).calib
+  return links.at(i_link).calib;
 }
 
 }  // namespace pflib::packing
