@@ -196,7 +196,7 @@ static void econ(const std::string& cmd, Target* pft) {
     auto page = pftool::readline("Page? ", pftool::state.econ_page_names(econ));
     auto param = pftool::readline("Parameter: ",
                                   pftool::state.econ_param_names(econ, page));
-    econ.readParameter(page, param);
+    econ.readParameter(page, param, true);
   }
   if (cmd == "READCONFIG") {
     std::cout << "\n"
