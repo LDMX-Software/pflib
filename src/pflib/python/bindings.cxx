@@ -137,10 +137,8 @@ BOOST_PYTHON_SUBMODULE(logging) {
 }
 
 /// convert std::vector to std::span on C++ side
-void from_word_vector(
-    pflib::packing::ECONDEventPacket& ep,
-    std::vector<uint32_t>& wv
-) {
+void from_word_vector(pflib::packing::ECONDEventPacket& ep,
+                      std::vector<uint32_t>& wv) {
   ep.from(wv);
 }
 
