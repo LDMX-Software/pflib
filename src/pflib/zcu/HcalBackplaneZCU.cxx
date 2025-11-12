@@ -362,9 +362,9 @@ class HcalBackplaneZCUTarget : public Target {
 
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
       for (int ievt = 0; ievt < zcuhcal_->daq().samples_per_ror(); ievt++) {
-        std::vector<uint32_t> subpacket =
-            zcuhcal_->daq().getLinkData(0);  // only one elink right now
-        buf.push_back((0x1 << 28) | ((zcuhcal_->daq().econid() & 0xFFF) << 18) |
+        // only one elink right now
+        std::vector<uint32_t> subpacket = zcuhcal_->daq().getLinkData(0);
+        buf.push_back((0x1 << 28) | ((zcuhcal_->daq().econid() & 0x3ff) << 18) |
                       (ievt << 13) |
                       ((ievt == zcuhcal_->daq().soi()) ? (1 << 12) : (0)) |
                       (subpacket.size()));
