@@ -50,7 +50,6 @@ void print_roc_status(pflib::ROC& roc) {
 }
 
 void align_phase_word(Target* tgt) {
-
   debug_checks = pftool::readline_bool("Enable debug checks?", false);
 
   auto roc = tgt->hcal().roc(pftool::state.iroc);
@@ -87,7 +86,6 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   {
-
     print_roc_status(roc);
 
     // Set ECON registers
@@ -239,16 +237,16 @@ void align_phase_word(Target* tgt) {
             (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
 
         // shift by 1
-        boost::multiprecision::uint256_t shifted1 =
-            (snapshot >> 1);
+        boost::multiprecision::uint256_t shifted1 = (snapshot >> 1);
 
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                     << " (channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase << shifted1 << std::dec
-                    << std::endl;
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << shifted1 << std::dec << std::endl;
 
-          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+                    << snapshot << std::dec << std::endl;
 
           std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex
                     << ch_pm << std::dec << std::endl;
@@ -268,11 +266,13 @@ void align_phase_word(Target* tgt) {
           break;  // out of channel loop
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x"  << std::hex << std::uppercase << shifted1 << std::dec 
-                    << std::endl;
-          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot << std::dec << std::endl;
-        }else{
-          std::cout << "No header pattern match found in Snapshot:  "  << snapshot_val << std::endl;
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << shifted1 << std::dec << std::endl;
+          std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+                    << snapshot << std::dec << std::endl;
+        } else {
+          std::cout << "No header pattern match found in Snapshot:  "
+                    << snapshot_val << std::endl;
           break;  // out of channel loop
         }
 

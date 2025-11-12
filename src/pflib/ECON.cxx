@@ -361,9 +361,8 @@ std::map<std::string, std::map<std::string, uint64_t>> ECON::readParameters(
   return readParameters(parameters);
 }
 
-uint64_t ECON::readParameter(const std::string& page,
-                             const std::string& param,
-                            bool print_values) {
+uint64_t ECON::readParameter(const std::string& page, const std::string& param,
+                             bool print_values) {
   std::map<std::string, std::map<std::string, uint64_t>> p;
   p[page][param] = 0;
   auto values = this->readParameters(p, print_values);  // get the results
