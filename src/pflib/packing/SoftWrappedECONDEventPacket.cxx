@@ -22,14 +22,14 @@ void SoftWrappedECONDEventPacket::from(std::span<uint32_t> frame) {
    * - length is the length of the econd subpacket NOT including this header
    */
   std::size_t offset{0};
-  uint32_t econd_len = (frame[offset] & mask<8>);
-  is_soi = (((frame[offset] >> (8 + 4)) & mask<1>) == 1);
-  il1a = ((frame[offset] >> (8 + 4 + 1)) & mask<4>);
-  contrib_id = ((frame[offset] >> (8 + 4 + 1 + 4)) & mask<9>);
   uint32_t vers = ((frame[offset] >> 28) & mask<4>);
+  econ_id = ((frame[offset] >> 18) & mask<10>);
+  il1a = ((frame[offset] >> 13) & mask<5>);
+  is_soi = (((frame[offset] >> 12) & mask<1>) == 1);
+  uint32_t econd_len = (frame[offset] & mask<12>);
   pflib_log(trace) << hex(frame[offset])
-                   << " -> econd_len, il1a, contrib_id, is_soi = " << econd_len
-                   << ", " << il1a << ", " << contrib_id << ", " << is_soi;
+                   << " -> econd_len, il1a, econ_id, is_soi = " << econd_len
+                   << ", " << il1a << ", " << econ_id << ", " << is_soi;
 
   corruption[0] = (vers != 1);
   if (corruption[0]) {

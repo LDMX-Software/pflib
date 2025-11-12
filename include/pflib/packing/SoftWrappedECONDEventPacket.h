@@ -29,8 +29,8 @@ class SoftWrappedECONDEventPacket {
   std::array<bool, 1> corruption;
   /// L1A index for this packet
   int il1a;
-  /// contributor ID specifying ECOND
-  int contrib_id;
+  /// ID specifying ECOND we are reading
+  int econ_id;
   /// whether this packet is the sample-of-interest
   bool is_soi;
   /// actual data packet from ECOND
