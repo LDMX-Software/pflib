@@ -10,16 +10,16 @@
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
 #include <boost/python/extract.hpp>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/str.hpp>
-#include <boost/python/tuple.hpp>
 #include <boost/python/numpy.hpp>
+#include <boost/python/stl_iterator.hpp>
+#include <boost/python/str.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/tuple.hpp>
 namespace bp = boost::python;
 
 #include "pflib/Target.h"
-#include "pflib/version/Version.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/version/Version.h"
 
 class PyTarget {
   std::shared_ptr<pflib::Target> tgt_;
@@ -61,8 +61,10 @@ class PyTarget {
  * the Python side before calling decoding
 // Template function to convert a python list to a C++ std::vector
 template <typename T>
-inline std::vector<T> py_list_to_std_vector(const boost::python::object& iterable) {
-  return std::vector<T>(boost::python::stl_input_iterator<T>(iterable), boost::python::stl_input_iterator<T>());
+inline std::vector<T> py_list_to_std_vector(const boost::python::object&
+iterable) { return
+std::vector<T>(boost::python::stl_input_iterator<T>(iterable),
+boost::python::stl_input_iterator<T>());
 }
 
 // https://slaclab.github.io/rogue/interfaces/stream/classes/frame.html
@@ -74,16 +76,15 @@ void _from(pflib::packing::ECONDEventPacket& ep, boost::python::object frame) {
   if (class_name == "list") {
     ep.from(py_list_to_std_vector<uint32_t>(frame));
   } else if (class_name == "bytearray") {
-    throw std::runtime_error(class_name+" interpretation not implemented but could be"); 
-  } else if (class_name == "numpy.ndarray") {
-    std::vector<uint32_t> cpp_frame(frame.shape(0));
-    uint32_t* frame_ptr = reinterpret_cast<uint32_t*>(frame.get_data());
-    for (std::size_t i{0}; i < frame.shape(0); i++) {
-      cpp_frame[i] = *(frame_ptr + i);
+    throw std::runtime_error(class_name+" interpretation not implemented but
+could be"); } else if (class_name == "numpy.ndarray") { std::vector<uint32_t>
+cpp_frame(frame.shape(0)); uint32_t* frame_ptr =
+reinterpret_cast<uint32_t*>(frame.get_data()); for (std::size_t i{0}; i <
+frame.shape(0); i++) { cpp_frame[i] = *(frame_ptr + i);
     }
     ep.from(cpp_frame);
   } else {
-    throw std::runtime_error("Unable to interpret type "+class_name); 
+    throw std::runtime_error("Unable to interpret type "+class_name);
   }
 }
 */
@@ -101,16 +102,16 @@ void _from(pflib::packing::ECONDEventPacket& ep, std::vector<uint32_t>& frame) {
  *
  * @param[in] name name of submodule
  */
-#define BOOST_PYTHON_SUBMODULE(name) \
-  void setup_##name##_impl(); \
-  void setup_##name() { \
-    bp::object submodule(bp::handle<>(bp::borrowed(PyImport_AddModule("pypflib." #name)))); \
-    bp::scope().attr(#name) = submodule; \
-    bp::scope io_scope = submodule; \
-    setup_##name##_impl(); \
-  } \
+#define BOOST_PYTHON_SUBMODULE(name)                                       \
+  void setup_##name##_impl();                                              \
+  void setup_##name() {                                                    \
+    bp::object submodule(                                                  \
+        bp::handle<>(bp::borrowed(PyImport_AddModule("pypflib." #name)))); \
+    bp::scope().attr(#name) = submodule;                                   \
+    bp::scope io_scope = submodule;                                        \
+    setup_##name##_impl();                                                 \
+  }                                                                        \
   void setup_##name##_impl()
-
 
 BOOST_PYTHON_SUBMODULE(version) {
   bp::def("tag", pflib::version::tag);
@@ -119,12 +120,12 @@ BOOST_PYTHON_SUBMODULE(version) {
 
 BOOST_PYTHON_SUBMODULE(logging) {
   bp::enum_<pflib::logging::level>("level")
-    .value("trace", pflib::logging::level::trace)
-    .value("debug", pflib::logging::level::debug)
-    .value("info", pflib::logging::level::info)
-    .value("warn", pflib::logging::level::warn)
-    .value("error", pflib::logging::level::error)
-    .value("fatal", pflib::logging::level::fatal);
+      .value("trace", pflib::logging::level::trace)
+      .value("debug", pflib::logging::level::debug)
+      .value("info", pflib::logging::level::info)
+      .value("warn", pflib::logging::level::warn)
+      .value("error", pflib::logging::level::error)
+      .value("fatal", pflib::logging::level::fatal);
   bp::def("open", pflib::logging::open, (bp::arg("color")));
   bp::def("set", pflib::logging::set, (bp::arg("lvl"), bp::arg("only") = ""));
   bp::def("close", pflib::logging::close);
@@ -140,8 +141,9 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("end_run", &PyTarget::end_run);
 
   bp::class_<std::vector<uint32_t>>("WordVector")
-    .def(bp::vector_indexing_suite<std::vector<uint32_t>>());
+      .def(bp::vector_indexing_suite<std::vector<uint32_t>>());
 
-  bp::class_<pflib::packing::ECONDEventPacket>("ECONDEventPacket", bp::init<std::size_t>())
-    .def("_from", &_from);
+  bp::class_<pflib::packing::ECONDEventPacket>("ECONDEventPacket",
+                                               bp::init<std::size_t>())
+      .def("_from", &_from);
 }
