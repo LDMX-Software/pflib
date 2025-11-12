@@ -160,9 +160,8 @@ BOOST_PYTHON_MODULE(pypflib) {
 
   bp::class_<pflib::packing::ECONDEventPacket>("ECONDEventPacket",
                                                bp::init<std::size_t>())
-      .def("from_word_vector", [](pflib::packing::ECONDEventPacket& ep, std::vector<uint32_t>& wv) {
-        ep.from(wv);
-      })
+      .def("from_word_vector", [](pflib::packing::ECONDEventPacket& ep,
+                                  std::vector<uint32_t>& wv) { ep.from(wv); })
       .def("adc_cm0", &pflib::packing::ECONDEventPacket::adc_cm0)
       .def("adc_cm1", &pflib::packing::ECONDEventPacket::adc_cm1)
       .def("channel", &pflib::packing::ECONDEventPacket::channel)
