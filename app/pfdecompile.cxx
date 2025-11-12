@@ -13,7 +13,7 @@
 
 #include "pflib/Compile.h"
 #include "pflib/Exception.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/utility/load_integer_csv.h"
 #include "pflib/version/Version.h"
 

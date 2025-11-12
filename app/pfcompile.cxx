@@ -12,7 +12,7 @@
 
 #include "pflib/Compile.h"
 #include "pflib/Exception.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/version/Version.h"
 
 static void usage() {

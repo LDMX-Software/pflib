@@ -2,7 +2,7 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 using pflib_logging_fixture = pflib::logging::fixture;
 

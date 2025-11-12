@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "hgcroc_connection.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 using pflib_logging_fixture = pflib::logging::fixture;
 

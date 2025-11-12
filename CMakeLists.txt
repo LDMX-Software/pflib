@@ -54,7 +54,7 @@ target_include_directories(utility PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 
-add_library(logging SHARED src/pflib/Logging.cxx)
+add_library(logging SHARED src/pflib/logging/Logging.cxx)
 target_include_directories(logging PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")

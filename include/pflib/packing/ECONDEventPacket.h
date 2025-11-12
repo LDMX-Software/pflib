@@ -4,7 +4,7 @@
 #include <bitset>
 #include <span>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/Reader.h"
 

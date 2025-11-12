@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib {
 

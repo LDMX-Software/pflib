@@ -19,7 +19,7 @@ namespace bp = boost::python;
 
 #include "pflib/Target.h"
 #include "pflib/version/Version.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 class PyTarget {
   std::shared_ptr<pflib::Target> tgt_;

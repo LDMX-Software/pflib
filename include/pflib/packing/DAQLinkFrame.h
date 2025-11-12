@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <span>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
 

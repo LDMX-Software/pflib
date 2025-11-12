@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/Target.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 
