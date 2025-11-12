@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 if args.output is None:
     if len(args.pedestals) == 1:
-        args.output = args.pedestals.parent / (args.pedestals.stem + '-violinplot.png')
+        args.output = args.pedestals[0].parent / (args.pedestals[0].stem + '-violinplot.png')
     else:
         args.output = 'violinplot.png'
 
