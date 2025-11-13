@@ -1,5 +1,5 @@
 log_level: 0 # debug level
 # i like dashes better than underscores
-timestamp_format: "%Y-%m-%d-%H%M%S"
+timestamp_format: "-%Y-%m-%d-%H%M%S"
 # i usually run from pflib/build and want my data in pflib/data
-default_output_dir: "../data"
+default_output_directory: "../data"
