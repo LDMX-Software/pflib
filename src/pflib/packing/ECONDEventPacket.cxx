@@ -347,4 +347,20 @@ void ECONDEventPacket::to_csv(std::ofstream &f) const {
   }
 }
 
+int ECONDEventPacket::adc_cm0(int i_link) const {
+  return links.at(i_link).adc_cm0;
+}
+
+int ECONDEventPacket::adc_cm1(int i_link) const {
+  return links.at(i_link).adc_cm1;
+}
+
+Sample ECONDEventPacket::channel(int i_link, int i_ch) const {
+  return links.at(i_link).channels.at(i_ch);
+}
+
+Sample ECONDEventPacket::calib(int i_link) const {
+  return links.at(i_link).calib;
+}
+
 }  // namespace pflib::packing

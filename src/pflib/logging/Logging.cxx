@@ -1,4 +1,4 @@
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 #include <boost/core/null_deleter.hpp>        //to avoid deleting std::cout
 #include <boost/log/expressions.hpp>          //for attributes and expressions

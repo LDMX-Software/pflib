@@ -15,6 +15,20 @@ make
 ./pftool -h # print help
 ```
 
+## Usage with Rogue Run Control
+Python bindings for specific functions have been implemented here,
+so you can import them as long as you install pflib and update
+your environment accordingly.
+```
+cmake -DCMAKE_INSTALL_PREFIX=path/to/install -B build -S .
+cd build
+make install
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:path/to/install/lib
+PYTHONPATH=${PYTHONPATH}:path/to/install/lib
+```
+- `PYTHONPATH` tells Python where it can find `pypflib`
+- `LD_LIBRARY_PATH` allows `pypflib` to link to the other pflib libraries
+
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)
 - app : executables and supporting source files for executables

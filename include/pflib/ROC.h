@@ -8,7 +8,7 @@
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib {
 

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/utility/str_to_int.h"
 
 namespace YAML {
