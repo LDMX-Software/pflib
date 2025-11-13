@@ -56,27 +56,36 @@ void align_econ_lpgbt(Target* tgt) {
 }
 
 static void print_locked_status(pflib::lpGBT& lpgbt) {
-	constexpr uint16_t REG_EPRX0LOCKED = 0x152;
+  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
 
-	auto read_result = lpgbt.read({REG_EPRX0LOCKED});
+  auto read_result = lpgbt.read({REG_EPRX0LOCKED});
 
-	printf(" EPRX0LOCKED register raw result = 0x%02X\n", read_result);
+  printf(" EPRX0LOCKED register raw result = 0x%02X\n", read_result);
 
-	uint8_t ch_locked = (read_result >> 4) & 0xF;
+  uint8_t ch_locked = (read_result >> 4) & 0xF;
 
-	printf(" Channel lock status:\n");
-	bool locked = (ch_locked >> 0) & 0x1;
-	printf(" Channel %d: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
+  printf(" Channel lock status:\n");
+  bool locked = (ch_locked >> 0) & 0x1;
+  printf(" Channel %d: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
 
-	uint8_t state = read_result & 0x3;
-	const char* state_name;
-	switch (state) {
-		case 0: state_name = "Reset"; break;
-		case 1: state_name = "Force Down"; break;
-		case 2: state_name = "Confirm early state"; break;
-		case 3: state_name = "Free running state"; break;
-		default: state_name = "Unknown"; break;
-	}
-	printf(" Group 0 state: %s (%d)\n", state_name, state);
-
+  uint8_t state = read_result & 0x3;
+  const char* state_name;
+  switch (state) {
+    case 0:
+      state_name = "Reset";
+      break;
+    case 1:
+      state_name = "Force Down";
+      break;
+    case 2:
+      state_name = "Confirm early state";
+      break;
+    case 3:
+      state_name = "Free running state";
+      break;
+    default:
+      state_name = "Unknown";
+      break;
+  }
+  printf(" Group 0 state: %s (%d)\n", state_name, state);
 }
