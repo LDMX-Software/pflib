@@ -62,7 +62,7 @@ void align_econ_lpgbt(Target* tgt) {
   auto pre_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
   auto pre_phase32_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE32});
   auto pre_lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
-  
+
   printf("\n --- PRE-PRBS STATUS ---\n");
   printf(" PRE: Current EPRX0 Phase10 = %d\n", pre_phase10_result);
   printf(" PRE: Current EPRX0 Phase32 = %d\n", pre_phase32_result);
@@ -93,5 +93,3 @@ void align_econ_lpgbt(Target* tgt) {
 
   auto econ_finish_test = econ_finish_builder.apply();
 }
-
-
