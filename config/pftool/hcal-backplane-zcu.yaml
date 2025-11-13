@@ -1,0 +1,7 @@
+# pftool:
+#   log_level: -1
+#   timestamp_format: ""
+#   default_output_directory: "path/to/output"
+target:
+  type: "HcalBackplaneZCU"
+  ilink: 0
