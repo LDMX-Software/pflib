@@ -7,7 +7,7 @@
 #include "../algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
-  auto roc{tgt->hcal().roc(pftool::state.iroc)};
+  auto roc{tgt->roc(pftool::state.iroc)};
   auto settings = pflib::algorithm::toa_vref_scan(tgt, roc);
   YAML::Emitter out;
   out << YAML::BeginMap;

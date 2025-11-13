@@ -2,8 +2,12 @@
  * @file bias.cxx
  *
  * Definition of BIAS menu commands
+ *
+ * Only usable for Hcal type targets.
  */
 #include "pftool.h"
+
+#include "pflib/Hcal.h"
 
 ENABLE_LOGGING();
 
@@ -11,7 +15,7 @@ static void bias(const std::string& cmd, Target* pft) {
   static int iboard = 0;
   if (cmd == "READ_SIPM") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->hcal().bias(iboard);
+    pflib::Bias bias = dynamic_cast<pflib::Hcal*>(pft)->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
@@ -24,7 +28,7 @@ static void bias(const std::string& cmd, Target* pft) {
   }
   if (cmd == "READ_LED") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->hcal().bias(iboard);
+    pflib::Bias bias = dynamic_cast<pflib::Hcal*>(pft)->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
@@ -37,7 +41,7 @@ static void bias(const std::string& cmd, Target* pft) {
   }
   if (cmd == "SET_SIPM") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->hcal().bias(iboard);
+    pflib::Bias bias = dynamic_cast<pflib::Hcal*>(pft)->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     uint16_t dac = pftool::readline_int("Which DAC value? ", 0);
@@ -51,7 +55,7 @@ static void bias(const std::string& cmd, Target* pft) {
   }
   if (cmd == "SET_LED") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->hcal().bias(iboard);
+    pflib::Bias bias = dynamic_cast<pflib::Hcal*>(pft)->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     uint16_t dac = pftool::readline_int("Which DAC value? ", 0);

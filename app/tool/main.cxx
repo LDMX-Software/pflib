@@ -24,9 +24,9 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 void pftool::State::init(Target* tgt, int cfg) {
   cfg_ = cfg;
   /// copy over page and param names for tab completion
-  std::vector<int> roc_ids{tgt->hcal().roc_ids()};
+  std::vector<int> roc_ids{tgt->roc_ids()};
   for (int id : roc_ids) {
-    auto defs = tgt->hcal().roc(id).defaults();
+    auto defs = tgt->roc(id).defaults();
     for (const auto& page : defs) {
       roc_page_names_[id].push_back(page.first);
       for (const auto& param : page.second) {
@@ -34,8 +34,8 @@ void pftool::State::init(Target* tgt, int cfg) {
       }
     }
   }
-  for (int id : tgt->hcal().econ_ids()) {
-    auto type = tgt->hcal().econ(id).type();
+  for (int id : tgt->econ_ids()) {
+    auto type = tgt->econ(id).type();
     if (econ_page_names_.find(type) == econ_page_names_.end()) {
       auto compiler = pflib::Compiler::get(type);
       for (const auto& page : compiler.defaults()) {
