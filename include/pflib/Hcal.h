@@ -10,7 +10,12 @@
 namespace pflib {
 
 /**
- * representing a standard HCAL backplane or a test system
+ * representing an Hcal
+ *
+ * @note Technically, this is more accurately an 'HcalBackplane'
+ * and the full Hcal would consist of several of these objects,
+ * but since we haven't graduated to multiple backplanes yet,
+ * it is being left like this.
  */
 class Hcal : public Target {
  public:
