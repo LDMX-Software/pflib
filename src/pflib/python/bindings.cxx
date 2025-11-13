@@ -19,6 +19,12 @@
  * I think this is cleaner anyways since we need a spot to map the
  * Python Run Control commands onto C++ pflib::Target functions (or
  * series of functions).
+ *
+ * See this example:
+ * https://github.com/slaclab/ucsc-hn/blob/master/firmware/python/ucsc_hn/_RenaDataEmulator.py
+ * The `self._processor` object is the bound C++ and you can see how
+ * we can connect `pyrogue.LocalVariable` to specific setters/getters
+ * here in order to ease passage of configuration between rogue and us.
  */
 class PyTarget {
   /// our handle to the pflib::Target
