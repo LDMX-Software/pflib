@@ -1,5 +1,6 @@
 #include "pflib/Parameters.h"
 
+#include <filesystem>
 #include <yaml-cpp/yaml.h>
 
 namespace pflib {
@@ -40,8 +41,8 @@ std::any extract_sequence(const YAML::Node& node) {
 }
 
 // Null, Scalar, Sequence, Map
-void extract(const YAML::Node& yaml_config, Parameters& deduced_config,
-             bool overlay) {
+void extract(std::filesystem::path config_dir, const YAML::Node& yaml_config,
+             Parameters& deduced_config, bool overlay) {
   if (not yaml_config.IsMap()) {
     // if there isn't a map, then this is not a YAML file providing
     // configuration parameters
@@ -59,14 +60,31 @@ void extract(const YAML::Node& yaml_config, Parameters& deduced_config,
                         "The Key in a YAML Map is somehow not a scalar.");
     }
     std::string keyname = key.as<std::string>();
-    if (val.Type() == YAML::NodeType::Scalar) {
+    if (val.Tag() == "!file") {
+      auto filepath = val.as<std::string>();
+      if (filepath.empty()) {
+        PFEXCEPTION_RAISE("BadFilePath",
+                          "Key named "+keyname+" is tagged as another file but is empty.");
+      }
+      Parameters sub_parameters;
+      std::filesystem::path fp{filepath};
+      if (fp.is_absolute()) {
+        // assume root path
+        sub_parameters.from_yaml(fp, overlay);
+      } else {
+        // relative to current directory
+        sub_parameters.from_yaml(config_dir / fp, overlay);
+      }
+
+      deduced_config.add(keyname, sub_parameters, overlay);
+    } else if (val.Type() == YAML::NodeType::Scalar) {
       deduced_config.add(keyname, extract_scalar(val), overlay);
     } else if (val.Type() == YAML::NodeType::Sequence) {
       deduced_config.add(keyname, extract_sequence(val), overlay);
     } else if (val.Type() == YAML::NodeType::Map) {
       // recursion
       Parameters sub_parameters;
-      extract(val, sub_parameters, overlay);
+      extract(config_dir, val, sub_parameters, overlay);
       deduced_config.add(keyname, sub_parameters, overlay);
     } else {
       // Null or something else
@@ -94,7 +112,9 @@ void Parameters::from_yaml(const std::string& filepath, bool overlay) {
     PFEXCEPTION_RAISE("BadFile", "Unable to load file " + filepath);
   }
 
-  extract(config, *this, overlay);
+  std::filesystem::path fp{filepath};
+
+  extract(fp.parent_path(), config, *this, overlay);
 }
 
 }  // namespace pflib

@@ -24,7 +24,9 @@ five:
 sub:
   one: 1.0
   two: ["one", "two"]
+redirect: !file "rel-path.yaml"
 )YAML");
+  TempFile t2("rel-path.yaml", R"YAML(hello: "world")YAML");
   pflib::Parameters p;
   p.from_yaml(t.file_path_);
   BOOST_CHECK_EQUAL(p.get<int>("one"), 1);
@@ -44,6 +46,9 @@ sub:
   std::vector<std::string> sub_two = {"one", "two"};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_sub_two.begin(), read_sub_two.end(),
                                 sub_two.begin(), sub_two.end());
+
+  auto read_redirect{p.get<pflib::Parameters>("redirect")};
+  BOOST_CHECK_EQUAL(read_redirect.get<std::string>("hello"), "world");
 
   TempFile another("overlay.yaml", "one: 2\n");
   p.from_yaml(another.file_path_, true);
