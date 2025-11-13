@@ -1,0 +1,5 @@
+pftool:
+  log_level: 0
+target:
+  type: "HcalBackplaneZCU"
+  ilink: 0
