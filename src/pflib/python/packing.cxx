@@ -1,4 +1,5 @@
 #include "packing.h"
+
 #include "pflib/packing/ECONDEventPacket.h"
 
 /**
@@ -36,21 +37,22 @@ frame.shape(0); i++) { cpp_frame[i] = *(frame_ptr + i);
 }
 */
 
-
 /// convert std::vector to std::span on C++ side
 void from_word_vector(pflib::packing::ECONDEventPacket& ep,
                       std::vector<uint32_t>& wv) {
   ep.from(wv);
 }
 
-const char* WordVector__doc__ = R"DOC(raw data packet acceptable by decoding classes
+const char* WordVector__doc__ =
+    R"DOC(raw data packet acceptable by decoding classes
 
 This is a std::vector<uint32_t> which is the representation of raw data in pflib.
 The bindings provide normal `list`-like access with functions like `extend`, `append`,
 and slicing (e.g. `v[1:]`).
 )DOC";
 
-const char* ECONDEventPacket__doc__ = R"DOC(representation for a packet returned by an ECON-D
+const char* ECONDEventPacket__doc__ =
+    R"DOC(representation for a packet returned by an ECON-D
 
 This is helpful for decoding a ECON-D event packet.
 The translation from Python data structures into C++ data structures
@@ -92,9 +94,8 @@ void setup_packing() {
    * because it felt icky to have that many intermediate layers bound to
    * Python.
    */
-  bp::class_<pflib::packing::ECONDEventPacket>("ECONDEventPacket",
-                                               ECONDEventPacket__doc__,
-                                               bp::init<std::size_t>())
+  bp::class_<pflib::packing::ECONDEventPacket>(
+      "ECONDEventPacket", ECONDEventPacket__doc__, bp::init<std::size_t>())
       .def("from_word_vector", &from_word_vector)
       .def("adc_cm0", &pflib::packing::ECONDEventPacket::adc_cm0)
       .def("adc_cm1", &pflib::packing::ECONDEventPacket::adc_cm1)

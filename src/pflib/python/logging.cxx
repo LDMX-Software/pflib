@@ -1,4 +1,5 @@
 #include "logging.h"
+
 #include "pflib/logging/Logging.h"
 
 void setup_logging() {
@@ -10,7 +11,8 @@ void setup_logging() {
   BOOST_PYTHON_SUBMODULE(logging);
 
   /// the level enum gets mapped into Python
-  bp::enum_<pflib::logging::level>("level", "See pflib::logging::level for documentation")
+  bp::enum_<pflib::logging::level>(
+      "level", "See pflib::logging::level for documentation")
       .value("trace", pflib::logging::level::trace)
       .value("debug", pflib::logging::level::debug)
       .value("info", pflib::logging::level::info)
@@ -18,7 +20,9 @@ void setup_logging() {
       .value("error", pflib::logging::level::error)
       .value("fatal", pflib::logging::level::fatal);
 
-  bp::def("open", pflib::logging::open, (bp::arg("color")), "See pflib::logging::open");
-  bp::def("set", pflib::logging::set, (bp::arg("lvl"), bp::arg("only") = ""), "See pflib::logging::set");
+  bp::def("open", pflib::logging::open, (bp::arg("color")),
+          "See pflib::logging::open");
+  bp::def("set", pflib::logging::set, (bp::arg("lvl"), bp::arg("only") = ""),
+          "See pflib::logging::set");
   bp::def("close", pflib::logging::close, "See pflib::logging::close");
 }

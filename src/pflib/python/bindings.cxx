@@ -4,10 +4,11 @@
  */
 
 #include "bindings.h"
+
 #include "logging.h"
 #include "packing.h"
-#include "version.h"
 #include "pflib/Target.h"
+#include "version.h"
 
 /**
  * Hold a pflib::Target to do run commands on
@@ -22,6 +23,7 @@
 class PyTarget {
   /// our handle to the pflib::Target
   std::shared_ptr<pflib::Target> tgt_;
+
  public:
   /// construct a PyTarget given some arbitrary Python dict of parameters
   PyTarget(bp::dict config) {
@@ -44,27 +46,17 @@ class PyTarget {
     // apply configuration stuff
     std::cout << "configure" << std::endl;
   }
-  void trigger_align() {
-    std::cout << "trigger_align" << std::endl;
-  }
-  void ror_latency() {
-    std::cout << "ror_latency" << std::endl;
-  }
+  void trigger_align() { std::cout << "trigger_align" << std::endl; }
+  void ror_latency() { std::cout << "ror_latency" << std::endl; }
   void pre_start() {
     // prepare to collect data
     std::cout << "start_run" << std::endl;
     tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS,
                     42 /* contrib_id */);
   }
-  void go() {
-    std::cout << "go" << std::endl;
-  }
-  void stop() {
-    std::cout << "stop" << std::endl;
-  }
-  void reset() {
-    std::cout << "reset" << std::endl;
-  }
+  void go() { std::cout << "go" << std::endl; }
+  void stop() { std::cout << "stop" << std::endl; }
+  void reset() { std::cout << "reset" << std::endl; }
   /// should not use in actual DAQ
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
@@ -86,7 +78,8 @@ Given a dictionary of configuration parameters, construct a C++ pflib::Target
 and await further run commands.
 )DOC";
 
-static const char* PyTarget_grab_pedestals__doc__ = R"DOC(DO NOT USE IN RUN CONTROL
+static const char* PyTarget_grab_pedestals__doc__ =
+    R"DOC(DO NOT USE IN RUN CONTROL
 
 This function was bound to make sure the python bindings were functional while
 waiting for the Bittware firmware to be written.
@@ -100,8 +93,8 @@ BOOST_PYTHON_MODULE(pypflib) {
   setup_packing();
 
   bp::class_<PyTarget>("PyTarget", PyTarget__doc__,
-      bp::init<bp::dict>(PyTarget__init____doc__,
-        (bp::arg("config") = bp::dict())))
+                       bp::init<bp::dict>(PyTarget__init____doc__,
+                                          (bp::arg("config") = bp::dict())))
       .def("configure", &PyTarget::configure)
       .def("trigger_align", &PyTarget::trigger_align)
       .def("ror_latency", &PyTarget::ror_latency)
@@ -109,6 +102,6 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("go", &PyTarget::go)
       .def("stop", &PyTarget::stop)
       .def("reset", &PyTarget::reset)
-      .def("grab_pedestals", &PyTarget::grab_pedestals, PyTarget_grab_pedestals__doc__);
-
+      .def("grab_pedestals", &PyTarget::grab_pedestals,
+           PyTarget_grab_pedestals__doc__);
 }
