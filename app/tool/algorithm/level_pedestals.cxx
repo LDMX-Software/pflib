@@ -1,5 +1,7 @@
 #include "level_pedestals.h"
 
+#include "../tasks/level_pedestals.h"
+
 #include "../daq_run.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
