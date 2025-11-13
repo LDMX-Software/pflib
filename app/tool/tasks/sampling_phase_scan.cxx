@@ -11,7 +11,7 @@ void sampling_phase_scan(Target* tgt) {
 
   std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc);
+  auto roc = tgt->roc(pftool::state.iroc);
 
   int phase_ck = 0;
 

@@ -7,7 +7,7 @@
 BOOST_AUTO_TEST_SUITE(test_parameters)
 
 BOOST_AUTO_TEST_CASE(eg) {
-  auto roc{hgcroc_connection::tgt->hcal().roc(0)};
+  auto roc{hgcroc_connection::tgt->roc(0)};
   // CH_40 is Page 6 and InputDac is Register 0
   // for SiPM_rocv3b
   auto original = roc.readPage(6, 1)[0];
@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(eg) {
 }
 
 BOOST_AUTO_TEST_CASE(temp_zero) {
-  auto roc{hgcroc_connection::tgt->hcal().roc(0)};
+  auto roc{hgcroc_connection::tgt->roc(0)};
   // CH_40 is Page 6 and InputDac is Register 0
   // for sipm_rocv3b
   auto original = roc.readPage(6, 1)[0];

@@ -10,12 +10,12 @@ BOOST_AUTO_TEST_CASE(check_daq_idleframe) {
    * We temporarily set the idleframe to something
    * that would allow us to detect a nibble shuffle
    */
-  auto roc{hgcroc_connection::tgt->hcal().roc(0)};
+  auto roc{hgcroc_connection::tgt->roc(0)};
   auto tp = roc.testParameters()
                 .add("DIGITALHALF_0", "IDLEFRAME", 0x1234567)
                 .add("DIGITALHALF_1", "IDLEFRAME", 0x1234567)
                 .apply();
-  auto& elinks{hgcroc_connection::tgt->hcal().elinks()};
+  auto& elinks{hgcroc_connection::tgt->elinks()};
   for (std::size_t i_link{0}; i_link < 2; i_link++) {
     auto spy{elinks.spy(i_link)};
     for (auto word : spy) {

@@ -11,7 +11,7 @@ void toa_scan(Target* tgt) {
 
   std::string output_filepath = pftool::readline_path("toa_scan", ".csv");
 
-  auto roc = tgt->hcal().roc(pftool::state.iroc);
+  auto roc = tgt->roc(pftool::state.iroc);
 
   int calib = 0;
 

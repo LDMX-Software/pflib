@@ -7,7 +7,7 @@
 #include "../algorithm/level_pedestals.h"
 
 void level_pedestals(Target* tgt) {
-  auto roc{tgt->hcal().roc(pftool::state.iroc)};
+  auto roc{tgt->roc(pftool::state.iroc)};
   auto settings = pflib::algorithm::level_pedestals(tgt, roc);
   YAML::Emitter out;
   out << YAML::BeginMap;

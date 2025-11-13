@@ -27,11 +27,11 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
     pflib_log(trace) << "daq event occupancy pre-L1A    : "
-                     << tgt->hcal().daq().getEventOccupancy();
+                     << tgt->daq().getEventOccupancy();
     trigger(tgt->fc());
 
     pflib_log(trace) << "daq event occupancy post-L1A   : "
-                     << tgt->hcal().daq().getEventOccupancy();
+                     << tgt->daq().getEventOccupancy();
     gettimeofday(&tvi, 0);
     double runsec =
         (tvi.tv_sec - tv0.tv_sec) + (tvi.tv_usec - tv0.tv_usec) / 1e6;
@@ -44,11 +44,11 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
     }
 
     pflib_log(trace) << "daq event occupancy after pause: "
-                     << tgt->hcal().daq().getEventOccupancy();
+                     << tgt->daq().getEventOccupancy();
 
     std::vector<uint32_t> event = tgt->read_event();
     pflib_log(trace) << "daq event occupancy after read : "
-                     << tgt->hcal().daq().getEventOccupancy();
+                     << tgt->daq().getEventOccupancy();
     pflib_log(debug) << "event " << ievt << " has " << event.size()
                      << " 32-bit words";
     if (event.size() == 0) {

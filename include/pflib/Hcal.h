@@ -4,73 +4,66 @@
 #include <memory>
 
 #include "pflib/Bias.h"
-#include "pflib/ECON.h"
-#include "pflib/Elinks.h"
+#include "pflib/Target.h"
 #include "pflib/GPIO.h"
-#include "pflib/I2C.h"
-#include "pflib/ROC.h"
-// #include "pflib/FastControl.h"
-#include "pflib/DAQ.h"
 
 namespace pflib {
 
 /**
  * representing a standard HCAL backplane or a test system
  */
-class Hcal {
+class Hcal : public Target {
  public:
+  virtual ~Hcal() = default;
   Hcal();
 
   /** number of boards */
-  int nrocs() { return nhgcroc_; }
+  virtual int nrocs() override { return nhgcroc_; }
 
   /// number of econds
-  int necons() { return necon_; }
+  virtual int necons() override { return necon_; }
 
   /** do we have a roc with this id? */
-  bool have_roc(int iroc) const;
+  virtual bool have_roc(int iroc) const override;
 
   /** do we have an econ with this id? */
-  bool have_econ(int iecon) const;
+  virtual bool have_econ(int iecon) const override;
 
   /** get a list of the IDs we have set up */
-  std::vector<int> roc_ids() const;
+  virtual std::vector<int> roc_ids() const override;
 
   /** get a list of the econ IDs we have set up */
-  std::vector<int> econ_ids() const;
+  virtual std::vector<int> econ_ids() const override;
 
   /** Get a ROC interface for the given HGCROC board */
-  ROC roc(int which);
+  virtual ROC roc(int which) override;
 
   /** get a ECON interface for the given econ board */
-  ECON econ(int which);
+  virtual ECON econ(int which) override;
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   Bias bias(int which);
 
   /** Generate a hard reset to all the HGCROC boards */
-  virtual void hardResetROCs();
+  virtual void hardResetROCs() override;
 
   /** generate a hard reset to all the ECON boards */
-  virtual void hardResetECONs();
+  virtual void hardResetECONs() override;
 
   /** Get the firmware version */
-  uint32_t getFirmwareVersion();
+  virtual uint32_t getFirmwareVersion() override;
 
   /** Generate a soft reset to a specific HGCROC board, -1 for all */
-  virtual void softResetROC(int which = -1);
+  virtual void softResetROC(int which = -1) override;
 
   /** Generate a soft reset to a specific ECON board, -1 for all */
-  virtual void softResetECON(int which = -1);
+  virtual void softResetECON(int which = -1) override;
 
   /** Get the GPIO object for debugging purposes */
   virtual GPIO& gpio() { return *gpio_; }
 
   /** get the Elinks object */
   virtual Elinks& elinks() = 0;
-
-  /** get the FastControl object */
-  //  FastControl& fc() { return fc_; }
 
   /** get the DAQ object */
   virtual DAQ& daq() = 0;

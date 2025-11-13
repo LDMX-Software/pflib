@@ -109,7 +109,7 @@ static void i2c(const std::string& cmd, Target* target) {
  * @param[in] pft active target
  */
 static void elinks(const std::string& cmd, Target* pft) {
-  pflib::Elinks& elinks = pft->hcal().elinks();
+  pflib::Elinks& elinks = pft->elinks();
   if (cmd == "SPY") {
     pftool::state.ilink =
         pftool::readline_int("Which elink? ", pftool::state.ilink);
@@ -160,12 +160,12 @@ static void elinks(const std::string& cmd, Target* pft) {
 
     // store run mode _before_ hard reset
     // (hard reset sets run mode to off)
-    std::vector<bool> running(pft->hcal().nrocs());
-    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      running[iroc] = pft->hcal().roc(iroc).isRunMode();
+    std::vector<bool> running(pft->nrocs());
+    for (int iroc = 0; iroc < pft->nrocs(); iroc++) {
+      running[iroc] = pft->roc(iroc).isRunMode();
     }
 
-    pft->hcal().hardResetROCs();
+    pft->hardResetROCs();
 
     for (int alink = 0; alink < elinks.nlinks(); alink++) {
       int apt = elinks.scanAlign(alink, false);
@@ -178,8 +178,8 @@ static void elinks(const std::string& cmd, Target* pft) {
     }
 
     // reset runmode to what it was before alignment attempt
-    for (int iroc = 0; iroc < pft->hcal().nrocs(); iroc++) {
-      pft->hcal().roc(iroc).setRunMode(running[iroc]);
+    for (int iroc = 0; iroc < pft->nrocs(); iroc++) {
+      pft->roc(iroc).setRunMode(running[iroc]);
     }
   }
 }
@@ -254,12 +254,12 @@ static void fc(const std::string& cmd, Target* pft) {
     /*
     bool multi;
     int nextra;
-    pft->hcal().fc().getMultisampleSetup(multi,nextra);
+    pft->fc().getMultisampleSetup(multi,nextra);
     if (multi) printf(" Multisample readout enabled : %d extra L1a (%d total
     samples)\n",nextra,nextra+1); else printf(" Multisaple readout disabled\n");
     printf(" Snapshot: %03x\n",pft->wb->wb_read(1,3));
     uint32_t sbe,dbe;
-    pft->hcal().fc().getErrorCounters(sbe,dbe);
+    pft->fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     */
     std::vector<uint32_t> cnt = pft->fc().getCmdCounters();
@@ -272,7 +272,7 @@ static void fc(const std::string& cmd, Target* pft) {
     }
 
     printf("  ELink Event Occupancy: %d\n",
-           pft->hcal().daq().getEventOccupancy());
+           pft->daq().getEventOccupancy());
     /**
      * FastControl::read_counters is default defined to do nothing,
      * FastControlCMS_MMap does not override this default definition

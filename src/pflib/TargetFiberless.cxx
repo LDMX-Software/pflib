@@ -6,7 +6,7 @@
 #include "pflib/ECOND_Formatter.h"
 #include "pflib/GPIO.h"
 #include "pflib/I2C_Linux.h"
-#include "pflib/Target.h"
+#include "pflib/Hcal.h"
 
 namespace pflib {
 
@@ -36,9 +36,15 @@ class HcalFiberless : public Hcal {
 
     elinks_ = get_Elinks_zcu();
     daq_ = get_DAQ_zcu();
+
+    i2c_["HGCROC"] = i2croc_;
+    i2c_["BOARD"] = i2cboard_;
+    i2c_["BIAS"] = i2cboard_;
+
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
-  virtual void hardResetROCs() {
+  virtual void hardResetROCs() override {
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, false);  // active low
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, false);   // active low
     usleep(10);
@@ -47,47 +53,34 @@ class HcalFiberless : public Hcal {
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);   // active low
   }
 
-  virtual void softResetROC(int which) {
+  virtual void softResetROC(int which) override {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, false);  // active low
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);   // active low
   }
 
-  virtual Elinks& elinks() { return *elinks_; }
-  virtual DAQ& daq() { return *daq_; }
+  virtual Elinks& elinks() override { return *elinks_; }
+  virtual DAQ& daq() override { return *daq_; }
+  virtual FastControl& fc() override { return *fc_; }
+
+  virtual void setup_run(int run, Target::DaqFormat format, int contrib_id);
+  virtual std::vector<uint32_t> read_event();
 
  public:
   std::shared_ptr<I2C> i2croc_;
   std::shared_ptr<I2C> i2cboard_;
+  std::shared_ptr<FastControl> fc_;
   Elinks* elinks_;
   DAQ* daq_;
-};
-
-class TargetFiberless : public Target {
- public:
-  TargetFiberless() : Target() {
-    HcalFiberless* p_hcal = new HcalFiberless();
-
-    i2c_["HGCROC"] = p_hcal->i2croc_;
-    i2c_["BOARD"] = p_hcal->i2cboard_;
-    i2c_["BIAS"] = p_hcal->i2cboard_;
-
-    hcal_ = std::shared_ptr<Hcal>(p_hcal);
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
-  }
-
-  virtual void setup_run(int run, DaqFormat format, int contrib_id);
-  virtual std::vector<uint32_t> read_event();
-
- private:
   int run_;
-  DaqFormat daqformat_;
+  Target::DaqFormat daqformat_;
   int ievt_, l1a_;
   int contribid_;
   ECOND_Formatter formatter_;
 };
+
 static const int SUBSYSTEM_ID_HCAL_DAQ = 0x07;
 
-void TargetFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
+void HcalFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
   run_ = run;
   daqformat_ = format;
   if (contrib_id < 0)
@@ -96,11 +89,11 @@ void TargetFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
     contribid_ = contrib_id & 0xFF;
   ievt_ = 0;
   l1a_ = 0;
-  hcal_->daq().reset();
-  fc_->clear_run();
+  daq().reset();
+  fc().clear_run();
 }
 
-std::vector<uint32_t> TargetFiberless::read_event() {
+std::vector<uint32_t> HcalFiberless::read_event() {
   std::vector<uint32_t> buffer;
   if (has_event()) {
     ievt_++;
@@ -110,12 +103,12 @@ std::vector<uint32_t> TargetFiberless::read_event() {
         buffer.push_back(0xbeef2025);
 
         buffer.push_back(0);  // come back to this
-        for (int i = 0; i < (hcal().daq().nlinks() + 1) / 2; i++)
+        for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
           buffer.push_back(0);  // come back to this
         size_t len_total = buffer.size() - 2;
 
-        for (int i = 0; i < hcal().daq().nlinks(); i++) {
-          std::vector<uint32_t> data = hcal().daq().getLinkData(i);
+        for (int i = 0; i < daq().nlinks(); i++) {
+          std::vector<uint32_t> data = daq().getLinkData(i);
           if (i >= 2) {  // trigger links
             uint32_t theader = 0x30000000 | ((i - 2)) | (data.size() << 8);
             data.insert(data.begin(), theader);
@@ -133,7 +126,7 @@ std::vector<uint32_t> TargetFiberless::read_event() {
         buffer[2] |= len_total;
         buffer.push_back(0xd07e2025);
         buffer.push_back(0x12345678);
-        hcal().daq().advanceLinkReadPtr();
+        daq().advanceLinkReadPtr();
       } break;
       case DaqFormat::ECOND_NO_ZS: {
         const int bc = 0;  // bx number...
@@ -144,21 +137,21 @@ std::vector<uint32_t> TargetFiberless::read_event() {
         buffer.push_back((0xA6u << 24) | (contribid_ << 16) |
                          (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
 
-        for (int il1a = 0; il1a < hcal().daq().samples_per_ror(); il1a++) {
+        for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           // assume orbit zero, L1A spaced by two
           formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
           // only consuming DAQ links in ECOND (D for DAQ)
           for (int i = 0; i < 2; i++) {
-            formatter_.add_elink_packet(i, hcal().daq().getLinkData(i));
+            formatter_.add_elink_packet(i, daq().getLinkData(i));
           }
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
           uint32_t header = formatter_.getPacket().size() + 1;
           header |= (0x1 << 28);
-          header |= hcal().daq().econid() << 16;
-          if (il1a == hcal().daq().soi()) header |= 0x800;
-          if (il1a == hcal().daq().samples_per_ror() - 1) header |= 0x8000;
+          header |= daq().econid() << 16;
+          if (il1a == daq().soi()) header |= 0x800;
+          if (il1a == daq().samples_per_ror() - 1) header |= 0x8000;
           header |= il1a << 12;
           buffer.push_back(header);
 
@@ -167,9 +160,9 @@ std::vector<uint32_t> TargetFiberless::read_event() {
                         formatter_.getPacket().end());
 
           // advance L1A pointer
-          hcal().daq().advanceLinkReadPtr();
+          daq().advanceLinkReadPtr();
         }
-        l1a_ += hcal().daq().samples_per_ror();
+        l1a_ += daq().samples_per_ror();
         buffer.push_back(0x12345678);
       } break;
       default: {
@@ -180,6 +173,6 @@ std::vector<uint32_t> TargetFiberless::read_event() {
   return buffer;
 }
 
-Target* makeTargetFiberless() { return new TargetFiberless(); }
+Target* makeTargetFiberless() { return new HcalFiberless(); }
 
 }  // namespace pflib
