@@ -1,3 +1,4 @@
+pftool: !file "pftool.yaml"
 target:
   type: "HcalBackplaneZCU"
   ilink: 0
