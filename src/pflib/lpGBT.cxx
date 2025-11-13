@@ -389,10 +389,13 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Enable channel in specified group
   uint8_t ctrl_reg = REG_EPRXCONTROLBASE + group;
-  tport_.write_reg(ctrl_reg, (1 << channel));
+  uint8_t ctrl_byte = 0;
+  ctrl_byte |= (1 << (4 + channel)); // Enable given channel
+  ctrl_byte |= ((data_rate_code & 0x3) << 2); // Set data rate
+  ctrl_byte |= (3 & 0x3); // Hard code continuous phase tracking with initial phase
+  tport_.write_reg(ctrl_reg, ctrl_byte);
 
-  // Enable internal PRBS signal (only for group 0 right now)
-  // uint8_t prbs_reg = REG_EPRXCONTROLBASE - group;
+  // Optional: Enable internal PRBS signal (only for group 0 right now)
   if (lpgbt_only) {
     tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
   }
