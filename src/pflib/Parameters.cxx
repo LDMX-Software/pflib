@@ -1,7 +1,8 @@
 #include "pflib/Parameters.h"
 
-#include <filesystem>
 #include <yaml-cpp/yaml.h>
+
+#include <filesystem>
 
 namespace pflib {
 
@@ -34,7 +35,8 @@ std::any extract_sequence(const YAML::Node& node) {
       try {
         return node.as<std::vector<std::string>>();
       } catch (const YAML::TypedBadConversion<std::string>&) {
-        PFEXCEPTION_RAISE("BadType", "Unrecognized content of a YAML Sequence.");
+        PFEXCEPTION_RAISE("BadType",
+                          "Unrecognized content of a YAML Sequence.");
       }
     }
   }
@@ -64,7 +66,8 @@ void extract(std::filesystem::path config_dir, const YAML::Node& yaml_config,
       auto filepath = val.as<std::string>();
       if (filepath.empty()) {
         PFEXCEPTION_RAISE("BadFilePath",
-                          "Key named "+keyname+" is tagged as another file but is empty.");
+                          "Key named " + keyname +
+                              " is tagged as another file but is empty.");
       }
       Parameters sub_parameters;
       std::filesystem::path fp{filepath};

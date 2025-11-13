@@ -258,7 +258,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "Only one config.yaml at a time rightnow." << std::endl;
     return 2;
   }
-  
 
   /**
    * Load the configuration YAML
@@ -310,7 +309,7 @@ int main(int argc, char* argv[]) {
                          << "' firmware is not active on ZCU.";
         pflib_log(fatal) << "Connection will likely fail.";
       }
-  
+
       pflib_log(info) << "connecting from ZCU in Fiberless mode";
       tgt.reset(pflib::makeTargetFiberless());
       readout_cfg = pftool::State::CFG_HCALFMC;
@@ -324,7 +323,8 @@ int main(int argc, char* argv[]) {
       // need ilink to be in configuration
       auto ilink = target.get<int>("ilink");
       if (ilink < 0 or ilink > 1) {
-        PFEXCEPTION_RAISE("BadLink", "ZCU HcalBackplance ilink can only be 0 or 1");
+        PFEXCEPTION_RAISE("BadLink",
+                          "ZCU HcalBackplance ilink can only be 0 or 1");
       }
       auto boardmask = target.get<int>("boardmask", 0xff);
       tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
