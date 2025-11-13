@@ -408,11 +408,10 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Wait for channel lock?
 
   // Have BERT monitor channel
-  uint16_t group_code = 1 + group;  // 0 disables checker
-  uint16_t bert_source =
-      channel + 4 * (data_rate_code - 1);  // table 14.6 in v1 manual
-  uint16_t bert_source_val = (group_code << 4) | bert_source;
-  tport_.write_reg(REG_BERTSOURCE, bert_source_val);
+  uint8_t group_code = 1 + group;  // 0 disables checker
+  uint8_t prbs_code = 6; // Hard code UL_PRBS7_DR3_CHN0 from Table 14.6 in v1
+  uint8_t bert_source_byte = ((group_code & 0xF) << 4) | (prbs_code & 0xF);
+  tport_.write_reg(REG_BERTSOURCE, bert_source_byte);
 
   // Start BERT
   tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);

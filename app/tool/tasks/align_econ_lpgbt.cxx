@@ -32,21 +32,14 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" PRE: Current EPRX0 Phase32 = %d\n", pre_phase32_result);
   printf(" PRE: Is EPRX0 locked? = %d\n", pre_lock_result);
 
-  // for (int ch = 0; ch < 4; ++ch) {
-  //   printf(" Checking lpGBT PRBS on group 0, channel %d...\n", ch);
-  //   lpgbt_daq.check_prbs_errors_erx(0, ch, true);
-  // }
-
   auto econ_setup_builder =
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
 
   auto econ_setup_test = econ_setup_builder.apply();
 
-  for (int ch = 0; ch < 4; ++ch) {
-    printf(" Checking ECOND PRBS on group 0, channel %d...\n", ch);
-    lpgbt_daq.check_prbs_errors_erx(0, ch,
-                                    false);  // group 0, ch 0, false for ECON
-  }
+  printf(" Checking ECOND PRBS on group 0, channel 0...\n");
+  lpgbt_daq.check_prbs_errors_erx(0, 0,
+                                  false);  // group 0, ch 0, false for ECON
 
   auto post_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
   auto post_phase32_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE32});
