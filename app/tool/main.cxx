@@ -201,10 +201,9 @@ int main(int argc, char* argv[]) {
   pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pftool")};
 
-  int boardmask = 0xF;
-  int ilink = 0;
-
-  // print help before attempting to load RC file incase the RC file is broken
+  /*****************************************************************************
+   * Parse Command Line Parameters
+   ****************************************************************************/
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
     printf("   %s [-s SCRIPT] [-h | --help] [-d | --dump] config.yaml\n\n",
@@ -219,32 +218,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  pflib::Parameters configuration;
-  configuration.from_yaml(argv[1]);
-
-  auto pftool_params{configuration.get<pflib::Parameters>("pftool")};
-
-  if (pftool_params.exists("log_level")) {
-    pflib::logging::set(
-        pflib::logging::convert(pftool_params.get<int>("log_level")));
-  }
-
-  if (pftool_params.exists("default_output_directory")) {
-    pftool::output_directory =
-        pftool_params.get<std::string>("default_output_directory");
-  }
-
-  if (pftool_params.exists("timestamp_format")) {
-    pftool::timestamp_format =
-        pftool_params.get<std::string>("timestampe_format");
-  }
-
-  /*****************************************************************************
-   * Parse Command Line Parameters
-   ****************************************************************************/
-  enum RunMode { Unknown = 0, Fiberless, UIO_ZCU, Rogue } mode = Unknown;
-
-  std::vector<std::string> hostnames;
+  std::vector<std::string> configs;
   for (int i = 1; i < argc; i++) {
     std::string arg(argv[i]);
     if (arg == "-s") {
@@ -269,143 +243,109 @@ int main(int argc, char* argv[]) {
         pftool::add_to_command_queue(line);
       }
       sFile.close();
-    } else if (arg == "-z") {
-      mode = Fiberless;
-      if (not is_fw_active(FW_SHORTNAME_FIBERLESS)) {
-        pflib_log(fatal) << "'" << FW_SHORTNAME_FIBERLESS
-                         << "' firmware is not active on ZCU.";
-        pflib_log(fatal) << "Connection will likely fail.";
-      }
-    } else if (arg == "-z0") {
-      mode = UIO_ZCU;
-      ilink = 0;
-      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
-        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
-                         << "' firmware is not active on ZCU.";
-        pflib_log(fatal) << "Connection will likely fail.";
-      }
-    } else if (arg == "-z1") {
-      mode = UIO_ZCU;
-      ilink = 1;
-      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
-        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
-                         << "' firmware is not active on ZCU.";
-        pflib_log(fatal) << "Connection will likely fail.";
-      }
     } else if (arg == "-d" or arg == "--dump") {
       // dump out the entire menu to stdout
       pftool::root()->print(std::cout);
       std::cout << std::flush;
       return 0;
     } else {
-      // positional argument -> hostname
-      hostnames.push_back(arg);
+      // positional argument -> configuration files
+      configs.push_back(arg);
     }
   }
 
-  if (mode == Unknown) {
-    pflib_log(fatal) << "No running mode selected.";
+  if (configs.size() > 1) {
+    std::cerr << "Only one config.yaml at a time rightnow." << std::endl;
+    return 2;
+  }
+  
+
+  /**
+   * Load the configuration YAML
+   */
+  pflib::Parameters configuration;
+  configuration.from_yaml(configs[0], true);
+
+  auto pftool_params{configuration.get<pflib::Parameters>("pftool", {})};
+
+  if (pftool_params.exists("log_level")) {
+    pflib::logging::set(
+        pflib::logging::convert(pftool_params.get<int>("log_level")));
   }
 
-  if (hostnames.size() == 0 && mode == Rogue) {
-    std::string hn = pftool_params.get<std::string>("default_hostname");
-    if (hn.empty()) {
-      pflib_log(fatal) << "No hostnames to connect to provided on the command "
-                          "line or in RC file";
-      return 3;
+  if (pftool_params.exists("default_output_directory")) {
+    pftool::output_directory =
+        pftool_params.get<std::string>("default_output_directory");
+  }
+
+  if (pftool_params.exists("timestamp_format")) {
+    pftool::timestamp_format =
+        pftool_params.get<std::string>("timestampe_format");
+  }
+
+  if (pftool_params.exists("runnumber_file")) {
+    pftool::state.last_run_file =
+        pftool_params.get<std::string>("runnumber_file");
+  }
+
+  if (not configuration.exists("target")) {
+    std::cerr << "Need to define a 'target' in the configuration." << std::endl;
+    return 3;
+  }
+
+  auto target{configuration.get<pflib::Parameters>("target")};
+
+  if (not target.exists("type")) {
+    std::cerr << "Need to define target's 'type'." << std::endl;
+    return 4;
+  }
+
+  auto target_type{target.get<std::string>("type")};
+  std::unique_ptr<Target> tgt;
+  int readout_cfg = -1;
+  try {
+    if (target_type == "Fiberless" or target_type == "HcalFMC") {
+      if (not is_fw_active(FW_SHORTNAME_FIBERLESS)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_FIBERLESS
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+  
+      pflib_log(info) << "connecting from ZCU in Fiberless mode";
+      tgt.reset(pflib::makeTargetFiberless());
+      readout_cfg = pftool::State::CFG_HCALFMC;
+      pftool::root()->drop({"OPTO", "ECON"});
+    } else if (target_type == "HcalBackplaneZCU") {
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+      // need ilink to be in configuration
+      auto ilink = target.get<int>("ilink");
+      if (ilink < 0 or ilink > 1) {
+        PFEXCEPTION_RAISE("BadLink", "ZCU HcalBackplance ilink can only be 0 or 1");
+      }
+      auto boardmask = target.get<int>("boardmask", 0xff);
+      tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
+      readout_cfg = pftool::State::CFG_HCALOPTO;
     } else {
-      hostnames.push_back(hn);
+      pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
+      return 1;
     }
+  } catch (const pflib::Exception& e) {
+    pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
+    return 3;
   }
 
   /*****************************************************************************
    * Run tool
    ****************************************************************************/
   try {
-    int i_host{-1};
-    bool continue_running = true;  // used if multiple hosts
-    do {
-      if (hostnames.size() > 1) {
-        while (true) {
-          std::cout << "ID - Hostname" << std::endl;
-          for (std::size_t k{0}; k < hostnames.size(); k++) {
-            std::cout << std::setw(2) << k << " - " << hostnames.at(k)
-                      << std::endl;
-          }
-          i_host = pftool::readline_int(
-              " ID of Polarfire Hostname (-1 to exit) : ", i_host);
-          if (i_host == -1 or (i_host >= 0 and i_host < hostnames.size())) {
-            // valid choice, let's leave
-            break;
-          } else {
-            std::cerr << "\n " << i_host << " is not a valid choice."
-                      << std::endl;
-          }
-        }
-        // if user chooses to leave menu
-        if (i_host == -1) break;
-      } else {
-        i_host = 0;
-      }
-
-      // initialize connection
-      std::unique_ptr<Target> p_pft;
-      int readout_cfg = 0;
-      try {
-        switch (mode) {
-          case Fiberless:
-            pflib_log(info) << "connecting from ZCU in Fiberless mode";
-            p_pft.reset(pflib::makeTargetFiberless());
-            readout_cfg = pftool::State::CFG_HCALFMC;
-            pftool::root()->drop({"OPTO", "ECON"});
-            break;
-          case Rogue:
-            PFEXCEPTION_RAISE("BadComm",
-                              "Rogue communication mode not implemented");
-            break;
-          case UIO_ZCU:
-            p_pft.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
-            readout_cfg = pftool::State::CFG_HCALOPTO;
-            break;
-          default:
-            PFEXCEPTION_RAISE(
-                "BadComm",
-                "Unknown RunMode configured, not able to connect to HGCROC");
-            break;
-        }
-      } catch (const pflib::Exception& e) {
-        pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
-        return 3;
-      }
-
-      if (pftool_params.exists("runnumber_file")) {
-        pftool::state.last_run_file =
-            pftool_params.get<std::string>("runnumber-file");
-      }
-
-      pftool::state.init(p_pft.get(), readout_cfg);
-
-      if (p_pft) {
-        // prepare the links
-        pftool::set_history_filepath("~/.pftool-history");
-        status(p_pft.get());
-        pftool::run(p_pft.get());
-      } else {
-        pflib_log(fatal) << "No Polarfire Target available to connect with. "
-                            "Not sure how we got here.";
-        return 126;
-      }
-
-      if (hostnames.size() > 1) {
-        // menu for that target has been exited, check if user wants to choose
-        // another host
-        continue_running = pftool::readline_bool(
-            " Choose a new card/host to connect to ? ", true);
-      } else {
-        // no other hosts, leave
-        continue_running = false;
-      }
-    } while (continue_running);
+    pftool::state.init(tgt.get(), readout_cfg);
+    pftool::set_history_filepath("~/.pftool-history");
+    status(tgt.get());
+    pftool::run(tgt.get());
   } catch (const std::exception& e) {
     pflib_log(fatal) << "Unrecognized Exception : " << e.what();
     return 127;
