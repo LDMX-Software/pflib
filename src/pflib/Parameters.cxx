@@ -33,7 +33,7 @@ std::any extract_sequence(const YAML::Node& node) {
       try {
         return node.as<std::vector<std::string>>();
       } catch (const YAML::TypedBadConversion<std::string>&) {
-        PFEXCEPTION_RAISE("BadType", "Unrecognized YAML::Scalar type.");
+        PFEXCEPTION_RAISE("BadType", "Unrecognized content of a YAML Sequence.");
       }
     }
   }
