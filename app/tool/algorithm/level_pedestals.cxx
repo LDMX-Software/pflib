@@ -44,7 +44,12 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  // tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  // Use the DAQ format selected in the pftool DAQ->FORMAT menu so the
+  // format mode can be chosen interactively by the user.
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+  pflib_log(info) << "Using DAQ format mode: "
+                  << static_cast<int>(pftool::state.daq_format_mode);
 
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
