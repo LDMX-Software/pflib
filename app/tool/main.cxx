@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
   if (pftool_params.exists("timestamp_format")) {
     pftool::timestamp_format =
-        pftool_params.get<std::string>("timestampe_format");
+        pftool_params.get<std::string>("timestamp_format");
   }
 
   if (pftool_params.exists("runnumber_file")) {
