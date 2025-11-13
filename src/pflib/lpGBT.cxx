@@ -451,7 +451,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // PRBS check overestimates errors according to v1 manual
   double ber = (double)errors / (double)bits_checked;
 
-  printf(" Group %d, Channel %d BER_2 = %.6f (%ld errors in %ld bits)\n", group,
+  printf(" Group %d, Channel %d BER = %.6f (%ld errors in %ld bits)\n", group,
          channel, ber, errors, bits_checked);
 }
 

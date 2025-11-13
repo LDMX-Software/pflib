@@ -32,7 +32,7 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
       state_name = "Unknown";
       break;
   }
-  printf(" Group 0 state: %s (%d)\n", state_name, state);
+  printf(" Group 0 state: %s (%d)\n\n", state_name, state);
 }
 
 void align_econ_lpgbt(Target* tgt) {
