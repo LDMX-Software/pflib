@@ -438,6 +438,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Calculate BER
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
+  
   // uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
   //                            : data_rate_code == 2 ? 4
   //                            : data_rate_code == 3 ? 2
@@ -446,15 +447,12 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
   uint64_t bits_per_cycle = 32;  // hardcoded for now
   uint64_t bits_checked = clocks * bits_per_cycle;
-  double corrected_errors =
-      errors / 3.0;  // PRBS check overestimates errors according to v1 manual
-  double ber = corrected_errors / bits_checked;
-  double ber_2 = errors / bits_checked;
+  
+  // PRBS check overestimates errors according to v1 manual
+  double ber = (double)errors / (double)bits_checked;
 
-  printf(" Group %d, Channel %d BER = %.6e (%.2f errors in %ld bits)\n", group,
-         channel, ber, corrected_errors, bits_checked);
-  printf(" Group %d, Channel %d BER_2 = %.6e (%ld errors in %ld bits)\n", group,
-         channel, ber_2, errors, bits_checked);
+  printf(" Group %d, Channel %d BER_2 = %.6f (%ld errors in %ld bits)\n", group,
+         channel, ber, errors, bits_checked);
 }
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
