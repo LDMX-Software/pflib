@@ -442,9 +442,9 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   //                            : data_rate_code == 2 ? 4
   //                            : data_rate_code == 3 ? 2
   //                              	        	   : 0);
-  
+
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
-  uint64_t bits_per_cycle = 32; // hardcoded for now
+  uint64_t bits_per_cycle = 32;  // hardcoded for now
   uint64_t bits_checked = clocks * bits_per_cycle;
   double corrected_errors =
       errors / 3.0;  // PRBS check overestimates errors according to v1 manual
