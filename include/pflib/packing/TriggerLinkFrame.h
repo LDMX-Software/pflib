@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <span>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib::packing {
 

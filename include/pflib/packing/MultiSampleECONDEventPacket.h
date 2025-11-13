@@ -15,6 +15,8 @@ namespace pflib::packing {
  * @note This unpacking is not well tested and may change depending
  * on how the firmware/software progresses. The current draft was
  * written using TargetFiberless::read_event as a reference.
+ * A second draft SoftWrappedECONDEventPacket was written using
+ * the HcalBackplaneZCUTarget::read_event as reference.
  */
 class MultiSampleECONDEventPacket {
   /// handle to logging source

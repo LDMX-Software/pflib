@@ -19,6 +19,11 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        hosttype:
+          - zcu
+          - bittware-host
     steps:
     - uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
@@ -34,14 +39,14 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
-          type=sha,
-          type=raw,value=${{ steps.date.outputs.date }},enable=${{ format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
-          type=raw,value=latest,enable=${{ format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
+          type=sha,prefix=${{ matrix.hosttype }}-sha-
+          type=raw,value=${{ matrix.hosttype }}-${{ steps.date.outputs.date }},enable=${{ format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
+          type=raw,value=${{ matrix.hosttype }}-latest,enable=${{ format('refs/heads/{0}', github.event.repository.default_branch) == github.ref }}
     - uses: actions/checkout@v5
     - uses: docker/build-push-action@v6
       with:
         context: env/
-        file: env/Containerfile
+        file: env/Containerfile.${{matrix.hosttype}}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

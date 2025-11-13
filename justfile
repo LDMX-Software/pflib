@@ -10,9 +10,9 @@ _build *ARGS:
 _test *ARGS:
     cd build && denv ./test-pflib {{ ARGS }}
 
-# init a local denv for development
-init:
-    denv init ghcr.io/ldmx-software/pflib-env:latest
+# init a local denv for development ("zcu" or "bittware-host")
+init host:
+    denv init ghcr.io/ldmx-software/pflib-env:{{host}}-latest
 
 # configure pflib build
 configure: _cmake
@@ -42,9 +42,17 @@ hexdump *args:
     hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
    
 # run the decoder
-decode *args:
+pfdecoder *args:
     denv ./build/pfdecoder {{ args }}
+
+# run the econd-decoder
+econd-decoder *args:
+    denv ./build/econd-decoder {{ args }}
 
 # open the test menu
 test-menu:
     denv ./build/test-menu
+
+# test decoding in python bindings
+test-py-decoding:
+    denv 'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'

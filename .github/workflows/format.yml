@@ -22,7 +22,7 @@ jobs:
         denv check
     - name: format C++ code and commit updates
       run: |
-        just init
+        just init zcu
         just format-cpp
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
