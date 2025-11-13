@@ -116,7 +116,11 @@ target_include_directories(pflib PUBLIC
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
 add_dependencies(pflib direct_access lpgbt_regmap)
 
-add_library(pypflib SHARED src/pflib/python/bindings.cxx)
+add_library(pypflib SHARED
+  src/pflib/python/version.cxx
+  src/pflib/python/logging.cxx
+  src/pflib/python/packing.cxx
+  src/pflib/python/bindings.cxx)
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
 add_library(menu SHARED

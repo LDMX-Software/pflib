@@ -90,8 +90,8 @@ print(pypflib.version.git_describe())
 
 pypflib.logging.open(True)
 
-ep = pypflib.ECONDEventPacket(1)
-v = pypflib.WordVector()
+ep = pypflib.packing.ECONDEventPacket(1)
+v = pypflib.packing.WordVector()
 v.extend(single_packet)
 ep.from_word_vector(v)
 
