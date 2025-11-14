@@ -36,18 +36,16 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
 }
 
 static void print_phase_status(pflib::lpGBT& lpgbt) {
-	constexpr uint8_t REG_EPRX0CURRENTPHASE10 = 0x153;
+  constexpr uint8_t REG_EPRX0CURRENTPHASE10 = 0x153;
 
-	auto read_result = lpgbt.read({REG_EPRX0CURRENTPHASE10});
+  auto read_result = lpgbt.read({REG_EPRX0CURRENTPHASE10});
 
-	printf(" EPRX0CURRENTPHASE10 register raw result = 0x%02X\n", read_result);
+  printf(" EPRX0CURRENTPHASE10 register raw result = 0x%02X\n", read_result);
 
-	uint8_t ch_0 = (read_result >> 0) & 0xF;
+  uint8_t ch_0 = (read_result >> 0) & 0xF;
 
-	printf(" Channel 0 phase: %u\n", ch_0);
-
+  printf(" Channel 0 phase: %u\n", ch_0);
 }
-
 
 void align_econ_lpgbt(Target* tgt) {
   auto econ = tgt->hcal().econ(pftool::state.iecon);
