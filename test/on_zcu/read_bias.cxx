@@ -7,7 +7,8 @@
 BOOST_AUTO_TEST_SUITE(read_bias)
 
 void read_biases() {
-  pflib::Bias bias = dynamic_cast<pflib::Hcal*>(hgcroc_connection::tgt.get())->bias(0);
+  pflib::Bias bias =
+      dynamic_cast<pflib::Hcal*>(hgcroc_connection::tgt.get())->bias(0);
   for (int i = 0; i < 16; i++) {
     bias.readLED(i);
     bias.readSiPM(i);

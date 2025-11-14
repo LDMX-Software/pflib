@@ -5,9 +5,8 @@
  *
  * Only usable for Hcal type targets.
  */
-#include "pftool.h"
-
 #include "pflib/Hcal.h"
+#include "pftool.h"
 
 ENABLE_LOGGING();
 

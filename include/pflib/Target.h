@@ -1,12 +1,12 @@
 #ifndef PFLIB_TARGET_H_INCLUDED
 #define PFLIB_TARGET_H_INCLUDED
 
-#include "pflib/FastControl.h"
-#include "pflib/ROC.h"
-#include "pflib/ECON.h"
 #include "pflib/DAQ.h"
-#include "pflib/I2C.h"
+#include "pflib/ECON.h"
 #include "pflib/Elinks.h"
+#include "pflib/FastControl.h"
+#include "pflib/I2C.h"
+#include "pflib/ROC.h"
 
 namespace pflib {
 
@@ -42,14 +42,15 @@ class Target {
   virtual std::vector<int> econ_ids() const { return {}; }
 
   /** Get a ROC interface for the given HGCROC board */
-  virtual ROC roc(int which) { 
-    PFEXCEPTION_RAISE("NoImp",
-        "ROC Access has not been implemented for the current target.");
+  virtual ROC roc(int which) {
+    PFEXCEPTION_RAISE(
+        "NoImp", "ROC Access has not been implemented for the current target.");
   }
 
   /** get a ECON interface for the given econ board */
-  virtual ECON econ(int which) { 
-    PFEXCEPTION_RAISE("NoImp",
+  virtual ECON econ(int which) {
+    PFEXCEPTION_RAISE(
+        "NoImp",
         "ECON Access has not been implemented for the current target.");
   }
 

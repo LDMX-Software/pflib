@@ -350,8 +350,7 @@ class HcalBackplaneZCU : public Hcal {
         // only one elink right now
         std::vector<uint32_t> subpacket = daq().getLinkData(0);
         buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) |
-                      ((ievt == daq().soi()) ? (1 << 12) : (0)) |
+                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
                       (subpacket.size()));
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
         daq().advanceLinkReadPtr();

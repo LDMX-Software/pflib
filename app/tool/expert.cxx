@@ -271,8 +271,7 @@ static void fc(const std::string& cmd, Target* pft) {
       printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
     }
 
-    printf("  ELink Event Occupancy: %d\n",
-           pft->daq().getEventOccupancy());
+    printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
     /**
      * FastControl::read_counters is default defined to do nothing,
      * FastControlCMS_MMap does not override this default definition

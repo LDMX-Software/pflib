@@ -5,8 +5,8 @@
 
 #include "pflib/ECOND_Formatter.h"
 #include "pflib/GPIO.h"
-#include "pflib/I2C_Linux.h"
 #include "pflib/Hcal.h"
+#include "pflib/I2C_Linux.h"
 
 namespace pflib {
 

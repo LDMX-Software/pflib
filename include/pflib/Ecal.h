@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pflib/ROC.h"
 #include "pflib/ECON.h"
+#include "pflib/ROC.h"
 #include "pflib/Target.h"
 
 namespace pflib {
@@ -65,4 +65,4 @@ class Ecal {
   std::vector<Motherboard> motherboards_;
 };
 
-}
+}  // namespace pflib

@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "pflib/Bias.h"
-#include "pflib/Target.h"
 #include "pflib/GPIO.h"
+#include "pflib/Target.h"
 
 namespace pflib {
 
