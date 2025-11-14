@@ -28,7 +28,7 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
       target;  // tot_vref is a global parameter (1 value per link)
 
   // Get tot_vref values
-  target = tp50_scan(tgt, roc, calibs)
+  target = tp50_scan(tgt, roc, calibs);
 
       std::map<std::string, std::map<std::string, uint64_t>>
           settings;
