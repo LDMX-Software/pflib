@@ -85,7 +85,6 @@ add_library(packing SHARED
   src/pflib/packing/SingleROCEventPacket.cxx
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
-  src/pflib/packing/SoftWrappedECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"

@@ -145,6 +145,9 @@ class HcalBackplaneZCU : public HcalBackplane {
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
         daq().advanceLinkReadPtr();
       }
+      // special trailer word
+      // TODO: update to match FW, I just set ievt, soi, and subpacket size to zero
+      buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18));
     } else {
       PFEXCEPTION_RAISE("NoImpl",
                         "HcalBackplaneZCUTarget::read_event not implemented "
