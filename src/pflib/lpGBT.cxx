@@ -379,7 +379,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
   static uint16_t REG_EPRXPRBSBASE = 0x135;
-  static uint16_t REG_EPRXTRAINBASE = 0x115 + (group / 2);
+  static uint16_t REG_EPRXTRAINBASE = 0x115;
   static uint16_t REG_EPRXLOCKEDBASE = 0x152;
   static uint16_t REG_EPRXPRBS0 = 0x135;
   static uint16_t REG_BERTSOURCE = 0x136;
@@ -393,7 +393,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   ctrl_byte |= (1 << (4 + channel));           // Enable given channel
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
   ctrl_byte |=
-      (3 & 0x3);  // Hard code continuous phase tracking with initial phase
+      (1 & 0x3);  // Hard code continuous phase tracking with initial phase
   tport_.write_reg(ctrl_reg, ctrl_byte);
 
   // Optional: Enable internal PRBS signal (only for group 0 right now)
@@ -403,7 +403,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Train channel
   tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
-  usleep(1000);
+  usleep(10000);
   tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
 
   // Wait for channel lock?
