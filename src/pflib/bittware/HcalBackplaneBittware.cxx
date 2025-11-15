@@ -1,8 +1,8 @@
 #include "pflib/HcalBackplane.h"
+#include "pflib/bittware/bittware_optolink.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
-#include "pflib/bittware/bittware_optolink.h"
 
 namespace pflib {
 
@@ -112,7 +112,8 @@ class HcalBackplaneBW_Capture : public DAQ {
  public:
   HcalBackplaneBW_Capture() : DAQ(1), capture_("econd-buffer-0") {
     //    printf("Firmware type and version: %08x %08x
-    //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
+    //
+%08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
     // setting up with expected capture parameters
     capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
     capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
@@ -233,11 +234,13 @@ class HcalBackplaneBW : public HcalBackplane {
   HcalBackplaneBW(int itarget, uint8_t board_mask) {
     // first, setup the optical links
     daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
-    trig_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_olink_);
+    trig_olink_ =
+        std::make_unique<pflib::bittware::BWOptoLink>(itarget + 1, *daq_olink_);
 
     // then get the lpGBTs from them
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
+    trig_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
     /*
      * register read failure is happening when attempting to do this
@@ -275,7 +278,6 @@ class HcalBackplaneBW : public HcalBackplane {
       add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
-
 
     // copy I2C connections into Target
     // in case user wants to do raw I2C transactions for testing
@@ -338,7 +340,7 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
   }
 
-  virtual Elinks& elinks() override { 
+  virtual Elinks& elinks() override {
     PFEXCEPTION_RAISE("NoImpl", "Elinks not implemented");
   }
 
@@ -365,9 +367,9 @@ class HcalBackplaneBW : public HcalBackplane {
   std::unique_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
-  //std::unique_ptr<OptoElinksBW> elinks_;
-  //std::unique_ptr<HcalBackplaneBW_Capture> daq_;
-  //std::shared_ptr<pflib::FastControl> fc_;
+  // std::unique_ptr<OptoElinksBW> elinks_;
+  // std::unique_ptr<HcalBackplaneBW_Capture> daq_;
+  // std::shared_ptr<pflib::FastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
 };
