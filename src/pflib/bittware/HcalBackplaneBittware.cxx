@@ -231,8 +231,6 @@ class HcalBackplaneBW_Capture : public DAQ {
 class HcalBackplaneBW : public HcalBackplane {
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask) {
-    std::cout << "got to construction of target " << itarget << std::endl;
-
     // first, setup the optical links
     daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
     trig_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_olink_);
@@ -241,16 +239,19 @@ class HcalBackplaneBW : public HcalBackplane {
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
-    std::cout << "apply standard_confg::daq : " << daq_lpgbt_ << std::endl;
-
+    /*
+     * register read failure is happening when attempting to do this
+     * automatically.
+     *  ./pflpgbt --bw 0
+     *  OPTO
+     *  RESET
+     *  FULLSTATUS
+     *  GENERAL
+     *  STANDARD_HCAL
+     * seems to be more stable.
     pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-
-    std::cout << "apply standard_confg::trg : " << trig_lpgbt_ << std::endl;
-
     pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-
-
-    std::cout << "attempting to create ECON and ROC objects" << std::endl;
+    */
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
@@ -270,10 +271,6 @@ class HcalBackplaneBW : public HcalBackplane {
       std::shared_ptr<pflib::I2C> board_i2c =
           std::make_shared<pflib::lpgbt::I2CwithMux>(
               *trig_lpgbt_, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
-      // TODO allow for board->typ_version configuration to be passed here
-      // right now its hardcoded because everyone has one of these
-      // but we could modify this constructor and its calling factory
-      // function in order to pass in a configuration
 
       add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
@@ -298,7 +295,6 @@ class HcalBackplaneBW : public HcalBackplane {
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
     */
-    std::cout << "successfully constructed" << std::endl;
   }
 
   virtual void softResetROC(int which) override {
