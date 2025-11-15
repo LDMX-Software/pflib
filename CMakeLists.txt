@@ -120,6 +120,7 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/HcalBackplaneBittware.cxx
     )
 endif()
 
@@ -173,10 +174,11 @@ find_package(nlohmann_json 3.10.5 REQUIRED)
 file(GLOB_RECURSE pftool_sources LIST_DIRECTORIES FALSE app/tool/*.cxx)
 add_executable(pftool ${pftool_sources})
 target_link_libraries(pftool PRIVATE pflib menu nlohmann_json::nlohmann_json)
+if (${Rogue_FOUND})
+  target_compile_definitions(pftool PRIVATE USE_ROGUE)
+endif()
 
-add_executable(pflpgbt app/lpgbt/main.cxx 
-  app/lpgbt/lpgbt_mezz_tester.cc
-  )
+add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
 if (${Rogue_FOUND})
   target_compile_definitions(pflpgbt PRIVATE USE_ROGUE)
 endif()
