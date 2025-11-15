@@ -257,7 +257,7 @@ void elink(const std::string& cmd, ToolBox* target) {
     isrx = tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
     ilink = tool::readline_int("Which elink to spy", ilink);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
-    for (size_t i = 0; i < words.size(); i++) printf("%3d %08x\n", i, words[i]);
+    for (size_t i = 0; i < words.size(); i++) printf("%3ld %08x\n", i, words[i]);
   }
   if (cmd == "PHASE") {
     LPGBT_Mezz_Tester mezz(target->coder_name);
@@ -288,7 +288,7 @@ void elink(const std::string& cmd, ToolBox* target) {
       srx += (rx[i] & 0x2) ? ("1") : ("0");
       srx += (rx[i] & 0x1) ? ("1") : ("0");
       if (((i + 1) % 32) == 0) {
-        printf("%3d %s %s\n", i - 31, stx.c_str(), srx.c_str());
+        printf("%3ld %s %s\n", i - 31, stx.c_str(), srx.c_str());
         stx = "";
         srx = "";
       }
@@ -305,7 +305,7 @@ void elink(const std::string& cmd, ToolBox* target) {
       srx += (rx[i] & 0x2) ? ("1") : ("0");
       srx += (rx[i] & 0x1) ? ("1") : ("0");
       if (((i + 1) % 32) == 0) {
-        printf("%3d %s %s\n", i - 31, stx.c_str(), srx.c_str());
+        printf("%3ld %s %s\n", i - 31, stx.c_str(), srx.c_str());
         stx = "";
         srx = "";
       }
@@ -828,6 +828,7 @@ int main(int argc, char* argv[]) {
   bool wired = true;
   bool nomezz = false;
   bool bittware = false;
+  int i_link = 0;
   std::string target_name("singleLPGBT");
 
   for (int i = 1; i < argc; i++) {
@@ -846,9 +847,14 @@ int main(int argc, char* argv[]) {
       wired = false;
       nomezz = true;
       bittware = true;
-      i++;
       target_name = "";
-      // eventually extract link from the argv[i]
+      if (i + 1 == argc or argv[i + 1][0] == '-') {
+        std::cerr << "Argument " << arg << " requires a file after it."
+                  << std::endl;
+        return 2;
+      }
+      i++;
+      i_link = std::stoi(argv[i]);
     }
 
     if (arg == "-s") {
@@ -886,9 +892,9 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(0);
+    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link);
     t.olink_daq = odaq;
-    t.olink_trig = new pflib::bittware::BWOptoLink(1, *odaq);
+    t.olink_trig = new pflib::bittware::BWOptoLink(i_link+1, *odaq);
 #endif
   }
 
