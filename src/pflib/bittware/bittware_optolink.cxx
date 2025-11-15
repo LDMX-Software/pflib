@@ -28,9 +28,8 @@ BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
   iceccoder_=daqlink.iceccoder_;
   
   int chipaddr = 0x78;          // EC
-  if (isdaq_) chipaddr |= 0x04;  // IC
 
-  transport_=std::make_unique<BWlpGBT_Transport>(*iceccoder_,ilink,chipaddr,isdaq_);
+  transport_=std::make_unique<BWlpGBT_Transport>(*iceccoder_,daqlink.ilink_,chipaddr,isdaq_);
 }
 
 void BWOptoLink::reset_link() {  // actually affects all links in a block
@@ -299,9 +298,9 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
   
   // wait for done...
   int timeout = 1000;
-  for (val = transport_.read(stsreg_);
+  for (val = transport_.readMasked(stsreg_,stsmask_);
        (val & MASK_RX_EMPTY);
-       val = transport_.read(stsreg_)) {
+       val = transport_.readMasked(stsreg_,stsmask_)) {
     usleep(1);
     timeout--;
     if (timeout == 0) {
@@ -317,7 +316,7 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
     transport_.write(pulsereg_,1<<(BIT_ADV_READ+pulseshift_));
     if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
     wc++;
-    val = transport_.read(stsreg_);
+    val = transport_.readMasked(stsreg_,stsmask_);
     if (wc>100) {
       char message[256];
       snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg,val);
@@ -352,9 +351,9 @@ void BWlpGBT_Transport::write_regs(uint16_t reg,
       // wait for tx to be done
       int timeout = 1000;
 
-      for (uint32_t val = transport_.read(stsreg_);
+      for (uint32_t val = transport_.readMasked(stsreg_,stsmask_);
            !(val & MASK_TX_EMPTY);
-           val = transport_.read(stsreg_)) {
+           val = transport_.readMasked(stsreg_,stsmask_)) {
         //	printf("%02x\n",val);
         usleep(1);
         timeout--;
