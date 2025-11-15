@@ -36,6 +36,11 @@ find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
 
+if (DEFINED ENV{ROGUE_DIR})
+  set(Rogue_DIR $ENV{ROGUE_DIR}/lib)
+else()
+  set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
+endif()
 find_package(Rogue)
 
 # construct a register_maps library that the compiler can use
