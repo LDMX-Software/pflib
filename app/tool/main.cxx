@@ -330,11 +330,16 @@ int main(int argc, char* argv[]) {
       tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
       readout_cfg = pftool::State::CFG_HCALOPTO;
     } else if (target_type == "HcalBackplaneBittware") {
+#ifdef USE_ROGUE
       // need ilink to be in configuration
       auto ilink = target.get<int>("ilink");
       auto boardmask = target.get<int>("boardmask", 0xff);
       tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask));
       readout_cfg = pftool::State::CFG_HCALOPTO;
+#else
+      pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
+      return 1;
+#endif
     } else {
       pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;
