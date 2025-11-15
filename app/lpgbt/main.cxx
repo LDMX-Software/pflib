@@ -766,11 +766,12 @@ auto optom =
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);
 
-auto direct = tool::menu("REG", "Direct Register Actions")
-                  ->line("READ", "Read one or several registers", regs)
-                  ->line("WRITE", "Write a register", regs)
-                  ->line("BLIND", "Write a register blind (without reading)", regs)
-                  ->line("LOAD", "Load from a CSV file", regs);
+auto direct =
+    tool::menu("REG", "Direct Register Actions")
+        ->line("READ", "Read one or several registers", regs)
+        ->line("WRITE", "Write a register", regs)
+        ->line("BLIND", "Write a register blind (without reading)", regs)
+        ->line("LOAD", "Load from a CSV file", regs);
 
 auto mgpio = tool::menu("GPIO", "GPIO controls")
                  ->line("SET", "Set a GPIO pin", gpio)
@@ -813,9 +814,9 @@ int main(int argc, char* argv[]) {
     printf("   %s OPTIONS\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf(
-        "  --do [number] : Dual-optical ZCU configuration, implies no mezzanine\n");
-    printf(
-        "  --bw [number] : Bittware configuration, implies no mezzanine\n");
+        "  --do [number] : Dual-optical ZCU configuration, implies no "
+        "mezzanine\n");
+    printf("  --bw [number] : Bittware configuration, implies no mezzanine\n");
     printf("  -o : Use optical communication by default\n");
     printf("  --nm : No mezzanine\n");
     printf("  -s [file] : pass a script of commands to run through\n");
@@ -885,7 +886,7 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq=new pflib::bittware::BWOptoLink(0);
+    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(0);
     t.olink_daq = odaq;
     t.olink_trig = new pflib::bittware::BWOptoLink(1, *odaq);
 #endif
