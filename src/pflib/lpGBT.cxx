@@ -393,7 +393,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   ctrl_byte |= (1 << (4 + channel));           // Enable given channel
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
   ctrl_byte |=
-      (1 & 0x3);  // Hard code continuous phase tracking with initial phase
+      (1 & 0x3);  // Hard code for Initial Training
   tport_.write_reg(ctrl_reg, ctrl_byte);
 
   // Optional: Enable internal PRBS signal (only for group 0 right now)

@@ -9,7 +9,7 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
 
   uint8_t ch_locked = (read_result >> 4) & 0xF;
 
-  printf(" Channel lock status:\n");
+  printf(" Channel lock status...\n");
   bool locked = (ch_locked >> 0) & 0x1;
   printf(" Channel %d: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
 
@@ -76,9 +76,10 @@ void align_econ_lpgbt(Target* tgt) {
   auto pre_lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
 
   printf("\n --- PRE-PRBS STATUS ---\n");
-  printf(" PRE: Current EPRX0 Phase10 = %d\n", pre_phase10_result);
+  //printf(" PRE: Current EPRX0 Phase10 = %d\n", pre_phase10_result);
   // printf(" PRE: Current EPRX0 Phase32 = %d\n", pre_phase32_result);
   // printf(" PRE: Is EPRX0 locked? = %d\n", pre_lock_result);
+  print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
   auto econ_setup_builder =
@@ -95,9 +96,10 @@ void align_econ_lpgbt(Target* tgt) {
   auto post_lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
 
   printf("\n --- POST-PRBS STATUS ---\n");
-  printf(" POST: Current EPRX0 Phase10 = %d\n", post_phase10_result);
+  // printf(" POST: Current EPRX0 Phase10 = %d\n", post_phase10_result);
   // printf(" POST: Current EPRX0 Phase32 = %d\n", post_phase32_result);
   // printf(" POST: Is EPRX0 locked? = %d\n", post_lock_result);
+  print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
   auto econ_finish_builder =

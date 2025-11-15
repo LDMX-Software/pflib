@@ -144,11 +144,11 @@ class lpGBT {
       \param lpgbt_only Should we find errors with internal BERT (true) or
      external (false) like econ
       \param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
-     manual
+     manual. Currently set to 3 for 1280 Mbps
       \param bert_time_code BERT measurement time from table 14.5 in v1 manual
   */
   void check_prbs_errors_erx(int group, int channel, bool lpgbt_only = false,
-                             int data_rate_code = 1,
+                             int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate
