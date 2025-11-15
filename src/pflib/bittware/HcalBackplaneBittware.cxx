@@ -78,36 +78,36 @@ class OptoElinksBW : public Elinks {
 };
 
 class HcalBackplaneBW_Capture : public DAQ {
-  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604 / 4;
-  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600 / 4;
+  static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604;
+  static constexpr uint32_t ADDR_HEADER_MARKER = 0x600;
   static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
-  static constexpr uint32_t ADDR_ENABLE = 0x600 / 4;
+  static constexpr uint32_t ADDR_ENABLE = 0x600;
   static constexpr uint32_t MASK_ENABLE = 0x00000001;
-  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100 / 4;
+  static constexpr uint32_t ADDR_EVB_CLEAR = 0x100;
   static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_IO = 0x080 / 4;
+  static constexpr uint32_t ADDR_ADV_IO = 0x080;
   static constexpr uint32_t MASK_ADV_IO = 0x00000001;
-  static constexpr uint32_t ADDR_ADV_AXIS = 0x080 / 4;
+  static constexpr uint32_t ADDR_ADV_AXIS = 0x080;
   static constexpr uint32_t MASK_ADV_AXIS = 0x00000002;
 
-  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400 / 4;
+  static constexpr uint32_t ADDR_PACKET_SETUP = 0x400;
   static constexpr uint32_t MASK_ECON_ID = 0x000003FF;
   static constexpr uint32_t MASK_L1A_PER_PACKET = 0x00007C00;
   static constexpr uint32_t MASK_SOI = 0x000F8000;
   static constexpr uint32_t AXIS_ENABLE = 0x80000000;
 
-  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404 / 4;
+  static constexpr uint32_t ADDR_UPPER_ADDR = 0x404;
   static constexpr uint32_t MASK_UPPER_ADDR = 0x0000003F;
 
-  static constexpr uint32_t ADDR_INFO = 0x800 / 4;
+  static constexpr uint32_t ADDR_INFO = 0x800;
   static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
   static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
   static constexpr uint32_t MASK_AXIS_NWORDS = 0x1FFF0000;
   static constexpr uint32_t MASK_TVALID_DAQ = 0x20000000;
   static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 
-  static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
-  static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
+  static constexpr uint32_t ADDR_PAGED_READ = 0x800;
+  static constexpr uint32_t ADDR_BASE_COUNTER = 0x900;
 
  public:
   HcalBackplaneBW_Capture() : DAQ(1), capture_("econd-buffer-0") {
@@ -206,8 +206,8 @@ class HcalBackplaneBW_Capture : public DAQ {
     static const int stepsize = 1;
     FILE* f = fopen("dump.txt", "w");
 
-    for (int i = 0; i < 0xFFF / 4; i++)
-      fprintf(f, "%03x %03x %08x\n", i * 4, i, capture_.read(i));
+    for (int i = 0; i < 0xFFF; i++)
+      fprintf(f, "%03x %03x %08x\n", i, i, capture_.read(i));
     fclose(f);
 
     dbg["COUNT_IDLES"] = capture_.read(ADDR_BASE_COUNTER);
@@ -231,23 +231,24 @@ class HcalBackplaneBW_Capture : public DAQ {
 class HcalBackplaneBW : public HcalBackplane {
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask) {
-    std::cout << "got to construction of target" << std::endl;
+    std::cout << "got to construction of target " << itarget << std::endl;
 
     // first, setup the optical links
     daq_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
     trig_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_tport_);
 
-    // then connect them to the lpGBTs
+    // then get the lpGBTs from them
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_tport_->lpgbt_transport());
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_tport_->lpgbt_transport());
+
+    std::cout << "apply standard_confg::daq : " << daq_lpgbt_ << std::endl;
+
+    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
 
     std::cout << "apply standard_confg::trg : " << trig_lpgbt_ << std::endl;
 
     pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
 
-    std::cout << "apply standard_confg::daq : " << daq_lpgbt_ << std::endl;
-
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
 
     std::cout << "attempting to create ECON and ROC objects" << std::endl;
 
