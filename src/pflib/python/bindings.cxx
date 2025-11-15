@@ -27,14 +27,11 @@
  * here in order to ease passage of configuration between rogue and us.
  */
 class PyTarget {
+ protected:
   /// our handle to the pflib::Target
   std::shared_ptr<pflib::Target> tgt_;
 
- public:
-  /// construct a PyTarget given some arbitrary Python dict of parameters
-  PyTarget(bp::dict config) {
-    // where we std::make_shared a dervied type of pflib::Target
-    // depending on the setup
+  void parse_config(bp::dict config){
     std::cout << "creating { ";
     for (auto it = bp::stl_input_iterator<bp::tuple>(config.items());
          it != bp::stl_input_iterator<bp::tuple>(); it++) {
@@ -44,38 +41,50 @@ class PyTarget {
       std::cout << key << ": " << val << ", ";
     }
     std::cout << "}" << std::endl;
-
-    tgt_.reset(
-        pflib::makeTargetHcalBackplaneZCU(0 /*ilink*/, 0xf /*boardmask*/));
   }
+ public:
+  /// construct a PyTarget given some arbitrary Python dict of parameters
+  //virtual PyTarget(bp::dict config) {
+  PyTarget(bp::dict config){
+    parse_config(config); 
+  };
   void configure() {
     // apply configuration stuff
     std::cout << "configure" << std::endl;
   }
-  void trigger_align() { std::cout << "trigger_align" << std::endl; }
-  void ror_latency() { std::cout << "ror_latency" << std::endl; }
   void pre_start() {
     // prepare to collect data
     std::cout << "start_run" << std::endl;
     tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS,
                     42 /* contrib_id */);
   }
-  void go() { std::cout << "go" << std::endl; }
-  void stop() { std::cout << "stop" << std::endl; }
-  void reset() { std::cout << "reset" << std::endl; }
+  virtual void trigger_align() { std::cout << "PyTarget trigger_align()" << std::endl; }
+  virtual void ror_latency() { std::cout << "PyTarget ror_latency()" << std::endl; }
+  virtual void go() { std::cout << "PyTarget go()" << std::endl; }
+  virtual void stop() { std::cout << "PyTarget stop()" << std::endl; }
+  virtual void reset() { std::cout << "PyTarget reset()" << std::endl; }
+  
   /// should not use in actual DAQ
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
     usleep(100);
     return tgt_->read_event();
   }
+  void dump_roc(int iroc, bp::str fname){
+
+    std::string sfname = bp::extract<std::string>(fname);
+    std::cout << iroc << std::endl;
+    std::cout << sfname << std::endl;
+
+    //auto roc = tgt->hcal().roc(iroc);
+    //roc.dumpSettings(fname, false);
+  }
+
 };
 
 static const char* PyTarget__doc__ = R"DOC(Hold a pflib::Target
 
-This class holds a C++ pflib::Target that we can then do
-run commands on. The main configuration parameters are passed
-into the object via a Python dict.
+Parent class to PyTargetHCal and PyTargetECal.
 )DOC";
 
 static const char* PyTarget__init____doc__ = R"DOC(construct a pflib::Target
@@ -91,6 +100,67 @@ This function was bound to make sure the python bindings were functional while
 waiting for the Bittware firmware to be written.
 Hopefully, we will remember to remove it as the software progresses, but
 if its still around it should not be present in any Rogue Run Control code.
+)DOC";
+
+static const char* PyTarget_dump_roc__doc__ =
+    R"DOC(
+
+Dumps ROC registers to file
+)DOC";
+
+
+class PyTargetHCal : public PyTarget {
+protected:
+  void makeTarget() {
+    tgt_.reset(
+        pflib::makeTargetFiberless());
+  }
+public:
+  PyTargetHCal(bp::dict config) : PyTarget(config){
+    makeTarget();
+  }
+
+  /*
+   *  HCal specific state transitions
+   */
+  //virtual void trigger_align() { std::cout << "PyTargetHCal trigger_align()" << std::endl; }
+  //virtual void ror_latency() { std::cout << "PyTargeHCal ror_latency()" << std::endl; }
+  //virtual void go() { std::cout << "PyTargetHCal go()" << std::endl; }
+  //virtual void stop() { std::cout << "PyTargetHCal stop()" << std::endl; }
+  //virtual void reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
+
+  void read_sipm_bias(int iroc, int ch) {
+    std::cout << "WIP" << std::endl;
+  }
+  void set_sipm_bias(int iroc, int ch, int dac) {
+    std::cout << "WIP" << std::endl;
+  }
+};
+
+
+/*
+class PyTargetECal : PyTarget {
+};
+*/
+
+static const char* PyTargetHCal__doc__ =
+    R"DOC(
+
+This class holds a C++ pflib::Target that we can then do
+run commands on. The main configuration parameters are passed
+into the object via a Python dict.
+)DOC";
+
+static const char* PyTargetHCal_read_sipm_bias__doc__ =
+    R"DOC(
+
+Reads SiPM bias
+)DOC";
+
+static const char* PyTargetHCal_set_sipm_bias__doc__ =
+    R"DOC(
+
+Sets SiPM bias
 )DOC";
 
 BOOST_PYTHON_MODULE(pypflib) {
@@ -109,5 +179,13 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("stop", &PyTarget::stop)
       .def("reset", &PyTarget::reset)
       .def("grab_pedestals", &PyTarget::grab_pedestals,
-           PyTarget_grab_pedestals__doc__);
+           PyTarget_grab_pedestals__doc__)
+      .def("dump_roc", &PyTarget::dump_roc,
+           PyTarget_dump_roc__doc__);
+
+  bp::class_<PyTargetHCal, bp::bases<PyTarget>>("PyTargetHCal", PyTargetHCal__doc__,
+      bp::init<bp::dict>(PyTarget__init____doc__,
+    (bp::arg("config") = bp::dict())))
+    .def("read_sipm_bias", &PyTargetHCal::read_sipm_bias)
+    .def("set_sipm_bias", &PyTargetHCal::set_sipm_bias);
 }
