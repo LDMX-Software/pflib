@@ -8,8 +8,10 @@ namespace pflib {
 
 /**
  * Abstract class holding a set of ROCs and ECONs representing a HexaModule
+ *
+ * One "ECal Group" is one DMA access coming out of the firmware.
  */
-class Ecal {
+class EcalGroup {
  public:
   /** number of hgcrocs */
   virtual int nrocs() override { return modules_.rocs_.size(); }
@@ -53,14 +55,16 @@ class Ecal {
  protected:
   /// representation of Ecal HexaModule
   struct Module {
-    std::vector<ROC> rocs_;
-    std::vector<ECON> econs_;
+    std::array<ROC, 6> rocs_;
+    ECON econ_d_;
+    ECON econ_t_;
   };
   std::vector<Module> modules_;
 
   /// an Ecal Motherboard
   struct Motherboard {
-    std::vector<lpGBT> lpgbts_;
+    lpGBT daq_lpgbt_;
+    lpGBT trg_lpgbt_;
   };
   std::vector<Motherboard> motherboards_;
 };
