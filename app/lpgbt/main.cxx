@@ -257,7 +257,8 @@ void elink(const std::string& cmd, ToolBox* target) {
     isrx = tool::readline_bool("Spy on an RX? (false for TX) ", isrx);
     ilink = tool::readline_int("Which elink to spy", ilink);
     std::vector<uint32_t> words = mezz.capture(ilink, isrx);
-    for (size_t i = 0; i < words.size(); i++) printf("%3ld %08x\n", i, words[i]);
+    for (size_t i = 0; i < words.size(); i++)
+      printf("%3ld %08x\n", i, words[i]);
   }
   if (cmd == "PHASE") {
     LPGBT_Mezz_Tester mezz(target->coder_name);
@@ -894,7 +895,7 @@ int main(int argc, char* argv[]) {
 #ifdef USE_ROGUE
     pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link);
     t.olink_daq = odaq;
-    t.olink_trig = new pflib::bittware::BWOptoLink(i_link+1, *odaq);
+    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq);
 #endif
   }
 

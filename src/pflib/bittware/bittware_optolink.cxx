@@ -1,4 +1,5 @@
 #include "pflib/bittware/bittware_optolink.h"
+
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -275,8 +276,8 @@ BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr,
 uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {
   std::vector<uint8_t> retval = read_regs(reg, 1);
   if (retval.empty()) {
-    PFEXCEPTION_RAISE("ReadFail",
-        pflib::utility::string_format("Failure to read register 0x%0x", reg));
+    PFEXCEPTION_RAISE("ReadFail", pflib::utility::string_format(
+                                      "Failure to read register 0x%0x", reg));
   }
   return retval[0];
 }
@@ -288,14 +289,14 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
   do {
     retval.clear();
     int wc = 0;
-  
+
     if (n > 8) {
       retval = read_regs(reg, 8);
       std::vector<uint8_t> later = read_regs(reg + 8, n - 8);
       retval.insert(retval.end(), later.begin(), later.end());
       return retval;
     }
-    
+
     uint32_t val;
     // set addresses
     val = (uint32_t(reg) << 16) | (uint32_t(chipaddr_) << 8);
@@ -304,13 +305,12 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
     val = n;
     transport_.writeMasked(ctloffset_ + REG_CTL_N_READ, MASK_N_READ, val);
     // start
-    transport_.write(pulsereg_,1<<(BIT_START_READ+pulseshift_));
-    
+    transport_.write(pulsereg_, 1 << (BIT_START_READ + pulseshift_));
+
     // wait for done...
     int timeout = 1000;
-    for (val = transport_.readMasked(stsreg_,stsmask_);
-         (val & MASK_RX_EMPTY);
-         val = transport_.readMasked(stsreg_,stsmask_)) {
+    for (val = transport_.readMasked(stsreg_, stsmask_); (val & MASK_RX_EMPTY);
+         val = transport_.readMasked(stsreg_, stsmask_)) {
       usleep(1);
       timeout--;
       if (timeout == 0) {
@@ -322,29 +322,32 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
     while (!(val & MASK_RX_EMPTY)) {
       //    printf("%d %08x %08x\n",wc, val, transport_.read(stsreg_));
       uint8_t abyte = uint8_t(val & MASK_RX_DATA);
-      transport_.write(pulsereg_,1<<(BIT_ADV_READ+pulseshift_));
+      transport_.write(pulsereg_, 1 << (BIT_ADV_READ + pulseshift_));
       if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
       wc++;
-      val = transport_.readMasked(stsreg_,stsmask_);
-      if (wc>100) {
-        snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg,val);
+      val = transport_.readMasked(stsreg_, stsmask_);
+      if (wc > 100) {
+        snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg,
+                 val);
         PFEXCEPTION_RAISE("ICEC_Timeout", message);
       }
     }
     tries++;
-    if (retval.size()!=n) {
-      snprintf(message, 256, "Read register 0x%x tried to read %d, actually got %d", reg,n,retval.size());
+    if (retval.size() != n) {
+      snprintf(message, 256,
+               "Read register 0x%x tried to read %d, actually got %d", reg, n,
+               retval.size());
     }
-  } while (tries<4 && retval.size()!=n);
+  } while (tries < 4 && retval.size() != n);
 
-  if (tries!=1) {
-    if (retval.size()==n) {
-      printf("Concern, but succeeded: %s\n",message);
+  if (tries != 1) {
+    if (retval.size() == n) {
+      printf("Concern, but succeeded: %s\n", message);
     } else {
       PFEXCEPTION_RAISE("ICEC_ReadFail", message);
     }
   }
-  
+
   return retval;
 }
 
