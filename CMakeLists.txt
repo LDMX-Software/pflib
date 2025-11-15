@@ -36,6 +36,13 @@ find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
 
+if (DEFINED ENV{ROGUE_DIR})
+  set(Rogue_DIR $ENV{ROGUE_DIR}/lib)
+else()
+  set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
+endif()
+find_package(Rogue)
+
 # construct a register_maps library that the compiler can use
 # to lookup registers given parameter names for a chip type
 # hiding the ugly CMake code necessary to auto-gen the C++
@@ -80,15 +87,16 @@ target_link_libraries(packing PUBLIC utility)
 #
 #  src/pflib/FastControl.cxx
   
-add_library(pflib SHARED
+set(pflib_src
   src/pflib/I2C_Linux.cxx
   src/pflib/ROC.cxx
   src/pflib/ECON.cxx
   src/pflib/Compile.cxx
-  src/pflib/Hcal.cxx
+  src/pflib/HcalBackplane.cxx
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
+  src/pflib/Parameters.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
@@ -107,6 +115,15 @@ add_library(pflib SHARED
   src/pflib/zcu/HcalBackplaneZCU.cxx
   src/pflib/Bias.cxx
 )
+
+if (${Rogue_FOUND})
+  list(APPEND pflib_src
+    src/pflib/bittware/bittware_axilite.cxx
+    src/pflib/bittware/bittware_optolink.cxx
+    )
+endif()
+
+add_library(pflib SHARED ${pflib_src})
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -114,6 +131,9 @@ target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
+if (${Rogue_FOUND})
+  target_include_directories(pflib PUBLIC ${ROGUE_INCLUDE_ONLY})
+endif()
 add_dependencies(pflib direct_access lpgbt_regmap)
 
 add_library(pypflib SHARED
@@ -123,10 +143,7 @@ add_library(pypflib SHARED
   src/pflib/python/bindings.cxx)
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
-add_library(menu SHARED
-  src/pflib/menu/Menu.cc
-  src/pflib/menu/Rcfile.cc
-)
+add_library(menu SHARED src/pflib/menu/Menu.cc)
 target_link_libraries(menu PUBLIC readline pflib)
 target_include_directories(menu PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -138,6 +155,7 @@ add_executable(
   test/compile.cxx
   test/decoding.cxx
   test/utility.cxx
+  test/parameters.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
@@ -158,7 +176,10 @@ target_link_libraries(pftool PRIVATE pflib menu nlohmann_json::nlohmann_json)
 
 add_executable(pflpgbt app/lpgbt/main.cxx 
   app/lpgbt/lpgbt_mezz_tester.cc
-)
+  )
+if (${Rogue_FOUND})
+  target_compile_definitions(pflpgbt PRIVATE USE_ROGUE)
+endif()
 target_link_libraries(pflpgbt PRIVATE pflib menu)
 
 # don't install test-menu executable! just for Menu developments

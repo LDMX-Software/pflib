@@ -41,7 +41,7 @@ void parameter_timescan(Target* tgt) {
   for (int ch : channels)
     link[ch / 36] = true;  // link0 if ch0-35, and 1 if 36-71
 
-  auto roc{tgt->hcal().roc(pftool::state.iroc)};
+  auto roc{tgt->roc(pftool::state.iroc)};
   auto test_param_handle = roc.testParameters();
   auto add_rv = [&](int l) {
     auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", l);

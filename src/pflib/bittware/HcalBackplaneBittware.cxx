@@ -1,4 +1,4 @@
-#include "pflib/HcalBackplane.h"
+#include "pflib/Target.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -126,8 +126,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
   virtual int getEventOccupancy() {
     capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);  // get on page 0
     if (per_econ_)
-      return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) /
-             samples_per_ror();
+      return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
     else if (capture_.readMasked(ADDR_INFO, MASK_AXIS_NWORDS) != 0)
       return 1;
     else
@@ -172,9 +171,6 @@ class HcalBackplaneZCU_Capture : public DAQ {
     std::vector<uint32_t> retval;
     static const uint32_t UBITS = 0x3F00;
     static const uint32_t LBITS = 0x00FF;
-
-    capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR,
-                         0);  // must be on basic page
 
     if (per_econ_)
       words = capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
@@ -228,7 +224,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
   bool per_econ_;
 };
 
-class HcalBackplaneZCU : public HcalBackplane {
+class HcalBackplaneZCU : public Hcal {
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
     // first, setup the optical links
@@ -275,19 +271,6 @@ class HcalBackplaneZCU : public HcalBackplane {
 
     pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
     pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-
-    // copy I2C connections into Target
-    // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn] : roc_connections_) {
-      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
-      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
-      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
-    }
-    for (auto [bid, conn] : econ_connections_) {
-      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
-    }
-
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
   virtual void softResetROC(int which) override {
@@ -335,50 +318,46 @@ class HcalBackplaneZCU : public HcalBackplane {
 
   virtual DAQ& daq() override { return *daq_; }
 
-  virtual FastControl& fc() override { return *fc_; }
-
-  virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
-    format_ = format;
-    contrib_id_ = contrib_id;
-  }
-
-  virtual std::vector<uint32_t> read_event() override {
-    std::vector<uint32_t> buf;
-
-    if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
-      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
-      }
-    } else {
-      PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
-                        "for provided DaqFormat");
-    }
-
-    return buf;
-  }
-
  private:
   /// let the target that holds this Hcal see our members
+  friend class HcalBackplaneZCUTarget;
   std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<OptoElinksZCU> elinks_;
   std::unique_ptr<HcalBackplaneZCU_Capture> daq_;
-  std::shared_ptr<pflib::FastControl> fc_;
-  Target::DaqFormat format_;
-  int contrib_id_;
-  std::shared_ptr<HcalBackplaneZCU> hcal_;
+};
+
+class HcalBackplaneZCUTarget : public Target {
+ public:
+  HcalBackplaneZCUTarget(int ilink, uint8_t board_mask) : Target() {
+    auto hcal_ptr = std::make_shared<HcalBackplaneZCU>(ilink, board_mask);
+    hcal_ = hcal_ptr;
+
+    // copy I2C connections into Target
+    // in case user wants to do raw I2C transactions for testing
+    for (auto [bid, conn] : hcal_ptr->roc_connections_) {
+      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
+      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
+      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
+    }
+    for (auto [bid, conn] : hcal_ptr->econ_connections_) {
+      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
+    }
+
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+  }
+
+  virtual std::vector<uint32_t> read_event() override {
+    PFEXCEPTION_RAISE("NoImpl",
+                      "HcalBackplaneZCUTarget::read_event not implemented");
+    std::vector<uint32_t> empty;
+    return empty;
+  }
 };
 
 Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask) {
-  return new HcalBackplaneZCU(ilink, board_mask);
+  return new HcalBackplaneZCUTarget(ilink, board_mask);
 }
 
 }  // namespace pflib

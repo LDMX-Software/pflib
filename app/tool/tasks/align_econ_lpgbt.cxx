@@ -48,7 +48,7 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 }
 
 void align_econ_lpgbt(Target* tgt) {
-  auto econ = tgt->hcal().econ(pftool::state.iecon);
+  auto econ = tgt->econ(pftool::state.iecon);
 
   int chipaddr = 0x78;
   chipaddr |= 0x4;
