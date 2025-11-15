@@ -96,6 +96,7 @@ set(pflib_src
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
+  src/pflib/Parameters.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
@@ -142,10 +143,7 @@ add_library(pypflib SHARED
   src/pflib/python/bindings.cxx)
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
-add_library(menu SHARED
-  src/pflib/menu/Menu.cc
-  src/pflib/menu/Rcfile.cc
-)
+add_library(menu SHARED src/pflib/menu/Menu.cc)
 target_link_libraries(menu PUBLIC readline pflib)
 target_include_directories(menu PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -157,6 +155,7 @@ add_executable(
   test/compile.cxx
   test/decoding.cxx
   test/utility.cxx
+  test/parameters.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
