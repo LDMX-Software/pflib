@@ -13,6 +13,10 @@ BWOptoLink::BWOptoLink(int ilink)
     : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF), ilink_(ilink), isdaq_(true) {
   coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF);
   iceccoder_ = coder_;
+  /*
+  auto vers = coder_->read(0);
+  printf("0x%0x\n", vers);
+  */
 
   int chipaddr = 0x78;           // EC
   if (isdaq_) chipaddr |= 0x04;  // IC
