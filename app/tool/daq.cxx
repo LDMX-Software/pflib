@@ -30,7 +30,7 @@ static void print_daq_status(Target* pft) {
  * DAQ->SETUP menu commands
  *
  * Before doing any of the commands, we retrieve a reference to the daq
- * object via pflib::Hcal::daq.
+ * object via pflib::Target::daq.
  *
  * ## Commands
  * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and

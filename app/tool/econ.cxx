@@ -120,11 +120,11 @@ static void econ_status(const std::string& cmd, Target* tgt) {
  * ECON menu commands
  *
  * When necessary, the ECON interaction object pflib::ECON is created
- * via pflib::Hcal::econ with the currently active econ.
+ * via pflib::Target::econ with the currently active econ.
  *
  * ## Commands
- * - HARDRESET : pflib::Hcal::hardResetECONs
- * - SOFTRESET : pflib::Hcal::softResetECON with which=-1
+ * - HARDRESET : pflib::Target::hardResetECONs
+ * - SOFTRESET : pflib::Target::softResetECON with which=-1
  * - IECON : Change which ECON to focus on
  * - PAGE_NAMES : Use pflib::parameters to get list ECON page names
  * - PARAM_NAMES : Use pflib::parameters to get list ECON parameter names

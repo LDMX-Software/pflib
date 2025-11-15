@@ -1,4 +1,4 @@
-#include "pflib/Hcal.h"
+#include "pflib/HcalBackplane.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -228,7 +228,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
   bool per_econ_;
 };
 
-class HcalBackplaneZCU : public Hcal {
+class HcalBackplaneZCU : public HcalBackplane {
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
     // first, setup the optical links

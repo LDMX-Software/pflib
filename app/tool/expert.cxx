@@ -93,7 +93,7 @@ static void i2c(const std::string& cmd, Target* target) {
  * ELINKS menu commands
  *
  * We retrieve a reference to the current elinks object via
- * pflib::Hcal::elinks and then procede to the commands.
+ * pflib::Target::elinks and then procede to the commands.
  *
  * ## Commands
  * - SPY : pflib::Elinks::spy

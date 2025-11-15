@@ -5,18 +5,18 @@
 
 #include "pflib/ECOND_Formatter.h"
 #include "pflib/GPIO.h"
-#include "pflib/Hcal.h"
+#include "pflib/HcalBackplane.h"
 #include "pflib/I2C_Linux.h"
 
 namespace pflib {
 
-class HcalFiberless : public Hcal {
+class HcalFiberless : public HcalBackplane {
  public:
   static constexpr const char* GPO_HGCROC_RESET_HARD = "HGCROC_HARD_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
-  HcalFiberless() : Hcal() {
+  HcalFiberless() : HcalBackplane() {
     i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     if (i2croc_ < 0) {
       PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");

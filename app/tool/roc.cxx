@@ -100,11 +100,11 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * ROC menu commands
  *
  * When necessary, the ROC interaction object pflib::ROC is created
- * via pflib::Hcal::roc with the currently active roc.
+ * via pflib::Target::roc with the currently active roc.
  *
  * ## Commands
- * - HARDRESET : pflib::Hcal::hardResetROCs
- * - SOFTRESET : pflib::Hcal::softResetROC
+ * - HARDRESET : pflib::Target::hardResetROCs
+ * - SOFTRESET : pflib::Target::softResetROC
  * - RUNMODE : enable run mode on the ROC
  * - IROC : Change which ROC to focus on
  * - PAGE : pflib::ROC::readPage

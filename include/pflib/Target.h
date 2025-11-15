@@ -17,7 +17,8 @@ class OptoLink;
  *
  * Since both the Hcal and Ecal have ECONs and HGCROCs (that is the whole
  * reason we share pflib and firmware), this pflib::Target is the unifying
- * point for them.
+ * point for them. It represents one "DMA access" point (i.e. an HcalBackplane
+ * or a "group" of Ecal modules).
  */
 class Target {
  public:

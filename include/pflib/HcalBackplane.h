@@ -10,17 +10,12 @@
 namespace pflib {
 
 /**
- * representing an Hcal
- *
- * @note Technically, this is more accurately an 'HcalBackplane'
- * and the full Hcal would consist of several of these objects,
- * but since we haven't graduated to multiple backplanes yet,
- * it is being left like this.
+ * representing an HcalBackplane
  */
-class Hcal : public Target {
+class HcalBackplane : public Target {
  public:
-  virtual ~Hcal() = default;
-  Hcal();
+  virtual ~HcalBackplane() = default;
+  HcalBackplane();
 
   /** number of boards */
   virtual int nrocs() override { return nhgcroc_; }
@@ -48,21 +43,6 @@ class Hcal : public Target {
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   Bias bias(int which);
-
-  /** Generate a hard reset to all the HGCROC boards */
-  virtual void hardResetROCs() override;
-
-  /** generate a hard reset to all the ECON boards */
-  virtual void hardResetECONs() override;
-
-  /** Get the firmware version */
-  virtual uint32_t getFirmwareVersion() override;
-
-  /** Generate a soft reset to a specific HGCROC board, -1 for all */
-  virtual void softResetROC(int which = -1) override;
-
-  /** Generate a soft reset to a specific ECON board, -1 for all */
-  virtual void softResetECON(int which = -1) override;
 
   /** Get the GPIO object for debugging purposes */
   virtual GPIO& gpio() { return *gpio_; }
