@@ -265,7 +265,7 @@ class HcalBackplaneZCU : public HcalBackplane {
       // but we could modify this constructor and its calling factory
       // function in order to pass in a configuration
 
-      add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
+      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
 
@@ -365,7 +365,6 @@ class HcalBackplaneZCU : public HcalBackplane {
   }
 
  private:
-  /// let the target that holds this Hcal see our members
   std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
@@ -374,7 +373,6 @@ class HcalBackplaneZCU : public HcalBackplane {
   std::shared_ptr<pflib::FastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
-  std::shared_ptr<HcalBackplaneZCU> hcal_;
 };
 
 Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask) {
