@@ -36,9 +36,10 @@ std::vector<int> HcalBackplane::econ_ids() const {
 }
 
 void HcalBackplane::add_roc(int iroc, uint8_t roc_baseaddr,
-                   const std::string& roc_type_version,
-                   std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
-                   std::shared_ptr<I2C> board_i2c) {
+                            const std::string& roc_type_version,
+                            std::shared_ptr<I2C> roc_i2c,
+                            std::shared_ptr<I2C> bias_i2c,
+                            std::shared_ptr<I2C> board_i2c) {
   if (have_roc(iroc)) {
     PFEXCEPTION_RAISE("DuplicateROC",
                       pflib::utility::string_format(
@@ -55,7 +56,8 @@ void HcalBackplane::add_roc(int iroc, uint8_t roc_baseaddr,
 }
 
 void HcalBackplane::add_econ(int iecon, uint8_t econ_baseaddr,
-                    const std::string& type_version, std::shared_ptr<I2C> i2c) {
+                             const std::string& type_version,
+                             std::shared_ptr<I2C> i2c) {
   if (have_econ(iecon)) {
     PFEXCEPTION_RAISE("DuplicateECON",
                       pflib::utility::string_format(

@@ -71,7 +71,8 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
 static void render(Target* tgt) {
   auto hcal = dynamic_cast<pflib::HcalBackplane*>(tgt);
   if (not hcal) {
-    pflib_log(error) << "BIAS menu of commands only availabe for HcalBackplane targets.";
+    pflib_log(error)
+        << "BIAS menu of commands only availabe for HcalBackplane targets.";
   }
 }
 
@@ -81,7 +82,8 @@ static void bias_wrapper(const std::string& cmd, Target* tgt) {
     bias(cmd, hcal);
   } else {
     PFEXCEPTION_RAISE("NotImpl",
-        "The BIAS menu of commands is only available for HcalBackplane targets.");
+                      "The BIAS menu of commands is only available for "
+                      "HcalBackplane targets.");
   }
 }
 
