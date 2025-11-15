@@ -329,6 +329,7 @@ int main(int argc, char* argv[]) {
       auto boardmask = target.get<int>("boardmask", 0xff);
       tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
       readout_cfg = pftool::State::CFG_HCALOPTO;
+    } else if (target_type == "HcalBackplaneBittware") {
     } else {
       pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;
