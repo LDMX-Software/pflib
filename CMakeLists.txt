@@ -31,8 +31,10 @@ if (NOT TARGET yaml-cpp::yaml-cpp)
   add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
 endif()
 
-# Boost for CRC calculator, Test, and Logging
-find_package(Boost COMPONENTS log unit_test_framework REQUIRED)
+# Boost for CRC calculator, Test, Logging, and Python bindings
+find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
+# Python for Python bindings
+find_package(Python3 COMPONENTS Interpreter Development)
 
 find_package(Rogue)
 
@@ -54,6 +56,12 @@ target_include_directories(utility PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 
+add_library(logging SHARED src/pflib/logging/Logging.cxx)
+target_include_directories(logging PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(logging PUBLIC Boost::log)
+
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
   src/pflib/packing/BufferReader.cxx
@@ -63,6 +71,7 @@ add_library(packing SHARED
   src/pflib/packing/SingleROCEventPacket.cxx
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
+  src/pflib/packing/SoftWrappedECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -78,14 +87,10 @@ set(pflib_src
   src/pflib/ROC.cxx
   src/pflib/ECON.cxx
   src/pflib/Compile.cxx
-  src/pflib/Logging.cxx
   src/pflib/Hcal.cxx
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
-  src/pflib/DecodeAndWrite.cxx
-  src/pflib/DecodeAndBuffer.cxx
-  src/pflib/WriteToBinaryFile.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
@@ -103,11 +108,7 @@ set(pflib_src
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplaneZCU.cxx
   src/pflib/Bias.cxx
-  src/pflib/algorithm/level_pedestals.cxx
-  src/pflib/algorithm/toa_vref_scan.cxx
-  src/pflib/algorithm/trim_toa_scan.cxx
-  src/pflib/algorithm/get_toa_efficiencies.cxx
-  )
+)
 
 if (${Rogue_FOUND})
   list(APPEND pflib_src
@@ -117,19 +118,24 @@ if (${Rogue_FOUND})
 endif()
 
 add_library(pflib SHARED ${pflib_src})
-
 target_include_directories(pflib PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(pflib PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing Boost::log version utility register_maps)
+target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
 if (${Rogue_FOUND})
   target_include_directories(pflib PUBLIC ${ROGUE_INCLUDE_ONLY})
 endif()
-
 add_dependencies(pflib direct_access lpgbt_regmap)
+
+add_library(pypflib SHARED
+  src/pflib/python/version.cxx
+  src/pflib/python/logging.cxx
+  src/pflib/python/packing.cxx
+  src/pflib/python/bindings.cxx)
+target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
 add_library(menu SHARED
   src/pflib/menu/Menu.cc
@@ -192,8 +198,11 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
-set_target_properties(pflib packing version utility register_maps PROPERTIES PREFIX "libpflib_")
-install(TARGETS pflib packing version utility register_maps pftool pfdecoder pfdecompile pfcompile pfdefaults
+# add pflib prefix to all our pflib libraries
+set_target_properties(pflib packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
+# remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
+set_target_properties(pypflib PROPERTIES PREFIX "")
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

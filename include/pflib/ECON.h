@@ -8,7 +8,7 @@
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib {
 
@@ -43,10 +43,8 @@ class ECON {
       bool print_values = true);
   std::map<std::string, std::map<std::string, uint64_t>> readParameters(
       const std::string& file_path);
-  std::map<std::string, uint64_t> readParameter(const std::string& page,
-                                                const std::string& param,
-                                                bool print_values = true);
-  uint64_t dumpParameter(const std::string& page, const std::string& param);
+  uint64_t readParameter(const std::string& page, const std::string& param,
+                         bool print_values = false);
 
   void dumpSettings(const std::string& filename, bool should_decompile);
 

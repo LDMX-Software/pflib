@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/packing/FileReader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/SingleROCEventPacket.h"

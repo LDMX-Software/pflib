@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib::menu {
 
@@ -371,6 +371,12 @@ class Menu : public BaseMenu {
     // go through menu options and add exit
     for (Line& l : lines_) l.render();
     lines_.emplace_back("EXIT", "leave this menu");
+    lines_.emplace_back("HELP", "print help for this menu",
+                        [this](TargetHandle _tgt) {
+                          for (const auto& line : this->lines_) {
+                            std::cout << line << std::endl;
+                          }
+                        });
   }
 
   /**
@@ -433,6 +439,30 @@ class Menu : public BaseMenu {
   }
 
   /**
+   * entered this menu
+   *
+   * There are a few tasks we do when entering this menu:
+   * 1. copy our command_options into the static command options
+   *    for tab completion
+   * 2. call the user-provided render function
+   * 3. printout the list of commands in this menu
+   *
+   * These tasks are only done if the command queue is empty
+   * signalling that we are not in a script.
+   */
+  void enter(TargetHandle tgt) const {
+    if (cmdTextQueue_.empty()) {
+      // copy over command options for tab complete
+      this->cmd_options_ = this->command_options();
+      if (render_func_) {
+        render_func_(tgt);
+      }
+      std::cout << "\n";
+      for (const auto& l : lines_) std::cout << l << std::endl;
+    }
+  }
+
+  /**
    * give control over the target to this menu
    *
    * We enter a do-while loop that continues until the user selects
@@ -453,16 +483,11 @@ class Menu : public BaseMenu {
    * @param[in] p_target pointer to the target
    */
   void steer(TargetHandle p_target) const {
-    this->cmd_options_ = this->command_options();  // we are the captain now
+    enter(p_target);
     const Line* theMatch = 0;
     do {
       if (render_func_ != 0) {
         this->render_func_(p_target);
-      }
-      // if cmd text queue is empty, then print menu for interactive user
-      if (this->cmdTextQueue_.empty()) {
-        printf("\n");
-        for (const auto& l : lines_) std::cout << l << std::endl;
       }
       std::string request = readline_cmd();
       theMatch = 0;
@@ -481,7 +506,7 @@ class Menu : public BaseMenu {
         add_to_history(theMatch->name());
         if (theMatch->execute(p_target)) {
           // resume control when the chosen line was a submenu
-          this->cmd_options_ = this->command_options();
+          enter(p_target);
         }
       }
     } while (theMatch == 0 or not theMatch->empty());

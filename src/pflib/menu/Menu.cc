@@ -9,7 +9,7 @@
 #include <fstream>
 
 #include "pflib/utility/str_to_int.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib::menu {
 

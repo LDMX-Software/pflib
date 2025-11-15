@@ -2,8 +2,7 @@
  * @file daq.cxx
  * DAQ menu (and submenus) command definitions
  */
-#include "pflib/DecodeAndWrite.h"
-#include "pflib/WriteToBinaryFile.h"
+#include "daq_run.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
@@ -54,17 +53,22 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     daq.enable(!daq.enabled());
   }
   if (cmd == "FORMAT") {
-    printf("Format options:\n");
-    printf(" (1) ROC with ad-hoc headers as in TB2022\n");
-    printf(" (2) ECON with full readout\n");
-    // printf(" (3) ECON with ZS\n");
-    int i_format = pftool::readline_int(
-        " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
-    if (i_format < 1 or i_format > 2) {
-      PFEXCEPTION_RAISE(
-          "BadSel", std::to_string(i_format) + " is not a valid selection.");
+    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+      printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
+      pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+    } else {
+      printf("Format options:\n");
+      printf(" (1) ROC with ad-hoc headers as in TB2022\n");
+      printf(" (2) ECON with full readout\n");
+      // printf(" (3) ECON with ZS\n");
+      int i_format = pftool::readline_int(
+          " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
+      if (i_format < 1 or i_format > 2) {
+        PFEXCEPTION_RAISE(
+            "BadSel", std::to_string(i_format) + " is not a valid selection.");
+      }
+      pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
     }
-    pftool::state.daq_format_mode = static_cast<Target::DaqFormat>(i_format);
   }
   if (cmd == "CONFIG") {
     pftool::state.daq_contrib_id = pftool::readline_int(
@@ -157,6 +161,9 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
 
   if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
     /**
@@ -343,12 +350,11 @@ static void daq(const std::string& cmd, Target* pft) {
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
     if (decoding) {
-      pflib::DecodeAndWriteToCSV writer{
-          pflib::all_channels_to_csv(fname + ".csv")};
-      pft->daq_run(cmd, writer, nevents, pftool::state.daq_rate);
+      DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
+      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
     } else {
-      pflib::WriteToBinaryFile writer{fname + ".raw"};
-      pft->daq_run(cmd, writer, nevents, pftool::state.daq_rate);
+      WriteToBinaryFile writer{fname + ".raw"};
+      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
     }
   }
 }
@@ -640,8 +646,7 @@ auto menu_daq_debug =
               std::string fname = pftool::readline_path("charge-timein");
               tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
                              pftool::state.daq_contrib_id);
-              pflib::DecodeAndWriteToCSV writer{
-                  pflib::all_channels_to_csv(fname + ".csv")};
+              DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
               pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
               auto test_param_handle =
                   roc.testParameters()
@@ -655,7 +660,7 @@ auto menu_daq_debug =
                 usleep(10);
                 pflib_log(info) << "run with FAST_CONTROL.CALIB = "
                                 << tgt->fc().fc_get_setup_calib();
-                tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+                daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
               }
             })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",

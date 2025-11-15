@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#include "../daq_run.h"
 #include "load_parameter_points.h"
-#include "pflib/DecodeAndWrite.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -84,7 +84,7 @@ void parameter_timescan(Target* tgt) {
   int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
-  pflib::DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -154,11 +154,11 @@ void parameter_timescan(Target* tgt) {
           time =
               (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
               phase_strobe * clock_cycle / n_phase_strobe;
-          tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+          daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
         }
       } else {
         time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
-        tgt->daq_run("CHARGE", writer, nevents, pftool::state.daq_rate);
+        daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
       }
     }
     // reset charge_to_l1a to central value

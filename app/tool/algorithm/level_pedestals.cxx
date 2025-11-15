@@ -1,6 +1,6 @@
-#include "pflib/algorithm/level_pedestals.h"
+#include "level_pedestals.h"
 
-#include "pflib/DecodeAndBuffer.h"
+#include "../daq_run.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 
@@ -60,7 +60,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    tgt->daq_run("PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
     auto medians = get_adc_medians(buffer.get_buffer());
     baseline = medians;
@@ -82,7 +82,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
-    tgt->daq_run("PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     highend = get_adc_medians(buffer.get_buffer());
   }
 
@@ -93,7 +93,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .add_all_channels("DACB", 31)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    tgt->daq_run("PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     lowend = get_adc_medians(buffer.get_buffer());
   }
 

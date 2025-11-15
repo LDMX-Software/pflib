@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "pflib/algorithm/trim_toa_scan.h"
+#include "../algorithm/trim_toa_scan.h"
 
 void trim_toa_scan(Target* tgt) {
   auto roc{tgt->hcal().roc(pftool::state.iroc)};
