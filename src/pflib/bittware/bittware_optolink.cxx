@@ -11,7 +11,7 @@ BWOptoLink::BWOptoLink(int ilink)
       isdaq_(true)
 {
   coder_=std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS,0xFFF);
-  icecoder=coder_;
+  iceccoder_=coder_;
 
   int chipaddr = 0x78;          // EC
   if (isdaq_) chipaddr |= 0x04;  // IC
@@ -30,7 +30,7 @@ BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
   int chipaddr = 0x78;          // EC
   if (isdaq_) chipaddr |= 0x04;  // IC
 
-  transport_=std::make_unique<BWlpGBT_Transport>(iceccoder_,ilink,chipaddr,isdaq_);
+  transport_=std::make_unique<BWlpGBT_Transport>(*iceccoder_,ilink,chipaddr,isdaq_);
 }
 
 void BWOptoLink::reset_link() {  // actually affects all links in a block
@@ -45,7 +45,7 @@ void BWOptoLink::reset_link() {  // actually affects all links in a block
   int attempts = 1;
   done = gtys_.readMasked(REG_STATUS, 0x1);
 
-  while (!done and attempts < 100) {
+  while (!done and attempts < 1000) {
     if (attempts % 2) {
       gtys_.write(0x080, 0x1);  // GTH_RESET
       usleep(1000);
@@ -249,7 +249,8 @@ static constexpr int REG_ADDR_TX_DATA = 0x604;
 static constexpr int REG_CTL_N_READ   = 0x608;
 static constexpr uint32_t MASK_N_READ = 0x000000FF;
 
-
+static constexpr int BIT_RESET_TX    = 1;
+static constexpr int BIT_RESET_RX    = 0;
 static constexpr int BIT_START_READ  = 3;
 static constexpr int BIT_START_WRITE = 2;
 static constexpr int BIT_ADV_WRITE   = 4;
@@ -265,6 +266,8 @@ BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr, bo
   pulsereg_=(0x104)+(ilink/2)*4;
   pulseshift_=(ilink%2)*16+(isic_)?(0):(8);
   transport_.write(ctloffset_+REG_CTL_N_READ,0); // choose internal operation, disable spies, etc
+  transport_.write(pulsereg_,1<<(BIT_RESET_TX+pulseshift_));
+  transport_.write(pulsereg_,1<<(BIT_RESET_RX+pulseshift_));
 }
 
 uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {
@@ -293,11 +296,12 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
   // start
   transport_.write(pulsereg_,1<<(BIT_START_READ+pulseshift_));
 
+  
   // wait for done...
   int timeout = 1000;
-  for (val = transport_.readMasked(stsreg_,stsmask_);
+  for (val = transport_.read(stsreg_);
        (val & MASK_RX_EMPTY);
-       val = transport_.readMasked(stsreg_,stsmask_)) {
+       val = transport_.read(stsreg_)) {
     usleep(1);
     timeout--;
     if (timeout == 0) {
@@ -308,11 +312,17 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
   }
   wc = 0;
   while (!(val & MASK_RX_EMPTY)) {
+    //    printf("%d %08x %08x\n",wc, val, transport_.read(stsreg_));
     uint8_t abyte = uint8_t(val & MASK_RX_DATA);
     transport_.write(pulsereg_,1<<(BIT_ADV_READ+pulseshift_));
     if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
     wc++;
-    val = transport_.readMasked(stsreg_,stsmask_);    
+    val = transport_.read(stsreg_);
+    if (wc>100) {
+      char message[256];
+      snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg,val);
+      PFEXCEPTION_RAISE("ICEC_Timeout", message);
+    }
   }
 
   return retval;
@@ -342,16 +352,16 @@ void BWlpGBT_Transport::write_regs(uint16_t reg,
       // wait for tx to be done
       int timeout = 1000;
 
-      for (uint32_t val = transport_.readMasked(stsreg_,stsmask_);
-           (val & MASK_TX_EMPTY);
-           val = transport_.readMasked(stsreg_,stsmask_)) {
+      for (uint32_t val = transport_.read(stsreg_);
+           !(val & MASK_TX_EMPTY);
+           val = transport_.read(stsreg_)) {
         //	printf("%02x\n",val);
         usleep(1);
         timeout--;
         if (timeout == 0) {
           char message[256];
           snprintf(message, 256, "Write register 0x%x (+%d) timeout (%x)", reg,
-                   ic, lpgbt_i2c_addr_);
+                   ic, chipaddr_);
           PFEXCEPTION_RAISE("ICEC_Timeout", message);
         }
       }

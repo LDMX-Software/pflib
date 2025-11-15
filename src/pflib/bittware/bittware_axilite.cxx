@@ -61,7 +61,7 @@ uint32_t AxiLite::readMasked(uint32_t addr, uint32_t mask) {
   
 void AxiLite::writeMasked(uint32_t addr, uint32_t mask, uint32_t nval) {
   uint32_t val=read(addr);
-  val=(val&mask)|((nval<<first_bit_set(mask))&mask);
+  val=(val&(0xffffffffu^mask))|((nval<<first_bit_set(mask))&mask);
   write(addr,val);
 }
 

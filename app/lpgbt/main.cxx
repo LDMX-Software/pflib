@@ -202,6 +202,12 @@ void regs(const std::string& cmd, ToolBox* target) {
     value = tool::readline_int("New value", value, true);
     target->lpgbt->write(addr, value);
   }
+  if (cmd == "BLIND") {
+    addr = tool::readline_int("Register", addr, true);
+    int value = 0;
+    value = tool::readline_int("New value", value, true);
+    target->lpgbt->write(addr, value);
+  }
   if (cmd == "LOAD") {
     std::string fname = tool::readline("File: ");
     pflib::lpgbt::applylpGBTCSV(fname, *(target->lpgbt));
@@ -763,6 +769,7 @@ auto optom =
 auto direct = tool::menu("REG", "Direct Register Actions")
                   ->line("READ", "Read one or several registers", regs)
                   ->line("WRITE", "Write a register", regs)
+                  ->line("BLIND", "Write a register blind (without reading)", regs)
                   ->line("LOAD", "Load from a CSV file", regs);
 
 auto mgpio = tool::menu("GPIO", "GPIO controls")
@@ -878,8 +885,9 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    t.olink_daq = new pflib::bittware::BWOptoLink(0);
-    t.olink_trig = new pflib::bittware::BWOptoLink(1, false);
+    pflib::bittware::BWOptoLink* odaq=new pflib::bittware::BWOptoLink(0);
+    t.olink_daq = odaq;
+    t.olink_trig = new pflib::bittware::BWOptoLink(1, *odaq);
 #endif
   }
 
