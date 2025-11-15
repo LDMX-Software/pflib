@@ -234,12 +234,12 @@ class HcalBackplaneBW : public HcalBackplane {
     std::cout << "got to construction of target " << itarget << std::endl;
 
     // first, setup the optical links
-    daq_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
-    trig_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_tport_);
+    daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
+    trig_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_olink_);
 
     // then get the lpGBTs from them
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_tport_->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_tport_->lpgbt_transport());
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
+    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
     std::cout << "apply standard_confg::daq : " << daq_lpgbt_ << std::endl;
 
@@ -275,7 +275,7 @@ class HcalBackplaneBW : public HcalBackplane {
       // but we could modify this constructor and its calling factory
       // function in order to pass in a configuration
 
-      add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
+      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
 
@@ -366,7 +366,7 @@ class HcalBackplaneBW : public HcalBackplane {
   }
 
  private:
-  std::unique_ptr<pflib::bittware::BWOptoLink> daq_tport_, trig_tport_;
+  std::unique_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   //std::unique_ptr<OptoElinksBW> elinks_;

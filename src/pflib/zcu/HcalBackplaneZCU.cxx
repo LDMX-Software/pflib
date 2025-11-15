@@ -265,7 +265,7 @@ class HcalBackplaneZCU : public HcalBackplane {
       // but we could modify this constructor and its calling factory
       // function in order to pass in a configuration
 
-      add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
+      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
 
