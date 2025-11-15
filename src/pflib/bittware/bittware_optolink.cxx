@@ -1,4 +1,6 @@
 #include "pflib/bittware/bittware_optolink.h"
+#include "pflib/utility/string_format.h"
+
 namespace pflib {
 namespace bittware {
 
@@ -268,6 +270,10 @@ BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr,
 
 uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {
   std::vector<uint8_t> retval = read_regs(reg, 1);
+  if (retval.empty()) {
+    PFEXCEPTION_RAISE("ReadFail",
+        pflib::utility::string_format("Failure to read register 0x%0x", reg));
+  }
   return retval[0];
 }
 
