@@ -249,9 +249,13 @@ class HcalBackplaneBW : public HcalBackplane {
      *  GENERAL
      *  STANDARD_HCAL
      * seems to be more stable.
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
     */
+    try {
+      pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+      pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "Failure to apply standard config [" << e.name() << "]: " << e.message() << std::endl;
+    }
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
