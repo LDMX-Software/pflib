@@ -120,6 +120,7 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/HcalBackplaneBittware.cxx
     )
 endif()
 

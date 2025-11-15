@@ -1,9 +1,8 @@
-#include "pflib/Target.h"
+#include "pflib/HcalBackplane.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
-#include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
-#include "pflib/zcu/zcu_optolink.h"
+#include "pflib/bittware/bittware_optolink.h"
 
 namespace pflib {
 
@@ -16,10 +15,10 @@ static constexpr int I2C_BUS_BOARD = 0;    // TRIG
 static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
 
-/** Currently represents all elinks for dual-link configuration */
-class OptoElinksZCU : public Elinks {
+/*
+class OptoElinksBW : public Elinks {
  public:
-  OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
+  OptoElinksBW(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
       : Elinks(6 * 2),
         lp_daq_(lpdaq),
         lp_trig_(lptrig),
@@ -78,7 +77,7 @@ class OptoElinksZCU : public Elinks {
   UIO uiodecoder_;
 };
 
-class HcalBackplaneZCU_Capture : public DAQ {
+class HcalBackplaneBW_Capture : public DAQ {
   static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604 / 4;
   static constexpr uint32_t ADDR_HEADER_MARKER = 0x600 / 4;
   static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
@@ -111,7 +110,7 @@ class HcalBackplaneZCU_Capture : public DAQ {
   static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
  public:
-  HcalBackplaneZCU_Capture() : DAQ(1), capture_("econd-buffer-0") {
+  HcalBackplaneBW_Capture() : DAQ(1), capture_("econd-buffer-0") {
     //    printf("Firmware type and version: %08x %08x
     //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
     // setting up with expected capture parameters
@@ -126,7 +125,8 @@ class HcalBackplaneZCU_Capture : public DAQ {
   virtual int getEventOccupancy() {
     capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);  // get on page 0
     if (per_econ_)
-      return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
+      return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) /
+             samples_per_ror();
     else if (capture_.readMasked(ADDR_INFO, MASK_AXIS_NWORDS) != 0)
       return 1;
     else
@@ -171,6 +171,9 @@ class HcalBackplaneZCU_Capture : public DAQ {
     std::vector<uint32_t> retval;
     static const uint32_t UBITS = 0x3F00;
     static const uint32_t LBITS = 0x00FF;
+
+    capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR,
+                         0);  // must be on basic page
 
     if (per_econ_)
       words = capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
@@ -223,20 +226,30 @@ class HcalBackplaneZCU_Capture : public DAQ {
   UIO capture_;
   bool per_econ_;
 };
+*/
 
-class HcalBackplaneZCU : public Hcal {
+class HcalBackplaneBW : public HcalBackplane {
  public:
-  HcalBackplaneZCU(int itarget, uint8_t board_mask) {
-    // first, setup the optical links
-    std::string uio_coder =
-        pflib::utility::string_format("standardLpGBTpair-%d", itarget);
+  HcalBackplaneBW(int itarget, uint8_t board_mask) {
+    std::cout << "got to construction of target" << std::endl;
 
-    daq_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, false, ADDR_HCAL_BACKPLANE_DAQ);
-    trig_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, true, ADDR_HCAL_BACKPLANE_TRIG);
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
+    // first, setup the optical links
+    daq_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
+    trig_tport_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget+1, *daq_tport_);
+
+    // then connect them to the lpGBTs
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_tport_->lpgbt_transport());
+    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_tport_->lpgbt_transport());
+
+    std::cout << "apply standard_confg::trg : " << trig_lpgbt_ << std::endl;
+
+    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+
+    std::cout << "apply standard_confg::daq : " << daq_lpgbt_ << std::endl;
+
+    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+
+    std::cout << "attempting to create ECON and ROC objects" << std::endl;
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
@@ -265,12 +278,26 @@ class HcalBackplaneZCU : public Hcal {
               board_i2c);
     }
 
-    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
-                                              itarget);
-    daq_ = std::make_unique<HcalBackplaneZCU_Capture>();
 
-    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+    // copy I2C connections into Target
+    // in case user wants to do raw I2C transactions for testing
+    for (auto [bid, conn] : roc_connections_) {
+      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
+      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
+      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
+    }
+    for (auto [bid, conn] : econ_connections_) {
+      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
+    }
+
+    /*
+    elinks_ = std::make_unique<OptoElinksBW>(&(*daq_lpgbt_), &(*trig_lpgbt_),
+                                              itarget);
+    daq_ = std::make_unique<HcalBackplaneBW_Capture>();
+
+    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+    */
+    std::cout << "successfully constructed" << std::endl;
   }
 
   virtual void softResetROC(int which) override {
@@ -314,50 +341,42 @@ class HcalBackplaneZCU : public Hcal {
     trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
   }
 
-  virtual Elinks& elinks() override { return *elinks_; }
+  virtual Elinks& elinks() override { 
+    PFEXCEPTION_RAISE("NoImpl", "Elinks not implemented");
+  }
 
-  virtual DAQ& daq() override { return *daq_; }
+  virtual DAQ& daq() override {
+    PFEXCEPTION_RAISE("NoImpl", "DAQ not implemented");
+  }
 
- private:
-  /// let the target that holds this Hcal see our members
-  friend class HcalBackplaneZCUTarget;
-  std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
-  std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
-  std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
-  std::unique_ptr<OptoElinksZCU> elinks_;
-  std::unique_ptr<HcalBackplaneZCU_Capture> daq_;
-};
+  virtual FastControl& fc() override {
+    PFEXCEPTION_RAISE("NoImpl", "FastControl not implemented");
+  }
 
-class HcalBackplaneZCUTarget : public Target {
- public:
-  HcalBackplaneZCUTarget(int ilink, uint8_t board_mask) : Target() {
-    auto hcal_ptr = std::make_shared<HcalBackplaneZCU>(ilink, board_mask);
-    hcal_ = hcal_ptr;
-
-    // copy I2C connections into Target
-    // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn] : hcal_ptr->roc_connections_) {
-      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
-      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
-      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
-    }
-    for (auto [bid, conn] : hcal_ptr->econ_connections_) {
-      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
-    }
-
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+  virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
+    format_ = format;
+    contrib_id_ = contrib_id;
   }
 
   virtual std::vector<uint32_t> read_event() override {
     PFEXCEPTION_RAISE("NoImpl",
-                      "HcalBackplaneZCUTarget::read_event not implemented");
-    std::vector<uint32_t> empty;
-    return empty;
+                      "HcalBackplaneBWTarget::read_event not implemented");
+    return {};
   }
+
+ private:
+  std::unique_ptr<pflib::bittware::BWOptoLink> daq_tport_, trig_tport_;
+  std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
+  std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
+  //std::unique_ptr<OptoElinksBW> elinks_;
+  //std::unique_ptr<HcalBackplaneBW_Capture> daq_;
+  //std::shared_ptr<pflib::FastControl> fc_;
+  Target::DaqFormat format_;
+  int contrib_id_;
 };
 
-Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask) {
-  return new HcalBackplaneZCUTarget(ilink, board_mask);
+Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask) {
+  return new HcalBackplaneBW(ilink, board_mask);
 }
 
 }  // namespace pflib
