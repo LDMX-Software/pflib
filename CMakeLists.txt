@@ -92,7 +92,7 @@ set(pflib_src
   src/pflib/ROC.cxx
   src/pflib/ECON.cxx
   src/pflib/Compile.cxx
-  src/pflib/Hcal.cxx
+  src/pflib/HcalBackplane.cxx
   src/pflib/Target.cxx
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx

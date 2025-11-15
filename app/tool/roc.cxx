@@ -43,7 +43,7 @@ static void roc_expert_render(Target* tgt) {
  * - SET_DIRECT_ACCESS : set direct access parameter to specific value
  */
 static void roc_expert(const std::string& cmd, Target* tgt) {
-  auto roc = tgt->hcal().roc(pftool::state.iroc);
+  auto roc = tgt->roc(pftool::state.iroc);
   if (cmd == "PAGE") {
     int page = pftool::readline_int("Which page? ", 0);
     int len = pftool::readline_int("Length?", 8);
@@ -100,11 +100,11 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * ROC menu commands
  *
  * When necessary, the ROC interaction object pflib::ROC is created
- * via pflib::Hcal::roc with the currently active roc.
+ * via pflib::Target::roc with the currently active roc.
  *
  * ## Commands
- * - HARDRESET : pflib::Hcal::hardResetROCs
- * - SOFTRESET : pflib::Hcal::softResetROC
+ * - HARDRESET : pflib::Target::hardResetROCs
+ * - SOFTRESET : pflib::Target::softResetROC
  * - RUNMODE : enable run mode on the ROC
  * - IROC : Change which ROC to focus on
  * - PAGE : pflib::ROC::readPage
@@ -118,16 +118,16 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  */
 static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "HARDRESET") {
-    pft->hcal().hardResetROCs();
+    pft->hardResetROCs();
   }
   if (cmd == "SOFTRESET") {
-    pft->hcal().softResetROC();
+    pft->softResetROC();
   }
   if (cmd == "IROC") {
     pftool::state.iroc =
         pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
   }
-  pflib::ROC roc = pft->hcal().roc(pftool::state.iroc);
+  pflib::ROC roc = pft->roc(pftool::state.iroc);
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);

@@ -10,7 +10,7 @@
 ENABLE_LOGGING();
 
 static void print_daq_status(Target* pft) {
-  pflib::DAQ& daq = pft->hcal().daq();
+  pflib::DAQ& daq = pft->daq();
   std::cout << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
             << "          ECON ID: " << daq.econid() << "\n"
             << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
@@ -30,7 +30,7 @@ static void print_daq_status(Target* pft) {
  * DAQ->SETUP menu commands
  *
  * Before doing any of the commands, we retrieve a reference to the daq
- * object via pflib::Hcal::daq.
+ * object via pflib::Target::daq.
  *
  * ## Commands
  * - ENABLE : toggle whether daq is enabled pflib::DAQ::enable and
@@ -48,7 +48,7 @@ static void print_daq_status(Target* pft) {
  * @param[in] pft active target
  */
 static void daq_setup(const std::string& cmd, Target* pft) {
-  pflib::DAQ& daq = pft->hcal().daq();
+  pflib::DAQ& daq = pft->daq();
   if (cmd == "ENABLE") {
     daq.enable(!daq.enabled());
   }
@@ -178,11 +178,11 @@ static void daq_setup_standard(Target* tgt) {
     l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
     l1offsets["DIGITALHALF_1"]["L1OFFSET"] = 8;
     /// @note only correct right now for the single-board readout
-    auto roc{tgt->hcal().roc(pftool::state.iroc)};
+    auto roc{tgt->roc(pftool::state.iroc)};
     roc.applyParameters(l1offsets);
     roc.setRunMode(true);
-    pflib::Elinks& elinks = tgt->hcal().elinks();
-    auto& daq{tgt->hcal().daq()};
+    pflib::Elinks& elinks = tgt->elinks();
+    auto& daq{tgt->daq()};
     for (int i = 0; i < daq.nlinks(); i++) {
       if (i < 2) {
         /// DAQ link, timed in with pedestals and idles
@@ -218,7 +218,7 @@ static void daq_setup_standard(Target* tgt) {
  * @param[in] pft active target
  */
 static void daq(const std::string& cmd, Target* pft) {
-  pflib::DAQ& daq = pft->hcal().daq();
+  pflib::DAQ& daq = pft->daq();
 
   // default is non-DMA readout
   bool dma_enabled = false;
@@ -377,8 +377,8 @@ static void daq_debug_trigger_timein(Target* tgt) {
 
   static const uint32_t DAQ_HEADER_PATTERN = 0xf0000005;
 
-  auto& daq{tgt->hcal().daq()};
-  auto roc{tgt->hcal().roc(pftool::state.iroc)};
+  auto& daq{tgt->daq()};
+  auto roc{tgt->roc(pftool::state.iroc)};
 
   pflib_log(info) << "setting up parameters for trigger link testing";
 
@@ -472,7 +472,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
     for (int ilink{0}; ilink < 6; ilink++) {
       pedestal_link_data[ilink] = daq.getLinkData(ilink);
     }
-    tgt->hcal().daq().advanceLinkReadPtr();
+    tgt->daq().advanceLinkReadPtr();
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
                        "specific places";
@@ -482,7 +482,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
     for (int ilink{0}; ilink < 6; ilink++) {
       charge_link_data[ilink] = daq.getLinkData(ilink);
     }
-    tgt->hcal().daq().advanceLinkReadPtr();
+    tgt->daq().advanceLinkReadPtr();
 
     for (int ilink{0}; ilink < 6; ilink++) {
       pflib_log(debug) << "reset link " << ilink << " to delay "
@@ -613,7 +613,7 @@ auto menu_daq_debug =
                [](Target* tgt) {
                  static int input = 0;
                  input = pftool::readline_int("Which input?", input);
-                 pflib::DAQ& daq = tgt->hcal().daq();
+                 pflib::DAQ& daq = tgt->daq();
 
                  std::vector<uint32_t> buffer = daq.getLinkData(input);
                  int delay{}, capture{};
@@ -628,7 +628,7 @@ auto menu_daq_debug =
                  }
                })
         ->line("ADV", "advance the readout pointers",
-               [](Target* tgt) { tgt->hcal().daq().advanceLinkReadPtr(); })
+               [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("SW_L1A", "send a L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
         ->line(
@@ -647,7 +647,7 @@ auto menu_daq_debug =
               tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
                              pftool::state.daq_contrib_id);
               DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv")};
-              pflib::ROC roc{tgt->hcal().roc(pftool::state.iroc)};
+              pflib::ROC roc{tgt->roc(pftool::state.iroc)};
               auto test_param_handle =
                   roc.testParameters()
                       .add("REFERENCEVOLTAGE_1", "CALIB", calib)
