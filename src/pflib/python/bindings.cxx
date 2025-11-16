@@ -109,6 +109,12 @@ static const char* PyTarget_dump_roc__doc__ =
 Dumps ROC registers to file
 )DOC";
 
+static const char* PyTarget_load_roc__doc__ =
+    R"DOC(
+
+Loads ROC registers from .yaml file
+)DOC";
+
 
 class PyTargetHCal : public PyTarget {
 protected:
@@ -122,7 +128,7 @@ public:
   }
 
   /*
-   *  HCal specific state transitions
+   *  HCal specific state transitions if needed
    */
   //void trigger_align() { std::cout << "PyTargetHCal trigger_align()" << std::endl; }
   //void ror_latency() { std::cout << "PyTargeHCal ror_latency()" << std::endl; }
@@ -139,12 +145,6 @@ public:
     bias.setSiPM(ch, dac);
   }
 };
-
-
-/*
-class PyTargetECal : PyTarget {
-};
-*/
 
 static const char* PyTargetHCal__doc__ =
     R"DOC(
@@ -166,6 +166,34 @@ static const char* PyTargetHCal_set_sipm_bias__doc__ =
 Sets SiPM bias
 )DOC";
 
+class PyTargetECal : public PyTarget {
+protected:
+  void makeTarget() {
+    //tgt_.reset(
+    //    pflib::makeTargetECal());
+  }
+public:
+  PyTargetECal(bp::dict config) : PyTarget(config){
+    makeTarget();
+  }
+  /*
+   *  ECal specific state transitions if needed
+   */
+  //void trigger_align() { std::cout << "PyTargetECal trigger_align()" << std::endl; }
+  //void ror_latency() { std::cout << "PyTargeECal ror_latency()" << std::endl; }
+  //void go() { std::cout << "PyTargetECal go()" << std::endl; }
+  //void stop() { std::cout << "PyTargetECal stop()" << std::endl; }
+  //void reset() { std::cout << "PyTargetECal reset()" << std::endl; }
+};
+
+static const char* PyTargetECal__doc__ =
+    R"DOC(
+
+This class holds a C++ pflib::Target that we can then do
+run commands on. The main configuration parameters are passed
+into the object via a Python dict.
+)DOC";
+
 BOOST_PYTHON_MODULE(pypflib) {
   setup_version();
   setup_logging();
@@ -184,11 +212,17 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("grab_pedestals", &PyTarget::grab_pedestals,
            PyTarget_grab_pedestals__doc__)
       .def("dump_roc", &PyTarget::dump_roc,
-           PyTarget_dump_roc__doc__);
+           PyTarget_dump_roc__doc__)
+      .def("load_roc", &PyTarget::load_roc,
+          PyTarget_load_roc__doc__);
 
   bp::class_<PyTargetHCal, bp::bases<PyTarget>>("PyTargetHCal", PyTargetHCal__doc__,
       bp::init<bp::dict>(PyTarget__init____doc__,
     (bp::arg("config") = bp::dict())))
     .def("read_sipm_bias", &PyTargetHCal::read_sipm_bias)
     .def("set_sipm_bias", &PyTargetHCal::set_sipm_bias);
+
+  bp::class_<PyTargetECal, bp::bases<PyTarget>>("PyTargetECal", PyTargetECal__doc__,
+      bp::init<bp::dict>(PyTarget__init____doc__,
+    (bp::arg("config") = bp::dict())));
 }
