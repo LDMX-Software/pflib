@@ -58,6 +58,7 @@ class PyTarget {
     tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS,
                     42 /* contrib_id */);
   }
+
   virtual void trigger_align() { std::cout << "PyTarget trigger_align()" << std::endl; }
   virtual void ror_latency() { std::cout << "PyTarget ror_latency()" << std::endl; }
   virtual void go() { std::cout << "PyTarget go()" << std::endl; }
@@ -71,15 +72,15 @@ class PyTarget {
     return tgt_->read_event();
   }
   void dump_roc(int iroc, bp::str fname){
-
     std::string sfname = bp::extract<std::string>(fname);
-    std::cout << iroc << std::endl;
-    std::cout << sfname << std::endl;
-
-    //auto roc = tgt->hcal().roc(iroc);
-    //roc.dumpSettings(fname, false);
+    auto roc = tgt_->hcal().roc(iroc);
+    roc.dumpSettings(sfname, false);
   }
-
+  void load_roc(int iroc, bp::str fname){
+    std::string sfname = bp::extract<std::string>(fname);
+    auto roc = tgt_->hcal().roc(iroc);
+    roc.loadRegisters(sfname);
+  }
 };
 
 static const char* PyTarget__doc__ = R"DOC(Hold a pflib::Target
@@ -123,17 +124,19 @@ public:
   /*
    *  HCal specific state transitions
    */
-  //virtual void trigger_align() { std::cout << "PyTargetHCal trigger_align()" << std::endl; }
-  //virtual void ror_latency() { std::cout << "PyTargeHCal ror_latency()" << std::endl; }
-  //virtual void go() { std::cout << "PyTargetHCal go()" << std::endl; }
-  //virtual void stop() { std::cout << "PyTargetHCal stop()" << std::endl; }
-  //virtual void reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
+  //void trigger_align() { std::cout << "PyTargetHCal trigger_align()" << std::endl; }
+  //void ror_latency() { std::cout << "PyTargeHCal ror_latency()" << std::endl; }
+  //void go() { std::cout << "PyTargetHCal go()" << std::endl; }
+  //void stop() { std::cout << "PyTargetHCal stop()" << std::endl; }
+  //void reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
 
-  void read_sipm_bias(int iroc, int ch) {
-    std::cout << "WIP" << std::endl;
+  int read_sipm_bias(int iroc, int ch) {
+    pflib::Bias bias = tgt_->hcal().bias(iroc);
+    return bias.readSiPM(ch);
   }
   void set_sipm_bias(int iroc, int ch, int dac) {
-    std::cout << "WIP" << std::endl;
+    pflib::Bias bias = tgt_->hcal().bias(iroc);
+    bias.setSiPM(ch, dac);
   }
 };
 
