@@ -195,7 +195,7 @@ class FastControlCMS_MMap : public FastControl {
   virtual std::map<std::string,uint32_t> getCmdCounters() override {
     static constexpr int COUNTER_START = 68;
     static constexpr int COUNTER_LAST = 80;
-    static constexpr char* names[] = {"L1A","L1A_NZS","ORBIT_SYNC","ORBIT_COUNT_RESET",
+    static constexpr const char* names[] = {"L1A","L1A_NZS","ORBIT_SYNC","ORBIT_COUNT_RESET",
       "CALIB_INT","CALIB_EXT","CHIPSYNC","ECR","EBR",
       "LINKRESET_ROCT","LINKRESET_ROCD","LINKRESET_ECONT","LINKRESET_ECOND",0
     };
@@ -246,8 +246,6 @@ class FastControlCMS_MMap : public FastControl {
   void bx_custom(int bx_addr, int bx_mask, int bx_new) {
     uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
     uint32_t bxout2 = uio_.read(bx_addr);
-    printf("Read FC BX: ", bxout2);
-    printf("\n");
     // // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
     // std::cout << "readMasked (after write): " << bx_out << std::endl;
   }

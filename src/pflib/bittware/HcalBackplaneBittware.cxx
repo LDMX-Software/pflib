@@ -302,7 +302,7 @@ class HcalBackplaneBW : public HcalBackplane {
     daq_ = std::make_unique<HcalBackplaneBW_Capture>();
     */
 
-    fc_ = std::make_shared<BWFastControl>();
+    fc_ = std::make_shared<bittware::BWFastControl>();
   }
 
   virtual void softResetROC(int which) override {
