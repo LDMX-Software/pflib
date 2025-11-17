@@ -406,12 +406,35 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
 
   // Wait for channel lock?
+  struct timeval start, now;
+  gettimeofday(&start, nullptr);
+  while (true) {
+	  uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
+	  state = reg & 0x3;
+
+	  if (state == 3)
+		  break;
+	  gettimeofday(&now, nullptr);
+	  long elasped_us =
+		  (now.tv_sec - start.tv_sec) * 1000000L +
+		  (now.tv_usec - start.tv_usec);
+	  if (elapsed_us > 5000000) {
+		  printf( "ERROR: Timeout waiting for EPRX group %d state to reach FREE RUNNING. Current state = %d\n",
+				  group, state);
+		  return;
+	  }
+	  usleep(1000);
+  }
 
   // Have BERT monitor channel
   uint8_t group_code = 1 + group;  // 0 disables checker
   uint8_t prbs_code = 6;  // Hard code UL_PRBS7_DR3_CHN0 from Table 14.6 in v1
   uint8_t bert_source_byte = ((group_code & 0xF) << 4) | (prbs_code & 0xF);
   tport_.write_reg(REG_BERTSOURCE, bert_source_byte);
+
+  // Reset BERT
+  tport.write_reg(REG_BERTCONFIG, 0x00);
+  usleep(1000);
 
   // Start BERT
   tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
@@ -435,20 +458,24 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   }
   tport_.write_reg(REG_BERTCONFIG, 0x00);
 
+  // Stop BERT
+  tport_.write_reg(REG_BERTCONFIG, 0x00);
+
   // Calculate BER
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
 
-  // uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
-  //                            : data_rate_code == 2 ? 4
-  //                            : data_rate_code == 3 ? 2
-  //                              	        	   : 0);
+  uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
+                             : data_rate_code == 2 ? 16
+                             : data_rate_code == 3 ? 32
+                               	        	   : 0);
 
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
   uint64_t bits_per_cycle = 32;  // hardcoded for now
   uint64_t bits_checked = clocks * bits_per_cycle;
 
   // PRBS check overestimates errors according to v1 manual
-  double ber = (double)errors / (double)bits_checked;
+  double actual_errors = (double)errors / 3.0;
+  double ber = actual_errors / (double)bits_checked;
 
   printf(" Group %d, Channel %d BER = %.6f (%ld errors in %ld bits)\n", group,
          channel, ber, errors, bits_checked);
