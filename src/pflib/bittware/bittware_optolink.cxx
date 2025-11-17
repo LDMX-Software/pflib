@@ -162,6 +162,8 @@ std::map<std::string, uint32_t> BWOptoLink::opto_rates() {
 
 int BWOptoLink::get_elink_tx_mode(int elink) {
   if (elink < 0 || elink > 3 || !isdaq_) return -1;
+  // TODO
+  return 0;
 }
 void BWOptoLink::set_elink_tx_mode(int elink, int mode) {
   if (elink < 0 || elink > 3 || !isdaq_) return;
@@ -335,7 +337,7 @@ std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
     tries++;
     if (retval.size() != n) {
       snprintf(message, 256,
-               "Read register 0x%x tried to read %d, actually got %d", reg, n,
+               "Read register 0x%x tried to read %d, actually got %ld", reg, n,
                retval.size());
     }
   } while (tries < 4 && retval.size() != n);

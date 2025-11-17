@@ -34,7 +34,7 @@ void MAX5825::set(uint8_t channel, uint16_t code) {
   uint8_t cmd = (uint8_t)(0xB0 | (channel & 0x07));
 
   std::vector<uint8_t> retval = i2c_->general_write_read(
-      our_addr_, {cmd, (code << 4) >> 8, (code << 4) & 0xFF}, 0);
+      our_addr_, {cmd, static_cast<uint8_t>((code << 4) >> 8), static_cast<uint8_t>((code << 4) & 0xFF)}, 0);
 }
 
 /*
