@@ -1,5 +1,5 @@
 #include "pflib/lpGBT.h"
-
+#include <algorithm>
 #include <unistd.h>
 
 namespace pflib {
