@@ -71,13 +71,20 @@ class PyTarget {
     usleep(100);
     return tgt_->read_event();
   }
-  void dump_roc(int iroc, bp::str fname){
-    std::string sfname = bp::extract<std::string>(fname);
-    auto roc = tgt_->hcal().roc(iroc);
-    roc.dumpSettings(sfname, false);
+  // Dumps the configs of all active ROCs to file
+  void dump_rocs(bp::str fname_prefix){
+    std::string sfname_prefix = bp::extract<std::string>(fname_prefix);
+    std::vector<int> roc_ids{tgt_->roc_ids()};
+    for (int iroc : roc_ids) {
+      std::string sfname = sfname_prefix + "_iroc_" + std::to_string(iroc) + ".yaml";
+      //Refactor
+      auto roc = tgt_->hcal().roc(iroc);
+      roc.dumpSettings(sfname, false);
+    }
   }
   void load_roc(int iroc, bp::str fname){
     std::string sfname = bp::extract<std::string>(fname);
+    //Refactor
     auto roc = tgt_->hcal().roc(iroc);
     roc.loadRegisters(sfname);
   }
@@ -103,10 +110,10 @@ Hopefully, we will remember to remove it as the software progresses, but
 if its still around it should not be present in any Rogue Run Control code.
 )DOC";
 
-static const char* PyTarget_dump_roc__doc__ =
+static const char* PyTarget_dump_rocs__doc__ =
     R"DOC(
 
-Dumps ROC registers to file
+Dumps ROC registers to file from all atcive ROCs
 )DOC";
 
 static const char* PyTarget_load_roc__doc__ =
@@ -211,8 +218,8 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("reset", &PyTarget::reset)
       .def("grab_pedestals", &PyTarget::grab_pedestals,
            PyTarget_grab_pedestals__doc__)
-      .def("dump_roc", &PyTarget::dump_roc,
-           PyTarget_dump_roc__doc__)
+      .def("dump_rocs", &PyTarget::dump_rocs,
+           PyTarget_dump_rocs__doc__)
       .def("load_roc", &PyTarget::load_roc,
           PyTarget_load_roc__doc__);
 
