@@ -409,21 +409,21 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   struct timeval start, now;
   gettimeofday(&start, nullptr);
   while (true) {
-	  uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
-	  state = reg & 0x3;
+    uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
+    state = reg & 0x3;
 
-	  if (state == 3)
-		  break;
-	  gettimeofday(&now, nullptr);
-	  long elasped_us =
-		  (now.tv_sec - start.tv_sec) * 1000000L +
-		  (now.tv_usec - start.tv_usec);
-	  if (elapsed_us > 5000000) {
-		  printf( "ERROR: Timeout waiting for EPRX group %d state to reach FREE RUNNING. Current state = %d\n",
-				  group, state);
-		  return;
-	  }
-	  usleep(1000);
+    if (state == 3) break;
+    gettimeofday(&now, nullptr);
+    long elasped_us =
+        (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
+    if (elapsed_us > 5000000) {
+      printf(
+          "ERROR: Timeout waiting for EPRX group %d state to reach FREE "
+          "RUNNING. Current state = %d\n",
+          group, state);
+      return;
+    }
+    usleep(1000);
   }
 
   // Have BERT monitor channel
@@ -467,7 +467,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
                              : data_rate_code == 2 ? 16
                              : data_rate_code == 3 ? 32
-                               	        	   : 0);
+                                                   : 0);
 
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
   uint64_t bits_per_cycle = 32;  // hardcoded for now
