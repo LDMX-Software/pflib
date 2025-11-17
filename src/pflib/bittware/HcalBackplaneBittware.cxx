@@ -1,5 +1,6 @@
 #include "pflib/HcalBackplane.h"
 #include "pflib/bittware/bittware_optolink.h"
+#include "pflib/bittware/bittware_FastControl.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -299,9 +300,9 @@ class HcalBackplaneBW : public HcalBackplane {
     elinks_ = std::make_unique<OptoElinksBW>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<HcalBackplaneBW_Capture>();
-
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
     */
+
+    fc_ = std::make_shared<BWFastControl>();
   }
 
   virtual void softResetROC(int which) override {
@@ -354,7 +355,7 @@ class HcalBackplaneBW : public HcalBackplane {
   }
 
   virtual FastControl& fc() override {
-    PFEXCEPTION_RAISE("NoImpl", "FastControl not implemented");
+    return *fc_;
   }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
@@ -374,7 +375,7 @@ class HcalBackplaneBW : public HcalBackplane {
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   // std::unique_ptr<OptoElinksBW> elinks_;
   // std::unique_ptr<HcalBackplaneBW_Capture> daq_;
-  // std::shared_ptr<pflib::FastControl> fc_;
+  std::shared_ptr<pflib::bittware::BWFastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
 };
