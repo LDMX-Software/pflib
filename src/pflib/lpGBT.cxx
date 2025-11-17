@@ -1,6 +1,7 @@
 #include "pflib/lpGBT.h"
 
 #include <unistd.h>
+#include <sys/time.h>
 
 namespace pflib {
 
@@ -407,6 +408,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Wait for channel lock?
   struct timeval start, now;
+  uint8_t state = 0;
   gettimeofday(&start, nullptr);
   while (true) {
     uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
@@ -414,7 +416,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
     if (state == 3) break;
     gettimeofday(&now, nullptr);
-    long elasped_us =
+    long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     if (elapsed_us > 5000000) {
       printf(
@@ -433,7 +435,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   tport_.write_reg(REG_BERTSOURCE, bert_source_byte);
 
   // Reset BERT
-  tport.write_reg(REG_BERTCONFIG, 0x00);
+  tport_.write_reg(REG_BERTCONFIG, 0x00);
   usleep(1000);
 
   // Start BERT
@@ -464,10 +466,10 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Calculate BER
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
 
-  uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
-                             : data_rate_code == 2 ? 16
-                             : data_rate_code == 3 ? 32
-                                                   : 0);
+  // uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
+  //                            : data_rate_code == 2 ? 16
+  //                            : data_rate_code == 3 ? 32
+  //                                                  : 0);
 
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
   uint64_t bits_per_cycle = 32;  // hardcoded for now
