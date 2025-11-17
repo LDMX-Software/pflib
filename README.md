@@ -32,7 +32,7 @@ PYTHONPATH=${PYTHONPATH}:path/to/install/lib
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)
 - app : executables and supporting source files for executables
-- config : helpful HGC ROC YAML parameter settings to load onto chips
+- config : helpful/example YAML files
 - docs : documentation generation
 - env : build context for a container image emulating the ZCU software environment
 - include : header files of pflib library
