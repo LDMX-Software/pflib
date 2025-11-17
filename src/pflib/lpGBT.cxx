@@ -403,7 +403,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Train channel
   tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
-  usleep(10000);
+  usleep(100000);
   tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
 
   // Wait for channel lock?
@@ -423,7 +423,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
           "ERROR: Timeout waiting for EPRX group %d state to reach FREE "
           "RUNNING. Current state = %d\n",
           group, state);
-      return;
+      break;
     }
     usleep(1000);
   }
