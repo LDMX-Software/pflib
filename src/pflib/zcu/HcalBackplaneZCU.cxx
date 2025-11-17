@@ -252,7 +252,8 @@ class HcalBackplaneZCU : public HcalBackplane {
     roc_i2c_ =
         std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
     roc_i2c_->set_bus_speed(1000);
-    for (int ibd = 0; ibd < 4; ibd++) {
+    for (int ibd = 0; ibd < 4; ibd++) {  // make board 1 to 2. below address should be 20. print out roc address that is being addeed. is the board skipped (next line)
+      std::cout << "continue condition: " << board_mask & (1 << ibd) << std::endl;
       if ((board_mask & (1 << ibd)) == 0) continue;
       std::shared_ptr<pflib::I2C> bias_i2c =
           std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_, I2C_BUS_BIAS,
@@ -267,6 +268,7 @@ class HcalBackplaneZCU : public HcalBackplane {
 
       add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
+       std::cout << "add_roc: " << 0x20 | (ibd * 8) << std::endl;
     }
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
