@@ -109,6 +109,50 @@ void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
   /// TODO setup eRx for training mode
 }
 
+void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
+  if (mode == ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard) {
+    lpgbt.gpio_cfg_set(4, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "POWER_EN");
+    lpgbt.gpio_set(4,true);
+    lpgbt.gpio_cfg_set(5, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG, "ROC_RE_Hb");
+    lpgbt.gpio_set(5,true);
+    lpgbt.gpio_cfg_set(6, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG, "ROC_RE_Sb");
+    lpgbt.gpio_set(6,true);
+    lpgbt.gpio_cfg_set(7, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "ECON_RE_Hb");
+    lpgbt.gpio_set(7,true);
+    lpgbt.gpio_cfg_set(8, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "ECON_RE_Sb");
+    lpgbt.gpio_set(8,true);
+
+    lpgbt.gpio_cfg_set(0, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "DELAY_PICK0");
+    lpgbt.gpio_cfg_set(1, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "DELAY_PICK1");
+    lpgbt.gpio_set(0,false);
+    lpgbt.gpio_set(1,false);
+
+    lpgbt.setup_eclk(0, 320);  // MODULE0 CLK320
+    lpgbt.setup_eclk(7, 40);   // REFCLK_TO_TRIG
+    
+    lpgbt.setup_etx(0, true);  // MODULE0 FCMD
+
+    // setup the one input...
+    lpgbt.setup_erx(0, 0);
+    
+    // setup the EC link
+    lpgbt.setup_ec(false, 4, false, 0, false, true, false, true);
+    
+    // finalize the setup
+    lpgbt.finalize_setup();
+    
+  }
+  if (mode == ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard) {
+    // setup the high speed inputs
+    for (int i = 0; i < 6; i++) {
+      lpgbt.setup_erx(i, 0);
+    }
+    // finalize the setup
+    lpgbt.finalize_setup();
+  } 
+}
+
+
 }  // namespace standard_config
 }  // namespace lpgbt
 }  // namespace pflib
