@@ -66,19 +66,7 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" lpGBT-TRG PUSM %s (%d)\n", lpgbt_trg.status_name(pusm_trg).c_str(),
          pusm_trg);
 
-  // Group 0
-  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
-  constexpr uint16_t REG_EPRX0CURRENTPHASE10 = 0x153;
-  constexpr uint16_t REG_EPRX0CURRENTPHASE32 = 0x154;
-
-  auto pre_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
-  auto pre_phase32_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE32});
-  auto pre_lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
-
   printf("\n --- PRE-PRBS STATUS ---\n");
-  // printf(" PRE: Current EPRX0 Phase10 = %d\n", pre_phase10_result);
-  //  printf(" PRE: Current EPRX0 Phase32 = %d\n", pre_phase32_result);
-  //  printf(" PRE: Is EPRX0 locked? = %d\n", pre_lock_result);
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
@@ -91,14 +79,7 @@ void align_econ_lpgbt(Target* tgt) {
   lpgbt_daq.check_prbs_errors_erx(0, 0,
                                   false);  // group 0, ch 0, false for ECON
 
-  auto post_phase10_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE10});
-  auto post_phase32_result = lpgbt_daq.read({REG_EPRX0CURRENTPHASE32});
-  auto post_lock_result = lpgbt_daq.read({REG_EPRX0LOCKED});
-
   printf("\n --- POST-PRBS STATUS ---\n");
-  // printf(" POST: Current EPRX0 Phase10 = %d\n", post_phase10_result);
-  // printf(" POST: Current EPRX0 Phase32 = %d\n", post_phase32_result);
-  // printf(" POST: Is EPRX0 locked? = %d\n", post_lock_result);
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 

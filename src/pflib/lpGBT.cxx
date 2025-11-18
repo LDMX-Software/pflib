@@ -363,21 +363,11 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
   // ignore equalization for now
 
   // adding for rx training
-  uint8_t train_bit =
-      (1 << 4) | (1 << 0);  // decimal = 17, should train ch 0 for both groups
-  tport_.write_reg(REG_EPRXTRAIN10, train_bit);
-  usleep(1000);
-  tport_.write_reg(REG_EPRXTRAIN10, 0x00);  // dessert per manual
 }
 
 void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
                                   int data_rate_code, uint8_t bert_time_code) {
-  // if (group < 0 || group > 6 || channel < 0 || channel > 3) {
-  //   std::cout << "Error: Invalid group or channel index (group="
-  //         << group << ", channel=" << channel << ")." << std::endl;
-  //   return;
-  // }
-
+  
   static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
   static uint16_t REG_EPRXPRBSBASE = 0x135;
   static uint16_t REG_EPRXTRAINBASE = 0x115;
@@ -406,7 +396,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   usleep(100000);
   tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
 
-  // Wait for channel lock?
+  // Wait for channel lock? Maybe not needed?
   struct timeval start, now;
   uint8_t state = 0;
   gettimeofday(&start, nullptr);
@@ -420,7 +410,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     if (elapsed_us > 5000000) {
       printf(
-          "ERROR: Timeout waiting for EPRX group %d state to reach FREE "
+          " Timeout waiting for EPRX group %d state to reach FREE "
           "RUNNING. Current state = %d\n",
           group, state);
       break;
@@ -466,11 +456,6 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Calculate BER
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
 
-  // uint64_t bits_per_cycle = (data_rate_code == 1   ? 8
-  //                            : data_rate_code == 2 ? 16
-  //                            : data_rate_code == 3 ? 32
-  //                                                  : 0);
-
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
   uint64_t bits_per_cycle = 32;  // hardcoded for now
   uint64_t bits_checked = clocks * bits_per_cycle;
@@ -481,6 +466,9 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   printf(" Group %d, Channel %d BER = %.6f (%ld errors in %ld bits)\n", group,
          channel, ber, errors, bits_checked);
+
+  // Turn of lpgbt prbs if left on
+  tport_.write_reg(REG_EPRXPRBS0, 0x00);
 }
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
