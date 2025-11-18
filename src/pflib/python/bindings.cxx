@@ -7,9 +7,9 @@
 
 #include "logging.h"
 #include "packing.h"
-#include "pflib/Target.h"
-#include "pflib/HcalBackplane.h"
 #include "pflib/Bias.h"
+#include "pflib/HcalBackplane.h"
+#include "pflib/Target.h"
 #include "version.h"
 
 /**
@@ -33,7 +33,7 @@ class PyTarget {
   /// our handle to the pflib::Target
   std::shared_ptr<pflib::Target> tgt_;
 
-  void parse_config(bp::dict config){
+  void parse_config(bp::dict config) {
     std::cout << "creating { ";
     for (auto it = bp::stl_input_iterator<bp::tuple>(config.items());
          it != bp::stl_input_iterator<bp::tuple>(); it++) {
@@ -44,12 +44,11 @@ class PyTarget {
     }
     std::cout << "}" << std::endl;
   }
+
  public:
   /// construct a PyTarget given some arbitrary Python dict of parameters
-  //virtual PyTarget(bp::dict config) {
-  PyTarget(bp::dict config){
-    parse_config(config); 
-  };
+  // virtual PyTarget(bp::dict config) {
+  PyTarget(bp::dict config) { parse_config(config); };
   void configure() {
     // apply configuration stuff
     std::cout << "configure" << std::endl;
@@ -61,12 +60,16 @@ class PyTarget {
                     42 /* contrib_id */);
   }
 
-  virtual void trigger_align() { std::cout << "PyTarget trigger_align()" << std::endl; }
-  virtual void ror_latency() { std::cout << "PyTarget ror_latency()" << std::endl; }
+  virtual void trigger_align() {
+    std::cout << "PyTarget trigger_align()" << std::endl;
+  }
+  virtual void ror_latency() {
+    std::cout << "PyTarget ror_latency()" << std::endl;
+  }
   virtual void go() { std::cout << "PyTarget go()" << std::endl; }
   virtual void stop() { std::cout << "PyTarget stop()" << std::endl; }
   virtual void reset() { std::cout << "PyTarget reset()" << std::endl; }
-  
+
   /// should not use in actual DAQ
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
@@ -74,19 +77,20 @@ class PyTarget {
     return tgt_->read_event();
   }
   // Dumps the configs of all active ROCs to file
-  void dump_rocs(bp::str fname_prefix){
+  void dump_rocs(bp::str fname_prefix) {
     std::string sfname_prefix = bp::extract<std::string>(fname_prefix);
     std::vector<int> roc_ids{tgt_->roc_ids()};
     for (int iroc : roc_ids) {
-      std::string sfname = sfname_prefix + "_iroc_" + std::to_string(iroc) + ".yaml";
-      //Refactor
+      std::string sfname =
+          sfname_prefix + "_iroc_" + std::to_string(iroc) + ".yaml";
+      // Refactor
       auto roc = tgt_->roc(iroc);
       roc.dumpSettings(sfname, false);
     }
   }
-  void load_roc(int iroc, bp::str fname){
+  void load_roc(int iroc, bp::str fname) {
     std::string sfname = bp::extract<std::string>(fname);
-    //Refactor
+    // Refactor
     auto roc = tgt_->roc(iroc);
     roc.loadRegisters(sfname);
   }
@@ -124,35 +128,34 @@ static const char* PyTarget_load_roc__doc__ =
 Loads ROC registers from .yaml file
 )DOC";
 
-
 class PyTargetHCal : public PyTarget {
-protected:
-
+ protected:
   void makeTarget() {
     tgt_.reset(
-        //TODO Change to Bittware target
+        // TODO Change to Bittware target
         pflib::makeTargetFiberless());
   }
-public:
-  PyTargetHCal(bp::dict config) : PyTarget(config){
-    makeTarget();
-  }
+
+ public:
+  PyTargetHCal(bp::dict config) : PyTarget(config) { makeTarget(); }
 
   /*
    *  HCal specific state transitions if needed
    */
-  //void trigger_align() { std::cout << "PyTargetHCal trigger_align()" << std::endl; }
-  //void ror_latency() { std::cout << "PyTargeHCal ror_latency()" << std::endl; }
-  //void go() { std::cout << "PyTargetHCal go()" << std::endl; }
-  //void stop() { std::cout << "PyTargetHCal stop()" << std::endl; }
-  //void reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
+  // void trigger_align() { std::cout << "PyTargetHCal trigger_align()" <<
+  // std::endl; } void ror_latency() { std::cout << "PyTargeHCal ror_latency()"
+  // << std::endl; } void go() { std::cout << "PyTargetHCal go()" << std::endl;
+  // } void stop() { std::cout << "PyTargetHCal stop()" << std::endl; } void
+  // reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
 
   int read_sipm_bias(int iroc, int ch) {
-    pflib::Bias bias = std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
+    pflib::Bias bias =
+        std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
     return bias.readSiPM(ch);
   }
   void set_sipm_bias(int iroc, int ch, int dac) {
-    pflib::Bias bias = std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
+    pflib::Bias bias =
+        std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
     bias.setSiPM(ch, dac);
   }
 };
@@ -178,24 +181,22 @@ Sets SiPM bias
 )DOC";
 
 class PyTargetECal : public PyTarget {
-protected:
-
+ protected:
   void makeTarget() {
-    //tgt_.reset(
-    //    pflib::makeTargetECal());
+    // tgt_.reset(
+    //     pflib::makeTargetECal());
   }
-public:
-  PyTargetECal(bp::dict config) : PyTarget(config){
-    makeTarget();
-  }
+
+ public:
+  PyTargetECal(bp::dict config) : PyTarget(config) { makeTarget(); }
   /*
    *  ECal specific state transitions if needed
    */
-  //void trigger_align() { std::cout << "PyTargetECal trigger_align()" << std::endl; }
-  //void ror_latency() { std::cout << "PyTargeECal ror_latency()" << std::endl; }
-  //void go() { std::cout << "PyTargetECal go()" << std::endl; }
-  //void stop() { std::cout << "PyTargetECal stop()" << std::endl; }
-  //void reset() { std::cout << "PyTargetECal reset()" << std::endl; }
+  // void trigger_align() { std::cout << "PyTargetECal trigger_align()" <<
+  // std::endl; } void ror_latency() { std::cout << "PyTargeECal ror_latency()"
+  // << std::endl; } void go() { std::cout << "PyTargetECal go()" << std::endl;
+  // } void stop() { std::cout << "PyTargetECal stop()" << std::endl; } void
+  // reset() { std::cout << "PyTargetECal reset()" << std::endl; }
 };
 
 static const char* PyTargetECal__doc__ =
@@ -223,18 +224,18 @@ BOOST_PYTHON_MODULE(pypflib) {
       .def("reset", &PyTarget::reset)
       .def("grab_pedestals", &PyTarget::grab_pedestals,
            PyTarget_grab_pedestals__doc__)
-      .def("dump_rocs", &PyTarget::dump_rocs,
-           PyTarget_dump_rocs__doc__)
-      .def("load_roc", &PyTarget::load_roc,
-          PyTarget_load_roc__doc__);
+      .def("dump_rocs", &PyTarget::dump_rocs, PyTarget_dump_rocs__doc__)
+      .def("load_roc", &PyTarget::load_roc, PyTarget_load_roc__doc__);
 
-  bp::class_<PyTargetHCal, bp::bases<PyTarget>>("PyTargetHCal", PyTargetHCal__doc__,
+  bp::class_<PyTargetHCal, bp::bases<PyTarget>>(
+      "PyTargetHCal", PyTargetHCal__doc__,
       bp::init<bp::dict>(PyTarget__init____doc__,
-    (bp::arg("config") = bp::dict())))
-    .def("read_sipm_bias", &PyTargetHCal::read_sipm_bias)
-    .def("set_sipm_bias", &PyTargetHCal::set_sipm_bias);
+                         (bp::arg("config") = bp::dict())))
+      .def("read_sipm_bias", &PyTargetHCal::read_sipm_bias)
+      .def("set_sipm_bias", &PyTargetHCal::set_sipm_bias);
 
-  bp::class_<PyTargetECal, bp::bases<PyTarget>>("PyTargetECal", PyTargetECal__doc__,
+  bp::class_<PyTargetECal, bp::bases<PyTarget>>(
+      "PyTargetECal", PyTargetECal__doc__,
       bp::init<bp::dict>(PyTarget__init____doc__,
-    (bp::arg("config") = bp::dict())));
+                         (bp::arg("config") = bp::dict())));
 }
