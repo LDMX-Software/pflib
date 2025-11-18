@@ -50,10 +50,13 @@ void print_roc_status(pflib::ROC& roc) {
 }
 
 void align_phase_word(Target* tgt) {
-  debug_checks = pftool::readline_bool("Enable debug checks?", false);
+  debug_checks = pftool::readline_bool("Enable debug checks?", true);
 
-  auto roc = tgt->roc(pftool::state.iroc);
-  auto econ = tgt->econ(pftool::state.iecon);
+  int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
+  int iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+
+  auto roc = tgt->roc(iroc);
+  auto econ = tgt->econ(iecon);
 
   // TODO: get channels from user
   std::vector<int> channels = {6, 7};
