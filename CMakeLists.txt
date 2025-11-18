@@ -111,6 +111,8 @@ set(pflib_src
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
+  src/pflib/zcu/zcu_elinks.cxx
+  src/pflib/zcu/zcu_DAQ.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplaneZCU.cxx
   src/pflib/Bias.cxx
