@@ -26,7 +26,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-lut_of_luts_type = 'const std::map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>'
+lut_of_luts_type = 'const std::unordered_map<std::string, std::pair<const PageLUT&, const ParameterLUT&>>'
 
 with open(args.output_header, 'w') as f:
     f.write('/* auto generated from scratch */\n\n')

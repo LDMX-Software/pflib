@@ -11,7 +11,7 @@
 #pragma once
 
 // need maps and strings for the LUTs
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -91,9 +91,9 @@ struct DirectAccessParameter {
  * ```
  */
 template <typename Key, typename Val>
-class NoCopyMap : public std::map<Key, Val> {
+class NoCopyMap : public std::unordered_map<Key, Val> {
  public:
-  using Mapping = std::map<Key, Val>;
+  using Mapping = std::unordered_map<Key, Val>;
   NoCopyMap(const NoCopyMap&) = delete;
   NoCopyMap& operator=(const NoCopyMap&) = delete;
   /**
