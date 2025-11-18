@@ -8,6 +8,8 @@
 #include "logging.h"
 #include "packing.h"
 #include "pflib/Target.h"
+#include "pflib/HcalBackplane.h"
+#include "pflib/Bias.h"
 #include "version.h"
 
 /**
@@ -78,14 +80,14 @@ class PyTarget {
     for (int iroc : roc_ids) {
       std::string sfname = sfname_prefix + "_iroc_" + std::to_string(iroc) + ".yaml";
       //Refactor
-      auto roc = tgt_->hcal().roc(iroc);
+      auto roc = tgt_->roc(iroc);
       roc.dumpSettings(sfname, false);
     }
   }
   void load_roc(int iroc, bp::str fname){
     std::string sfname = bp::extract<std::string>(fname);
     //Refactor
-    auto roc = tgt_->hcal().roc(iroc);
+    auto roc = tgt_->roc(iroc);
     roc.loadRegisters(sfname);
   }
 };
@@ -125,8 +127,10 @@ Loads ROC registers from .yaml file
 
 class PyTargetHCal : public PyTarget {
 protected:
+
   void makeTarget() {
     tgt_.reset(
+        //TODO Change to Bittware target
         pflib::makeTargetFiberless());
   }
 public:
@@ -144,11 +148,11 @@ public:
   //void reset() { std::cout << "PyTargetHCal reset()" << std::endl; }
 
   int read_sipm_bias(int iroc, int ch) {
-    pflib::Bias bias = tgt_->hcal().bias(iroc);
+    pflib::Bias bias = std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
     return bias.readSiPM(ch);
   }
   void set_sipm_bias(int iroc, int ch, int dac) {
-    pflib::Bias bias = tgt_->hcal().bias(iroc);
+    pflib::Bias bias = std::dynamic_pointer_cast<pflib::HcalBackplane>(tgt_)->bias(iroc);
     bias.setSiPM(ch, dac);
   }
 };
@@ -175,6 +179,7 @@ Sets SiPM bias
 
 class PyTargetECal : public PyTarget {
 protected:
+
   void makeTarget() {
     //tgt_.reset(
     //    pflib::makeTargetECal());
