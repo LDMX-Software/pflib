@@ -367,7 +367,6 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
 
 void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
                                   int data_rate_code, uint8_t bert_time_code) {
-  
   static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
   static uint16_t REG_EPRXPRBSBASE = 0x135;
   static uint16_t REG_EPRXTRAINBASE = 0x115;
