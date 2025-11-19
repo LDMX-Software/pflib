@@ -900,9 +900,9 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link);
+    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link, "/dev/datadev_1");
     t.olink_daq = odaq;
-    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq);
+    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq, "/dev/datadev_1");
 #endif
   }
 

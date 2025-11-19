@@ -10,9 +10,9 @@ static constexpr uint32_t GTY_QUAD_BASE_ADDRESS =
 static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS =
     0x3000;  // compiled into the firmware
 
-BWOptoLink::BWOptoLink(int ilink)
-    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF), ilink_(ilink), isdaq_(true) {
-  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF);
+BWOptoLink::BWOptoLink(int ilink, const char* dev)
+    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF, dev), ilink_(ilink), isdaq_(true) {
+  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF, dev);
   iceccoder_ = coder_;
   /*
   auto vers = coder_->read(0);
@@ -26,9 +26,9 @@ BWOptoLink::BWOptoLink(int ilink)
       std::make_unique<BWlpGBT_Transport>(*iceccoder_, ilink, chipaddr, isdaq_);
 }
 
-BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
-    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF), ilink_(ilink), isdaq_(false) {
-  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF);
+BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink, const char* dev)
+    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF, dev), ilink_(ilink), isdaq_(false) {
+  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF, dev);
   iceccoder_ = daqlink.iceccoder_;
 
   int chipaddr = 0x78;  // EC
