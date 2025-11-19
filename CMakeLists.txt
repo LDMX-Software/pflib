@@ -111,8 +111,12 @@ set(pflib_src
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
+  src/pflib/zcu/zcu_elinks.cxx
+  src/pflib/zcu/zcu_DAQ.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplaneZCU.cxx
+  src/pflib/zcu/EcalSMMTarget.cxx
+  src/pflib/Ecal.cxx
   src/pflib/Bias.cxx
 )
 
@@ -120,6 +124,7 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/bittware_FastControl.cxx
     src/pflib/bittware/HcalBackplaneBittware.cxx
     )
 endif()
