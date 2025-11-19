@@ -238,9 +238,12 @@ def compile_registers(yaml_file, output_file):
     with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
 
-    econ_type =	"d" if "ECOND" in yaml_file else "t"
-    if "test" in yaml_file:
+    filename = Path(yaml_file).stem
+
+    econ_type =	"d" if "ECOND" in filename else "t"
+    if "test" in filename:
         econ_type += "_test"
+
     content = generate_header(yaml_file, data, econ_type)
     with open(output_file, "w") as f:
         f.write(content)

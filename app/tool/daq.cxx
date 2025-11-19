@@ -56,6 +56,9 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+    } else if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
+      printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
+      pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else {
       printf("Format options:\n");
       printf(" (1) ROC with ad-hoc headers as in TB2022\n");
@@ -162,6 +165,9 @@ static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
   if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
+  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
     pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   }
 

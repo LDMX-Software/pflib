@@ -151,6 +151,12 @@ void general(const std::string& cmd, ToolBox* target) {
     pflib::lpgbt::standard_config::setup_hcal_trig(*target->lpgbt_ec);
     printf("Applied standard HCAL TRIG configuration\n");
   }
+  if (cmd == "STANDARD_ECAL") {
+    pflib::lpgbt::standard_config::setup_ecal(
+        *target->lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               DAQ_SingleModuleMotherboard);
+    printf("Applied standard ECAL DAQ configuration\n");
+  }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->coder_name);
     printf("MODE1 = 1 for Transceiver, MODE1=0 for Transmit-only\n");
@@ -752,6 +758,7 @@ auto gen =
         ->line("STATUS", "Status summary", general)
         ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
         ->line("STANDARD_HCAL", "Apply standard HCAL lpGBT setups", general)
+        ->line("STANDARD_ECAL", "Apply standard ECAL lpGBT setups", general)
         ->line("EXPERT_STANDARD_HCAL_DAQ",
                "Apply just standard HCAL DAQ lpGBT setup", general)
         ->line("EXPERT_STANDARD_HCAL_TRIG",

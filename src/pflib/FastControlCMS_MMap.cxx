@@ -246,7 +246,8 @@ class FastControlCMS_MMap : public FastControl {
   void bx_custom(int bx_addr, int bx_mask, int bx_new) {
     uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
     uint32_t bxout2 = uio_.read(bx_addr);
-    // // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
+    printf("Read FC BX: %d\n", bxout2);
+    // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
     // std::cout << "readMasked (after write): " << bx_out << std::endl;
   }
 
