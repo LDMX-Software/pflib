@@ -17,6 +17,10 @@ constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 
 using pflib::packing::hex;
 
+void reset_stream(){
+  std::cout << std::dec << std::setfill(' ');
+}
+
 uint32_t build_channel_mask(std::vector<int>& channels) {
   /*
     Bit wise OR comparsion between e.g. 6 and 7,
