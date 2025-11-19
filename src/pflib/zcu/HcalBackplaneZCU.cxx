@@ -3,9 +3,9 @@
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
-#include "pflib/zcu/zcu_optolink.h"
-#include "pflib/zcu/zcu_elinks.h"
 #include "pflib/zcu/zcu_daq.h"
+#include "pflib/zcu/zcu_elinks.h"
+#include "pflib/zcu/zcu_optolink.h"
 
 namespace pflib {
 

@@ -34,7 +34,6 @@ static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
-
 ZCU_Capture::ZCU_Capture() : DAQ(1), capture_("econd-buffer-0") {
   //    printf("Firmware type and version: %08x %08x
   //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
@@ -50,8 +49,7 @@ void ZCU_Capture::reset() {
 int ZCU_Capture::getEventOccupancy() {
   capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);  // get on page 0
   if (per_econ_)
-    return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) /
-        samples_per_ror();
+    return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) / samples_per_ror();
   else if (capture_.readMasked(ADDR_INFO, MASK_AXIS_NWORDS) != 0)
     return 1;
   else
@@ -66,8 +64,7 @@ void ZCU_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
 void ZCU_Capture::setup(int econid, int samples_per_ror, int soi) {
   pflib::DAQ::setup(econid, samples_per_ror, soi);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_ECON_ID, econid);
-  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET,
-                       samples_per_ror);
+  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
 }
 void ZCU_Capture::enable(bool doenable) {
@@ -104,11 +101,9 @@ std::vector<uint32_t> ZCU_Capture::getLinkData(int ilink) {
   for (uint32_t i = 0; i < words; i++) {
     if ((iold & UBITS) != (i & UBITS))  // new upper address block
       if (per_econ_)
-        capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR,
-                             (i >> 8) | 0x04);
+        capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, (i >> 8) | 0x04);
       else
-        capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR,
-                             (i >> 8) | 0x20);
+        capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, (i >> 8) | 0x20);
     retval.push_back(capture_.read(ADDR_PAGED_READ + (i & LBITS)));
   }
   return retval;
@@ -143,5 +138,5 @@ std::map<std::string, uint32_t> ZCU_Capture::get_debug(uint32_t ask) {
   return dbg;
 }
 
-}
+}  // namespace zcu
 }  // namespace pflib

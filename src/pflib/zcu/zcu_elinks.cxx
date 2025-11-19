@@ -1,4 +1,5 @@
 #include "pflib/zcu/zcu_elinks.h"
+
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -53,5 +54,5 @@ int OptoElinksZCU::getBitslip(int ilink) {
   return (val >> ((ilink % 6) * 5)) & 0x1F;
 }
 
-}
+}  // namespace zcu
 }  // namespace pflib

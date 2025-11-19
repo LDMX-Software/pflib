@@ -2,15 +2,15 @@
 #include "pflib/Target.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
-#include "pflib/zcu/zcu_optolink.h"
-#include "pflib/zcu/zcu_elinks.h"
 #include "pflib/zcu/zcu_daq.h"
+#include "pflib/zcu/zcu_elinks.h"
+#include "pflib/zcu/zcu_optolink.h"
 
 namespace pflib {
 
 static constexpr int ADDR_ECAL_SMM_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_ECAL_SMM_TRIG = 0x78;
-static constexpr int I2C_BUS_M0 = 1; 
+static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetZCU : public Target {
  public:
@@ -19,7 +19,7 @@ class EcalSMMTargetZCU : public Target {
     // first, setup the optical links
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
-    
+
     daq_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
         uio_coder, false, ADDR_ECAL_SMM_DAQ);
     trig_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
@@ -27,8 +27,9 @@ class EcalSMMTargetZCU : public Target {
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
     trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
 
-    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
-    
+    ecalModule_ =
+        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
+
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<ZCU_Capture>();
@@ -43,35 +44,30 @@ class EcalSMMTargetZCU : public Target {
       printf("Problem (non critical) setting up TRIGGER lpgbt\n");
     }
 
-
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
-  
+
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
-  virtual bool have_econ(int iecon) const { return ecalModule_->have_econ(iecon); }
+  virtual bool have_econ(int iecon) const {
+    return ecalModule_->have_econ(iecon);
+  }
   virtual std::vector<int> roc_ids() const { return ecalModule_->roc_ids(); }
-  virtual std::vector<int> econ_ids() const {return ecalModule_->econ_ids(); }
+  virtual std::vector<int> econ_ids() const { return ecalModule_->econ_ids(); }
 
   virtual ROC& roc(int which) { return ecalModule_->roc(which); }
   virtual ECON& econ(int which) { return ecalModule_->econ(which); }
-  
-  virtual void softResetROC(int which) override {
-    ecalModule_->softResetROC();
-  }
+
+  virtual void softResetROC(int which) override { ecalModule_->softResetROC(); }
 
   virtual void softResetECON(int which = -1) override {
     ecalModule_->softResetECON();
   }
 
-  virtual void hardResetROCs() override {
-    ecalModule_->hardResetROCs();
-  }
+  virtual void hardResetROCs() override { ecalModule_->hardResetROCs(); }
 
-  virtual void hardResetECONs() override {
-    ecalModule_->hardResetECONs();
-  }
+  virtual void hardResetECONs() override { ecalModule_->hardResetECONs(); }
 
   virtual Elinks& elinks() override { return *elinks_; }
 
@@ -117,9 +113,6 @@ class EcalSMMTargetZCU : public Target {
   int contrib_id_;
 };
 
-Target* makeTargetEcalSMMZCU(int ilink) {
-  return new EcalSMMTargetZCU(ilink);
-}
+Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
 
 }  // namespace pflib
-

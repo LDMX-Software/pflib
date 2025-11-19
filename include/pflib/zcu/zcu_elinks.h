@@ -24,5 +24,5 @@ class OptoElinksZCU : public Elinks {
   UIO uiodecoder_;
 };
 
-}
+}  // namespace zcu
 }  // namespace pflib

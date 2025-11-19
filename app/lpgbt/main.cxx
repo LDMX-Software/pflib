@@ -152,7 +152,9 @@ void general(const std::string& cmd, ToolBox* target) {
     printf("Applied standard HCAL TRIG configuration\n");
   }
   if (cmd == "STANDARD_ECAL") {
-    pflib::lpgbt::standard_config::setup_ecal(*target->lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+    pflib::lpgbt::standard_config::setup_ecal(
+        *target->lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               DAQ_SingleModuleMotherboard);
     printf("Applied standard ECAL DAQ configuration\n");
   }
   if (cmd == "MODE") {

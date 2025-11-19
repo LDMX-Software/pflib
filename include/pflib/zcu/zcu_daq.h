@@ -30,5 +30,5 @@ class ZCU_Capture : public DAQ {
   bool per_econ_;
 };
 
-}
+}  // namespace zcu
 }  // namespace pflib

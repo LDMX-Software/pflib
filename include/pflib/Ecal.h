@@ -1,10 +1,11 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
-#include "pflib/I2C.h"
+
 #include "pflib/ECON.h"
+#include "pflib/I2C.h"
 #include "pflib/ROC.h"
 #include "pflib/lpGBT.h"
 
@@ -17,27 +18,27 @@ namespace pflib {
 class EcalModule {
  public:
   EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber);
-  
+
   /** number of hgcrocs */
   int nrocs() const { return 6; }
   /// number of econds
-  int necons() const  { return 2; }
+  int necons() const { return 2; }
 
   /** do we have a roc with this id? */
-  bool have_roc(int iroc) const { return iroc>=0 && iroc<=nrocs(); }
+  bool have_roc(int iroc) const { return iroc >= 0 && iroc <= nrocs(); }
 
   static constexpr const int ECON_D = 0;
   static constexpr const int ECON_T = 1;
-  
+
   /** do we have an econ with this id? */
-  bool have_econ(int iecon) const  { return iecon==ECON_D || iecon==ECON_T; }
+  bool have_econ(int iecon) const { return iecon == ECON_D || iecon == ECON_T; }
 
   /** get a list of the IDs we have set up */
-  std::vector<int> roc_ids() const ;
+  std::vector<int> roc_ids() const;
 
   /** get a list of the econ IDs we have set up */
-  std::vector<int> econ_ids() const ;
-  
+  std::vector<int> econ_ids() const;
+
   /** Get a ROC interface for the given HGCROC */
   ROC& roc(int which);
 
@@ -68,14 +69,14 @@ class EcalModule {
 
 class EcalMotherboard {
  public:
-  EcalMotherboard() { }
+  EcalMotherboard() {}
   /// create a module
   void createModule(int imodule, lpGBT& lpGBT, int i2cbus);
   /// get a module
   EcalModule& module(int imodule);
+
  private:
   std::vector<std::shared_ptr<EcalModule*>> modules_;
 };
-
 
 }  // namespace pflib

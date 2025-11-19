@@ -338,8 +338,7 @@ int main(int argc, char* argv[]) {
       // need ilink to be in configuration
       auto ilink = target.get<int>("ilink");
       if (ilink < 0 or ilink > 1) {
-        PFEXCEPTION_RAISE("BadLink",
-                          "ZCU EcalSMM ilink can only be 0 or 1");
+        PFEXCEPTION_RAISE("BadLink", "ZCU EcalSMM ilink can only be 0 or 1");
       }
       tgt.reset(pflib::makeTargetEcalSMMZCU(ilink));
       readout_cfg = pftool::State::CFG_ECALOPTO;
