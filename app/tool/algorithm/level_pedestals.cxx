@@ -19,7 +19,7 @@
  * Calib and Common Mode channels are ignored.
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
-template<class EventPacket>
+template <class EventPacket>
 static std::array<int, 72> get_adc_medians(
     const std::vector<EventPacket>& data) {
   std::array<int, 72> medians;
