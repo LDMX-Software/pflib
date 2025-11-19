@@ -158,7 +158,7 @@ add_library(pypflib SHARED
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
 add_library(menu SHARED src/pflib/menu/Menu.cc)
-target_link_libraries(menu PUBLIC readline pflib)
+target_link_libraries(menu PUBLIC readline pflib logging)
 target_include_directories(menu PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -195,7 +195,7 @@ add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
 if (${Rogue_FOUND})
   target_compile_definitions(pflpgbt PRIVATE USE_ROGUE)
 endif()
-target_link_libraries(pflpgbt PRIVATE pflib menu)
+target_link_libraries(pflpgbt PRIVATE pflib menu logging)
 
 # don't install test-menu executable! just for Menu developments
 file(GLOB_RECURSE test_menu_sources LIST_DIRECTORIES FALSE test/test_menu/*.cxx)
@@ -218,7 +218,7 @@ add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 # add pflib prefix to all our pflib libraries
-set_target_properties(pflib packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
+set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
 install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
