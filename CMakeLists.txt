@@ -115,6 +115,8 @@ set(pflib_src
   src/pflib/zcu/zcu_DAQ.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplaneZCU.cxx
+  src/pflib/zcu/EcalSMMTarget.cxx
+  src/pflib/Ecal.cxx
   src/pflib/Bias.cxx
 )
 
