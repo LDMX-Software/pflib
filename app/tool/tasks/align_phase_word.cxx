@@ -50,6 +50,7 @@ void print_roc_status(pflib::ROC& roc) {
               << "bxoffset_" << half << " = " << bx << ", " << hex(bx) << '\n'
               << "bxtrigger_" << half << " = " << bxtrig << ", " << hex(bxtrig)
               << '\n';
+    reset_stream();
   }
 }
 
@@ -72,6 +73,7 @@ void align_phase_word(Target* tgt) {
     std::cout << "Decimal value of channels: " << binary_channels << std::endl;
     std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state)
               << std::endl;
+    reset_stream();
   }
 
   if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
@@ -116,6 +118,7 @@ void align_phase_word(Target* tgt) {
       auto val = econ.readParameter("CHEPRXGRP", name);
       std::cout << "Channel_locked " << ch << " = " << val << ", " << hex(val)
                 << std::endl;
+    reset_stream();
     }
   }
   // ------ END PHASE ALIGNMENT ------ //
@@ -158,6 +161,7 @@ void align_phase_word(Target* tgt) {
       if (debug_checks) {
         std::cout << "channel_locked " << ch << " = " << val << ", " << hex(val)
                   << std::endl;
+        reset_stream();
       }
     }
 
