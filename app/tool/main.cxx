@@ -329,6 +329,19 @@ int main(int argc, char* argv[]) {
       auto boardmask = target.get<int>("boardmask", 0xff);
       tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
       readout_cfg = pftool::State::CFG_HCALOPTO;
+    } else if (target_type == "EcalSMMZCU") {
+      if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
+        pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
+                         << "' firmware is not active on ZCU.";
+        pflib_log(fatal) << "Connection will likely fail.";
+      }
+      // need ilink to be in configuration
+      auto ilink = target.get<int>("ilink");
+      if (ilink < 0 or ilink > 1) {
+        PFEXCEPTION_RAISE("BadLink", "ZCU EcalSMM ilink can only be 0 or 1");
+      }
+      tgt.reset(pflib::makeTargetEcalSMMZCU(ilink));
+      readout_cfg = pftool::State::CFG_ECALOPTO;
     } else if (target_type == "HcalBackplaneBittware") {
 #ifdef USE_ROGUE
       // need ilink to be in configuration

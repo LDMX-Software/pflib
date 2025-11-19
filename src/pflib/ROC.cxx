@@ -19,9 +19,7 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
   pflib_log(debug) << "base addr " << packing::hex(roc_base_);
 }
 
-const std::string& ROC::type() const {
-  return type_version_;
-}
+const std::string& ROC::type() const { return type_version_; }
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
