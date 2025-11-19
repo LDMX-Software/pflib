@@ -906,9 +906,11 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
+    pflib::bittware::BWOptoLink* odaq =
+        new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
     t.olink_daq = odaq;
-    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq, target_name.c_str());
+    t.olink_trig =
+        new pflib::bittware::BWOptoLink(i_link + 1, *odaq, target_name.c_str());
 #endif
   }
 

@@ -33,7 +33,8 @@ class BWOptoLink : public pflib::OptoLink {
   /// for a daq link
   BWOptoLink(int ilink = 0, const char* dev = "/dev/datadev_0");
   /// for a trigger link
-  BWOptoLink(int ilink, BWOptoLink& daqlink, const char* dev = "/dev/datadev_0");
+  BWOptoLink(int ilink, BWOptoLink& daqlink,
+             const char* dev = "/dev/datadev_0");
 
   virtual int ilink() { return ilink_; }
   virtual bool is_bidirectional() { return isdaq_; }
