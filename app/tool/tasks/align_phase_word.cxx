@@ -53,7 +53,8 @@ void align_phase_word(Target* tgt) {
   debug_checks = pftool::readline_bool("Enable debug checks?", true);
 
   int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-  int iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+  int iecon =
+      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
