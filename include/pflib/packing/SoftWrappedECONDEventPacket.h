@@ -7,10 +7,16 @@ namespace pflib::packing {
 
 /**
  * Unpack an event packet that includes an extra header inserted by
- * the software
+ * the software.
+ *
+ * This software-inserted-header is written in the `read_event` for
+ * the HcalBackplaneZCU target.
  *
  * @see ECONDEventPacket for how a single sample from a single ECOND
- * is unpacked.
+ * is unpacked. The class contains the more complicated logic and is
+ * much more stable since the hardware/firmware on the ECOND is not
+ * liable to change as quickly and the firmware/software we are
+ * writing for LDMX.
  */
 class SoftWrappedECONDEventPacket {
   /// handle to logging source

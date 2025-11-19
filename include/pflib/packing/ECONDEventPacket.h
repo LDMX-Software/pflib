@@ -4,7 +4,7 @@
 #include <bitset>
 #include <span>
 
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/Reader.h"
 
@@ -73,6 +73,18 @@ class ECONDEventPacket {
    * Construct an event packet with the number of eRx "links"
    */
   ECONDEventPacket(std::size_t n_links);
+
+  /// get ADC readout from common mode 0 of input link
+  int adc_cm0(int i_link) const;
+
+  /// get ADC readout from common mode 1 of input link
+  int adc_cm1(int i_link) const;
+
+  /// get channel Sample from a link
+  Sample channel(int i_link, int i_ch) const;
+
+  /// get calib Sample from a link half
+  Sample calib(int i_link) const;
 
   /**
    * parse into the packet from the passed data span

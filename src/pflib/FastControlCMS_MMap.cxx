@@ -9,7 +9,7 @@
 
 #include "pflib/Exception.h"
 #include "pflib/FastControl.h"
-#include "pflib/Logging.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {

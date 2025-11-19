@@ -19,8 +19,9 @@
  * Calib and Common Mode channels are ignored.
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
+template<class EventPacket>
 static std::array<int, 72> get_adc_medians(
-    const std::vector<pflib::packing::SingleROCEventPacket>& data) {
+    const std::vector<EventPacket>& data) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
