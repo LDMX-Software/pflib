@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pflib/Target.h"
+#include "../pftool.h"
 
 /**
  * @namespace pflib::algorithm
