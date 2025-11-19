@@ -1,6 +1,6 @@
 #include "pflib/HcalBackplane.h"
-#include "pflib/bittware/bittware_optolink.h"
 #include "pflib/bittware/bittware_FastControl.h"
+#include "pflib/bittware/bittware_optolink.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -354,9 +354,7 @@ class HcalBackplaneBW : public HcalBackplane {
     PFEXCEPTION_RAISE("NoImpl", "DAQ not implemented");
   }
 
-  virtual FastControl& fc() override {
-    return *fc_;
-  }
+  virtual FastControl& fc() override { return *fc_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;

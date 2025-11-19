@@ -192,15 +192,26 @@ class FastControlCMS_MMap : public FastControl {
 
   virtual void sendL1A() override { periodic(PEDESTAL_PERIODIC).request(); }
 
-  virtual std::map<std::string,uint32_t> getCmdCounters() override {
+  virtual std::map<std::string, uint32_t> getCmdCounters() override {
     static constexpr int COUNTER_START = 68;
     static constexpr int COUNTER_LAST = 80;
-    static constexpr const char* names[] = {"L1A","L1A_NZS","ORBIT_SYNC","ORBIT_COUNT_RESET",
-      "CALIB_INT","CALIB_EXT","CHIPSYNC","ECR","EBR",
-      "LINKRESET_ROCT","LINKRESET_ROCD","LINKRESET_ECONT","LINKRESET_ECOND",0
-    };
-    std::map<std::string,uint32_t> retval;
-    for (int i = COUNTER_START; i <= COUNTER_LAST; i++) retval[names[i-COUNTER_START]]=uio_.read(i);
+    static constexpr const char* names[] = {"L1A",
+                                            "L1A_NZS",
+                                            "ORBIT_SYNC",
+                                            "ORBIT_COUNT_RESET",
+                                            "CALIB_INT",
+                                            "CALIB_EXT",
+                                            "CHIPSYNC",
+                                            "ECR",
+                                            "EBR",
+                                            "LINKRESET_ROCT",
+                                            "LINKRESET_ROCD",
+                                            "LINKRESET_ECONT",
+                                            "LINKRESET_ECOND",
+                                            0};
+    std::map<std::string, uint32_t> retval;
+    for (int i = COUNTER_START; i <= COUNTER_LAST; i++)
+      retval[names[i - COUNTER_START]] = uio_.read(i);
     return retval;
   }
 

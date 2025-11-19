@@ -21,7 +21,7 @@ class BWFastControl : public FastControl {
   virtual int getL1AperROR();
   virtual void linkreset_rocs();
 
-  virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) { }
+  virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) {}
 
   virtual void linkreset_econs();
   virtual void bufferclear();
@@ -35,16 +35,16 @@ class BWFastControl : public FastControl {
   virtual int fc_get_setup_led();
 
   /** check the enables for various trigger/spill sources */
-  virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill,
-                               bool& timer_l1a);
+  virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a);
 
   /** set the enables for various trigger/spill sources */
   virtual void fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a);
+
  private:
   AxiLite axi_;
 };
 
-}
+}  // namespace bittware
 }  // namespace pflib
 
 #endif  // PFLIB_bittware_FastControl_H_

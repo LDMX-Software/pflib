@@ -80,10 +80,10 @@ static void econ_status(const std::string& cmd, Target* tgt) {
   // request that the counters are synchronously copied from internal to
   // readable registers avoiding compiler overhead for these parameters since
   // the compiler is very slow
-  if (pftool::state.iecon==0) {
-    econ.setValue(0x40f, (1<<2), 1);
+  if (pftool::state.iecon == 0) {
+    econ.setValue(0x40f, (1 << 2), 1);
   } else {
-    econ.setValue(0xce0, (1<<1), 1);
+    econ.setValue(0xce0, (1 << 1), 1);
   }
   // read fast command counters
   static const int fctrl_base = 0x3ab;

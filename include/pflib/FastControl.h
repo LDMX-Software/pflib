@@ -2,9 +2,9 @@
 #define PFLIB_FastControl_H_
 
 #include <cstdint>
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace pflib {
 
@@ -13,8 +13,8 @@ namespace pflib {
  */
 class FastControl {
  public:
-  FastControl() : l1a_per_ror_{1} { }
-  
+  FastControl() : l1a_per_ror_{1} {}
+
   /**
    * Get the counters for all the different fast control commands
    */
@@ -35,10 +35,12 @@ class FastControl {
   virtual void sendL1A() = 0;
 
   /** send a single ROR */
-  virtual void sendROR() { for (int i=0; i<l1a_per_ror_; i++) sendL1A(); }
-  
+  virtual void sendROR() {
+    for (int i = 0; i < l1a_per_ror_; i++) sendL1A();
+  }
+
   /** set the number of L1A per ROR */
-  virtual void setL1AperROR(int n) { l1a_per_ror_=n; }
+  virtual void setL1AperROR(int n) { l1a_per_ror_ = n; }
 
   /** get the number of L1A per ROR */
   virtual int getL1AperROR() { return l1a_per_ror_; }
@@ -95,6 +97,7 @@ class FastControl {
 
   /** set the period in us for the timer trigger */
   virtual void fc_timer_setup(int usdelay) {}
+
  protected:
   int l1a_per_ror_;
 };

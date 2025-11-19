@@ -262,9 +262,9 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     */
-    std::map<std::string,uint32_t> cnt = pft->fc().getCmdCounters();
+    std::map<std::string, uint32_t> cnt = pft->fc().getCmdCounters();
     for (const auto& pair : cnt) {
-      printf("  %-30s: %10u \n", pair.first.c_str(),pair.second);
+      printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
 
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
