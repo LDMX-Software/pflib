@@ -7,6 +7,14 @@ project(pflib
 	LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+# if we are in a conda environment,
+# add the conda location to our search path
+# and include its lib directory as a possible link area
+if(DEFINED ENV{CONDA_PREFIX})
+  set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}")
+  link_directories($ENV{CONDA_PREFIX}/lib)
+endif()
+
 find_package(Git)
 add_custom_target(git_version
   ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/pflib/version/cmake_version.h.in
