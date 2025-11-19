@@ -863,6 +863,12 @@ int main(int argc, char* argv[]) {
       }
       i++;
       i_link = std::stoi(argv[i]);
+      if (i + 1 == argc or argv[i + 1][0] == '-') {
+        std::cerr << "Using default BW location /dev/datadev_0" << std::endl;
+        target_name = "/dev/datadev_0";
+      } else {
+        target_name = argv[i + 1];
+      }
     }
 
     if (arg == "-s") {
@@ -900,9 +906,9 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link, "/dev/datadev_1");
+    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
     t.olink_daq = odaq;
-    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq, "/dev/datadev_1");
+    t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq, target_name.c_str());
 #endif
   }
 
