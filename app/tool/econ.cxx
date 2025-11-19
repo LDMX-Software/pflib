@@ -69,7 +69,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
     uint64_t value = pftool::readline_int("Value to write (hex): ", 0x0);
 
     econ.setValue(address, value, nbytes);
-    printf("Wrote 0x%llx to register 0x%04x (%d bytes)\n", value, address,
+    printf("Wrote 0x%lx to register 0x%04x (%d bytes)\n", value, address,
            nbytes);
   }
 }
