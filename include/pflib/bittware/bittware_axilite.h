@@ -47,6 +47,7 @@ class AxiLite {
   uint32_t mask_;      // mask (for safety)
   uint32_t antimask_;  // mask (for safety)
   int handle_;
+  bool waswrite_;
 };
 
 }  // namespace bittware

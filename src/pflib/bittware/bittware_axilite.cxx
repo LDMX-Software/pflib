@@ -21,7 +21,7 @@ AxiLite::AxiLite(const uint32_t base_address, const char* dev,
     : dev_{dev},
       base_{base_address | 0x00c00000},
       mask_{mask_space & 0xFFFFFFFCu},
-      antimask_{0xFFFFFFFFu ^ mask_} {
+      antimask_{0xFFFFFFFFu ^ mask_}, waswrite_{true} {
   auto ptr = handle_map.find(dev);
   if (ptr != handle_map.end())
     handle_ = ptr->second;
@@ -49,6 +49,10 @@ uint32_t AxiLite::read(uint32_t addr) {
                                             "Address 0x%0x is invalid", addr));
   }
   uint32_t val;
+  if (waswrite_) { // seem to need this double read, would be good to fix at firmware level...
+      dmaReadRegister(handle_, base_ | addr, &val);
+      waswrite_=false;
+  }
   dmaReadRegister(handle_, base_ | addr, &val);
   return val;
 }
@@ -59,6 +63,7 @@ void AxiLite::write(uint32_t addr, uint32_t val) {
                                             "Address 0x%0x is invalid", addr));
   }
   dmaWriteRegister(handle_, base_ | addr, val);
+  waswrite_=true;
 }
 
 static int first_bit_set(uint32_t mask) {
