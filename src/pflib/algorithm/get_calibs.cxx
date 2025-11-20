@@ -22,9 +22,9 @@ std::array<int, 72> get_calibs(Target* tgt, ROC roc, int& target_adc) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
     auto ch_page = pflib::utility::string_format("CH_%d", ch);
-    // We don't want TOT to trigger because our ADC will go to -1. We therefore set
-    // the TOA_VREF to 0. This is not pretty but I couldn't find any other parameter
-    // to set to turn of the TOT overwriting the ADC.
+    // We don't want TOT to trigger because our ADC will go to -1. We therefore
+    // set the TOA_VREF to 0. This is not pretty but I couldn't find any other
+    // parameter to set to turn of the TOT overwriting the ADC.
     auto test_param_handle = roc.testParameters()
                                  .add(refvol_page, "INTCTEST", 1)
                                  .add(refvol_page, "CHOICE_CINJ", 1)
@@ -43,10 +43,10 @@ std::array<int, 72> get_calibs(Target* tgt, ROC roc, int& target_adc) {
       usleep(10);
       std::vector<int> adcs;
       auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-      // We need to scan different BXs because the max adc is not neccessarilly in
-      // the first one. Need to add phase scan here as well.
-      // Currently the bx scan is not working for some reason. Needs a fix.
-      //for (int bx = 0; bx < nr_bx; bx++) {
+      // We need to scan different BXs because the max adc is not neccessarilly
+      // in the first one. Need to add phase scan here as well. Currently the bx
+      // scan is not working for some reason. Needs a fix.
+      // for (int bx = 0; bx < nr_bx; bx++) {
       //  tgt->fc().fc_setup_calib(central_charge_to_l1a + bx);
       //  usleep(10);
       //  tgt->daq_run("CHARGE", buffer, 1, 100);
