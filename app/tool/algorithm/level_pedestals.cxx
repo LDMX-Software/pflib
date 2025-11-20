@@ -19,6 +19,64 @@
  * Calib and Common Mode channels are ignored.
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
+
+// Helper function to pull the 3 runs
+template <class EventPacket>  
+static void pedestal_runs(
+    Target* tgt, ROC& roc,
+    std::array<int,72>& baseline,
+    std::array<int,72>& highend,
+    std::array<int,72>& lowend,
+    std::array<int,2>& target,
+    size_t n_events)
+    {
+    DecodeAndBuffer<EP> buffer{n_events};
+
+    {//baseline run scope
+      pflib_log(info) << "100 event baseline run";
+      auto test_handle = roc.testParameters()
+                            .add_all_channels("SIGN_DAC", 0)
+                            .add_all_channels("DACB", 0)
+                            .add_all_channels("TRIM_INV", 0)
+                            .apply();
+      daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+      pflib_log(trace) << "baseline run done, getting channel medians";
+      auto medians = get_adc_medians(buffer.get_buffer());
+      baseline = medians;
+      pflib_log(trace) << "got channel medians, getting link medians";
+      for (int i_link{0}; i_link < 2; i_link++) {
+        auto start{medians.begin() + 36 * i_link};
+        auto end{start + 36};
+        auto halfway{start + 18};
+        std::nth_element(start, halfway, end);
+        target[i_link] = *halfway;
+      }
+      pflib_log(trace) << "got link medians";
+    }
+
+    {  // highend run scope
+      pflib_log(info) << "100 event highend run";
+      auto test_handle = roc.testParameters()
+                            .add_all_channels("SIGN_DAC", 0)
+                            .add_all_channels("DACB", 0)
+                            .add_all_channels("TRIM_INV", 63)
+                            .apply();
+      daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+      highend = get_adc_medians(buffer.get_buffer());
+    }
+
+    {  // lowend run
+      pflib_log(info) << "100 event lowend run";
+      auto test_handle = roc.testParameters()
+                            .add_all_channels("SIGN_DAC", 1)
+                            .add_all_channels("DACB", 31)
+                            .add_all_channels("TRIM_INV", 0)
+                            .apply();
+      daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+      lowend = get_adc_medians(buffer.get_buffer());
+    }
+  }
+
 template <class EventPacket>
 static std::array<int, 72> get_adc_medians(
     const std::vector<EventPacket>& data) {
@@ -53,56 +111,28 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
-  DecodeAndBuffer buffer{n_events};
 
-  // for future devs:
-  //   I do this weird extra brackets to limit the scope
-  //   of the test_handle object and force it to destruct
-  //   after the run is over (unsetting the parameters).
+  // DecodeAndBuffer buffer{n_events};
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
 
-  {  // baseline run
-    pflib_log(info) << "100 event baseline run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 0)
-                           .add_all_channels("DACB", 0)
-                           .add_all_channels("TRIM_INV", 0)
-                           .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    pflib_log(trace) << "baseline run done, getting channel medians";
-    auto medians = get_adc_medians(buffer.get_buffer());
-    baseline = medians;
-    pflib_log(trace) << "got channel medians, getting link medians";
-    for (int i_link{0}; i_link < 2; i_link++) {
-      auto start{medians.begin() + 36 * i_link};
-      auto end{start + 36};
-      auto halfway{start + 18};
-      std::nth_element(start, halfway, end);
-      target[i_link] = *halfway;
-    }
-    pflib_log(trace) << "got link medians";
+    pedestal_runs<pflib::packing::SingleROCEventPacket>(
+            tgt, roc, baseline, highend, lowend, target, n_events);
+
+  }
+  else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
+
+    pedestal_runs<pflib::packing::SoftWrappedECONDEventPacket>(
+            tgt, roc, baseline, highend, lowend, target, n_events);
+
+  }
+  else {
+      pflib_log(warn) 
+          << "Unsupported DAQ format ("
+          << static_cast<int>(pftool::state.daq_format_mode)
+          << ") in level_pedestals. Skipping pedestal leveling...";
   }
 
-  {  // highend run
-    pflib_log(info) << "100 event highend run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 0)
-                           .add_all_channels("DACB", 0)
-                           .add_all_channels("TRIM_INV", 63)
-                           .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    highend = get_adc_medians(buffer.get_buffer());
-  }
 
-  {  // lowend run
-    pflib_log(info) << "100 event lowend run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 1)
-                           .add_all_channels("DACB", 31)
-                           .add_all_channels("TRIM_INV", 0)
-                           .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    lowend = get_adc_medians(buffer.get_buffer());
-  }
 
   pflib_log(info) << "sample collections done, deducing settings";
   std::map<std::string, std::map<std::string, uint64_t>> settings;
