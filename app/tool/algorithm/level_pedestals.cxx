@@ -20,7 +20,6 @@
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
 
-
 namespace pflib::algorithm {
 
 // Helper function to pull the 3 runs
@@ -91,7 +90,6 @@ static std::array<int, 72> get_adc_medians(
   }
   return medians;
 }
-
 
 std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     Target* tgt, ROC roc) {
