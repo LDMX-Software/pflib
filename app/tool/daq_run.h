@@ -10,8 +10,8 @@
 
 #include "pflib/Target.h"
 #include "pflib/logging/Logging.h"
-#include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"  // in place of SoftWrappedECONDEventPacket.h
+#include "pflib/packing/SingleROCEventPacket.h"
 
 /**
  * Abstract base class for consuming event packets

@@ -23,11 +23,14 @@
 namespace pflib::algorithm {
 
 // Helper function to pull the 3 runs
-template <class EventPacket> // any use of <EventPacket> is a placeholder for what the function gets called with. 
-static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
-                          std::array<int, 72>& highend,
-                          std::array<int, 72>& lowend,
-                          std::array<int, 2>& target, size_t n_events) {
+template <class EventPacket>  // any use of <EventPacket> is a placeholder for
+                              // what the function gets called with.
+                              static void pedestal_runs(
+                                  Target* tgt, ROC& roc,
+                                  std::array<int, 72>& baseline,
+                                  std::array<int, 72>& highend,
+                                  std::array<int, 72>& lowend,
+                                  std::array<int, 2>& target, size_t n_events) {
   DecodeAndBuffer<EventPacket> buffer{n_events};
 
   {  // baseline run scope
