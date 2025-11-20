@@ -1,12 +1,12 @@
 package:
   name: pflib
-  version: v3.9.0 #{{ environ.get('GIT_DESCRIBE_TAG') }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG') | replace("-",".") }}
 source:
   path: ../..
 build:
   exclude:
-    - build/**
-    - .git/**
+    - build**
+    - .git**
 requirements:
   build:
     - {{ compiler('c') }}
