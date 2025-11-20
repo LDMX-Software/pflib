@@ -115,7 +115,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    pedestal_runs<pflib::packing::SoftWrappedECONDEventPacket>(
+    pedestal_runs<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, baseline, highend, lowend, target, n_events);
 
   } else {
