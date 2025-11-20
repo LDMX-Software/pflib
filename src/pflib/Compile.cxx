@@ -88,8 +88,8 @@ void Compiler::compile(const std::string& page_name,
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
-    pflib_log(trace) << "  " << std::to_string(sub_val) << " at " << location.reg << ", "
-                     << location.n_bits << " bits";
+    pflib_log(trace) << "  " << std::to_string(sub_val) << " at "
+                     << location.reg << ", " << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
     if (register_values[page_id].find(location.reg) ==
         register_values[page_id].end()) {
@@ -300,7 +300,7 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
         }
         pflib_log(debug) << "value " << std::hex << value;
         // keeps track of which bit in pval to place each field
-        size_t bit_cursor = 0; 
+        size_t bit_cursor = 0;
         for (const RegisterLocation& loc : spec.registers) {
           size_t byte_offset = loc.reg - first_reg;
           size_t bit_offset = 8 * byte_offset + loc.min_bit;
