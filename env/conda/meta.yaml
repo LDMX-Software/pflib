@@ -14,13 +14,14 @@ requirements:
     - git
     - cmake
     - make
-  host:
-    - boost
     - python
-    - numpy>=2.0
+    - boost
+    - rogue=v6.7.0
+    - nlohmann_json
+    - yaml-cpp
   run:
     - python
     - boost
-    - tidair-tag::rogue=v6.7.0
+    - rogue=v6.7.0
     - nlohmann_json
     - yaml-cpp
