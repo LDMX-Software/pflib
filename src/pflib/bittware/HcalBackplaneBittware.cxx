@@ -232,12 +232,11 @@ class HcalBackplaneBW_Capture : public DAQ {
 
 class HcalBackplaneBW : public HcalBackplane {
  public:
-  HcalBackplaneBW(int itarget, uint8_t board_mask,
-                  const char* dev = "/dev/datadev_0") {
+  HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
     // first, setup the optical links
     daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget, dev);
     trig_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(
-        itarget + 1, *daq_olink_, dev);
+        itarget + 1, *daq_olink_);
 
     // then get the lpGBTs from them
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
@@ -303,7 +302,7 @@ class HcalBackplaneBW : public HcalBackplane {
     daq_ = std::make_unique<HcalBackplaneBW_Capture>();
     */
 
-    fc_ = std::make_shared<bittware::BWFastControl>();
+    fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
   virtual void softResetROC(int which) override {

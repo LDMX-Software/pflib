@@ -910,7 +910,7 @@ int main(int argc, char* argv[]) {
         new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
     t.olink_daq = odaq;
     t.olink_trig =
-        new pflib::bittware::BWOptoLink(i_link + 1, *odaq, target_name.c_str());
+        new pflib::bittware::BWOptoLink(i_link + 1, *odaq);
 #endif
   }
 
