@@ -32,7 +32,7 @@ if (NOT TARGET yaml-cpp::yaml-cpp)
 endif()
 
 # Boost for CRC calculator, Test, Logging, and Python bindings
-find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
+find_package(Boost COMPONENTS log unit_test_framework python39 REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -147,7 +147,7 @@ add_library(pypflib SHARED
   src/pflib/python/logging.cxx
   src/pflib/python/packing.cxx
   src/pflib/python/bindings.cxx)
-target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
+target_link_libraries(pypflib PUBLIC pflib Boost::python39 Python3::Python)
 
 add_library(menu SHARED src/pflib/menu/Menu.cc)
 target_link_libraries(menu PUBLIC readline pflib)
