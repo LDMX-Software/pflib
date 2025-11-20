@@ -348,7 +348,8 @@ int main(int argc, char* argv[]) {
       auto ilink = target.get<int>("ilink");
       auto boardmask = target.get<int>("boardmask", 0xff);
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
-      tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask, dev.c_str()));
+      tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask,
+                                                       dev.c_str()));
       readout_cfg = pftool::State::CFG_HCALOPTO;
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";

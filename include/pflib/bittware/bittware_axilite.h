@@ -13,7 +13,8 @@ namespace bittware {
 */
 class AxiLite {
  public:
-  AxiLite(const uint32_t base_address, const char* dev, const uint32_t mask_space = 0x3FFFFF);
+  AxiLite(const uint32_t base_address, const char* dev,
+          const uint32_t mask_space = 0x3FFFFF);
   ~AxiLite();
 
   /// get the device path this AxiLite is connected to
@@ -41,7 +42,7 @@ class AxiLite {
   }
 
  private:
-  const char* dev_; /// path to device
+  const char* dev_;    /// path to device
   uint32_t base_;      // base address
   uint32_t mask_;      // mask (for safety)
   uint32_t antimask_;  // mask (for safety)

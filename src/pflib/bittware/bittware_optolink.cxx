@@ -27,8 +27,11 @@ BWOptoLink::BWOptoLink(int ilink, const char* dev)
 }
 
 BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
-    : gtys_(GTY_QUAD_BASE_ADDRESS, daqlink.dev(), 0xFFF), ilink_(ilink), isdaq_(false) {
-  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, daqlink.dev(), 0xFFF);
+    : gtys_(GTY_QUAD_BASE_ADDRESS, daqlink.dev(), 0xFFF),
+      ilink_(ilink),
+      isdaq_(false) {
+  coder_ =
+      std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, daqlink.dev(), 0xFFF);
   iceccoder_ = daqlink.iceccoder_;
 
   int chipaddr = 0x78;  // EC

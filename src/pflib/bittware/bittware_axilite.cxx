@@ -16,7 +16,8 @@ namespace bittware {
 
 static std::map<std::string, int> handle_map;
 
-AxiLite::AxiLite(const uint32_t base_address, const char* dev, const uint32_t mask_space)
+AxiLite::AxiLite(const uint32_t base_address, const char* dev,
+                 const uint32_t mask_space)
     : dev_{dev},
       base_{base_address | 0x00c00000},
       mask_{mask_space & 0xFFFFFFFCu},
@@ -40,9 +41,7 @@ AxiLite::~AxiLite() {
   // let the system close them...
 }
 
-const char* AxiLite::dev() const {
-  return dev_;
-}
+const char* AxiLite::dev() const { return dev_; }
 
 uint32_t AxiLite::read(uint32_t addr) {
   if ((addr & antimask_) != 0) {
