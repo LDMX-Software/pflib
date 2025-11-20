@@ -23,12 +23,12 @@
 namespace pflib::algorithm {
 
 // Helper function to pull the 3 runs
-template <class EventPacket>
+template <class EventPacket> // any use of <EventPacket> is a placeholder for what the function gets called with. 
 static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                           std::array<int, 72>& highend,
                           std::array<int, 72>& lowend,
                           std::array<int, 2>& target, size_t n_events) {
-  DecodeAndBuffer<EP> buffer{n_events};
+  DecodeAndBuffer<EventPacket> buffer{n_events};
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
@@ -39,7 +39,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
-    auto medians = get_adc_medians(buffer.get_buffer());
+    auto medians = get_adc_medians<EventPacket>(buffer.get_buffer());
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
@@ -60,7 +60,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    highend = get_adc_medians(buffer.get_buffer());
+    highend = get_adc_medians<EventPacket>(buffer.get_buffer());
   }
 
   {  // lowend run
@@ -71,7 +71,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    lowend = get_adc_medians(buffer.get_buffer());
+    lowend = get_adc_medians<EventPacket>(buffer.get_buffer());
   }
 }
 
