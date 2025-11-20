@@ -32,6 +32,7 @@ template <class EventPacket>  // any use of <EventPacket> is a placeholder for
                                   std::array<int, 72>& lowend,
                                   std::array<int, 2>& target, size_t n_events) {
   DecodeAndBuffer<EventPacket> buffer{n_events};
+  static auto the_log_{::pflib::logging::get("level_pedestals")};
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
