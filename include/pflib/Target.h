@@ -112,7 +112,7 @@ class Target {
 
 Target* makeTargetFiberless();
 Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask);
-Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask);
+Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask, const char* dev);
 Target* makeTargetEcalSMMZCU(int ilink);
 
 }  // namespace pflib

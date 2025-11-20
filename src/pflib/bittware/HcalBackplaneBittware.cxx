@@ -379,8 +379,8 @@ class HcalBackplaneBW : public HcalBackplane {
   int contrib_id_;
 };
 
-Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask) {
-  return new HcalBackplaneBW(ilink, board_mask);
+Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask, const char* dev) {
+  return new HcalBackplaneBW(ilink, board_mask, dev);
 }
 
 }  // namespace pflib
