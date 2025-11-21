@@ -11,6 +11,33 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
 const std::string MultiSampleECONDEventPacket::to_csv_header =
     "i_link,bx,event,orbit,channel," + Sample::to_csv_header;
 
+void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
+  /**
+   * The columns of the output CSV are
+   * ```
+   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * ```
+   *
+   * Since there are two DAQ links each with 36 channels and one calib channel,
+   * there are 2*(36+1)=74 rows written for each call to this function.
+   *
+   * The trigger links are entirely ignored.
+   */
+  for (std::size_t i_link{0}; i_link < 2; i_link++) {
+    const auto& daq_link{daq_links[i_link]};
+    f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+      << daq_link.orbit << ',' << "calib,";
+    daq_link.calib.to_csv(f);
+    f << '\n';
+    for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+      f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+        << daq_link.orbit << ',' << i_ch << ',';
+      daq_link.channels[i_ch].to_csv(f);
+      f << '\n';
+    }
+  }
+}
+
 void MultiSampleECONDEventPacket::from(std::span<uint32_t> data) {
   samples.clear();
   run = data[0];
