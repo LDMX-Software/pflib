@@ -2,6 +2,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "../econ_snapshot.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 
@@ -18,17 +19,6 @@ constexpr int ECON_EXPECTED_PUSM_STATE = 8;
 using pflib::packing::hex;
 
 void reset_stream() { std::cout << std::dec << std::setfill(' '); }
-
-uint32_t build_channel_mask(std::vector<int>& channels) {
-  /*
-    Bit wise OR comparsion between e.g. 6 and 7,
-    and shifting the '1' bit in the lowest sig bit,
-    with << operator by the amount of the channel #.
-  */
-  uint32_t mask = 0;
-  for (int ch : channels) mask |= (1 << ch);
-  return mask;
-}
 
 void print_roc_status(pflib::ROC& roc) {
   auto top_params = roc.getParameters("TOP");
