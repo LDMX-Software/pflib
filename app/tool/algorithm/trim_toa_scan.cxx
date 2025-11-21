@@ -66,9 +66,11 @@ namespace pflib::algorithm {
 
 // Templated helpder function
 template <class EventPacket>
-static void trim_tof_runs(Target* tgt, ROC& roc, size_t n_events) {
+static void trim_tof_runs(Target* tgt, ROC& roc, size_t n_events, std::array<std::array<std::array<double, 72>, 8>, 200>& final_data){
   // working in buffer, not in writer
   DecodeAndBuffer<EventPacket> buffer{n_events};
+  static auto the_log_{::pflib::logging::get("toa_vref_scan")};
+  
 
   // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
   // loop over calib, from calib = 0 to 800 by skipping over 4
@@ -129,6 +131,18 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency
   // here.
   std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    trim_tof_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, final_data);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    trim_tof_runs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc,
+                                                               n_events, final_data);
+  } else {
+    pflib_log(warn) << "Unsupported DAQ format ("
+                    << static_cast<int>(pftool::state.daq_format_mode)
+                    << ") in level_pedestals. Skipping pedestal leveling...";
+  }
 
   pflib_log(info) << "sample collections done, deducing settings";
 
