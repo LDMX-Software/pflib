@@ -3,6 +3,7 @@
  * ECON menu commands and support functions
  */
 #include "pftool.h"
+#include "./tasks/econ_snapshot.h"
 
 /// print available econ IDs and their types
 void print_econs(Target* tgt) {
@@ -138,6 +139,7 @@ static void econ_status(const std::string& cmd, Target* tgt) {
  * - READ : pflib::ECON::readParameter
  * - READCONFIG : Read parameters from a YAML file
  * - DUMP : pflib::ECON::dumpSettings with decompile=true
+ * - ECON_SNAPSHOT : Outputs snapshot of ECON channels
  *
  * @param[in] cmd ECON command
  * @param[in] pft active target
@@ -219,6 +221,9 @@ static void econ(const std::string& cmd, Target* pft) {
         ".yaml");
     econ.dumpSettings(fname, true);
   }
+  if (cmd == "ECON_SNAPSHOT") {
+    econ_snapshot(pft);
+  }
 }
 
 namespace {
@@ -235,7 +240,8 @@ auto menu_econ =
         ->line("LOAD", "load all parameters", econ)
         ->line("DUMP", "dump parameters", econ)
         ->line("READCONFIG", "read a yaml file", econ)
-        ->line("READ", "read one parameter and page", econ);
+        ->line("READ", "read one parameter and page", econ)
+        ->line("ECON_SNAPSHOT", "Output snapshot of ECON channels", econ);
 
 auto menu_econ_expert =
     menu_econ
