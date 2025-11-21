@@ -12,7 +12,7 @@ namespace bittware {
  */
 class BWFastControl : public FastControl {
  public:
-  BWFastControl();
+  BWFastControl(const char* dev);
   virtual std::map<std::string, uint32_t> getCmdCounters();
   virtual void resetCounters();
   virtual void sendL1A();

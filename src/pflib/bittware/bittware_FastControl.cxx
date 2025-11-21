@@ -33,7 +33,7 @@ static constexpr int BIT_RESET_COUNTERS = 30;
 
 static constexpr int REG_COUNTER_BASE = 0xC10;
 
-BWFastControl::BWFastControl() : axi_(0x1000) {
+BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   static const int BX_FOR_CALIB = 42;
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_BX, BX_FOR_CALIB);
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
