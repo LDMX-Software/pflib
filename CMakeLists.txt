@@ -133,6 +133,8 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/bittware_elinks.cxx
+    src/pflib/bittware/bittware_daq.cxx
     src/pflib/bittware/bittware_FastControl.cxx
     src/pflib/bittware/HcalBackplaneBittware.cxx
     )
