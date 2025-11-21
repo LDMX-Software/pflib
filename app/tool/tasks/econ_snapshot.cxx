@@ -42,7 +42,7 @@ void econ_snapshot(Target* tgt) {
     tgt->fc().standard_setup();
 
     // ------- Scan when the ECON takes snapshot -----
-    int start_val = 3531;  // near your orbit region of interest
+    int snapshot_val = 3531;  // near your orbit region of interest
     int end_val = 3532; 
 
 
