@@ -10,7 +10,13 @@ namespace pflib::algorithm {
  * calculate the highest TOA_VREF value for each link, for which there is a
  * non-zero TOA efficiency
  */
+
+ //templated to match any event packet type
+template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
-    const std::vector<pflib::packing::SingleROCEventPacket>& data);
+    const std::vector<EventPacket>& data);
+
+// std::array<double, 72> get_toa_efficiencies(
+//     const std::vector<pflib::packing::SingleROCEventPacket>& data);
 
 }  // namespace pflib::algorithm
