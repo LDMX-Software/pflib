@@ -224,17 +224,17 @@ static void econ(const std::string& cmd, Target* pft) {
   if (cmd == "SNAPSHOT") {
     int iecon =
         pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-  
+
     auto econ = pft->econ(iecon);
-  
+
     std::string ch_str = pftool::readline(
         "Enter channels (comma-separated), default is all channels: ",
         "0,1,2,3,4,5,6,7");
-  
+
     std::vector<int> channels;
     std::stringstream ss(ch_str);
     std::string item;
-  
+
     while (std::getline(ss, item, ',')) {
       try {
         channels.push_back(std::stoi(item));

@@ -15,7 +15,6 @@ uint32_t build_channel_mask(std::vector<int>& channels) {
   return mask;
 }
 
-
 void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
   uint32_t binary_channels =
       build_channel_mask(channels);  // defined in align_phase_word.cxx

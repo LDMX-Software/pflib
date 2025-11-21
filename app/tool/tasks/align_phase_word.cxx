@@ -2,10 +2,9 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "../econ_snapshot.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
-
-#include "../econ_snapshot.h"
 
 ENABLE_LOGGING();
 
