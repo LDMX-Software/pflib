@@ -90,6 +90,8 @@ class HcalBackplaneBW : public HcalBackplane {
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
+
+    fc_->fc_enables(true,false);
   }
 
   virtual void softResetROC(int which) override {
@@ -145,7 +147,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
-    contrib_id_ = contrib_id;
+    contrib_id_ = contrib_id;    
   }
 
   virtual std::vector<uint32_t> read_event() override {

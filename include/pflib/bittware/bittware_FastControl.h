@@ -34,11 +34,11 @@ class BWFastControl : public FastControl {
   virtual void fc_setup_led(int charge_to_l1a);
   virtual int fc_get_setup_led();
 
-  /** check the enables for various trigger/spill sources */
-  virtual void fc_enables_read(bool& ext_l1a, bool& ext_spill, bool& timer_l1a);
+  /** check the enables for various trigger sources */
+  virtual void fc_enables_read(bool& all_l1a, bool& ext_l1a);
 
-  /** set the enables for various trigger/spill sources */
-  virtual void fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a);
+  /** set the enables for various trigger sources */
+  virtual void fc_enables(bool all_l1a, bool ext_l1a);
 
  private:
   AxiLite axi_;
