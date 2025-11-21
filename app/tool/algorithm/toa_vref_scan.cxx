@@ -36,6 +36,22 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events) {
     }
     pflib_log(trace) << "got link efficiencies";
   }
+
+  pflib_log(info) << "sample collections done, deducing settings";
+  // get the max toa_vref with non-zero efficiency? Iterate through the array
+  // from bottom up.
+  for (int i_link{0}; i_link < 2; i_link++) {
+    int highest_non_zero_eff = -1;  // just a placeholder in case it's not found
+    for (int toa_vref = final_effs[0].size(); toa_vref >= 0; toa_vref--) {
+      if (final_effs[i_link][toa_vref] > 0.0) {
+        highest_non_zero_eff =
+            toa_vref + 10;  // need to add 10 since we don't want to overlap
+                            // with highest pedestals!
+        break;              // should break from link 0 into link 1
+      }
+    }
+    target[i_link] = highest_non_zero_eff;  // store value
+  }
 }
 
 std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
@@ -65,22 +81,6 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
     pflib_log(warn) << "Unsupported DAQ format ("
                     << static_cast<int>(pftool::state.daq_format_mode)
                     << ") in level_pedestals. Skipping pedestal leveling...";
-  }
-
-  pflib_log(info) << "sample collections done, deducing settings";
-  // get the max toa_vref with non-zero efficiency? Iterate through the array
-  // from bottom up.
-  for (int i_link{0}; i_link < 2; i_link++) {
-    int highest_non_zero_eff = -1;  // just a placeholder in case it's not found
-    for (int toa_vref = final_effs[0].size(); toa_vref >= 0; toa_vref--) {
-      if (final_effs[i_link][toa_vref] > 0.0) {
-        highest_non_zero_eff =
-            toa_vref + 10;  // need to add 10 since we don't want to overlap
-                            // with highest pedestals!
-        break;              // should break from link 0 into link 1
-      }
-    }
-    target[i_link] = highest_non_zero_eff;  // store value
   }
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
