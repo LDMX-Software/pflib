@@ -24,7 +24,8 @@ class EcalSMMTargetBW : public Target {
 
     // then get the lpGBTs
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
+    trig_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
@@ -79,8 +80,7 @@ class EcalSMMTargetBW : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    PFEXCEPTION_RAISE("NoImpl",
-        "EcalSMMTargetBW::read_event not implemented.");
+    PFEXCEPTION_RAISE("NoImpl", "EcalSMMTargetBW::read_event not implemented.");
     return {};
   }
 
