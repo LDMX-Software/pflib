@@ -1,10 +1,10 @@
 #include "toa_vref_scan.h"
 
 #include "../daq_run.h"
+#include "../tasks/toa_vref_scan.h"
 #include "get_toa_efficiencies.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
-#include "../tasks/toa_vref_scan.h"
 
 namespace pflib::algorithm {
 
@@ -27,9 +27,11 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     DecodeAndBuffer<pflib::packing::SingleROCEventPacket> buffer{n_events};
-  }else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
-    DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket> buffer{n_events};
-  }else{
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket> buffer{
+        n_events};
+  } else {
     pflib_log(warn) << "Unsupported DAQ format ("
                     << static_cast<int>(pftool::state.daq_format_mode)
                     << ") in level_pedestals. Skipping pedestal leveling...";
