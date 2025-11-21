@@ -11,11 +11,9 @@ using pflib::packing::hex;
 
 
 void econ_snapshot(Target* tgt) {
-    int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
     int iecon =
         pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-    auto roc = tgt->roc(iroc);
     auto econ = tgt->econ(iecon);
 
     std::string ch_str = pftool::readline("Enter channels (comma-separated), default is all channels: ", "0,1,2,3,4,5,6,7");
@@ -42,13 +40,21 @@ void econ_snapshot(Target* tgt) {
     tgt->fc().standard_setup();
 
     // ------- Scan when the ECON takes snapshot -----
-    int start_val = 3531;  // near your orbit region of interest
+    int snapshot_val = 3531;  // near your orbit region of interest
     int end_val = 3534; 
 
-    // FAST CONTROL - LINK_RESET
-    tgt->fc().linkreset_rocs();
+    // ---- TO SET ECON REGISTERS ---- //
+    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+
+    // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
+        // set Bunch Crossing (BX)
+        parameters.clear();
+        parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
+        auto econ_word_align_currentvals = econ.applyParameters(parameters);
+        
+        // FAST CONTROL - LINK_RESET
+        tgt->fc().linkreset_rocs();
     
-    for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
         std::cout << "Outputting snapshot at BX " << snapshot_val << std::endl;
         for (int channel : channels) {
             // print out snapshot
@@ -91,7 +97,7 @@ void econ_snapshot(Target* tgt) {
             std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
                     << snapshot << std::dec << std::endl;
         }  // end loop over snapshots for single channel
-    }
+    // }
 
     // ensure 0 remaining 0's filling cout
     std::cout << std::dec << std::setfill(' ');
