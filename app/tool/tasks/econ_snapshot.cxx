@@ -42,7 +42,8 @@ void econ_snapshot(Target* tgt) {
     tgt->fc().standard_setup();
 
     // ------- Scan when the ECON takes snapshot -----
-    int snapshot_val = 3531;  // near your orbit region of interest
+    int start_val = 3531;  // near your orbit region of interest
+    int end_val = 3532; 
 
 
     std::cout << "Outputting snapshot at BX " << snapshot_val
@@ -51,48 +52,50 @@ void econ_snapshot(Target* tgt) {
 
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
+    
+    // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
+        for (int channel : channels) {
+            // print out snapshot
 
-    for (int channel : channels) {
-        // print out snapshot
+            std::string var_name_snapshot1 =
+                std::to_string(channel) + "_SNAPSHOT_0";
+            std::string var_name_snapshot2 =
+                std::to_string(channel) + "_SNAPSHOT_1";
+            std::string var_name_snapshot3 =
+                std::to_string(channel) + "_SNAPSHOT_2";
+            auto ch_snapshot_1 =
+                econ.readParameter("CHALIGNER", var_name_snapshot1);
+            auto ch_snapshot_2 =
+                econ.readParameter("CHALIGNER", var_name_snapshot2);
+            auto ch_snapshot_3 =
+                econ.readParameter("CHALIGNER", var_name_snapshot3);
 
-        std::string var_name_snapshot1 =
-            std::to_string(channel) + "_SNAPSHOT_0";
-        std::string var_name_snapshot2 =
-            std::to_string(channel) + "_SNAPSHOT_1";
-        std::string var_name_snapshot3 =
-            std::to_string(channel) + "_SNAPSHOT_2";
-        auto ch_snapshot_1 =
-            econ.readParameter("CHALIGNER", var_name_snapshot1);
-        auto ch_snapshot_2 =
-            econ.readParameter("CHALIGNER", var_name_snapshot2);
-        auto ch_snapshot_3 =
-            econ.readParameter("CHALIGNER", var_name_snapshot3);
+            // Combine 3 × 64-bit words into one 192-bit integer
+            boost::multiprecision::uint256_t snapshot =
+                (boost::multiprecision::uint256_t(ch_snapshot_3) << 128) |
+                (boost::multiprecision::uint256_t(ch_snapshot_2) << 64) |
+                boost::multiprecision::uint256_t(ch_snapshot_1);
 
-        // Combine 3 × 64-bit words into one 192-bit integer
-        boost::multiprecision::uint256_t snapshot =
-            (boost::multiprecision::uint256_t(ch_snapshot_3) << 128) |
-            (boost::multiprecision::uint256_t(ch_snapshot_2) << 64) |
-            boost::multiprecision::uint256_t(ch_snapshot_1);
+            // 192-bit >> 1 shift
+            uint64_t w0_shifted = (ch_snapshot_1 >> 1);
+            uint64_t w1_shifted =
+                (ch_snapshot_2 >> 1) | ((ch_snapshot_1 & 1ULL) << 63);
+            uint64_t w2_shifted =
+                (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
 
-        // 192-bit >> 1 shift
-        uint64_t w0_shifted = (ch_snapshot_1 >> 1);
-        uint64_t w1_shifted =
-            (ch_snapshot_2 >> 1) | ((ch_snapshot_1 & 1ULL) << 63);
-        uint64_t w2_shifted =
-            (ch_snapshot_3 >> 1) | ((ch_snapshot_2 & 1ULL) << 63);
-
-        // shift by 1
-        boost::multiprecision::uint256_t shifted1 = (snapshot >> 1);
+            // shift by 1
+            boost::multiprecision::uint256_t shifted1 = (snapshot >> 1);
 
 
-        std::cout << "Snapshot Printout: " << snapshot_val << std::endl
-                << " (channel " << channel << ") " << std::endl
-                << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
-                << shifted1 << std::dec << std::endl;
+            std::cout << "Snapshot Printout: " << snapshot_val << std::endl
+                    << " (channel " << channel << ") " << std::endl
+                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << shifted1 << std::dec << std::endl;
 
-        std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
-                << snapshot << std::dec << std::endl;
-    }  // end loop over snapshots for single channel
+            std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+                    << snapshot << std::dec << std::endl;
+        }  // end loop over snapshots for single channel
+    // }
 
     // ensure 0 remaining 0's filling cout
     std::cout << std::dec << std::setfill(' ');
