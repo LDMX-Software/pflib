@@ -10,7 +10,8 @@ namespace pflib::algorithm {
 
 // Templated helpder function
 template <class EventPacket>
-static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events) {
+static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
+                          std::array<int, 2>& target) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
   std::array<std::array<double, 256>, 2> final_effs;
   DecodeAndBuffer<EventPacket> buffer{n_events};
@@ -66,15 +67,15 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
-  std::array<int, 2>
-      target;  // toa_vref is a global parameter (1 value per link)
+  std::array<int, 2> target;  
+  // toa_vref is a global parameter (1 value per link)
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    toa_vref_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events);
+    toa_vref_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, target);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     toa_vref_runs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc,
-                                                               n_events);
+                                                               n_events, target);
   } else {
     pflib_log(warn) << "Unsupported DAQ format ("
                     << static_cast<int>(pftool::state.daq_format_mode)
