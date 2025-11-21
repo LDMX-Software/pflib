@@ -25,18 +25,16 @@ void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
   // ---- TO SET ECON REGISTERS ---- //
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
-  // ---- SETTING ECON REGISTERS ---- //
-  parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
-  parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
-  parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
-
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
 
   // ------- Scan when the ECON takes snapshot -----
   int snapshot_val = 3531;  // near your orbit region of interest
 
-  parameters.clear();
+  // ---- SETTING ECON REGISTERS ---- //
+  parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
+  parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+  parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
   parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
   auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
