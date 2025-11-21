@@ -38,6 +38,11 @@ PYTHONPATH=${PYTHONPATH}:path/to/install/lib
 - `PYTHONPATH` tells Python where it can find `pypflib`
 - `LD_LIBRARY_PATH` allows `pypflib` to link to the other pflib libraries
 
+If running Rogue Run Control within a conda environment,
+there is a [conda recipe](env/conda) for pflib that can be used
+to build a local conda package that can be installed into the conda
+environment
+
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)
 - app : executables and supporting source files for executables

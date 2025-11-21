@@ -26,10 +26,13 @@ conda-build \
   --channel tidair-tag
 conda index conda-bld/
 ```
-- :warning: You need to `rm -r build` before running this command. I can't get conda to ignore the `build` directory.
+- :warning: The build script uses the `conda-build` directory to hold the pflib build. The build will fail if that directory exists.
+- I've summarized the `source` stuff above and these commands into the `conda-package` just recipe
 
 3. Use conda package
 ```
-conda -n ldmx-env -c file:///full/path/to/conda-bld pflib
+conda install -n my-env -c file:///full/path/to/conda-bld pflib
 ```
-Add the `conda-bld` directory (where-ever it is) as a "channel" and install the `pflib` package into the conda environment named `ldmx-env`.
+Add the `conda-bld` directory (where-ever it is) as a "channel" and install the `pflib` package into a conda environment named `my-env`.
+
+
