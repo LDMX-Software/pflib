@@ -80,6 +80,28 @@ template <class EventPacket>  // any use of <EventPacket> is a placeholder for
 }
 
 template <class EventPacket>
+static int get_adc(const EventPacket& p, int ch) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::SingleROCEventPacket>) {
+    return p.channel(ch).adc();
+  } else if constexpr (std::is_same_v<
+                           EventPacket,
+                           pflib::packing::MultiSampleECONDEventPacket>) {
+
+    // Use link specific channel calculation, this is done in singleROCEventPacket.cxx for the other case
+    //  // Use the "Sample Of Interest" inside the EventPacket (See MultiSample cxx file)
+    int i_link = ch / 36;  // 0 or 1
+    int i_ch   = ch % 36;  // 0–35
+
+    //ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
+    return  p.samples[p.i_soi].channel(i_link, i_ch).adc();
+  } else {
+    static_assert(sizeof(EventPacket) == 0,
+                  "Unsupported packet type in get_adc()");
+  }
+}
+
+template <class EventPacket>
 static std::array<int, 72> get_adc_medians(
     const std::vector<EventPacket>& data) {
   std::array<int, 72> medians;
@@ -88,7 +110,8 @@ static std::array<int, 72> get_adc_medians(
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < adcs.size(); i++) {
-      adcs[i] = data[i].channel(ch).adc();
+      // adcs[i] = data[i].channel(ch).adc();
+      adcs[i] = get_adc(data[i], ch);
     }
     medians[ch] = pflib::utility::median(adcs);
   }
