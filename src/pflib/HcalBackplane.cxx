@@ -68,7 +68,7 @@ void HcalBackplane::add_econ(int iecon, uint8_t econ_baseaddr,
   econ_connections_.emplace(iecon, ECONConnection{.econ_ = econ, .i2c_ = i2c});
 }
 
-ROC HcalBackplane::roc(int which) {
+ROC& HcalBackplane::roc(int which) {
   auto roc_it{roc_connections_.find(which)};
   if (roc_it == roc_connections_.end()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
@@ -77,7 +77,7 @@ ROC HcalBackplane::roc(int which) {
   return roc_it->second.roc_;
 }
 
-ECON HcalBackplane::econ(int which) {
+ECON& HcalBackplane::econ(int which) {
   auto econ_it{econ_connections_.find(which)};
   if (econ_it == econ_connections_.end()) {
     PFEXCEPTION_RAISE("InvalidECONid", pflib::utility::string_format(

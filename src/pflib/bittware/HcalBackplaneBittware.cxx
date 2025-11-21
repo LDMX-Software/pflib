@@ -1,4 +1,5 @@
 #include "pflib/HcalBackplane.h"
+#include "pflib/bittware/bittware_FastControl.h"
 #include "pflib/bittware/bittware_optolink.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
@@ -231,9 +232,9 @@ class HcalBackplaneBW_Capture : public DAQ {
 
 class HcalBackplaneBW : public HcalBackplane {
  public:
-  HcalBackplaneBW(int itarget, uint8_t board_mask) {
+  HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
     // first, setup the optical links
-    daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget);
+    daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget, dev);
     trig_olink_ =
         std::make_unique<pflib::bittware::BWOptoLink>(itarget + 1, *daq_olink_);
 
@@ -252,9 +253,14 @@ class HcalBackplaneBW : public HcalBackplane {
      *  GENERAL
      *  STANDARD_HCAL
      * seems to be more stable.
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-    */
+     */
+    try {
+      pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+      pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+    } catch (const pflib::Exception& e) {
+      std::cerr << "Failure to apply standard config [" << e.name()
+                << "]: " << e.message() << std::endl;
+    }
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
@@ -294,9 +300,9 @@ class HcalBackplaneBW : public HcalBackplane {
     elinks_ = std::make_unique<OptoElinksBW>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<HcalBackplaneBW_Capture>();
-
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
     */
+
+    fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
   virtual void softResetROC(int which) override {
@@ -348,9 +354,7 @@ class HcalBackplaneBW : public HcalBackplane {
     PFEXCEPTION_RAISE("NoImpl", "DAQ not implemented");
   }
 
-  virtual FastControl& fc() override {
-    PFEXCEPTION_RAISE("NoImpl", "FastControl not implemented");
-  }
+  virtual FastControl& fc() override { return *fc_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
@@ -369,13 +373,14 @@ class HcalBackplaneBW : public HcalBackplane {
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   // std::unique_ptr<OptoElinksBW> elinks_;
   // std::unique_ptr<HcalBackplaneBW_Capture> daq_;
-  // std::shared_ptr<pflib::FastControl> fc_;
+  std::shared_ptr<pflib::bittware::BWFastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
 };
 
-Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask) {
-  return new HcalBackplaneBW(ilink, board_mask);
+Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask,
+                                        const char* dev) {
+  return new HcalBackplaneBW(ilink, board_mask, dev);
 }
 
 }  // namespace pflib

@@ -10,9 +10,9 @@ static constexpr uint32_t GTY_QUAD_BASE_ADDRESS =
 static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS =
     0x3000;  // compiled into the firmware
 
-BWOptoLink::BWOptoLink(int ilink)
-    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF), ilink_(ilink), isdaq_(true) {
-  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF);
+BWOptoLink::BWOptoLink(int ilink, const char* dev)
+    : gtys_(GTY_QUAD_BASE_ADDRESS, dev, 0xFFF), ilink_(ilink), isdaq_(true) {
+  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, dev, 0xFFF);
   iceccoder_ = coder_;
   /*
   auto vers = coder_->read(0);
@@ -27,8 +27,11 @@ BWOptoLink::BWOptoLink(int ilink)
 }
 
 BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
-    : gtys_(GTY_QUAD_BASE_ADDRESS, 0xFFF), ilink_(ilink), isdaq_(false) {
-  coder_ = std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, 0xFFF);
+    : gtys_(GTY_QUAD_BASE_ADDRESS, daqlink.dev(), 0xFFF),
+      ilink_(ilink),
+      isdaq_(false) {
+  coder_ =
+      std::make_shared<AxiLite>(QUAD_CODER0_BASE_ADDRESS, daqlink.dev(), 0xFFF);
   iceccoder_ = daqlink.iceccoder_;
 
   int chipaddr = 0x78;  // EC
@@ -162,6 +165,8 @@ std::map<std::string, uint32_t> BWOptoLink::opto_rates() {
 
 int BWOptoLink::get_elink_tx_mode(int elink) {
   if (elink < 0 || elink > 3 || !isdaq_) return -1;
+  // TODO
+  return 0;
 }
 void BWOptoLink::set_elink_tx_mode(int elink, int mode) {
   if (elink < 0 || elink > 3 || !isdaq_) return;
@@ -283,50 +288,68 @@ uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {
 }
 
 std::vector<uint8_t> BWlpGBT_Transport::read_regs(uint16_t reg, int n) {
+  int tries = 0;
+  char message[256];
   std::vector<uint8_t> retval;
-  int wc = 0;
+  do {
+    retval.clear();
+    int wc = 0;
 
-  if (n > 8) {
-    retval = read_regs(reg, 8);
-    std::vector<uint8_t> later = read_regs(reg + 8, n - 8);
-    retval.insert(retval.end(), later.begin(), later.end());
-    return retval;
-  }
-
-  uint32_t val;
-  // set addresses
-  val = (uint32_t(reg) << 16) | (uint32_t(chipaddr_) << 8);
-  transport_.write(ctloffset_ + REG_ADDR_TX_DATA, val);
-  // set length and start
-  val = n;
-  transport_.writeMasked(ctloffset_ + REG_CTL_N_READ, MASK_N_READ, val);
-  // start
-  transport_.write(pulsereg_, 1 << (BIT_START_READ + pulseshift_));
-
-  // wait for done...
-  int timeout = 1000;
-  for (val = transport_.readMasked(stsreg_, stsmask_); (val & MASK_RX_EMPTY);
-       val = transport_.readMasked(stsreg_, stsmask_)) {
-    usleep(1);
-    timeout--;
-    if (timeout == 0) {
-      char message[256];
-      snprintf(message, 256, "Read register 0x%x timeout", reg);
-      PFEXCEPTION_RAISE("ICEC_Timeout", message);
+    if (n > 8) {
+      retval = read_regs(reg, 8);
+      std::vector<uint8_t> later = read_regs(reg + 8, n - 8);
+      retval.insert(retval.end(), later.begin(), later.end());
+      return retval;
     }
-  }
-  wc = 0;
-  while (!(val & MASK_RX_EMPTY)) {
-    //    printf("%d %08x %08x\n",wc, val, transport_.read(stsreg_));
-    uint8_t abyte = uint8_t(val & MASK_RX_DATA);
-    transport_.write(pulsereg_, 1 << (BIT_ADV_READ + pulseshift_));
-    if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
-    wc++;
-    val = transport_.readMasked(stsreg_, stsmask_);
-    if (wc > 100) {
-      char message[256];
-      snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg, val);
-      PFEXCEPTION_RAISE("ICEC_Timeout", message);
+
+    uint32_t val;
+    // set addresses
+    val = (uint32_t(reg) << 16) | (uint32_t(chipaddr_) << 8);
+    transport_.write(ctloffset_ + REG_ADDR_TX_DATA, val);
+    // set length and start
+    val = n;
+    transport_.writeMasked(ctloffset_ + REG_CTL_N_READ, MASK_N_READ, val);
+    // start
+    transport_.write(pulsereg_, 1 << (BIT_START_READ + pulseshift_));
+
+    // wait for done...
+    int timeout = 1000;
+    for (val = transport_.readMasked(stsreg_, stsmask_); (val & MASK_RX_EMPTY);
+         val = transport_.readMasked(stsreg_, stsmask_)) {
+      usleep(1);
+      timeout--;
+      if (timeout == 0) {
+        snprintf(message, 256, "Read register 0x%x timeout", reg);
+        PFEXCEPTION_RAISE("ICEC_Timeout", message);
+      }
+    }
+    wc = 0;
+    while (!(val & MASK_RX_EMPTY)) {
+      //    printf("%d %08x %08x\n",wc, val, transport_.read(stsreg_));
+      uint8_t abyte = uint8_t(val & MASK_RX_DATA);
+      transport_.write(pulsereg_, 1 << (BIT_ADV_READ + pulseshift_));
+      if (wc >= 6 && int(retval.size()) < n) retval.push_back(abyte);
+      wc++;
+      val = transport_.readMasked(stsreg_, stsmask_);
+      if (wc > 100) {
+        snprintf(message, 256, "Read register 0x%x runaway (sts 0x%x)", reg,
+                 val);
+        PFEXCEPTION_RAISE("ICEC_Timeout", message);
+      }
+    }
+    tries++;
+    if (retval.size() != n) {
+      snprintf(message, 256,
+               "Read register 0x%x tried to read %d, actually got %ld", reg, n,
+               retval.size());
+    }
+  } while (tries < 4 && retval.size() != n);
+
+  if (tries != 1) {
+    if (retval.size() == n) {
+      printf("Concern, but succeeded: %s\n", message);
+    } else {
+      PFEXCEPTION_RAISE("ICEC_ReadFail", message);
     }
   }
 

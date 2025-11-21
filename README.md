@@ -15,6 +15,15 @@ make
 ./pftool -h # print help
 ```
 
+### on DAQ server at SLAC
+On this machine, `conda` is being used to standardize the environment.
+```
+source /u1/ldmx/miniconda3/etc/profile.d/conda.sh
+conda activate ldmx-env
+```
+This activation needs to be done **before** you configure (`cmake`)
+or build (`make`) pflib.
+
 ## Usage with Rogue Run Control
 Python bindings for specific functions have been implemented here,
 so you can import them as long as you install pflib and update
@@ -32,7 +41,7 @@ PYTHONPATH=${PYTHONPATH}:path/to/install/lib
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)
 - app : executables and supporting source files for executables
-- config : helpful HGC ROC YAML parameter settings to load onto chips
+- config : helpful/example YAML files
 - docs : documentation generation
 - env : build context for a container image emulating the ZCU software environment
 - include : header files of pflib library
