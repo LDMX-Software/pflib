@@ -12,6 +12,7 @@ namespace pflib::algorithm {
 template <class EventPacket>
 static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
+  std::array<std::array<double, 256>, 2> final_effs;
   DecodeAndBuffer<EventPacket> buffer{n_events};
 
   // loop over runs, from toa_vref = 0 to = 255
@@ -67,9 +68,6 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   std::array<int, 2>
       target;  // toa_vref is a global parameter (1 value per link)
-
-  // there is probably a better way to do the next line
-  std::array<std::array<double, 256>, 2> final_effs;
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     toa_vref_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events);
