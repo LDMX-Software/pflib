@@ -2,8 +2,8 @@
  * @file econ.cxx
  * ECON menu commands and support functions
  */
-#include "pftool.h"
 #include "./tasks/econ_snapshot.h"
+#include "pftool.h"
 
 /// print available econ IDs and their types
 void print_econs(Target* tgt) {
