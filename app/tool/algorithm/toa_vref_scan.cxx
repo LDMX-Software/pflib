@@ -8,35 +8,13 @@
 
 namespace pflib::algorithm {
 
-std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
-    Target* tgt, ROC roc) {
+// Templated helpder function
+template <class EventPacket> 
+static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events){
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
-
-  /// do a run of 100 samples per toa_vref to measure the TOA
-  /// efficiency when looking at pedestal data
-
-  static const std::size_t n_events = 100;
-
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
-
-  std::array<int, 2>
-      target;  // toa_vref is a global parameter (1 value per link)
-
-  // there is probably a better way to do the next line
-  std::array<std::array<double, 256>, 2> final_effs;
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    DecodeAndBuffer<pflib::packing::SingleROCEventPacket> buffer{n_events};
-  }else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
-    DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket> buffer{n_events};
-  }else{
-    pflib_log(warn) << "Unsupported DAQ format ("
-                    << static_cast<int>(pftool::state.daq_format_mode)
-                    << ") in level_pedestals. Skipping pedestal leveling...";
-  }
+  DecodeAndBuffer<EventPacket> buffer{n_events};
 
   // loop over runs, from toa_vref = 0 to = 255
-
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
     pflib_log(info) << "testing toa_vref = " << toa_vref;
     auto test_handle = roc.testParameters()
@@ -57,6 +35,35 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
       final_effs[i_link][toa_vref] = *std::max_element(start, end);
     }
     pflib_log(trace) << "got link efficiencies";
+  }
+}
+
+
+std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
+    Target* tgt, ROC roc) {
+  static auto the_log_{::pflib::logging::get("toa_vref_scan")};
+
+  /// do a run of 100 samples per toa_vref to measure the TOA
+  /// efficiency when looking at pedestal data
+
+  static const std::size_t n_events = 100;
+
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+
+  std::array<int, 2>
+      target;  // toa_vref is a global parameter (1 value per link)
+
+  // there is probably a better way to do the next line
+  std::array<std::array<double, 256>, 2> final_effs;
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    toa_vref_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events);
+  }else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
+    toa_vref_runs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events);
+  }else{
+    pflib_log(warn) << "Unsupported DAQ format ("
+                    << static_cast<int>(pftool::state.daq_format_mode)
+                    << ") in level_pedestals. Skipping pedestal leveling...";
   }
 
   pflib_log(info) << "sample collections done, deducing settings";
