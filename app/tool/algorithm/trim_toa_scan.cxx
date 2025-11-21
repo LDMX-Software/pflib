@@ -1,4 +1,5 @@
 #include "trim_toa_scan.h"
+#include "../tasks/trim_toa_scan.h"
 
 #include "../daq_run.h"
 #include "get_toa_efficiencies.h"
@@ -63,6 +64,48 @@ std::tuple<double, double> siegel_regression(
  */
 namespace pflib::algorithm {
 
+
+// Templated helpder function
+template <class EventPacket>
+static void trim_tof_runs(Target* tgt, ROC& roc, size_t n_events){
+  // working in buffer, not in writer
+  DecodeAndBuffer<EventPacket> buffer{n_events};
+
+// loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
+// loop over calib, from calib = 0 to 800 by skipping over 4
+
+for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
+  pflib_log(info) << "testing trim_toa = " << trim_toa;
+  auto trim_toa_test_builder = roc.testParameters();
+  for (int ch{0}; ch < 72; ch++) {
+    trim_toa_test_builder.add("CH_" + std::to_string(ch), "TRIM_TOA",
+                              trim_toa);
+  }
+  // set TRIM_TOA for each channel
+  auto trim_toa_test = trim_toa_test_builder.apply();
+  usleep(10);
+  for (int calib = 0; calib < 800; calib += 4) {
+    pflib_log(info) << "Running CALIB = " << calib;
+    // set CALIB for each half
+    auto calib_test = roc.testParameters()
+                          .add("REFERENCEVOLTAGE_0", "CALIB", calib)
+                          .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+                          .apply();
+    usleep(10);
+    daq_run(tgt, "CHARGE", buffer, n_events, 100);
+
+    pflib_log(trace) << "finished trim_toa = " << trim_toa
+                      << ", and calib = " << calib << ", getting efficiencies";
+    auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
+    pflib_log(trace) << "got channel efficiencies, storing now";
+    for (int ch{0}; ch < 72; ch++) {
+      // need to divide by 4 because index is value/4 from final_data
+      // initialization and for loop
+      final_data[calib / 4][trim_toa / 4][ch] = efficiencies[ch];
+    }
+  }
+}
+}
 std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
     Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("trim_toa_scan")};
@@ -79,7 +122,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
   // trim_toa is a channel-wise parameter (1 value per channel)
   std::array<uint64_t, 72> target;
@@ -88,45 +131,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   // here.
   std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
 
-  // working in buffer, not in writer
-  DecodeAndBuffer buffer{n_events};
-
-  // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
-  // loop over calib, from calib = 0 to 800 by skipping over 4
-
-  for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
-    pflib_log(info) << "testing trim_toa = " << trim_toa;
-    auto trim_toa_test_builder = roc.testParameters();
-    for (int ch{0}; ch < 72; ch++) {
-      trim_toa_test_builder.add("CH_" + std::to_string(ch), "TRIM_TOA",
-                                trim_toa);
-    }
-    // set TRIM_TOA for each channel
-    auto trim_toa_test = trim_toa_test_builder.apply();
-    usleep(10);
-    for (int calib = 0; calib < 800; calib += 4) {
-      pflib_log(info) << "Running CALIB = " << calib;
-      // set CALIB for each half
-      auto calib_test = roc.testParameters()
-                            .add("REFERENCEVOLTAGE_0", "CALIB", calib)
-                            .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                            .apply();
-      usleep(10);
-      daq_run(tgt, "CHARGE", buffer, n_events, 100);
-
-      pflib_log(trace) << "finished trim_toa = " << trim_toa
-                       << ", and calib = " << calib << ", getting efficiencies";
-      auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
-      pflib_log(trace) << "got channel efficiencies, storing now";
-      for (int ch{0}; ch < 72; ch++) {
-        // need to divide by 4 because index is value/4 from final_data
-        // initialization and for loop
-        final_data[calib / 4][trim_toa / 4][ch] = efficiencies[ch];
-      }
-    }
-  }
-
-  pflib_log(info) << "sample collections done, deducing settings";
+    pflib_log(info) << "sample collections done, deducing settings";
 
   /**
    * Now that we have the data, we need to analyze it.
