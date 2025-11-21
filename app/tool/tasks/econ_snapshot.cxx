@@ -34,7 +34,11 @@ void econ_snapshot(Target* tgt) {
     std::cout << "Channels to be configured: ";
     for (int ch : channels) std::cout << ch << " ";
     std::cout << std::endl;
-
+    
+    // ---- SETTING ECON REGISTERS ---- //
+    parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
+    parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+    parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
 
     // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
     tgt->fc().standard_setup();
