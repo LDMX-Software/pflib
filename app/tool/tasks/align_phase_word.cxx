@@ -59,8 +59,18 @@ void align_phase_word(Target* tgt) {
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
 
-  // TODO: get channels from user
-  std::vector<int> channels = {6, 7};
+  // Get channels from user
+  std::string ch_str = pftool::readline("Enter channels (comma-separated), default is all channels: ", "0,1,2,3,4,5,6,7");
+  std::vector<int> channels;
+  std::stringstream ss(ch_str);
+  std::string item;
+  while (std::getline(ss, item, ',')) {
+      try {
+          channels.push_back(std::stoi(item));
+      } catch (...) {
+          std::cerr << "Invalid channel entry: " << item << std::endl;
+      }
+  }
   uint32_t binary_channels = build_channel_mask(channels);
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
@@ -204,6 +214,9 @@ void align_phase_word(Target* tgt) {
       if (debug_checks) {
         std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
                   << std::hex << tmp_load_val << std::dec << std::endl;
+        std::cout << "Looking for special header pattern: " << global_match_pattern_val
+                << ", 0x" << std::hex << global_match_pattern_val << std::dec
+                << std::endl;
       }
 
       // FAST CONTROL - LINK_RESET
@@ -245,8 +258,8 @@ void align_phase_word(Target* tgt) {
 
         if (ch_pm == 1) {
           std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
-                    << " (channel " << channel << ") " << std::endl
-                    << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                    << "(channel " << channel << "): " << std::endl
+                    << "snapshot_hex shifted >> 1bit: 0x" << std::hex << std::uppercase
                     << shifted1 << std::dec << std::endl;
 
           std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
@@ -267,6 +280,7 @@ void align_phase_word(Target* tgt) {
                     << shifted << std::dec << std::endl;
 
           header_found = true;
+          std::cout << "Successful header match in Snapshot: " << snapshot_val << std::endl;
           break;  // out of channel loop
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
@@ -284,6 +298,10 @@ void align_phase_word(Target* tgt) {
       if (header_found) break;  // out of loop over snapshots
     }
     // -------------- END SNAPSHOT BX SCAN ------------ //
+    if (!header_found) {
+      std::cout << "------------------------------------------" 
+      << std::endl << "Failure to match header pattern in ANY Snapshot." << std::endl;
+    }
 
   }  // -------- END WORD ALIGNMENT ------- //
   // ensure 0 remaining 0's filling cout
