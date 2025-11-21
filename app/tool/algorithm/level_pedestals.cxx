@@ -25,12 +25,10 @@ namespace pflib::algorithm {
 // Helper function to pull the 3 runs
 template <class EventPacket>  // any use of <EventPacket> is a placeholder for
                               // what the function gets called with.
-                              static void pedestal_runs(
-                                  Target* tgt, ROC& roc,
-                                  std::array<int, 72>& baseline,
-                                  std::array<int, 72>& highend,
-                                  std::array<int, 72>& lowend,
-                                  std::array<int, 2>& target, size_t n_events) {
+static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
+                          std::array<int, 72>& highend,
+                          std::array<int, 72>& lowend,
+                          std::array<int, 2>& target, size_t n_events) {
   DecodeAndBuffer<EventPacket> buffer{n_events};
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
@@ -87,14 +85,15 @@ static int get_adc(const EventPacket& p, int ch) {
   } else if constexpr (std::is_same_v<
                            EventPacket,
                            pflib::packing::MultiSampleECONDEventPacket>) {
-
-    // Use link specific channel calculation, this is done in singleROCEventPacket.cxx for the other case
-    //  // Use the "Sample Of Interest" inside the EventPacket (See MultiSample cxx file)
+    // Use link specific channel calculation, this is done in
+    // singleROCEventPacket.cxx for the other case
+    //  // Use the "Sample Of Interest" inside the EventPacket (See MultiSample
+    //  cxx file)
     int i_link = ch / 36;  // 0 or 1
-    int i_ch   = ch % 36;  // 0–35
+    int i_ch = ch % 36;    // 0–35
 
-    //ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
-    return  p.samples[p.i_soi].channel(i_link, i_ch).adc();
+    // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
+    return p.samples[p.i_soi].channel(i_link, i_ch).adc();
   } else {
     static_assert(sizeof(EventPacket) == 0,
                   "Unsupported packet type in get_adc()");
