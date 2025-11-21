@@ -2,6 +2,7 @@
  * @file econ.cxx
  * ECON menu commands and support functions
  */
+#include "./econ_snapshot.h"
 #include "pftool.h"
 
 /// print available econ IDs and their types
@@ -138,6 +139,7 @@ static void econ_status(const std::string& cmd, Target* tgt) {
  * - READ : pflib::ECON::readParameter
  * - READCONFIG : Read parameters from a YAML file
  * - DUMP : pflib::ECON::dumpSettings with decompile=true
+ * - ECON_SNAPSHOT : Outputs snapshot of ECON channels
  *
  * @param[in] cmd ECON command
  * @param[in] pft active target
@@ -219,6 +221,29 @@ static void econ(const std::string& cmd, Target* pft) {
         ".yaml");
     econ.dumpSettings(fname, true);
   }
+  if (cmd == "SNAPSHOT") {
+    int iecon =
+        pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+
+    auto econ = pft->econ(iecon);
+
+    std::string ch_str = pftool::readline(
+        "Enter channels (comma-separated), default is all channels: ",
+        "0,1,2,3,4,5,6,7");
+
+    std::vector<int> channels;
+    std::stringstream ss(ch_str);
+    std::string item;
+
+    while (std::getline(ss, item, ',')) {
+      try {
+        channels.push_back(std::stoi(item));
+      } catch (...) {
+        std::cerr << "Invalid channel entry: " << item << std::endl;
+      }
+    }
+    econ_snapshot(pft, econ, channels);
+  }
 }
 
 namespace {
@@ -235,7 +260,8 @@ auto menu_econ =
         ->line("LOAD", "load all parameters", econ)
         ->line("DUMP", "dump parameters", econ)
         ->line("READCONFIG", "read a yaml file", econ)
-        ->line("READ", "read one parameter and page", econ);
+        ->line("READ", "read one parameter and page", econ)
+        ->line("SNAPSHOT", "Output snapshot of ECON channels", econ);
 
 auto menu_econ_expert =
     menu_econ
