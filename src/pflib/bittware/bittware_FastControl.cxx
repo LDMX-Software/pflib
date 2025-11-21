@@ -118,7 +118,7 @@ void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
   ext_l1a = (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 0);
 }
 void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
-  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A,(l1a_overall)?(1):(0));
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall) ? (1) : (0));
   if (ext_l1a)
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
   else
