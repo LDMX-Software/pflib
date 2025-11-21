@@ -4,6 +4,7 @@
 #include "get_toa_efficiencies.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
+#include "../tasks/toa_vref_scan.h"
 
 namespace pflib::algorithm {
 
@@ -16,14 +17,23 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
   std::array<int, 2>
       target;  // toa_vref is a global parameter (1 value per link)
 
   // there is probably a better way to do the next line
   std::array<std::array<double, 256>, 2> final_effs;
-  DecodeAndBuffer buffer{n_events};  // working in buffer, not in writer
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    DecodeAndBuffer<pflib::packing::SingleROCEventPacket> buffer{n_events};
+  }else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
+    DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket> buffer{n_events};
+  }else{
+    pflib_log(warn) << "Unsupported DAQ format ("
+                    << static_cast<int>(pftool::state.daq_format_mode)
+                    << ") in level_pedestals. Skipping pedestal leveling...";
+  }
 
   // loop over runs, from toa_vref = 0 to = 255
 
