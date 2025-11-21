@@ -4,7 +4,6 @@
 
 namespace pflib::algorithm {
 
-
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
     const std::vector<EventPacket>& data) {

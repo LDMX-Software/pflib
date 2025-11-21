@@ -11,7 +11,7 @@ namespace pflib::algorithm {
  * non-zero TOA efficiency
  */
 
- //templated to match any event packet type
+// templated to match any event packet type
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
     const std::vector<EventPacket>& data);
