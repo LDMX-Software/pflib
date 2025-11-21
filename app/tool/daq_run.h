@@ -93,7 +93,7 @@ class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
   DecodeAndWriteToCSV(
       const std::string& file_name,
       std::function<void(std::ofstream&)> write_header,
-      std::function<void(std::ofstream&, EventPacket&)> write_event);
+      std::function<void(std::ofstream&, const EventPacket&)> write_event);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
   virtual void write_event(const EventPacket& ep) final;

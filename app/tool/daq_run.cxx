@@ -93,7 +93,7 @@ void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
 }
 
 template <class EventPacket>
-DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV<EventPacket>(
+DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
     std::function<void(std::ofstream& f, const EventPacket&)> write_event)
