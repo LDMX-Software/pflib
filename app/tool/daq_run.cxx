@@ -125,7 +125,7 @@ DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
 }
 
 template <class EventPacket>
-DecodeAndBuffer<EventPacket>::DecodeAndBuffer<EventPacket>(int nevents)
+DecodeAndBuffer<EventPacket>::DecodeAndBuffer(int nevents)
     : DecodeAndWrite<EventPacket>() {
   set_buffer_size(nevents);
 }
