@@ -1,4 +1,4 @@
-#include "align_phase_word.h"
+#include "econ_snapshot.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -8,17 +8,6 @@
 ENABLE_LOGGING();
 
 using pflib::packing::hex;
-
-uint32_t build_channel_mask(std::vector<int>& channels) {
-  /*
-    Bit wise OR comparsion between e.g. 6 and 7,
-    and shifting the '1' bit in the lowest sig bit,
-    with << operator by the amount of the channel #.
-  */
-  uint32_t mask = 0;
-  for (int ch : channels) mask |= (1 << ch);
-  return mask;
-}
 
 
 void econ_snapshot(Target* tgt) {
@@ -43,7 +32,7 @@ void econ_snapshot(Target* tgt) {
     }
 }
     
-  uint32_t binary_channels = build_channel_mask(channels);
+  uint32_t binary_channels = build_channel_mask(channels);  // defined in align_phase_word.cxx
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
   std::cout << std::endl;
