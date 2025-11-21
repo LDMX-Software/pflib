@@ -42,18 +42,14 @@ void econ_snapshot(Target* tgt) {
     tgt->fc().standard_setup();
 
     // ------- Scan when the ECON takes snapshot -----
-    int snapshot_val = 3531;  // near your orbit region of interest
-    int end_val = 3532; 
-
-
-    std::cout << "Outputting snapshot at BX " << snapshot_val
-                << std::endl;
-
+    int start_val = 3531;  // near your orbit region of interest
+    int end_val = 3534; 
 
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
     
-    // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
+    for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
+        std::cout << "Outputting snapshot at BX " << snapshot_val << std::endl;
         for (int channel : channels) {
             // print out snapshot
 
@@ -95,7 +91,7 @@ void econ_snapshot(Target* tgt) {
             std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
                     << snapshot << std::dec << std::endl;
         }  // end loop over snapshots for single channel
-    // }
+    }
 
     // ensure 0 remaining 0's filling cout
     std::cout << std::dec << std::setfill(' ');
