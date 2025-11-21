@@ -8,6 +8,9 @@ namespace pflib::packing {
 MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
+const std::string MultiSampleECONDEventPacket::to_csv_header =
+    "i_link,bx,event,orbit,channel," + Sample::to_csv_header;
+
 void MultiSampleECONDEventPacket::from(std::span<uint32_t> data) {
   samples.clear();
   run = data[0];

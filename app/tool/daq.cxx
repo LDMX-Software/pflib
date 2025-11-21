@@ -356,19 +356,19 @@ static void daq(const std::string& cmd, Target* pft) {
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
     if (decoding) {
-      std::unique_ptr<DaqRunConsumer> consumer;
+      std::unique_ptr<DAQRunConsumer> consumer;
       switch (pftool::state.daq_format_mode) {
         case Target::DaqFormat::ECOND_SW_HEADERS:
           consumer = std::make_unique<
-              DecodeAndWriteToCSV<pflib::packing::SoftWrappedECONDEventPacket>>(
+              DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>>(
               fname + ".csv",
               [](std::ofstream& f) {
                 f << std::boolalpha;
-                f << pflib::packing::SoftWrappedECONDEventPacket::to_csv_header
+                f << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
                   << '\n';
               },
               [](std::ofstream& f,
-                 const pflib::packing::SoftWrappedECONDEventPacket& ep) {
+                 const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
               });
           break;
