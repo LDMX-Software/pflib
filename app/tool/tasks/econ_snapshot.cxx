@@ -35,6 +35,9 @@ void econ_snapshot(Target* tgt) {
     for (int ch : channels) std::cout << ch << " ";
     std::cout << std::endl;
     
+    // ---- TO SET ECON REGISTERS ---- //
+    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+
     // ---- SETTING ECON REGISTERS ---- //
     parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
@@ -47,8 +50,6 @@ void econ_snapshot(Target* tgt) {
     int snapshot_val = 3531;  // near your orbit region of interest
     int end_val = 3534; 
 
-    // ---- TO SET ECON REGISTERS ---- //
-    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
     // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val += 1) {
         // set Bunch Crossing (BX)
