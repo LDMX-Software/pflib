@@ -2,35 +2,21 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "pflib/ROC.h"
-#include "pflib/packing/Hex.h"
-
 ENABLE_LOGGING();
 
-using pflib::packing::hex;
+uint32_t build_channel_mask(std::vector<int>& channels) {
+  /*
+    Bit wise OR comparsion between e.g. 6 and 7,
+    and shifting the '1' bit in the lowest sig bit,
+    with << operator by the amount of the channel #.
+  */
+  uint32_t mask = 0;
+  for (int ch : channels) mask |= (1 << ch);
+  return mask;
+}
 
-void econ_snapshot(Target* tgt) {
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  auto econ = tgt->econ(iecon);
-
-  std::string ch_str = pftool::readline(
-      "Enter channels (comma-separated), default is all channels: ",
-      "0,1,2,3,4,5,6,7");
-
-  std::vector<int> channels;
-  std::stringstream ss(ch_str);
-  std::string item;
-
-  while (std::getline(ss, item, ',')) {
-    try {
-      channels.push_back(std::stoi(item));
-    } catch (...) {
-      std::cerr << "Invalid channel entry: " << item << std::endl;
-    }
-  }
-
+void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
   uint32_t binary_channels =
       build_channel_mask(channels);  // defined in align_phase_word.cxx
   std::cout << "Channels to be configured: ";
@@ -50,10 +36,7 @@ void econ_snapshot(Target* tgt) {
 
   // ------- Scan when the ECON takes snapshot -----
   int snapshot_val = 3531;  // near your orbit region of interest
-  int end_val = 3534;
 
-  // for (int snapshot_val = start_val; snapshot_val <= end_val; snapshot_val +=
-  // 1) { set Bunch Crossing (BX)
   parameters.clear();
   parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
   auto econ_word_align_currentvals = econ.applyParameters(parameters);
@@ -93,8 +76,7 @@ void econ_snapshot(Target* tgt) {
 
     std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase << snapshot
               << std::dec << std::endl;
-  }  // end loop over snapshots for single channel
-  // }
+  }
 
   // ensure 0 remaining 0's filling cout
   std::cout << std::dec << std::setfill(' ');
