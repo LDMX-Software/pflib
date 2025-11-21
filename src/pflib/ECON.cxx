@@ -256,16 +256,16 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     // sort the addresses
     std::sort(addresses.begin(), addresses.end());
     // remove duplicates if any
-    addresses.erase(std::unique(addresses.begin(), addresses.end()), addresses.end());
-    
-    for (size_t i = 0; i < addresses.size(); ) {
+    addresses.erase(std::unique(addresses.begin(), addresses.end()),
+                    addresses.end());
+
+    for (size_t i = 0; i < addresses.size();) {
       int start_addr = addresses[i];
       int end_addr = addresses[i];
       size_t j = i + 1;
-      
+
       // Extend batch while addresses are close together
-      while (j < addresses.size() && 
-             addresses[j] - end_addr <= MAX_READ_GAP &&
+      while (j < addresses.size() && addresses[j] - end_addr <= MAX_READ_GAP &&
              addresses[j] - start_addr < MAX_BATCH_SIZE) {
         end_addr = addresses[j];
         j++;
@@ -288,20 +288,19 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     }
     // sort the addresses
     std::sort(addresses.begin(), addresses.end());
-    
+
     // Batch read the selected addresses
-    for (size_t i = 0; i < addresses.size(); ) {
+    for (size_t i = 0; i < addresses.size();) {
       int start_addr = addresses[i];
       int end_addr = addresses[i];
       size_t j = i + 1;
-      
-      while (j < addresses.size() && 
-             addresses[j] - end_addr <= MAX_READ_GAP &&
+
+      while (j < addresses.size() && addresses[j] - end_addr <= MAX_READ_GAP &&
              addresses[j] - start_addr < MAX_BATCH_SIZE) {
         end_addr = addresses[j];
         j++;
       }
-      
+
       auto batch_result = readRegisterRange(start_addr, end_addr);
       for (const auto& [addr, val] : batch_result) {
         if (reg_map.find(addr) != reg_map.end()) {
@@ -310,11 +309,11 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
       }
       // advance to next batch
       i = j;
-    } // end loop on batches
-  } // end else selected not empty
+    }  // end loop on batches
+  }  // end else selected not empty
 
   return chip_reg;
-} // end of ECON::getRegisters
+}  // end of ECON::getRegisters
 
 std::map<int, std::map<int, uint8_t>> ECON::applyParameters(
     const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
@@ -416,7 +415,7 @@ uint64_t ECON::readParameter(const std::string& page, const std::string& param,
 std::map<int, uint8_t> ECON::readRegisterRange(int start_addr, int end_addr) {
   int total_bytes = end_addr - start_addr + 1;
   std::vector<uint8_t> values = getValues(start_addr, total_bytes);
-  
+
   std::map<int, uint8_t> result;
   for (int i = 0; i < total_bytes; i++) {
     result[start_addr + i] = values[i];
