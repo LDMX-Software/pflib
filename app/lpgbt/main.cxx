@@ -145,6 +145,8 @@ void general(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "EXPERT_STANDARD_HCAL_DAQ" || cmd == "STANDARD_HCAL") {
     pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt_ic);
+    // sleep to wait for daq config to be applied before attempting trg config
+    sleep(1);
     printf("Applied standard HCAL DAQ configuration\n");
   }
   if (cmd == "EXPERT_STANDARD_HCAL_TRIG" || cmd == "STANDARD_HCAL") {
@@ -863,6 +865,12 @@ int main(int argc, char* argv[]) {
       }
       i++;
       i_link = std::stoi(argv[i]);
+      if (i + 1 == argc or argv[i + 1][0] == '-') {
+        std::cerr << "Using default BW location /dev/datadev_0" << std::endl;
+        target_name = "/dev/datadev_0";
+      } else {
+        target_name = argv[i + 1];
+      }
     }
 
     if (arg == "-s") {
@@ -900,7 +908,8 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link);
+    pflib::bittware::BWOptoLink* odaq =
+        new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
     t.olink_daq = odaq;
     t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq);
 #endif

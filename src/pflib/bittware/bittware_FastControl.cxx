@@ -33,7 +33,7 @@ static constexpr int BIT_RESET_COUNTERS = 30;
 
 static constexpr int REG_COUNTER_BASE = 0xC10;
 
-BWFastControl::BWFastControl() : axi_(0x1000) {
+BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   static const int BX_FOR_CALIB = 42;
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_BX, BX_FOR_CALIB);
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
@@ -113,13 +113,12 @@ int BWFastControl::fc_get_setup_led() {
   return axi_.readMasked(REG_CALIB_EXT, MASK_CALIB_DELTA);
 }
 
-void BWFastControl::fc_enables_read(bool& ext_l1a, bool& ext_spill,
-                                    bool& timer_l1a) {
-  ext_spill = false;
-  timer_l1a = false;
+void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
+  l1a_overall = (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1);
   ext_l1a = (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 0);
 }
-void BWFastControl::fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a) {
+void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall) ? (1) : (0));
   if (ext_l1a)
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
   else
