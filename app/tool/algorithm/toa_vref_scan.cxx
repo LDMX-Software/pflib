@@ -1,10 +1,10 @@
 #include "toa_vref_scan.h"
 
 #include "../daq_run.h"
+#include "../tasks/toa_vref_scan.h"
 #include "get_toa_efficiencies.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
-#include "../tasks/toa_vref_scan.h"
 
 namespace pflib::algorithm {
 
