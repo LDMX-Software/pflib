@@ -3,7 +3,7 @@
  * ECON menu commands and support functions
  */
 #include "pftool.h"
-#include "econ_snapshot.h"
+#include "./tasks/econ_snapshot.h"
 
 /// print available econ IDs and their types
 void print_econs(Target* tgt) {
