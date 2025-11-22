@@ -5,11 +5,8 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
 
   auto read_result = lpgbt.read({REG_EPRX0LOCKED});
 
-  printf(" EPRX0LOCKED register raw result = 0x%02X\n", read_result);
-
   uint8_t ch_locked = (read_result >> 4) & 0xF;
 
-  printf(" Channel lock status...\n");
   bool locked = (ch_locked >> 0) & 0x1;
   printf(" Channel %d: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
 
@@ -39,8 +36,6 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
   constexpr uint16_t REG_EPRX0CURRENTPHASE10 = 0x153;
 
   auto read_result = lpgbt.read({REG_EPRX0CURRENTPHASE10});
-
-  printf(" EPRX0CURRENTPHASE10 register raw result = 0x%02X\n", read_result);
 
   uint16_t ch_0 = (read_result >> 0) & 0xF;
 
