@@ -376,6 +376,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   static uint16_t REG_BERTCONFIG = 0x137;
   static uint16_t REG_BERTSTATUS = 0x1d1;
   static uint16_t REG_BERTRESULT[5] = {0x1d2, 0x1d3, 0x1d4, 0x1d5, 0x1d6};
+  static uint16_t REG_ULDATASOURCE1 = 0x129;
 
   // Enable channel in specified group
   uint8_t ctrl_reg = REG_EPRXCONTROLBASE + group;
@@ -416,6 +417,9 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     }
     usleep(1000);
   }
+
+  // Configure data source for prbs7
+  tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
 
   // Have BERT monitor channel
   uint8_t group_code = 1 + group;  // 0 disables checker
@@ -466,8 +470,10 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   printf(" Group %d, Channel %d BER = %.6f (%ld errors in %ld bits)\n", group,
          channel, ber, errors, bits_checked);
 
-  // Turn of lpgbt prbs if left on
+  // Turn off lpgbt prbs if left on
   tport_.write_reg(REG_EPRXPRBS0, 0x00);
+  // Revert back to nomral data source
+  tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
 }
 
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,

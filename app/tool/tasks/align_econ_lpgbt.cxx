@@ -72,7 +72,7 @@ void align_econ_lpgbt(Target* tgt) {
 
   auto econ_setup_builder =
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-
+      econ.testParameters().add("Mapping", "0_INVERT_DATA", 1); 
   auto econ_setup_test = econ_setup_builder.apply();
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
