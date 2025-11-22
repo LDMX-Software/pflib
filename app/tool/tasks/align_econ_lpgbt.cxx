@@ -59,14 +59,13 @@ void align_econ_lpgbt(Target* tgt) {
     got.push_back(spy[0]);
     uint32_t obs = spy[0] >> 8;
     if (obs == idle) {
-      printf("Found alignment at %d\n", phase);
-      return;
+      printf(" Found alignment at %d\n", phase);
     }
   }
   for (int phase = 0; phase < 32; phase++) {
     printf(" %2d 0x%08x\n", phase, got[phase]);
   }
-  printf("Did not find alignment\n");
+  printf(" Did not find alignment\n");
 
   // ----- bit alignment -----
   int chipaddr = 0x78;
