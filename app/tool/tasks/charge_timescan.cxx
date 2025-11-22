@@ -13,6 +13,7 @@ void charge_timescan(Target* tgt) {
       "Flash LED instead of the internal calibration pulse?", true);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
   int link = (channel / 36);
+  int i_ch = channel % 36;  // 0–35
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
@@ -59,23 +60,73 @@ void charge_timescan(Target* tgt) {
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
-  DecodeAndWriteToCSV writer{
-      fname,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["channel"] = channel;
-        header["calib"] = calib;
-        header["highrange"] = highrange;
-        header["ledflash"] = isLED;
-        f << std::boolalpha << "# " << header << '\n'
-          << "time," << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-        f << time << ',';
-        ep.channel(channel).to_csv(f);
-        f << '\n';
-      }};
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+
+  switch (pftool::state.daq_format_mode) {
+    case Target::DaqFormat::ECOND_SW_HEADERS: {
+      DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket> writer{
+          fname,
+          [&](std::ofstream& f) {
+            nlohmann::json header;
+            header["channel"] = channel;
+            header["calib"] = calib;
+            header["highrange"] = highrange;
+            header["ledflash"] = isLED;
+            f << std::boolalpha << "# " << header << '\n'
+              << "time," << pflib::packing::Sample::to_csv_header << '\n';
+          },
+          [&](std::ofstream& f,
+              const pflib::packing::MultiSampleECONDEventPacket& ep) {
+            f << time << ',';
+            ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+            f << '\n';
+          }};
+      break;
+    }
+    case Target::DaqFormat::SIMPLEROC: {
+      DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket> writer{
+          fname,
+          [&](std::ofstream& f) {
+            nlohmann::json header;
+            header["channel"] = channel;
+            header["calib"] = calib;
+            header["highrange"] = highrange;
+            header["ledflash"] = isLED;
+            f << std::boolalpha << "# " << header << '\n'
+              << "time," << pflib::packing::Sample::to_csv_header << '\n';
+          },
+          [&](std::ofstream& f,
+              const pflib::packing::SingleROCEventPacket& ep) {
+            f << time << ',';
+            ep.channel(channel).to_csv(f);
+            f << '\n';
+          }};
+      break;
+    }
+    default:
+      PFEXCEPTION_RAISE("BadConf",
+                        "Unable to do all_channels_to_csv for the currently "
+                        "configured format.");
+  }
+
+  // DecodeAndWriteToCSV writer{
+  //     fname,
+  //     [&](std::ofstream& f) {
+  //       nlohmann::json header;
+  //       header["channel"] = channel;
+  //       header["calib"] = calib;
+  //       header["highrange"] = highrange;
+  //       header["ledflash"] = isLED;
+  //       f << std::boolalpha << "# " << header << '\n'
+  //         << "time," << pflib::packing::Sample::to_csv_header << '\n';
+  //     },
+  //     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+  //       f << time << ',';
+  //       ep.channel(channel).to_csv(f);
+  //       f << '\n';
+  //     }
+  //   };
+
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
   int central_charge_to_l1a;
   if (isLED) {

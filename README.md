@@ -15,6 +15,15 @@ make
 ./pftool -h # print help
 ```
 
+### on DAQ server at SLAC
+On this machine, `conda` is being used to standardize the environment.
+```
+source /u1/ldmx/miniconda3/etc/profile.d/conda.sh
+conda activate ldmx-env
+```
+This activation needs to be done **before** you configure (`cmake`)
+or build (`make`) pflib.
+
 ## Usage with Rogue Run Control
 Python bindings for specific functions have been implemented here,
 so you can import them as long as you install pflib and update

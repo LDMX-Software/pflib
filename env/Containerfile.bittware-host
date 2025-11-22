@@ -1,5 +1,6 @@
-FROM ubuntu:22.04
+FROM ghcr.io/slaclab/rogue:v6.6.2
 LABEL maintainer="Tom Eichlersmith <eichl008@umn.edu>"
+ENV ROGUE_DIR=/usr/local
 RUN apt-get update &&\
     apt-get --yes install \
       gcc \

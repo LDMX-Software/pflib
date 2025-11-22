@@ -1,0 +1,27 @@
+package:
+  name: pflib
+  version: {{ environ.get('GIT_DESCRIBE_TAG') | replace("-",".") }}
+source:
+  path: ../..
+build:
+  exclude:
+    - build**
+    - .git**
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - git
+    - cmake
+    - make
+    - python
+    - boost
+    - rogue=v6.7.0
+    - nlohmann_json
+    - yaml-cpp
+  run:
+    - python
+    - boost
+    - rogue=v6.7.0
+    - nlohmann_json
+    - yaml-cpp

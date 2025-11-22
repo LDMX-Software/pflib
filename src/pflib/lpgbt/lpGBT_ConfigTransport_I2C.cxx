@@ -16,7 +16,7 @@ lpGBT_ConfigTransport_I2C::lpGBT_ConfigTransport_I2C(
   ioctl(handle_, I2C_SLAVE, i2c_addr);
   if (handle_ < 0) {
     char msg[1000];
-    snprintf(msg, 1000, "Error %s (%d) opening I2C device file",
+    snprintf(msg, 1000, "Error %s (%d) opening I2C device file %s",
              strerror(errno), errno, bus_dev.c_str());
     PFEXCEPTION_RAISE("I2CException", msg);
   }

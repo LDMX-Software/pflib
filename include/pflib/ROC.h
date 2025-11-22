@@ -23,6 +23,7 @@ class ROC {
 
   void setRunMode(bool active = true);
   bool isRunMode();
+  const std::string& type() const;
 
   std::vector<uint8_t> readPage(int ipage, int len);
   uint8_t getValue(int page, int offset);
@@ -183,6 +184,7 @@ class ROC {
  private:
   I2C& i2c_;
   uint8_t roc_base_;
+  std::string type_version_;
   Compiler compiler_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc")};
 };
