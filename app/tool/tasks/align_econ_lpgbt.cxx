@@ -120,7 +120,6 @@ void align_econ_lpgbt(Target* tgt) {
 
   econ.applyParameters(parameters);
 
-
   // auto econ_finish_builder =
   //     econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
 
