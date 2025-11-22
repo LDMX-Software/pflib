@@ -42,6 +42,7 @@ class pftool : public pflib::menu::Menu<Target*> {
    public:
     static constexpr int CFG_HCALFMC = 1;
     static constexpr int CFG_HCALOPTO = 2;
+    static constexpr int CFG_ECALOPTO = 3;
 
    private:
     /// list of page names for tab completion per ROC ID

@@ -41,7 +41,8 @@ Compiler::Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut)
  * This is not safe and could be very slow if the value input is malformed
  * (i.e. not a safely constructed unsigned integer).
  */
-std::size_t msb(uint32_t v) {
+
+std::size_t msb(uint64_t v) {
   int r{0};
   while (v >>= 1) {
     r++;
@@ -87,8 +88,8 @@ void Compiler::compile(const std::string& page_name,
   for (const RegisterLocation& location : spec.registers) {
     // grab sub value of parameter in this register
     uint8_t sub_val = ((uval >> value_curr_min_bit) & location.mask);
-    pflib_log(trace) << "  " << sub_val << " at " << location.reg << ", "
-                     << location.n_bits << " bits";
+    pflib_log(trace) << "  " << std::to_string(sub_val) << " at "
+                     << location.reg << ", " << location.n_bits << " bits";
     value_curr_min_bit += location.n_bits;
     if (register_values[page_id].find(location.reg) ==
         register_values[page_id].end()) {
@@ -298,9 +299,8 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::decompile(
                            << int(data[i]);
         }
         pflib_log(debug) << "value " << std::hex << value;
-
-        size_t bit_cursor =
-            0;  // keeps track of which bit in pval to place each field
+        // keeps track of which bit in pval to place each field
+        size_t bit_cursor = 0;
         for (const RegisterLocation& loc : spec.registers) {
           size_t byte_offset = loc.reg - first_reg;
           size_t bit_offset = 8 * byte_offset + loc.min_bit;

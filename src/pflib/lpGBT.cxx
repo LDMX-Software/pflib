@@ -3,6 +3,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <algorithm>
+
 namespace pflib {
 
 std::vector<uint8_t> lpGBT_ConfigTransport::read_regs(uint16_t reg, int n) {

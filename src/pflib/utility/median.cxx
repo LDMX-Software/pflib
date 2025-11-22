@@ -1,5 +1,7 @@
 #include "pflib/utility/median.h"
 
+#include <algorithm>
+
 namespace pflib::utility {
 
 int median(std::vector<int> samples) {
