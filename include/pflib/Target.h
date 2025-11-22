@@ -115,6 +115,7 @@ Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask);
 Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask,
                                         const char* dev);
 Target* makeTargetEcalSMMZCU(int ilink);
+Target* makeTargetEcalSMMBittware(int ilink, const char* dev);
 
 }  // namespace pflib
 
