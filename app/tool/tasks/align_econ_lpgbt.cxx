@@ -65,10 +65,10 @@ void align_econ_lpgbt(Target* tgt) {
     }
   }
   if (!found_alignment) {
-  	for (int phase = 0; phase < 32; phase++) {
-    		printf(" %2d 0x%08x\n", phase, got[phase]);
-  	}
-  	printf(" Did not find alignment\n");
+    for (int phase = 0; phase < 32; phase++) {
+      printf(" %2d 0x%08x\n", phase, got[phase]);
+    }
+    printf(" Did not find alignment\n");
   }
 
   // ----- bit alignment -----
@@ -95,7 +95,7 @@ void align_econ_lpgbt(Target* tgt) {
   uint8_t invert = pftool::readline_int("Is data inverted?", 0, true);
   auto econ_setup_builder =
       econ.testParameters().add("Mapping", "0_INVERT_DATA", invert);
-      econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
+  econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
   auto econ_setup_test = econ_setup_builder.apply();
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
