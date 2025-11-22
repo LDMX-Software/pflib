@@ -72,7 +72,7 @@ void align_econ_lpgbt(Target* tgt) {
     printf(" %2d 0x%08x\n", phase, got[phase]);
   }
   printf("Did not find alignment\n");
-  
+
   // ----- bit alignment -----
   pflib::zcu::lpGBT_ICEC_Simple ic("standardLpGBTpair-0", false, chipaddr);
   pflib::lpGBT lpgbt_daq(ic);
@@ -93,7 +93,7 @@ void align_econ_lpgbt(Target* tgt) {
 
   auto econ_setup_builder =
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-      econ.testParameters().add("Mapping", "0_INVERT_DATA", 1); 
+  econ.testParameters().add("Mapping", "0_INVERT_DATA", 1);
   auto econ_setup_test = econ_setup_builder.apply();
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
