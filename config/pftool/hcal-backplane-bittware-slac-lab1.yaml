@@ -1,7 +1,4 @@
-# for testing in SLAC Bldg 84 Lab 1
-# I (Tom) connected the HcalBackplane to the Ecal Bittware (datadev_1)
-# just because that was the one I had loaded the firmware onto
 target:
   type: "HcalBackplaneBittware"
   ilink: 0
-  dev: "/dev/datadev_1"
+  dev: "/dev/datadev_2"

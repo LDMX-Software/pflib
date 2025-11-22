@@ -355,6 +355,18 @@ int main(int argc, char* argv[]) {
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
 #endif
+    } else if (target_type == "EcalSMMBittware") {
+#ifdef USE_ROGUE
+      // need ilink to be in configuration
+      auto ilink = target.get<int>("ilink");
+      auto dev = target.get<std::string>("dev", "/dev/datadev_0");
+      tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, dev.c_str()));
+      readout_cfg = pftool::State::CFG_ECALOPTO;
+#else
+      pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
+      return 1;
+#endif
+
     } else {
       pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;

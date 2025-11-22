@@ -137,6 +137,7 @@ if (${Rogue_FOUND})
     src/pflib/bittware/bittware_daq.cxx
     src/pflib/bittware/bittware_FastControl.cxx
     src/pflib/bittware/HcalBackplaneBittware.cxx
+    src/pflib/bittware/EcalSMMTarget.cxx
     )
 endif()
 
