@@ -74,6 +74,9 @@ void align_econ_lpgbt(Target* tgt) {
   printf("Did not find alignment\n");
   
   // ----- bit alignment -----
+  int chipaddr = 0x78;
+  chipaddr |= 0x4;
+
   pflib::zcu::lpGBT_ICEC_Simple ic("standardLpGBTpair-0", false, chipaddr);
   pflib::lpGBT lpgbt_daq(ic);
   pflib::zcu::lpGBT_ICEC_Simple ec("standardLpGBTpair-0", true, 0x78);
