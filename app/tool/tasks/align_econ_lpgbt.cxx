@@ -88,6 +88,8 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" lpGBT-TRG PUSM %s (%d)\n", lpgbt_trg.status_name(pusm_trg).c_str(),
          pusm_trg);
 
+  auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
+  printf(" ECOND PRBS State: %lu\n", prbs_state);
   printf("\n --- PRE-PRBS STATUS ---\n");
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
@@ -96,6 +98,9 @@ void align_econ_lpgbt(Target* tgt) {
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
   parameters["ERX"]["0_INVERT_DATA"] = invert;
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
+
+  auto invert_state = econ.readParameter("ERX", "0_INVERT_DATA");
+  printf(" ECOND data invert state: %lu\n", invert_state);
 
   econ.applyParameters(parameters);
 
@@ -106,8 +111,9 @@ void align_econ_lpgbt(Target* tgt) {
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
 
-  auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-  std::cout << " PRBS state: " << prbs_state << std::endl;
+  prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
+  // std::cout << " PRBS state: " << prbs_state << std::endl;
+  printf(" ECOND PRBS State: %lu\n", prbs_state);
 
   lpgbt_daq.check_prbs_errors_erx(0, 0,
                                   false);  // group 0, ch 0, false for ECON
