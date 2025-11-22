@@ -93,12 +93,22 @@ void align_econ_lpgbt(Target* tgt) {
   print_locked_status(lpgbt_daq);
 
   uint8_t invert = pftool::readline_int("Is data inverted?", 0, true);
-  auto econ_setup_builder =
-      econ.testParameters().add("Mapping", "0_INVERT_DATA", invert);
-  econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-  auto econ_setup_test = econ_setup_builder.apply();
+  std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+  parameters["ERX"]["0_INVERT_DATA"] = invert;
+  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
+
+  econ.applyParameters(parameters);
+
+  // auto econ_setup_builder =
+  //       econ.testParameters().add("ERX", "0_INVERT_DATA", invert);
+  // 	econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
+  // auto econ_setup_test = econ_setup_builder.apply();
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
+
+  auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
+  std::cout << " PRBS state: " << prbs_state << std::endl;
+
   lpgbt_daq.check_prbs_errors_erx(0, 0,
                                   false);  // group 0, ch 0, false for ECON
 
@@ -106,8 +116,13 @@ void align_econ_lpgbt(Target* tgt) {
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
-  auto econ_finish_builder =
-      econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
+  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
 
-  auto econ_finish_test = econ_finish_builder.apply();
+  econ.applyParameters(parameters);
+
+
+  // auto econ_finish_builder =
+  //     econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
+
+  // auto econ_finish_test = econ_finish_builder.apply();
 }
