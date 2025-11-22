@@ -410,9 +410,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     if (elapsed_us > 5000000) {
-      printf(
-          "INFO: Current lock state = %d\n",
-          group, state);
+      printf("INFO: Current lock state = %d\n", group, state);
       break;
     }
     usleep(1000);
