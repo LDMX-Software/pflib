@@ -68,7 +68,7 @@ add_library(utility SHARED
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_include_directories(utility PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(utility SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 
 add_library(logging SHARED src/pflib/logging/Logging.cxx)
 target_include_directories(logging PUBLIC 
