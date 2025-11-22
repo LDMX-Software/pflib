@@ -406,14 +406,12 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
     state = reg & 0x3;
 
-    if (state == 3) break;
     gettimeofday(&now, nullptr);
     long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     if (elapsed_us > 5000000) {
       printf(
-          " Timeout waiting for EPRX group %d state to reach FREE "
-          "RUNNING. Current state = %d\n",
+          "INFO: Current lock state = %d\n",
           group, state);
       break;
     }
