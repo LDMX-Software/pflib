@@ -15,6 +15,7 @@ ECON::ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version)
       econ_base_{econ_base_addr},
       compiler_{Compiler::get(type_version)},
       type_{type_version} {
+  i2c_.set_bus_speed(1400);
   econ_reg_nbytes_lut_ = compiler_.build_register_byte_lut();
 
   pflib_log(debug) << "ECON base addr " << packing::hex(econ_base_);
@@ -240,37 +241,79 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   const int page_id = 0;  // always page 0
 
   std::map<int, uint8_t> all_regs;
+  // Batch contiguous addresses
+  const int MAX_READ_GAP = 8;
+  const int MAX_BATCH_SIZE = 256;
 
   if (selected.empty()) {
-    // if no specific registers are requested, read all registers
-    // printf("[DEBUG] Selected map is empty — reading all registers.\n");
+    // Build sorted list of all register addresses we need to read
+    std::vector<int> addresses;
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
-      std::vector<uint8_t> values = getValues(reg_addr, nbytes);
-      for (int i = 0; i < values.size(); ++i) {
-        // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-        all_regs[reg_addr + i] = values[i];
+      for (int i = 0; i < nbytes; i++) {
+        addresses.push_back(reg_addr + i);
       }
+    }
+    // sort the addresses
+    std::sort(addresses.begin(), addresses.end());
+    // remove duplicates if any
+    addresses.erase(std::unique(addresses.begin(), addresses.end()),
+                    addresses.end());
+
+    for (size_t i = 0; i < addresses.size();) {
+      int start_addr = addresses[i];
+      int end_addr = addresses[i];
+      size_t j = i + 1;
+
+      // Extend batch while addresses are close together
+      while (j < addresses.size() && addresses[j] - end_addr <= MAX_READ_GAP &&
+             addresses[j] - start_addr < MAX_BATCH_SIZE) {
+        end_addr = addresses[j];
+        j++;
+      }
+
+      // Read the batch
+      auto batch_result = readRegisterRange(start_addr, end_addr);
+      for (const auto& [addr, val] : batch_result) {
+        chip_reg[page_id][addr] = val;
+      }
+      // advance to next batch
+      i = j;
     }
   } else {
-    // only read the registers in selected[0]
+    // Similar logic for selected registers
     const auto& reg_map = selected.at(page_id);
-    for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
-      if (reg_map.find(reg_addr) != reg_map.end()) {
-        std::vector<uint8_t> values = getValues(reg_addr, nbytes);
-        for (int i = 0; i < (int)values.size(); ++i) {
-          // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-          all_regs[reg_addr + i] = values[i];
+    std::vector<int> addresses;
+    for (const auto& [addr, _] : reg_map) {
+      addresses.push_back(addr);
+    }
+    // sort the addresses
+    std::sort(addresses.begin(), addresses.end());
+
+    // Batch read the selected addresses
+    for (size_t i = 0; i < addresses.size();) {
+      int start_addr = addresses[i];
+      int end_addr = addresses[i];
+      size_t j = i + 1;
+
+      while (j < addresses.size() && addresses[j] - end_addr <= MAX_READ_GAP &&
+             addresses[j] - start_addr < MAX_BATCH_SIZE) {
+        end_addr = addresses[j];
+        j++;
+      }
+
+      auto batch_result = readRegisterRange(start_addr, end_addr);
+      for (const auto& [addr, val] : batch_result) {
+        if (reg_map.find(addr) != reg_map.end()) {
+          chip_reg[page_id][addr] = val;
         }
       }
-    }
-  }
-
-  for (const auto& [reg, val] : all_regs) {
-    chip_reg[page_id][reg] = val;
-  }
+      // advance to next batch
+      i = j;
+    }  // end loop on batches
+  }  // end else selected not empty
 
   return chip_reg;
-}
+}  // end of ECON::getRegisters
 
 std::map<int, std::map<int, uint8_t>> ECON::applyParameters(
     const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
@@ -367,6 +410,17 @@ uint64_t ECON::readParameter(const std::string& page, const std::string& param,
   p[page][param] = 0;
   auto values = this->readParameters(p, print_values);  // get the results
   return values[page][param];  // return the actual register value
+}
+
+std::map<int, uint8_t> ECON::readRegisterRange(int start_addr, int end_addr) {
+  int total_bytes = end_addr - start_addr + 1;
+  std::vector<uint8_t> values = getValues(start_addr, total_bytes);
+
+  std::map<int, uint8_t> result;
+  for (int i = 0; i < total_bytes; i++) {
+    result[start_addr + i] = values[i];
+  }
+  return result;
 }
 
 void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
