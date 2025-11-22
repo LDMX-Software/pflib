@@ -51,6 +51,8 @@ void align_econ_lpgbt(Target* tgt) {
   }
   uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
 
+  bool found_alignment = false;
+
   std::vector<uint32_t> got;
   for (int phase = 0; phase < 32; phase++) {
     econ.applyParameter("FormatterBuffer", "Global_align_serializer_0", phase);
@@ -62,10 +64,12 @@ void align_econ_lpgbt(Target* tgt) {
       printf(" Found alignment at %d\n", phase);
     }
   }
-  for (int phase = 0; phase < 32; phase++) {
-    printf(" %2d 0x%08x\n", phase, got[phase]);
+  if (!found_alignment) {
+  	for (int phase = 0; phase < 32; phase++) {
+    		printf(" %2d 0x%08x\n", phase, got[phase]);
+  	}
+  	printf(" Did not find alignment\n");
   }
-  printf(" Did not find alignment\n");
 
   // ----- bit alignment -----
   int chipaddr = 0x78;
@@ -88,9 +92,10 @@ void align_econ_lpgbt(Target* tgt) {
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
+  uint8_t invert = pftool::readline_int("Is data inverted?", 0, true);
   auto econ_setup_builder =
+      econ.testParameters().add("Mapping", "0_INVERT_DATA", invert);
       econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-  econ.testParameters().add("Mapping", "0_INVERT_DATA", 1);
   auto econ_setup_test = econ_setup_builder.apply();
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
