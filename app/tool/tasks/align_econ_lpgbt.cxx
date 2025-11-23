@@ -103,7 +103,7 @@ void align_econ_lpgbt(Target* tgt) {
   econ.applyParameters(parameters);
   usleep(10000);
 
-  parameters["ERX"]["0_INVERT_DATA"] = invert;
+  parameters["ETX"]["0_INVERT_DATA"] = invert;
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
   econ.applyParameters(parameters);
   usleep(10000);
