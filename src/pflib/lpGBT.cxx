@@ -387,6 +387,8 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
   ctrl_byte |= (1 & 0x3);                      // Hard code for Initial Training
   tport_.write_reg(ctrl_reg, ctrl_byte);
+  printf(" EPRX0CONTROL: %d\n", tport_.read_reg(ctrl_reg));
+
 
   // Optional: Enable internal PRBS signal (only for group 0 right now)
   if (lpgbt_only) {
@@ -421,12 +423,14 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Configure data source for prbs7
   tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
+  printf(" ULDATASOURCE1: %d\n", tport_.read_reg(REG_ULDATASOURCE1));
 
   // Have BERT monitor channel
   uint8_t group_code = 1 + group;  // 0 disables checker
   uint8_t prbs_code = 6;  // Hard code UL_PRBS7_DR3_CHN0 from Table 14.6 in v1
   uint8_t bert_source_byte = ((group_code & 0xF) << 4) | (prbs_code & 0xF);
   tport_.write_reg(REG_BERTSOURCE, bert_source_byte);
+  printf(" BERTSOURCE: %d\n", tport_.read_reg(REG_BERTSOURCE));
 
   // Reset BERT
   tport_.write_reg(REG_BERTCONFIG, 0x00);
@@ -434,12 +438,14 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Start BERT
   tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
+  printf(" BERTCONFIG: %d\n", tport_.read_reg(REG_BERTCONFIG));
 
   // Wait for BERT to finish
   while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
     usleep(1000);
   }
 
+  printf(" BERTSTATUS: %d\n", tport_.read_reg(REG_BERTSTATUS));
   // Check PRBS error flag
   if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
     tport_.write_reg(REG_BERTCONFIG, 0x00);
@@ -449,6 +455,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Get error count
   uint64_t errors = 0;
   for (int i = 0; i < 5; i++) {
+	  printf("BERTRESULT%d: %d\n", tport_.read_reg(REG_BERTRESULT[i]));
     errors |=
         (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
