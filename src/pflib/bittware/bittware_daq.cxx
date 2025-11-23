@@ -30,8 +30,8 @@ static constexpr uint32_t MASK_PAGE_SPY = 0x00700000;
 
 static constexpr uint32_t ADDR_SPY_BASE = 0xA00; // 0xA00 -> 0xBFC
 
-static constexpr uint32_t ADDR_BASE_COUNTER = 0x880;   
-static constexpr uint32_t ADDR_INFO = 0x8C0;   
+static constexpr uint32_t ADDR_BASE_COUNTER = 0x900;   
+static constexpr uint32_t ADDR_INFO = 0x940;   
 
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
