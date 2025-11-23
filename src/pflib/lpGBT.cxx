@@ -389,7 +389,6 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   tport_.write_reg(ctrl_reg, ctrl_byte);
   printf(" EPRX0CONTROL: %d\n", tport_.read_reg(ctrl_reg));
 
-
   // Optional: Enable internal PRBS signal (only for group 0 right now)
   if (lpgbt_only) {
     tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
@@ -455,7 +454,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Get error count
   uint64_t errors = 0;
   for (int i = 0; i < 5; i++) {
-	  printf("BERTRESULT%d: %d\n", tport_.read_reg(REG_BERTRESULT[i]));
+    printf("BERTRESULT%d: %d\n", tport_.read_reg(REG_BERTRESULT[i]));
     errors |=
         (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
