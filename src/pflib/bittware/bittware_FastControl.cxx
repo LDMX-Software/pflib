@@ -77,14 +77,21 @@ int BWFastControl::getL1AperROR() {
   return axi_.readMasked(REG_CTL, MASK_L1A_PER_ROR);
 }
 void BWFastControl::linkreset_rocs() {
+  uint32_t val=axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL,MASK_ENABLE_L1A,0);
+  
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCD);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCT);
+  axi_.write(REG_CTL, val);
 }
 void BWFastControl::linkreset_econs() {
+  uint32_t val=axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL,MASK_ENABLE_L1A,0);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECOND);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECONT);
+  axi_.write(REG_CTL, val);
 }
 void BWFastControl::bufferclear() { axi_.write(REG_PULSE, 1 << BIT_FIRE_EBR); }
 void BWFastControl::orbit_count_reset() {
