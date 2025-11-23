@@ -63,6 +63,7 @@ void align_econ_lpgbt(Target* tgt) {
     if (obs == idle) {
       printf(" Found alignment at %d\n", phase);
       found_alignment = true;
+      break;
     }
   }
   if (!found_alignment) {
