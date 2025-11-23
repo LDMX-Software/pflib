@@ -392,10 +392,10 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   if (lpgbt_only) {
     tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
   }
-  
+
   // Configure data source for prbs7
   tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
-  
+
   // Train channel
   tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
   usleep(100000);
@@ -420,7 +420,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   }
 
   // Configure data source for prbs7
- //  tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
+  //  tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
 
   // Have BERT monitor channel
   uint8_t group_code = 1 + group;  // 0 disables checker
