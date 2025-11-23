@@ -377,7 +377,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   static uint16_t REG_BERTSOURCE = 0x136;
   static uint16_t REG_BERTCONFIG = 0x137;
   static uint16_t REG_BERTSTATUS = 0x1d1;
-  static uint16_t REG_BERTRESULT[5] = {0x1d2, 0x1d3, 0x1d4, 0x1d5, 0x1d6};
+  static uint16_t REG_BERTRESULT[5] = {0x1d6, 0x1d5, 0x1d4, 0x1d3, 0x1d2};
   static uint16_t REG_ULDATASOURCE1 = 0x129;
 
   // Enable channel in specified group
@@ -452,6 +452,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     errors |=
         (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
+  
   tport_.write_reg(REG_BERTCONFIG, 0x00);
 
   // Stop BERT
