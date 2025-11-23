@@ -454,7 +454,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Get error count
   uint64_t errors = 0;
   for (int i = 0; i < 5; i++) {
-    printf("BERTRESULT%d: %d\n", tport_.read_reg(REG_BERTRESULT[i]));
+    printf(" BERTRESULT%d: %d\n", i, tport_.read_reg(REG_BERTRESULT[i]));
     errors |=
         (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
