@@ -96,12 +96,13 @@ void align_econ_lpgbt(Target* tgt) {
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
-  uint8_t invert = pftool::readline_int("Is data inverted?", 0, true);
+  uint8_t invert = pftool::readline_int("Is data inverted?", 1, true);
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
   parameters["ERX"]["0_INVERT_DATA"] = invert;
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
 
   auto invert_state = econ.readParameter("ERX", "0_INVERT_DATA");
+  usleep(10000);
   printf(" ECOND data invert state: %lu\n", invert_state);
 
   econ.applyParameters(parameters);
