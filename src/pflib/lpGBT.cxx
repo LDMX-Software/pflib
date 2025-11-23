@@ -452,7 +452,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     errors |=
         (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
-  
+
   tport_.write_reg(REG_BERTCONFIG, 0x00);
 
   // Stop BERT
