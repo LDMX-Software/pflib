@@ -98,7 +98,7 @@ void align_econ_lpgbt(Target* tgt) {
 
   uint8_t invert = pftool::readline_int("Is data inverted?", 1, true);
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-  
+
   parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
   econ.applyParameters(parameters);
   usleep(10000);
@@ -114,7 +114,6 @@ void align_econ_lpgbt(Target* tgt) {
 
   auto invert_state = econ.readParameter("ERX", "0_INVERT_DATA");
   printf(" ECOND data invert state: %lu\n", invert_state);
-
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
 
