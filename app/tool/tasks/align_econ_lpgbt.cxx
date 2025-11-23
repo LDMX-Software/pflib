@@ -62,6 +62,7 @@ void align_econ_lpgbt(Target* tgt) {
     uint32_t obs = spy[0] >> 8;
     if (obs == idle) {
       printf(" Found alignment at %d\n", phase);
+      found_alignment = true;
     }
   }
   if (!found_alignment) {
@@ -104,11 +105,6 @@ void align_econ_lpgbt(Target* tgt) {
 
   econ.applyParameters(parameters);
 
-  // auto econ_setup_builder =
-  //       econ.testParameters().add("ERX", "0_INVERT_DATA", invert);
-  // 	econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-  // auto econ_setup_test = econ_setup_builder.apply();
-
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
 
   prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
@@ -125,9 +121,4 @@ void align_econ_lpgbt(Target* tgt) {
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
 
   econ.applyParameters(parameters);
-
-  // auto econ_finish_builder =
-  //     econ.testParameters().add("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
-
-  // auto econ_finish_test = econ_finish_builder.apply();
 }
