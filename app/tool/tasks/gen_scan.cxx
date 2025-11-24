@@ -10,7 +10,10 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath, int channel, nlohmann::json& header, std::filesystem::path& parameter_points_file){
+static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                            std::string& output_filepath, int channel,
+                            nlohmann::json& header,
+                            std::filesystem::path& parameter_points_file) {
   std::size_t i_param_point{0};
   int link = (channel / 36);
   int i_ch = channel % 36;  // 0–35
