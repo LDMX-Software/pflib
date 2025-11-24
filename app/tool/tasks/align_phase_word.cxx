@@ -221,8 +221,9 @@ void align_phase_word(Target* tgt) {
       end_val = 2536;
     }
     
-    int testval = 3532;
+    // int testval = 3532;
 
+    // ********** SNAPSHOT LOOP *********** //
     std::cout << "Iterating over snapshots to find SPECIAL HEADER: "
               << std::endl;
     bool header_found = false;
@@ -309,7 +310,7 @@ void align_phase_word(Target* tgt) {
           header_found = true;
           std::cout << "Successful header match in Snapshot: " << snapshot_val
                     << std::endl;
-          break;  // out of channel loop
+          // break;  // out of channel loop. commented out 
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
