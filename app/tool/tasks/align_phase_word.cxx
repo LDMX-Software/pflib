@@ -49,6 +49,16 @@ void align_phase_word(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
+  
+  bool bittware = pftool::readline_bool("Bittware? (ZCU by default): ", false);
+
+
+  //bool bittware = false;
+  // if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
+    // set bittware to true here?
+//     bittware = false;  // defaulting
+// }
+
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
 
@@ -143,7 +153,13 @@ void align_phase_word(Target* tgt) {
     parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
-    parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
+
+    // CHANGE HERE dependent on Bittware or ZCU
+    if (bittware){
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 2559;  // 0xdeb
+    } else {
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xa04
+    }
 
     // Channel settings
     for (int channel : channels) {
@@ -190,8 +206,15 @@ void align_phase_word(Target* tgt) {
     // tgt->fc().bx_custom(3, 0xfff000, 3000);
 
     // ------- Scan when the ECON takes snapshot -----
+
     int start_val = 3531;  // near your orbit region of interest
     int end_val = 3540;    // up to orbit rollover
+
+    if (bittware){
+      start_val = 2490;
+      end_val = 2500;
+    }
+    
     int testval = 3532;
 
     std::cout << "Iterating over snapshots to find SPECIAL HEADER: "
