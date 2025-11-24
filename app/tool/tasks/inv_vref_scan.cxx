@@ -9,10 +9,8 @@ ENABLE_LOGGING();
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                 std::string& output_filepath,
-                                 int channels[2]) {
+                            std::string& output_filepath, std::array<int,2>& channels, int& inv_vref) {
   int link = 0;
-  int inv_vref = 0;
   int i_ch = 0;  // 0–35
 
   DecodeAndWriteToCSV<EventPacket> writer{
@@ -65,21 +63,22 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
 void inv_vref_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
+  int inv_vref = 0;
 
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
   int ch_link0 = pftool::readline_int("Channel to scan on link 0", 17);
   int ch_link1 = pftool::readline_int("Channel to scan on link 1", 51);
-  int channels[2] = {ch_link0, ch_link1};
+  std::array<int,2> channels = {ch_link0, ch_link1};
 
   auto roc = tgt->roc(pftool::state.iroc);
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channels);
+        tgt, roc, nevents, output_filepath, channels, inv_vref);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     inv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channels);
+        tgt, roc, nevents, output_filepath, channels, inv_vref);
   }
 
   // DecodeAndWriteToCSV writer{
