@@ -148,7 +148,13 @@ void align_phase_word(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
     // BX value econ resets to when it receives BCR (linkreset)
     // Overall phase marker between ROC and ECON
-    parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 0xdba
+
+    if (bittware){
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 2510;  // 0x9ce
+    } else {
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 0xdba
+    }
+
     parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
     parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
