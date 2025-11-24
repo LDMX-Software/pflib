@@ -10,7 +10,9 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath, int channel, nlohmann::json& header){
+static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                                   std::string& output_filepath, int channel,
+                                   nlohmann::json& header) {
   std::size_t i_param_point{0};
 
   pflib_log(info) << "loading parameter points file...";
@@ -18,31 +20,38 @@ static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
       load_parameter_points(parameter_points_file);
   pflib_log(info) << "successfully loaded parameter points";
 
-  DecodeAndWriteToCSV<EventPacket> writer{
-  output_filepath,
-      [&](std::ofstream& f) {
-        f << std::boolalpha << "# " << header << '\n';
-        for (const auto& [page, parameter] : param_names) {
-          f << page << '.' << parameter << ',';
+  DecodeAndWriteToCSV<EventPacket> writer {
+    output_filepath,
+        [&](std::ofstream& f) {
+          f << std::boolalpha << "# " << header << '\n';
+          for (const auto& [page, parameter] : param_names) {
+            f << page << '.' << parameter << ',';
+          }
+          f << pflib::packing::Sample::to_csv_header << '\n';
+        },
+        [&](std::ofstream& f, const EventPacket& ep) {
+          for (const auto& val : param_values[i_param_point]) {
+            f << val << ',';
+          }
+          if constexpr (std::is_same_v<
+                            EventPacket,
+                            pflib::packing::MultiSampleECONDEventPacket>) {
+            ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+          } else if constexpr (std::is_same_v<
+                                   EventPacket,
+                                   pflib::packing::SingleROCEventPacket>) {
+            ep.channel(channel).to_csv(f);
+          } else {
+            PFEXCEPTION_RAISE("BadConf",
+                              "Unable to do all_channels_to_csv for the "
+                              "currently configured format.");
+          }
+          f << '\n';
         }
-        f << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        for (const auto& val : param_values[i_param_point]) {
-          f << val << ',';
-        }
-        if constexpr (std::is_same_v<EventPacket,pflib::packing::MultiSampleECONDEventPacket>){
-          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
-        } else if constexpr (std::is_same_v<EventPacket,pflib::packing::SingleROCEventPacket>){
-          ep.channel(channel).to_csv(f);
-        } else {
-          PFEXCEPTION_RAISE("BadConf", "Unable to do all_channels_to_csv for the currently configured format.");
-        }      
-        f << '\n';
-      }
-    }
+  }
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
+                 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
@@ -114,7 +123,7 @@ void gen_scan(Target* tgt) {
 
   // call helper function to conuduct the scan
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    gen_scan_writer<pflib::packing::SingleROCEventPacket>(  );
+    gen_scan_writer<pflib::packing::SingleROCEventPacket>();
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     gen_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
@@ -147,9 +156,9 @@ void gen_scan(Target* tgt) {
   //                            param_values[i_param_point][i_param]);
   //   }
   //   auto test_param = test_param_builder.apply();
-  //   pflib_log(info) << "running test parameter point " << i_param_point << " / "
+  //   pflib_log(info) << "running test parameter point " << i_param_point << "
+  //   / "
   //                   << param_values.size();
   //   daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
   // }
-
 }

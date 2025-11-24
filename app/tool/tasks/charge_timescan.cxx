@@ -8,8 +8,10 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, bool isLED, int channel, int link, int i_ch, std::string fname, int calib, bool highrange, int start_bx, int n_bx){
-  
+static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                                   bool isLED, int channel, int link, int i_ch,
+                                   std::string fname, int calib, bool highrange,
+                                   int start_bx, int n_bx) {
   int central_charge_to_l1a;
   int charge_to_l1a{0};
   int phase_strobe{0};
