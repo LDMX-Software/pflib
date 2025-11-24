@@ -9,7 +9,8 @@ ENABLE_LOGGING();
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                            std::string& output_filepath, std::array<int,2>& channels, int& inv_vref) {
+                                 std::string& output_filepath,
+                                 std::array<int, 2>& channels, int& inv_vref) {
   int link = 0;
   int i_ch = 0;  // 0–35
 
@@ -68,7 +69,7 @@ void inv_vref_scan(Target* tgt) {
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
   int ch_link0 = pftool::readline_int("Channel to scan on link 0", 17);
   int ch_link1 = pftool::readline_int("Channel to scan on link 1", 51);
-  std::array<int,2> channels = {ch_link0, ch_link1};
+  std::array<int, 2> channels = {ch_link0, ch_link1};
 
   auto roc = tgt->roc(pftool::state.iroc);
 
