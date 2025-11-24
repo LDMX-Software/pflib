@@ -10,7 +10,10 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath, int channel, nlohmann::json& header, std::filesystem::path& parameter_points_file){
+static void charge_timescan_writer(
+    Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath,
+    int channel, nlohmann::json& header,
+    std::filesystem::path& parameter_points_file) {
   std::size_t i_param_point{0};
 
   pflib_log(info) << "loading parameter points file...";
@@ -121,7 +124,8 @@ void gen_scan(Target* tgt) {
 
   // call helper function to conuduct the scan
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    gen_scan_writer<pflib::packing::SingleROCEventPacket>(tgt, roc, nevents, output_filepath, channel, parameter_points_file);
+    gen_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, nevents, output_filepath, channel, parameter_points_file);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     gen_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
