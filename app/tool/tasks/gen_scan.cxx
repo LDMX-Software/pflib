@@ -10,10 +10,7 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                            std::string& output_filepath, int channel,
-                            nlohmann::json& header,
-                            std::filesystem::path& parameter_points_file) {
+static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath, int channel, std::string trigger, nlohmann::json& header, std::filesystem::path& parameter_points_file){
   std::size_t i_param_point{0};
   int link = (channel / 36);
   int i_ch = channel % 36;  // 0–35
@@ -53,8 +50,7 @@ static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         }
   }
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode, 1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
@@ -127,11 +123,11 @@ void gen_scan(Target* tgt) {
   // call helper function to conuduct the scan
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     gen_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channel, parameter_points_file);
+        tgt, roc, nevents, output_filepath, channel, trigger, parameter_points_file);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     gen_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channel, parameter_points_file);
+        tgt, roc, nevents, output_filepath, channel, trigger, parameter_points_file);
   }
 
   // DecodeAndWriteToCSV writer{
