@@ -53,10 +53,10 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     daq.enable(!daq.enabled());
   }
   if (cmd == "FORMAT") {
-    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW || pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
-    } else if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
+    } else if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_BW || pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else {
@@ -164,10 +164,16 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
-  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
     pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   }
-  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
+  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
+  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_BW) {
     pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   }
 
