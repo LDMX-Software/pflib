@@ -8,10 +8,8 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void charge_timescan_runs(Target* tgt, ROC& roc, size_t nevents,
-                                 bool isLED, int channel, int link, int i_ch,
-                                 std::string fname, int calib, bool highrange,
-                                 int start_bx, int n_bx) {
+static void charge_timescan_runs(Target* tgt, pflib::ROC& roc, size_t nevents, bool isLED, int channel, int link, int i_ch, std::string fname, int calib, bool highrange, int start_bx, int n_bx){
+  
   int central_charge_to_l1a;
   int charge_to_l1a{0};
   int phase_strobe{0};
@@ -21,33 +19,28 @@ static void charge_timescan_runs(Target* tgt, ROC& roc, size_t nevents,
   int offset{1};
 
   DecodeAndWriteToCSV<EventPacket> writer{
-      fname,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["channel"] = channel;
-        header["calib"] = calib;
-        header["highrange"] = highrange;
-        header["ledflash"] = isLED;
-        f << std::boolalpha << "# " << header << '\n'
-          << "time," << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        f << time << ',';
-        if constexpr (std::is_same_v<
-                          EventPacket,
-                          pflib::packing::MultiSampleECONDEventPacket>) {
-          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
-        } else if constexpr (std::is_same_v<
-                                 EventPacket,
-                                 pflib::packing::SingleROCEventPacket>) {
-          ep.channel(channel).to_csv(f);
-        } else {
-          static_assert(sizeof(EventPacket) == 0, "BadConf",
-                        "Unable to do all_channels_to_csv for the currently "
-                        "configured format.");
-        }
-        f << '\n';
-      }};
+    fname,
+    [&](std::ofstream& f) {
+      nlohmann::json header;
+      header["channel"] = channel;
+      header["calib"] = calib;
+      header["highrange"] = highrange;
+      header["ledflash"] = isLED;
+      f << std::boolalpha << "# " << header << '\n'
+        << "time," << pflib::packing::Sample::to_csv_header << '\n';
+    },
+    [&](std::ofstream& f,
+        const EventPacket& ep) {
+      f << time << ',';
+      if constexpr (std::is_same_v<EventPacket,pflib::packing::MultiSampleECONDEventPacket>){
+        ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+      } else if constexpr (std::is_same_v<EventPacket,pflib::packing::SingleROCEventPacket>){
+        ep.channel(channel).to_csv(f);
+      } else {
+        PFEXCEPTION_RAISE("BadConf", "Unable to do all_channels_to_csv for the currently configured format.");
+      }      
+      f << '\n';
+    }};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
@@ -191,9 +184,7 @@ void charge_timescan(Target* tgt) {
   //     break;
   //   }
   //   default:
-  //     PFEXCEPTION_RAISE("BadConf",
-  //                       "Unable to do all_channels_to_csv for the currently "
-  //                       "configured format.");
+  //     PFEXCEPTION_RAISE("BadConf", "Unable to do all_channels_to_csv for the currently configured format.");
   // }
 
   // DecodeAndWriteToCSV writer{
