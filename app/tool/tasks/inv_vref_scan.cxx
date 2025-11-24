@@ -9,7 +9,8 @@ ENABLE_LOGGING();
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                            std::string& output_filepath, int channels[2]) {
+                                 std::string& output_filepath,
+                                 int channels[2]) {
   int link = 0;
   int inv_vref = 0;
   int i_ch = 0;  // 0–35
@@ -33,9 +34,12 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         for (int ch : channels) {
           link = (ch / 36);
           i_ch = ch % 36;
-          if constexpr (std::is_same_v<EventPacket,pflib::packing::SingleROCEventPacket>) {
+          if constexpr (std::is_same_v<EventPacket,
+                                       pflib::packing::SingleROCEventPacket>) {
             f << ',' << ep.channel(ch).adc();
-          } else if constexpr (std::is_same_v<EventPacket,pflib::packing::MultiSampleECONDEventPacket>) {
+          } else if constexpr (
+              std::is_same_v<EventPacket,
+                             pflib::packing::MultiSampleECONDEventPacket>) {
             f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
           }
         }
@@ -59,7 +63,6 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   }
 }
 
-
 void inv_vref_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
 
@@ -69,8 +72,6 @@ void inv_vref_scan(Target* tgt) {
   int channels[2] = {ch_link0, ch_link1};
 
   auto roc = tgt->roc(pftool::state.iroc);
-
-
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
@@ -105,7 +106,8 @@ void inv_vref_scan(Target* tgt) {
 
   // tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
 
-  // // increment inv_vref in increments of 20. 10 bit value but only scanning to
+  // // increment inv_vref in increments of 20. 10 bit value but only scanning
+  // to
   // // 600
   // for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
   //   pflib_log(info) << "Running INV_VREF = " << inv_vref;
