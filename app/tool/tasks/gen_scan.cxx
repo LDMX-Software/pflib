@@ -126,12 +126,12 @@ void gen_scan(Target* tgt) {
   // call helper function to conuduct the scan
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     gen_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channel, trigger,
+        tgt, roc, nevents, output_filepath, channel, trigger, header,
         parameter_points_file);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     gen_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channel, trigger,
+        tgt, roc, nevents, output_filepath, channel, trigger, header,
         parameter_points_file);
   }
 
