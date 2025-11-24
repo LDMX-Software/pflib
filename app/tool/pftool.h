@@ -40,9 +40,11 @@ class pftool : public pflib::menu::Menu<Target*> {
   /// static variables to share across menu
   class State {
    public:
-    static constexpr int CFG_HCALFMC = 1;
-    static constexpr int CFG_HCALOPTO = 2;
-    static constexpr int CFG_ECALOPTO = 3;
+    static constexpr int CFG_HCALFMC        = 1;
+    static constexpr int CFG_HCALOPTO_ZCU   = 11;
+    static constexpr int CFG_ECALOPTO_ZCU   = 12;
+    static constexpr int CFG_HCALOPTO_BW    = 21;
+    static constexpr int CFG_ECALOPTO_BW    = 22;
 
    private:
     /// list of page names for tab completion per ROC ID
@@ -73,6 +75,8 @@ class pftool : public pflib::menu::Menu<Target*> {
         pflib::ECON econ, const std::string& page) const;
     /// get the readout configurion
     int readout_config() const { return cfg_; }
+    /// get the readout configurion
+    bool readout_config_is_zcu() const { return cfg_<20; }
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with

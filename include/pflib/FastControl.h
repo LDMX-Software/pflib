@@ -48,7 +48,7 @@ class FastControl {
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
 
-  /** set custom bunch crossing */
+  /** set custom bunch crossing ???? for what??? */
   virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) = 0;
 
   /** send a link reset to the ECONs*/
@@ -69,6 +69,12 @@ class FastControl {
   /** reset counters for a new run */
   virtual void clear_run() {}
 
+  /** setup the link reset timing */
+  virtual void fc_setup_link_reset(int bx) { }
+
+  /** setup the link reset timing */
+  virtual void fc_get_setup_link_reset(int &bx) { }
+  
   /** calib pulse setup */
   virtual void fc_setup_calib(int charge_to_l1a) {}
 
