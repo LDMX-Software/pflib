@@ -51,7 +51,7 @@ static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
           }
           f << '\n';
         }
-  }
+  };
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
