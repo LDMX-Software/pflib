@@ -8,10 +8,8 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void charge_timescan_runs(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                 bool isLED, int channel, int link, int i_ch,
-                                 std::string fname, int calib, bool highrange,
-                                 int start_bx, int n_bx) {
+static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, bool isLED, int channel, int link, int i_ch, std::string fname, int calib, bool highrange, int start_bx, int n_bx){
+  
   int central_charge_to_l1a;
   int charge_to_l1a{0};
   int phase_strobe{0};
@@ -138,12 +136,12 @@ void charge_timescan(Target* tgt) {
   auto test_param_handle = test_param_builder.apply();
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    charge_timescan_runs<pflib::packing::SingleROCEventPacket>(
+    charge_timescan_writer<pflib::packing::SingleROCEventPacket>(
         tgt, roc, nevents, isLED, channel, link, i_ch, fname, calib, highrange,
         start_bx, n_bx);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    charge_timescan_runs<pflib::packing::MultiSampleECONDEventPacket>(
+    charge_timescan_writer<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, nevents, isLED, channel, link, i_ch, fname, calib, highrange,
         start_bx, n_bx);
   }
