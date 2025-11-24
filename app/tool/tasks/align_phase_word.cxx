@@ -211,8 +211,8 @@ void align_phase_word(Target* tgt) {
     int end_val = 3540;    // up to orbit rollover
 
     if (bittware){
-      start_val = 2490;
-      end_val = 2500;
+      start_val = 2527;
+      end_val = 2536;
     }
     
     int testval = 3532;
