@@ -34,7 +34,7 @@ class BWFastControl : public FastControl {
   virtual void fc_setup_led(int charge_to_l1a);
   virtual int fc_get_setup_led();
   virtual void fc_setup_link_reset(int bx);
-  virtual void fc_get_setup_link_reset(int &bx);
+  virtual void fc_get_setup_link_reset(int& bx);
 
   /** check the enables for various trigger sources */
   virtual void fc_enables_read(bool& all_l1a, bool& ext_l1a);

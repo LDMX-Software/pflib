@@ -112,8 +112,8 @@ void BWFastControl::fc_setup_link_reset(int bx) {
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, bx);
 }
 
-void BWFastControl::fc_get_setup_link_reset(int &bx) {
-  bx=axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
+void BWFastControl::fc_get_setup_link_reset(int& bx) {
+  bx = axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
 }
 
 void BWFastControl::fc_setup_calib(int charge_to_l1a) {
