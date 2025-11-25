@@ -479,7 +479,8 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
       " If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT "
       "manual)\n");
   printf(" Group %d, Channel %d BER = %.6f (%llu errors in %llu bits)\n", group,
-         channel, ber, (unsigned long long)errors, (unsigned long long)bits_checked);
+         channel, ber, (unsigned long long)errors,
+         (unsigned long long)bits_checked);
 
   // Turn off lpgbt prbs if left on
   tport_.write_reg(REG_EPRXPRBS0, 0x00);
