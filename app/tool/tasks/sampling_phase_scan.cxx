@@ -6,8 +6,8 @@
 
 ENABLE_LOGGING();
 
-void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& fname){
-
+void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                                std::string& fname) {
   int link = 0;
   int i_ch = 0;  // 0–35
 
@@ -52,7 +52,6 @@ void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, st
         roc.testParameters().add("TOP", "PHASE_CK", phase_ck).apply();
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
-
 }
 
 void sampling_phase_scan(Target* tgt) {
