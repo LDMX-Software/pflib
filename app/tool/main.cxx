@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
       auto ilink = target.get<int>("ilink");
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
       tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, dev.c_str()));
-      readout_cfg = pftool::State::CFG_ECALOPTO;
+      readout_cfg = pftool::State::CFG_ECALOPTO_BW;
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
