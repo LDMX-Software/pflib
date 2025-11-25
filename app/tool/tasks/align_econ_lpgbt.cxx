@@ -112,7 +112,7 @@ void align_econ_lpgbt(Target* tgt) {
   econ.applyParameters(parameters);
   usleep(10000);
 
-  auto invert_state = econ.readParameter("ERX", "0_INVERT_DATA");
+  auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
   printf(" ECOND data invert state: %lu\n", invert_state);
 
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
