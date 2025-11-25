@@ -455,21 +455,18 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   for (int i = 0; i < 5; i++) {
     printf(" BERTRESULT%d: %d\n", i, tport_.read_reg(REG_BERTRESULT[i]));
     // errors |=
-        // (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
+    // (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
 
-  uint8_t b0 = tport_.read_reg(0x1d6); // BERTRESULT0 (7:0)
-  uint8_t b1 = tport_.read_reg(0x1d5); // BERTRESULT1 (15:8)
-  uint8_t b2 = tport_.read_reg(0x1d4); // BERTRESULT2 (23:16)
-  uint8_t b3 = tport_.read_reg(0x1d3); // BERTRESULT3 (31:24)
-  uint8_t b4 = tport_.read_reg(0x1d2); // BERTRESULT4 (39:32)
+  uint8_t b0 = tport_.read_reg(0x1d6);  // BERTRESULT0 (7:0)
+  uint8_t b1 = tport_.read_reg(0x1d5);  // BERTRESULT1 (15:8)
+  uint8_t b2 = tport_.read_reg(0x1d4);  // BERTRESULT2 (23:16)
+  uint8_t b3 = tport_.read_reg(0x1d3);  // BERTRESULT3 (31:24)
+  uint8_t b4 = tport_.read_reg(0x1d2);  // BERTRESULT4 (39:32)
 
-  uint64_t errors =
-	  ((uint64_t)b0) |
-	  ((uint64_t)b1 << 8)  |
-	  ((uint64_t)b2 << 16) |
-    	  ((uint64_t)b3 << 24) |
-    	  ((uint64_t)b4 << 32);
+  uint64_t errors = ((uint64_t)b0) | ((uint64_t)b1 << 8) |
+                    ((uint64_t)b2 << 16) | ((uint64_t)b3 << 24) |
+                    ((uint64_t)b4 << 32);
 
   // Stop BERT
   tport_.write_reg(REG_BERTCONFIG, 0x00);
