@@ -7,7 +7,8 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void toa_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::string& output_filepath){
+static void toa_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                            std::string& output_filepath) {
   int calib = 0;
 
   DecodeAndWriteToCSV<EventPacket> writer{
@@ -56,7 +57,6 @@ static void toa_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, std::s
                           .apply();
     daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
   }
-
 }
 
 void toa_scan(Target* tgt) {
@@ -65,7 +65,6 @@ void toa_scan(Target* tgt) {
   std::string output_filepath = pftool::readline_path("toa_scan", ".csv");
 
   auto roc = tgt->roc(pftool::state.iroc);
-
 
   // DecodeAndWriteToCSV writer{
   //     output_filepath,
