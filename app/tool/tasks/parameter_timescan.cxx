@@ -9,9 +9,9 @@
 
 ENABLE_LOGGING();
 
-void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
-                               size_t nevents, bool highrange, bool preCC,
-                               std::filesystem::path& parameter_points_file) {
+void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname
+                              , size_t nevents, bool highrange, bool preCC
+                              , std::filesystem::path& parameter_points_file, std::array<int, 2>& channels){
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -184,11 +184,11 @@ void parameter_timescan(Target* tgt) {
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     parameter_timescan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file);
+        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file, channels);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     parameter_timescan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file);
+        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file, channels);
   }
 
   // DecodeAndWriteToCSV writer{
