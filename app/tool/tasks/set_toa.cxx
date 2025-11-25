@@ -6,18 +6,19 @@
 
 ENABLE_LOGGING();
 
-template <class EventPacket>
-void set_toa_runs(Target* tgt, ROC& roc, size_t n_events) {
+template <class EventPacket> 
+void set_toa_runs(Target* tgt, ROC& roc, size_t n_events, auto refvol_page){
+  double toa_eff{2};
   DecodeAndBuffer<EventPacket> buffer{n_events};
 
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
     auto test_handle =
         roc.testParameters().add(refvol_page, "TOA_VREF", toa_vref).apply();
     daq_run(tgt, "CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
-    for (const pflib::packing::SingleROCEventPacket& ep : buffer.get_buffer()) {
+    for (const EventPacket& ep : buffer.get_buffer()) {
       auto toa = ep.channel(channel).toa();
       if (toa > 0) {
         toa_data.push_back(toa);
@@ -40,7 +41,6 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int nevents = 30;
-  double toa_eff{2};
   // in the calibration documentation, it is suggested to send a "small" charge
   // injection. Here I used 200 but there is maybe a better value.
   int calib = 200;
@@ -53,6 +53,16 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   pflib_log(info) << "finding the TOA threshold!";
   // This class doesn't write to csv. When we just would like to
   // use the data for setting params.
+
+  // call helper function to conuduct the scan
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    set_toa_runs<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, nevents, refvol_page);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    set_toa_runs<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, nevents, refvol_page);
+  }
   // DecodeAndBuffer buffer(nevents);
 
   // tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
