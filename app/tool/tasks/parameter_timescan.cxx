@@ -9,7 +9,9 @@
 
 ENABLE_LOGGING();
 
-void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname, size_t nevents, bool highrange, bool preCC, std::filesystem::path& parameter_points_file){
+void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
+                               size_t nevents, bool highrange, bool preCC,
+                               std::filesystem::path& parameter_points_file) {
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -40,19 +42,19 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           f << ch << ',';
 
           if constexpr (std::is_same_v<
-                          EventPacket,
-                          pflib::packing::MultiSampleECONDEventPacket>) {
-          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
-        } else if constexpr (std::is_same_v<
-                                 EventPacket,
-                                 pflib::packing::SingleROCEventPacket>) {
-          ep.channel(channel).to_csv(f);
-        } else {
-          PFEXCEPTION_RAISE("BadConf",
-                            "Unable to do all_channels_to_csv for the "
-                            "currently configured format.");
-        }
-        f << '\n';
+                            EventPacket,
+                            pflib::packing::MultiSampleECONDEventPacket>) {
+            ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+          } else if constexpr (std::is_same_v<
+                                   EventPacket,
+                                   pflib::packing::SingleROCEventPacket>) {
+            ep.channel(channel).to_csv(f);
+          } else {
+            PFEXCEPTION_RAISE("BadConf",
+                              "Unable to do all_channels_to_csv for the "
+                              "currently configured format.");
+          }
+          f << '\n';
         }
       }};
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
@@ -247,9 +249,10 @@ void parameter_timescan(Target* tgt) {
   //        charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
   //        charge_to_l1a++) {
   //     tgt->fc().fc_setup_calib(charge_to_l1a);
-  //     pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-  //     if (!totscan) {
-  //       for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+  //     pflib_log(info) << "charge_to_l1a = " <<
+  //     tgt->fc().fc_get_setup_calib(); if (!totscan) {
+  //       for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++)
+  //       {
   //         auto phase_strobe_test_handle =
   //             roc.testParameters()
   //                 .add("TOP", "PHASE_STROBE", phase_strobe)
@@ -257,13 +260,14 @@ void parameter_timescan(Target* tgt) {
   //         pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
   //         usleep(10);  // make sure parameters are applied
   //         time =
-  //             (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
-  //             phase_strobe * clock_cycle / n_phase_strobe;
+  //             (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
+  //             - phase_strobe * clock_cycle / n_phase_strobe;
   //         daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
   //       }
   //     } else {
-  //       time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
-  //       daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+  //       time = (charge_to_l1a - central_charge_to_l1a + offset) *
+  //       clock_cycle; daq_run(tgt, "CHARGE", writer, nevents,
+  //       pftool::state.daq_rate);
   //     }
   //   }
   //   // reset charge_to_l1a to central value
