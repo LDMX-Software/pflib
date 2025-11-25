@@ -421,7 +421,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   }
 
   // Configure data source for prbs7
-  tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
+  tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
   printf(" ULDATASOURCE1: %d\n", tport_.read_reg(REG_ULDATASOURCE1));
 
   // Have BERT monitor channel
