@@ -6,8 +6,8 @@
 
 ENABLE_LOGGING();
 
-template <class EventPacket> 
-void set_toa_runs(Target* tgt, ROC& roc, size_t n_events){
+template <class EventPacket>
+void set_toa_runs(Target* tgt, ROC& roc, size_t n_events) {
   DecodeAndBuffer<EventPacket> buffer{n_events};
 
   tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
@@ -33,7 +33,6 @@ void set_toa_runs(Target* tgt, ROC& roc, size_t n_events){
   }
   PFEXCEPTION_RAISE("NOTOA", "No TOA threshold was found for channel " +
                                  std::to_string(channel) + "!");
-
 }
 
 void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
@@ -63,7 +62,8 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   //       roc.testParameters().add(refvol_page, "TOA_VREF", toa_vref).apply();
   //   daq_run(tgt, "CHARGE", buffer, nevents, pftool::state.daq_rate);
   //   std::vector<double> toa_data;
-  //   for (const pflib::packing::SingleROCEventPacket& ep : buffer.get_buffer()) {
+  //   for (const pflib::packing::SingleROCEventPacket& ep :
+  //   buffer.get_buffer()) {
   //     auto toa = ep.channel(channel).toa();
   //     if (toa > 0) {
   //       toa_data.push_back(toa);
