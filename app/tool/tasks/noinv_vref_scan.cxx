@@ -15,39 +15,36 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int noinv_vref = 0;
   std::array<int, 2>& channels;
 
-      DecodeAndWriteToCSV<EventPacket>
-          writer{
-              output_filepath,
-              [&](std::ofstream& f) {
-                nlohmann::json header;
-                header["scan_type"] = "CH_#.NOINV_VREF sweep";
-                header["trigger"] = "PEDESTAL";
-                header["nevents_per_point"] = nevents;
-                f << "# " << header << "\n"
-                  << "NOINV_VREF";
-                for (int ch : channels) {
-                  f << ',' << ch;
-                }
-                f << '\n';
-              },
-              [&](std::ofstream& f, const EventPacket& ep) {
-                f << noinv_vref;
-                for (int ch : channels) {
-                  link = (ch / 36);
-                  i_ch = ch % 36;
-                  if constexpr (std::is_same_v<
-                                    EventPacket,
-                                    pflib::packing::SingleROCEventPacket>) {
-                    f << ',' << ep.channel(ch).adc();
-                  } else if constexpr (std::is_same_v<
-                                           EventPacket,
-                                           pflib::packing::
-                                               MultiSampleECONDEventPacket>) {
-                    f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
-                  }
-                }
-                f << '\n';
-              }};
+  DecodeAndWriteToCSV<EventPacket> writer{
+      output_filepath,
+      [&](std::ofstream& f) {
+        nlohmann::json header;
+        header["scan_type"] = "CH_#.NOINV_VREF sweep";
+        header["trigger"] = "PEDESTAL";
+        header["nevents_per_point"] = nevents;
+        f << "# " << header << "\n"
+          << "NOINV_VREF";
+        for (int ch : channels) {
+          f << ',' << ch;
+        }
+        f << '\n';
+      },
+      [&](std::ofstream& f, const EventPacket& ep) {
+        f << noinv_vref;
+        for (int ch : channels) {
+          link = (ch / 36);
+          i_ch = ch % 36;
+          if constexpr (std::is_same_v<EventPacket,
+                                       pflib::packing::SingleROCEventPacket>) {
+            f << ',' << ep.channel(ch).adc();
+          } else if constexpr (
+              std::is_same_v<EventPacket,
+                             pflib::packing::MultiSampleECONDEventPacket>) {
+            f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
+          }
+        }
+        f << '\n';
+      }};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
