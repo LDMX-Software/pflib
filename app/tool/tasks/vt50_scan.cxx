@@ -31,7 +31,6 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int count{2};
   int max_its = 25;
   int vref_value{0};
-  int n_links = determine_n_links(tgt);
 
   std::vector<EventPacket> buffer;
   DecodeAndWriteToCSV<EventPacket> writer{
