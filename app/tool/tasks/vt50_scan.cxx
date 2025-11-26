@@ -9,7 +9,7 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void vt50_scan_writer((Target* tgt, pflib::ROC& roc, size_t nevents, bool& preCC, bool& highrange
+static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, bool& preCC, bool& highrange
         , bool& search, int& channel, int& toa_threshold, int& vref_lower, int& vref_upper, int& nsteps,
          std::string& fname, int& link, std::string& vref_page, std::string& calib_page){
   std::string vref_name = "TOT_VREF";
