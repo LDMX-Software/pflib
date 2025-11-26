@@ -9,6 +9,8 @@
 
 ENABLE_LOGGING();
 
+// helper function to facilitate EventPacket dependent behaviour
+template <class EventPacket>
 void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
                                size_t nevents, bool highrange, bool preCC,
                                std::filesystem::path& parameter_points_file,
