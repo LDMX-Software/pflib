@@ -62,6 +62,16 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
   consumer.end_run();
 }
 
+// Adding constructor definition due to non default constructor containing n_links which default=0, 
+template <class EventPacket>
+DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links) {
+  if constexpr (std::is_same_v<EventPacket, pflib::packing::MultiSampleECONDEventPacket>) {
+    ep_ = std::make_unique<EventPacket>(n_links);
+  } else {
+    ep_ = std::make_unique<EventPacket>();
+  }
+}
+
 WriteToBinaryFile::WriteToBinaryFile(const std::string& file_name)
     : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
   if (not fp_) {
