@@ -100,8 +100,10 @@ void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
   // what is consummed by the BufferReader
   const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
   pflib::packing::BufferReader r{buffer};
-  r >> ep_;
-  write_event(ep_);
+
+  // now required to deref the pointer due to redefinition of ep into a uniqueptr
+  r >> *ep_;
+  write_event(*ep_);
 }
 
 template <class EventPacket>
