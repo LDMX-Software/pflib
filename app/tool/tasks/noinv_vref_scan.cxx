@@ -70,11 +70,11 @@ void noinv_vref_scan(Target* tgt) {
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     noinv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channels);
+        tgt, roc, nevents, output_filepath);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     noinv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channels);
+        tgt, roc, nevents, output_filepath);
   }
 
   // DecodeAndWriteToCSV writer{
