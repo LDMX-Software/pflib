@@ -70,7 +70,9 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           }
           f << '\n';
         }
-      }};
+      }
+    // pass nlinks here?
+    };
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {

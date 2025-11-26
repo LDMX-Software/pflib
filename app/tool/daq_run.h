@@ -75,7 +75,10 @@ class DecodeAndWrite : public DAQRunConsumer {
 
  private:
   /// event packet for decoding
-  EventPacket ep_;
+  // EventPacket ep_;
+
+  // use a pointer because constructors differ between event packet types
+  std::unique_ptr<EventPacket> ep_;
 };
 
 /**
