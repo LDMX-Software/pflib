@@ -12,7 +12,7 @@ ENABLE_LOGGING();
 void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
                                size_t nevents, bool highrange, bool preCC,
                                std::filesystem::path& parameter_points_file,
-                               std::array<int, 2>& channels) {
+                               std::array<int, 2>& channels, int& start_bx, int& n_bx, bool& totscan) {
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -20,6 +20,10 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
   int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
+    
+  pflib_log(info) << "loading parameter points file...";
+  auto [param_names, param_values] = load_parameter_points(parameter_points_file);
+  pflib_log(info) << "successfully loaded parameter points";
 
   DecodeAndWriteToCSV writer{
       fname,
@@ -178,20 +182,15 @@ void parameter_timescan(Target* tgt) {
   std::filesystem::path parameter_points_file =
       pftool::readline("File of parameter points: ");
 
-  pflib_log(info) << "loading parameter points file...";
-  auto [param_names, param_values] =
-      load_parameter_points(parameter_points_file);
-  pflib_log(info) << "successfully loaded parameter points";
-
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     parameter_timescan_writer<pflib::packing::SingleROCEventPacket>(
         tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
-        channels);
+        channels, start_bx, n_bx, totscan);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     parameter_timescan_writer<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
-        channels);
+        channels, start_bx, n_bx, totscan);
   }
 
   // DecodeAndWriteToCSV writer{
