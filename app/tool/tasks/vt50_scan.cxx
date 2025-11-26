@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -20,6 +21,7 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int calib_value{100000};
   double tot_eff{0};
   int i_ch = channel % 36;  // 0–35
+  int n_links = determine_n_links(tgt);
 
   // Vectors for storing tot_eff and calib for the current param_point
   std::vector<double> tot_eff_list;
@@ -29,6 +31,7 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int count{2};
   int max_its = 25;
   int vref_value{0};
+  int n_links = determine_n_links(tgt);
 
   std::vector<EventPacket> buffer;
   DecodeAndWriteToCSV<EventPacket> writer{
@@ -59,7 +62,9 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
         f << '\n';
         buffer.push_back(ep);
-      }};
+      },
+      n_links
+    };
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);

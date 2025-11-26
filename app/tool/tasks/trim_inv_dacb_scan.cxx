@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 
 ENABLE_LOGGING();
 
@@ -14,6 +15,7 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
   int dacb = 0;
   int link = 0;
   int i_ch = 0;  // 0–35
+  int n_links = determine_n_links(tgt);
 
   DecodeAndWriteToCSV<EventPacket> writer{
       output_filepath,
@@ -44,7 +46,8 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
           }
         }
         f << '\n';
-      }};
+      },
+      n_links};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);

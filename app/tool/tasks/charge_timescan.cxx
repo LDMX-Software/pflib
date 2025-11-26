@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -19,6 +20,7 @@ static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
+  int n_links = determine_n_links(tgt);
 
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,
@@ -47,7 +49,8 @@ static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                             "currently configured format.");
         }
         f << '\n';
-      }};
+      },
+      n_links};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
