@@ -15,7 +15,8 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
                                size_t nevents, bool highrange, bool preCC,
                                std::filesystem::path& parameter_points_file,
                                std::vector<int>& channels, int& start_bx,
-                               int& n_bx, bool& totscan, std::array<bool, 2>& link) {
+                               int& n_bx, bool& totscan,
+                               std::array<bool, 2>& link) {
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -25,7 +26,6 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
   std::size_t i_param_point{0};
   int i_ch = 0;  // 0–35
   int i_link = 0;
-
 
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
