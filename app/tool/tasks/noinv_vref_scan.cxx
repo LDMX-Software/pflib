@@ -51,12 +51,12 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
   // increment inv_vref in increments of 20. 10 bit value but only scanning to
   // 600
-  for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
-    pflib_log(info) << "Running INV_VREF = " << inv_vref;
-    // set inv_vref simultaneously for both links
+  for (noinv_vref = 0; noinv_vref <= 600; noinv_vref += 20) {
+    pflib_log(info) << "Running INV_VREF = " << noinv_vref;
+    // set noinv_vref simultaneously for both links
     auto test_param = roc.testParameters()
-                          .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
-                          .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
+                          .add("REFERENCEVOLTAGE_0", "INV_VREF", noinv_vref)
+                          .add("REFERENCEVOLTAGE_1", "INV_VREF", noinv_vref)
                           .apply();
     // store current scan state in header for writer access
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
