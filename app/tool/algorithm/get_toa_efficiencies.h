@@ -2,8 +2,8 @@
 
 #include <array>
 
-#include "pflib/packing/SingleROCEventPacket.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
+#include "pflib/packing/SingleROCEventPacket.h"
 
 namespace pflib::algorithm {
 
@@ -14,7 +14,8 @@ namespace pflib::algorithm {
 
 // templated to match any event packet type
 template <class EventPacket>
-std::array<double, 72> get_toa_efficiencies(const std::vector<EventPacket>& data);
+std::array<double, 72> get_toa_efficiencies(
+    const std::vector<EventPacket>& data);
 
 // std::array<double, 72> get_toa_efficiencies(
 //     const std::vector<pflib::packing::SingleROCEventPacket>& data);
