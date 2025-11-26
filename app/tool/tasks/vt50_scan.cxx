@@ -117,7 +117,7 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
       daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
 
       std::vector<double> tot_list;
-      for (pflib::packing::SingleROCEventPacket ep : buffer) {
+      for (EventPacket ep : buffer) {
         auto tot = ep.channel(channel).tot();
         if (tot > 0) {
           tot_list.push_back(tot);
