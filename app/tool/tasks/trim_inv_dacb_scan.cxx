@@ -8,7 +8,7 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevent,
+static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
                                    std::string& output_filepath){
   int trim_inv = 0;
   int dacb = 0;
