@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "load_parameter_points.h"
 #include "pflib/utility/string_format.h"
 
@@ -71,7 +72,7 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           f << '\n';
         }
       }
-    // pass nlinks here?
+      int n_links = determine_n_links(tgt);
     };
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
