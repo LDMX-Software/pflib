@@ -2,9 +2,9 @@
 
 #include <array>
 
+#include "../pftool.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/SingleROCEventPacket.h"
-#include "../pftool.h"
 
 namespace pflib::algorithm {
 
