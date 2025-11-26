@@ -20,6 +20,14 @@ std::array<double, 72> get_toa_efficiencies(
     efficiencies[ch] = pflib::utility::efficiency(toas);
   }
   return efficiencies;
-}
+}   
 
-}  // namespace pflib::algorithm
+// -----------------------------------------------------------------------------
+// Explicit template instantiations
+// -----------------------------------------------------------------------------
+
+// get toa efficiencies
+template std::array<double, 72> pflib::algorithm::get_toa_efficiencies<pflib::packing::SingleROCEventPacket>(const std::vector<pflib::packing::SingleROCEventPacket>& data);
+template std::array<double, 72> pflib::algorithm::get_toa_efficiencies<pflib::packing::MultiSampleECONDEventPacket>(const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data);
+
+}
