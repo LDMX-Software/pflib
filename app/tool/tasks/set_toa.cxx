@@ -7,7 +7,8 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t nevents, auto refvol_page, int& channel) {
+void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t nevents,
+                  auto refvol_page, int& channel) {
   double toa_eff{2};
   DecodeAndBuffer<EventPacket> buffer{nevents};
 
@@ -60,8 +61,8 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
                                                        refvol_page, channel);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    set_toa_runs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, nevents,
-                                                              refvol_page, channel);
+    set_toa_runs<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, nevents, refvol_page, channel);
   }
   // DecodeAndBuffer buffer(nevents);
 
