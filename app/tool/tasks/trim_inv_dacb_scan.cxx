@@ -8,33 +8,34 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents){
+static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents) {
   int trim_inv = 0;
   int dacb = 0;
 
-  DecodeAndWriteToCSV writer{
-      output_filepath,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["scan_type"] = "CH_#.TRIM_INV & CH_#.DACB sweep";
-        header["trigger"] = "PEDESTAL";
-        header["nevents_per_point"] = nevents;
-        f << "# " << header << "\n"
-          << "TRIM_INV,DACB";
-        for (int ch{0}; ch < 72; ch++) {
-          f << ',' << ch;
-        }
-        f << '\n';
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        f << trim_inv << ',' << dacb;
-        for (int ch{0}; ch < 72; ch++) {
-          f << ',' << ep.channel(ch).adc();
-        }
-        f << '\n';
-      }};
+  DecodeAndWriteToCSV writer{output_filepath,
+                             [&](std::ofstream& f) {
+                               nlohmann::json header;
+                               header["scan_type"] =
+                                   "CH_#.TRIM_INV & CH_#.DACB sweep";
+                               header["trigger"] = "PEDESTAL";
+                               header["nevents_per_point"] = nevents;
+                               f << "# " << header << "\n"
+                                 << "TRIM_INV,DACB";
+                               for (int ch{0}; ch < 72; ch++) {
+                                 f << ',' << ch;
+                               }
+                               f << '\n';
+                             },
+                             [&](std::ofstream& f, const EventPacket& ep) {
+                               f << trim_inv << ',' << dacb;
+                               for (int ch{0}; ch < 72; ch++) {
+                                 f << ',' << ep.channel(ch).adc();
+                               }
+                               f << '\n';
+                             }};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode, 1 /* dummy */);
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
+                 1 /* dummy */);
 
   // take pedestal run for dacb parameter points (trim_inv = 0)
   auto sign_dac_builder = roc.testParameters();
@@ -74,7 +75,6 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents){
     auto trim_inv_test = trim_inv_test_builder.apply();
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
-
 }
 
 void trim_inv_dacb_scan(Target* tgt) {
