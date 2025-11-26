@@ -19,9 +19,9 @@ std::array<double, 72> get_toa_efficiencies(
     i_ch = ch % 36;
     for (std::size_t i{0}; i < toas.size(); i++) {
       if constexpr (std::is_same_v<
-                        EventPacket,
-                        pflib::packing::MultiSampleECONDEventPacket>) {
-        toas[i] = data[i].samples[ep.i_soi].channel(i_link, i_ch).toa();
+                            EventPacket,
+                            pflib::packing::MultiSampleECONDEventPacket>) {
+        toas[i] = data[i].samples[data[i].i_soi].channel(i_link, i_ch).toa();
       } else if constexpr (std::is_same_v<
                                EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
