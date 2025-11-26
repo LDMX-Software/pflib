@@ -155,3 +155,27 @@ template <class EventPacket>
 void DecodeAndBuffer<EventPacket>::set_buffer_size(int nevents) {
   ep_buffer_.reserve(nevents);
 }
+
+
+// -----------------------------------------------------------------------------
+// Explicit template instantiations
+// -----------------------------------------------------------------------------
+
+// DecodeAndWrite
+template class DecodeAndWrite<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndWrite<pflib::packing::MultiSampleECONDEventPacket>;
+
+// DecodeAndWriteToCSV
+template class DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>;
+
+// DecodeAndBuffer
+template class DecodeAndBuffer<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket>;
+
+// all_channels_to_csv free-function template
+template DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
+all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&);
+
+template DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>
+all_channels_to_csv<pflib::packing::MultiSampleECONDEventPacket>(const std::string&);
