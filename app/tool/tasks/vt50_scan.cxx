@@ -45,9 +45,12 @@ static void vt50_scan_writer((Target* tgt, pflib::ROC& roc, size_t nevents, bool
         f << vref_value << ',';
         f << calib_value << ',';
 
-        if constexpr (std::is_same_v<EventPacket, pflib::packing::SingleROCEventPacket>) {
+        if constexpr (std::is_same_v<EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
           ep.channel(channel).to_csv(f);
-        } else if constexpr (std::is_same_v<EventPacket, pflib::packing::MultiSampleECONDEventPacket>) {
+        } else if constexpr (std::is_same_v<
+                                 EventPacket,
+                                 pflib::packing::MultiSampleECONDEventPacket>) {
           ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
         }
 
@@ -57,7 +60,8 @@ static void vt50_scan_writer((Target* tgt, pflib::ROC& roc, size_t nevents, bool
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
-  for (vref_value = vref_lower; vref_value <= vref_upper; vref_value += nsteps) {
+  for (vref_value = vref_lower; vref_value <= vref_upper;
+       vref_value += nsteps) {
     // reset for every iteration
     tot_eff_list.clear();
     calib_list = {0, 4095};
@@ -194,16 +198,16 @@ void vt50_scan(Target* tgt) {
 
   std::string vref_page = refvol_page;
   std::string calib_page = refvol_page;
-  
+
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     vt50_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold, vref_lower, vref_upper, nsteps,
-         fname, link, vref_page, calib_page);
+        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold,
+        vref_lower, vref_upper, nsteps, fname, link, vref_page, calib_page);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     vt50_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold, vref_lower, vref_upper, nsteps,
-         fname, link, vref_page, calib_page);
+        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold,
+        vref_lower, vref_upper, nsteps, fname, link, vref_page, calib_page);
   }
   
 }
