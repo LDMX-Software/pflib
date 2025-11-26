@@ -8,7 +8,8 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents) {
+static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevent,
+                                   std::string& output_filepath){
   int trim_inv = 0;
   int dacb = 0;
 
@@ -84,11 +85,11 @@ void trim_inv_dacb_scan(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    noinv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
+    trim_inv_dacb_scan<pflib::packing::SingleROCEventPacket>(
         tgt, roc, nevents, output_filepath);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    noinv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+    trim_inv_dacb_scan<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, nevents, output_filepath);
   }
 
