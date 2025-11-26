@@ -14,8 +14,8 @@ template <class EventPacket>
 void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
                                size_t nevents, bool highrange, bool preCC,
                                std::filesystem::path& parameter_points_file,
-                               std::array<int, 2>& channels, int& start_bx,
-                               int& n_bx, bool& totscan) {
+                               std::vector<int>& channels, int& start_bx,
+                               int& n_bx, bool& totscan, std::array<bool, 2>& link) {
   int phase_strobe{0};
   int charge_to_l1a{0};
   double time{0};
@@ -23,13 +23,16 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
   int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
+  int i_ch = 0;  // 0–35
+  int i_link = 0;
+
 
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
       load_parameter_points(parameter_points_file);
   pflib_log(info) << "successfully loaded parameter points";
 
-  DecodeAndWriteToCSV writer{
+  DecodeAndWriteToCSV<EventPacket> writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -43,6 +46,8 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
       },
       [&](std::ofstream& f, const EventPacket& ep) {
         for (int ch : channels) {
+          i_link = (ch / 36);
+          i_ch = ch % 36;
           f << time << ',';
 
           for (const auto& val : param_values[i_param_point]) {
@@ -53,7 +58,7 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           if constexpr (std::is_same_v<
                             EventPacket,
                             pflib::packing::MultiSampleECONDEventPacket>) {
-            ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+            ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
           } else if constexpr (std::is_same_v<
                                    EventPacket,
                                    pflib::packing::SingleROCEventPacket>) {
@@ -189,12 +194,12 @@ void parameter_timescan(Target* tgt) {
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     parameter_timescan_writer<pflib::packing::SingleROCEventPacket>(
         tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
-        channels, start_bx, n_bx, totscan);
+        channels, start_bx, n_bx, totscan, link);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     parameter_timescan_writer<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
-        channels, start_bx, n_bx, totscan);
+        channels, start_bx, n_bx, totscan, link);
   }
 
   // DecodeAndWriteToCSV writer{
