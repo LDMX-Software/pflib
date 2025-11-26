@@ -4,9 +4,72 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "load_parameter_points.h"
 
 ENABLE_LOGGING();
+
+// helper function to facilitate EventPacket dependent behaviour
+template <class EventPacket>
+static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                            std::string& output_filepath, int channel,
+                            std::string trigger, nlohmann::json& header,
+                            std::filesystem::path& parameter_points_file) {
+  std::size_t i_param_point{0};
+  int link = (channel / 36);
+  int i_ch = channel % 36;  // 0–35
+  int n_links = determine_n_links(tgt);
+
+  pflib_log(info) << "loading parameter points file...";
+  auto [param_names, param_values] =
+      load_parameter_points(parameter_points_file);
+  pflib_log(info) << "successfully loaded parameter points";
+
+  DecodeAndWriteToCSV<EventPacket> writer{
+      output_filepath,
+      [&](std::ofstream& f) {
+        f << std::boolalpha << "# " << header << '\n';
+        for (const auto& [page, parameter] : param_names) {
+          f << page << '.' << parameter << ',';
+        }
+        f << pflib::packing::Sample::to_csv_header << '\n';
+      },
+      [&](std::ofstream& f, const EventPacket& ep) {
+        for (const auto& val : param_values[i_param_point]) {
+          f << val << ',';
+        }
+        if constexpr (std::is_same_v<
+                          EventPacket,
+                          pflib::packing::MultiSampleECONDEventPacket>) {
+          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+        } else if constexpr (std::is_same_v<
+                                 EventPacket,
+                                 pflib::packing::SingleROCEventPacket>) {
+          ep.channel(channel).to_csv(f);
+        } else {
+          PFEXCEPTION_RAISE("BadConf",
+                            "Unable to do all_channels_to_csv for the "
+                            "currently configured format.");
+        }
+        f << '\n';
+      },
+      n_links};
+
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
+                 1 /* dummy */);
+  for (; i_param_point < param_values.size(); i_param_point++) {
+    auto test_param_builder = roc.testParameters();
+    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+      test_param_builder.add(param_names[i_param].first,
+                             param_names[i_param].second,
+                             param_values[i_param_point][i_param]);
+    }
+    auto test_param = test_param_builder.apply();
+    pflib_log(info) << "running test parameter point " << i_param_point << " / "
+                    << param_values.size();
+    daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
+  }
+}
 
 void gen_scan(Target* tgt) {
   static const std::vector<std::string> trigger_types = {
@@ -47,11 +110,6 @@ void gen_scan(Target* tgt) {
   std::filesystem::path parameter_points_file =
       pftool::readline("File of parameter points: ");
 
-  pflib_log(info) << "loading parameter points file...";
-  auto [param_names, param_values] =
-      load_parameter_points(parameter_points_file);
-  pflib_log(info) << "successfully loaded parameter points";
-
   std::string output_filepath =
       pftool::readline_path(std::string(parameter_points_file.stem()), ".csv");
 
@@ -68,35 +126,47 @@ void gen_scan(Target* tgt) {
   }
   auto scan_wide_param_hold = pflib::ROC::TestParameters(roc, scan_wide_params);
 
-  std::size_t i_param_point{0};
-  DecodeAndWriteToCSV writer{
-      output_filepath,
-      [&](std::ofstream& f) {
-        f << std::boolalpha << "# " << header << '\n';
-        for (const auto& [page, parameter] : param_names) {
-          f << page << '.' << parameter << ',';
-        }
-        f << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-        for (const auto& val : param_values[i_param_point]) {
-          f << val << ',';
-        }
-        ep.channel(channel).to_csv(f);
-        f << '\n';
-      }};
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
-                 1 /* dummy */);
-  for (; i_param_point < param_values.size(); i_param_point++) {
-    auto test_param_builder = roc.testParameters();
-    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
-      test_param_builder.add(param_names[i_param].first,
-                             param_names[i_param].second,
-                             param_values[i_param_point][i_param]);
-    }
-    auto test_param = test_param_builder.apply();
-    pflib_log(info) << "running test parameter point " << i_param_point << " / "
-                    << param_values.size();
-    daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
+  // call helper function to conuduct the scan
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    gen_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, nevents, output_filepath, channel, trigger, header,
+        parameter_points_file);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    gen_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, nevents, output_filepath, channel, trigger, header,
+        parameter_points_file);
   }
+
+  // DecodeAndWriteToCSV writer{
+  //     output_filepath,
+  //     [&](std::ofstream& f) {
+  //       f << std::boolalpha << "# " << header << '\n';
+  //       for (const auto& [page, parameter] : param_names) {
+  //         f << page << '.' << parameter << ',';
+  //       }
+  //       f << pflib::packing::Sample::to_csv_header << '\n';
+  //     },
+  //     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+  //       for (const auto& val : param_values[i_param_point]) {
+  //         f << val << ',';
+  //       }
+  //       ep.channel(channel).to_csv(f);
+  //       f << '\n';
+  //     }};
+  // tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+  //                1 /* dummy */);
+  // for (; i_param_point < param_values.size(); i_param_point++) {
+  //   auto test_param_builder = roc.testParameters();
+  //   for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+  //     test_param_builder.add(param_names[i_param].first,
+  //                            param_names[i_param].second,
+  //                            param_values[i_param_point][i_param]);
+  //   }
+  //   auto test_param = test_param_builder.apply();
+  //   pflib_log(info) << "running test parameter point " << i_param_point << "
+  //   / "
+  //                   << param_values.size();
+  //   daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
+  // }
 }

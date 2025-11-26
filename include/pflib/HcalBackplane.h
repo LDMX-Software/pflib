@@ -36,10 +36,10 @@ class HcalBackplane : public Target {
   virtual std::vector<int> econ_ids() const override;
 
   /** Get a ROC interface for the given HGCROC board */
-  virtual ROC roc(int which) override;
+  virtual ROC& roc(int which) override;
 
   /** get a ECON interface for the given econ board */
-  virtual ECON econ(int which) override;
+  virtual ECON& econ(int which) override;
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
   Bias bias(int which);

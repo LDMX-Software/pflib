@@ -16,6 +16,14 @@ void setup_hcal_trig(pflib::lpGBT&);
 /** Setup the lpGBT to train the eRx phase */
 void setup_erxtraining(pflib::lpGBT&, bool prbs_on);
 
+enum class ECAL_lpGBT_Config {
+  DAQ_SingleModuleMotherboard = 101,
+  TRIG_SingleModuleMotherboard = 201,
+};
+
+/** Setup the standard set of I/Os for ECAL, depending on the use case */
+void setup_ecal(pflib::lpGBT&, ECAL_lpGBT_Config);
+
 }  // namespace standard_config
 }  // namespace lpgbt
 }  // namespace pflib

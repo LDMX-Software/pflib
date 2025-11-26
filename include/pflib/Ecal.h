@@ -1,72 +1,82 @@
 #pragma once
 
+#include <map>
+#include <memory>
+#include <vector>
+
 #include "pflib/ECON.h"
+#include "pflib/I2C.h"
 #include "pflib/ROC.h"
-#include "pflib/Target.h"
+#include "pflib/lpGBT.h"
 
 namespace pflib {
 
 /**
- * Abstract class holding a set of ROCs and ECONs representing a HexaModule
+ * Class holding a set of ROCs and ECONs representing a HexaModule
  *
- * One "ECal Group" is one DMA access coming out of the firmware.
  */
-class EcalGroup {
+class EcalModule {
  public:
-  /** number of hgcrocs */
-  virtual int nrocs() override { return modules_.rocs_.size(); }
+  EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber);
 
+  /** number of hgcrocs */
+  int nrocs() const { return 6; }
   /// number of econds
-  virtual int necons() override { return modules_.econs_.size(); }
+  int necons() const { return 2; }
 
   /** do we have a roc with this id? */
-  virtual bool have_roc(int iroc) const override;
+  bool have_roc(int iroc) const { return iroc >= 0 && iroc <= nrocs(); }
+
+  static constexpr const int ECON_D = 0;
+  static constexpr const int ECON_T = 1;
 
   /** do we have an econ with this id? */
-  virtual bool have_econ(int iecon) const override;
+  bool have_econ(int iecon) const { return iecon == ECON_D || iecon == ECON_T; }
 
   /** get a list of the IDs we have set up */
-  virtual std::vector<int> roc_ids() const override;
+  std::vector<int> roc_ids() const;
 
   /** get a list of the econ IDs we have set up */
-  virtual std::vector<int> econ_ids() const override;
+  std::vector<int> econ_ids() const;
 
-  /** Get a ROC interface for the given HGCROC board */
-  virtual ROC roc(int which) override;
+  /** Get a ROC interface for the given HGCROC */
+  ROC& roc(int which);
 
-  /** get a ECON interface for the given econ board */
-  virtual ECON econ(int which) override;
+  /** get a ECON interface for the given ECON */
+  ECON& econ(int which);
 
   /** Generate a hard reset to all the HGCROC boards */
-  virtual void hardResetROCs() override;
+  void hardResetROCs();
 
   /** generate a hard reset to all the ECON boards */
-  virtual void hardResetECONs() override;
+  void hardResetECONs();
 
-  /** Get the firmware version */
-  virtual uint32_t getFirmwareVersion() override;
+  /** Generate a soft reset */
+  void softResetROC();
 
-  /** Generate a soft reset to a specific HGCROC board, -1 for all */
-  virtual void softResetROC(int which = -1) override;
-
-  /** Generate a soft reset to a specific ECON board, -1 for all */
-  virtual void softResetECON(int which = -1) override;
+  /** Generate a soft reset */
+  void softResetECON();
 
  protected:
+  lpGBT& lpGBT_;
+  int i2cbus_;
+  int imodule_;
+  std::unique_ptr<I2C> i2c_;
   /// representation of Ecal HexaModule
-  struct Module {
-    std::array<ROC, 6> rocs_;
-    ECON econ_d_;
-    ECON econ_t_;
-  };
-  std::vector<Module> modules_;
+  std::vector<ROC> rocs_;
+  std::vector<ECON> econs_;
+};
 
-  /// an Ecal Motherboard
-  struct Motherboard {
-    lpGBT daq_lpgbt_;
-    lpGBT trg_lpgbt_;
-  };
-  std::vector<Motherboard> motherboards_;
+class EcalMotherboard {
+ public:
+  EcalMotherboard() {}
+  /// create a module
+  void createModule(int imodule, lpGBT& lpGBT, int i2cbus);
+  /// get a module
+  EcalModule& module(int imodule);
+
+ private:
+  std::vector<std::shared_ptr<EcalModule*>> modules_;
 };
 
 }  // namespace pflib

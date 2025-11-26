@@ -13,9 +13,12 @@ namespace bittware {
 */
 class AxiLite {
  public:
-  AxiLite(const uint32_t base_address, const uint32_t mask_space = 0x3FFFFF,
-          const char* dev = "/dev/datadev_0");
+  AxiLite(const uint32_t base_address, const char* dev,
+          const uint32_t mask_space = 0x3FFFFF);
   ~AxiLite();
+
+  /// get the device path this AxiLite is connected to
+  const char* dev() const;
 
   /// Read a register, throws an exception if bits are set outside the addr mask
   /// space (or in the two LSB)
@@ -39,10 +42,12 @@ class AxiLite {
   }
 
  private:
+  const char* dev_;    /// path to device
   uint32_t base_;      // base address
   uint32_t mask_;      // mask (for safety)
   uint32_t antimask_;  // mask (for safety)
   int handle_;
+  bool waswrite_;
 };
 
 }  // namespace bittware

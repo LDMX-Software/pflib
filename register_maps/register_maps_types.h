@@ -11,6 +11,8 @@
 #pragma once
 
 // need maps and strings for the LUTs
+#include <stdint.h>
+
 #include <map>
 #include <string>
 #include <vector>

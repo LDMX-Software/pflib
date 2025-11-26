@@ -31,6 +31,7 @@ RUN mkdir src &&\
       -S src/ \
       -B src/build \
       -DYAML_BUILD_SHARED_LIBS=ON \
+      -DYAML_CPP_BUILD_TESTS=OFF \
     &&\
     cmake --build src/build --target install &&\
     rm -rf src
