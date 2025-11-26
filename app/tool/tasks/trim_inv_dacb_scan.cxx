@@ -13,7 +13,7 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
   int trim_inv = 0;
   int dacb = 0;
 
-  DecodeAndWriteToCSV writer{output_filepath,
+  DecodeAndWriteToCSV<EventPacket> writer{output_filepath,
                              [&](std::ofstream& f) {
                                nlohmann::json header;
                                header["scan_type"] =
