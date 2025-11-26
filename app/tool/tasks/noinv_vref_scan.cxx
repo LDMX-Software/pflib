@@ -9,11 +9,11 @@ ENABLE_LOGGING();
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
 static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                   std::string& output_filepath,
-                                   std::array<int, 2>& channels,
-                                   int& inv_vref) {
+                                   std::string& output_filepath) {
   int link = 0;
   int i_ch = 0;  // 0–35
+  int noinv_vref = 0;
+  std::array<int, 2>& channels
 
   DecodeAndWriteToCSV<EventPacket> writer{
       output_filepath,
@@ -21,7 +21,7 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         nlohmann::json header;
         header["scan_type"] = "CH_#.NOINV_VREF sweep";
         header["trigger"] = "PEDESTAL";
-        header["nevents_per_point"] = nevensts;
+        header["nevents_per_point"] = nevents;
         f << "# " << header << "\n"
           << "NOINV_VREF";
         for (int ch : channels) {
@@ -65,20 +65,16 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
 void noinv_vref_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
-
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
-
   auto roc = tgt->roc(pftool::state.iroc);
-
-  int noinv_vref = 0;
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     noinv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channels, inv_vref);
+        tgt, roc, nevents, output_filepath, channels);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     noinv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channels, inv_vref);
+        tgt, roc, nevents, output_filepath, channels);
   }
 
   // DecodeAndWriteToCSV writer{

@@ -1,0 +1,20 @@
+* [33mfcf0e80[m[33m ([m[1;36mHEAD -> [m[1;32m246-econd-live-decoding-josh[m[33m, [m[1;31morigin/246-econd-live-decoding-josh[m[33m)[m ECON-ROC align on bittware (#286)
+* [33m9d5f31a[m Bump actions/checkout from 5 to 6 (#285)
+* [33m133911a[m Jeremy patches while dev (#284)
+* [33mbae4b7a[m update notes on develping on slac daq server
+* [33m9a0d0d7[m mark Boost include as SYSTEM to avoid annoying warnings
+* [33mcf4adf1[m start EcalSMM Bittware target (#282)
+* [33mf0f79e6[m More conda package dev (#281)
+* [33m09ddf93[m cleanup econ parameter applicatoin
+* [33m84909bc[m 276 econ snapshots (#280)
+* [33m84134d2[m Apply clang-format --style=Google
+* [33m7ee767c[m toa_scan updated for event packets
+* [33mb2dd371[m replaceing cmakelists
+* [33m89618dc[m Apply clang-format --style=Google
+* [33m54d4a56[m set_toa adjusted for dynamic event packet based behaviour
+* [33m0ecd457[m Apply clang-format --style=Google
+* [33m066c82a[m adding template to helper function definitions on those cxxs I just modified
+* [33m3642623[m Apply clang-format --style=Google
+* [33md75abb0[m sampling_phase_scan updated for event packet type
+* [33m36eb282[m Apply clang-format --style=Google
+* [33m36563a1[m paramter_timescan updated for event packet type
