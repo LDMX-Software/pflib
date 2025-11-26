@@ -12,28 +12,40 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
                                std::string& output_filepath) {
   int trim_inv = 0;
   int dacb = 0;
+  int link = 0;
+  int i_ch = 0;  // 0–35
 
-  DecodeAndWriteToCSV<EventPacket> writer{
-      output_filepath,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["scan_type"] = "CH_#.TRIM_INV & CH_#.DACB sweep";
-        header["trigger"] = "PEDESTAL";
-        header["nevents_per_point"] = nevents;
-        f << "# " << header << "\n"
-          << "TRIM_INV,DACB";
-        for (int ch{0}; ch < 72; ch++) {
-          f << ',' << ch;
-        }
-        f << '\n';
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        f << trim_inv << ',' << dacb;
-        for (int ch{0}; ch < 72; ch++) {
-          f << ',' << ep.channel(ch).adc();
-        }
-        f << '\n';
-      }};
+  DecodeAndWriteToCSV<EventPacket> writer{output_filepath,
+    [&](std::ofstream& f) {
+      nlohmann::json header;
+      header["scan_type"] =
+          "CH_#.TRIM_INV & CH_#.DACB sweep";
+      header["trigger"] = "PEDESTAL";
+      header["nevents_per_point"] = nevents;
+      f << "# " << header << "\n"
+        << "TRIM_INV,DACB";
+      for (int ch{0}; ch < 72; ch++) {
+        f << ',' << ch;
+      }
+      f << '\n';
+    },
+    [&](std::ofstream& f, const EventPacket& ep) {
+      f << trim_inv << ',' << dacb;
+      for (int ch{0}; ch < 72; ch++) {
+      link = (ch / 36);
+      i_ch = ch % 36;
+      if constexpr (std::is_same_v<EventPacket,
+              pflib::packing::SingleROCEventPacket>) {
+                f << ',' << ep.channel(ch).adc();
+              } else if constexpr (
+                  std::is_same_v<EventPacket,
+                                pflib::packing::MultiSampleECONDEventPacket>) {
+                f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
+              }
+            }
+      }
+      f << '\n';
+    }};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
