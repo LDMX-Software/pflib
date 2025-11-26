@@ -33,47 +33,46 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
       load_parameter_points(parameter_points_file);
   pflib_log(info) << "successfully loaded parameter points";
 
-  DecodeAndWriteToCSV<EventPacket> writer{
-      fname,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["highrange"] = highrange;
-        header["preCC"] = preCC;
-        f << std::boolalpha << "# " << header << '\n' << "time,";
-        for (const auto& [page, parameter] : param_names) {
-          f << page << '.' << parameter << ',';
-        }
-        f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        for (int ch : channels) {
-          i_link = (ch / 36);
-          i_ch = ch % 36;
-          f << time << ',';
-
-          for (const auto& val : param_values[i_param_point]) {
-            f << val << ',';
+  DecodeAndWriteToCSV<EventPacket> writer {
+    fname,
+        [&](std::ofstream& f) {
+          nlohmann::json header;
+          header["highrange"] = highrange;
+          header["preCC"] = preCC;
+          f << std::boolalpha << "# " << header << '\n' << "time,";
+          for (const auto& [page, parameter] : param_names) {
+            f << page << '.' << parameter << ',';
           }
-          f << ch << ',';
+          f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
+        },
+        [&](std::ofstream& f, const EventPacket& ep) {
+          for (int ch : channels) {
+            i_link = (ch / 36);
+            i_ch = ch % 36;
+            f << time << ',';
 
-          if constexpr (std::is_same_v<
-                            EventPacket,
-                            pflib::packing::MultiSampleECONDEventPacket>) {
-            ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
-          } else if constexpr (std::is_same_v<
-                                   EventPacket,
-                                   pflib::packing::SingleROCEventPacket>) {
-            ep.channel(ch).to_csv(f);
-          } else {
-            PFEXCEPTION_RAISE("BadConf",
-                              "Unable to do all_channels_to_csv for the "
-                              "currently configured format.");
+            for (const auto& val : param_values[i_param_point]) {
+              f << val << ',';
+            }
+            f << ch << ',';
+
+            if constexpr (std::is_same_v<
+                              EventPacket,
+                              pflib::packing::MultiSampleECONDEventPacket>) {
+              ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
+            } else if constexpr (std::is_same_v<
+                                     EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
+              ep.channel(ch).to_csv(f);
+            } else {
+              PFEXCEPTION_RAISE("BadConf",
+                                "Unable to do all_channels_to_csv for the "
+                                "currently configured format.");
+            }
+            f << '\n';
           }
-          f << '\n';
-        }
-      }
-      int n_links = determine_n_links(tgt);
-    };
+        } int n_links = determine_n_links(tgt);
+  };
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
   for (; i_param_point < param_values.size(); i_param_point++) {

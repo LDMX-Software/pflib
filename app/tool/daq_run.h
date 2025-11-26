@@ -59,7 +59,8 @@ class WriteToBinaryFile : public DAQRunConsumer {
 template <class EventPacket>
 class DecodeAndWrite : public DAQRunConsumer {
  public:
-  explicit DecodeAndWrite(int n_links = 0);   // Default to 0 for SingleROC packet type (ignored)
+  explicit DecodeAndWrite(
+      int n_links = 0);  // Default to 0 for SingleROC packet type (ignored)
   virtual ~DecodeAndWrite() = default;
   /**
    * Decode the input event packet into our pflib::packing::SingleROCEventPacket
