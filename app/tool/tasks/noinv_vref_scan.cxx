@@ -13,7 +13,7 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int link = 0;
   int i_ch = 0;  // 0–35
   int noinv_vref = 0;
-  std::array<int, 2>& channels
+  std::array<int, 2>& channels;
 
       DecodeAndWriteToCSV<EventPacket>
           writer{
