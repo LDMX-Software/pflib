@@ -7,7 +7,7 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-void set_toa_runs(Target* tgt, ROC& roc, size_t n_events, auto refvol_page) {
+void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t n_events, auto refvol_page) {
   double toa_eff{2};
   DecodeAndBuffer<EventPacket> buffer{n_events};
 
