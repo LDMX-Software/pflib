@@ -6,10 +6,13 @@
 
 ENABLE_LOGGING();
 
+// helper function to facilitate EventPacket dependent behaviour
+template <class EventPacket>
 void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                 std::string& fname) {
   int link = 0;
   int i_ch = 0;  // 0–35
+  int phase_ck = 0;
 
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,  // output file name
@@ -56,12 +59,8 @@ void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
 void sampling_phase_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 100);
-
   std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
-
   auto roc = tgt->roc(pftool::state.iroc);
-
-  int phase_ck = 0;
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     sampling_phase_scan_writer<pflib::packing::SingleROCEventPacket>(
