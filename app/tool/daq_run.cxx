@@ -111,7 +111,8 @@ template <class EventPacket>
 DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream& f, const EventPacket&)> write_event)
+    std::function<void(std::ofstream& f, const EventPacket&)> write_event
+    , int n_links = 0)
     : DecodeAndWrite<EventPacket>(),
       file_{file_name},
       write_event_{write_event} {
