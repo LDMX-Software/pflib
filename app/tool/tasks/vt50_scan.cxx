@@ -63,8 +63,7 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         f << '\n';
         buffer.push_back(ep);
       },
-      n_links
-    };
+      n_links};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
