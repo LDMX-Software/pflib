@@ -18,22 +18,19 @@ std::array<double, 72> get_toa_efficiencies(
     i_link = (ch / 36);
     i_ch = ch % 36;
     for (std::size_t i{0}; i < toas.size(); i++) {
-
       if constexpr (std::is_same_v<
-                            EventPacket,
-                            pflib::packing::MultiSampleECONDEventPacket>) {
+                        EventPacket,
+                        pflib::packing::MultiSampleECONDEventPacket>) {
         toas[i] = data[i].samples[ep.i_soi].channel(i_link, i_ch).toa();
       } else if constexpr (std::is_same_v<
-                                EventPacket,
-                                pflib::packing::SingleROCEventPacket>) {
+                               EventPacket,
+                               pflib::packing::SingleROCEventPacket>) {
         toas[i] = data[i].channel(ch).toa();
       } else {
         PFEXCEPTION_RAISE("BadConf",
                           "Unable to do all_channels_to_csv for the "
                           "currently configured format.");
       }
-
-      
     }
     /// we assume that the data provided is not empty otherwise the efficiency
     /// calculation is meaningless
