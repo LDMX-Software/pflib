@@ -9,9 +9,12 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, bool& preCC, bool& highrange
-        , bool& search, int& channel, int& toa_threshold, int& vref_lower, int& vref_upper, int& nsteps,
-         std::string& fname, int& link, std::string& vref_page, std::string& calib_page){
+static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                             bool& preCC, bool& highrange, bool& search,
+                             int& channel, int& toa_threshold, int& vref_lower,
+                             int& vref_upper, int& nsteps, std::string& fname,
+                             int& link, std::string& vref_page,
+                             std::string& calib_page) {
   std::string vref_name = "TOT_VREF";
   std::string calib_name{preCC ? "CALIB_2V5" : "CALIB"};
   int calib_value{100000};
@@ -157,7 +160,6 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents, bool&
       }
     }
   }
-
 }
 
 void vt50_scan(Target* tgt) {
@@ -209,5 +211,4 @@ void vt50_scan(Target* tgt) {
         tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold,
         vref_lower, vref_upper, nsteps, fname, link, vref_page, calib_page);
   }
-  
 }
