@@ -72,7 +72,9 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           }
           f << '\n';
         }
-      }};
+      },
+      n_links
+    };
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
