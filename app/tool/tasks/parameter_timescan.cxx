@@ -62,7 +62,7 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
           } else if constexpr (std::is_same_v<
                                    EventPacket,
                                    pflib::packing::SingleROCEventPacket>) {
-            ep.channel(channel).to_csv(f);
+            ep.channel(ch).to_csv(f);
           } else {
             PFEXCEPTION_RAISE("BadConf",
                               "Unable to do all_channels_to_csv for the "
