@@ -23,14 +23,17 @@ void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t nevents,
     daq_run(tgt, "CHARGE", buffer, nevents, pftool::state.daq_rate);
     std::vector<double> toa_data;
 
-    if constexpr (std::is_same_v<EventPacket, pflib::packing::SingleROCEventPacket>) {
+    if constexpr (std::is_same_v<EventPacket,
+                                 pflib::packing::SingleROCEventPacket>) {
       for (const EventPacket& ep : buffer.get_buffer()) {
         auto toa = ep.channel(channel).toa();
         if (toa > 0) {
           toa_data.push_back(toa);
         }
       }
-    } else if constexpr (std::is_same_v<EventPacket, pflib::packing::MultiSampleECONDEventPacket>) {
+    } else if constexpr (std::is_same_v<
+                             EventPacket,
+                             pflib::packing::MultiSampleECONDEventPacket>) {
       for (const EventPacket& ep : buffer.get_buffer()) {
         auto toa = ep.samples[ep.i_soi].channel(link, i_ch).adc();
         if (toa > 0) {
@@ -38,7 +41,7 @@ void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t nevents,
         }
       }
     }
-    
+
     toa_eff = static_cast<double>(toa_data.size()) / nevents;
     if (toa_eff == 1) {
       roc.applyParameter(refvol_page, "TOA_VREF", toa_vref);
