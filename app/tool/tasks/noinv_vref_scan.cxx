@@ -13,7 +13,6 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int link = 0;
   int i_ch = 0;  // 0–35
   int noinv_vref = 0;
-  std::array<int, 2>& channels;
 
   DecodeAndWriteToCSV<EventPacket> writer{
       output_filepath,
@@ -24,14 +23,14 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         header["nevents_per_point"] = nevents;
         f << "# " << header << "\n"
           << "NOINV_VREF";
-        for (int ch : channels) {
+        for (int ch{0}; ch < 72; ch++) {
           f << ',' << ch;
         }
         f << '\n';
       },
       [&](std::ofstream& f, const EventPacket& ep) {
         f << noinv_vref;
-        for (int ch : channels) {
+        for (int ch{0}; ch < 72; ch++) {
           link = (ch / 36);
           i_ch = ch % 36;
           if constexpr (std::is_same_v<EventPacket,
