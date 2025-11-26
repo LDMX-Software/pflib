@@ -123,7 +123,6 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         if constexpr (std::is_same_v<EventPacket, pflib::packing::SingleROCEventPacket>) {
           tot = ep.channel(channel).tot();
         } else if constexpr (std::is_same_v<EventPacket, pflib::packing::MultiSampleECONDEventPacket>) {
-          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
           tot = ep.samples[ep.i_soi].channel(link, i_ch).tot();
         }
         
