@@ -362,9 +362,6 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
   tport_.write_reg(REG_EPRX00CHNCNTR + irx * 4,
                    ((alignphase & 0xF) << 4) | ((invert) ? (0x8) : (0)) |
                        ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
-  // ignore equalization for now
-
-  // adding for rx training
 }
 
 void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
@@ -394,9 +391,6 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
   }
 
-  // Configure data source for prbs7
-  // tport_.write_reg(REG_ULDATASOURCE1, (1 & 0x7) << 0);
-
   // Train channel
   tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
   usleep(100000);
@@ -413,7 +407,8 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     gettimeofday(&now, nullptr);
     long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
-    if (elapsed_us > 5000000) {
+    // Wait two seconds
+    if (elapsed_us > 2000000) {
       printf(" INFO: Current lock state = %d\n", group, state);
       break;
     }
@@ -454,8 +449,6 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   // Get error count
   for (int i = 0; i < 5; i++) {
     printf(" BERTRESULT%d: %d\n", i, tport_.read_reg(REG_BERTRESULT[i]));
-    // errors |=
-    // (static_cast<uint64_t>(tport_.read_reg(REG_BERTRESULT[i])) << (8 * i));
   }
 
   uint8_t b0 = tport_.read_reg(0x1d6);  // BERTRESULT0 (7:0)
@@ -475,11 +468,10 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
 
   // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
-  uint64_t bits_per_cycle = 32;  // hardcoded for now
+  uint64_t bits_per_cycle = 32;
   uint64_t bits_checked = clocks * bits_per_cycle;
 
   // PRBS check overestimates errors according to v1 manual
-  // double actual_errors = (double)errors / 3.0;
   double ber = (double)errors / (double)bits_checked;
 
   printf(
@@ -491,7 +483,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
 
   // Turn off lpgbt prbs if left on
   tport_.write_reg(REG_EPRXPRBS0, 0x00);
-  // Revert back to nomral data source
+  // Ensure normal data source before leaving
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
 }
 

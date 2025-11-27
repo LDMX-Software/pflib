@@ -70,7 +70,7 @@ void align_econ_lpgbt(Target* tgt) {
     for (int phase = 0; phase < 32; phase++) {
       printf(" %2d 0x%08x\n", phase, got[phase]);
     }
-    printf(" Did not find alignment\n");
+    printf(" WARNING: Did not find alignment\n");
   }
 
   // ----- bit alignment -----
@@ -118,7 +118,6 @@ void align_econ_lpgbt(Target* tgt) {
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
 
   prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-  // std::cout << " PRBS state: " << prbs_state << std::endl;
   printf(" ECOND PRBS State: %lu\n", prbs_state);
 
   lpgbt_daq.check_prbs_errors_erx(0, 0,
