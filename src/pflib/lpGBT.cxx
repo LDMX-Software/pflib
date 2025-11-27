@@ -446,11 +446,6 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     printf("\n BERT error flag set");
   }
 
-  // Get error count
-  // for (int i = 0; i < 5; i++) {
-  //  printf(" BERTRESULT%d: %d\n", i, tport_.read_reg(REG_BERTRESULT[i]));
-  //}
-
   uint8_t b0 = tport_.read_reg(0x1d6);  // BERTRESULT0 (7:0)
   uint8_t b1 = tport_.read_reg(0x1d5);  // BERTRESULT1 (15:8)
   uint8_t b2 = tport_.read_reg(0x1d4);  // BERTRESULT2 (23:16)
