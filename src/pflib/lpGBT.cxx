@@ -447,7 +447,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   }
 
   // Get error count
-  //for (int i = 0; i < 5; i++) {
+  // for (int i = 0; i < 5; i++) {
   //  printf(" BERTRESULT%d: %d\n", i, tport_.read_reg(REG_BERTRESULT[i]));
   //}
 
@@ -456,13 +456,13 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   uint8_t b2 = tport_.read_reg(0x1d4);  // BERTRESULT2 (23:16)
   uint8_t b3 = tport_.read_reg(0x1d3);  // BERTRESULT3 (31:24)
   uint8_t b4 = tport_.read_reg(0x1d2);  // BERTRESULT4 (39:32)
-  
+
   printf("BERTRESULT0: %u (%02X)\n", b0, b0);
   printf("BERTRESULT1: %u (%02X)\n", b1, b1);
   printf("BERTRESULT2: %u (%02X)\n", b2, b2);
   printf("BERTRESULT3: %u (%02X)\n", b3, b3);
   printf("BERTRESULT4: %u (%02X)\n", b4, b4);
-  
+
   uint64_t errors = ((uint64_t)b0) | ((uint64_t)b1 << 8) |
                     ((uint64_t)b2 << 16) | ((uint64_t)b3 << 24) |
                     ((uint64_t)b4 << 32);
