@@ -43,7 +43,10 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 }
 
 void align_econ_lpgbt(Target* tgt) {
-  auto econ = tgt->econ(pftool::state.iecon);
+  
+  int iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+
+  auto econ = tgt->econ(iecon);
 
   if (pftool::state.iecon != 0) {
     printf(" I only know how to align ECON-D to link 0\n");
@@ -74,22 +77,15 @@ void align_econ_lpgbt(Target* tgt) {
   }
 
   // ----- bit alignment -----
-  int chipaddr = 0x78;
-  chipaddr |= 0x4;
+  int chipaddr = 0x78; // Hardcoded
+  chipaddr |= 0x4; // Hardcoded
 
   pflib::zcu::lpGBT_ICEC_Simple ic("standardLpGBTpair-0", false, chipaddr);
   pflib::lpGBT lpgbt_daq(ic);
   pflib::zcu::lpGBT_ICEC_Simple ec("standardLpGBTpair-0", true, 0x78);
   pflib::lpGBT lpgbt_trg(ec);
 
-  int pusm_daq = lpgbt_daq.status();
-  printf(" lpGBT-DAQ PUSM %s (%d)\n", lpgbt_daq.status_name(pusm_daq).c_str(),
-         pusm_daq);
-
-  int pusm_trg = lpgbt_trg.status();
-  printf(" lpGBT-TRG PUSM %s (%d)\n", lpgbt_trg.status_name(pusm_trg).c_str(),
-         pusm_trg);
-
+  printf(" NOTE: Only checking Group 0, Channel 0\n");
   auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
   printf(" ECOND PRBS State: %lu\n", prbs_state);
   printf("\n --- PRE-PRBS STATUS ---\n");
