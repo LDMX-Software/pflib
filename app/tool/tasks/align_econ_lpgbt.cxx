@@ -43,8 +43,8 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 }
 
 void align_econ_lpgbt(Target* tgt) {
-  
-  int iecon = pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+  int iecon =
+      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto econ = tgt->econ(iecon);
 
@@ -77,8 +77,8 @@ void align_econ_lpgbt(Target* tgt) {
   }
 
   // ----- bit alignment -----
-  int chipaddr = 0x78; // Hardcoded
-  chipaddr |= 0x4; // Hardcoded
+  int chipaddr = 0x78;  // Hardcoded
+  chipaddr |= 0x4;      // Hardcoded
 
   pflib::zcu::lpGBT_ICEC_Simple ic("standardLpGBTpair-0", false, chipaddr);
   pflib::lpGBT lpgbt_daq(ic);
