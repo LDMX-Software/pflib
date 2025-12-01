@@ -146,8 +146,9 @@ void general(const std::string& cmd, ToolBox* target) {
   if (cmd == "EXPERT_STANDARD_HCAL_DAQ" || cmd == "STANDARD_HCAL") {
     pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt_ic);
     // sleep to wait for daq config to be applied before attempting trg config
-    sleep(1);
     printf("Applied standard HCAL DAQ configuration\n");
+    printf("pause to be accepted...\n");
+    sleep(2);
   }
   if (cmd == "EXPERT_STANDARD_HCAL_TRIG" || cmd == "STANDARD_HCAL") {
     pflib::lpgbt::standard_config::setup_hcal_trig(*target->lpgbt_ec);
