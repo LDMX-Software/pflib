@@ -162,6 +162,7 @@ void align_phase_word(Target* tgt) {
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
     if (on_zcu) {
+      std::cout << "IM HERE! " << std::endl;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 0xdba
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;   // 0xdeb
     } else {
