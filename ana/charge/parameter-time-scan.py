@@ -90,7 +90,11 @@ def adc_all_channels(
     run_params,
     ax_holder
 ):
-    """Plot the max adc for all channels"""
+    """
+        Plot the max adc vs all channels
+        Make a linear fit to the increase in RMS as a function of the input parameter
+        Plot the slope and intercept vs the input parameter
+    """
 
     # First group by the nr of channels with charge injections
     charges_group = samples.groupby("nr channels")
@@ -107,13 +111,11 @@ def adc_all_channels(
         avg_rms_list.append([])
 
     for i, (charge_id, charge_df) in enumerate(charges_group):
-
         print(f'Running {i+1} out of {16}')
         fig, ax = plt.subplots(2, 1, sharex=True, height_ratios=[4,1])
         ax1 = ax[0]
         ax2 = ax[1]
         ax1.set_ylim(0,1000)
-        #ax1.set_ylim(100,1000)
         ax2.set_ylim(-10,20)
         ax1.set_ylabel('Max ADC')
         ax2.set_xlabel('Channel')
@@ -122,12 +124,12 @@ def adc_all_channels(
 
         param_group, param_name = get_params(charge_df, 0)
         cmap = plt.get_cmap('viridis')
-        #cmap = plt.get_cmap('tab20c')
         n = len(param_group)
-        pick = 6
+        #pick = 6 # Pick one parameter if needed
         for j, (param_id, param_df) in enumerate(param_group):
-            #if j != pick:
-            #    continue
+            if 'pick' in locals():
+                if j != pick:
+                    continue
             key = param_name.split('.')[1]
             val = param_df[param_name].iloc[0]
             color = cmap(j/n)
@@ -157,14 +159,6 @@ def adc_all_channels(
             rms_df = pd.DataFrame(rms_by_channel, columns=['channel', 'rms'])
             merged = max_by_channel.merge(rms_df, on='channel')
             merged['diff'] = abs(merged['adc']-mean)
-
-            #chs = param_df[param_df['channel'] < 36].groupby('channel')
-            #m = len(chs)
-            #for o, (ch, ch_df) in enumerate(chs):
-            #    color = cmap(o/m)
-            #    ax1.scatter(ch_df['time'], ch_df['adc'], label=f'ch{ch}',
-            #            s=5, color=color)
-
             ax1.scatter(merged['channel'], merged['adc'], 
                         label=f'{key} = {val}, pedestal = {mean:.0f}',
                         s=5, color=color)
@@ -175,14 +169,13 @@ def adc_all_channels(
         ax2.axhline(y=0, color='k', linestyle='--', linewidth=.8)
         ax2.axvline(x=35.5, color='k', linestyle='--', linewidth=.8)
         ax1.legend(fontsize=8)
-        #ax1.legend(fontsize=4)
         ax2.legend(loc='lower right', fontsize=8)
         handles1, labels1 = ax1.get_legend_handles_labels()
         handles2, labels2 = ax2.get_legend_handles_labels()
         all_handles = handles1 + handles2
         all_labels = labels1 + labels2
         ax1.legend(handles=all_handles, labels=all_labels, fontsize=8)
-        ax2.legend().remove()  # if it exists
+        ax2.legend().remove()
         fig.savefig(f'adc_all_channels_{i}.png', dpi=400)
         plt.close(fig)
 
@@ -190,11 +183,9 @@ def adc_all_channels(
     activated_transposed = [list(col) for col in zip(*activated_channels_list)]
     rms_transposed = [list(col) for col in zip(*avg_rms_list)]
 
-    print(activated_transposed)
     parameter_values = sorted(parameter_values)
     slopes = []
     intercepts = []
-
     for i in range(len(rms_transposed)):
         popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
         slopes.append(popt[0])
@@ -208,7 +199,6 @@ def adc_all_channels(
     plt.close(fig_rms)
 
     # Plot the slope and intercept vs input parameter!
-
     fig_par, ax_par = plt.subplots(1,1)
     ax_par.scatter(parameter_values, slopes, label='slopes')
     ax_par.scatter(parameter_values, intercepts, label='intercepts')
