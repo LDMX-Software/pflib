@@ -10,6 +10,7 @@ general plotting parameters.
 import update_path
 from plt_gen import plt_gen
 from get_params import get_params
+from astropy.stats import sigma_clipped_stats
 
 import os
 
@@ -17,7 +18,11 @@ from pathlib import Path
 import argparse
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+from scipy.optimize import curve_fit
 import numpy as np
+import pandas as pd
 
 from read import read_pflib_csv
 
@@ -30,7 +35,7 @@ parser.add_argument('-o','--output', type=Path, help='file to which to print, de
 parser.add_argument('-od', '--output_directory', type=Path, help='directory to which to print.')
 parser.add_argument('-r', '--repository', type=bool, help='True if you would like to indicate that the input is a repository with csv files rather than a single csv file.')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
+plot_funcs = ['ADC-TIME', 'ADC-ALL-CHANNELS', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
@@ -71,9 +76,148 @@ def set_xticks (
     xmin = 25*np.floor(xmin/25)
     xmax = 25*np.ceil(xmax/25)
     ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
-    ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True) 
+    ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True)
+
+#################### HELPER FUNCTIONS ########################
+
+def linear(x, k, m):
+    return k*x + m
 
 #################### PLOTTING FUNCTIONS ########################
+
+def adc_all_channels(
+    samples,
+    run_params,
+    ax_holder
+):
+    """Plot the max adc for all channels"""
+
+    # First group by the nr of channels with charge injections
+    charges_group = samples.groupby("nr channels")
+    pedestal = 0
+    fig_rms, ax_rms = plt.subplots(1, 1)
+    ax_rms.set_xlabel('Channels activated')
+    ax_rms.set_ylabel('Average RMS of non-activated channels')
+
+    parameter_values = set()
+    activated_channels_list = []
+    avg_rms_list = []
+    for i in range(len(charges_group)):
+        activated_channels_list.append([])
+        avg_rms_list.append([])
+
+    for i, (charge_id, charge_df) in enumerate(charges_group):
+
+        print(f'Running {i+1} out of {16}')
+        fig, ax = plt.subplots(2, 1, sharex=True, height_ratios=[4,1])
+        ax1 = ax[0]
+        ax2 = ax[1]
+        ax1.set_ylim(0,1000)
+        #ax1.set_ylim(100,1000)
+        ax2.set_ylim(-10,20)
+        ax1.set_ylabel('Max ADC')
+        ax2.set_xlabel('Channel')
+        ax2.set_ylabel('RMS')
+        ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+
+        param_group, param_name = get_params(charge_df, 0)
+        cmap = plt.get_cmap('viridis')
+        #cmap = plt.get_cmap('tab20c')
+        n = len(param_group)
+        pick = 6
+        for j, (param_id, param_df) in enumerate(param_group):
+            #if j != pick:
+            #    continue
+            key = param_name.split('.')[1]
+            val = param_df[param_name].iloc[0]
+            color = cmap(j/n)
+
+            parameter_values.add(val)
+
+            max_by_channel =(
+                    param_df.groupby('channel')['adc'].max().reset_index()
+            )
+            if pedestal == 0:
+                mean, med, std = sigma_clipped_stats(param_df['adc'], sigma=3)
+                pedestal = mean
+            rms_by_channel = []
+            for ch, ch_df in param_df.groupby('channel'):
+                rms = ((ch_df['adc'] - pedestal)**2).mean()**0.5
+                rms_by_channel.append((ch,rms))
+            avg_rms = 0
+            count = 0
+            for k in range(36):
+                if k >= 16-i and k <= 16+i:
+                    continue
+                avg_rms += rms_by_channel[k][1]
+                count += 1
+            avg_rms = avg_rms/count
+            avg_rms_list[i].append(avg_rms)
+            activated_channels_list[i].append(i+1)
+            rms_df = pd.DataFrame(rms_by_channel, columns=['channel', 'rms'])
+            merged = max_by_channel.merge(rms_df, on='channel')
+            merged['diff'] = abs(merged['adc']-mean)
+
+            #chs = param_df[param_df['channel'] < 36].groupby('channel')
+            #m = len(chs)
+            #for o, (ch, ch_df) in enumerate(chs):
+            #    color = cmap(o/m)
+            #    ax1.scatter(ch_df['time'], ch_df['adc'], label=f'ch{ch}',
+            #            s=5, color=color)
+
+            ax1.scatter(merged['channel'], merged['adc'], 
+                        label=f'{key} = {val}, pedestal = {mean:.0f}',
+                        s=5, color=color)
+            ax2.errorbar(merged['channel'], merged['diff'],
+                         yerr=merged['rms'], 
+                         fmt='o', markersize=2, color=color,
+                         label=f'avg RMS of pedestals = {avg_rms:.2f}')
+        ax2.axhline(y=0, color='k', linestyle='--', linewidth=.8)
+        ax2.axvline(x=35.5, color='k', linestyle='--', linewidth=.8)
+        ax1.legend(fontsize=8)
+        #ax1.legend(fontsize=4)
+        ax2.legend(loc='lower right', fontsize=8)
+        handles1, labels1 = ax1.get_legend_handles_labels()
+        handles2, labels2 = ax2.get_legend_handles_labels()
+        all_handles = handles1 + handles2
+        all_labels = labels1 + labels2
+        ax1.legend(handles=all_handles, labels=all_labels, fontsize=8)
+        ax2.legend().remove()  # if it exists
+        fig.savefig(f'adc_all_channels_{i}.png', dpi=400)
+        plt.close(fig)
+
+    # Transpose data
+    activated_transposed = [list(col) for col in zip(*activated_channels_list)]
+    rms_transposed = [list(col) for col in zip(*avg_rms_list)]
+
+    print(activated_transposed)
+    parameter_values = sorted(parameter_values)
+    slopes = []
+    intercepts = []
+
+    for i in range(len(rms_transposed)):
+        popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
+        slopes.append(popt[0])
+        intercepts.append(popt[1])
+        ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8, color='k')
+        xfit = np.linspace(min(activated_transposed[i]), max(activated_transposed[i]), 100)
+        ax_rms.plot(xfit, linear(xfit, *popt), 
+            label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}')
+    ax_rms.legend(fontsize=8)
+    fig_rms.savefig('avg_rms.png', dpi=400)
+    plt.close(fig_rms)
+
+    # Plot the slope and intercept vs input parameter!
+
+    fig_par, ax_par = plt.subplots(1,1)
+    ax_par.scatter(parameter_values, slopes, label='slopes')
+    ax_par.scatter(parameter_values, intercepts, label='intercepts')
+    ax_par.legend(fontsize=8)
+    ax_par.set_xlabel('CALIB')
+    ax_par.set_title('Slope and intercepts as results from fits of avg RMS on non-activated channels')
+    fig_par.savefig('slope_intercept.png', dpi=400)
+    plt.close(fig_par)
+
 
 def time(
     samples,
@@ -373,6 +517,10 @@ def multiparams(
             param(samples_collection[i], run_params_collection[i], ax)
 
 ############################## MAIN ###################################
+
+if args.plot_function == 'ADC-ALL-CHANNELS':
+    plt_gen(adc_all_channels, samples, run_params, args.output,
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
     plt_gen(partial(time, yval = 'adc'), samples, run_params, args.output,
