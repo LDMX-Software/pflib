@@ -54,15 +54,6 @@ void align_phase_word(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  // bool bittware = pftool::readline_bool("Bittware? (ZCU by default): ",
-  // false);
-
-  // bool bittware = false;
-  //  if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
-  //  set bittware to true here?
-  //     bittware = false;  // defaulting
-  // }
-
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
 
@@ -101,8 +92,19 @@ void align_phase_word(Target* tgt) {
     return;
   }
 
-  // Set IDLEs in ROC with enough bit transitions
-  auto roc_setup_builder =
+  // // Set IDLEs in ROC with enough bit transitions
+  if(on_zcu){
+    auto roc_setup_builder =
+    roc.testParameters()
+        .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+        .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+        .add("DIGITALHALF_0", "BX_OFFSET", 1)
+        .add("DIGITALHALF_1", "BX_OFFSET", 1)
+        .add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+    auto roc_test_params = roc_setup_builder.apply();
+  } else {
+    auto roc_setup_builder =
       roc.testParameters()
           .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
           .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
@@ -110,7 +112,8 @@ void align_phase_word(Target* tgt) {
           .add("DIGITALHALF_1", "BX_OFFSET", 1)
           .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
           .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
-  auto roc_test_params = roc_setup_builder.apply();
+      auto roc_test_params = roc_setup_builder.apply();
+  }
 
   // ----- PHASE ALIGNMENT ----- //
   {
@@ -162,7 +165,6 @@ void align_phase_word(Target* tgt) {
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
     if (on_zcu) {
-      std::cout << "IM HERE! " << std::endl;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 0xdba
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;   // 0xdeb
     } else {
@@ -217,12 +219,13 @@ void align_phase_word(Target* tgt) {
     // ------- Scan when the ECON takes snapshot -----
     int start_val, end_val, testval, snapshot_match;
     if (on_zcu) {
-      start_val = 3531;  // near your orbit region of interest
+      start_val = 3490;  // 3531;  // near your orbit region of interest
       end_val = 3540;    // up to orbit rollover
       testval = 3532;
     } else {
-      start_val = 64 * 40 - 100;  // near your orbit region of interest
-      end_val = 64 * 40 - 1;      // up to orbit rollover
+      start_val =
+          64 * 40 - 100;  // near your orbit region of interest
+      end_val = 64 * 40 - 1;  // up to orbit rollover
       testval = start_val + 1;
     }
 
