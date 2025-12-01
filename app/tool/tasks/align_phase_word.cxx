@@ -54,15 +54,14 @@ void align_phase_word(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  
-  // bool bittware = pftool::readline_bool("Bittware? (ZCU by default): ", false);
+  // bool bittware = pftool::readline_bool("Bittware? (ZCU by default): ",
+  // false);
 
-
-  //bool bittware = false;
-  // if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
-    // set bittware to true here?
-//     bittware = false;  // defaulting
-// }
+  // bool bittware = false;
+  //  if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
+  //  set bittware to true here?
+  //     bittware = false;  // defaulting
+  // }
 
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
@@ -312,7 +311,7 @@ void align_phase_word(Target* tgt) {
           header_found = true;
           std::cout << "Successful header match in Snapshot: " << snapshot_val
                     << std::endl;
-          // break;  // out of channel loop. commented out 
+          // break;  // out of channel loop. commented out
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
