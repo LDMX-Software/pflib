@@ -59,9 +59,10 @@ void align_phase_word(Target* tgt) {
 
   // Get channels from user
   std::string ch_str = pftool::readline(
-      "Enter channels (comma-separated), default is all channels: ",
-      "0,1,2,3,4,5,6,7");
+      "Enter channel(s) to check (comma-separated), default is channel 0: ",
+      "0");
   std::vector<int> channels;
+  std::vector<int> all_channels = {0,1,2,3,4,5,6,7};
   std::stringstream ss(ch_str);
   std::string item;
   while (std::getline(ss, item, ',')) {
@@ -339,11 +340,12 @@ void align_phase_word(Target* tgt) {
     } else {
       // Header successfully found at snapshot_val. Check pattern match for all
       // eRx
-      for (int channel : channels) {
+      for (int channel : all_channels) {
         // print out pattern match for all channels
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
-        std::cout << "Header match in Snapshot: " << snapshot_match << std::endl
+         std::cout << "------------------------------------------" << std::endl
+         << "Header match in Snapshot: " << snapshot_match << std::endl
                   << "Channel " << channel << " pattern match: " << ch_pm
                   << std::endl;
       }
