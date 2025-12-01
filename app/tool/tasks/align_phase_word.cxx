@@ -214,7 +214,7 @@ void align_phase_word(Target* tgt) {
     // tgt->fc().bx_custom(3, 0xfff000, 3000);
 
     // ------- Scan when the ECON takes snapshot -----
-    int start_val, end_val, testval;
+    int start_val, end_val, testval, snapshot_match;
     if (on_zcu) {
       start_val = 3531;  // near your orbit region of interest
       end_val = 3540;    // up to orbit rollover
@@ -311,7 +311,8 @@ void align_phase_word(Target* tgt) {
           header_found = true;
           std::cout << "Successful header match in Snapshot: " << snapshot_val
                     << std::endl;
-          break;  // out of channel loop. commented out
+          snapshot_match = snapshot_val;
+          break;  // out of channel loop. 
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
@@ -339,9 +340,9 @@ void align_phase_word(Target* tgt) {
         // print out pattern match for all channels
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
-        std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
-                  << "Channel " << channel << " pattern match: " << ch_pm
-                  << std::endl;
+        std::cout << "Header match in Snapshot: " << snapshot_match << std::endl
+                    << "Channel " << channel << " pattern match: " << ch_pm 
+                    << std::endl;
       }
     }
 
