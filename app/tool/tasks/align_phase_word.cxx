@@ -93,26 +93,26 @@ void align_phase_word(Target* tgt) {
   }
 
   // // Set IDLEs in ROC with enough bit transitions
-  if(on_zcu){
+  if (on_zcu) {
     auto roc_setup_builder =
-    roc.testParameters()
-        .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-        .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-        .add("DIGITALHALF_0", "BX_OFFSET", 1)
-        .add("DIGITALHALF_1", "BX_OFFSET", 1)
-        .add("DIGITALHALF_0", "BX_TRIGGER", 3543)
-        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+        roc.testParameters()
+            .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_0", "BX_OFFSET", 1)
+            .add("DIGITALHALF_1", "BX_OFFSET", 1)
+            .add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+            .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
     auto roc_test_params = roc_setup_builder.apply();
   } else {
     auto roc_setup_builder =
-      roc.testParameters()
-          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_0", "BX_OFFSET", 1)
-          .add("DIGITALHALF_1", "BX_OFFSET", 1)
-          .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-          .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
-      auto roc_test_params = roc_setup_builder.apply();
+        roc.testParameters()
+            .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_0", "BX_OFFSET", 1)
+            .add("DIGITALHALF_1", "BX_OFFSET", 1)
+            .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+            .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+    auto roc_test_params = roc_setup_builder.apply();
   }
 
   // ----- PHASE ALIGNMENT ----- //
@@ -223,9 +223,8 @@ void align_phase_word(Target* tgt) {
       end_val = 3540;    // up to orbit rollover
       testval = 3532;
     } else {
-      start_val =
-          64 * 40 - 100;  // near your orbit region of interest
-      end_val = 64 * 40 - 1;  // up to orbit rollover
+      start_val = 64 * 40 - 100;  // near your orbit region of interest
+      end_val = 64 * 40 - 1;      // up to orbit rollover
       testval = start_val + 1;
     }
 
