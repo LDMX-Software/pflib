@@ -19,7 +19,7 @@ const uint8_t MAX5825::CODEn_LOADn = 11 << 4;
 const uint8_t MAX5825::REFn = 2 << 4;
 const uint8_t MAX5825::POWERn = 4 << 4;
 
-MAX5825::MAX5825(std::shared_ptr<I2C>& i2c, uint8_t addr)
+MAX5825::MAX5825(std::shared_ptr<I2C> i2c, uint8_t addr)
     : i2c_{i2c}, our_addr_{addr} {}
 
 std::vector<uint8_t> MAX5825::get(uint8_t channel) {
@@ -53,7 +53,7 @@ const uint8_t Bias::ADDR_LED_1 = 0x1A;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
-Bias::Bias(std::shared_ptr<I2C>& i2c) {
+Bias::Bias(std::shared_ptr<I2C> i2c) {
   led_.emplace_back(i2c, Bias::ADDR_LED_0);
   led_.emplace_back(i2c, Bias::ADDR_LED_1);
   sipm_.emplace_back(i2c, Bias::ADDR_SIPM_0);
