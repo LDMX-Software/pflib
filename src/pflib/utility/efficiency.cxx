@@ -1,5 +1,6 @@
 #include "pflib/utility/efficiency.h"
 
+#include <algorithm>
 #include <limits>  // need for "numeric_limits" to work in conditional below.
 
 namespace pflib::utility {

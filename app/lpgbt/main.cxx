@@ -145,11 +145,20 @@ void general(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "EXPERT_STANDARD_HCAL_DAQ" || cmd == "STANDARD_HCAL") {
     pflib::lpgbt::standard_config::setup_hcal_daq(*target->lpgbt_ic);
+    // sleep to wait for daq config to be applied before attempting trg config
     printf("Applied standard HCAL DAQ configuration\n");
+    printf("pause to be accepted...\n");
+    sleep(2);
   }
   if (cmd == "EXPERT_STANDARD_HCAL_TRIG" || cmd == "STANDARD_HCAL") {
     pflib::lpgbt::standard_config::setup_hcal_trig(*target->lpgbt_ec);
     printf("Applied standard HCAL TRIG configuration\n");
+  }
+  if (cmd == "STANDARD_ECAL") {
+    pflib::lpgbt::standard_config::setup_ecal(
+        *target->lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               DAQ_SingleModuleMotherboard);
+    printf("Applied standard ECAL DAQ configuration\n");
   }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->coder_name);
@@ -752,6 +761,7 @@ auto gen =
         ->line("STATUS", "Status summary", general)
         ->line("MODE", "Setup the lpGBT ADDR and MODE1", general)
         ->line("STANDARD_HCAL", "Apply standard HCAL lpGBT setups", general)
+        ->line("STANDARD_ECAL", "Apply standard ECAL lpGBT setups", general)
         ->line("EXPERT_STANDARD_HCAL_DAQ",
                "Apply just standard HCAL DAQ lpGBT setup", general)
         ->line("EXPERT_STANDARD_HCAL_TRIG",
@@ -856,6 +866,12 @@ int main(int argc, char* argv[]) {
       }
       i++;
       i_link = std::stoi(argv[i]);
+      if (i + 1 == argc or argv[i + 1][0] == '-') {
+        std::cerr << "Using default BW location /dev/datadev_0" << std::endl;
+        target_name = "/dev/datadev_0";
+      } else {
+        target_name = argv[i + 1];
+      }
     }
 
     if (arg == "-s") {
@@ -893,7 +909,8 @@ int main(int argc, char* argv[]) {
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
-    pflib::bittware::BWOptoLink* odaq = new pflib::bittware::BWOptoLink(i_link);
+    pflib::bittware::BWOptoLink* odaq =
+        new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
     t.olink_daq = odaq;
     t.olink_trig = new pflib::bittware::BWOptoLink(i_link + 1, *odaq);
 #endif

@@ -7,6 +7,14 @@ project(pflib
 	LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+# if we are in a conda environment,
+# add the conda location to our search path
+# and include its lib directory as a possible link area
+if(DEFINED ENV{CONDA_PREFIX})
+  set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}")
+  link_directories($ENV{CONDA_PREFIX}/lib)
+endif()
+
 find_package(Git)
 add_custom_target(git_version
   ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/pflib/version/cmake_version.h.in
@@ -60,6 +68,7 @@ add_library(utility SHARED
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
+target_include_directories(utility SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 
 add_library(logging SHARED src/pflib/logging/Logging.cxx)
 target_include_directories(logging PUBLIC 
@@ -111,8 +120,12 @@ set(pflib_src
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/Elinks_zcu.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
+  src/pflib/zcu/zcu_elinks.cxx
+  src/pflib/zcu/zcu_DAQ.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplaneZCU.cxx
+  src/pflib/zcu/EcalSMMTarget.cxx
+  src/pflib/Ecal.cxx
   src/pflib/Bias.cxx
 )
 
@@ -120,7 +133,11 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/bittware_elinks.cxx
+    src/pflib/bittware/bittware_daq.cxx
+    src/pflib/bittware/bittware_FastControl.cxx
     src/pflib/bittware/HcalBackplaneBittware.cxx
+    src/pflib/bittware/EcalSMMTarget.cxx
     )
 endif()
 
@@ -145,7 +162,7 @@ add_library(pypflib SHARED
 target_link_libraries(pypflib PUBLIC pflib Boost::python Python3::Python)
 
 add_library(menu SHARED src/pflib/menu/Menu.cc)
-target_link_libraries(menu PUBLIC readline pflib)
+target_link_libraries(menu PUBLIC readline pflib logging)
 target_include_directories(menu PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -182,7 +199,7 @@ add_executable(pflpgbt app/lpgbt/main.cxx app/lpgbt/lpgbt_mezz_tester.cc)
 if (${Rogue_FOUND})
   target_compile_definitions(pflpgbt PRIVATE USE_ROGUE)
 endif()
-target_link_libraries(pflpgbt PRIVATE pflib menu)
+target_link_libraries(pflpgbt PRIVATE pflib menu logging)
 
 # don't install test-menu executable! just for Menu developments
 file(GLOB_RECURSE test_menu_sources LIST_DIRECTORIES FALSE test/test_menu/*.cxx)
@@ -205,7 +222,7 @@ add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
 # add pflib prefix to all our pflib libraries
-set_target_properties(pflib packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
+set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
 install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults

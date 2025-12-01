@@ -262,27 +262,12 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().getErrorCounters(sbe,dbe);
     printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
     */
-    std::vector<uint32_t> cnt = pft->fc().getCmdCounters();
-    for (int i = 0; i < cnt.size(); i++) {
-      std::string comment{""};
-      if (auto it{bit_comments.find(i)}; it != bit_comments.end()) {
-        comment = it->second;
-      }
-      printf("  Bit %2d count: %10u (%s)\n", i, cnt[i], comment.c_str());
+    std::map<std::string, uint32_t> cnt = pft->fc().getCmdCounters();
+    for (const auto& pair : cnt) {
+      printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
 
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
-    /**
-     * FastControl::read_counters is default defined to do nothing,
-     * FastControlCMS_MMap does not override this default definition
-     * so nothing interesting happens
-     *
-    int spill_count, header_occ, event_count, vetoed_counter;
-    pft->fc().read_counters(spill_count, header_occ, event_count,
-                            vetoed_counter);
-    printf(" Spills: %d  Events: %d  Header occupancy: %d  Vetoed L1A: %d\n",
-           spill_count, event_count, header_occ, vetoed_counter);
-     */
   }
 }
 

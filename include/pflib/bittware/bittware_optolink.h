@@ -30,9 +30,12 @@ class BWlpGBT_Transport : public pflib::lpGBT_ConfigTransport {
 
 class BWOptoLink : public pflib::OptoLink {
  public:
-  BWOptoLink(int ilink = 0);                   // for a daq link
-  BWOptoLink(int ilink, BWOptoLink& daqlink);  // for a trigger link
+  /// for a daq link
+  BWOptoLink(int ilink, const char* dev);
+  /// for a trigger link
+  BWOptoLink(int ilink, BWOptoLink& daqlink);
 
+  const char* dev() const { return gtys_.dev(); }
   virtual int ilink() { return ilink_; }
   virtual bool is_bidirectional() { return isdaq_; }
   virtual void reset_link();
