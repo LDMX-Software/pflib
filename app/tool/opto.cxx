@@ -27,7 +27,8 @@ void opto(const std::string& cmd, Target* target) {
   const auto& olinks = target->optoLinks();
 
   if (iolink >= olinks.size()) {
-    pflib_log(error) << "optical link at index " << iolink << " does not exist.";
+    pflib_log(error) << "optical link at index " << iolink
+                     << " does not exist.";
     return;
   }
 

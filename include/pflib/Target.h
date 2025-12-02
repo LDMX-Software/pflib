@@ -93,7 +93,9 @@ class Target {
   I2C& get_i2c_bus(const std::string& name);
 
   /// get set of optical links
-  const std::vector<std::shared_ptr<OptoLink>>& optoLinks() const { return opto_; }
+  const std::vector<std::shared_ptr<OptoLink>>& optoLinks() const {
+    return opto_;
+  }
 
   /**
    * types of daq formats that we can do
@@ -112,7 +114,7 @@ class Target {
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
 
  protected:
-  std::map<std::string, std::shared_ptr<I2C> > i2c_;
+  std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::vector<std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
 };
