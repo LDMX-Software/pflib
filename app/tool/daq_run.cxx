@@ -155,6 +155,9 @@ void DecodeAndBuffer<EventPacket>::write_event(const EventPacket& ep) {
   }
   ep_buffer_.push_back(ep);
 }
+  
+template<class EventPacket>
+void DecodeAndBuffer<EventPacket>::start_run() { ep_buffer_.clear(); }
 
 template <class EventPacket>
 void DecodeAndBuffer<EventPacket>::start_run() {
