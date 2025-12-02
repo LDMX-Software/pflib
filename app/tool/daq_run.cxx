@@ -62,6 +62,18 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
   consumer.end_run();
 }
 
+// Adding constructor definition due to non default constructor containing
+// n_links which default=0,
+template <class EventPacket>
+DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
+    ep_ = std::make_unique<EventPacket>(n_links);
+  } else {
+    ep_ = std::make_unique<EventPacket>();
+  }
+}
+
 WriteToBinaryFile::WriteToBinaryFile(const std::string& file_name)
     : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
   if (not fp_) {
@@ -77,7 +89,7 @@ void WriteToBinaryFile::consume(std::vector<uint32_t>& event) {
   fwrite(&(event[0]), sizeof(uint32_t), event.size(), fp_);
 }
 
-template<class EventPacket>
+template <class EventPacket>
 void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
   // we have to manually check the size so that we can do the reinterpret_cast
   if (event.size() == 0) {
@@ -88,17 +100,22 @@ void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
   // what is consummed by the BufferReader
   const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
   pflib::packing::BufferReader r{buffer};
-  r >> ep_;
-  write_event(ep_);
+
+  // now required to deref the pointer due to redefinition of ep into a
+  // uniqueptr
+  r >> *ep_;
+  write_event(*ep_);
 }
 
-template<class EventPacket>
-DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV<EventPacket>(
+template <class EventPacket>
+DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream& f, const EventPacket&)>
-        write_event)
-    : DecodeAndWrite<EventPacket>(), file_{file_name}, write_event_{write_event} {
+    std::function<void(std::ofstream& f, const EventPacket&)> write_event,
+    int n_links)
+    : DecodeAndWrite<EventPacket>(),
+      file_{file_name},
+      write_event_{write_event} {
   if (not file_) {
     PFEXCEPTION_RAISE("FileOpen",
                       "unable to open " + file_name + " for writing");
@@ -106,30 +123,30 @@ DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV<EventPacket>(
   write_header(file_);
 }
 
-template<class EventPacket>
+template <class EventPacket>
 void DecodeAndWriteToCSV<EventPacket>::write_event(const EventPacket& ep) {
   write_event_(file_, ep);
 }
 
-template<class EventPacket>
-DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(const std::string& file_name) {
+template <class EventPacket>
+DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
+    const std::string& file_name) {
   return DecodeAndWriteToCSV<EventPacket>(
       file_name,
       [](std::ofstream& f) {
         f << std::boolalpha;
         f << EventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const EventPacket& ep) {
-        ep.to_csv(f);
-      });
+      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); });
 }
 
-template<class EventPacket>
-DecodeAndBuffer<EventPacket>::DecodeAndBuffer<EventPacket>(int nevents) : DecodeAndWrite<EventPacket>() {
+template <class EventPacket>
+DecodeAndBuffer<EventPacket>::DecodeAndBuffer(int nevents)
+    : DecodeAndWrite<EventPacket>() {
   set_buffer_size(nevents);
 }
 
-template<class EventPacket>
+template <class EventPacket>
 void DecodeAndBuffer<EventPacket>::write_event(const EventPacket& ep) {
   if (ep_buffer_.size() > ep_buffer_.capacity()) {
     pflib_log(warn) << "Trying to push more elements to buffer than allocated "
@@ -138,16 +155,48 @@ void DecodeAndBuffer<EventPacket>::write_event(const EventPacket& ep) {
   }
   ep_buffer_.push_back(ep);
 }
-  
-template<class EventPacket>
-void DecodeAndBuffer<EventPacket>::start_run() { ep_buffer_.clear(); }
 
-template<class EventPacket>
-const std::vector<EventPacket>& DecodeAndBuffer<EventPacket>::get_buffer() const {
+template <class EventPacket>
+void DecodeAndBuffer<EventPacket>::start_run() {
+  ep_buffer_.clear();
+}
+
+template <class EventPacket>
+void DecodeAndBuffer<EventPacket>::start_run() {
+  ep_buffer_.clear();
+}
+
+template <class EventPacket>
+const std::vector<EventPacket>& DecodeAndBuffer<EventPacket>::get_buffer()
+    const {
   return ep_buffer_;
 }
 
-template<class EventPacket>
+template <class EventPacket>
 void DecodeAndBuffer<EventPacket>::set_buffer_size(int nevents) {
   ep_buffer_.reserve(nevents);
 }
+
+// -----------------------------------------------------------------------------
+// Explicit template instantiations
+// -----------------------------------------------------------------------------
+
+// DecodeAndWrite
+template class DecodeAndWrite<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndWrite<pflib::packing::MultiSampleECONDEventPacket>;
+
+// DecodeAndWriteToCSV
+template class DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>;
+
+// DecodeAndBuffer
+template class DecodeAndBuffer<pflib::packing::SingleROCEventPacket>;
+template class DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket>;
+
+// all_channels_to_csv free-function template
+template DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
+all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&);
+
+template DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>
+all_channels_to_csv<pflib::packing::MultiSampleECONDEventPacket>(
+    const std::string&);
