@@ -210,9 +210,9 @@ void align_phase_word(Target* tgt) {
       end_val = 3540;    // up to orbit rollover
       testval = 3532;
     } else {
-      start_val = 64 * 40 - 100;  // near your orbit region of interest
-      end_val = 64 * 40 - 1;      // up to orbit rollover
-      testval = start_val + 1;
+      start_val = 64*40-60;  // near your orbit region of interest
+      end_val = 64*40-1;    // up to orbit rollover
+      testval = start_val+1;
     }
 
     std::cout << "Iterating over snapshots to find SPECIAL HEADER: "
