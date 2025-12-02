@@ -43,7 +43,6 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 }
 
 void align_econ_lpgbt(Target* tgt) {
-
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   auto econ = tgt->econ(iecon);

@@ -68,7 +68,6 @@ class HcalFiberless : public HcalBackplane {
     throw std::runtime_error("HcalFiberless has no TRG lpGBT");
   }
 
-  
   virtual void setup_run(int run, Target::DaqFormat format, int contrib_id);
   virtual std::vector<uint32_t> read_event();
 

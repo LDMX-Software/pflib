@@ -85,7 +85,7 @@ class Target {
 
   /** get the lpGBT TRG object */
   virtual lpGBT& trig_lpgbt() = 0;
-  
+
   /// names of different I2C busses we could talk to
   std::vector<std::string> i2c_bus_names();
 

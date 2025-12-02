@@ -58,7 +58,7 @@ class HcalBackplane : public Target {
 
   /** get the lpGBT TRG object */
   virtual lpGBT& trig_lpgbt() = 0;
-  
+
  protected:
   /** Add a ROC to the set of ROCs */
   void add_roc(int iroc, uint8_t roc_baseaddr,
