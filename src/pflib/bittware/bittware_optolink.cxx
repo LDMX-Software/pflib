@@ -125,7 +125,7 @@ void BWOptoLink::set_tx_polarity(bool polarity) {
 
 std::map<std::string, uint32_t> BWOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
-  for (uint32_t addr{0x800}; addr < 0x800+4*4+1; addr+=4) {
+  for (uint32_t addr{0x800}; addr < 0x800 + 4 * 4 + 1; addr += 4) {
     try {
       retval[pflib::utility::string_format("%0x", addr)] = gtys_.read(addr);
     } catch (const pflib::Exception& e) {
