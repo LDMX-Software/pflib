@@ -31,7 +31,8 @@ static constexpr uint32_t MASK_PAGE_SPY = 0x00700000;
 
 static constexpr uint32_t ADDR_SPY_BASE = 0xA00;  // 0xA00 -> 0xBFC
 
-static constexpr uint32_t ADDR_BASE_COUNTER = 0x900;
+static constexpr uint32_t ADDR_BASE_COUNTER = 0x840;
+static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;
 static constexpr uint32_t ADDR_INFO = 0x940;
 
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
@@ -113,6 +114,8 @@ void HcalBackplaneBW_Capture::advanceLinkReadPtr() {
 std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
     uint32_t ask) {
   std::map<std::string, uint32_t> dbg;
+  using namespace pflib::utility;
+
   static const int stepsize = 4;
   /*
     FILE* f = fopen("dump.txt", "w");
@@ -121,17 +124,38 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
     fprintf(f, "%03x %03x %08x\n", i, i, capture_.read(i));
     fclose(f);
   */
-  dbg["COUNT_IDLES"] = capture_.read(ADDR_BASE_COUNTER);
-  dbg["COUNT_NONIDLES"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
-  dbg["COUNT_STARTS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);
-  dbg["COUNT_STOPS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 3);
-  dbg["COUNT_WORDS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
-  dbg["COUNT_IO_ADV"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
-  dbg["COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 6);
-  /*
-    dbg["QUICKSPY"] = capture_.read(ADDR_BASE_COUNTER + 0x10);
-    dbg["STATE"] = capture_.read(ADDR_BASE_COUNTER + 0x11);
-  */
+
+  dbg["AXIS.COUNT_WORDS"] = capture_.read(ADDR_BASE_COUNTER);
+  dbg["AXIS.COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
+  dbg["AXIS.COUNT_TVALID"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);
+  dbg["AXIS.COUNT_TREADY"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 3);
+  dbg["AXIS.COUNT_TVALID_!TREADY"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
+  dbg["AXIS.COUNT_TREADY_!TVALID"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
+
+  for (int ilink = 0; ilink < nlinks(); ilink++) {
+    capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
+    dbg[string_format("ECON%d.COUNT_IDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER);
+    dbg[string_format("ECON%d.COUNT_NONIDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 1);
+    dbg[string_format("ECON%d.COUNT_STARTS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 2);
+    dbg[string_format("ECON%d.COUNT_STOPS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 3);
+    dbg[string_format("ECON%d.COUNT_WORDS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 4);
+    dbg[string_format("ECON%d.COUNT_IO_ADV", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 5);
+    dbg[string_format("ECON%d.COUNT_TLAST", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 6);
+
+    dbg[string_format("ECON%d.QUICKSPY", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x11 * stepsize);
+    dbg[string_format("ECON%d.STATE", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x12 * stepsize);
+  }
   return dbg;
 }
 
