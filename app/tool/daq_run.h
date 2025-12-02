@@ -10,6 +10,7 @@
 
 #include "pflib/Target.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/packing/MultiSampleECONDEventPacket.h"  // in place of SoftWrappedECONDEventPacket.h
 #include "pflib/packing/SingleROCEventPacket.h"
 
 /**
@@ -55,9 +56,11 @@ class WriteToBinaryFile : public DAQRunConsumer {
  * other code just needs to write functions that define how the
  * decoded data should be written out.
  */
-template<class EventPacket>
+template <class EventPacket>
 class DecodeAndWrite : public DAQRunConsumer {
  public:
+  explicit DecodeAndWrite(
+      int n_links = 0);  // Default to 0 for SingleROC packet type (ignored)
   virtual ~DecodeAndWrite() = default;
   /**
    * Decode the input event packet into our pflib::packing::SingleROCEventPacket
@@ -74,14 +77,17 @@ class DecodeAndWrite : public DAQRunConsumer {
 
  private:
   /// event packet for decoding
-  EventPacket ep_;
+  // EventPacket ep_;
+
+  // use a pointer because constructors differ between event packet types
+  std::unique_ptr<EventPacket> ep_;
 };
 
 /**
  * specializatin of DecodeAndWrite that holds a std::ofstream
  * for the user with functions for writing the header and events
  */
-template<class EventPacket>
+template <class EventPacket>
 class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
   /// output file writing to
   std::ofstream file_;
@@ -92,14 +98,16 @@ class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
   DecodeAndWriteToCSV(
       const std::string& file_name,
       std::function<void(std::ofstream&)> write_header,
-      std::function<void(std::ofstream&, EventPacket&)> write_event);
+      std::function<void(std::ofstream&, const EventPacket&)> write_event,
+      int n_links = 0);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
   virtual void write_event(const EventPacket& ep) final;
 };
 
-template<class EventPacket>
-DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(const std::string& file_name);
+template <class EventPacket>
+DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
+    const std::string& file_name);
 
 /**
  * Consume an event packet, decode it, and save to buffer.
@@ -117,7 +125,7 @@ DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(const std::string& file_nam
  * const auto& events{buffer.get_buffer()};
  * ```
  */
-template<typename EventPacket>
+template <typename EventPacket>
 class DecodeAndBuffer : public DecodeAndWrite<EventPacket> {
  public:
   DecodeAndBuffer(int nevents);

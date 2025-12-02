@@ -57,6 +57,14 @@ class MultiSampleECONDEventPacket {
   void from(std::span<uint32_t> data);
   /// read into this structure from the input Reader
   Reader& read(Reader& r);
+
+  /// header string if using to_csv
+  static const std::string to_csv_header;
+
+  void to_csv(std::ofstream& f) const;
+
+  /// the two daq links for the connected HGCROC
+  std::array<DAQLinkFrame, 2> daq_links;
 };
 
 }  // namespace pflib::packing
