@@ -2,9 +2,16 @@
  * @file opto.cxx
  * OPTO menu commands
  */
-#include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
-#include "pflib/zcu/zcu_optolink.h"
+#include "pflib/OptoLink.h"
 #include "pftool.h"
+
+ENABLE_LOGGING();
+
+void opto_render(Target* tgt) {
+  if (tgt->optoLinks().empty()) {
+    pflib_log(error) << "no optical links connected for this target";
+  }
+}
 
 /**
  * Interaction with Optical links
@@ -19,8 +26,8 @@ void opto(const std::string& cmd, Target* target) {
   static const int iolink = 0;
   const std::vector<pflib::OptoLink*>& olinks = target->optoLinks();
 
-  if (olinks.size() <= iolink) {
-    printf("Requested optical link does not exist\n");
+  if (iolink >= olinks.size()) {
+    pflib_log(error) << "optical link at index " << iolink << " does not exist.";
     return;
   }
   pflib::OptoLink& olink = *olinks[iolink];
@@ -60,7 +67,7 @@ void opto(const std::string& cmd, Target* target) {
 
 namespace {
 auto optom =
-    pftool::menu("OPTO", "Optical Link Functions")
+    pftool::menu("OPTO", "Optical Link Functions", opto_render)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("RESET", "Reset optical link", opto)
         ->line("POLARITY", "Adjust the polarity", opto)
