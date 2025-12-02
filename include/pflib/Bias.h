@@ -2,6 +2,7 @@
 #define PFLIB_MAX5825_H_
 
 #include <vector>
+#include <unistd.h>
 
 #include "pflib/I2C.h"
 
@@ -154,44 +155,20 @@ class Bias {
    * Initialize to standard settings
    *  Reference voltage - 4.096V
    */
-  // void initialize();
-
-  /**
-   * Pass a setting to one LED DAC
-   */
-  // void cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
-
-  /**
-   * Pass a setting to one SiPM DAC
-   */
-  // void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+  void initialize();
+  double readTemp();
 
   int readSiPM(uint8_t i_sipm);
   int readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
 
-  /**
-   * Set and load the passed CODE for an LED bias
-   *
-   * Uses MAX5825::CODEn_LOADn
-   *
-   * This is a common procedure and operates as an example
-   * of how to use setLED.
-   */
-  // void setLED(uint8_t i_led, uint16_t code);
 
-  /**
-   * Set and load the passed CODE for an SiPM bias
-   *
-   * Uses MAX5825::CODEn_LOADn
-   *
-   * This is a common procedure and operates as an example
-   * of how to use setSiPM.
-   */
-  // void setSiPM(uint8_t i_sipm, uint16_t code);
+
 
  private:
+  std::shared_ptr<I2C> i2c_;
+
   /// LED bias chips
   std::vector<MAX5825> led_;
   /// SiPM bias chips
