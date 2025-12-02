@@ -1,8 +1,9 @@
 #ifndef PFLIB_MAX5825_H_
 #define PFLIB_MAX5825_H_
 
-#include <vector>
 #include <unistd.h>
+
+#include <vector>
 
 #include "pflib/I2C.h"
 
@@ -162,9 +163,6 @@ class Bias {
   int readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
-
-
-
 
  private:
   std::shared_ptr<I2C> i2c_;

@@ -56,51 +56,49 @@ Bias::Bias(std::shared_ptr<I2C> i2c) {
 }
 
 void Bias::initialize() {
+  // Reset all DAC:s
+  i2c_->general_write_read(0x10, {0x35, 0x96, 0x30}, 0);
+  i2c_->general_write_read(0x12, {0x35, 0x96, 0x30}, 0);
+  i2c_->general_write_read(0x14, {0x35, 0x96, 0x30}, 0);
+  i2c_->general_write_read(0x18, {0x35, 0x96, 0x30}, 0);
 
- // Reset all DAC:s
- i2c_->general_write_read(0x10, {0x35,0x96,0x30}, 0); 
- i2c_->general_write_read(0x12, {0x35,0x96,0x30}, 0); 
- i2c_->general_write_read(0x14, {0x35,0x96,0x30}, 0); 
- i2c_->general_write_read(0x18, {0x35,0x96,0x30}, 0); 
+  // Set internal ref on DAC to 4.096 V
+  i2c_->general_write_read(0x10, {0x27, 0x00, 0x00}, 0);
+  i2c_->general_write_read(0x12, {0x27, 0x00, 0x00}, 0);
+  i2c_->general_write_read(0x14, {0x27, 0x00, 0x00}, 0);
+  i2c_->general_write_read(0x18, {0x27, 0x00, 0x00}, 0);
 
- // Set internal ref on DAC to 4.096 V
- i2c_->general_write_read(0x10, {0x27,0x00,0x00}, 0); 
- i2c_->general_write_read(0x12, {0x27,0x00,0x00}, 0); 
- i2c_->general_write_read(0x14, {0x27,0x00,0x00}, 0); 
- i2c_->general_write_read(0x18, {0x27,0x00,0x00}, 0); 
+  // Set up the GPIO device MCP23008
+  i2c_->general_write_read(0x20, {0x00, 0x70}, 0);
 
- // Set up the GPIO device MCP23008
- i2c_->general_write_read(0x20, {0x00,0x70}, 0); 
+  // Turn on the status LED
+  i2c_->general_write_read(0x20, {0x09, 0x80}, 0);
 
- // Turn on the status LED 
- i2c_->general_write_read(0x20, {0x09,0x80}, 0); 
+  // Set up the board temperature sensor TMP101
+  i2c_->general_write_read(0x4A, {0x01, 0x60}, 0);
 
- // Set up the board temperature sensor TMP101
- i2c_->general_write_read(0x4A, {0x01,0x60}, 0); 
-
- // Set up the two onewire-to-I2C devices DS2482
- // Reset
- i2c_->general_write_read(0x1C, {0xF0}, 0);
- // Standard speed, weak pull-up, no active pull-up
- i2c_->general_write_read(0x1C, {0xC3, 0xF0}, 0); 
- i2c_->general_write_read(0x1D, {0xF0}, 0); 
- i2c_->general_write_read(0x1D, {0xC3, 0xF0}, 0); 
-
+  // Set up the two onewire-to-I2C devices DS2482
+  // Reset
+  i2c_->general_write_read(0x1C, {0xF0}, 0);
+  // Standard speed, weak pull-up, no active pull-up
+  i2c_->general_write_read(0x1C, {0xC3, 0xF0}, 0);
+  i2c_->general_write_read(0x1D, {0xF0}, 0);
+  i2c_->general_write_read(0x1D, {0xC3, 0xF0}, 0);
 }
 
-double Bias::readTemp(){
+double Bias::readTemp() {
+  i2c_->general_write_read(0x4A, {0x00}, 0);
+  usleep(250);  // Response is a bit slow
+  std::vector<uint8_t> ret = i2c_->general_write_read(0x4A, {}, 2);
 
- i2c_->general_write_read(0x4A, {0x00}, 0); 
- usleep(250); // Response is a bit slow
- std::vector<uint8_t> ret = i2c_->general_write_read(0x4A, {}, 2); 
-
- int dec = 625*((ret.at(0)*256 + ret.at(1)) >> 4);
- int integer = dec/10000;
- int decimal = dec - integer*10000;
- char cs[10];
- snprintf(cs, 10,"%d.%d", integer, decimal);
- std::string str = cs;
- return std::stod(str);;
+  int dec = 625 * ((ret.at(0) * 256 + ret.at(1)) >> 4);
+  int integer = dec / 10000;
+  int decimal = dec - integer * 10000;
+  char cs[10];
+  snprintf(cs, 10, "%d.%d", integer, decimal);
+  std::string str = cs;
+  return std::stod(str);
+  ;
 }
 
 int Bias::readSiPM(uint8_t channel) {
