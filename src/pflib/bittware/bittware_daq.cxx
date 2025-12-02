@@ -115,7 +115,7 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
     uint32_t ask) {
   std::map<std::string, uint32_t> dbg;
   using namespace pflib::utility;
-  
+
   static const int stepsize = 4;
   /*
     FILE* f = fopen("dump.txt", "w");
@@ -129,22 +129,33 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
   dbg["AXIS.COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
   dbg["AXIS.COUNT_TVALID"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);
   dbg["AXIS.COUNT_TREADY"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 3);
-  dbg["AXIS.COUNT_TVALID_!TREADY"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
-  dbg["AXIS.COUNT_TREADY_!TVALID"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
+  dbg["AXIS.COUNT_TVALID_!TREADY"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
+  dbg["AXIS.COUNT_TREADY_!TVALID"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
 
-  for (int ilink=0; ilink<nlinks(); ilink++) {
-    capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,ilink);
-    dbg[string_format("ECON%d.COUNT_IDLES",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER);
-    dbg[string_format("ECON%d.COUNT_NONIDLES",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 1);
-    dbg[string_format("ECON%d.COUNT_STARTS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 2);
-    dbg[string_format("ECON%d.COUNT_STOPS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 3);
-    dbg[string_format("ECON%d.COUNT_WORDS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 4);
-    dbg[string_format("ECON%d.COUNT_IO_ADV",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 5);
-    dbg[string_format("ECON%d.COUNT_TLAST",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 6);
+  for (int ilink = 0; ilink < nlinks(); ilink++) {
+    capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
+    dbg[string_format("ECON%d.COUNT_IDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER);
+    dbg[string_format("ECON%d.COUNT_NONIDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 1);
+    dbg[string_format("ECON%d.COUNT_STARTS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 2);
+    dbg[string_format("ECON%d.COUNT_STOPS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 3);
+    dbg[string_format("ECON%d.COUNT_WORDS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 4);
+    dbg[string_format("ECON%d.COUNT_IO_ADV", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 5);
+    dbg[string_format("ECON%d.COUNT_TLAST", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 6);
 
-    dbg[string_format("ECON%d.QUICKSPY",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + 0x11*stepsize);
-    dbg[string_format("ECON%d.STATE",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + 0x12*stepsize);
-  }  
+    dbg[string_format("ECON%d.QUICKSPY", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x11 * stepsize);
+    dbg[string_format("ECON%d.STATE", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x12 * stepsize);
+  }
   return dbg;
 }
 
