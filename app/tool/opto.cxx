@@ -24,12 +24,13 @@ void opto_render(Target* tgt) {
  */
 void opto(const std::string& cmd, Target* target) {
   static const int iolink = 0;
-  const std::vector<pflib::OptoLink*>& olinks = target->optoLinks();
+  const auto& olinks = target->optoLinks();
 
   if (iolink >= olinks.size()) {
     pflib_log(error) << "optical link at index " << iolink << " does not exist.";
     return;
   }
+
   pflib::OptoLink& olink = *olinks[iolink];
 
   if (cmd == "FULLSTATUS") {

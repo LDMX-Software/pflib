@@ -22,9 +22,11 @@ class HcalBackplaneBW : public HcalBackplane {
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
     // first, setup the optical links
-    daq_olink_ = std::make_unique<pflib::bittware::BWOptoLink>(itarget, dev);
+    daq_olink_ = std::make_shared<pflib::bittware::BWOptoLink>(itarget, dev);
     trig_olink_ =
-        std::make_unique<pflib::bittware::BWOptoLink>(itarget + 1, *daq_olink_);
+        std::make_shared<pflib::bittware::BWOptoLink>(itarget + 1, *daq_olink_);
+    opto_.push_back(daq_olink_);
+    opto_.push_back(trig_olink_);
 
     // then get the lpGBTs from them
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
@@ -156,7 +158,7 @@ class HcalBackplaneBW : public HcalBackplane {
   }
 
  private:
-  std::unique_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
+  std::shared_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;

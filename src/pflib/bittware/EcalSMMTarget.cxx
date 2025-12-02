@@ -19,8 +19,10 @@ class EcalSMMTargetBW : public Target {
   EcalSMMTargetBW(int itarget, const char* dev) {
     using namespace pflib::bittware;
     // first, setup the optical links
-    daq_olink_ = std::make_unique<BWOptoLink>(itarget, dev);
-    trig_olink_ = std::make_unique<BWOptoLink>(itarget + 1, *daq_olink_);
+    daq_olink_ = std::make_shared<BWOptoLink>(itarget, dev);
+    trig_olink_ = std::make_shared<BWOptoLink>(itarget + 1, *daq_olink_);
+    opto_.push_back(daq_olink_);
+    opto_.push_back(trig_olink_);
 
     // then get the lpGBTs
     daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
@@ -89,7 +91,7 @@ class EcalSMMTargetBW : public Target {
   }
 
  private:
-  std::unique_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
+  std::shared_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
