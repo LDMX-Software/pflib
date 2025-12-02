@@ -128,6 +128,10 @@ class HcalBackplaneZCU : public HcalBackplane {
 
   virtual FastControl& fc() override { return *fc_; }
 
+  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
+
+  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
+  
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
     contrib_id_ = contrib_id;

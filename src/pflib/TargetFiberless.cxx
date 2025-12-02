@@ -61,7 +61,14 @@ class HcalFiberless : public HcalBackplane {
   virtual Elinks& elinks() override { return *elinks_; }
   virtual DAQ& daq() override { return *daq_; }
   virtual FastControl& fc() override { return *fc_; }
+  virtual lpGBT& daq_lpgbt() override {
+    throw std::runtime_error("HcalFiberless has no DAQ lpGBT");
+  }
+  virtual lpGBT& trig_lpgbt() override {
+    throw std::runtime_error("HcalFiberless has no TRG lpGBT");
+  }
 
+  
   virtual void setup_run(int run, Target::DaqFormat format, int contrib_id);
   virtual std::vector<uint32_t> read_event();
 
