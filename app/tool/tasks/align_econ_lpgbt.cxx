@@ -58,7 +58,7 @@ void align_econ_lpgbt(Target* tgt) {
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
   pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
-  //pflib::lpGBT lpgbt_trg{tgt->get_opto_link("TRG").lpgbt_transport()};
+  // pflib::lpGBT lpgbt_trg{tgt->get_opto_link("TRG").lpgbt_transport()};
 
   printf(" NOTE: Only checking Group 0, Channel 0\n");
   auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
