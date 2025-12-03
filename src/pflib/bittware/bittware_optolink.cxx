@@ -270,13 +270,13 @@ static constexpr uint32_t MASK_TX_EMPTY = 0x0200;
 BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr,
                                      bool isic)
     : transport_{coder}, ilink_{ilink}, chipaddr_{chipaddr}, isic_{isic} {
-  ctloffset_ = 16 * ilink + (isic_) ? (0) : (8);
+  ctloffset_ = 16 * ilink + (isic_ ? 0 : 8);
   stsreg_ = 0xC08 + 4 * ilink;
   stsmask_ = (isic_) ? (0xFFFF) : (0xFFFF0000u);
   pulsereg_ = (0x104) + (ilink / 2) * 4;
-  pulseshift_ = (ilink % 2) * 16 + (isic_) ? (0) : (8);
-  transport_.write(ctloffset_ + REG_CTL_N_READ,
-                   0);  // choose internal operation, disable spies, etc
+  pulseshift_ = (ilink % 2) * 16 + (isic_ ? 0 : 8);
+  // choose internal operation, disable spies, etc
+  transport_.write(ctloffset_ + REG_CTL_N_READ, 0);
   transport_.write(pulsereg_, 1 << (BIT_RESET_TX + pulseshift_));
   transport_.write(pulsereg_, 1 << (BIT_RESET_RX + pulseshift_));
 }
