@@ -1,4 +1,4 @@
 target:
   type: "HcalBackplaneBittware"
   ilink: 0
-  board_mask: 2 # only HGCROC1
+  boardmask: 2 # only HGCROC1
