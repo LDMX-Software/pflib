@@ -17,6 +17,8 @@ static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
 static constexpr uint32_t ADDR_ADV_IO = 0x080;
 // static constexpr uint32_t MASK_ADV_IO = 0x00000001;
 
+static constexpr uint32_t ADDR_DISABLE_AXIS = 0x400;
+static constexpr uint32_t MASK_DISABLE_AXIS = 0x00000001;
 static constexpr uint32_t ADDR_PACKET_SETUP = 0x400;
 static constexpr uint32_t MASK_L1A_PER_PACKET = 0x000001F0;
 static constexpr uint32_t MASK_SOI = 0x00001E00;
@@ -85,6 +87,16 @@ void HcalBackplaneBW_Capture::enable(bool doenable) {
 }
 bool HcalBackplaneBW_Capture::enabled() {
   return capture_.readMasked(ADDR_ENABLE, MASK_ENABLE);
+}
+
+void HcalBackplaneBW_Capture::AXIS_enable(bool doenable) {
+  if (doenable)
+    capture_.writeMasked(ADDR_DISABLE_AXIS, MASK_DISABLE_AXIS, 0);
+  else
+    capture_.writeMasked(ADDR_DISABLE_AXIS, MASK_DISABLE_AXIS, 1);
+}
+bool HcalBackplaneBW_Capture::AXIS_enabled() {
+  return capture_.readMasked(ADDR_DISABLE_AXIS, MASK_DISABLE_AXIS) == 0;
 }
 std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);

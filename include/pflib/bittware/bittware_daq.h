@@ -21,6 +21,8 @@ class HcalBackplaneBW_Capture : public DAQ {
   virtual void setup(int econid, int samples_per_ror, int soi);
   virtual void enable(bool doenable);
   virtual bool enabled();
+  virtual void AXIS_enable(bool doenable);
+  virtual bool AXIS_enabled();
   virtual std::vector<uint32_t> getLinkData(int ilink);
   virtual void advanceLinkReadPtr();
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask);
