@@ -16,6 +16,7 @@ static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetBW : public Target {
   mutable logging::logger the_log_{logging::get("EcalSMMBW")};
+
  public:
   EcalSMMTargetBW(int itarget, const char* dev) {
     using namespace pflib::bittware;

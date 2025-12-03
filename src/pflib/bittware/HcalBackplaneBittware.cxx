@@ -20,6 +20,7 @@ static constexpr int ADDR_MUX_BOARD = 0x71;
 
 class HcalBackplaneBW : public HcalBackplane {
   mutable logging::logger the_log_{logging::get("HcalBackplaneBW")};
+
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
     // first, setup the optical links
