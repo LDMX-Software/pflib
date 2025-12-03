@@ -2,3 +2,4 @@ target:
   type: "HcalBackplaneBittware"
   ilink: 0
   dev: "/dev/datadev_2"
+  boardmask: 1 # only HGCROC0

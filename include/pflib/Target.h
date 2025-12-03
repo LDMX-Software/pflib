@@ -80,20 +80,17 @@ class Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
-  /** get the lpGBT DAQ object */
-  virtual lpGBT& daq_lpgbt() = 0;
-
-  /** get the lpGBT TRG object */
-  virtual lpGBT& trig_lpgbt() = 0;
-
   /// names of different I2C busses we could talk to
   std::vector<std::string> i2c_bus_names();
 
   /// get an I2C bus by name
   I2C& get_i2c_bus(const std::string& name);
 
-  /// get set of optical links
-  const std::vector<OptoLink*>& optoLinks() const { return opto_; }
+  /// names of different Optical Links we could talk to
+  std::vector<std::string> opto_link_names() const;
+
+  /// get an OptoLink by name
+  OptoLink& get_opto_link(const std::string& name) const;
 
   /**
    * types of daq formats that we can do
@@ -112,8 +109,8 @@ class Target {
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
 
  protected:
-  std::map<std::string, std::shared_ptr<I2C> > i2c_;
-  std::vector<OptoLink*> opto_;
+  std::map<std::string, std::shared_ptr<I2C>> i2c_;
+  std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
 };
 

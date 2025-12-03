@@ -1,0 +1,7 @@
+# yes, Layer 3 was plugged into link 2
+# Layer 2 was not assembled and I (Tom)
+# arbitrarily chose to not have an empty link
+target:
+  type: "EcalSMMBittware"
+  ilink: 2
+  dev: "/dev/datadev_1"
