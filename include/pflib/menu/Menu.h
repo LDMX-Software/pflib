@@ -304,7 +304,8 @@ class Menu : public BaseMenu {
    * @param[in] category integer flag categorizing this menu line
    * @return pointer to us
    */
-  Menu* line(const char* name, const char* desc, SingleTargetCommand ex, unsigned int category = 0) {
+  Menu* line(const char* name, const char* desc, SingleTargetCommand ex,
+             unsigned int category = 0) {
     lines_.emplace_back(name, desc, ex, category);
     return this;
   }
@@ -323,7 +324,8 @@ class Menu : public BaseMenu {
    * @param[in] category integer flag categorizing this menu line
    * @return pointer to us
    */
-  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex, unsigned int category = 0) {
+  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex,
+             unsigned int category = 0) {
     lines_.emplace_back(name, desc, ex, category);
     return this;
   }
@@ -349,7 +351,8 @@ class Menu : public BaseMenu {
    * @return pointer to the newly created submenu
    */
   std::shared_ptr<Menu> submenu(const char* name, const char* desc,
-                                RenderFuncType f = 0, unsigned int category = 0) {
+                                RenderFuncType f = 0,
+                                unsigned int category = 0) {
     auto sb = std::make_shared<Menu>(f);
     lines_.emplace_back(name, desc, sb, category);
     return sb;
@@ -375,9 +378,7 @@ class Menu : public BaseMenu {
     for (Line& l : lines_) l.build();
     lines_.emplace_back("EXIT", "leave this menu");
     lines_.emplace_back("HELP", "print help for this menu",
-                        [this](TargetHandle tgt) {
-                          this->render(tgt);
-                        });
+                        [this](TargetHandle tgt) { this->render(tgt); });
   }
 
   /**
@@ -406,7 +407,7 @@ class Menu : public BaseMenu {
    * Construct a menu with a rendering function
    */
   Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0)
-    : render_func_{f}, hidden_categories_{hidden_categories} {}
+      : render_func_{f}, hidden_categories_{hidden_categories} {}
 
   /// set hidden categories
   void hide(unsigned int categories) {
@@ -598,14 +599,31 @@ class Menu : public BaseMenu {
   class Line {
    public:
     /// define a menu line that uses a single target command
-    Line(const char* n, const char* d, SingleTargetCommand f, unsigned int category = 0)
-        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(f), mult_cmds_{0}, category_{category} {}
+    Line(const char* n, const char* d, SingleTargetCommand f,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          cmd_(f),
+          mult_cmds_{0},
+          category_{category} {}
     /// define a menu line that uses a multiple command function
-    Line(const char* n, const char* d, MultipleTargetCommands f, unsigned int category = 0)
-        : name_(n), desc_(d), sub_menu_{nullptr}, mult_cmds_{f}, category_{category} {}
+    Line(const char* n, const char* d, MultipleTargetCommands f,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          mult_cmds_{f},
+          category_{category} {}
     /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, std::shared_ptr<Menu> m, unsigned int category = 0)
-        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0}, category_{category} {}
+    Line(const char* n, const char* d, std::shared_ptr<Menu> m,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_(m),
+          cmd_(0),
+          mult_cmds_{0},
+          category_{category} {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -613,7 +631,12 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(0), mult_cmds_{0}, category_{0} {}
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          cmd_(0),
+          mult_cmds_{0},
+          category_{0} {}
 
     /**
      * Execute this line
