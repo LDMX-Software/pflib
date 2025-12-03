@@ -15,6 +15,7 @@ static constexpr int ADDR_ECAL_SMM_TRIG = 0x78;
 static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetBW : public Target {
+  mutable logging::logger the_log_{logging::get("EcalSMMBW")};
  public:
   EcalSMMTargetBW(int itarget, const char* dev) {
     using namespace pflib::bittware;
@@ -37,12 +38,14 @@ class EcalSMMTargetBW : public Target {
 
     using namespace pflib::lpgbt::standard_config;
 
+    pflib_log(debug) << "applying standard EcalSMM DAQ lpGBT Config";
     setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
 
     try {
+      pflib_log(debug) << "applying standard EcalSMM TRIG lpGBT Config";
       setup_ecal(*trig_lpgbt_, ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
     } catch (std::exception& e) {
-      printf("Problem (non critical) setting up TRIGGER lpgbt\n");
+      pflib_log(info) << "Problem (non critical) setting up TRIGGER lpgbt";
     }
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);

@@ -19,6 +19,7 @@ static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
 
 class HcalBackplaneBW : public HcalBackplane {
+  mutable logging::logger the_log_{logging::get("HcalBackplaneBW")};
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
     // first, setup the optical links
@@ -33,23 +34,19 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
-    /*
-     * register read failure is happening when attempting to do this
-     * automatically.
-     *  ./pflpgbt --bw 0
-     *  OPTO
-     *  RESET
-     *  FULLSTATUS
-     *  GENERAL
-     *  STANDARD_HCAL
-     * seems to be more stable.
-     */
+    pflib_log(debug) << "applying standard lpGBT configuration";
     try {
+      pflib_log(debug) << "applying DAQ";
       pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+      pflib_log(debug) << "pause to let hardware re-sync";
+      sleep(2);
+      pflib_log(debug) << "applying TRIG";
       pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
     } catch (const pflib::Exception& e) {
-      std::cerr << "Failure to apply standard config [" << e.name()
-                << "]: " << e.message() << std::endl;
+      pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                      << "]: " << e.message();
+      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
+                      << " and then re-open pftool.";
     }
 
     // next, create the Hcal I2C objects
