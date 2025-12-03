@@ -353,11 +353,13 @@ int main(int argc, char* argv[]) {
                                                          dev.c_str()));
         readout_cfg = pftool::State::CFG_HCALOPTO_BW;
 #else
-        pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
+        pflib_log(fatal) << "Target type '" << target_type
+                         << "' requires Rogue.";
         return 1;
 #endif
       } else {
-        pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
+        pflib_log(fatal) << "Target type '" << target_type
+                         << "' not recognized.";
         return 1;
       }
     }

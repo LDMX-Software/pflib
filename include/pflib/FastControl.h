@@ -70,11 +70,11 @@ class FastControl {
   virtual void clear_run() {}
 
   /** setup the link reset timing */
-  virtual void fc_setup_link_reset(int bx) { }
+  virtual void fc_setup_link_reset(int bx) {}
 
   /** setup the link reset timing */
-  virtual void fc_get_setup_link_reset(int &bx) { }
-  
+  virtual void fc_get_setup_link_reset(int& bx) {}
+
   /** calib pulse setup */
   virtual void fc_setup_calib(int charge_to_l1a) {}
 

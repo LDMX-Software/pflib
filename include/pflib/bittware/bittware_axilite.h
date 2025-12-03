@@ -42,10 +42,10 @@ class AxiLite {
   }
 
   /// get the hardware type from the standard register 0
-  uint32_t get_hardware_type() { return readMasked(0,0xFFFF0000u); }
+  uint32_t get_hardware_type() { return readMasked(0, 0xFFFF0000u); }
 
   /// get the firmware version from the standard register 0
-  uint32_t get_firmware_version() { return readMasked(0,0xFFFF); }
+  uint32_t get_firmware_version() { return readMasked(0, 0xFFFF); }
 
  private:
   const char* dev_;    /// path to device

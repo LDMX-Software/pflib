@@ -3,8 +3,6 @@
 #include "pflib/bittware/bittware_daq.h"
 #include "pflib/bittware/bittware_elinks.h"
 #include "pflib/bittware/bittware_optolink.h"
-#include "pflib/bittware/bittware_elinks.h"
-#include "pflib/bittware/bittware_daq.h"
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -124,7 +122,6 @@ class HcalBackplaneBW : public HcalBackplane {
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
-
   }
 
   virtual void softResetROC(int which) override {
@@ -176,7 +173,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
-    contrib_id_ = contrib_id;    
+    contrib_id_ = contrib_id;
   }
 
   virtual std::vector<uint32_t> read_event() override {

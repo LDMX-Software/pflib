@@ -53,11 +53,11 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
     if (!daq.enabled()) {
-      extl1a=pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
       daq.enable(true);
-      pft->fc().fc_enables(true,extl1a);
+      pft->fc().fc_enables(true, extl1a);
     } else {
-      pft->fc().fc_enables(false,extl1a);
+      pft->fc().fc_enables(false, extl1a);
       daq.enable(false);
     }
   }
@@ -94,7 +94,6 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     int soi = pftool::readline_int(" Sample of interest: ", daq.soi());
     daq.setup(econid, samples, soi);
     pft->fc().setL1AperROR(samples);
-    
   }
   /*
   if (cmd=="ZS") {

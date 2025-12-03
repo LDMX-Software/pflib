@@ -4,9 +4,10 @@
 #include <stdint.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
+
 #include "pflib/lpGBT.h"
 
 namespace pflib {
@@ -37,7 +38,7 @@ class OptoLink {
 
   // get an lpGBT object using the transport
   lpGBT& lpgbt() {
-    if (!lpgbt_) lpgbt_=std::make_unique<lpGBT>(lpgbt_transport());
+    if (!lpgbt_) lpgbt_ = std::make_unique<lpGBT>(lpgbt_transport());
     return *lpgbt_;
   }
 
@@ -51,6 +52,7 @@ class OptoLink {
                           std::vector<uint8_t>& rx) = 0;
   virtual void capture_ic(int mode, std::vector<uint8_t>& tx,
                           std::vector<uint8_t>& rx) = 0;
+
  private:
   std::unique_ptr<lpGBT> lpgbt_;
 };

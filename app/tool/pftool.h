@@ -78,7 +78,10 @@ class pftool : public pflib::menu::Menu<Target*> {
     /// get the readout configurion
     bool readout_config_is_zcu() const { return cfg_ < 20; }
     /// get the readout configurion
-    bool readout_config_is_hcal() const { return cfg_  == CFG_HCALFMC || cfg_ == CFG_HCALOPTO_ZCU || cfg_ == CFG_HCALOPTO_BW; }
+    bool readout_config_is_hcal() const {
+      return cfg_ == CFG_HCALFMC || cfg_ == CFG_HCALOPTO_ZCU ||
+             cfg_ == CFG_HCALOPTO_BW;
+    }
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with

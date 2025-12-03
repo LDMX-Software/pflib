@@ -44,8 +44,7 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
   printf(" Channel 0 phase: %u\n", ch_0);
 }
 
-static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ)  {
-
+static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
@@ -59,10 +58,10 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ)  {
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
-  bool default_invert=(pftool::state.readout_config_is_hcal());
+  bool default_invert = (pftool::state.readout_config_is_hcal());
 
-      bool do_invert=pftool::readline_bool("Invert elink data?", default_invert);
-  uint8_t invert = (do_invert)?(1):(0);
+  bool do_invert = pftool::readline_bool("Invert elink data?", default_invert);
+  uint8_t invert = (do_invert) ? (1) : (0);
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
   parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
@@ -98,10 +97,9 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ)  {
   parameters.clear();
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
   econ.applyParameters(parameters);
-
 }
 
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ)  {
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
   // word-alignment
   uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
 
@@ -129,7 +127,6 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ)  {
 }
 
 void align_econ_lpgbt(Target* tgt) {
-
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
@@ -141,6 +138,6 @@ void align_econ_lpgbt(Target* tgt) {
   pflib::ECON& econ = tgt->econ(iecon);
 
   if (pftool::readline_bool("Do bit alignment?", true))
-    align_econ_lpgbt_bit(tgt,econ);
-  align_econ_lpgbt_word(tgt,econ);  
+    align_econ_lpgbt_bit(tgt, econ);
+  align_econ_lpgbt_word(tgt, econ);
 }

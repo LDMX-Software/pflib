@@ -1,4 +1,5 @@
 #include "pflib/bittware/bittware_daq.h"
+
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -9,7 +10,7 @@ static constexpr uint32_t BASE_ADDRESS_CAPTURE0 = 0x8000;
 static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604;
 static constexpr uint32_t ADDR_HEADER_MARKER = 0x600;
 static constexpr uint32_t MASK_HEADER_MARKER_OLD = 0x0001FF00;
-static constexpr uint32_t MASK_HEADER_MARKER     = 0x01FF0000;
+static constexpr uint32_t MASK_HEADER_MARKER = 0x01FF0000;
 static constexpr uint32_t ADDR_ENABLE = 0x600;
 static constexpr uint32_t MASK_ENABLE = 0x0000FFFF;
 static constexpr uint32_t ADDR_EVB_CLEAR = 0x100;
@@ -38,35 +39,40 @@ static constexpr uint32_t ADDR_INFO = 0x940;
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
 
-HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev) : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev) {
-  printf("Firmware type and version: %08x %08x %08x\n",capture_.get_hardware_type(),capture_.get_firmware_version(),capture_.read(ADDR_HEADER_MARKER));
+HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
+    : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev) {
+  printf("Firmware type and version: %08x %08x %08x\n",
+         capture_.get_hardware_type(), capture_.get_firmware_version(),
+         capture_.read(ADDR_HEADER_MARKER));
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  if (capture_.get_firmware_version()<0x10) 
+  if (capture_.get_firmware_version() < 0x10)
     capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER_OLD,
                          0x1E6);  // 0xAA followed by one bit...
   else
     capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
                          0x1E6);  // 0xAA followed by one bit...
   // zero should be 1
-  if (capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET)==0) {
+  if (capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET) == 0) {
     printf("Zero to one\n");
     capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, 1);
   }
   // match to actual setup
-  int samples_per_ror=capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
+  int samples_per_ror =
+      capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
   int soi = capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI);
-  capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,0); // TODO: handle multiple ECONs (needs support higher in the chain)
-  int econid=capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
+  capture_.writeMasked(
+      ADDR_PICK_ECON, MASK_PICK_ECON,
+      0);  // TODO: handle multiple ECONs (needs support higher in the chain)
+  int econid = capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
   pflib::DAQ::setup(econid, samples_per_ror, soi);
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
 }
-int HcalBackplaneBW_Capture::getEventOccupancy() { // hmm... multiple econs...
-  capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,0);
-  return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) /
-      samples_per_ror();
+int HcalBackplaneBW_Capture::getEventOccupancy() {  // hmm... multiple econs...
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
+  return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) / samples_per_ror();
 }
 void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
   int nevt = getEventOccupancy();
@@ -75,8 +81,7 @@ void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
 }
 void HcalBackplaneBW_Capture::setup(int econid, int samples_per_ror, int soi) {
   pflib::DAQ::setup(econid, samples_per_ror, soi);
-  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET,
-                       samples_per_ror);
+  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
   capture_.writeMasked(
       ADDR_PICK_ECON, MASK_PICK_ECON,
@@ -99,19 +104,17 @@ std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   std::vector<uint32_t> retval;
   static const uint32_t UBITS = 0x180;
   static const uint32_t LBITS = 0x07F;
-  
-  capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY,
-                       0); 
-  
+
+  capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY, 0);
+
   words = capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
-  
+
   uint32_t iold = 0xFFFFFF;
   for (uint32_t i = 0; i < words; i++) {
-    if ((iold & UBITS) != (i & UBITS))  // new upper address block 
-      capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY,
-                           (i >> 7));
-    retval.push_back(capture_.read(ADDR_SPY_BASE + (i & LBITS)*4));
-    iold=i;
+    if ((iold & UBITS) != (i & UBITS))  // new upper address block
+      capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY, (i >> 7));
+    retval.push_back(capture_.read(ADDR_SPY_BASE + (i & LBITS) * 4));
+    iold = i;
   }
   return retval;
 }

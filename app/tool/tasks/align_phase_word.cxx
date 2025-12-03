@@ -95,12 +95,12 @@ void align_phase_word(Target* tgt) {
   // Set IDLEs in ROC with enough bit transitions
   auto roc_setup_builder =
       roc.testParameters()
-      .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-      .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-      .add("DIGITALHALF_0", "BX_OFFSET", 1)
-      .add("DIGITALHALF_1", "BX_OFFSET", 1)
-      .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-      .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_0", "BX_OFFSET", 1)
+          .add("DIGITALHALF_1", "BX_OFFSET", 1)
+          .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+          .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
   auto roc_test_params = roc_setup_builder.apply();
 
   // ----- PHASE ALIGNMENT ----- //
@@ -153,7 +153,7 @@ void align_phase_word(Target* tgt) {
     parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
     if (on_zcu) {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 3514;  // 0xdba
-      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
+      parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;   // 0xdeb
     } else {
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 40 * 64 - 39;
       parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 40 * 64 - 1;
