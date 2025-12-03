@@ -553,11 +553,13 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this sub menu for selection
    * @param[in] desc description of this sub menu
    * @param[in] render_func function to use to render this sub menu
+   * @param[in] category category bit flag for hiding
    * @return pointer to newly created menu
    */
   static std::shared_ptr<Menu> menu(const char* name, const char* desc,
-                                    RenderFuncType render_func = 0) {
-    return root()->submenu(name, desc, render_func);
+                                    RenderFuncType render_func = 0,
+                                    unsigned int category = 0) {
+    return root()->submenu(name, desc, render_func, category);
   }
 
  private:

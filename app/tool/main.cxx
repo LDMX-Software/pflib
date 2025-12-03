@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
       pflib_log(info) << "connecting from ZCU in Fiberless mode";
       tgt.reset(pflib::makeTargetFiberless());
       readout_cfg = pftool::State::CFG_HCALFMC;
-      pftool::root()->drop({"OPTO", "ECON"});
+      pftool::root()->hide(NEED_FIBER);
     } else if (target_type == "HcalBackplaneZCU") {
       if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
         pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
@@ -329,6 +329,7 @@ int main(int argc, char* argv[]) {
       auto boardmask = target.get<int>("boardmask", 0xff);
       tgt.reset(pflib::makeTargetHcalBackplaneZCU(ilink, boardmask));
       readout_cfg = pftool::State::CFG_HCALOPTO_ZCU;
+      pftool::root()->hide(ONLY_FIBERLESS);
     } else if (target_type == "EcalSMMZCU") {
       if (not is_fw_active(FW_SHORTNAME_UIO_ZCU)) {
         pflib_log(fatal) << "'" << FW_SHORTNAME_UIO_ZCU
@@ -342,6 +343,7 @@ int main(int argc, char* argv[]) {
       }
       tgt.reset(pflib::makeTargetEcalSMMZCU(ilink));
       readout_cfg = pftool::State::CFG_ECALOPTO_ZCU;
+      pftool::root()->hide(ONLY_FIBERLESS);
     } else if (target_type == "HcalBackplaneBittware") {
 #ifdef USE_ROGUE
       // need ilink to be in configuration
@@ -351,6 +353,7 @@ int main(int argc, char* argv[]) {
       tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask,
                                                        dev.c_str()));
       readout_cfg = pftool::State::CFG_HCALOPTO_BW;
+      pftool::root()->hide(ONLY_FIBERLESS);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
@@ -362,6 +365,7 @@ int main(int argc, char* argv[]) {
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
       tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, dev.c_str()));
       readout_cfg = pftool::State::CFG_ECALOPTO_BW;
+      pftool::root()->hide(ONLY_FIBERLESS);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
