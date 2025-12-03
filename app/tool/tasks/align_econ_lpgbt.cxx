@@ -1,5 +1,7 @@
 #include "align_econ_lpgbt.h"
 
+#include "pflib/OptoLink.h"
+
 static void print_locked_status(pflib::lpGBT& lpgbt) {
   constexpr uint16_t REG_EPRX0LOCKED = 0x152;
 
@@ -45,8 +47,10 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ)  {
 
   // ----- bit alignment with PRBS7 as input -----
-  auto lpgbt_daq = tgt->daq_lpgbt();
-  // auto lpgbt_trg = tgt->trig_lpgbt();
+  // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
+  // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
+  pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+  // pflib::lpGBT lpgbt_trg{tgt->get_opto_link("TRG").lpgbt_transport()};
 
   printf(" NOTE: Only checking Group 0, Channel 0\n");
   auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");

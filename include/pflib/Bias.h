@@ -150,7 +150,7 @@ class Bias {
    * The bus is 4 + <board-number>, so we set the default to 4 for
    * the case where we only have one board with bus number 0.
    */
-  Bias(std::shared_ptr<I2C> i2c);
+  Bias(std::shared_ptr<I2C> bias_i2c, std::shared_ptr<I2C> board_i2c);
 
   /**
    * Initialize to standard settings
@@ -165,7 +165,8 @@ class Bias {
   void setLED(uint8_t i_led, uint16_t code);
 
  private:
-  std::shared_ptr<I2C> i2c_;
+  std::shared_ptr<I2C> i2c_bias_;
+  std::shared_ptr<I2C> i2c_board_;
 
   /// LED bias chips
   std::vector<MAX5825> led_;
