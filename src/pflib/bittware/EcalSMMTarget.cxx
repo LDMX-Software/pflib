@@ -21,8 +21,9 @@ class EcalSMMTargetBW : public Target {
   EcalSMMTargetBW(int itarget, const char* dev) {
     using namespace pflib::bittware;
     // first, setup the optical links
-    opto_["DAQ"] = std::make_shared<BWOptoLink>(itarget, dev);
-    opto_["TRG"] = std::make_shared<BWOptoLink>(itarget + 1, *opto_["DAQ"]);
+    auto daq_olink = std::make_shared<BWOptoLink>(itarget, dev); 
+    opto_["DAQ"] = daq_olink;
+    opto_["TRG"] = std::make_shared<BWOptoLink>(itarget + 1, *daq_olink);
 
     // then get the lpGBTs
     daq_lpgbt_ =

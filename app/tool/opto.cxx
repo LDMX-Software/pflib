@@ -28,7 +28,7 @@ void opto(const std::string& cmd, Target* target) {
   if (cmd == "CHOOSE" or olink_name.empty()) {
     auto names = target->opto_link_names();
     for (auto name : names) {
-      printf("  %s\n", name);
+      std::cout << "  " << name << "\n";
     }
     olink_name = pftool::readline("What optical link should we connect to? ",
                                   names, olink_name);
