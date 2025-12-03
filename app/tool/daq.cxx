@@ -50,7 +50,16 @@ static void print_daq_status(Target* pft) {
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->daq();
   if (cmd == "ENABLE") {
-    daq.enable(!daq.enabled());
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    if (!daq.enabled()) {
+      extl1a=pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      daq.enable(true);
+      pft->fc().fc_enables(true,extl1a);
+    } else {
+      pft->fc().fc_enables(false,extl1a);
+      daq.enable(false);
+    }
   }
   if (cmd == "FORMAT") {
     if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW || pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
@@ -77,9 +86,11 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     pftool::state.daq_contrib_id = pftool::readline_int(
         " Contributor id for data: ", pftool::state.daq_contrib_id);
     int econid = pftool::readline_int(" ECON ID: ", daq.econid());
-    int samples = 1;  // frozen for now
-    int soi = 0;      // frozen for now
+    int samples = pftool::readline_int(" Samples/ROR: ", daq.samples_per_ror());
+    int soi = pftool::readline_int(" Sample of interest: ", daq.soi());
     daq.setup(econid, samples, soi);
+    pft->fc().setL1AperROR(samples);
+    
   }
   /*
   if (cmd=="ZS") {

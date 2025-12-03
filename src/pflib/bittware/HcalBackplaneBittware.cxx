@@ -91,7 +91,6 @@ class HcalBackplaneBW : public HcalBackplane {
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
 
-    fc_->fc_enables(true,false);
   }
 
   virtual void softResetROC(int which) override {

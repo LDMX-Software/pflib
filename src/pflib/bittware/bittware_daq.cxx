@@ -47,7 +47,18 @@ HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev) : DAQ(1), capt
                          0x1E6);  // 0xAA followed by one bit...
   else
     capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                         0x1E6);  // 0xAA followed by one bit...    
+                         0x1E6);  // 0xAA followed by one bit...
+  // zero should be 1
+  if (capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET)==0) {
+    printf("Zero to one\n");
+    capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, 1);
+  }
+  // match to actual setup
+  int samples_per_ror=capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
+  int soi = capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI);
+  capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,0); // TODO: handle multiple ECONs (needs support higher in the chain)
+  int econid=capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
+  pflib::DAQ::setup(econid, samples_per_ror, soi);
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
@@ -56,14 +67,6 @@ int HcalBackplaneBW_Capture::getEventOccupancy() { // hmm... multiple econs...
   capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,0);
   return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) /
       samples_per_ror();
-}
-void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
-  // none of these parameters are relevant for the econd capture, which is
-  // data-pattern based
-}
-void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) {
-  l1a_delay = -1;
-  l1a_capture_width = -1;
 }
 void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
   int nevt = getEventOccupancy();
