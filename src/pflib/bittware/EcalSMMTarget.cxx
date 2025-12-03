@@ -1,10 +1,12 @@
 #include "pflib/Ecal.h"
 #include "pflib/Target.h"
+#include "pflib/bittware/bittware_FastControl.h"
+#include "pflib/bittware/bittware_daq.h"
+#include "pflib/bittware/bittware_elinks.h"
+#include "pflib/bittware/bittware_optolink.h"
+#include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
-#include "pflib/zcu/zcu_daq.h"
-#include "pflib/zcu/zcu_elinks.h"
-#include "pflib/zcu/zcu_optolink.h"
 
 namespace pflib {
 
@@ -12,27 +14,24 @@ static constexpr int ADDR_ECAL_SMM_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_ECAL_SMM_TRIG = 0x78;
 static constexpr int I2C_BUS_M0 = 1;
 
-class EcalSMMTargetZCU : public Target {
+class EcalSMMTargetBW : public Target {
  public:
-  EcalSMMTargetZCU(int itarget) {
-    using namespace pflib::zcu;
+  EcalSMMTargetBW(int itarget, const char* dev) {
+    using namespace pflib::bittware;
     // first, setup the optical links
-    std::string uio_coder =
-        pflib::utility::string_format("standardLpGBTpair-%d", itarget);
+    daq_olink_ = std::make_unique<BWOptoLink>(itarget, dev);
+    trig_olink_ = std::make_unique<BWOptoLink>(itarget + 1, *daq_olink_);
 
-    daq_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, false, ADDR_ECAL_SMM_DAQ);
-    trig_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, true, ADDR_ECAL_SMM_TRIG);
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
+    // then get the lpGBTs
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
+    trig_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
 
-    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
-                                              itarget);
-    daq_ = std::make_unique<ZCU_Capture>();
+    elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
 
     using namespace pflib::lpgbt::standard_config;
 
@@ -44,7 +43,7 @@ class EcalSMMTargetZCU : public Target {
       printf("Problem (non critical) setting up TRIGGER lpgbt\n");
     }
 
-    fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+    fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
   virtual int nrocs() { return ecalModule_->nrocs(); }
@@ -85,38 +84,23 @@ class EcalSMMTargetZCU : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    std::vector<uint32_t> buf;
-
-    if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
-      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
-      }
-    } else {
-      PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
-                        "for provided DaqFormat");
-    }
-
-    return buf;
+    PFEXCEPTION_RAISE("NoImpl", "EcalSMMTargetBW::read_event not implemented.");
+    return {};
   }
 
  private:
-  std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
+  std::unique_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
-  std::unique_ptr<pflib::zcu::OptoElinksZCU> elinks_;
-  std::unique_ptr<pflib::zcu::ZCU_Capture> daq_;
-  std::shared_ptr<pflib::FastControl> fc_;
+  std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
+  std::unique_ptr<bittware::HcalBackplaneBW_Capture> daq_;
+  std::shared_ptr<pflib::bittware::BWFastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
 };
 
-Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
+Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
+  return new EcalSMMTargetBW(ilink, dev);
+}
 
 }  // namespace pflib

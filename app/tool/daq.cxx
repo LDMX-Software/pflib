@@ -62,10 +62,14 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     }
   }
   if (cmd == "FORMAT") {
-    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW || pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
+    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW ||
+        pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
-    } else if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_BW || pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU) {
+    } else if (pftool::state.readout_config() ==
+                   pftool::State::CFG_ECALOPTO_BW ||
+               pftool::state.readout_config() ==
+                   pftool::State::CFG_ECALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else {

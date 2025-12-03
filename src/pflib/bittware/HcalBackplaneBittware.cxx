@@ -1,5 +1,7 @@
 #include "pflib/HcalBackplane.h"
 #include "pflib/bittware/bittware_FastControl.h"
+#include "pflib/bittware/bittware_daq.h"
+#include "pflib/bittware/bittware_elinks.h"
 #include "pflib/bittware/bittware_optolink.h"
 #include "pflib/bittware/bittware_elinks.h"
 #include "pflib/bittware/bittware_daq.h"
@@ -17,7 +19,6 @@ static constexpr int I2C_BUS_BIAS = 1;     // TRIG
 static constexpr int I2C_BUS_BOARD = 0;    // TRIG
 static constexpr int ADDR_MUX_BIAS = 0x70;
 static constexpr int ADDR_MUX_BOARD = 0x71;
-
 
 class HcalBackplaneBW : public HcalBackplane {
  public:
@@ -85,7 +86,7 @@ class HcalBackplaneBW : public HcalBackplane {
       i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
     }
 
-    elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget,dev);
+    elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
 
@@ -134,13 +135,13 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_->gpio_interface().setGPO("ECON_HRST", true);
   }
 
-  virtual Elinks& elinks() override {
-    return *elinks_;
-  }
+  virtual Elinks& elinks() override { return *elinks_; }
 
-  virtual DAQ& daq() override {
-    return *daq_;
-  }
+  virtual DAQ& daq() override { return *daq_; }
+
+  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
+
+  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
 
   virtual FastControl& fc() override { return *fc_; }
 

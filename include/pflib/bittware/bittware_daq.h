@@ -1,3 +1,4 @@
+#pragma once
 #include "pflib/DAQ.h"
 #include "pflib/bittware/bittware_axilite.h"
 
@@ -24,10 +25,11 @@ class HcalBackplaneBW_Capture : public DAQ {
   virtual std::vector<uint32_t> getLinkData(int ilink);
   virtual void advanceLinkReadPtr();
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask);
+
  private:
   AxiLite capture_;
   bool per_econ_;
 };
 
-}
+}  // namespace bittware
 }  // namespace pflib

@@ -17,23 +17,23 @@ static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
 static constexpr uint32_t ADDR_ADV_IO = 0x080;
 // static constexpr uint32_t MASK_ADV_IO = 0x00000001;
 
-static constexpr uint32_t ADDR_PACKET_SETUP   = 0x400;
+static constexpr uint32_t ADDR_PACKET_SETUP = 0x400;
 static constexpr uint32_t MASK_L1A_PER_PACKET = 0x000001F0;
-static constexpr uint32_t MASK_SOI            = 0x00001E00;
-static constexpr uint32_t ADDR_PICK_ECON      = 0x400;
-static constexpr uint32_t MASK_PICK_ECON      = 0x000F0000;
+static constexpr uint32_t MASK_SOI = 0x00001E00;
+static constexpr uint32_t ADDR_PICK_ECON = 0x400;
+static constexpr uint32_t MASK_PICK_ECON = 0x000F0000;
 
-static constexpr uint32_t ADDR_ECON0_ID     = 0x408; //
-static constexpr uint32_t MASK_ECON0_ID     = 0x03FF;
+static constexpr uint32_t ADDR_ECON0_ID = 0x408;  //
+static constexpr uint32_t MASK_ECON0_ID = 0x03FF;
 
 static constexpr uint32_t ADDR_PAGE_SPY = 0x400;
 static constexpr uint32_t MASK_PAGE_SPY = 0x00700000;
 
-static constexpr uint32_t ADDR_SPY_BASE = 0xA00; // 0xA00 -> 0xBFC
+static constexpr uint32_t ADDR_SPY_BASE = 0xA00;  // 0xA00 -> 0xBFC
 
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x840;
-static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;   
-static constexpr uint32_t ADDR_INFO = 0x940;   
+static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;
+static constexpr uint32_t ADDR_INFO = 0x940;
 
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
@@ -78,7 +78,9 @@ void HcalBackplaneBW_Capture::setup(int econid, int samples_per_ror, int soi) {
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET,
                        samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
-  capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,0); // TODO: handle multiple ECONs (needs support higher in the chain)
+  capture_.writeMasked(
+      ADDR_PICK_ECON, MASK_PICK_ECON,
+      0);  // TODO: handle multiple ECONs (needs support higher in the chain)
   capture_.writeMasked(ADDR_ECON0_ID, MASK_ECON0_ID, econid);
 }
 void HcalBackplaneBW_Capture::enable(bool doenable) {
@@ -92,7 +94,7 @@ bool HcalBackplaneBW_Capture::enabled() {
   return capture_.readMasked(ADDR_ENABLE, MASK_ENABLE);
 }
 std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
-  capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,ilink);
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
   uint32_t words = 0;
   std::vector<uint32_t> retval;
   static const uint32_t UBITS = 0x180;
@@ -114,17 +116,19 @@ std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   return retval;
 }
 void HcalBackplaneBW_Capture::advanceLinkReadPtr() {
-  capture_.write(ADDR_ADV_IO, 1);  // auto-clear, only correct for one econ right now
+  capture_.write(ADDR_ADV_IO,
+                 1);  // auto-clear, only correct for one econ right now
 }
 
-std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(uint32_t ask) {
+std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
+    uint32_t ask) {
   std::map<std::string, uint32_t> dbg;
   using namespace pflib::utility;
-  
+
   static const int stepsize = 4;
   /*
     FILE* f = fopen("dump.txt", "w");
-    
+
     for (int i = 0; i < 0xFFF; i++)
     fprintf(f, "%03x %03x %08x\n", i, i, capture_.read(i));
     fclose(f);
@@ -134,25 +138,35 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(uint32_t ask)
   dbg["AXIS.COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
   dbg["AXIS.COUNT_TVALID"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);
   dbg["AXIS.COUNT_TREADY"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 3);
-  dbg["AXIS.COUNT_TVALID_!TREADY"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
-  dbg["AXIS.COUNT_TREADY_!TVALID"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
+  dbg["AXIS.COUNT_TVALID_!TREADY"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
+  dbg["AXIS.COUNT_TREADY_!TVALID"] =
+      capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
 
-  for (int ilink=0; ilink<nlinks(); ilink++) {
-    capture_.writeMasked(ADDR_PICK_ECON,MASK_PICK_ECON,ilink);
-    dbg[string_format("ECON%d.COUNT_IDLES",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER);
-    dbg[string_format("ECON%d.COUNT_NONIDLES",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 1);
-    dbg[string_format("ECON%d.COUNT_STARTS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 2);
-    dbg[string_format("ECON%d.COUNT_STOPS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 3);
-    dbg[string_format("ECON%d.COUNT_WORDS",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 4);
-    dbg[string_format("ECON%d.COUNT_IO_ADV",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 5);
-    dbg[string_format("ECON%d.COUNT_TLAST",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 6);
+  for (int ilink = 0; ilink < nlinks(); ilink++) {
+    capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
+    dbg[string_format("ECON%d.COUNT_IDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER);
+    dbg[string_format("ECON%d.COUNT_NONIDLES", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 1);
+    dbg[string_format("ECON%d.COUNT_STARTS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 2);
+    dbg[string_format("ECON%d.COUNT_STOPS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 3);
+    dbg[string_format("ECON%d.COUNT_WORDS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 4);
+    dbg[string_format("ECON%d.COUNT_IO_ADV", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 5);
+    dbg[string_format("ECON%d.COUNT_TLAST", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + stepsize * 6);
 
-    dbg[string_format("ECON%d.QUICKSPY",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + 0x11*stepsize);
-    dbg[string_format("ECON%d.STATE",ilink)] = capture_.read(ADDR_BASE_LINK_COUNTER + 0x12*stepsize);
-  }  
+    dbg[string_format("ECON%d.QUICKSPY", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x11 * stepsize);
+    dbg[string_format("ECON%d.STATE", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x12 * stepsize);
+  }
   return dbg;
 }
 
-
-}
+}  // namespace bittware
 }  // namespace pflib

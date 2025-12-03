@@ -78,17 +78,17 @@ int BWFastControl::getL1AperROR() {
   return axi_.readMasked(REG_CTL, MASK_L1A_PER_ROR);
 }
 void BWFastControl::linkreset_rocs() {
-  uint32_t val=axi_.read(REG_CTL);
-  axi_.writeMasked(REG_CTL,MASK_ENABLE_L1A,0);
-  
+  uint32_t val = axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
+
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCD);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCT);
   axi_.write(REG_CTL, val);
 }
 void BWFastControl::linkreset_econs() {
-  uint32_t val=axi_.read(REG_CTL);
-  axi_.writeMasked(REG_CTL,MASK_ENABLE_L1A,0);
+  uint32_t val = axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECOND);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECONT);
@@ -113,8 +113,8 @@ void BWFastControl::fc_setup_link_reset(int bx) {
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, bx);
 }
 
-void BWFastControl::fc_get_setup_link_reset(int &bx) {
-  bx=axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
+void BWFastControl::fc_get_setup_link_reset(int& bx) {
+  bx = axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
 }
 
 void BWFastControl::fc_setup_calib(int charge_to_l1a) {
@@ -135,7 +135,7 @@ void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
   ext_l1a = (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 0);
 }
 void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
-  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A,(l1a_overall)?(1):(0));
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall) ? (1) : (0));
   if (ext_l1a)
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
   else

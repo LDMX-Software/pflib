@@ -1,6 +1,8 @@
 #ifndef PFLIB_MAX5825_H_
 #define PFLIB_MAX5825_H_
 
+#include <unistd.h>
+
 #include <vector>
 
 #include "pflib/I2C.h"
@@ -45,7 +47,7 @@ class MAX5825 {
    * Wrap an I2C class for communicating with the MAX5825.
    * The bus we are on is the same as the ROC's bus.
    */
-  MAX5825(std::shared_ptr<I2C>& i2c, uint8_t max_addr);
+  MAX5825(std::shared_ptr<I2C> i2c, uint8_t max_addr);
 
   /**
    * Get the settings for the DACs on this MAX
@@ -114,7 +116,7 @@ class MAX5825 {
 
  private:
   /// our connection
-  std::shared_ptr<I2C>& i2c_;
+  std::shared_ptr<I2C> i2c_;
   /// our addr on the chip
   uint8_t our_addr_;
   /// our bus
@@ -148,50 +150,23 @@ class Bias {
    * The bus is 4 + <board-number>, so we set the default to 4 for
    * the case where we only have one board with bus number 0.
    */
-  Bias(std::shared_ptr<I2C>& i2c);
+  Bias(std::shared_ptr<I2C> i2c);
 
   /**
    * Initialize to standard settings
    *  Reference voltage - 4.096V
    */
-  // void initialize();
-
-  /**
-   * Pass a setting to one LED DAC
-   */
-  // void cmdLED(uint8_t i_led, uint8_t cmd, uint16_t twelve_bit_setting);
-
-  /**
-   * Pass a setting to one SiPM DAC
-   */
-  // void cmdSiPM(uint8_t i_sipm, uint8_t cmd, uint16_t twelve_bit_setting);
+  void initialize();
+  double readTemp();
 
   int readSiPM(uint8_t i_sipm);
   int readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
 
-  /**
-   * Set and load the passed CODE for an LED bias
-   *
-   * Uses MAX5825::CODEn_LOADn
-   *
-   * This is a common procedure and operates as an example
-   * of how to use setLED.
-   */
-  // void setLED(uint8_t i_led, uint16_t code);
-
-  /**
-   * Set and load the passed CODE for an SiPM bias
-   *
-   * Uses MAX5825::CODEn_LOADn
-   *
-   * This is a common procedure and operates as an example
-   * of how to use setSiPM.
-   */
-  // void setSiPM(uint8_t i_sipm, uint16_t code);
-
  private:
+  std::shared_ptr<I2C> i2c_;
+
   /// LED bias chips
   std::vector<MAX5825> led_;
   /// SiPM bias chips
