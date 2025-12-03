@@ -23,17 +23,13 @@ class HcalBackplaneBW : public HcalBackplane {
 
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
-    // first, setup the optical links
-    daq_olink_ = std::make_shared<pflib::bittware::BWOptoLink>(itarget, dev);
-    trig_olink_ =
-        std::make_shared<pflib::bittware::BWOptoLink>(itarget + 1, *daq_olink_);
-    opto_.push_back(daq_olink_);
-    opto_.push_back(trig_olink_);
+    opto_["DAQ"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget, dev); 
+    opto_["TRG"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget + 1, *opto["DAQ"]);
 
     // then get the lpGBTs from them
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
     trig_lpgbt_ =
-        std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
+        std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     try {
       int daq_pusm = daq_lpgbt_->status();
@@ -171,10 +167,6 @@ class HcalBackplaneBW : public HcalBackplane {
 
   virtual DAQ& daq() override { return *daq_; }
 
-  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
-
-  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
-
   virtual FastControl& fc() override { return *fc_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
@@ -189,7 +181,6 @@ class HcalBackplaneBW : public HcalBackplane {
   }
 
  private:
-  std::shared_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;

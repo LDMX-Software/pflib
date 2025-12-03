@@ -21,15 +21,13 @@ class EcalSMMTargetBW : public Target {
   EcalSMMTargetBW(int itarget, const char* dev) {
     using namespace pflib::bittware;
     // first, setup the optical links
-    daq_olink_ = std::make_shared<BWOptoLink>(itarget, dev);
-    trig_olink_ = std::make_shared<BWOptoLink>(itarget + 1, *daq_olink_);
-    opto_.push_back(daq_olink_);
-    opto_.push_back(trig_olink_);
+    opto_["DAQ"] = std::make_shared<BWOptoLink>(itarget, dev);
+    opto_["TRG"] = std::make_shared<BWOptoLink>(itarget + 1, *opto_["DAQ"]);
 
     // then get the lpGBTs
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(daq_olink_->lpgbt_transport());
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
     trig_lpgbt_ =
-        std::make_unique<pflib::lpGBT>(trig_olink_->lpgbt_transport());
+        std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
@@ -114,10 +112,6 @@ class EcalSMMTargetBW : public Target {
 
   virtual DAQ& daq() override { return *daq_; }
 
-  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
-
-  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
-
   virtual FastControl& fc() override { return *fc_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
@@ -131,7 +125,6 @@ class EcalSMMTargetBW : public Target {
   }
 
  private:
-  std::shared_ptr<pflib::bittware::BWOptoLink> daq_olink_, trig_olink_;
   std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;

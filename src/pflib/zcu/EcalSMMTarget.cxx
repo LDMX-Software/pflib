@@ -18,13 +18,11 @@ class EcalSMMTargetZCU : public Target {
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
 
-    // DAQ OptoLink
-    opto_.push_back(std::make_shared<ZCUOptoLink>(uio_coder));
-    // TRIG OptoLink
-    opto_.push_back(std::make_shared<ZCUOptoLink>(uio_coder, 1, false));
+    opto_["DAQ"] = std::make_shared<ZCUOptoLink>(uio_coder);
+    opto_["TRG"] = std::make_shared<ZCUOptoLink>(uio_coder, 1, false);
 
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_[0]->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_[1]->lpgbt_transport());
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
@@ -71,10 +69,6 @@ class EcalSMMTargetZCU : public Target {
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override { return *daq_; }
-
-  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
-
-  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
 
   virtual FastControl& fc() override { return *fc_; }
 

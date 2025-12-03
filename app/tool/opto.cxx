@@ -8,7 +8,7 @@
 ENABLE_LOGGING();
 
 void opto_render(Target* tgt) {
-  if (tgt->optoLinks().empty()) {
+  if (tgt->opto_link_names().empty()) {
     pflib_log(error) << "no optical links connected for this target";
   }
 }
@@ -23,16 +23,17 @@ void opto_render(Target* tgt) {
  * - LINKTRICK : try a simple trick to re-align the optical links
  */
 void opto(const std::string& cmd, Target* target) {
-  static const int iolink = 0;
-  const auto& olinks = target->optoLinks();
+  static std::string olink_name;
 
-  if (iolink >= olinks.size()) {
-    pflib_log(error) << "optical link at index " << iolink
-                     << " does not exist.";
-    return;
+  if (cmd == "CHOOSE" or olink_name.empty()) {
+    auto names = target->opto_link_names();
+    for (auto name : names) {
+      printf("  %s\n", name);
+    }
+    olink_name = pftool::readline("What optical link should we connect to? ", names, olink_name);
   }
 
-  pflib::OptoLink& olink = *olinks[iolink];
+  auto& olink{target->get_opto_link(olink_name)};
 
   if (cmd == "FULLSTATUS") {
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
@@ -70,6 +71,7 @@ void opto(const std::string& cmd, Target* target) {
 namespace {
 auto optom =
     pftool::menu("OPTO", "Optical Link Functions", opto_render)
+        ->line("CHOOSE", "Choose optical link to connect to", opto)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("RESET", "Reset optical link", opto)
         ->line("POLARITY", "Adjust the polarity", opto)

@@ -24,13 +24,11 @@ class HcalBackplaneZCU : public HcalBackplane {
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
 
-    // DAQ OptoLink
-    opto_.push_back(std::make_shared<ZCUOptoLink>(uio_coder));
-    // TRIG OptoLink
-    opto_.push_back(std::make_shared<ZCUOptoLink>(uio_coder, 1, false));
+    opto_["DAQ"] = std::make_shared<ZCUOptoLink>(uio_coder);
+    opto_["TRG"] = std::make_shared<ZCUOptoLink>(uio_coder, 1, false);
 
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_[0]->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_[1]->lpgbt_transport());
+    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     // next, create the Hcal I2C objects
     econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
@@ -126,10 +124,6 @@ class HcalBackplaneZCU : public HcalBackplane {
   virtual DAQ& daq() override { return *daq_; }
 
   virtual FastControl& fc() override { return *fc_; }
-
-  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
-
-  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
