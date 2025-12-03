@@ -102,7 +102,7 @@ class HcalBackplaneBW : public HcalBackplane {
           std::make_shared<pflib::lpgbt::I2CwithMux>(
               *trig_lpgbt_, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
 
-      add_roc(ibd, 0x28 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
+      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
               board_i2c);
     }
 
