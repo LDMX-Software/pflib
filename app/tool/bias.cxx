@@ -110,7 +110,7 @@ static void bias_wrapper(const std::string& cmd, Target* tgt) {
 
 namespace {
 auto menu_bias =
-    pftool::menu("BIAS", "Read and write bias voltages", render)
+    pftool::menu("BIAS", "Read and write bias voltages", render, ONLY_HCAL)
         ->line("STATUS", "Bias and board I2C summary", bias_wrapper)
         ->line("INIT", "Board I2C Initialization", bias_wrapper)
         ->line("READ_SIPM", "Read SiPM DAC values", bias_wrapper)
