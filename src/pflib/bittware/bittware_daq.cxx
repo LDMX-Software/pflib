@@ -8,9 +8,10 @@ static constexpr uint32_t BASE_ADDRESS_CAPTURE0 = 0x8000;
 
 static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604;
 static constexpr uint32_t ADDR_HEADER_MARKER = 0x600;
-static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
+static constexpr uint32_t MASK_HEADER_MARKER_OLD = 0x0001FF00;
+static constexpr uint32_t MASK_HEADER_MARKER     = 0x01FF0000;
 static constexpr uint32_t ADDR_ENABLE = 0x600;
-static constexpr uint32_t MASK_ENABLE = 0x00000001;
+static constexpr uint32_t MASK_ENABLE = 0x0000FFFF;
 static constexpr uint32_t ADDR_EVB_CLEAR = 0x100;
 static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
 static constexpr uint32_t ADDR_ADV_IO = 0x080;
@@ -38,11 +39,15 @@ static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev) : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev) {
-  printf("Firmware type and version: %08x %08x %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
+  printf("Firmware type and version: %08x %08x %08x\n",capture_.get_hardware_type(),capture_.get_firmware_version(),capture_.read(ADDR_HEADER_MARKER));
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                       0x1E6);  // 0xAA followed by one bit...
+  if (capture_.get_firmware_version()<0x10) 
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER_OLD,
+                         0x1E6);  // 0xAA followed by one bit...
+  else
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
+                         0x1E6);  // 0xAA followed by one bit...    
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear

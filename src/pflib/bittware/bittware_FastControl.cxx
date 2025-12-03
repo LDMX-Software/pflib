@@ -55,6 +55,7 @@ static constexpr const char* names[] = {"BCR",
                                         "L1A_NZS",
                                         "INT_ROR",
                                         "EXT_ROR",
+                                        "EXT_ROR_UNMASKED",
                                         0};
 
 std::map<std::string, uint32_t> BWFastControl::getCmdCounters() {
