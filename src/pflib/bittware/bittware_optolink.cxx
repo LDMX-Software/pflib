@@ -49,11 +49,11 @@ void BWOptoLink::reset_link() {
   /// only do these items for daq links
   if (!isdaq_) return;
 
-  static const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
-  static const uint32_t RX_RESET = 0x4 << ilink_;
-  static const uint32_t TX_RESET = 0x2 << ilink_;
+  const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
+  const uint32_t RX_RESET = 0x4 << ilink_;
+  const uint32_t TX_RESET = 0x2 << ilink_;
   // global, not dependent on ilink_
-  static const uint32_t GTH_RESET = 0x1;
+  const uint32_t GTH_RESET = 0x1;
 
   // first, light attempt, just link-specific resets
   gtys_.write(0x080, TX_RESET);
@@ -125,13 +125,6 @@ void BWOptoLink::set_tx_polarity(bool polarity) {
 
 std::map<std::string, uint32_t> BWOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
-  for (uint32_t addr{0x800}; addr < 0x800 + 4 * 4 + 1; addr += 4) {
-    try {
-      retval[pflib::utility::string_format("%0x", addr)] = gtys_.read(addr);
-    } catch (const pflib::Exception& e) {
-      retval[pflib::utility::string_format("%0x", addr)] = 0xffff;
-    }
-  }
   uint32_t REG_STATUS = 0x804 + ilink_ * 4;
   uint32_t val = gtys_.read(REG_STATUS);
   retval["TX_RESETDONE"] = (val >> 3) & 0x1;
