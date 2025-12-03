@@ -75,7 +75,8 @@ class HcalBackplaneBW : public HcalBackplane {
         }
       }
     } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to check Optical links";
+      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
+                          "check Optical links";
       pflib_log(warn) << "Failure to check lpGBT status [" << e.name()
                       << "]: " << e.message();
       pflib_log(warn) << "Go into OPTO and make sure the link is READY"
