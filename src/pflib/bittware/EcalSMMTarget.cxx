@@ -72,6 +72,10 @@ class EcalSMMTargetBW : public Target {
 
   virtual DAQ& daq() override { return *daq_; }
 
+  virtual lpGBT& daq_lpgbt() override { return *daq_lpgbt_; }
+
+  virtual lpGBT& trig_lpgbt() override { return *trig_lpgbt_; }
+
   virtual FastControl& fc() override { return *fc_; }
 
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {

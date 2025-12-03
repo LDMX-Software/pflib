@@ -7,6 +7,7 @@
 #include "pflib/FastControl.h"
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
+#include "pflib/lpGBT.h"
 
 namespace pflib {
 
@@ -78,6 +79,12 @@ class Target {
 
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
+
+  /** get the lpGBT DAQ object */
+  virtual lpGBT& daq_lpgbt() = 0;
+
+  /** get the lpGBT TRG object */
+  virtual lpGBT& trig_lpgbt() = 0;
 
   /// names of different I2C busses we could talk to
   std::vector<std::string> i2c_bus_names();

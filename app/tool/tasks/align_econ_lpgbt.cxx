@@ -45,13 +45,62 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
 void align_econ_lpgbt(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
   auto econ = tgt->econ(iecon);
 
   if (pftool::state.iecon != 0) {
     printf(" I only know how to align ECON-D to link 0\n");
     return;
   }
+
+  // ----- bit alignment with PRBS7 as input -----
+  auto lpgbt_daq = tgt->daq_lpgbt();
+  auto lpgbt_trg = tgt->trig_lpgbt();
+
+  printf(" NOTE: Only checking Group 0, Channel 0\n");
+  auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
+  printf(" ECOND PRBS State: %lu\n", prbs_state);
+  printf("\n --- PRE-PRBS STATUS ---\n");
+  print_phase_status(lpgbt_daq);
+  print_locked_status(lpgbt_daq);
+
+  uint8_t invert = pftool::readline_int("Is data inverted?", 1, true);
+  std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+
+  parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
+  econ.applyParameters(parameters);
+  usleep(10000);
+
+  parameters.clear();
+  parameters["ETX"]["0_INVERT_DATA"] = invert;
+  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
+  econ.applyParameters(parameters);
+  usleep(10000);
+
+  parameters.clear();
+  parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 1;
+  econ.applyParameters(parameters);
+  usleep(10000);
+
+  auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
+  printf(" ECOND data invert state: %lu\n", invert_state);
+  // Only checking group 0 and channel 0 right now
+  printf(" Checking ECOND PRBS on group 0, channel 0...\n");
+
+  prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
+  printf(" ECOND PRBS State: %lu\n", prbs_state);
+
+  lpgbt_daq.check_prbs_errors_erx(0, 0,
+                                  false);  // group 0, ch 0, false for ECON
+
+  printf("\n --- POST-PRBS STATUS ---\n");
+  print_phase_status(lpgbt_daq);
+  print_locked_status(lpgbt_daq);
+
+  parameters.clear();
+  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
+  econ.applyParameters(parameters);
+
+  // word-alignment
   uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
 
   bool found_alignment = false;
@@ -75,55 +124,4 @@ void align_econ_lpgbt(Target* tgt) {
     }
     printf(" WARNING: Did not find alignment\n");
   }
-
-  // ----- bit alignment -----
-  int chipaddr = 0x78;  // Hardcoded
-  chipaddr |= 0x4;      // Hardcoded
-
-  pflib::zcu::lpGBT_ICEC_Simple ic("standardLpGBTpair-0", false, chipaddr);
-  pflib::lpGBT lpgbt_daq(ic);
-  pflib::zcu::lpGBT_ICEC_Simple ec("standardLpGBTpair-0", true, 0x78);
-  pflib::lpGBT lpgbt_trg(ec);
-
-  printf(" NOTE: Only checking Group 0, Channel 0\n");
-  auto prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-  printf(" ECOND PRBS State: %lu\n", prbs_state);
-  printf("\n --- PRE-PRBS STATUS ---\n");
-  print_phase_status(lpgbt_daq);
-  print_locked_status(lpgbt_daq);
-
-  uint8_t invert = pftool::readline_int("Is data inverted?", 1, true);
-  std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-
-  parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
-  econ.applyParameters(parameters);
-  usleep(10000);
-
-  parameters["ETX"]["0_INVERT_DATA"] = invert;
-  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 1;
-  econ.applyParameters(parameters);
-  usleep(10000);
-
-  parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 1;
-  econ.applyParameters(parameters);
-  usleep(10000);
-
-  auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
-  printf(" ECOND data invert state: %lu\n", invert_state);
-  // Only checking group 0 and channel 0 right now
-  printf(" Checking ECOND PRBS on group 0, channel 0...\n");
-
-  prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-  printf(" ECOND PRBS State: %lu\n", prbs_state);
-
-  lpgbt_daq.check_prbs_errors_erx(0, 0,
-                                  false);  // group 0, ch 0, false for ECON
-
-  printf("\n --- POST-PRBS STATUS ---\n");
-  print_phase_status(lpgbt_daq);
-  print_locked_status(lpgbt_daq);
-
-  parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
-
-  econ.applyParameters(parameters);
 }
