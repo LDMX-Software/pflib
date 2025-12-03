@@ -21,8 +21,10 @@ class EcalSMMTargetZCU : public Target {
     opto_["DAQ"] = std::make_shared<ZCUOptoLink>(uio_coder);
     opto_["TRG"] = std::make_shared<ZCUOptoLink>(uio_coder, 1, false);
 
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
+    daq_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    trig_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);

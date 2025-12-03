@@ -23,11 +23,13 @@ class HcalBackplaneBW : public HcalBackplane {
 
  public:
   HcalBackplaneBW(int itarget, uint8_t board_mask, const char* dev) {
-    opto_["DAQ"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget, dev); 
-    opto_["TRG"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget + 1, *opto_["DAQ"]);
+    opto_["DAQ"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget, dev);
+    opto_["TRG"] = std::make_shared<pflib::bittware::BWOptoLink>(itarget + 1,
+                                                                 *opto_["DAQ"]);
 
     // then get the lpGBTs from them
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    daq_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 

@@ -30,7 +30,8 @@ void opto(const std::string& cmd, Target* target) {
     for (auto name : names) {
       printf("  %s\n", name);
     }
-    olink_name = pftool::readline("What optical link should we connect to? ", names, olink_name);
+    olink_name = pftool::readline("What optical link should we connect to? ",
+                                  names, olink_name);
   }
 
   auto& olink{target->get_opto_link(olink_name)};

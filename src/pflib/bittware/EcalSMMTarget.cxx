@@ -25,7 +25,8 @@ class EcalSMMTargetBW : public Target {
     opto_["TRG"] = std::make_shared<BWOptoLink>(itarget + 1, *opto_["DAQ"]);
 
     // then get the lpGBTs
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    daq_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
