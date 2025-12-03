@@ -45,16 +45,19 @@ class EcalSMMTargetBW : public Target {
       if (daq_pusm == 19) {
         pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
       } else {
-        pflib_log(debug) << "DAQ lpGBT is not ready, attempting standard config";
+        pflib_log(debug)
+            << "DAQ lpGBT is not ready, attempting standard config";
         try {
-          setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+          setup_ecal(*daq_lpgbt_,
+                     ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(warn) << "Failure to apply standard config [" << e.name()
                           << "]: " << e.message();
         }
       }
     } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to check Optical links";
+      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
+                          "check Optical links";
       pflib_log(warn) << "Failure to check DAQ lpGBT status [" << e.name()
                       << "]: " << e.message();
       pflib_log(warn) << "Go into OPTO and make sure the link is READY"
@@ -66,9 +69,11 @@ class EcalSMMTargetBW : public Target {
       if (trg_pusm == 19) {
         pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
       } else {
-        pflib_log(debug) << "TRG lpGBT is not ready, attempting standard config";
+        pflib_log(debug)
+            << "TRG lpGBT is not ready, attempting standard config";
         try {
-          setup_ecal(*trig_lpgbt_, ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+          setup_ecal(*trig_lpgbt_,
+                     ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
           pflib_log(info) << "Failure to apply standard config [" << e.name()
