@@ -618,7 +618,7 @@ auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
-        ->line("LINK_ECON", "Reset ECON links", daq)
+        ->line("LINK_ECON", "Reset ECON links", daq, NEED_FIBER)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq);
 

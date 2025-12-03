@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
       }
       tgt.reset(pflib::makeTargetEcalSMMZCU(ilink));
       readout_cfg = pftool::State::CFG_ECALOPTO_ZCU;
-      pftool::root()->hide(ONLY_FIBERLESS);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
     } else if (target_type == "HcalBackplaneBittware") {
 #ifdef USE_ROGUE
       // need ilink to be in configuration
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
       tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, dev.c_str()));
       readout_cfg = pftool::State::CFG_ECALOPTO_BW;
-      pftool::root()->hide(ONLY_FIBERLESS);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
