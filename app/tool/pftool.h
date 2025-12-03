@@ -30,11 +30,11 @@
 using pflib::Target;
 
 /// category for commands that need an optical fiber
-static const unsigned int NEED_FIBER = 1 << 0;
+static const unsigned int NEED_FIBER = 0b1u;
 /// category for commands that only are fiberless
-static const unsigned int ONLY_FIBERLESS = 1 << 1;
+static const unsigned int ONLY_FIBERLESS = 0b10u;
 /// menus/commands that only make sense for the Hcal
-static const unsigned int ONLY_HCAL = 1 << 2;
+static const unsigned int ONLY_HCAL = 0b100u;
 
 /**
  * The type of menu we are constructing
