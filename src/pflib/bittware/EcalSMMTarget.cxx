@@ -39,14 +39,45 @@ class EcalSMMTargetBW : public Target {
 
     using namespace pflib::lpgbt::standard_config;
 
-    pflib_log(debug) << "applying standard EcalSMM DAQ lpGBT Config";
-    setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+    try {
+      int daq_pusm = daq_lpgbt_->status();
+
+      if (daq_pusm == 19) {
+        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug) << "DAQ lpGBT is not ready, attempting standard config";
+        try {
+          setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      }
+    } catch (const pflib::Exception& e) {
+      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to check Optical links";
+      pflib_log(warn) << "Failure to check DAQ lpGBT status [" << e.name()
+                      << "]: " << e.message();
+      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
+                      << " and then re-open pftool.";
+    }
 
     try {
-      pflib_log(debug) << "applying standard EcalSMM TRIG lpGBT Config";
-      setup_ecal(*trig_lpgbt_, ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
-    } catch (std::exception& e) {
-      pflib_log(info) << "Problem (non critical) setting up TRIGGER lpgbt";
+      int trg_pusm = trig_lpgbt_->status();
+      if (trg_pusm == 19) {
+        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug) << "TRG lpGBT is not ready, attempting standard config";
+        try {
+          setup_ecal(*trig_lpgbt_, ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
+          pflib_log(info) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      }
+    } catch (const pflib::Exception& e) {
+      pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
+                      << e.name() << "]: " << e.message();
     }
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
