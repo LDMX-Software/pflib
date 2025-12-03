@@ -45,6 +45,7 @@ class ECON {
       const std::string& file_path);
   uint64_t readParameter(const std::string& page, const std::string& param,
                          bool print_values = false);
+  std::map<int, uint8_t> readRegisterRange(int start_addr, int end_addr);
 
   void dumpSettings(const std::string& filename, bool should_decompile);
 
