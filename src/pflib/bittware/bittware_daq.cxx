@@ -46,10 +46,12 @@ HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
     : DAQ(1),
       capture_(BASE_ADDRESS_CAPTURE0, dev),
       the_log_{logging::get("bw_capture")} {
-  pflib_log(info) << "Firmware type and version: "
-                  << hex(capture_.get_hardware_type()) << " "
-                  << hex(capture_.get_firmware_version()) << " "
-                  << hex(capture_.read(ADDR_HEADER_MARKER));
+  auto hw_type = capture_.get_hardware_type();
+  auto fw_vers = capture_.get_firmware_version();
+  auto header_marker = capture_.read(ADDR_HEADER_MARKER);
+  pflib_log(info) << "HW Type: " << hex(hw_type)
+                  << " FW Version: " << hex(fw_vers)
+                  << " Header Mark: " << hex(header_marker);
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
   // write header marker (0xAA followed by one bit)

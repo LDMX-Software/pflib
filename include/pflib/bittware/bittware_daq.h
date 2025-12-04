@@ -1,5 +1,6 @@
 #pragma once
 #include "pflib/DAQ.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/bittware/bittware_axilite.h"
 
 namespace pflib {
