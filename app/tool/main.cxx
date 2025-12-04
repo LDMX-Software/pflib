@@ -371,8 +371,7 @@ int main(int argc, char* argv[]) {
       return 1;
 #endif
     } else {
-      pflib_log(fatal) << "Target type '" << target_type
-                       << "' not recognized.";
+      pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;
     }
   } catch (const pflib::Exception& e) {
