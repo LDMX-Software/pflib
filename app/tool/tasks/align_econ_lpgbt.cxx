@@ -44,16 +44,7 @@ static void print_phase_status(pflib::lpGBT& lpgbt) {
   printf(" Channel 0 phase: %u\n", ch_0);
 }
 
-void align_econ_lpgbt(Target* tgt) {
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-  auto econ = tgt->econ(iecon);
-
-  if (pftool::state.iecon != 0) {
-    printf(" I only know how to align ECON-D to link 0\n");
-    return;
-  }
-
+static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
@@ -67,7 +58,10 @@ void align_econ_lpgbt(Target* tgt) {
   print_phase_status(lpgbt_daq);
   print_locked_status(lpgbt_daq);
 
-  uint8_t invert = pftool::readline_int("Is data inverted?", 1, true);
+  bool default_invert = (pftool::state.readout_config_is_hcal());
+
+  bool do_invert = pftool::readline_bool("Invert elink data?", default_invert);
+  uint8_t invert = (do_invert) ? (1) : (0);
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
   parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
@@ -103,7 +97,9 @@ void align_econ_lpgbt(Target* tgt) {
   parameters.clear();
   parameters["FORMATTERBUFFER"]["GLOBAL_PRBS_ON"] = 0;
   econ.applyParameters(parameters);
+}
 
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
   // word-alignment
   uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
 
@@ -128,4 +124,20 @@ void align_econ_lpgbt(Target* tgt) {
     }
     printf(" WARNING: Did not find alignment\n");
   }
+}
+
+void align_econ_lpgbt(Target* tgt) {
+  int iecon =
+      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+
+  if (pftool::state.iecon != 0) {
+    printf(" I only know how to align ECON-D to link 0\n");
+    return;
+  }
+
+  pflib::ECON& econ = tgt->econ(iecon);
+
+  if (pftool::readline_bool("Do bit alignment?", true))
+    align_econ_lpgbt_bit(tgt, econ);
+  align_econ_lpgbt_word(tgt, econ);
 }

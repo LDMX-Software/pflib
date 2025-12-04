@@ -4,12 +4,13 @@
 #include <stdint.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
-namespace pflib {
+#include "pflib/lpGBT.h"
 
-class lpGBT_ConfigTransport;
+namespace pflib {
 
 /** Represents an interface to the optical links (GTX, GTH, GTY)
     and the upper levels of the encoder/decoder blocks
@@ -35,6 +36,12 @@ class OptoLink {
   // get the necessary transport for creating an lpGBT object for the given link
   virtual lpGBT_ConfigTransport& lpgbt_transport() = 0;
 
+  // get an lpGBT object using the transport
+  lpGBT& lpgbt() {
+    if (!lpgbt_) lpgbt_ = std::make_unique<lpGBT>(lpgbt_transport());
+    return *lpgbt_;
+  }
+
   // setup various aspects
   /// there are four TX elinks configured in the coder block, this is needed for
   /// testing purposes only
@@ -45,6 +52,9 @@ class OptoLink {
                           std::vector<uint8_t>& rx) = 0;
   virtual void capture_ic(int mode, std::vector<uint8_t>& tx,
                           std::vector<uint8_t>& rx) = 0;
+
+ private:
+  std::unique_ptr<lpGBT> lpgbt_;
 };
 
 }  // namespace pflib

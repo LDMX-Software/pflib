@@ -1,17 +1,21 @@
 #include "pflib/bittware/bittware_daq.h"
 
+#include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
 namespace bittware {
 
+using packing::hex;
+
 static constexpr uint32_t BASE_ADDRESS_CAPTURE0 = 0x8000;
 
 static constexpr uint32_t ADDR_IDLE_PATTERN = 0x604;
 static constexpr uint32_t ADDR_HEADER_MARKER = 0x600;
-static constexpr uint32_t MASK_HEADER_MARKER = 0x0001FF00;
+static constexpr uint32_t MASK_HEADER_MARKER_OLD = 0x0001FF00;
+static constexpr uint32_t MASK_HEADER_MARKER = 0x01FF0000;
 static constexpr uint32_t ADDR_ENABLE = 0x600;
-static constexpr uint32_t MASK_ENABLE = 0x00000001;
+static constexpr uint32_t MASK_ENABLE = 0x0000FFFF;
 static constexpr uint32_t ADDR_EVB_CLEAR = 0x100;
 static constexpr uint32_t MASK_EVB_CLEAR = 0x00000001;
 static constexpr uint32_t ADDR_ADV_IO = 0x080;
@@ -39,13 +43,37 @@ static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
-    : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev) {
-  printf("Firmware type and version: %08x %08x %08x\n", capture_.read(0),
-         capture_.read(ADDR_IDLE_PATTERN), capture_.read(ADDR_HEADER_MARKER));
+    : DAQ(1),
+      capture_(BASE_ADDRESS_CAPTURE0, dev),
+      the_log_{logging::get("bw_capture")} {
+  auto hw_type = capture_.get_hardware_type();
+  auto fw_vers = capture_.get_firmware_version();
+  auto header_marker = capture_.read(ADDR_HEADER_MARKER);
+  pflib_log(info) << "HW Type: " << hex(hw_type)
+                  << " FW Version: " << hex(fw_vers)
+                  << " Header Mark: " << hex(header_marker);
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                       0x1E6);  // 0xAA followed by one bit...
+  // write header marker (0xAA followed by one bit)
+  // location depends on firmware version
+  if (capture_.get_firmware_version() < 0x10) {
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER_OLD, 0x1E6);
+  } else {
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
+  }
+  // zero should be 1
+  if (capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET) == 0) {
+    pflib_log(debug) << "Need to change MASK_L1A_PER_PACKET from 0 to 1";
+    capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, 1);
+  }
+  // match to actual setup
+  int samples_per_ror =
+      capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
+  int soi = capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI);
+  // TODO: handle multiple ECONs (needs support higher in the chain)
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
+  int econid = capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
+  pflib::DAQ::setup(econid, samples_per_ror, soi);
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
@@ -53,14 +81,6 @@ void HcalBackplaneBW_Capture::reset() {
 int HcalBackplaneBW_Capture::getEventOccupancy() {  // hmm... multiple econs...
   capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
   return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) / samples_per_ror();
-}
-void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
-  // none of these parameters are relevant for the econd capture, which is
-  // data-pattern based
-}
-void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) {
-  l1a_delay = -1;
-  l1a_capture_width = -1;
 }
 void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
   int nevt = getEventOccupancy();

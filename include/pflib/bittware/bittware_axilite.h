@@ -41,6 +41,12 @@ class AxiLite {
     writeMasked(addr, (1 << ibit), (true_for_set) ? (1) : (0));
   }
 
+  /// get the hardware type from the standard register 0
+  uint32_t get_hardware_type() { return readMasked(0, 0xFFFF0000u); }
+
+  /// get the firmware version from the standard register 0
+  uint32_t get_firmware_version() { return readMasked(0, 0xFFFF); }
+
  private:
   const char* dev_;    /// path to device
   uint32_t base_;      // base address
