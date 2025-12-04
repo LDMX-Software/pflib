@@ -249,7 +249,7 @@ static void econ(const std::string& cmd, Target* pft) {
 
 namespace {
 auto menu_econ =
-    pftool::menu("ECON", "ECON Chip Configuration", econ_render)
+    pftool::menu("ECON", "ECON Chip Configuration", econ_render, NEED_FIBER)
         ->line("STATUS", "print status and FC counters", econ_status)
         ->line("HARDRESET", "Hard reset to all ECONs", econ)
         ->line("SOFTRESET", "Soft reset to all ECONs", econ)

@@ -628,7 +628,7 @@ auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
-        ->line("LINK_ECON", "Reset ECON links", daq)
+        ->line("LINK_ECON", "Reset ECON links", daq, NEED_FIBER)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq);
 
@@ -699,7 +699,8 @@ auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("ENABLE", "Toggle enable status", daq_setup)
-        ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
+        ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup,
+               ONLY_FIBERLESS)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)
         ->line("FORMAT", "Select the output data format", daq_setup)
         ->line("CONFIG", "Setup ECON id, contrib id, samples", daq_setup);

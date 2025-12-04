@@ -51,6 +51,7 @@ econd-decoder *args:
 
 # open the test menu
 test-menu:
+    cd build && denv make test-menu
     denv ./build/test-menu
 
 # test decoding in python bindings

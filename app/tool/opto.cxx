@@ -71,7 +71,7 @@ void opto(const std::string& cmd, Target* target) {
 
 namespace {
 auto optom =
-    pftool::menu("OPTO", "Optical Link Functions", opto_render)
+    pftool::menu("OPTO", "Optical Link Functions", opto_render, NEED_FIBER)
         ->line("CHOOSE", "Choose optical link to connect to", opto)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("RESET", "Reset optical link", opto)
