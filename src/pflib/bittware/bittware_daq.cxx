@@ -1,9 +1,12 @@
 #include "pflib/bittware/bittware_daq.h"
 
 #include "pflib/utility/string_format.h"
+#include "pflib/packing/Hex.h"
 
 namespace pflib {
 namespace bittware {
+
+using packing::hex;
 
 static constexpr uint32_t BASE_ADDRESS_CAPTURE0 = 0x8000;
 
@@ -40,30 +43,31 @@ static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
-    : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev) {
-  printf("Firmware type and version: %08x %08x %08x\n",
-         capture_.get_hardware_type(), capture_.get_firmware_version(),
-         capture_.read(ADDR_HEADER_MARKER));
+    : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev), the_log_{logging::get("bw_capture")} {
+  pflib_log(info) << "Firmware type and version: "
+                  << hex(capture_.get_hardware_type()) << " "
+                  << hex(capture_.get_firmware_version()) << " "
+                  << hex(capture_.read(ADDR_HEADER_MARKER));
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  if (capture_.get_firmware_version() < 0x10)
-    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER_OLD,
-                         0x1E6);  // 0xAA followed by one bit...
-  else
-    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                         0x1E6);  // 0xAA followed by one bit...
+  // write header marker (0xAA followed by one bit)
+  // location depends on firmware version
+  if (capture_.get_firmware_version() < 0x10) {
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER_OLD, 0x1E6);
+  } else {
+    capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
+  }
   // zero should be 1
   if (capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET) == 0) {
-    printf("Zero to one\n");
+    pflib_log(debug) << "Need to change MASK_L1A_PER_PACKET from 0 to 1";
     capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, 1);
   }
   // match to actual setup
   int samples_per_ror =
       capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
   int soi = capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI);
-  capture_.writeMasked(
-      ADDR_PICK_ECON, MASK_PICK_ECON,
-      0);  // TODO: handle multiple ECONs (needs support higher in the chain)
+  // TODO: handle multiple ECONs (needs support higher in the chain)
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
   int econid = capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
   pflib::DAQ::setup(econid, samples_per_ror, soi);
 }

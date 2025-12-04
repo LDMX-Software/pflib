@@ -29,6 +29,7 @@ class HcalBackplaneBW_Capture : public DAQ {
  private:
   AxiLite capture_;
   bool per_econ_;
+  mutable logging::logger the_log_;
 };
 
 }  // namespace bittware
