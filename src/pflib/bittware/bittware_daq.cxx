@@ -1,7 +1,7 @@
 #include "pflib/bittware/bittware_daq.h"
 
-#include "pflib/utility/string_format.h"
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/string_format.h"
 
 namespace pflib {
 namespace bittware {
@@ -43,7 +43,9 @@ static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
-    : DAQ(1), capture_(BASE_ADDRESS_CAPTURE0, dev), the_log_{logging::get("bw_capture")} {
+    : DAQ(1),
+      capture_(BASE_ADDRESS_CAPTURE0, dev),
+      the_log_{logging::get("bw_capture")} {
   pflib_log(info) << "Firmware type and version: "
                   << hex(capture_.get_hardware_type()) << " "
                   << hex(capture_.get_firmware_version()) << " "
