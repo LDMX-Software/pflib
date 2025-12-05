@@ -52,10 +52,14 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "ENABLE") {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
+    printf("%d %d\n",l1aen,extl1a);
     if (!daq.enabled()) {
       extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
       daq.enable(true);
       pft->fc().fc_enables(true, extl1a);
+      bool readout_to_AXIS=daq.AXIS_enabled();
+      readout_to_AXIS = pftool::readline_bool("Enable readout to AXIS (false for 'internal' readout) ", readout_to_AXIS);
+      daq.AXIS_enable(readout_to_AXIS);
     } else {
       pft->fc().fc_enables(false, extl1a);
       daq.enable(false);
