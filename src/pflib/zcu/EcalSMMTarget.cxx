@@ -8,8 +8,6 @@
 
 namespace pflib {
 
-static constexpr int ADDR_ECAL_SMM_DAQ = 0x78 | 0x04;
-static constexpr int ADDR_ECAL_SMM_TRIG = 0x78;
 static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetZCU : public Target {
@@ -20,12 +18,13 @@ class EcalSMMTargetZCU : public Target {
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
 
-    daq_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, false, ADDR_ECAL_SMM_DAQ);
-    trig_tport_ = std::make_unique<pflib::zcu::lpGBT_ICEC_Simple>(
-        uio_coder, true, ADDR_ECAL_SMM_TRIG);
-    daq_lpgbt_ = std::make_unique<pflib::lpGBT>(*daq_tport_);
-    trig_lpgbt_ = std::make_unique<pflib::lpGBT>(*trig_tport_);
+    opto_["DAQ"] = std::make_shared<ZCUOptoLink>(uio_coder);
+    opto_["TRG"] = std::make_shared<ZCUOptoLink>(uio_coder, 1, false);
+
+    daq_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
+    trig_lpgbt_ =
+        std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
@@ -103,7 +102,6 @@ class EcalSMMTargetZCU : public Target {
   }
 
  private:
-  std::unique_ptr<pflib::zcu::lpGBT_ICEC_Simple> daq_tport_, trig_tport_;
   std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::zcu::OptoElinksZCU> elinks_;

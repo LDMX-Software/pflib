@@ -1,4 +1,3 @@
 target:
   type: "HcalBackplaneBittware"
-  ilink: 0
-  dev: "/dev/datadev_2"
+  ilink: 1

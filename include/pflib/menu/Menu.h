@@ -301,10 +301,12 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this line to use when running
    * @param[in] desc short description to print with menu
    * @param[in] ex function to execute when name is called
+   * @param[in] category integer flag categorizing this menu line
    * @return pointer to us
    */
-  Menu* line(const char* name, const char* desc, SingleTargetCommand ex) {
-    lines_.emplace_back(name, desc, ex);
+  Menu* line(const char* name, const char* desc, SingleTargetCommand ex,
+             unsigned int category = 0) {
+    lines_.emplace_back(name, desc, ex, category);
     return this;
   }
 
@@ -319,10 +321,12 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this line to use when running
    * @param[in] desc short description to print with menu
    * @param[in] ex function to execute when name is called
+   * @param[in] category integer flag categorizing this menu line
    * @return pointer to us
    */
-  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex) {
-    lines_.emplace_back(name, desc, ex);
+  Menu* line(const char* name, const char* desc, MultipleTargetCommands ex,
+             unsigned int category = 0) {
+    lines_.emplace_back(name, desc, ex, category);
     return this;
   }
 
@@ -343,12 +347,14 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this line to use when running
    * @param[in] desc short description to print with menu
    * @param[in] ex pointer to menu that we should append
+   * @param[in] category integer flag categorizing this menu line
    * @return pointer to the newly created submenu
    */
   std::shared_ptr<Menu> submenu(const char* name, const char* desc,
-                                RenderFuncType f = 0) {
+                                RenderFuncType f = 0,
+                                unsigned int category = 0) {
     auto sb = std::make_shared<Menu>(f);
-    lines_.emplace_back(name, desc, sb);
+    lines_.emplace_back(name, desc, sb, category);
     return sb;
   }
 
@@ -361,22 +367,18 @@ class Menu : public BaseMenu {
   }
 
   /**
-   * Go through and render each of the lines in this menu
+   * Go through and build each of the lines in this menu
    *
    * @note No need to add EXIT/QUIT lines!
    *
    * Afterwards, we append the "EXIT" line to us.
    */
-  void render() {
+  void build() {
     // go through menu options and add exit
-    for (Line& l : lines_) l.render();
+    for (Line& l : lines_) l.build();
     lines_.emplace_back("EXIT", "leave this menu");
     lines_.emplace_back("HELP", "print help for this menu",
-                        [this](TargetHandle _tgt) {
-                          for (const auto& line : this->lines_) {
-                            std::cout << line << std::endl;
-                          }
-                        });
+                        [this](TargetHandle tgt) { this->render(tgt); });
   }
 
   /**
@@ -391,7 +393,7 @@ class Menu : public BaseMenu {
    */
   static void run(TargetHandle tgt) {
     BaseMenu::open_history();
-    root()->render();
+    root()->build();
     root()->steer(tgt);
     BaseMenu::close_history();
   }
@@ -404,38 +406,47 @@ class Menu : public BaseMenu {
   /**
    * Construct a menu with a rendering function
    */
-  Menu(RenderFuncType f = 0) : render_func_{f} {}
+  Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0)
+      : render_func_{f}, hidden_categories_{hidden_categories} {}
+
+  /// set hidden categories
+  void hide(unsigned int categories) {
+    hidden_categories_ = categories;
+    for (auto& l : lines_) {
+      l.hide(categories);
+    }
+  }
 
   /**
    * Print menu without running it
    */
   void print(std::ostream& s, int indent = 0) const {
     for (const auto& l : lines_) {
-      l.print(s, indent);
+      if ((l.category() & hidden_categories_) == 0) {
+        l.print(s, indent);
+      }
     }
   }
 
   /**
-   * Drop menu lines before running it
+   * render this menu to the user
    *
-   * This is helpful for disabling certain commands or menus
-   * at runtime before running the actual menu itself.
-   *
-   * This is *not* run recursively, so if you want to drop
-   * elements from a specific menu, you must obtain the
-   * pointer to that menu somehow.
-   *
-   * @param[in] to_drop list of menu lines to drop
+   * This is its own function because it is called when
+   * we enter a menu and if the user wants to print the HELP
+   * command
+   * 1. call the user-provided render function
+   * 2. printout the list of commands in this menu
    */
-  void drop(const std::vector<std::string>& to_drop) {
-    std::erase_if(lines_, [&](auto& l) {
-      bool should_drop(std::find(to_drop.begin(), to_drop.end(), l.name()) !=
-                       to_drop.end());
-      if (should_drop) {
-        pflib_log(trace) << "dropping menu line " << l.name();
+  void render(TargetHandle tgt) const {
+    if (render_func_) {
+      render_func_(tgt);
+    }
+    std::cout << "\n";
+    for (const auto& l : lines_) {
+      if ((l.category() & hidden_categories_) == 0) {
+        std::cout << l << std::endl;
       }
-      return should_drop;
-    });
+    }
   }
 
   /**
@@ -447,6 +458,8 @@ class Menu : public BaseMenu {
    * 2. call the user-provided render function
    * 3. printout the list of commands in this menu
    *
+   * @see Menu::render for how the last two are done.
+   *
    * These tasks are only done if the command queue is empty
    * signalling that we are not in a script.
    */
@@ -454,11 +467,7 @@ class Menu : public BaseMenu {
     if (cmdTextQueue_.empty()) {
       // copy over command options for tab complete
       this->cmd_options_ = this->command_options();
-      if (render_func_) {
-        render_func_(tgt);
-      }
-      std::cout << "\n";
-      for (const auto& l : lines_) std::cout << l << std::endl;
+      this->render(tgt);
     }
   }
 
@@ -486,9 +495,6 @@ class Menu : public BaseMenu {
     enter(p_target);
     const Line* theMatch = 0;
     do {
-      if (render_func_ != 0) {
-        this->render_func_(p_target);
-      }
       std::string request = readline_cmd();
       theMatch = 0;
       // check for a unique match...
@@ -548,11 +554,13 @@ class Menu : public BaseMenu {
    * @param[in] name Name of this sub menu for selection
    * @param[in] desc description of this sub menu
    * @param[in] render_func function to use to render this sub menu
+   * @param[in] category category bit flag for hiding
    * @return pointer to newly created menu
    */
   static std::shared_ptr<Menu> menu(const char* name, const char* desc,
-                                    RenderFuncType render_func = 0) {
-    return root()->submenu(name, desc, render_func);
+                                    RenderFuncType render_func = 0,
+                                    unsigned int category = 0) {
+    return root()->submenu(name, desc, render_func, category);
   }
 
  private:
@@ -564,7 +572,11 @@ class Menu : public BaseMenu {
   virtual std::vector<std::string> command_options() const {
     std::vector<std::string> v;
     v.reserve(lines_.size());
-    for (const auto& l : lines_) v.push_back(l.name());
+    for (const auto& l : lines_) {
+      if ((l.category() & hidden_categories_) == 0) {
+        v.push_back(l.name());
+      }
+    }
     return v;
   }
 
@@ -587,14 +599,31 @@ class Menu : public BaseMenu {
   class Line {
    public:
     /// define a menu line that uses a single target command
-    Line(const char* n, const char* d, SingleTargetCommand f)
-        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(f), mult_cmds_{0} {}
+    Line(const char* n, const char* d, SingleTargetCommand f,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          cmd_(f),
+          mult_cmds_{0},
+          category_{category} {}
     /// define a menu line that uses a multiple command function
-    Line(const char* n, const char* d, MultipleTargetCommands f)
-        : name_(n), desc_(d), sub_menu_{nullptr}, mult_cmds_{f} {}
+    Line(const char* n, const char* d, MultipleTargetCommands f,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          mult_cmds_{f},
+          category_{category} {}
     /// define a menu line that enters a sub menu
-    Line(const char* n, const char* d, std::shared_ptr<Menu> m)
-        : name_(n), desc_(d), sub_menu_(m), cmd_(0), mult_cmds_{0} {}
+    Line(const char* n, const char* d, std::shared_ptr<Menu> m,
+         unsigned int category = 0)
+        : name_(n),
+          desc_(d),
+          sub_menu_(m),
+          cmd_(0),
+          mult_cmds_{0},
+          category_{category} {}
     /**
      * define an empty menu line with only a name and description
      *
@@ -602,7 +631,12 @@ class Menu : public BaseMenu {
      * when execute is called and will leave the do-while loop in Menu::steer
      */
     Line(const char* n, const char* d)
-        : name_(n), desc_(d), sub_menu_{nullptr}, cmd_(0), mult_cmds_{0} {}
+        : name_(n),
+          desc_(d),
+          sub_menu_{nullptr},
+          cmd_(0),
+          mult_cmds_{0},
+          category_{0} {}
 
     /**
      * Execute this line
@@ -644,16 +678,28 @@ class Menu : public BaseMenu {
     bool empty() const { return !sub_menu_ and cmd_ == 0 and mult_cmds_ == 0; }
 
     /**
-     * add an exit line if this is a menu, otherwise do nothing
+     * build this line
+     *
+     * we only need to do something if this line is a sub-menu
+     * in which we case we call build on the submenu.
      */
-    void render() {
-      if (sub_menu_) sub_menu_->render();
+    void build() {
+      if (sub_menu_) sub_menu_->build();
+    }
+
+    /**
+     * pass on configuration on which categories to hide
+     */
+    void hide(unsigned int categories) {
+      if (sub_menu_) sub_menu_->hide(categories);
     }
 
     /// name of this line to select it
     const char* name() const { return name_; }
     /// short description to print with menu
     const char* desc() const { return desc_; }
+    /// category int for hiding if certain categories are disabled
+    unsigned int category() const { return category_; }
 
     /**
      * Overload output stream operator for easier printing
@@ -686,6 +732,8 @@ class Menu : public BaseMenu {
     SingleTargetCommand cmd_;
     /// function handling multiple commands to execute (if exists)
     MultipleTargetCommands mult_cmds_;
+    /// category integer for disabling menu lines by groups
+    unsigned int category_;
   };  // Line
 
  private:
@@ -693,6 +741,8 @@ class Menu : public BaseMenu {
   std::vector<Line> lines_;
   /// function pointer to render the menu prompt
   RenderFuncType render_func_;
+  /// bit-wise OR of any category integers that should not be displayed
+  unsigned int hidden_categories_;
 };  // Menu
 
 }  // namespace pflib::menu

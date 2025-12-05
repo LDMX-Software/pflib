@@ -51,8 +51,19 @@ econd-decoder *args:
 
 # open the test menu
 test-menu:
+    cd build && denv make test-menu
     denv ./build/test-menu
 
 # test decoding in python bindings
 test-py-decoding:
     denv 'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
+
+# build the conda package on the DAQ server
+conda-package:
+    #!/bin/bash
+    set -o nounset
+    set -o errexit
+    source /u1/ldmx/miniforge3/etc/profile.d/conda.sh
+    conda activate base
+    conda-build env/conda --output-folder /u1/ldmx/pflib-conda-channel --channel conda-forge --channel tidair-tag
+    conda index /u1/ldmx/pflib-conda-channel

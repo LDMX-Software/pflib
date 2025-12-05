@@ -68,7 +68,7 @@ add_library(utility SHARED
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_include_directories(utility PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(utility SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 
 add_library(logging SHARED src/pflib/logging/Logging.cxx)
 target_include_directories(logging PUBLIC 
@@ -133,8 +133,11 @@ if (${Rogue_FOUND})
   list(APPEND pflib_src
     src/pflib/bittware/bittware_axilite.cxx
     src/pflib/bittware/bittware_optolink.cxx
+    src/pflib/bittware/bittware_elinks.cxx
+    src/pflib/bittware/bittware_daq.cxx
     src/pflib/bittware/bittware_FastControl.cxx
     src/pflib/bittware/HcalBackplaneBittware.cxx
+    src/pflib/bittware/EcalSMMTarget.cxx
     )
 endif()
 

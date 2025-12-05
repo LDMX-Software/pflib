@@ -47,7 +47,7 @@ void HcalBackplane::add_roc(int iroc, uint8_t roc_baseaddr,
   }
   nhgcroc_++;
   pflib::ROC roc{*roc_i2c, roc_baseaddr, roc_type_version};
-  pflib::Bias bias{bias_i2c};
+  pflib::Bias bias{bias_i2c, board_i2c};
   roc_connections_.emplace(iroc, ROCConnection{.roc_ = roc,
                                                .roc_i2c_ = roc_i2c,
                                                .bias_ = bias,

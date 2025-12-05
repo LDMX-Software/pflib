@@ -50,13 +50,26 @@ static void print_daq_status(Target* pft) {
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->daq();
   if (cmd == "ENABLE") {
-    daq.enable(!daq.enabled());
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    if (!daq.enabled()) {
+      extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      daq.enable(true);
+      pft->fc().fc_enables(true, extl1a);
+    } else {
+      pft->fc().fc_enables(false, extl1a);
+      daq.enable(false);
+    }
   }
   if (cmd == "FORMAT") {
-    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+    if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW ||
+        pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
-    } else if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
+    } else if (pftool::state.readout_config() ==
+                   pftool::State::CFG_ECALOPTO_BW ||
+               pftool::state.readout_config() ==
+                   pftool::State::CFG_ECALOPTO_ZCU) {
       printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else {
@@ -77,9 +90,10 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     pftool::state.daq_contrib_id = pftool::readline_int(
         " Contributor id for data: ", pftool::state.daq_contrib_id);
     int econid = pftool::readline_int(" ECON ID: ", daq.econid());
-    int samples = 1;  // frozen for now
-    int soi = 0;      // frozen for now
+    int samples = pftool::readline_int(" Samples/ROR: ", daq.samples_per_ror());
+    int soi = pftool::readline_int(" Sample of interest: ", daq.soi());
     daq.setup(econid, samples, soi);
+    pft->fc().setL1AperROR(samples);
   }
   /*
   if (cmd=="ZS") {
@@ -164,10 +178,16 @@ static void daq_setup(const std::string& cmd, Target* pft) {
 static void daq_setup_standard(Target* tgt) {
   /// do a standard fast control setup before tuning it below
   tgt->fc().standard_setup();
-  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO) {
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
     pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   }
-  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO) {
+  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
+    pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
+  if (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_BW) {
     pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   }
 
@@ -608,7 +628,7 @@ auto menu_daq =
     pftool::menu("DAQ", "Data AcQuisition configuration and testing")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("RESET", "Reset the DAQ", daq)
-        ->line("LINK_ECON", "Reset ECON links", daq)
+        ->line("LINK_ECON", "Reset ECON links", daq, NEED_FIBER)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
         ->line("CHARGE", "Take a charge-injection run", daq);
 
@@ -671,7 +691,7 @@ auto menu_daq_debug =
             })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
-        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup)
+        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup, ONLY_FIBERLESS)
         ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
                daq_debug_trigger_timein);
 
@@ -679,7 +699,8 @@ auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("ENABLE", "Toggle enable status", daq_setup)
-        ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup)
+        ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup,
+               ONLY_FIBERLESS)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)
         ->line("FORMAT", "Select the output data format", daq_setup)
         ->line("CONFIG", "Setup ECON id, contrib id, samples", daq_setup);

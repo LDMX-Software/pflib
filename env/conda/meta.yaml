@@ -16,12 +16,12 @@ requirements:
     - make
     - python
     - boost
-    - rogue=v6.7.0
+    - rogue
     - nlohmann_json
     - yaml-cpp
   run:
     - python
     - boost
-    - rogue=v6.7.0
+    - rogue
     - nlohmann_json
     - yaml-cpp

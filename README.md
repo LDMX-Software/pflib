@@ -19,10 +19,14 @@ make
 On this machine, `conda` is being used to standardize the environment.
 ```
 source /u1/ldmx/miniconda3/etc/profile.d/conda.sh
-conda activate ldmx-env
+conda activate ldmx-env-base
 ```
 This activation needs to be done **before** you configure (`cmake`)
 or build (`make`) pflib.
+Notice that this environment is **not** `ldmx-env`. We cannot use
+the environment that the Rogue run control uses because that environment
+already has a build of `pflib` in it that will conflict with your
+developments.
 
 ## Usage with Rogue Run Control
 Python bindings for specific functions have been implemented here,
@@ -37,6 +41,11 @@ PYTHONPATH=${PYTHONPATH}:path/to/install/lib
 ```
 - `PYTHONPATH` tells Python where it can find `pypflib`
 - `LD_LIBRARY_PATH` allows `pypflib` to link to the other pflib libraries
+
+If running Rogue Run Control within a conda environment,
+there is a [conda recipe](env/conda) for pflib that can be used
+to build a local conda package that can be installed into the conda
+environment
 
 ## Directory Structure
 - ana : shared Python snippets for useful analyses (mostly making plots)

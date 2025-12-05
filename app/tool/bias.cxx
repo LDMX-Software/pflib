@@ -12,6 +12,16 @@ ENABLE_LOGGING();
 
 static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   static int iboard = 0;
+  if (cmd == "STATUS") {
+    iboard = pftool::readline_int("Which board? ", iboard);
+    pflib::Bias bias = pft->bias(iboard);
+    double temp = bias.readTemp();
+    std::cout << "Board temperature: " << temp << " C" << std::endl;
+    for (int ch = 0; ch < 16; ch++) {
+      std::cout << "Channel " << ch << " SiPM DAC " << bias.readSiPM(ch)
+                << " LED DAC " << bias.readLED(ch) << std::endl;
+    }
+  }
   if (cmd == "READ_SIPM") {
     iboard = pftool::readline_int("Which board? ", iboard);
     pflib::Bias bias = pft->bias(iboard);
@@ -66,6 +76,17 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
       bias.setLED(ich, dac);
     }
   }
+  if (cmd == "INIT") {
+    iboard = pftool::readline_int("Which board? ", iboard);
+    pflib::Bias bias = pft->bias(iboard);
+    bias.initialize();
+  }
+  if (cmd == "READ_TEMP") {
+    iboard = pftool::readline_int("Which board? ", iboard);
+    pflib::Bias bias = pft->bias(iboard);
+    double temp = bias.readTemp();
+    std::cout << "Board temperature: " << temp << " C" << std::endl;
+  }
 }
 
 static void render(Target* tgt) {
@@ -88,9 +109,13 @@ static void bias_wrapper(const std::string& cmd, Target* tgt) {
 }
 
 namespace {
-auto menu_bias = pftool::menu("BIAS", "Read and write bias voltages", render)
-                     ->line("READ_SIPM", "Read SiPM DAC values", bias_wrapper)
-                     ->line("READ_LED", "Read LED DAC values", bias_wrapper)
-                     ->line("SET_SIPM", "Set SiPM DAC values", bias_wrapper)
-                     ->line("SET_LED", "Set LED DAC values", bias_wrapper);
+auto menu_bias =
+    pftool::menu("BIAS", "Read and write bias voltages", render, ONLY_HCAL)
+        ->line("STATUS", "Bias and board I2C summary", bias_wrapper)
+        ->line("INIT", "Board I2C Initialization", bias_wrapper)
+        ->line("READ_SIPM", "Read SiPM DAC values", bias_wrapper)
+        ->line("READ_LED", "Read LED DAC values", bias_wrapper)
+        ->line("SET_SIPM", "Set SiPM DAC values", bias_wrapper)
+        ->line("SET_LED", "Set LED DAC values", bias_wrapper)
+        ->line("READ_TEMP", "Read temperature", bias_wrapper);
 }
