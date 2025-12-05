@@ -174,6 +174,9 @@ class HcalBackplaneBW : public HcalBackplane {
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
     contrib_id_ = contrib_id;
+
+    daq().reset();
+    fc().clear_run();
   }
 
   virtual std::vector<uint32_t> read_event() override {

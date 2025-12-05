@@ -107,8 +107,10 @@ void BWFastControl::ledpulse() {
   axi_.write(REG_PULSE, 1 << BIT_FIRE_CALIB_EXT);
 }
 void BWFastControl::clear_run() {
-  bufferclear();
   resetCounters();
+  bufferclear();
+  orbit_count_reset();
+  axi_.write(REG_PULSE, 1 << BIT_FIRE_ECR);
 }
 
 void BWFastControl::fc_setup_link_reset(int bx) {
