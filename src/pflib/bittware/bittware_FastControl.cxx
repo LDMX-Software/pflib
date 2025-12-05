@@ -9,6 +9,7 @@ static constexpr int REG_PULSE = 0x100;
 static constexpr int REG_CTL = 0x600;
 static constexpr uint32_t MASK_ENABLE_L1A = 0x00000001;
 static constexpr uint32_t MASK_DISABLE_EXTERNAL = 0x00000002;
+static constexpr uint32_t MASK_DISABLE_ROR_MASK = 0x00000010;
 static constexpr uint32_t MASK_USE_NZS = 0x00000004;
 static constexpr uint32_t MASK_L1A_PER_ROR = 0x00001F00;
 static constexpr uint32_t MASK_LINK_RESET_BX = 0xFFF00000;
@@ -39,6 +40,7 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
   static const int BX_FOR_LINK_RESET = 40 * 64 - 64;
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, BX_FOR_LINK_RESET);
+  printf("%08x\n", axi_.read(REG_CTL));
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -135,11 +137,17 @@ void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
   ext_l1a = (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 0);
 }
 void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
-  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall) ? (1) : (0));
-  if (ext_l1a)
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall ? 1 : 0));
+  if (ext_l1a) {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
-  else
+    axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 0);
+  } else {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 1);
+    // disabling the ROR masking is dangerous but it seems to be necessary
+    // the ROR mask is supposed to prevent a link that is broken
+    // from accidentally sending a ROR
+    axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 1);
+  }
 }
 
 }  // namespace bittware

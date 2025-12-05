@@ -12,6 +12,8 @@ ENABLE_LOGGING();
 static void print_daq_status(Target* pft) {
   pflib::DAQ& daq = pft->daq();
   std::cout << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
+            << "     AXIS Enabled: " << std::boolalpha << daq.AXIS_enabled()
+            << "\n"
             << "          ECON ID: " << daq.econid() << "\n"
             << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
             << "              SoI: " << daq.soi() << "\n"
@@ -52,10 +54,16 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "ENABLE") {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
+    printf("%d %d\n", l1aen, extl1a);
     if (!daq.enabled()) {
       extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
       daq.enable(true);
       pft->fc().fc_enables(true, extl1a);
+      bool readout_to_AXIS = daq.AXIS_enabled();
+      readout_to_AXIS = pftool::readline_bool(
+          "Enable readout to AXIS (false for 'internal' readout) ",
+          readout_to_AXIS);
+      daq.AXIS_enable(readout_to_AXIS);
     } else {
       pft->fc().fc_enables(false, extl1a);
       daq.enable(false);
@@ -691,7 +699,8 @@ auto menu_daq_debug =
             })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
-        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup, ONLY_FIBERLESS)
+        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,
+               ONLY_FIBERLESS)
         ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
                daq_debug_trigger_timein);
 
