@@ -106,21 +106,35 @@ def adc_all_channels(
     parameter_values = set()
     activated_channels_list = []
     avg_rms_list = []
-    for i in range(len(charges_group)):
+    runs = len(charges_group)
+    for i in range(1, runs):
         activated_channels_list.append([])
         avg_rms_list.append([])
 
     for i, (charge_id, charge_df) in enumerate(charges_group):
-        print(f'Running {i+1} out of {16}')
+        print(f'Running {i+1} out of {runs}')
+        if i == 0: # Pedestal data
+            fig, ax = plt.subplots(1, 1)
+            df = charge_df[charge_df['nr channels'] == 0]
+            mean, med, std = sigma_clipped_stats(df['adc'], sigma=3)
+            pedestal = mean
+            ax.scatter(df['channel'], df['adc'],
+                        s=5, color='r', lw=1)
+            ax.set_ylabel('ADC')
+            ax.set_xlabel('Channel')
+            fig.savefig('Pedestal.png', dpi=400)
+            plt.close(fig)
+            continue
         fig, ax = plt.subplots(2, 1, sharex=True, height_ratios=[4,1])
+        fig_time, ax_time = plt.subplots(1, 1)
         ax1 = ax[0]
         ax2 = ax[1]
-        ax1.set_ylim(0,1000)
-        ax2.set_ylim(-10,20)
-        ax1.set_ylabel('Max ADC')
+        ax1.set_ylabel(r'$\Delta$ADC (Max ADC - pedestal)')
         ax2.set_xlabel('Channel')
         ax2.set_ylabel('RMS')
         ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+        ax_time.set_ylabel(r'ADC')
+        ax_time.set_xlabel(r'Time')
 
         param_group, param_name = get_params(charge_df, 0)
         cmap = plt.get_cmap('viridis')
@@ -135,13 +149,9 @@ def adc_all_channels(
             color = cmap(j/n)
 
             parameter_values.add(val)
-
             max_by_channel =(
                     param_df.groupby('channel')['adc'].max().reset_index()
             )
-            if pedestal == 0:
-                mean, med, std = sigma_clipped_stats(param_df['adc'], sigma=3)
-                pedestal = mean
             rms_by_channel = []
             for ch, ch_df in param_df.groupby('channel'):
                 rms = ((ch_df['adc'] - pedestal)**2).mean()**0.5
@@ -149,35 +159,41 @@ def adc_all_channels(
             avg_rms = 0
             count = 0
             for k in range(36):
-                if k >= 16-i and k <= 16+i:
+                if k >= 18-(i-1) and k <= 18+(i-1):
                     continue
                 avg_rms += rms_by_channel[k][1]
                 count += 1
-            avg_rms = avg_rms/count
-            avg_rms_list[i].append(avg_rms)
-            activated_channels_list[i].append(i+1)
+            if count != 0:
+                avg_rms = avg_rms/count
+                avg_rms_list[i-1].append(avg_rms)
+                activated_channels_list[i-1].append(i)
             rms_df = pd.DataFrame(rms_by_channel, columns=['channel', 'rms'])
             merged = max_by_channel.merge(rms_df, on='channel')
             merged['diff'] = abs(merged['adc']-mean)
-            ax1.scatter(merged['channel'], merged['adc'], 
-                        label=f'{key} = {val}, pedestal = {mean:.0f}',
+            ax1.set_ylim(-10, max(merged['diff'])+10)
+            ax2.set_ylim(-2, 20)
+            link_df = param_df[param_df['channel'] < 36]
+            ax1.scatter(merged['channel'], merged['diff'],
+                        label=f'{key} = {val}',
+                        s=5, color=color, lw=1)
+            ax2.errorbar(merged['channel'], merged['rms'],
+                        fmt='o', markersize=2, color=color,
+                        lw=1)
+            ax_time.scatter(link_df['time'], link_df['adc'], 
+                        label=f'{key} = {val}',
                         s=5, color=color)
-            ax2.errorbar(merged['channel'], merged['diff'],
-                         yerr=merged['rms'], 
-                         fmt='o', markersize=2, color=color,
-                         label=f'avg RMS of pedestals = {avg_rms:.2f}')
+        ax1.axhline(y=0, color='k', linestyle='--', linewidth=.8, label=f"Pedestal = {pedestal:.0f}")
+        ax1.axvline(x=35.5, color='r', linestyle='--', linewidth=.8, label="Link boundary", alpha=0.5)
         ax2.axhline(y=0, color='k', linestyle='--', linewidth=.8)
-        ax2.axvline(x=35.5, color='k', linestyle='--', linewidth=.8)
+        ax2.axvline(x=35.5, color='r', linestyle='--', linewidth=.8, alpha=0.5)
         ax1.legend(fontsize=8)
-        ax2.legend(loc='lower right', fontsize=8)
-        handles1, labels1 = ax1.get_legend_handles_labels()
-        handles2, labels2 = ax2.get_legend_handles_labels()
-        all_handles = handles1 + handles2
-        all_labels = labels1 + labels2
-        ax1.legend(handles=all_handles, labels=all_labels, fontsize=8)
-        ax2.legend().remove()
-        fig.savefig(f'adc_all_channels_{i}.png', dpi=400)
+        ax1.grid(True, alpha=0.3)
+        ax2.grid(True, alpha=0.3)
+        fig.savefig(f'adc_channels_{i}.png', dpi=400)
+        ax_time.legend(fontsize=8)
+        fig_time.savefig(f'adc_time_{i}.png', dpi=400)
         plt.close(fig)
+        plt.close(fig_time)
 
     # Transpose data
     activated_transposed = [list(col) for col in zip(*activated_channels_list)]
