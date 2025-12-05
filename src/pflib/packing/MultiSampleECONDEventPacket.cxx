@@ -53,15 +53,22 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
      */
     uint32_t vers = ((frame[offset] >> 28) & mask<4>);
     uint32_t new_econd_id = ((frame[offset] >> 18) & mask<10>);
+    uint32_t il1a = ((frame[offset] >> 13) & mask<5>);
+    bool is_soi = (((frame[offset] >> 12) & mask<1>) == 1);
+    uint32_t econd_len = (frame[offset] & mask<8>);
+
+    if (not is_soi and il1a == 31 and new_econd_id == 63) {
+      pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
+                       << offset << " (frame.size() = " << frame.size() << ")";
+      break;
+    }
+
     if (i_sample > 0 and econd_id != new_econd_id) {
       pflib_log(warn) << "ECON ID mismatch: Found " << new_econd_id
                       << " but this stream was " << econd_id << " earlier";
 
     }
     econd_id = new_econd_id;
-    uint32_t il1a = ((frame[offset] >> 13) & mask<5>);
-    bool is_soi = (((frame[offset] >> 12) & mask<1>) == 1);
-    uint32_t econd_len = (frame[offset] & mask<8>);
     pflib_log(trace) << hex(frame[offset])
                      << " -> econd_len, il1a, econd_id, is_soi = " << econd_len
                      << ", " << il1a << ", " << econd_id << ", " << is_soi;
@@ -79,11 +86,6 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
       i_soi = i_sample;
     }
 
-    if (not is_soi and il1a == 0 and econd_len == 0) {
-      pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
-                       << offset << " (frame.size() = " << frame.size() << ")";
-      break;
-    }
 
     samples.emplace_back(n_links_);
     samples.back().from(frame.subspan(offset, econd_len));
@@ -109,10 +111,16 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
     }
     frame.push_back(word);
     std::size_t offset{1};
+    uint32_t vers = ((word >> 28) & mask<4>);
+    uint32_t new_econd_id = ((word >> 18) & mask<10>);
+    uint32_t il1a = ((word >> 13) & mask<5>);
+    bool is_soi = (((word >> 12) & mask<1>) == 1);
     uint32_t econd_len = word & mask<8>;
-    pflib_log(trace) << "using " << hex(word)
-                     << " to get econd length = " << econd_len;
-    if (econd_len == 0) {
+    pflib_log(trace) << hex(word)
+                     << " -> vers, econd_len, il1a, econd_id, is_soi = "
+                     << vers << ", " << econd_len << ", " << il1a << ", "
+                     << new_econd_id << ", " << is_soi;
+    if (new_econ_id == 63 and il1a == 31) {
       pflib_log(trace) << "found special header marking end of packet"
                        << ", leaving accumulation loop";
       break;
@@ -121,6 +129,7 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
       pflib_log(warn) << "partially transmitted frame!";
       return r;
     }
+    pflib_log(trace) << hex(*(frame.end()-1));
     offset += econd_len;
   }
 
