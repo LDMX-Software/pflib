@@ -1,5 +1,7 @@
+#pragma once
 #include "pflib/DAQ.h"
 #include "pflib/bittware/bittware_axilite.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib {
 namespace bittware {
@@ -30,6 +32,7 @@ class HcalBackplaneBW_Capture : public DAQ {
  private:
   AxiLite capture_;
   bool per_econ_;
+  mutable logging::logger the_log_;
 };
 
 }  // namespace bittware

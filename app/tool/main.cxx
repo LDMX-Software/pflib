@@ -370,7 +370,6 @@ int main(int argc, char* argv[]) {
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
 #endif
-
     } else {
       pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;

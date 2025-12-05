@@ -82,8 +82,13 @@ class pftool : public pflib::menu::Menu<Target*> {
         pflib::ECON econ, const std::string& page) const;
     /// get the readout configurion
     int readout_config() const { return cfg_; }
-    /// get the readout configurion
+    /// check if we are reading out on a zcu
     bool readout_config_is_zcu() const { return cfg_ < 20; }
+    /// check if we are reading out a Hcal HGCROC Board
+    bool readout_config_is_hcal() const {
+      return cfg_ == CFG_HCALFMC || cfg_ == CFG_HCALOPTO_ZCU ||
+             cfg_ == CFG_HCALOPTO_BW;
+    }
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with
