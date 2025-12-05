@@ -11,8 +11,8 @@ ENABLE_LOGGING();
 
 void multi_channel_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  int calib = pftool::readline_int("Setting for calib pulse amplitude? ",
-                                   highrange ? 64 : 1024);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
+  bool highrange = pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   int link{0};
@@ -20,19 +20,17 @@ void multi_channel_scan(Target* tgt) {
   std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
 
   int ch0{0};
-  link == 0 ? ch = 16 : ch = 52;
+  link == 0 ? ch0 = 18 : ch0 = 54;
 
   auto roc{tgt->roc(pftool::state.iroc)};
   auto test_param_handle = roc.testParameters();
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
   test_param_handle
-        .add(refvol_page, "CALIB_2V5", calib)
+        .add(refvol_page, "CALIB", highrange ? calib : 0)
+        .add(refvol_page, "CALIB_2V5", highrange ? 0 : calib)
         .add(refvol_page, "INTCTEST", 1)
-        .apply();
-  }
-
+        .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0);
   auto test_param = test_param_handle.apply();
-
 
   std::filesystem::path parameter_points_file =
       pftool::readline("File of parameter points: ");
@@ -49,19 +47,22 @@ void multi_channel_scan(Target* tgt) {
   int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
+  int nr_channels{-1};
   DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
         header["preCC"] = "True";
-        f << std::boolalpha << "# " << header << '\n' << "time,";
+        f << std::boolalpha << "# " << header << '\n' << "nr channels," << "time,";
         for (const auto& [page, parameter] : param_names) {
           f << page << '.' << parameter << ',';
         }
+        f << "channel,";
         f << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-        for (int ch = ch0 - 16; ch < ch0 + 16; ch++) {
+        for (int ch{0}; ch < 72; ch++) {
+          f << nr_channels+1 << ',';
           f << time << ',';
 
           for (const auto& val : param_values[i_param_point]) {
@@ -76,14 +77,20 @@ void multi_channel_scan(Target* tgt) {
   tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
                  1 /* dummy */);
   // Do the scan for increasing amount of channels
-  for (int j = 0; j < 16; j++) {
-    int nr_channels = 2*j;
+  for (nr_channels; nr_channels < 18; nr_channels++) {
+    pflib_log(info) << "running scan " << nr_channels + 1 << " out of 19";
+    auto test_param_handle = roc.testParameters();
+    if (nr_channels == -1) { // In case of -1, just take pedestal data
+      daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
+      continue;
+    }
     for (int ch = ch0-nr_channels; ch <= ch0+nr_channels; ch++) {
       auto channel_page = pflib::utility::string_format("CH_%d", ch);
       test_param_handle
-          .add(channel_page, "HIGHRANGE", 1)
+          .add(channel_page, "HIGHRANGE", 1);
     }
-    auto test_param_two = test_param_handle.apply(); 
+    auto test_param_two = test_param_handle.apply();
+    i_param_point = 0;
     for (; i_param_point < param_values.size(); i_param_point++) {
       // set parameters
       auto test_param_builder = roc.testParameters();
@@ -98,7 +105,6 @@ void multi_channel_scan(Target* tgt) {
         } else {
           test_param_builder.add(str_page + "_" + std::to_string(link), param,
                                      value);
-          }
         }
         pflib_log(info) << param << " = " << value;
       }

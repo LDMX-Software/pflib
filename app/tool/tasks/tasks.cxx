@@ -20,6 +20,7 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
+#include "multi_channel_scan.h"
 
 namespace {
 auto menu_tasks =
@@ -39,6 +40,9 @@ auto menu_tasks =
         ->line("SAMPLING_PHASE_SCAN",
                "scan phase_ck, pedestal for clock phase alignment",
                sampling_phase_scan)
+        ->line("MULTI_CHANNEL_SCAN",
+               "scans multiple channels to look for cross-talk",
+               multi_channel_scan)
         ->line("VT50_SCAN",
                "Hones in on the vt50 with a binary or bisectional scan",
                vt50_scan)
