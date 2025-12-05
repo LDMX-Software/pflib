@@ -12,6 +12,7 @@ ENABLE_LOGGING();
 static void print_daq_status(Target* pft) {
   pflib::DAQ& daq = pft->daq();
   std::cout << "          Enabled: " << std::boolalpha << daq.enabled() << "\n"
+            << "     AXIS Enabled: " << std::boolalpha << daq.AXIS_enabled() << "\n"
             << "          ECON ID: " << daq.econid() << "\n"
             << "  Samples per RoR: " << daq.samples_per_ror() << "\n"
             << "              SoI: " << daq.soi() << "\n"

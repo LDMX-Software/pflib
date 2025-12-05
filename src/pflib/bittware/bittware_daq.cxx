@@ -187,6 +187,9 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
         capture_.read(ADDR_BASE_LINK_COUNTER + 0x11 * stepsize);
     dbg[string_format("ECON%d.STATE", ilink)] =
         capture_.read(ADDR_BASE_LINK_COUNTER + 0x12 * stepsize);
+    capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY, 0);
+    dbg[string_format("ECON%d.NEXT_EVENT_SIZE", ilink)] =
+        capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
   }
   return dbg;
 }
