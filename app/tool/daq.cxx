@@ -691,7 +691,8 @@ auto menu_daq_debug =
             })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
-        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup, ONLY_FIBERLESS)
+        ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,
+               ONLY_FIBERLESS)
         ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
                daq_debug_trigger_timein);
 

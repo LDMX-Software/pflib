@@ -233,7 +233,7 @@ static void fc(const std::string& cmd, Target* pft) {
     offset = pftool::readline_int("Calibration L1A offset?", offset);
     pft->fc().fc_setup_calib(offset);
   }
-  
+
   if (cmd == "LED") {
     int offset = pft->fc().fc_get_setup_led();
     offset = pftool::readline_int("Calibration L1A offset for LED?", offset);
