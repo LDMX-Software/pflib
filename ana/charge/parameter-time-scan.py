@@ -102,6 +102,10 @@ def adc_all_channels(
     fig_rms, ax_rms = plt.subplots(1, 1)
     ax_rms.set_xlabel('Channels activated')
     ax_rms.set_ylabel('Average RMS of non-activated channels')
+    link = 0
+    central_val = 18
+    if link == 1:
+        central_val = 54
 
     parameter_values = set()
     activated_channels_list = []
@@ -116,6 +120,10 @@ def adc_all_channels(
         if i == 0: # Pedestal data
             fig, ax = plt.subplots(1, 1)
             df = charge_df[charge_df['nr channels'] == 0]
+            if link == 0:
+                df = df[df['channel'] < 36]
+            else:
+                df = df[df['channel'] >= 36]
             mean, med, std = sigma_clipped_stats(df['adc'], sigma=3)
             pedestal = mean
             ax.scatter(df['channel'], df['adc'],
@@ -158,8 +166,8 @@ def adc_all_channels(
                 rms_by_channel.append((ch,rms))
             avg_rms = 0
             count = 0
-            for k in range(36):
-                if k >= 18-(i-1) and k <= 18+(i-1):
+            for k in range(central_val-18, central_val+18):
+                if k >= central_val-(i-1) and k <= central_val+(i-1):
                     continue
                 avg_rms += rms_by_channel[k][1]
                 count += 1
@@ -172,7 +180,10 @@ def adc_all_channels(
             merged['diff'] = abs(merged['adc']-mean)
             ax1.set_ylim(-10, max(merged['diff'])+10)
             ax2.set_ylim(-2, 20)
-            link_df = param_df[param_df['channel'] < 36]
+            if link == 0:
+                link_df = param_df[param_df['channel'] < 36]
+            else:
+                link_df = param_df[param_df['channel'] >= 36]
             ax1.scatter(merged['channel'], merged['diff'],
                         label=f'{key} = {val}',
                         s=5, color=color, lw=1)
@@ -206,10 +217,10 @@ def adc_all_channels(
         popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
         slopes.append(popt[0])
         intercepts.append(popt[1])
-        ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8, color='k')
+        ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8)
         xfit = np.linspace(min(activated_transposed[i]), max(activated_transposed[i]), 100)
         ax_rms.plot(xfit, linear(xfit, *popt), 
-            label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}')
+            label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB = {parameter_values[i]}')
     ax_rms.legend(fontsize=8)
     fig_rms.savefig('avg_rms.png', dpi=400)
     plt.close(fig_rms)
