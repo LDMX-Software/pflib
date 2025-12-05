@@ -54,7 +54,7 @@ class DAQ {
   /// is AXIS enabled?
   virtual bool AXIS_enabled() { return false; }
   /// enable/disable AXIS
-  virtual void AXIS_enable(bool enable) { }
+  virtual void AXIS_enable(bool enable) {}
 
   /// read out link data
   virtual std::vector<uint32_t> getLinkData(int ilink) = 0;
