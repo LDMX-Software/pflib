@@ -194,7 +194,7 @@ class HcalBackplaneBW : public HcalBackplane {
       }
     } else {
       PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
+                        "HcalBackplaneBWTarget::read_event not implemented "
                         "for provided DaqFormat");
     }
 
