@@ -66,7 +66,6 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
     if (i_sample > 0 and econd_id != new_econd_id) {
       pflib_log(warn) << "ECON ID mismatch: Found " << new_econd_id
                       << " but this stream was " << econd_id << " earlier";
-
     }
     econd_id = new_econd_id;
     pflib_log(trace) << hex(frame[offset])
@@ -85,7 +84,6 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
     if (is_soi) {
       i_soi = i_sample;
     }
-
 
     samples.emplace_back(n_links_);
     samples.back().from(frame.subspan(offset, econd_len));
@@ -106,7 +104,8 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
     uint32_t word{0};
     if (!(r >> word)) {
       // is this worthy of a warning?
-      pflib_log(trace) << "leaving frame accumulation loop failing to pop next header word";
+      pflib_log(trace)
+          << "leaving frame accumulation loop failing to pop next header word";
       break;
     }
     frame.push_back(word);
@@ -117,8 +116,8 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
     bool is_soi = (((word >> 12) & mask<1>) == 1);
     uint32_t econd_len = word & mask<8>;
     pflib_log(trace) << hex(word)
-                     << " -> vers, econd_len, il1a, econd_id, is_soi = "
-                     << vers << ", " << econd_len << ", " << il1a << ", "
+                     << " -> vers, econd_len, il1a, econd_id, is_soi = " << vers
+                     << ", " << econd_len << ", " << il1a << ", "
                      << new_econd_id << ", " << is_soi;
     if (new_econd_id == 63 and il1a == 31) {
       pflib_log(trace) << "found special header marking end of packet"
@@ -129,7 +128,7 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
       pflib_log(warn) << "partially transmitted frame!";
       return r;
     }
-    pflib_log(trace) << hex(*(frame.end()-1));
+    pflib_log(trace) << hex(*(frame.end() - 1));
     offset += econd_len;
   }
 
