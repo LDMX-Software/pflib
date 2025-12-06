@@ -146,7 +146,8 @@ class HcalBackplaneZCU : public HcalBackplane {
         daq().advanceLinkReadPtr();
       }
       // special trailer word
-      // TODO: update to match FW, I just set ievt, soi, and subpacket size to zero
+      // TODO: update to match FW, I just set ievt, soi, and subpacket size to
+      // zero
       buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18));
     } else {
       PFEXCEPTION_RAISE("NoImpl",
