@@ -8,7 +8,7 @@ namespace bittware {
 
 class HcalBackplaneBW_Capture : public DAQ {
  public:
-  HcalBackplaneBW_Capture(const char* dev = "/dev/datadev_0");
+  HcalBackplaneBW_Capture(const char* dev);
   virtual void reset();
   virtual int getEventOccupancy();
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {

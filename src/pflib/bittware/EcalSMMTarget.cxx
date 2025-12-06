@@ -35,7 +35,7 @@ class EcalSMMTargetBW : public Target {
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
     using namespace pflib::lpgbt::standard_config;
 
