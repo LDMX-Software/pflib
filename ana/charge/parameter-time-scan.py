@@ -144,7 +144,10 @@ def adc_all_channels(
         ax_time.set_ylabel(r'ADC')
         ax_time.set_xlabel(r'Time')
 
-        param_group, param_name = get_params(charge_df, 0)
+        try:
+            param_group, param_name = get_params(charge_df, 0)
+        except:
+            param_group = [(None, charge_df)]
         cmap = plt.get_cmap('viridis')
         n = len(param_group)
         #pick = 6 # Pick one parameter if needed
@@ -152,18 +155,24 @@ def adc_all_channels(
             if 'pick' in locals():
                 if j != pick:
                     continue
-            key = param_name.split('.')[1]
-            val = param_df[param_name].iloc[0]
+            try:
+                key = param_name.split('.')[1]
+                val = param_df[param_name].iloc[0]
+            except: # LED flash. We add instead the nr of channels injected on
+                key = "Channels flashed, voltage [mVpp]"
+                val = 4, 2000
             color = cmap(j/n)
-
             parameter_values.add(val)
-            max_by_channel =(
-                    param_df.groupby('channel')['adc'].max().reset_index()
+
+            max_diff_by_channel = (param_df.groupby('channel')['adc']
+                .apply(lambda s: (s - pedestal).abs().max())
+                .reset_index(name='max_diff')
             )
+
             rms_by_channel = []
-            for ch, ch_df in param_df.groupby('channel'):
+            for ch_id, ch_df in param_df.groupby('channel'):
                 rms = ((ch_df['adc'] - pedestal)**2).mean()**0.5
-                rms_by_channel.append((ch,rms))
+                rms_by_channel.append((ch_id,rms))
             avg_rms = 0
             count = 0
             for k in range(central_val-18, central_val+18):
@@ -176,22 +185,26 @@ def adc_all_channels(
                 avg_rms_list[i-1].append(avg_rms)
                 activated_channels_list[i-1].append(i)
             rms_df = pd.DataFrame(rms_by_channel, columns=['channel', 'rms'])
-            merged = max_by_channel.merge(rms_df, on='channel')
-            merged['diff'] = abs(merged['adc']-mean)
-            ax1.set_ylim(-10, max(merged['diff'])+10)
+            merged = max_diff_by_channel.merge(rms_df, on='channel')
+            ax1.set_ylim(-10, max(merged['max_diff'])+10)
             ax2.set_ylim(-2, 20)
             if link == 0:
                 link_df = param_df[param_df['channel'] < 36]
             else:
                 link_df = param_df[param_df['channel'] >= 36]
-            ax1.scatter(merged['channel'], merged['diff'],
+            ax1.scatter(merged['channel'], merged['max_diff'],
                         label=f'{key} = {val}',
                         s=5, color=color, lw=1)
             ax2.errorbar(merged['channel'], merged['rms'],
                         fmt='o', markersize=2, color=color,
                         lw=1)
-            ax_time.scatter(link_df['time'], link_df['adc'], 
-                        label=f'{key} = {val}',
+            chs = link_df.groupby('channel')
+            cmap2 = plt.get_cmap('tab20')
+            n = len(chs)
+            for k, (ch_id, ch_df) in enumerate(chs):
+                color = cmap2(k/n)
+                ax_time.scatter(ch_df['time'], ch_df['adc'], 
+                        #label=f'{key} = {val}',
                         s=5, color=color)
         ax1.axhline(y=0, color='k', linestyle='--', linewidth=.8, label=f"Pedestal = {pedestal:.0f}")
         ax1.axvline(x=35.5, color='r', linestyle='--', linewidth=.8, label="Link boundary", alpha=0.5)
@@ -207,33 +220,33 @@ def adc_all_channels(
         plt.close(fig_time)
 
     # Transpose data
-    activated_transposed = [list(col) for col in zip(*activated_channels_list)]
-    rms_transposed = [list(col) for col in zip(*avg_rms_list)]
+   # activated_transposed = [list(col) for col in zip(*activated_channels_list)]
+   # rms_transposed = [list(col) for col in zip(*avg_rms_list)]
 
-    parameter_values = sorted(parameter_values)
-    slopes = []
-    intercepts = []
-    for i in range(len(rms_transposed)):
-        popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
-        slopes.append(popt[0])
-        intercepts.append(popt[1])
-        ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8)
-        xfit = np.linspace(min(activated_transposed[i]), max(activated_transposed[i]), 100)
-        ax_rms.plot(xfit, linear(xfit, *popt), 
-            label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB = {parameter_values[i]}')
-    ax_rms.legend(fontsize=8)
-    fig_rms.savefig('avg_rms.png', dpi=400)
-    plt.close(fig_rms)
+   # parameter_values = sorted(parameter_values)
+   # slopes = []
+   # intercepts = []
+   # for i in range(len(rms_transposed)):
+   #     popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
+   #     slopes.append(popt[0])
+   #     intercepts.append(popt[1])
+   #     ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8)
+   #     xfit = np.linspace(min(activated_transposed[i]), max(activated_transposed[i]), 100)
+   #     ax_rms.plot(xfit, linear(xfit, *popt), 
+   #         label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB = {parameter_values[i]}')
+   # ax_rms.legend(fontsize=8)
+   # fig_rms.savefig('avg_rms.png', dpi=400)
+   # plt.close(fig_rms)
 
-    # Plot the slope and intercept vs input parameter!
-    fig_par, ax_par = plt.subplots(1,1)
-    ax_par.scatter(parameter_values, slopes, label='slopes')
-    ax_par.scatter(parameter_values, intercepts, label='intercepts')
-    ax_par.legend(fontsize=8)
-    ax_par.set_xlabel('CALIB')
-    ax_par.set_title('Slope and intercepts as results from fits of avg RMS on non-activated channels')
-    fig_par.savefig('slope_intercept.png', dpi=400)
-    plt.close(fig_par)
+   # # Plot the slope and intercept vs input parameter!
+   # fig_par, ax_par = plt.subplots(1,1)
+   # ax_par.scatter(parameter_values, slopes, label='slopes')
+   # ax_par.scatter(parameter_values, intercepts, label='intercepts')
+   # ax_par.legend(fontsize=8)
+   # ax_par.set_xlabel('CALIB')
+   # ax_par.set_title('Slope and intercepts as results from fits of avg RMS on non-activated channels')
+   # fig_par.savefig('slope_intercept.png', dpi=400)
+   # plt.close(fig_par)
 
 
 def time(
