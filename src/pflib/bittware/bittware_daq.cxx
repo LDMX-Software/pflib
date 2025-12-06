@@ -82,7 +82,12 @@ void HcalBackplaneBW_Capture::reset() {
 }
 int HcalBackplaneBW_Capture::getEventOccupancy() {  // hmm... multiple econs...
   capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
-  return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) / samples_per_ror();
+  auto nsamples = capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
+  if (samples_per_ror() == 0) {
+    pflib_log(warn) << "DAQ not configured, Samples/ROR set to zero.";
+    return nsamples;
+  }
+  return nsamples / samples_per_ror();
 }
 void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
   int nevt = getEventOccupancy();
