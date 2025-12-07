@@ -7,8 +7,10 @@ struct CalibConstants {
     double tj_user;
     double vref_slope;
     double vref_offset;
-    double temp_slope;
-    double temp_offset;
+    double TEMPERATURE_UNCALVREF_SLOPE;
+    double TEMPERATURE_UNCALVREF_OFFSET;
+    double TEMPERATURE_SLOPE;
+    double TEMPERATURE_OFFSET;
     double ADC_X2_SLOPE;
     double ADC_X2_SLOPE_TEMP;
     double ADC_X2_OFFSET;
@@ -50,8 +52,10 @@ void save_results(const std::string& results_file,
     YAML::Node cal;
     cal["vref_slope"]  = calib.vref_slope;
     cal["vref_offset"] = calib.vref_offset;
-    cal["temp_slope"]  = calib.temp_slope;
-    cal["temp_offset"] = calib.temp_offset;
+    cal["TEMPERATURE_SLOPE"]  = calib.TEMPERATURE_SLOPE;
+    cal["TEMPERATURE_OFFSET"] = calib.TEMPERATURE_OFFSET;
+    cal["TEMPERATURE_UNCALVREF_SLOPE"]  = calib.TEMPERATURE_UNCALVREF_SLOPE;
+    cal["TEMPERATURE_UNCALVREF_OFFSET"] = calib.TEMPERATURE_UNCALVREF_OFFSET;
     cal["ADC_X2_SLOPE"] = calib.ADC_X2_SLOPE;
     cal["ADC_X2_SLOPE_TEMP"] = calib.ADC_X2_SLOPE_TEMP;
     cal["ADC_X2_OFFSET"] = calib.ADC_X2_OFFSET;
@@ -110,8 +114,10 @@ CalibConstants calculate_tj_user(const std::string& results_file,
 
     c.vref_slope  = cal["vref_slope"].as<double>();
     c.vref_offset = cal["vref_offset"].as<double>();
-    c.temp_slope  = cal["temp_slope"].as<double>();
-    c.temp_offset = cal["temp_offset"].as<double>();
+    c.TEMPERATURE_SLOPE  = cal["TEMPERATURE_SLOPE"].as<double>();    
+    c.TEMPERATURE_OFFSET = cal["TEMPERATURE_OFFSET"].as<double>();
+    c.TEMPERATURE_UNCALVREF_OFFSET = cal["TEMPERATURE_UNCALVREF_OFFSET"].as<double>();
+    c.TEMPERATURE_UNCALVREF_SLOPE  = cal["TEMPERATURE_UNCALVREF_SLOPE"].as<double>();
     c.ADC_X2_SLOPE = cal["ADC_X2_SLOPE"].as<double>();
     c.ADC_X2_SLOPE_TEMP = cal["ADC_X2_SLOPE_TEMP"].as<double>();
     c.ADC_X2_OFFSET = cal["ADC_X2_OFFSET"].as<double>();
@@ -160,8 +166,10 @@ static void get_calib_constants(Target* tgt) {
 		
 		calib.vref_slope  = -0.3108;
 		calib.vref_offset = 117.1;
-		calib.temp_slope  = 0.4546;
-		calib.temp_offset = -206.1;
+		calib.TEMPERATURE_SLOPE  = 415;
+		calib.TEMPERATURE_OFFSET = -184;
+		calib.TEMPERATURE_UNCALVREF_SLOPE  = 0.455;
+		calib.TEMPERATURE_UNCALVREF_OFFSET = -206;
 		calib.ADC_X2_SLOPE = 0.00104;
 	        calib.ADC_X2_SLOPE_TEMP = -0.00000000309;
 		calib.ADC_X2_OFFSET = -0.0302;
@@ -189,8 +197,10 @@ static void get_calib_constants(Target* tgt) {
         		if (row[col["CHIPID"]] == chipid_hex) {
             			calib.vref_slope  = std::stod(row[col["VREF_SLOPE"]]);
             			calib.vref_offset = std::stod(row[col["VREF_OFFSET"]]);
-            			calib.temp_slope  = std::stod(row[col["TEMPERATURE_UNCALVREF_SLOPE"]]);
-            			calib.temp_offset = std::stod(row[col["TEMPERATURE_UNCALVREF_OFFSET"]]);
+            			calib.TEMPERATURE_SLOPE  = std::stod(row[col["TEMPERATURE_SLOPE"]]);
+            			calib.TEMPERATURE_OFFSET = std::stod(row[col["TEMPERATURE_OFFSET"]]);
+            			calib.TEMPERATURE_UNCALVREF_SLOPE  = std::stod(row[col["TEMPERATURE_UNCALVREF_SLOPE"]]);
+            			calib.TEMPERATURE_UNCALVREF_OFFSET = std::stod(row[col["TEMPERATURE_UNCALVREF_OFFSET"]]);
         			calib.ADC_X2_SLOPE       = std::stod(row[col["ADC_X2_SLOPE"]]);
         			calib.ADC_X2_SLOPE_TEMP  = std::stod(row[col["ADC_X2_SLOPE_TEMP"]]);
         			calib.ADC_X2_OFFSET      = std::stod(row[col["ADC_X2_OFFSET"]]);
@@ -220,7 +230,7 @@ static void get_calib_constants(Target* tgt) {
 
 	printf("  > ADC Value: %d\n", adc_value);
 
-	float tj_user = adc_value * calib.temp_slope + calib.temp_offset;
+	float tj_user = adc_value * calib.TEMPERATURE_UNCALVREF_SLOPE + calib.TEMPERATURE_UNCALVREF_OFFSET;
 	printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n", tj_user);
 
 	int optimal_vref_tune = static_cast<int>(std::round(tj_user * calib.vref_slope + calib.vref_offset));
@@ -258,13 +268,13 @@ static void read_internal_temp(Target* tgt) {
     	double adc_offset      = constants.ADC_X2_OFFSET;
         double adc_offset_temp = constants.ADC_X2_OFFSET_TEMP;
 	double tj_user         = constants.tj_user;
-	double temp_slope      = constants.temp_slope;
-	double temp_offset     = constants.temp_offset;
+	double temp_slope      = constants.TEMPERATURE_SLOPE;
+	double temp_offset     = constants.TEMPERATURE_OFFSET;
 
 	double vadc_v = adc_value * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
 
 	printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
-	double temperature_c = (vadc_v * constants.temp_slope) + constants.temp_offset;
+	double temperature_c = (vadc_v * constants.TEMPERATURE_SLOPE) + constants.TEMPERATURE_OFFSET;
 	printf("  > Internal Temperature: %.2f degrees C\n", temperature_c);
 }
 
