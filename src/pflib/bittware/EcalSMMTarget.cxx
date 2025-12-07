@@ -122,8 +122,25 @@ class EcalSMMTargetBW : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    PFEXCEPTION_RAISE("NoImpl", "EcalSMMTargetBW::read_event not implemented.");
-    return {};
+    std::vector<uint32_t> buf;
+
+    if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
+      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
+        // only one elink right now
+        std::vector<uint32_t> subpacket = daq().getLinkData(0);
+        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
+                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
+                      (subpacket.size()));
+        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
+        daq().advanceLinkReadPtr();
+      }
+    } else {
+      PFEXCEPTION_RAISE("NoImpl",
+                        "HcalBackplaneZCUTarget::read_event not implemented "
+                        "for provided DaqFormat");
+    }
+
+    return buf;
   }
 
  private:
