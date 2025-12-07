@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
+#include <yaml-cpp/yaml.h>
 
 inline std::vector<std::string> split_csv(const std::string& line) {
     std::vector<std::string> out;
