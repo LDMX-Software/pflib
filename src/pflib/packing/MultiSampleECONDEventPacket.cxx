@@ -109,7 +109,6 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
       break;
     }
     frame.push_back(word);
-    std::size_t offset{1};
     uint32_t vers = ((word >> 28) & mask<4>);
     uint32_t new_econd_id = ((word >> 18) & mask<10>);
     uint32_t il1a = ((word >> 13) & mask<5>);
@@ -124,12 +123,11 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
                        << ", leaving accumulation loop";
       break;
     }
-    if (!r.read(frame, econd_len, offset)) {
+    if (!r.read(frame, econd_len, frame.size())) {
       pflib_log(warn) << "partially transmitted frame!";
       return r;
     }
     pflib_log(trace) << hex(*(frame.end() - 1));
-    offset += econd_len;
   }
 
   this->from(frame);
