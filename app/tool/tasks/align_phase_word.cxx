@@ -59,9 +59,12 @@ void align_phase_word(Target* tgt) {
 
   // Get channels from user
   std::string ch_str = pftool::readline(
-      "Enter channels (comma-separated), default is all channels: ",
+      "Enter channel(s) to check (comma-separated), default is all channels 0-7. Upon "
+      "succesful match, all channels will be checked for alignment at that "
+      "BX: ",
       "0,1,2,3,4,5,6,7");
   std::vector<int> channels;
+  std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7};
   std::stringstream ss(ch_str);
   std::string item;
   while (std::getline(ss, item, ',')) {
@@ -92,16 +95,22 @@ void align_phase_word(Target* tgt) {
     return;
   }
 
-  // Set IDLEs in ROC with enough bit transitions
-  auto roc_setup_builder =
-      roc.testParameters()
-          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_0", "BX_OFFSET", 1)
-          .add("DIGITALHALF_1", "BX_OFFSET", 1)
-          .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-          .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
-  auto roc_test_params = roc_setup_builder.apply();
+  // // Set IDLEs in ROC with enough bit transitions
+  
+  auto roc_setup_builder = roc.testParameters()
+            .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+            .add("DIGITALHALF_0", "BX_OFFSET", 1)
+            .add("DIGITALHALF_1", "BX_OFFSET", 1);
+  if (on_zcu) {
+      roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+            .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+  } else {
+      roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+            .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+  }
+
+    auto roc_test_params = roc_setup_builder.apply();
 
   // ----- PHASE ALIGNMENT ----- //
   {
@@ -204,14 +213,14 @@ void align_phase_word(Target* tgt) {
     // tgt->fc().bx_custom(3, 0xfff000, 3000);
 
     // ------- Scan when the ECON takes snapshot -----
-    int start_val, end_val, testval;
+    int start_val, end_val, testval, snapshot_match;
     if (on_zcu) {
-      start_val = 3531;  // near your orbit region of interest
+      start_val = 3490;  // 3531;  // near your orbit region of interest
       end_val = 3540;    // up to orbit rollover
       testval = 3532;
     } else {
       start_val = 64 * 40 - 60;  // near your orbit region of interest
-      end_val = 64 * 40 - 1;     // up to orbit rollover
+      end_val = 64 * 40 - 1;      // up to orbit rollover
       testval = start_val + 1;
     }
 
@@ -299,9 +308,12 @@ void align_phase_word(Target* tgt) {
                     << shifted << std::dec << std::endl;
 
           header_found = true;
+          std::cout << " --------------------------------------------------- "
+                    << std::endl;
           std::cout << "Successful header match in Snapshot: " << snapshot_val
                     << std::endl;
-          break;  // out of channel loop
+          snapshot_match = snapshot_val;
+          break;  // out of channel loop.
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
@@ -310,7 +322,7 @@ void align_phase_word(Target* tgt) {
                     << snapshot << std::dec << std::endl;
         } else if (!debug_checks) {
           std::cout << "No header pattern match found in Snapshot:  "
-                    << snapshot_val << std::endl;
+                    << snapshot_val << ", Channel: " << channel << std::endl;
         } else {
           std::cout << "No header pattern match found in Snapshot:  "
                     << snapshot_val << std::endl;
@@ -325,6 +337,17 @@ void align_phase_word(Target* tgt) {
       std::cout << "------------------------------------------" << std::endl
                 << "Failure to match header pattern in ANY Snapshot."
                 << std::endl;
+    } else {
+      // Header successfully found at snapshot_val. Check pattern match for all
+      // eRx
+      for (int channel : all_channels) {
+        // print out pattern match for all channels
+        std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
+        auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
+        std::cout << "------------------------------------------" << std::endl
+                  << "Channel " << channel << " pattern match: " << ch_pm
+                  << std::endl;
+      }
     }
 
   }  // -------- END WORD ALIGNMENT ------- //
