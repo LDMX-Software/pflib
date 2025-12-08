@@ -58,6 +58,10 @@ test-menu:
 test-py-decoding:
     denv 'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
 
+# py-rogue decode
+rogue-decode *args:
+    denv 'PYTHONPATH=${PYTHONPATH}:${PWD}/build python3 ana/rogue-read.py {{args}}'
+
 # build the conda package on the DAQ server
 conda-package:
     #!/bin/bash

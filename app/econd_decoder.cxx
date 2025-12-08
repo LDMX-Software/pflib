@@ -7,7 +7,7 @@
 #include "pflib/logging/Logging.h"
 #include "pflib/packing/FileReader.h"
 #include "pflib/packing/Hex.h"
-#include "pflib/packing/SoftWrappedECONDEventPacket.h"
+#include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/version/Version.h"
 
 static void usage() {
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     o << std::boolalpha;
     o << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
 
-    pflib::packing::SoftWrappedECONDEventPacket ep(n_links);
+    pflib::packing::MultiSampleECONDEventPacket ep(n_links);
     // count is NOT written into output file,
     // we use the event number from the links
     // this is just to allow users to limit the number of entries in
@@ -157,7 +157,9 @@ int main(int argc, char* argv[]) {
       r >> ep;
       pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
                        << " and bool(r): " << bool(r);
-      ep.data.to_csv(o);
+      for (const auto& sample : ep.samples) {
+        sample.to_csv(o);
+      }
       count++;
       if (nevents > 0 and count >= nevents) {
         break;

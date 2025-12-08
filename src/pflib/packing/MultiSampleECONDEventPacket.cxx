@@ -8,60 +8,72 @@ namespace pflib::packing {
 MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
-void MultiSampleECONDEventPacket::from(std::span<uint32_t> data) {
+void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
   samples.clear();
-  run = data[0];
-  pflib_log(trace) << hex(data[0]) << " -> run = " << run;
-  ievent = (data[1] >> 8);
-  bx = (data[1] & mask<8>);
-  pflib_log(trace) << hex(data[1]) << " -> ievent, bx = " << ievent << ", "
+  /*
+  run = frame[0];
+  pflib_log(trace) << hex(frame[0]) << " -> run = " << run;
+  ievent = (frame[1] >> 8);
+  bx = (frame[1] & mask<8>);
+  pflib_log(trace) << hex(frame[1]) << " -> ievent, bx = " << ievent << ", "
                    << bx;
-  uint32_t zero = data[2];  // should be total length?
-  pflib_log(trace) << hex(data[2]) << " -> length ?= " << data[2];
-  uint32_t head_flag = (data[3] >> 24);
+  uint32_t zero = frame[2];  // should be total length?
+  pflib_log(trace) << hex(frame[2]) << " -> length ?= " << frame[2];
+  uint32_t head_flag = (frame[3] >> 24);
   corruption[0] = (head_flag != 0xA6u);
   if (corruption[0]) {
     pflib_log(warn) << "Header flag is not the same as expected value "
                     << hex<uint32_t, 2>(head_flag) << " != 0xA6";
   }
-  contrib_id = ((data[3] >> 16) & mask<8>);
-  subsys_id = ((data[3] >> 8) & mask<8>);
+  contrib_id = ((frame[3] >> 16) & mask<8>);
+  subsys_id = ((frame[3] >> 8) & mask<8>);
   corruption[1] = (subsys_id != 0x07);
   if (corruption[1]) {
     pflib_log(warn) << "Subsystem DAQ ID not equal to HCal ID "
                     << hex<int, 2>(subsys_id) << " != 0x07";
   }
-  pflib_log(trace) << hex(data[3]) << " -> contrib, subsys = " << contrib_id
+  pflib_log(trace) << hex(frame[3]) << " -> contrib, subsys = " << contrib_id
                    << ", " << subsys_id;
 
+  */
   std::size_t i_sample{0};
-  std::size_t offset{4};
-  while (offset < data.size()) {
+  std::size_t offset{0};
+  while (offset < frame.size()) {
     /**
      * The software emulation adds another header before the ECOND packet,
      * which looks like
      *
-     * 4b flag | 12b ECON ID | L | 3b il1a | I | 11b length
+     * 4b vers | 10b ECON ID | 5b il1a | S | 0 | 8b length
      *
-     * - flag is hardcoded to 0b0001 right now in software
+     * - vers is the format version
      * - ECOND ID is what it was configured in the software to be
-     * - L signals if this is the last sample (1) or not (0)
      * - il1a is the index of the sample relative to this event
-     * - I signals if this is the sample of interest (1) or not (0)
-     * - length is the total length of this link subpacket including this header
-     * word
+     * - S signals if this is the sample of interest (1) or not (0)
+     * - length is the total length of this link subpacket NOT including this
      */
-    uint32_t link_len = (data[offset] & mask<11>);
-    uint32_t il1a = (data[offset] >> 13) & mask<3>;
-    uint32_t econ_id = ((data[offset] >> 16) & mask<12>);
-    // uint32_t head_flag = (data[offset] >> 28);
-    bool is_soi = (((data[offset] >> 12) & mask<1>) == 1);
-    bool is_last = (((data[offset] >> 15) & mask<1>) == 1);
-    // other flags about SOI or last sample
-    pflib_log(trace) << hex(data[offset])
-                     << " -> link_len, il1a, econ_id, is_soi, is_last = "
-                     << link_len << ", " << il1a << ", " << econ_id << ", "
-                     << is_soi << ", " << is_last;
+    uint32_t vers = ((frame[offset] >> 28) & mask<4>);
+    uint32_t new_econd_id = ((frame[offset] >> 18) & mask<10>);
+    uint32_t il1a = ((frame[offset] >> 13) & mask<5>);
+    bool is_soi = (((frame[offset] >> 12) & mask<1>) == 1);
+    uint32_t econd_len = (frame[offset] & mask<8>);
+
+    if (not is_soi and il1a == 31 and new_econd_id == 1023) {
+      pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
+                       << offset << " (frame.size() = " << frame.size() << ")";
+      break;
+    }
+
+    if (i_sample > 0 and econd_id != new_econd_id) {
+      pflib_log(warn) << "ECON ID mismatch: Found " << new_econd_id
+                      << " but this stream was " << econd_id << " earlier";
+    }
+    econd_id = new_econd_id;
+    pflib_log(trace) << hex(frame[offset])
+                     << " -> econd_len, il1a, econd_id, is_soi = " << econd_len
+                     << ", " << il1a << ", " << econd_id << ", " << is_soi;
+
+    // header decoded, shift offset
+    offset++;
 
     if (i_sample != il1a) {
       pflib_log(warn) << "mismatch between transmitted index and unpacking "
@@ -74,46 +86,56 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> data) {
     }
 
     samples.emplace_back(n_links_);
-    samples.back().from(data.subspan(offset + 1, link_len - 1));
-    offset += link_len;
-
-    if (is_last) {
-      pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
-                       << offset << " (data.size() = " << data.size() << ")";
-      break;
-    }
+    samples.back().from(frame.subspan(offset, econd_len));
+    offset += econd_len;
 
     i_sample++;
   }
 }
 
 Reader& MultiSampleECONDEventPacket::read(Reader& r) {
-  uint32_t word{0};
-  pflib_log(trace) << "header scan...";
-  while (word != 0xb33f2025) {
-    if (!(r >> word)) break;
-    pflib_log(trace) << hex(word);
+  /**
+   * DANGER
+   * Without signal header/trailer words, this assumes that the data
+   * stream is word aligned and we aren't starting on the wrong word.
+   */
+  std::vector<uint32_t> frame;
+  while (r) {
+    uint32_t word{0};
+    if (!(r >> word)) {
+      // is this worthy of a warning?
+      pflib_log(trace)
+          << "leaving frame accumulation loop failing to pop next header word";
+      break;
+    }
+    frame.push_back(word);
+    uint32_t vers = ((word >> 28) & mask<4>);
+    uint32_t new_econd_id = ((word >> 18) & mask<10>);
+    uint32_t il1a = ((word >> 13) & mask<5>);
+    bool is_soi = (((word >> 12) & mask<1>) == 1);
+    uint32_t econd_len = word & mask<8>;
+    pflib_log(trace) << hex(word)
+                     << " -> vers, econd_len, il1a, econd_id, is_soi = " << vers
+                     << ", " << econd_len << ", " << il1a << ", "
+                     << new_econd_id << ", " << is_soi;
+    if (il1a == 31 and new_econd_id == 1023) {
+      pflib_log(trace) << "found special header marking end of packet"
+                       << ", leaving accumulation loop";
+      break;
+    }
+    if (!r.read(frame, econd_len, frame.size())) {
+      pflib_log(warn) << "partially transmitted frame!";
+      return r;
+    }
+    pflib_log(trace) << hex(*(frame.end() - 1));
   }
-  if (!r) {
-    pflib_log(trace) << "no header found";
-    return r;
-  }
-  pflib_log(trace) << "found header";
 
-  std::vector<uint32_t> data;
-  pflib_log(trace) << "scanning for end of packet...";
-  while (word != 0x12345678) {
-    if (!(r >> word)) break;
-    data.push_back(word);
-    pflib_log(trace) << hex(word);
-  }
-  if (!r and word != 0x12345678) {
-    pflib_log(trace) << "no trailer found, probably incomplete packet";
-  }
-
-  this->from(data);
-
+  this->from(frame);
   return r;
+}
+
+const ECONDEventPacket& MultiSampleECONDEventPacket::soi() const {
+  return samples.at(i_soi);
 }
 
 }  // namespace pflib::packing
