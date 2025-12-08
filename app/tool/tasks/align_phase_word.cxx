@@ -308,6 +308,9 @@ void align_phase_word(Target* tgt) {
                     << shifted1 << std::dec << std::endl;
           std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
                     << snapshot << std::dec << std::endl;
+        } else if (!debug_checks) {
+          std::cout << "No header pattern match found in Snapshot:  "
+                    << snapshot_val << std::endl;
         } else {
           std::cout << "No header pattern match found in Snapshot:  "
                     << snapshot_val << std::endl;
