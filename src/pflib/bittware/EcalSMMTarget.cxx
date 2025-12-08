@@ -136,7 +136,7 @@ class EcalSMMTargetBW : public Target {
       }
     } else {
       PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
+                        "EcalSMMTargetBW::read_event not implemented "
                         "for provided DaqFormat");
     }
 
