@@ -72,6 +72,15 @@ firmware (and the software's emulation of it) insert extra headers/trailers
 that this decoder can handle.
 )DOC";
 
+std::size_t MultiSampleECONDEventPacket_n_samples(const pflib::packing::MultiSampleECONDEventPacket& ep) {
+  return ep.samples.size();
+}
+
+const pflib::packing::ECONDEventPacket&
+MultiSampleECONDEventPacket_sample(const pflib::packing::MultiSampleECONDEventPacket& ep, std::size_t index) { 
+  return ep.samples.at(index);
+}
+
 void setup_packing() {
   BOOST_PYTHON_SUBMODULE(packing);
 
@@ -124,10 +133,14 @@ void setup_packing() {
       bp::init<int>())
       .def("from_word_vector",
            &_from<pflib::packing::MultiSampleECONDEventPacket>)
+      .def("soi",
+           &pflib::packing::MultiSampleECONDEventPacket::soi,
+           bp::return_value_policy<bp::reference_existing_object>())
+      .add_property("n_samples", &MultiSampleECONDEventPacket_n_samples)
+      .def("sample", &MultiSampleECONDEventPacket_sample,
+           bp::return_value_policy<bp::reference_existing_object>())
       .def_readonly("i_soi",
                     &pflib::packing::MultiSampleECONDEventPacket::i_soi)
       .def_readonly("econd_id",
-                    &pflib::packing::MultiSampleECONDEventPacket::econd_id)
-      .def_readonly("samples",
-                    &pflib::packing::MultiSampleECONDEventPacket::samples);
+                    &pflib::packing::MultiSampleECONDEventPacket::econd_id);
 }

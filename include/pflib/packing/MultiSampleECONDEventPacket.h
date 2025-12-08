@@ -47,6 +47,8 @@ class MultiSampleECONDEventPacket {
   /// run number
   int run;
   */
+  /// get the sample of interest
+  const ECONDEventPacket& soi() const;
   /// samples from ECOND stored in order of transmission
   std::vector<ECONDEventPacket> samples;
   /// constructor defining how many links are connected to this ECOND

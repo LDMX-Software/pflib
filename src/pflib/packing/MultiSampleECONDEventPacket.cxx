@@ -37,7 +37,7 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
 
   */
   std::size_t i_sample{0};
-  std::size_t offset{4};
+  std::size_t offset{0};
   while (offset < frame.size()) {
     /**
      * The software emulation adds another header before the ECOND packet,
@@ -57,7 +57,7 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
     bool is_soi = (((frame[offset] >> 12) & mask<1>) == 1);
     uint32_t econd_len = (frame[offset] & mask<8>);
 
-    if (not is_soi and il1a == 31 and new_econd_id == 63) {
+    if (not is_soi and il1a == 31 and new_econd_id == 1023) {
       pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
                        << offset << " (frame.size() = " << frame.size() << ")";
       break;
@@ -134,6 +134,10 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
 
   this->from(frame);
   return r;
+}
+
+const ECONDEventPacket& MultiSampleECONDEventPacket::soi() const {
+  return samples.at(i_soi);
 }
 
 }  // namespace pflib::packing
