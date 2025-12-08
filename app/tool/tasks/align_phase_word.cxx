@@ -59,7 +59,8 @@ void align_phase_word(Target* tgt) {
 
   // Get channels from user
   std::string ch_str = pftool::readline(
-      "Enter channel(s) to check (comma-separated), default is all channels 0-7. Upon "
+      "Enter channel(s) to check (comma-separated), default is all channels "
+      "0-7. Upon "
       "succesful match, all channels will be checked for alignment at that "
       "BX: ",
       "0,1,2,3,4,5,6,7");
@@ -96,21 +97,22 @@ void align_phase_word(Target* tgt) {
   }
 
   // // Set IDLEs in ROC with enough bit transitions
-  
-  auto roc_setup_builder = roc.testParameters()
-            .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-            .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-            .add("DIGITALHALF_0", "BX_OFFSET", 1)
-            .add("DIGITALHALF_1", "BX_OFFSET", 1);
+
+  auto roc_setup_builder =
+      roc.testParameters()
+          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_0", "BX_OFFSET", 1)
+          .add("DIGITALHALF_1", "BX_OFFSET", 1);
   if (on_zcu) {
-      roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
-            .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
   } else {
-      roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-            .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
   }
 
-    auto roc_test_params = roc_setup_builder.apply();
+  auto roc_test_params = roc_setup_builder.apply();
 
   // ----- PHASE ALIGNMENT ----- //
   {
@@ -220,7 +222,7 @@ void align_phase_word(Target* tgt) {
       testval = 3532;
     } else {
       start_val = 64 * 40 - 60;  // near your orbit region of interest
-      end_val = 64 * 40 - 1;      // up to orbit rollover
+      end_val = 64 * 40 - 1;     // up to orbit rollover
       testval = start_val + 1;
     }
 
