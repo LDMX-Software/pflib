@@ -30,22 +30,20 @@ std::vector<uint32_t> to_word_vector(boost::python::object frame) {
   if (class_name == "list") {
     return py_list_to_std_vector<uint32_t>(frame);
   } else if (class_name == "bytearray") {
-    throw std::runtime_error("bytearray interpretation not implemented but could be");
-  } else if (class_name == "numpy.ndarray") {
-    return np_to_word_vector(frame);
-  } else {
-    throw std::runtime_error("Unable to interpret type "+bp::str(class_name));
+    throw std::runtime_error("bytearray interpretation not implemented but could
+be"); } else if (class_name == "numpy.ndarray") { return
+np_to_word_vector(frame); } else { throw std::runtime_error("Unable to interpret
+type "+bp::str(class_name));
   }
 }
 */
 
 /// wrapper to call EventPacket::from given a WordVector
-template<class EventPacket>
+template <class EventPacket>
 void _from(EventPacket& ep, std::vector<uint32_t>& wv) {
-  //auto wv = to_word_vector(frame);
+  // auto wv = to_word_vector(frame);
   ep.from(wv);
 }
-
 
 const char* WordVector__doc__ =
     R"DOC(raw data packet acceptable by decoding classes
@@ -122,9 +120,14 @@ void setup_packing() {
       .def("calib", &pflib::packing::ECONDEventPacket::calib);
 
   bp::class_<pflib::packing::MultiSampleECONDEventPacket>(
-      "MultiSampleECONDEventPacket", MultiSampleECONDEventPacket__doc__, bp::init<int>())
-      .def("from_word_vector", &_from<pflib::packing::MultiSampleECONDEventPacket>)
-      .def_readonly("i_soi", &pflib::packing::MultiSampleECONDEventPacket::i_soi)
-      .def_readonly("econd_id", &pflib::packing::MultiSampleECONDEventPacket::econd_id)
-      .def_readonly("samples", &pflib::packing::MultiSampleECONDEventPacket::samples);
+      "MultiSampleECONDEventPacket", MultiSampleECONDEventPacket__doc__,
+      bp::init<int>())
+      .def("from_word_vector",
+           &_from<pflib::packing::MultiSampleECONDEventPacket>)
+      .def_readonly("i_soi",
+                    &pflib::packing::MultiSampleECONDEventPacket::i_soi)
+      .def_readonly("econd_id",
+                    &pflib::packing::MultiSampleECONDEventPacket::econd_id)
+      .def_readonly("samples",
+                    &pflib::packing::MultiSampleECONDEventPacket::samples);
 }
