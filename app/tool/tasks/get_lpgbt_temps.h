@@ -25,5 +25,20 @@ inline bool file_exists(const std::string& name) {
     return (stat(name.c_str(), &buffer) == 0);
 }
 
+// Assumes a PT1000 sensor by default (r0=1000)
+inline double rtd_resistance_to_celsius(double resistance_ohms,
+                                 double r0 = 1000.0,
+                                 double alpha = 0.00385)
+{
+    // Not a physical value
+    if (resistance_ohms < 0.0)
+        return std::numeric_limits<double>::quiet_NaN();
+
+    double temperature =
+        (resistance_ohms / r0 - 1.0) / alpha;
+
+    return temperature;
+}
+
 void get_lpgbt_temps(Target* tgt);
 

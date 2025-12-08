@@ -3,18 +3,18 @@
 #include "pflib/OptoLink.h"
 
 struct CalibConstants {
-    int vref_tune;
-    double tj_user;
-    double vref_slope;
-    double vref_offset;
-    double TEMPERATURE_UNCALVREF_SLOPE;
-    double TEMPERATURE_UNCALVREF_OFFSET;
-    double TEMPERATURE_SLOPE;
-    double TEMPERATURE_OFFSET;
-    double ADC_X2_SLOPE;
-    double ADC_X2_SLOPE_TEMP;
-    double ADC_X2_OFFSET;
-    double ADC_X2_OFFSET_TEMP;
+    int vref_tune = 0;
+    double tj_user = 0.0;
+
+    // automatically filled from .csv
+    std::unordered_map<std::string, double> values;
+
+    double get(const std::string& key) const {
+        auto it = values.find(key);
+        if (it != values.end()) return it->second;
+        printf("WARNING: missing calibration constant '%s'\n", key.c_str());
+        return 0.0;
+    }
 };
 
 uint8_t REG_VREFTUNE = 0x01d;
@@ -44,23 +44,20 @@ void save_results(const std::string& results_file,
     char buf[9];
     snprintf(buf, sizeof(buf), "%08X", chipid);
     std::string chipid_hex = buf;
+
     // Insert / update entry
     YAML::Node entry;
     entry["chipid"]    = chipid_hex;
     entry["vref_tune"] = optimal_vref_tune;
+    entry["tj_user"]   = calib.tj_user;
 
     YAML::Node cal;
-    cal["vref_slope"]  = calib.vref_slope;
-    cal["vref_offset"] = calib.vref_offset;
-    cal["TEMPERATURE_SLOPE"]  = calib.TEMPERATURE_SLOPE;
-    cal["TEMPERATURE_OFFSET"] = calib.TEMPERATURE_OFFSET;
-    cal["TEMPERATURE_UNCALVREF_SLOPE"]  = calib.TEMPERATURE_UNCALVREF_SLOPE;
-    cal["TEMPERATURE_UNCALVREF_OFFSET"] = calib.TEMPERATURE_UNCALVREF_OFFSET;
-    cal["ADC_X2_SLOPE"] = calib.ADC_X2_SLOPE;
-    cal["ADC_X2_SLOPE_TEMP"] = calib.ADC_X2_SLOPE_TEMP;
-    cal["ADC_X2_OFFSET"] = calib.ADC_X2_OFFSET;
-    cal["ADC_X2_OFFSET_TEMP"] = calib.ADC_X2_OFFSET_TEMP;
-
+    
+    for (const auto& kv : calib.values) {
+	    const std::string& key = kv.first;
+	    double val = kv.second;
+	    cal[key] = val;
+    }
     entry["calib_constants"] = cal;
 
     results[lpgbt_name] = entry;
@@ -82,17 +79,16 @@ void save_results(const std::string& results_file,
     printf("---------------------------------------------------------\n");
 }
 
-CalibConstants calculate_tj_user(const std::string& results_file,
+double calculate_tj_user(const std::string& results_file,
                        const std::string& lpgbt_name)
 {
-    
-    CalibConstants c;
+  
     YAML::Node results = YAML::LoadFile(results_file);
-
+ 
     if (!results[lpgbt_name]) {
         std::cerr << "ERROR: No entry found for '" << lpgbt_name
                   << "' in results file.\n";
-        return c;
+        return -1;
     }
 
     YAML::Node entry = results[lpgbt_name];
@@ -100,43 +96,42 @@ CalibConstants calculate_tj_user(const std::string& results_file,
     // Extract vref_tune
     if (!entry["vref_tune"]) {
         std::cerr << "ERROR: vref_tune missing in YAML entry.\n";
-        return c;
+        return -1;
     }
     int vref_tune = entry["vref_tune"].as<int>();
 
     // Extract calibration constants
     if (!entry["calib_constants"]) {
         std::cerr << "ERROR: calib_constants missing in YAML entry.\n";
-        return c;
+        return -1;
     }
 
     YAML::Node cal = entry["calib_constants"];
 
-    c.vref_slope  = cal["vref_slope"].as<double>();
-    c.vref_offset = cal["vref_offset"].as<double>();
-    c.TEMPERATURE_SLOPE  = cal["TEMPERATURE_SLOPE"].as<double>();    
-    c.TEMPERATURE_OFFSET = cal["TEMPERATURE_OFFSET"].as<double>();
-    c.TEMPERATURE_UNCALVREF_OFFSET = cal["TEMPERATURE_UNCALVREF_OFFSET"].as<double>();
-    c.TEMPERATURE_UNCALVREF_SLOPE  = cal["TEMPERATURE_UNCALVREF_SLOPE"].as<double>();
-    c.ADC_X2_SLOPE = cal["ADC_X2_SLOPE"].as<double>();
-    c.ADC_X2_SLOPE_TEMP = cal["ADC_X2_SLOPE_TEMP"].as<double>();
-    c.ADC_X2_OFFSET = cal["ADC_X2_OFFSET"].as<double>();
-    c.ADC_X2_OFFSET_TEMP = cal["ADC_X2_OFFSET_TEMP"].as<double>();
-
-    c.vref_tune = entry["vref_tune"].as<int>();
-    // Compute TJ_USER
-    c.tj_user = (vref_tune - c.vref_offset) / c.vref_slope;
+    double vref_slope  = cal["VREF_SLOPE"].as<double>();
+    double vref_offset = cal["VREF_OFFSET"].as<double>();
+    
+    double tj_user = (vref_tune - vref_offset) / vref_slope;
 
     printf("  > Inferred Junction Temperature (TJ_USER) from vref_tune: %f degrees C\n",
-           c.tj_user);
-    return c;
+           tj_user);
+    entry["tj_user"] = tj_user;
+    results[lpgbt_name] = entry;
+
+    std::ofstream fout(results_file);
+    fout << results;
+    fout.close();
+
+    printf("  > Updated '%s' with TJ_USER\n", results_file.c_str());
+
+    return tj_user;
 }
 
 static void get_calib_constants(Target* tgt) {
 
 	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
 
-	CalibConstants calib;
+	CalibConstants c;
 	const std::string& lpgbt_name = "DAQ";
 
 	printf(" --- Finding CHIPID ---\n");
@@ -162,18 +157,6 @@ static void get_calib_constants(Target* tgt) {
     	std::ifstream file(csv_filename);
     	if (!file.is_open()) {
         	printf("  > ERROR: Could not open CSV.\n");
-        	printf("  > WARNING: LOADING HARDCODED VALUES FOR UVA DAQ LPGBT\n");
-		
-		calib.vref_slope  = -0.3108;
-		calib.vref_offset = 117.1;
-		calib.TEMPERATURE_SLOPE  = 415;
-		calib.TEMPERATURE_OFFSET = -184;
-		calib.TEMPERATURE_UNCALVREF_SLOPE  = 0.455;
-		calib.TEMPERATURE_UNCALVREF_OFFSET = -206;
-		calib.ADC_X2_SLOPE = 0.00104;
-	        calib.ADC_X2_SLOPE_TEMP = -0.00000000309;
-		calib.ADC_X2_OFFSET = -0.0302;
-		calib.ADC_X2_OFFSET_TEMP = -0.00000862;
     	} else {
 
 		std::string line;
@@ -183,7 +166,6 @@ static void get_calib_constants(Target* tgt) {
     		std::getline(file, line);
     		auto header = split_csv(line);
 
-
     		// Build name → index map
     		std::unordered_map<std::string, int> col;
     		for (int i = 0; i < header.size(); i++)
@@ -192,23 +174,24 @@ static void get_calib_constants(Target* tgt) {
     		// Search row by row for  CHIPID
     	
 		bool found = false;
-    		while (std::getline(file, line)) {
-        		auto row = split_csv(line);
-        		if (row[col["CHIPID"]] == chipid_hex) {
-            			calib.vref_slope  = std::stod(row[col["VREF_SLOPE"]]);
-            			calib.vref_offset = std::stod(row[col["VREF_OFFSET"]]);
-            			calib.TEMPERATURE_SLOPE  = std::stod(row[col["TEMPERATURE_SLOPE"]]);
-            			calib.TEMPERATURE_OFFSET = std::stod(row[col["TEMPERATURE_OFFSET"]]);
-            			calib.TEMPERATURE_UNCALVREF_SLOPE  = std::stod(row[col["TEMPERATURE_UNCALVREF_SLOPE"]]);
-            			calib.TEMPERATURE_UNCALVREF_OFFSET = std::stod(row[col["TEMPERATURE_UNCALVREF_OFFSET"]]);
-        			calib.ADC_X2_SLOPE       = std::stod(row[col["ADC_X2_SLOPE"]]);
-        			calib.ADC_X2_SLOPE_TEMP  = std::stod(row[col["ADC_X2_SLOPE_TEMP"]]);
-        			calib.ADC_X2_OFFSET      = std::stod(row[col["ADC_X2_OFFSET"]]);
-        			calib.ADC_X2_OFFSET_TEMP = std::stod(row[col["ADC_X2_OFFSET_TEMP"]]);
-            			found = true;
-            			break;
-        		}
-   		}
+		while (std::getline(file, line)) {
+			auto row = split_csv(line);
+			if (row[col["CHIPID"]] == chipid_hex) {
+				for (size_t i = 0; i < row.size(); i++) {
+					const std::string& colname = header[i];
+					const std::string& raw = row[i];
+					if (colname == "CHIPID") continue;
+					try {
+						c.values[colname] = std::stod(raw);
+						} catch (...) {
+							printf("WARNING: Could not parse '%s' for column '%s'\n",
+									raw.c_str(), colname.c_str());
+							}
+					}
+			found = true;
+			break;
+			}
+		}
 	}	
 	
     	// if (!found) {
@@ -230,52 +213,129 @@ static void get_calib_constants(Target* tgt) {
 
 	printf("  > ADC Value: %d\n", adc_value);
 
-	float tj_user = adc_value * calib.TEMPERATURE_UNCALVREF_SLOPE + calib.TEMPERATURE_UNCALVREF_OFFSET;
+	float tj_user = adc_value * c.get("TEMPERATURE_UNCALVREF_SLOPE") + c.get("TEMPERATURE_UNCALVREF_OFFSET");
 	printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n", tj_user);
 
-	int optimal_vref_tune = static_cast<int>(std::round(tj_user * calib.vref_slope + calib.vref_offset));
+	int optimal_vref_tune = static_cast<int>(std::round(tj_user * c.get("VREF_SLOPE") + c.get("VREF_OFFSET")));
 	printf("  > Optimal VREFTUNE: %d\n", optimal_vref_tune);
  
 	save_results("calibration_results.yaml",
                 lpgbt_name,
 		chipid,
                 optimal_vref_tune,
-		calib);
+		c);
 }
 
-static uint16_t read_adc_at_current(Target* tgt, const std::string& sensor_name, int curdacvalue, const CalibConstants& constants) {
+static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, int curdacvalue, const std::string& results_file, int samples = 5) {
+
 	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+
+	YAML::Node file_results = YAML::LoadFile(results_file);
+	YAML::Node entry = file_results["DAQ"];
+	int vref_tune = entry["vref_tune"].as<int>();
+
+	std::vector<uint16_t> results;
+	results.reserve(samples);
 	
 	lpgbt_daq.write(REG_CURDACVALUE, curdacvalue);
-	lpgbt_daq.write(REG_VREFTUNE, constants.vref_tune);
+	lpgbt_daq.write(REG_VREFTUNE, vref_tune);
+
 	uint8_t vreftune = lpgbt_daq.read(REG_VREFTUNE);
-	printf("  > VREFTUNE REG: %d\n", vreftune);
+	// printf("  > VREFTUNE REG: %d\n", vreftune);
 
-	uint16_t adc_value = lpgbt_daq.adc_read(14, 14, 16);
+    	for (int i = 0; i < samples; ++i) {
+        	uint16_t adc_value = lpgbt_daq.adc_read(adc_channel, adc_channel, 16);
+        	results.push_back(adc_value);
+        	// printf("     Sample %02d : %d\n", i, adc_value);
+    	}
 
-	printf("  > Raw ADC Value: %d\n", adc_value);
-	return adc_value;
+	return results;
 }
 
-static void read_internal_temp(Target* tgt) {
+static void read_internal_temp(Target* tgt, const std::string& results_file) {
+	double tj_user = calculate_tj_user("calibration_results.yaml", "DAQ");
+	YAML::Node results = YAML::LoadFile(results_file);
+	YAML::Node entry = results["DAQ"];
+	YAML::Node cal = entry["calib_constants"];
 
-	CalibConstants constants = calculate_tj_user("calibration_results.yaml", "DAQ");
+    	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
+    	double adc_slope_temp  = cal["ADC_X2_SLOPE_TEMP"].as<double>();
+    	double adc_offset      = cal["ADC_X2_OFFSET"].as<double>();
+        double adc_offset_temp = cal["ADC_X2_OFFSET_TEMP"].as<double>();
+	double temp_slope      = cal["TEMPERATURE_SLOPE"].as<double>();
+	double temp_offset     = cal["TEMPERATURE_OFFSET"].as<double>();
 
-	uint16_t adc_value = read_adc_at_current(tgt, "DAQ", 0, constants);
+	std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, 15, 0, "calibration_results.yaml");
+	
+	double adc_sum = 0;
+	for (auto v : adc_vals) adc_sum += v;
+	double adc_avg = adc_sum / adc_vals.size();
 
-    	double adc_slope       = constants.ADC_X2_SLOPE;
-    	double adc_slope_temp  = constants.ADC_X2_SLOPE_TEMP;
-    	double adc_offset      = constants.ADC_X2_OFFSET;
-        double adc_offset_temp = constants.ADC_X2_OFFSET_TEMP;
-	double tj_user         = constants.tj_user;
-	double temp_slope      = constants.TEMPERATURE_SLOPE;
-	double temp_offset     = constants.TEMPERATURE_OFFSET;
-
-	double vadc_v = adc_value * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
+	double vadc_v = adc_avg * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
 
 	printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
-	double temperature_c = (vadc_v * constants.TEMPERATURE_SLOPE) + constants.TEMPERATURE_OFFSET;
+	double temperature_c = (vadc_v * temp_slope) + temp_offset;
 	printf("  > Internal Temperature: %.2f degrees C\n", temperature_c);
+}
+
+static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& results_file) {
+	
+	double tj_user = calculate_tj_user("calibration_results.yaml", "DAQ");
+	
+	YAML::Node results = YAML::LoadFile(results_file);
+	YAML::Node entry = results["DAQ"];
+	YAML::Node cal = entry["calib_constants"];
+
+    	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
+    	double adc_slope_temp  = cal["ADC_X2_SLOPE_TEMP"].as<double>();
+    	double adc_offset      = cal["ADC_X2_OFFSET"].as<double>();
+        double adc_offset_temp = cal["ADC_X2_OFFSET_TEMP"].as<double>();
+	double temp_slope      = cal["TEMPERATURE_SLOPE"].as<double>();
+	double temp_offset     = cal["TEMPERATURE_OFFSET"].as<double>();
+
+	printf("  > Auto-ranging current to find optimal measurement point (~0.5V)...\n");
+	std::vector<double> measurements;
+
+	for (int current_val = 64; current_val < 255; current_val += 16) {
+	
+		std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, adc_channel, current_val, "calibration_results.yaml");
+
+		double adc_sum = 0;
+		for (auto v : adc_vals) adc_sum += v;
+		double adc_avg = adc_sum / adc_vals.size();
+
+		double vadc_v = adc_avg * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
+
+		printf("    - Trying CURDAC=%-3d: V_ADC = %.3f V", current_val, vadc_v);
+		if (vadc_v > 0.4 && vadc_v < 0.6) {
+			printf(" -> In range!\n");
+			double cdac_slope       = cal["CDAC" + std::to_string(adc_channel) + "_SLOPE"].as<double>();
+			double cdac_slope_temp  = cal["CDAC" + std::to_string(adc_channel) + "_SLOPE_TEMP"].as<double>();
+			double cdac_offset      = cal["CDAC" + std::to_string(adc_channel) + "_OFFSET"].as<double>();
+			double cdac_offset_temp = cal["CDAC" + std::to_string(adc_channel) + "_OFFSET_TEMP"].as<double>();
+			double cdac_r0          = cal["CDAC" + std::to_string(adc_channel) + "_R0"].as<double>();
+			double cdac_r0_temp     = cal["CDAC" + std::to_string(adc_channel) + "_R0_TEMP"].as<double>();
+			
+			double current_a =
+                		(current_val - (cdac_offset + tj_user * cdac_offset_temp)) /
+                		(cdac_slope + tj_user * cdac_slope_temp);
+			double rout_ohm     = (cdac_r0 + tj_user * cdac_r0_temp) / current_val;
+			double rsense_ohm   = (vadc_v * rout_ohm) / (current_a * rout_ohm - vadc_v);
+			measurements.push_back(rsense_ohm);
+		} else {
+			printf("\n");
+		}
+	}
+	double sum = 0;
+    	for (double r : measurements) sum += r;
+    	double avg_resistance = sum / measurements.size();
+
+    	// Convert resistance to temperature
+    	double temperature = rtd_resistance_to_celsius(avg_resistance);
+
+	printf("  Avg Resistance: %f", avg_resistance);
+	printf("  Temperature: %f\n", temperature);
+
 }
 
 void get_lpgbt_temps(Target* tgt) {
@@ -287,14 +347,15 @@ void get_lpgbt_temps(Target* tgt) {
         printf("  > Found existing calibration file '%s'. Skipping calibration step.\n",
                yaml_file.c_str());
 
-        read_internal_temp(tgt);
+        read_internal_temp(tgt, "calibration_results.yaml");
+	uint8_t adc_channel = pftool::readline_int("Which ADC channel (0-7)?", 1, true);
+	read_rtd_temp(tgt, adc_channel, "calibration_results.yaml");
     } else {
         printf("  > No calibration file found. Running full calibration...\n");
 
         get_calib_constants(tgt);
-        read_internal_temp(tgt);
+        read_internal_temp(tgt, "calibration_results.yaml");
+	uint8_t adc_channel = pftool::readline_int("Which ADC channel (0-7)?", 1, true);
+	read_rtd_temp(tgt, adc_channel, "calibration_results.yaml");
     }
-	//get_calib_constants(tgt);
-	//read_internal_temp(tgt);
-
 }
