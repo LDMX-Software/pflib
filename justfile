@@ -67,3 +67,8 @@ conda-package:
     conda activate base
     conda-build env/conda --output-folder /u1/ldmx/pflib-conda-channel --channel conda-forge --channel tidair-tag
     conda index /u1/ldmx/pflib-conda-channel
+
+build-on-srv:
+    cmake -B build -S .
+    make -C build
+
