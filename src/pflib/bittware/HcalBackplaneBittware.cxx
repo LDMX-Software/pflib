@@ -192,6 +192,8 @@ class HcalBackplaneBW : public HcalBackplane {
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
         daq().advanceLinkReadPtr();
       }
+      // FW puts in one last "header" that signals no more packets
+      buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
     } else {
       PFEXCEPTION_RAISE("NoImpl",
                         "HcalBackplaneBWTarget::read_event not implemented "
