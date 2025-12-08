@@ -119,7 +119,7 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
                      << " -> vers, econd_len, il1a, econd_id, is_soi = " << vers
                      << ", " << econd_len << ", " << il1a << ", "
                      << new_econd_id << ", " << is_soi;
-    if (new_econd_id == 63 and il1a == 31) {
+    if (il1a == 31 and new_econd_id == 1023) {
       pflib_log(trace) << "found special header marking end of packet"
                        << ", leaving accumulation loop";
       break;
