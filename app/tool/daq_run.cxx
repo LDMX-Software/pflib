@@ -12,7 +12,7 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
              int nevents, int rate) {
   static const std::unordered_map<std::string,
                                   std::function<void(pflib::FastControl&)>>
-      cmds = {{"PEDESTAL", [](pflib::FastControl& fc) { fc.sendL1A(); }},
+      cmds = {{"PEDESTAL", [](pflib::FastControl& fc) { fc.sendROR(); }},
               {"CHARGE", [](pflib::FastControl& fc) { fc.chargepulse(); }},
               {"LED", [](pflib::FastControl& fc) { fc.ledpulse(); }}};
   if (cmds.find(cmd) == cmds.end()) {
