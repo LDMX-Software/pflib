@@ -115,7 +115,7 @@ void setup_packing() {
    */
   bp::class_<pflib::packing::ECONDEventPacket>(
       "ECONDEventPacket", ECONDEventPacket__doc__, bp::init<std::size_t>())
-      .def("from", &_from<pflib::packing::ECONDEventPacket>)
+      .def("from_word_vector", &_from<pflib::packing::ECONDEventPacket>)
       .def("adc_cm0", &pflib::packing::ECONDEventPacket::adc_cm0)
       .def("adc_cm1", &pflib::packing::ECONDEventPacket::adc_cm1)
       .def("channel", &pflib::packing::ECONDEventPacket::channel)
@@ -123,7 +123,7 @@ void setup_packing() {
 
   bp::class_<pflib::packing::MultiSampleECONDEventPacket>(
       "MultiSampleECONDEventPacket", MultiSampleECONDEventPacket__doc__, bp::init<int>())
-      .def("from", &_from<pflib::packing::MultiSampleECONDEventPacket>)
+      .def("from_word_vector", &_from<pflib::packing::MultiSampleECONDEventPacket>)
       .def_readonly("i_soi", &pflib::packing::MultiSampleECONDEventPacket::i_soi)
       .def_readonly("econd_id", &pflib::packing::MultiSampleECONDEventPacket::econd_id)
       .def_readonly("samples", &pflib::packing::MultiSampleECONDEventPacket::samples);
