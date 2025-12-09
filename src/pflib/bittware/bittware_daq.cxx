@@ -144,8 +144,8 @@ std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   return retval;
 }
 void HcalBackplaneBW_Capture::advanceLinkReadPtr() {
-  capture_.write(ADDR_ADV_IO,
-                 1);  // auto-clear, only correct for one econ right now
+  // auto-clear, only correct for one econ right now
+  capture_.write(ADDR_ADV_IO, 1);
 }
 
 std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
