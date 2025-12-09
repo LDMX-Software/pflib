@@ -9,7 +9,7 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
 const std::string MultiSampleECONDEventPacket::to_csv_header =
-  ECONDEventPacket::to_csv_header;
+    ECONDEventPacket::to_csv_header;
 
 void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   /**
@@ -22,8 +22,8 @@ void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
    *
    * @see ECONDEventPacket::to_csv for how a single sample is written.
    */
-  for (const auto& sample: samples) {
-    sample.to_csv(f);  
+  for (const auto& sample : samples) {
+    sample.to_csv(f);
   }
 }
 

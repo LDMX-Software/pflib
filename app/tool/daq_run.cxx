@@ -63,10 +63,12 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
 }
 
 template <class EventPacket>
-DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links): ep_{n_links} {}
+DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links) : ep_{n_links} {}
 
-template<>
-DecodeAndWrite<pflib::packing::SingleROCEventPacket>::DecodeAndWrite(int _n_links): ep_{} {}
+template <>
+DecodeAndWrite<pflib::packing::SingleROCEventPacket>::DecodeAndWrite(
+    int _n_links)
+    : ep_{} {}
 
 WriteToBinaryFile::WriteToBinaryFile(const std::string& file_name)
     : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
@@ -129,8 +131,7 @@ DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
         f << std::boolalpha;
         f << EventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); },
-      2);
+      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); }, 2);
 }
 
 template <class EventPacket>
