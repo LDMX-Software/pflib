@@ -53,10 +53,11 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
-  // Mapping ROC channel → ECON channel - 2 by 4 in HCal (2 by 6 in Ecal)
-  std::vector<std::pair<int, int>> roc_to_econ_map_;
+  // Mapping ROC channel → eRx channel
+  std::vector<std::pair<int, int>> roc_to_erx_map_;
 
-  const std::vector<std::pair<int, int>>& get_channel_mapping() override;
+  /** Get the ROC to eRx mapping */
+  const std::vector<std::pair<int, int>>& getRocErxMapping();
 
  protected:
   /** Add a ROC to the set of ROCs */

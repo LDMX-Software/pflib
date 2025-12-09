@@ -92,6 +92,10 @@ class Target {
   /// get an OptoLink by name
   OptoLink& get_opto_link(const std::string& name) const;
 
+  const std::vector<std::pair<int, int>>& getRocErxMapping() {
+    return roc_to_erx_map_;
+}
+
   /**
    * types of daq formats that we can do
    */
@@ -107,12 +111,14 @@ class Target {
   virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
-  virtual const std::vector<std::pair<int, int>>& get_channel_mapping() = 0;
 
  protected:
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
+private:
+  // Mapping ROC channel → eRx channel
+  std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 Target* makeTargetFiberless();

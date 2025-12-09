@@ -9,14 +9,16 @@ static constexpr int I2C_ECON_D = 0x64;
 static constexpr int I2C_ECON_T = 0x24;
 static constexpr int I2C_ROCS[] = {0x08, 0x18, 0x28, 0x48, 0x58, 0x68};
 
+
 EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int imodule)
     : lpGBT_{lpgbt}, i2cbus_{i2cbus}, imodule_{imodule} {
+      
   i2c_ = std::make_unique<pflib::lpgbt::I2C>(lpGBT_, i2cbus_);
   econs_.push_back(ECON(*i2c_, I2C_ECON_D, "econd"));
   econs_.push_back(ECON(*i2c_, I2C_ECON_T, "econt"));
   for (int i = 0; i < nrocs(); i++)
-    rocs_.push_back(ROC(*i2c_, I2C_ROCS[i],
-                        "si_rocv3b"));  // confirm this is the right version
+  // confirm this is the right version
+    rocs_.push_back(ROC(*i2c_, I2C_ROCS[i], "si_rocv3b"));  
 }
 
 std::vector<int> EcalModule::roc_ids() const {
@@ -66,5 +68,14 @@ void EcalModule::softResetECON() {
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), false);
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
 }
+
+
+const std::vector<std::pair<int, int>> roc_to_erx_map_ = {
+      {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
+
+const std::vector<std::pair<int, int>>& EcalModule::getRocErxMapping() override {
+    return roc_to_erx_map_;
+}
+
 
 }  // namespace pflib

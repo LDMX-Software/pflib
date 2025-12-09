@@ -8,6 +8,7 @@
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
 #include "pflib/lpGBT.h"
+#include "pflib/Target.h"
 
 namespace pflib {
 
@@ -57,6 +58,9 @@ class EcalModule {
   /** Generate a soft reset */
   void softResetECON();
 
+  /** Get the mapping of ROC channels to ERX channels */
+  static const std::vector<std::pair<int, int>>& getRocErxMapping();
+
  protected:
   lpGBT& lpGBT_;
   int i2cbus_;
@@ -65,6 +69,9 @@ class EcalModule {
   /// representation of Ecal HexaModule
   std::vector<ROC> rocs_;
   std::vector<ECON> econs_;
+  // Mapping ROC channel → ERX channel
+private:
+  static const std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 class EcalMotherboard {
