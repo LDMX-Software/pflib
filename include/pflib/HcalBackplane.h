@@ -61,7 +61,7 @@ class HcalBackplane : public Target {
  protected:
   /** Add a ROC to the set of ROCs */
   void add_roc(int iroc, uint8_t roc_baseaddr,
-               z const std::string& roc_type_version,
+               const std::string& roc_type_version,
                std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
                std::shared_ptr<I2C> board_i2c);
 
