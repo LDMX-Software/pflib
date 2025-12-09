@@ -1,14 +1,35 @@
+help_message := "shared recipes for pflib development
+
+Use the environment variable PFLIB_BARE_METAL to signal
+if you are on an actual DAQ server or developing somewhere
+else and wish to mimic the DAQ server with a container.
+
+  # without PFLIB_BARE_METAL, we run with denv
+  just -n configure
+  denv cmake -B build -S .
+
+  # with PFLIB_BARE_METAL, we assume the environment
+  # is already constructed properly
+  export PFLIB_BARE_METAL=1
+  just -n configure
+  cmake -B build -S .
+
+RECIPES:
+"
+
 _default:
-    @just --list --unsorted
+    @just --list --unsorted --justfile {{justfile()}} --list-heading "{{ help_message }}"
+
+env_cmd_prefix := if env("PFLIB_BARE_METAL","0") == "0" { "denv " } else { "" }
 
 _cmake *CONFIG:
-    denv cmake -B build -S . {{ CONFIG }}
+    {{env_cmd_prefix}}cmake -B build -S . {{ CONFIG }}
 
 _build *ARGS:
-    denv cmake --build build -- {{ ARGS }}
+    {{env_cmd_prefix}}cmake --build build -- {{ ARGS }}
 
 _test *ARGS:
-    cd build && denv ./test-pflib {{ ARGS }}
+    cd build && {{env_cmd_prefix}}./test-pflib {{ ARGS }}
 
 # init a local denv for development ("zcu" or "bittware-host")
 init host:
@@ -43,24 +64,24 @@ hexdump *args:
    
 # run the decoder
 pfdecoder *args:
-    denv ./build/pfdecoder {{ args }}
+    {{env_cmd_prefix}}./build/pfdecoder {{ args }}
 
 # run the econd-decoder
 econd-decoder *args:
-    denv ./build/econd-decoder {{ args }}
+    {{env_cmd_prefix}}./build/econd-decoder {{ args }}
 
 # open the test menu
 test-menu:
-    cd build && denv make test-menu
-    denv ./build/test-menu
+    cd build && {{env_cmd_prefix}}make test-menu
+    {{env_cmd_prefix}}./build/test-menu
 
 # test decoding in python bindings
 test-py-decoding:
-    denv 'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
+    {{env_cmd_prefix}}'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
 
 # py-rogue decode
 rogue-decode *args:
-    denv 'PYTHONPATH=${PYTHONPATH}:${PWD}/build python3 ana/rogue-read.py {{args}}'
+    {{env_cmd_prefix}}'PYTHONPATH=${PYTHONPATH}:${PWD}/build python3 ana/rogue-read.py {{args}}'
 
 # build the conda package on the DAQ server
 conda-package:
@@ -71,8 +92,3 @@ conda-package:
     conda activate base
     conda-build env/conda --output-folder /u1/ldmx/pflib-conda-channel --channel conda-forge --channel tidair-tag
     conda index /u1/ldmx/pflib-conda-channel
-
-build-on-srv:
-    cmake -B build -S .
-    make -C build
-

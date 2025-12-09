@@ -157,9 +157,7 @@ int main(int argc, char* argv[]) {
       r >> ep;
       pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
                        << " and bool(r): " << bool(r);
-      for (const auto& sample : ep.samples) {
-        sample.to_csv(o);
-      }
+      ep.to_csv(o);
       count++;
       if (nevents > 0 and count >= nevents) {
         break;

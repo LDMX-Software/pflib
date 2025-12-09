@@ -3,52 +3,25 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
 
-void vt50_scan(Target* tgt) {
-  int nevents = pftool::readline_int(
-      "How many events per time point? Remember that the tot efficiency's "
-      "granularity depends on this number. ",
-      20);
-  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
-  bool highrange = false;
-  if (!preCC)
-    highrange =
-        pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
-  bool search = pftool::readline_bool(
-      "Use binary (Y) or bisectional search (N)? ", false);
-  int channel = pftool::readline_int("Channel to pulse into? ", 61);
-  int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
-  int vref_lower =
-      pftool::readline_int("Smallest tot threshold value (min = 0): ", 300);
-  int vref_upper =
-      pftool::readline_int("Largest tot threshold value (max = 4095): ", 600);
-  int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
-  std::string fname = pftool::readline_path("vt50-scan", ".csv");
-  auto roc{tgt->roc(pftool::state.iroc)};
-  auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  int link = (channel / 36);
-  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
-  auto test_param_handle =
-      roc.testParameters()
-          .add(refvol_page, "INTCTEST", 1)
-          .add(refvol_page, "TOA_VREF", toa_threshold)
-          .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-          .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-          .add(channel_page, "LOWRANGE",
-               preCC       ? 0
-               : highrange ? 0
-                           : 1)
-          .apply();
-
-  std::string vref_page = refvol_page;
-  std::string calib_page = refvol_page;
+// helper function to facilitate EventPacket dependent behaviour
+template <class EventPacket>
+static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+                             bool& preCC, bool& highrange, bool& search,
+                             int& channel, int& toa_threshold, int& vref_lower,
+                             int& vref_upper, int& nsteps, std::string& fname,
+                             int& link, std::string& vref_page,
+                             std::string& calib_page) {
   std::string vref_name = "TOT_VREF";
   std::string calib_name{preCC ? "CALIB_2V5" : "CALIB"};
   int calib_value{100000};
   double tot_eff{0};
+  int i_ch = channel % 36;  // 0–35
+  int n_links = determine_n_links(tgt);
 
   // Vectors for storing tot_eff and calib for the current param_point
   std::vector<double> tot_eff_list;
@@ -59,8 +32,8 @@ void vt50_scan(Target* tgt) {
   int max_its = 25;
   int vref_value{0};
 
-  std::vector<pflib::packing::SingleROCEventPacket> buffer;
-  DecodeAndWriteToCSV writer{
+  std::vector<EventPacket> buffer;
+  DecodeAndWriteToCSV<EventPacket> writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
@@ -72,16 +45,26 @@ void vt50_scan(Target* tgt) {
           << calib_name << ',';
         f << pflib::packing::Sample::to_csv_header << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+      [&](std::ofstream& f, const EventPacket& ep) {
         f << time << ',';
         f << vref_value << ',';
         f << calib_value << ',';
-        ep.channel(channel).to_csv(f);
+
+        if constexpr (std::is_same_v<EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
+          ep.channel(channel).to_csv(f);
+        } else if constexpr (std::is_same_v<
+                                 EventPacket,
+                                 pflib::packing::MultiSampleECONDEventPacket>) {
+          ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+        }
+
         f << '\n';
         buffer.push_back(ep);
-      }};
+      },
+      n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
   for (vref_value = vref_lower; vref_value <= vref_upper;
        vref_value += nsteps) {
@@ -137,8 +120,18 @@ void vt50_scan(Target* tgt) {
       daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
 
       std::vector<double> tot_list;
-      for (pflib::packing::SingleROCEventPacket ep : buffer) {
-        auto tot = ep.channel(channel).tot();
+      int tot = 0;
+
+      for (EventPacket ep : buffer) {
+        if constexpr (std::is_same_v<EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
+          tot = ep.channel(channel).tot();
+        } else if constexpr (std::is_same_v<
+                                 EventPacket,
+                                 pflib::packing::MultiSampleECONDEventPacket>) {
+          tot = ep.samples[ep.i_soi].channel(link, i_ch).tot();
+        }
+
         if (tot > 0) {
           tot_list.push_back(tot);
         }
@@ -179,5 +172,56 @@ void vt50_scan(Target* tgt) {
         break;
       }
     }
+  }
+}
+
+void vt50_scan(Target* tgt) {
+  int nevents = pftool::readline_int(
+      "How many events per time point? Remember that the tot efficiency's "
+      "granularity depends on this number. ",
+      20);
+  bool preCC = pftool::readline_bool("Use pre-CC charge injection? ", false);
+  bool highrange = false;
+  if (!preCC)
+    highrange =
+        pftool::readline_bool("Use highrange (Y) or lowrange (N)? ", false);
+  bool search = pftool::readline_bool(
+      "Use binary (Y) or bisectional search (N)? ", false);
+  int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  int toa_threshold = pftool::readline_int("Value for TOA threshold: ", 250);
+  int vref_lower =
+      pftool::readline_int("Smallest tot threshold value (min = 0): ", 300);
+  int vref_upper =
+      pftool::readline_int("Largest tot threshold value (max = 4095): ", 600);
+  int nsteps = pftool::readline_int("Number of steps between tot values: ", 10);
+  std::string fname = pftool::readline_path("vt50-scan", ".csv");
+  auto roc{tgt->roc(pftool::state.iroc)};
+  auto channel_page = pflib::utility::string_format("CH_%d", channel);
+  int link = (channel / 36);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto test_param_handle =
+      roc.testParameters()
+          .add(refvol_page, "INTCTEST", 1)
+          .add(refvol_page, "TOA_VREF", toa_threshold)
+          .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
+          .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+          .add(channel_page, "LOWRANGE",
+               preCC       ? 0
+               : highrange ? 0
+                           : 1)
+          .apply();
+
+  std::string vref_page = refvol_page;
+  std::string calib_page = refvol_page;
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    vt50_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold,
+        vref_lower, vref_upper, nsteps, fname, link, vref_page, calib_page);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    vt50_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, nevents, preCC, highrange, search, channel, toa_threshold,
+        vref_lower, vref_upper, nsteps, fname, link, vref_page, calib_page);
   }
 }

@@ -57,6 +57,12 @@ class MultiSampleECONDEventPacket {
   void from(std::span<uint32_t> data);
   /// read into this structure from the input Reader
   Reader& read(Reader& r);
+
+  /// header string if using to_csv
+  static const std::string to_csv_header;
+
+  /// write out all of the samples into the input CSV file
+  void to_csv(std::ofstream& f) const;
 };
 
 }  // namespace pflib::packing

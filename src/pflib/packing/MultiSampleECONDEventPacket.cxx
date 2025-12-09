@@ -8,6 +8,25 @@ namespace pflib::packing {
 MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
+const std::string MultiSampleECONDEventPacket::to_csv_header =
+    ECONDEventPacket::to_csv_header;
+
+void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
+  /**
+   * The columns of the output CSV are
+   * ```
+   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * ```
+   *
+   * The sample index is not persisted.
+   *
+   * @see ECONDEventPacket::to_csv for how a single sample is written.
+   */
+  for (const auto& sample : samples) {
+    sample.to_csv(f);
+  }
+}
+
 void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
   samples.clear();
   /*
