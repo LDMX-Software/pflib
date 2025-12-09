@@ -398,7 +398,8 @@ static void daq(const std::string& cmd, Target* pft) {
               [](std::ofstream& f,
                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
-              });
+              },
+              2);
           break;
         case Target::DaqFormat::SIMPLEROC:
           consumer = std::make_unique<
@@ -412,7 +413,8 @@ static void daq(const std::string& cmd, Target* pft) {
               [](std::ofstream& f,
                  const pflib::packing::SingleROCEventPacket& ep) {
                 ep.to_csv(f);
-              });
+              },
+              2);
           break;
         default:
           PFEXCEPTION_RAISE("BadConf",

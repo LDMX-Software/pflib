@@ -5,36 +5,6 @@
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 
-/**
- * get the medians of the channel ADC values
- *
- * This may be helpful in some other contexts, but since it depends on the
- * packing library it cannot go into utility. Just keeping it here for now,
- * maybe move it into its own header/impl in algorithm.
- *
- * @param[in] data buffer of single-roc packet data
- * @return array of channel ADC values
- *
- * @note We assume the caller knows what they are doing.
- * Calib and Common Mode channels are ignored.
- * TOT/TOA and the sample Tp/Tc flags are ignored.
- */
-template <class EventPacket>
-static std::array<int, 72> get_adc_medians(
-    const std::vector<EventPacket>& data) {
-  std::array<int, 72> medians;
-  /// reserve a vector of the appropriate size to avoid repeating allocation
-  /// time for all 72 channels
-  std::vector<int> adcs(data.size());
-  for (int ch{0}; ch < 72; ch++) {
-    for (std::size_t i{0}; i < adcs.size(); i++) {
-      adcs[i] = data[i].channel(ch).adc();
-    }
-    medians[ch] = pflib::utility::median(adcs);
-  }
-  return medians;
-}
-
 namespace pflib::algorithm {
 
 // Helper function to pull the 3 runs
@@ -44,7 +14,9 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                           std::array<int, 72>& highend,
                           std::array<int, 72>& lowend,
                           std::array<int, 2>& target, size_t n_events) {
-  DecodeAndBuffer<EventPacket> buffer{n_events};
+  /// TODO for multi-ROC set ups, we could dynamically determine the number
+  //       of ROCs and the number of channels from the Target
+  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
   {  // baseline run scope
@@ -102,12 +74,15 @@ static int get_adc(const EventPacket& p, int ch) {
                            pflib::packing::MultiSampleECONDEventPacket>) {
     // Use link specific channel calculation, this is done in
     // singleROCEventPacket.cxx for the other case
-    //  // Use the "Sample Of Interest" inside the EventPacket (See MultiSample
-    //  cxx file)
+    // Use the "Sample Of Interest" inside the EventPacket
+    // TODO this is only true if we only have one ROC's channels enabled
+    //      in the ECON-D. In the more realistic case, we should get the
+    //      link indices depending on which ROC we are aligning
     int i_link = ch / 36;  // 0 or 1
-    int i_ch = ch % 36;    // 0–35
+    int i_ch = ch % 36;    // 0 - 35
 
     // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
+    // because it can have more than 2 links readout
     return p.samples[p.i_soi].channel(i_link, i_ch).adc();
   } else {
     static_assert(sizeof(EventPacket) == 0,
@@ -115,6 +90,20 @@ static int get_adc(const EventPacket& p, int ch) {
   }
 }
 
+/**
+ * get the medians of the channel ADC values
+ *
+ * This may be helpful in some other contexts, but since it depends on the
+ * packing library it cannot go into utility. Just keeping it here for now,
+ * maybe move it into its own header/impl in algorithm.
+ *
+ * @param[in] data buffer of single-roc packet data
+ * @return array of channel ADC values
+ *
+ * @note We assume the caller knows what they are doing.
+ * Calib and Common Mode channels are ignored.
+ * TOT/TOA and the sample Tp/Tc flags are ignored.
+ */
 template <class EventPacket>
 static std::array<int, 72> get_adc_medians(
     const std::vector<EventPacket>& data) {
@@ -124,7 +113,6 @@ static std::array<int, 72> get_adc_medians(
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < adcs.size(); i++) {
-      // adcs[i] = data[i].channel(ch).adc();
       adcs[i] = get_adc(data[i], ch);
     }
     medians[ch] = pflib::utility::median(adcs);
@@ -149,7 +137,6 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   std::array<int, 2> target;
   std::array<int, 72> baseline, highend, lowend;
 
-  // DecodeAndBuffer buffer{n_events};
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     pedestal_runs<pflib::packing::SingleROCEventPacket>(
         tgt, roc, baseline, highend, lowend, target, n_events);

@@ -70,7 +70,7 @@ static void trim_tof_runs(
     Target* tgt, ROC& roc, size_t n_events,
     std::array<std::array<std::array<double, 72>, 8>, 200>& final_data) {
   // working in buffer, not in writer
-  DecodeAndBuffer<EventPacket> buffer{n_events};
+  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
   // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4

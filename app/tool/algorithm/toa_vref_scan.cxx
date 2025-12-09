@@ -14,7 +14,7 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
                           std::array<int, 2>& target) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
   std::array<std::array<double, 256>, 2> final_effs;
-  DecodeAndBuffer<EventPacket> buffer{n_events};
+  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
 
   // loop over runs, from toa_vref = 0 to = 255
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {

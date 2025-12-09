@@ -62,17 +62,11 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
   consumer.end_run();
 }
 
-// Adding constructor definition due to non default constructor containing
-// n_links which default=0,
 template <class EventPacket>
-DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links) {
-  if constexpr (std::is_same_v<EventPacket,
-                               pflib::packing::MultiSampleECONDEventPacket>) {
-    ep_ = std::make_unique<EventPacket>(n_links);
-  } else {
-    ep_ = std::make_unique<EventPacket>();
-  }
-}
+DecodeAndWrite<EventPacket>::DecodeAndWrite(int n_links): ep_{n_links} {}
+
+template<>
+DecodeAndWrite<pflib::packing::SingleROCEventPacket>::DecodeAndWrite(int _n_links): ep_{} {}
 
 WriteToBinaryFile::WriteToBinaryFile(const std::string& file_name)
     : file_name_{file_name}, fp_{fopen(file_name.c_str(), "a")} {
@@ -101,10 +95,8 @@ void DecodeAndWrite<EventPacket>::consume(std::vector<uint32_t>& event) {
   const auto& buffer{*reinterpret_cast<const std::vector<uint8_t>*>(&event)};
   pflib::packing::BufferReader r{buffer};
 
-  // now required to deref the pointer due to redefinition of ep into a
-  // uniqueptr
-  r >> *ep_;
-  write_event(*ep_);
+  r >> ep_;
+  write_event(ep_);
 }
 
 template <class EventPacket>
@@ -113,7 +105,7 @@ DecodeAndWriteToCSV<EventPacket>::DecodeAndWriteToCSV(
     std::function<void(std::ofstream&)> write_header,
     std::function<void(std::ofstream& f, const EventPacket&)> write_event,
     int n_links)
-    : DecodeAndWrite<EventPacket>(),
+    : DecodeAndWrite<EventPacket>(n_links),
       file_{file_name},
       write_event_{write_event} {
   if (not file_) {
@@ -137,12 +129,13 @@ DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
         f << std::boolalpha;
         f << EventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); });
+      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); },
+      2);
 }
 
 template <class EventPacket>
-DecodeAndBuffer<EventPacket>::DecodeAndBuffer(int nevents)
-    : DecodeAndWrite<EventPacket>() {
+DecodeAndBuffer<EventPacket>::DecodeAndBuffer(std::size_t nevents, int n_links)
+    : DecodeAndWrite<EventPacket>(n_links) {
   set_buffer_size(nevents);
 }
 
@@ -162,18 +155,13 @@ void DecodeAndBuffer<EventPacket>::start_run() {
 }
 
 template <class EventPacket>
-void DecodeAndBuffer<EventPacket>::start_run() {
-  ep_buffer_.clear();
-}
-
-template <class EventPacket>
 const std::vector<EventPacket>& DecodeAndBuffer<EventPacket>::get_buffer()
     const {
   return ep_buffer_;
 }
 
 template <class EventPacket>
-void DecodeAndBuffer<EventPacket>::set_buffer_size(int nevents) {
+void DecodeAndBuffer<EventPacket>::set_buffer_size(std::size_t nevents) {
   ep_buffer_.reserve(nevents);
 }
 

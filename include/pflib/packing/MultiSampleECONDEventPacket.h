@@ -61,10 +61,8 @@ class MultiSampleECONDEventPacket {
   /// header string if using to_csv
   static const std::string to_csv_header;
 
+  /// write out all of the samples into the input CSV file
   void to_csv(std::ofstream& f) const;
-
-  /// the two daq links for the connected HGCROC
-  std::array<DAQLinkFrame, 2> daq_links;
 };
 
 }  // namespace pflib::packing

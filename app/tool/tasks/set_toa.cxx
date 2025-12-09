@@ -13,7 +13,7 @@ void set_toa_runs(Target* tgt, pflib::ROC& roc, size_t nevents,
   int link = (channel / 36);
   int i_ch = channel % 36;  // 0–35
 
-  DecodeAndBuffer<EventPacket> buffer{nevents};
+  DecodeAndBuffer<EventPacket> buffer{nevents, 2};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);

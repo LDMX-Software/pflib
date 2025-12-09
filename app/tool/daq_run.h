@@ -10,7 +10,7 @@
 
 #include "pflib/Target.h"
 #include "pflib/logging/Logging.h"
-#include "pflib/packing/MultiSampleECONDEventPacket.h"  // in place of SoftWrappedECONDEventPacket.h
+#include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/SingleROCEventPacket.h"
 
 /**
@@ -59,8 +59,11 @@ class WriteToBinaryFile : public DAQRunConsumer {
 template <class EventPacket>
 class DecodeAndWrite : public DAQRunConsumer {
  public:
-  explicit DecodeAndWrite(
-      int n_links = 0);  // Default to 0 for SingleROC packet type (ignored)
+  /**
+   * @param[in] n_links number of links is necessary for the ECOND event packet
+   * but for the SingleROC it is always 2 (both halves) and is therefore ignored
+   */
+  explicit DecodeAndWrite(int n_links);
   virtual ~DecodeAndWrite() = default;
   /**
    * Decode the input event packet into our pflib::packing::SingleROCEventPacket
@@ -77,10 +80,7 @@ class DecodeAndWrite : public DAQRunConsumer {
 
  private:
   /// event packet for decoding
-  // EventPacket ep_;
-
-  // use a pointer because constructors differ between event packet types
-  std::unique_ptr<EventPacket> ep_;
+  EventPacket ep_;
 };
 
 /**
@@ -99,7 +99,7 @@ class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
       const std::string& file_name,
       std::function<void(std::ofstream&)> write_header,
       std::function<void(std::ofstream&, const EventPacket&)> write_event,
-      int n_links = 0);
+      int n_links);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
   virtual void write_event(const EventPacket& ep) final;
@@ -128,12 +128,13 @@ DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
 template <typename EventPacket>
 class DecodeAndBuffer : public DecodeAndWrite<EventPacket> {
  public:
-  DecodeAndBuffer(int nevents);
+  /// define number of events to buffer and number of links enabled
+  DecodeAndBuffer(std::size_t nevents, int n_links);
   virtual ~DecodeAndBuffer() = default;
   /// get buffer
   const std::vector<EventPacket>& get_buffer() const;
   /// Set the buffer size
-  void set_buffer_size(int nevents);
+  void set_buffer_size(std::size_t nevents);
   /// Save to buffer
   virtual void write_event(const EventPacket& ep) override;
   /// Check that the buffer was read and flushed since last run
