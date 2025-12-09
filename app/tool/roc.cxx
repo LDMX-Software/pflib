@@ -3,6 +3,7 @@
  * ROC menu commands and support functions
  */
 #include "pftool.h"
+ENABLE_LOGGING();
 
 /**
  * Simply print the currently selective ROC so that user is aware
@@ -132,6 +133,9 @@ static void roc(const std::string& cmd, Target* pft) {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
     roc.setRunMode(isRunMode);
+    pflib_log(debug) << "ROC " << pftool::state.iroc
+                     << (isRunMode ? " set to RUNMODE" : " taken out of RUNMODE");
+    
   }
   if (cmd == "PAGE") {
     auto page = pftool::readline("Page? ", pftool::state.roc_page_names());
