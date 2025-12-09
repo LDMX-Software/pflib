@@ -7,6 +7,65 @@
 
 namespace pflib::algorithm {
 
+/**
+ * Retrieve the ADC sample for the input channel from the input event packet
+ */
+template <class EventPacket>
+static int get_adc(const EventPacket& p, int ch) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::SingleROCEventPacket>) {
+    return p.channel(ch).adc();
+  } else if constexpr (std::is_same_v<
+                           EventPacket,
+                           pflib::packing::MultiSampleECONDEventPacket>) {
+    // Use link specific channel calculation, this is done in
+    // singleROCEventPacket.cxx for the other case
+    // Use the "Sample Of Interest" inside the EventPacket
+    // TODO this is only true if we only have one ROC's channels enabled
+    //      in the ECON-D. In the more realistic case, we should get the
+    //      link indices depending on which ROC we are aligning
+    int i_link = ch / 36;  // 0 or 1
+    int i_ch = ch % 36;    // 0 - 35
+
+    // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
+    // because it can have more than 2 links readout
+    return p.samples[p.i_soi].channel(i_link, i_ch).adc();
+  } else {
+    static_assert(sizeof(EventPacket) == 0,
+                  "Unsupported packet type in get_adc()");
+  }
+}
+
+/**
+ * get the medians of the channel ADC values
+ *
+ * This may be helpful in some other contexts, but since it depends on the
+ * packing library it cannot go into utility. Just keeping it here for now,
+ * maybe move it into its own header/impl in algorithm.
+ *
+ * @param[in] data buffer of single-roc packet data
+ * @return array of channel ADC values
+ *
+ * @note We assume the caller knows what they are doing.
+ * Calib and Common Mode channels are ignored.
+ * TOT/TOA and the sample Tp/Tc flags are ignored.
+ */
+template <class EventPacket>
+static std::array<int, 72> get_adc_medians(
+    const std::vector<EventPacket>& data) {
+  std::array<int, 72> medians;
+  /// reserve a vector of the appropriate size to avoid repeating allocation
+  /// time for all 72 channels
+  std::vector<int> adcs(data.size());
+  for (int ch{0}; ch < 72; ch++) {
+    for (std::size_t i{0}; i < adcs.size(); i++) {
+      adcs[i] = get_adc(data[i], ch);
+    }
+    medians[ch] = pflib::utility::median(adcs);
+  }
+  return medians;
+}
+
 // Helper function to pull the 3 runs
 template <class EventPacket>  // any use of <EventPacket> is a placeholder for
                               // what the function gets called with.
@@ -62,62 +121,6 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     lowend = get_adc_medians<EventPacket>(buffer.get_buffer());
   }
-}
-
-template <class EventPacket>
-static int get_adc(const EventPacket& p, int ch) {
-  if constexpr (std::is_same_v<EventPacket,
-                               pflib::packing::SingleROCEventPacket>) {
-    return p.channel(ch).adc();
-  } else if constexpr (std::is_same_v<
-                           EventPacket,
-                           pflib::packing::MultiSampleECONDEventPacket>) {
-    // Use link specific channel calculation, this is done in
-    // singleROCEventPacket.cxx for the other case
-    // Use the "Sample Of Interest" inside the EventPacket
-    // TODO this is only true if we only have one ROC's channels enabled
-    //      in the ECON-D. In the more realistic case, we should get the
-    //      link indices depending on which ROC we are aligning
-    int i_link = ch / 36;  // 0 or 1
-    int i_ch = ch % 36;    // 0 - 35
-
-    // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
-    // because it can have more than 2 links readout
-    return p.samples[p.i_soi].channel(i_link, i_ch).adc();
-  } else {
-    static_assert(sizeof(EventPacket) == 0,
-                  "Unsupported packet type in get_adc()");
-  }
-}
-
-/**
- * get the medians of the channel ADC values
- *
- * This may be helpful in some other contexts, but since it depends on the
- * packing library it cannot go into utility. Just keeping it here for now,
- * maybe move it into its own header/impl in algorithm.
- *
- * @param[in] data buffer of single-roc packet data
- * @return array of channel ADC values
- *
- * @note We assume the caller knows what they are doing.
- * Calib and Common Mode channels are ignored.
- * TOT/TOA and the sample Tp/Tc flags are ignored.
- */
-template <class EventPacket>
-static std::array<int, 72> get_adc_medians(
-    const std::vector<EventPacket>& data) {
-  std::array<int, 72> medians;
-  /// reserve a vector of the appropriate size to avoid repeating allocation
-  /// time for all 72 channels
-  std::vector<int> adcs(data.size());
-  for (int ch{0}; ch < 72; ch++) {
-    for (std::size_t i{0}; i < adcs.size(); i++) {
-      adcs[i] = get_adc(data[i], ch);
-    }
-    medians[ch] = pflib::utility::median(adcs);
-  }
-  return medians;
 }
 
 std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
