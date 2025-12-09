@@ -65,7 +65,7 @@ void align_phase_word(Target* tgt) {
       "BX: ",
       "0,1,2,3,4,5,6,7");
   std::vector<int> channels;
-  std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7};
+  std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
   std::stringstream ss(ch_str);
   std::string item;
   while (std::getline(ss, item, ',')) {
