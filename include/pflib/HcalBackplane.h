@@ -53,9 +53,14 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
+  // Mapping ROC channel → ECON channel - 2 by 4 in HCal (2 by 6 in Ecal)
+  std::vector<std::pair<int,int>> roc_to_econ_map_;
+  
+  const std::vector<std::pair<int,int>>& get_channel_mapping() override; 
+
  protected:
   /** Add a ROC to the set of ROCs */
-  void add_roc(int iroc, uint8_t roc_baseaddr,
+  void add_roc(int iroc, uint8_t roc_baseaddr,z
                const std::string& roc_type_version,
                std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
                std::shared_ptr<I2C> board_i2c);
@@ -89,6 +94,7 @@ class HcalBackplane : public Target {
     std::shared_ptr<I2C> i2c_;
   };
   std::map<int, ECONConnection> econ_connections_;
+  
 };
 
 }  // namespace pflib

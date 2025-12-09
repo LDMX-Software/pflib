@@ -57,24 +57,37 @@ void align_phase_word(Target* tgt) {
   auto roc = tgt->roc(iroc);
   auto econ = tgt->econ(iecon);
 
-  // Get channels from user
-  std::string ch_str = pftool::readline(
-      "Enter channel(s) to check (comma-separated), default is all channels "
-      "0-11. Upon "
-      "succesful match, all channels will be checked for alignment at that "
-      "BX: ",
-      "0,1,2,3,4,5,6,7,8,9,10,11");
+  // // Get channels from user
+  // std::string ch_str = pftool::readline(
+  //     "Enter channel(s) to check (comma-separated), default is Ch0, Ch1. Upon succesful match, all channels will be checked for alignment at that "
+  //     "BX, for the appropriate ROC: ",
+  //     "0,1,2,3,4,5,6,7,8,9,10,11");
+
+  // GET Channels dynamically from ROC to ECON object channel mapping
+  auto& mapping = tgt->get_channel_mapping();
+  
+  //TESTING CODE
+  std::cout << "Mapping test, roc 0: " << mapping[0].first << ", " << mapping[0].second << std::endl;
+  std::cout << "Mapping test, roc #iroc: " << mapping[iroc].first << ", " << mapping[iroc].second << std::endl;
+
+  // DEPRECATED manual input code.
+  // std::vector<int> channels_input;
+  // std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  // std::stringstream ss(ch_str);
+  // std::string item;
+  // while (std::getline(ss, item, ',')) {
+  //   try {
+  //     channels_input.push_back(std::stoi(item));
+  //   } catch (...) {
+  //     std::cerr << "Invalid channel entry: " << item << std::endl;
+  //   }
+  // }
+
+  // Dynamic channels. Only 2 per link.
   std::vector<int> channels;
-  std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-  std::stringstream ss(ch_str);
-  std::string item;
-  while (std::getline(ss, item, ',')) {
-    try {
-      channels.push_back(std::stoi(item));
-    } catch (...) {
-      std::cerr << "Invalid channel entry: " << item << std::endl;
-    }
-  }
+  channels.push_back(mapping[iroc].first);
+  channels.push_back(mapping[iroc].second);
+
   uint32_t binary_channels = build_channel_mask(channels);
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
@@ -96,7 +109,7 @@ void align_phase_word(Target* tgt) {
     return;
   }
 
-  // // Set IDLEs in ROC with enough bit transitions
+  // Set IDLEs in ROC with enough bit transitions
 
   auto roc_setup_builder =
       roc.testParameters()

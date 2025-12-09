@@ -107,6 +107,8 @@ class Target {
   virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
+  virtual const std::vector<std::pair<int,int>>& get_channel_mapping() = 0;
+
 
  protected:
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
