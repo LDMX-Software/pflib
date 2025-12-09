@@ -60,10 +60,10 @@ void align_phase_word(Target* tgt) {
   // Get channels from user
   std::string ch_str = pftool::readline(
       "Enter channel(s) to check (comma-separated), default is all channels "
-      "0-7. Upon "
+      "0-11. Upon "
       "succesful match, all channels will be checked for alignment at that "
       "BX: ",
-      "0,1,2,3,4,5,6,7");
+      "0,1,2,3,4,5,6,7,8,9,10,11");
   std::vector<int> channels;
   std::vector<int> all_channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
   std::stringstream ss(ch_str);
