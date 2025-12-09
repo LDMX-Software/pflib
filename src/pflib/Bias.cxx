@@ -42,13 +42,43 @@ void MAX5825::set(uint8_t channel, uint16_t code) {
 
 /// DAC chip addresses taken from HGCROC specs
 const uint8_t Bias::ADDR_LED_0 = 0x18;
-const uint8_t Bias::ADDR_LED_1 = 0x1A;
+const uint8_t Bias::ADDR_LED_1 = 0x1a;
 const uint8_t Bias::ADDR_SIPM_0 = 0x10;
 const uint8_t Bias::ADDR_SIPM_1 = 0x12;
 
 Bias::Bias(std::shared_ptr<I2C> i2c_bias, std::shared_ptr<I2C> i2c_board) {
   i2c_bias_ = i2c_bias;
   i2c_board_ = i2c_board;
+
+  std::vector<const char*> name = { "BIAS", "BOARD" };
+  std::vector<std::shared_ptr<I2C>> i2c = { i2c_bias_, i2c_board_ };
+  for (std::size_t i{0}; i < 2; i++) {
+    printf(name[i]);
+    for (int addr = 0; addr < 0x80; addr++) {
+      bool success = true;
+      char failchar;
+      try {
+        i2c[i]->read_byte(addr);
+      } catch (pflib::Exception& e) {
+        if (e.name() == "I2CErrorNoCLK")
+          failchar = 'C';
+        else if (e.name() == "I2CErrorNoACK")
+          failchar = '-';
+        else if (e.name() == "I2CErrorSDALow")
+          failchar = '*';
+        else
+          failchar = '?';
+        //	printf(e.what());
+        success = false;
+      }
+      if ((addr % 0x10) == 0) printf("\n%02x ", addr);
+      if (success)
+        printf("%02x ", addr);
+      else
+        printf("%c%c ", failchar, failchar);
+    }
+    printf("\n");
+  }
 
   led_.emplace_back(i2c_bias, Bias::ADDR_LED_0);
   led_.emplace_back(i2c_bias, Bias::ADDR_LED_1);
@@ -57,7 +87,7 @@ Bias::Bias(std::shared_ptr<I2C> i2c_bias, std::shared_ptr<I2C> i2c_board) {
 }
 
 void Bias::initialize() {
-  // Reset all DAC:s
+  // Reset all DACs
   i2c_bias_->general_write_read(0x10, {0x35, 0x96, 0x30}, 0);
   i2c_bias_->general_write_read(0x12, {0x35, 0x96, 0x30}, 0);
   i2c_bias_->general_write_read(0x14, {0x35, 0x96, 0x30}, 0);
