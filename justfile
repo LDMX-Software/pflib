@@ -1,18 +1,19 @@
 help_message := "shared recipes for pflib development
 
-Use the environment variable PFLIB_BARE_METAL to signal
-if you are on an actual DAQ server or developing somewhere
+Use the environment variable PFLIB_CONTAINER to signal
+you are not on a prepared environment and want to
+mimic a DAQ server within a container
 else and wish to mimic the DAQ server with a container.
 
-  # without PFLIB_BARE_METAL, we run with denv
-  just -n configure
-  denv cmake -B build -S .
-
-  # with PFLIB_BARE_METAL, we assume the environment
-  # is already constructed properly
-  export PFLIB_BARE_METAL=1
+  # without PFLIB_CONTAINER, we run with denv
   just -n configure
   cmake -B build -S .
+
+  # with PFLIB_CONTAINER, we assume the environment
+  # is already constructed properly
+  export PFLIB_CONTAINER=1
+  just -n configure
+  denv cmake -B build -S .
 
 RECIPES:
 "
@@ -20,7 +21,7 @@ RECIPES:
 _default:
     @just --list --unsorted --justfile {{justfile()}} --list-heading "{{ help_message }}"
 
-env_cmd_prefix := if env("PFLIB_BARE_METAL","0") == "0" { "denv " } else { "" }
+env_cmd_prefix := if env("PFLIB_CONTAINER","0") == "1" { "denv " } else { "" }
 
 _cmake *CONFIG:
     {{env_cmd_prefix}}cmake -B build -S . {{ CONFIG }}
@@ -40,6 +41,9 @@ configure: _cmake
 
 # compile pflib
 build: _build
+
+# alias for configure and then build
+compile: configure build
 
 # run Boost.Test executable
 test: _test
