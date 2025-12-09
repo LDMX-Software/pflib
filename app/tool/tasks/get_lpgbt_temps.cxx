@@ -7,18 +7,19 @@ struct CalibConstants {
     double tj_user = 0.0;
 
     // automatically filled from .csv
-    std::unordered_map<std::string, double> values;
+    std::unordered_map<std::string, std::string> values;
 
-    double get(const std::string& key) const {
+    std::string get(const std::string& key) const {
         auto it = values.find(key);
         if (it != values.end()) return it->second;
         printf("WARNING: missing calibration constant '%s'\n", key.c_str());
-        return 0.0;
+        return "0.0";
     }
 };
 
 uint8_t REG_VREFTUNE = 0x01d;
 uint8_t REG_CURDACVALUE = 0x06c;
+uint16_t REG_ADCMON = 0x122;
 
 void save_results(const std::string& results_file,
                   const std::string& lpgbt_name,
@@ -55,7 +56,7 @@ void save_results(const std::string& results_file,
     
     for (const auto& kv : calib.values) {
 	    const std::string& key = kv.first;
-	    double val = kv.second;
+	    std::string val = kv.second;
 	    cal[key] = val;
     }
     entry["calib_constants"] = cal;
@@ -73,10 +74,47 @@ void save_results(const std::string& results_file,
     fout.close();
 
     printf("  > Successfully wrote calibration data to '%s'\n", results_file.c_str());
-    printf("\n---------------------------------------------------------\n");
-    printf("  >>> Optimal VREFTUNE for %08X is: %d <<<\n",
-           chipid, optimal_vref_tune);
-    printf("---------------------------------------------------------\n");
+    // printf("\n---------------------------------------------------------\n");
+    // printf("  >>> Optimal VREFTUNE for %08X is: %d <<<\n",
+    //        chipid, optimal_vref_tune);
+    // printf("---------------------------------------------------------\n");
+}
+
+static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, int n_pin, int curdacvalue, const std::string& results_file, int samples = 20) {
+
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
+
+	YAML::Node file_results = YAML::LoadFile(results_file);
+	YAML::Node entry = file_results["TRG"];
+	int vref_tune = entry["vref_tune"].as<int>();
+
+	std::vector<uint16_t> results;
+	results.reserve(samples);
+	
+	lpgbt_daq.write(REG_CURDACVALUE, curdacvalue);
+	lpgbt_daq.write(REG_VREFTUNE, vref_tune);
+	uint8_t vreftune = lpgbt_daq.read(REG_VREFTUNE);
+	printf("  > VREFTUNE REG: %d\n", vreftune);
+
+	
+	uint8_t curdac_value = lpgbt_daq.read(REG_CURDACVALUE);
+	// printf("  > CURDACVALUE: %d\n", curdac_value);
+
+    	for (int i = 0; i < samples; ++i) {
+		if (curdacvalue == 0) {
+			// Internal Temp
+			uint16_t adc_value = lpgbt_daq.adc_read(14, 15, 0);
+			results.push_back(adc_value);
+		
+		} else {
+			// ADC Temp
+        		uint16_t adc_value = lpgbt_daq.adc_resistance_read(adc_channel, curdacvalue, 0);
+        		results.push_back(adc_value);
+        		//printf("     Sample %02d : %d\n", i, adc_value);
+		}
+    	}
+
+	return results;
 }
 
 double calculate_tj_user(const std::string& results_file,
@@ -129,10 +167,10 @@ double calculate_tj_user(const std::string& results_file,
 
 static void get_calib_constants(Target* tgt) {
 
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
 
 	CalibConstants c;
-	const std::string& lpgbt_name = "DAQ";
+	const std::string& lpgbt_name = "TRG";
 
 	printf(" --- Finding CHIPID ---\n");
 	uint32_t chipid = lpgbt_daq.read_efuse(0);
@@ -177,12 +215,14 @@ static void get_calib_constants(Target* tgt) {
 		while (std::getline(file, line)) {
 			auto row = split_csv(line);
 			if (row[col["CHIPID"]] == chipid_hex) {
+				printf("  -- Loaded Calibration Row for CHIPID %s --\n", chipid_hex.c_str());
 				for (size_t i = 0; i < row.size(); i++) {
 					const std::string& colname = header[i];
-					const std::string& raw = row[i];
-					if (colname == "CHIPID") continue;
+					const std::string& raw     = row[i];
+					printf("     %s = %s\n", colname.c_str(), raw.c_str());
+					// if (colname == "CHIPID") continue;
 					try {
-						c.values[colname] = std::stod(raw);
+						c.values[colname] = raw;
 						} catch (...) {
 							printf("WARNING: Could not parse '%s' for column '%s'\n",
 									raw.c_str(), colname.c_str());
@@ -208,15 +248,25 @@ static void get_calib_constants(Target* tgt) {
 	lpgbt_daq.write(REG_VREFTUNE, 0);
 	uint8_t vreftune = lpgbt_daq.read(REG_VREFTUNE);
 	printf("  > VREFTUNE REG: %d\n", vreftune);
+ 
+	save_results("calibration_results.yaml",
+                lpgbt_name,
+		chipid,
+                0,
+		c);
 
-	uint16_t adc_value = lpgbt_daq.adc_read(14, 14, 16);
+	std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, 14, 15, 0, "calibration_results.yaml");
+	
+	double adc_sum = 0;
+	for (auto v : adc_vals) adc_sum += v;
+	double adc_avg = adc_sum / adc_vals.size();
 
-	printf("  > ADC Value: %d\n", adc_value);
+	printf("  > ADC Average: %f\n", adc_avg);
 
-	float tj_user = adc_value * c.get("TEMPERATURE_UNCALVREF_SLOPE") + c.get("TEMPERATURE_UNCALVREF_OFFSET");
+	float tj_user = adc_avg * to_double(c.get("TEMPERATURE_UNCALVREF_SLOPE")) + to_double(c.get("TEMPERATURE_UNCALVREF_OFFSET"));
 	printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n", tj_user);
 
-	int optimal_vref_tune = static_cast<int>(std::round(tj_user * c.get("VREF_SLOPE") + c.get("VREF_OFFSET")));
+	int optimal_vref_tune = static_cast<int>(std::round(tj_user * to_double(c.get("VREF_SLOPE")) + to_double(c.get("VREF_OFFSET"))));
 	printf("  > Optimal VREFTUNE: %d\n", optimal_vref_tune);
  
 	save_results("calibration_results.yaml",
@@ -226,36 +276,12 @@ static void get_calib_constants(Target* tgt) {
 		c);
 }
 
-static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, int curdacvalue, const std::string& results_file, int samples = 5) {
-
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
-
-	YAML::Node file_results = YAML::LoadFile(results_file);
-	YAML::Node entry = file_results["DAQ"];
-	int vref_tune = entry["vref_tune"].as<int>();
-
-	std::vector<uint16_t> results;
-	results.reserve(samples);
-	
-	lpgbt_daq.write(REG_CURDACVALUE, curdacvalue);
-	lpgbt_daq.write(REG_VREFTUNE, vref_tune);
-
-	uint8_t vreftune = lpgbt_daq.read(REG_VREFTUNE);
-	// printf("  > VREFTUNE REG: %d\n", vreftune);
-
-    	for (int i = 0; i < samples; ++i) {
-        	uint16_t adc_value = lpgbt_daq.adc_read(adc_channel, adc_channel, 16);
-        	results.push_back(adc_value);
-        	// printf("     Sample %02d : %d\n", i, adc_value);
-    	}
-
-	return results;
-}
-
 static void read_internal_temp(Target* tgt, const std::string& results_file) {
-	double tj_user = calculate_tj_user("calibration_results.yaml", "DAQ");
+
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
+	double tj_user = calculate_tj_user("calibration_results.yaml", "TRG");
 	YAML::Node results = YAML::LoadFile(results_file);
-	YAML::Node entry = results["DAQ"];
+	YAML::Node entry = results["TRG"];
 	YAML::Node cal = entry["calib_constants"];
 
     	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
@@ -265,7 +291,13 @@ static void read_internal_temp(Target* tgt, const std::string& results_file) {
 	double temp_slope      = cal["TEMPERATURE_SLOPE"].as<double>();
 	double temp_offset     = cal["TEMPERATURE_OFFSET"].as<double>();
 
-	std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, 15, 0, "calibration_results.yaml");
+	
+	// Reset temperature sensor
+	lpgbt_daq.write(REG_ADCMON, uint8_t(1) << 5);
+	usleep(1000);
+	lpgbt_daq.write(REG_ADCMON, uint8_t(0) << 5);
+
+	std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, 14, 15, 0, "calibration_results.yaml");
 	
 	double adc_sum = 0;
 	for (auto v : adc_vals) adc_sum += v;
@@ -275,15 +307,15 @@ static void read_internal_temp(Target* tgt, const std::string& results_file) {
 
 	printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
 	double temperature_c = (vadc_v * temp_slope) + temp_offset;
-	printf("  > Internal Temperature: %.2f degrees C\n", temperature_c);
+	printf("  > lpGBT Internal Temperature: %.2f degrees C\n", temperature_c);
 }
 
 static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& results_file) {
 	
-	double tj_user = calculate_tj_user("calibration_results.yaml", "DAQ");
+	double tj_user = calculate_tj_user("calibration_results.yaml", "TRG");
 	
 	YAML::Node results = YAML::LoadFile(results_file);
-	YAML::Node entry = results["DAQ"];
+	YAML::Node entry = results["TRG"];
 	YAML::Node cal = entry["calib_constants"];
 
     	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
@@ -296,16 +328,15 @@ static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& resul
 	printf("  > Auto-ranging current to find optimal measurement point (~0.5V)...\n");
 	std::vector<double> measurements;
 
-	for (int current_val = 64; current_val < 255; current_val += 16) {
+	for (int current_val = 16; current_val < 255; current_val += 16) {
 	
-		std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, adc_channel, current_val, "calibration_results.yaml");
+		std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, adc_channel, 15, current_val, "calibration_results.yaml");
 
 		double adc_sum = 0;
 		for (auto v : adc_vals) adc_sum += v;
 		double adc_avg = adc_sum / adc_vals.size();
-
+		
 		double vadc_v = adc_avg * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
-
 		printf("    - Trying CURDAC=%-3d: V_ADC = %.3f V", current_val, vadc_v);
 		if (vadc_v > 0.4 && vadc_v < 0.6) {
 			printf(" -> In range!\n");
@@ -325,6 +356,8 @@ static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& resul
 		} else {
 			printf("\n");
 		}
+
+		printf("    - ADC Average: %f\n", adc_avg);
 	}
 	double sum = 0;
     	for (double r : measurements) sum += r;
@@ -339,7 +372,6 @@ static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& resul
 }
 
 void get_lpgbt_temps(Target* tgt) {
-
 
     const std::string yaml_file = "calibration_results.yaml";
 

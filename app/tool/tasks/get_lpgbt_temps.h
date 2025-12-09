@@ -25,6 +25,10 @@ inline bool file_exists(const std::string& name) {
     return (stat(name.c_str(), &buffer) == 0);
 }
 
+inline double to_double(const std::string& s) {
+    return std::stod(s);
+}
+
 // Assumes a PT1000 sensor by default (r0=1000)
 inline double rtd_resistance_to_celsius(double resistance_ohms,
                                  double r0 = 1000.0,
