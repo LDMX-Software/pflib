@@ -59,16 +59,19 @@ void align_phase_word(Target* tgt) {
 
   // // Get channels from user
   // std::string ch_str = pftool::readline(
-  //     "Enter channel(s) to check (comma-separated), default is Ch0, Ch1. Upon succesful match, all channels will be checked for alignment at that "
+  //     "Enter channel(s) to check (comma-separated), default is Ch0, Ch1. Upon
+  //     succesful match, all channels will be checked for alignment at that "
   //     "BX, for the appropriate ROC: ",
   //     "0,1,2,3,4,5,6,7,8,9,10,11");
 
   // GET Channels dynamically from ROC to ECON object channel mapping
   auto& mapping = tgt->get_channel_mapping();
-  
-  //TESTING CODE
-  std::cout << "Mapping test, roc 0: " << mapping[0].first << ", " << mapping[0].second << std::endl;
-  std::cout << "Mapping test, roc #iroc: " << mapping[iroc].first << ", " << mapping[iroc].second << std::endl;
+
+  // TESTING CODE
+  std::cout << "Mapping test, roc 0: " << mapping[0].first << ", "
+            << mapping[0].second << std::endl;
+  std::cout << "Mapping test, roc #iroc: " << mapping[iroc].first << ", "
+            << mapping[iroc].second << std::endl;
 
   // DEPRECATED manual input code.
   // std::vector<int> channels_input;

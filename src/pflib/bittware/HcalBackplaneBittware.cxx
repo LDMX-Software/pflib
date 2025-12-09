@@ -124,9 +124,9 @@ class HcalBackplaneBW : public HcalBackplane {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
-  const std::array<std::pair<int,int>,4>& HcalBackplaneBW::get_channel_mapping()
-  {
-      return roc_to_econ_map_;
+  const std::array<std::pair<int, int>, 4>&
+  HcalBackplaneBW::get_channel_mapping() {
+    return roc_to_econ_map_;
   }
 
   virtual void softResetROC(int which) override {

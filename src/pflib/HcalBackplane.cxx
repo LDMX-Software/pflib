@@ -9,10 +9,7 @@ HcalBackplane::HcalBackplane() {
   necon_ = 0;
 
   // Default HCAL ROC→ECON mapping
-  roc_to_econ_map_ = {
-      {3,2}, {6,7}, {4,5}, {1,0}
-  };
-
+  roc_to_econ_map_ = {{3, 2}, {6, 7}, {4, 5}, {1, 0}};
 }
 
 bool HcalBackplane::have_roc(int iroc) const {
@@ -21,11 +18,10 @@ bool HcalBackplane::have_roc(int iroc) const {
 
 bool HcalBackplane::have_econ(int iecon) const {
   return econ_connections_.find(iecon) != econ_connections_.end();
-  }
+}
 
-const std::vector<std::pair<int,int>>& HcalBackplane::get_channel_mapping()
-{
-    return roc_to_econ_map_;
+const std::vector<std::pair<int, int>>& HcalBackplane::get_channel_mapping() {
+  return roc_to_econ_map_;
 }
 
 std::vector<int> HcalBackplane::roc_ids() const {

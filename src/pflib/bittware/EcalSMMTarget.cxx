@@ -16,10 +16,10 @@ static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetBW : public Target {
   mutable logging::logger the_log_{logging::get("EcalSMMBW")};
-  const std::vector<std::pair<int,int>>& get_channel_mapping() override {
-        return roc_to_econ_map_;
-    }
-  std::vector<std::pair<int,int>> roc_to_econ_map_;
+  const std::vector<std::pair<int, int>>& get_channel_mapping() override {
+    return roc_to_econ_map_;
+  }
+  std::vector<std::pair<int, int>> roc_to_econ_map_;
 
  public:
   EcalSMMTargetBW(int itarget, const char* dev) {
@@ -30,9 +30,7 @@ class EcalSMMTargetBW : public Target {
     opto_["TRG"] = std::make_shared<BWOptoLink>(itarget + 1, *daq_olink);
 
     // Default ECAL ROC→ECON mapping
-    roc_to_econ_map_ = {
-        {9,10}, {5,6}, {0,1}, {11,8}, {7,4}, {3,2}
-    };
+    roc_to_econ_map_ = {{9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
     // then get the lpGBTs
     daq_lpgbt_ =
@@ -154,9 +152,9 @@ class EcalSMMTargetBW : public Target {
     return buf;
   }
 
-  const std::vector<std::pair<int,int>>& EcalSMMTargetBW::get_channel_mapping() override
-  {
-      return roc_to_econ_map_;
+  const std::vector<std::pair<int, int>>& EcalSMMTargetBW::get_channel_mapping()
+      override {
+    return roc_to_econ_map_;
   }
 
  private:
