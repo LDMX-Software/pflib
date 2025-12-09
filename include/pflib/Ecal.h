@@ -7,8 +7,8 @@
 #include "pflib/ECON.h"
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
-#include "pflib/lpGBT.h"
 #include "pflib/Target.h"
+#include "pflib/lpGBT.h"
 
 namespace pflib {
 
@@ -70,7 +70,7 @@ class EcalModule {
   std::vector<ROC> rocs_;
   std::vector<ECON> econs_;
   // Mapping ROC channel → ERX channel
-private:
+ private:
   static const std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 

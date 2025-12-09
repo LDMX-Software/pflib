@@ -94,7 +94,7 @@ class Target {
 
   const std::vector<std::pair<int, int>>& getRocErxMapping() {
     return roc_to_erx_map_;
-}
+  }
 
   /**
    * types of daq formats that we can do
@@ -116,7 +116,8 @@ class Target {
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
-private:
+
+ private:
   // Mapping ROC channel → eRx channel
   std::vector<std::pair<int, int>> roc_to_erx_map_;
 };

@@ -109,7 +109,6 @@ class EcalSMMTargetZCU : public Target {
   std::shared_ptr<pflib::FastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
-  
 };
 
 Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
