@@ -25,4 +25,4 @@ jobs:
           just init ${{ matrix.host }}
           just configure build test
         env:
-          PFLIB_CONTAINER=1
+          PFLIB_CONTAINER: 1
