@@ -21,7 +21,6 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 
 const std::string& ROC::type() const { return type_version_; }
 
-
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
@@ -57,8 +56,8 @@ uint8_t ROC::getValue(int ipage, int offset) {
     }
   }
 
-  PFEXCEPTION_RAISE("I2CFail",
-      "Failed to getValue after "+std::to_string(max_tries) +" attempts");
+  PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+                                   std::to_string(max_tries) + " attempts");
 }
 
 std::vector<std::string> ROC::getDirectAccessParameters() {
@@ -156,8 +155,8 @@ void ROC::setValue(int page, int offset, uint8_t value) {
     }
   }
 
-  PFEXCEPTION_RAISE("I2CFail",
-      "Failed to ROC::setValue after "+std::to_string(max_tries) +" attempts");
+  PFEXCEPTION_RAISE("I2CFail", "Failed to ROC::setValue after " +
+                                   std::to_string(max_tries) + " attempts");
 }
 
 void ROC::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
