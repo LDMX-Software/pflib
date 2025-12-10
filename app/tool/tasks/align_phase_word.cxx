@@ -42,9 +42,7 @@ void print_roc_status(pflib::ROC& roc) {
   }
 }
 
-void align_phase(Target* tgt, int iroc, int iecon, std::vector<int> channels){
-
-}
+void align_phase(Target* tgt, int iroc, int iecon, std::vector<int> channels) {}
 
 void align_phase_word(Target* tgt) {
   bool on_zcu =
