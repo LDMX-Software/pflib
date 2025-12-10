@@ -57,9 +57,20 @@ void align_phase_word(Target* tgt) {
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto roc = tgt->roc(iroc);
-  auto econ = tgt->econ(iecon);
+  // Ensure ROC is in Run mode
+  roc.setRunMode(true);
 
-  // GET Channels dynamically from ROC to ECON object channel mapping
+  auto econ = tgt->econ(iecon);
+  int edgesel = 0;
+  int invertfcmd = 0;
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
+      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
+    invertfcmd = 1;
+  }
+  // Ensure ECON is in Run mode
+  econ.setRunMode(true, edgesel, invertfcmd);
+
+  // Get channels dynamically from ROC to eRx object channel mapping
   auto& mapping = tgt->getRocErxMapping();
 
   // Dynamic channels. Only 2 per link.
