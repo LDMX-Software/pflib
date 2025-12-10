@@ -53,6 +53,9 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
+  /** Get the ROC to eRx mapping */
+  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
+
  protected:
   /** Add a ROC to the set of ROCs */
   void add_roc(int iroc, uint8_t roc_baseaddr,

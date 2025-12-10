@@ -42,6 +42,8 @@ void print_roc_status(pflib::ROC& roc) {
   }
 }
 
+void align_phase(Target* tgt, int iroc, int iecon, std::vector<int> channels) {}
+
 void align_phase_word(Target* tgt) {
   bool on_zcu =
       (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
@@ -55,22 +57,27 @@ void align_phase_word(Target* tgt) {
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto roc = tgt->roc(iroc);
-  auto econ = tgt->econ(iecon);
+  // Ensure ROC is in Run mode
+  roc.setRunMode(true);
 
-  // Get channels from user
-  std::string ch_str = pftool::readline(
-      "Enter channels (comma-separated), default is all channels: ",
-      "0,1,2,3,4,5,6,7");
-  std::vector<int> channels;
-  std::stringstream ss(ch_str);
-  std::string item;
-  while (std::getline(ss, item, ',')) {
-    try {
-      channels.push_back(std::stoi(item));
-    } catch (...) {
-      std::cerr << "Invalid channel entry: " << item << std::endl;
-    }
+  auto econ = tgt->econ(iecon);
+  int edgesel = 0;
+  int invertfcmd = 0;
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
+      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
+    invertfcmd = 1;
   }
+  // Ensure ECON is in Run mode
+  econ.setRunMode(true, edgesel, invertfcmd);
+
+  // Get channels dynamically from ROC to eRx object channel mapping
+  auto& mapping = tgt->getRocErxMapping();
+
+  // Dynamic channels. Only 2 per link.
+  std::vector<int> channels;
+  channels.push_back(mapping[iroc].first);
+  channels.push_back(mapping[iroc].second);
+
   uint32_t binary_channels = build_channel_mask(channels);
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
@@ -93,14 +100,21 @@ void align_phase_word(Target* tgt) {
   }
 
   // Set IDLEs in ROC with enough bit transitions
+
   auto roc_setup_builder =
       roc.testParameters()
           .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
           .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
           .add("DIGITALHALF_0", "BX_OFFSET", 1)
-          .add("DIGITALHALF_1", "BX_OFFSET", 1)
-          .add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-          .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+          .add("DIGITALHALF_1", "BX_OFFSET", 1);
+  if (on_zcu) {
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+  } else {
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+  }
+
   auto roc_test_params = roc_setup_builder.apply();
 
   // ----- PHASE ALIGNMENT ----- //
@@ -204,9 +218,9 @@ void align_phase_word(Target* tgt) {
     // tgt->fc().bx_custom(3, 0xfff000, 3000);
 
     // ------- Scan when the ECON takes snapshot -----
-    int start_val, end_val, testval;
+    int start_val, end_val, testval, snapshot_match;
     if (on_zcu) {
-      start_val = 3531;  // near your orbit region of interest
+      start_val = 3490;  // 3531;  // near your orbit region of interest
       end_val = 3540;    // up to orbit rollover
       testval = 3532;
     } else {
@@ -299,15 +313,21 @@ void align_phase_word(Target* tgt) {
                     << shifted << std::dec << std::endl;
 
           header_found = true;
+          std::cout << " --------------------------------------------------- "
+                    << std::endl;
           std::cout << "Successful header match in Snapshot: " << snapshot_val
                     << std::endl;
-          break;  // out of channel loop
+          snapshot_match = snapshot_val;
+          break;  // out of channel loop.
         } else if (debug_checks) {
           std::cout << " (Channel " << channel << ") " << std::endl
                     << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
                     << shifted1 << std::dec << std::endl;
           std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
                     << snapshot << std::dec << std::endl;
+        } else if (!debug_checks) {
+          std::cout << "No header pattern match found in Snapshot:  "
+                    << snapshot_val << ", Channel: " << channel << std::endl;
         } else {
           std::cout << "No header pattern match found in Snapshot:  "
                     << snapshot_val << std::endl;
@@ -322,6 +342,17 @@ void align_phase_word(Target* tgt) {
       std::cout << "------------------------------------------" << std::endl
                 << "Failure to match header pattern in ANY Snapshot."
                 << std::endl;
+    } else {
+      // Header successfully found at snapshot_val. Check pattern match for all
+      // eRx
+      for (int channel : channels) {
+        // print out pattern match for all channels
+        std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
+        auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
+        std::cout << "------------------------------------------" << std::endl
+                  << "Channel " << channel << " pattern match: " << ch_pm
+                  << std::endl;
+      }
     }
 
   }  // -------- END WORD ALIGNMENT ------- //
