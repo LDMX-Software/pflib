@@ -21,22 +21,21 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 
 const std::string& ROC::type() const { return type_version_; }
 
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_.set_bus_speed(1400);
 
   // printf("i2c base address %#x\n", roc_base_);
-
   std::vector<uint8_t> retval;
+  retval.reserve(len);
   for (int i = 0; i < len; i++) {
-    // set the address
-    uint16_t fulladdr = (ipage << 5) | i;
-    i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
-    i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
-    // now read
-    retval.push_back(i2c_.read_byte(roc_base_ + 2));
+    retval.push_back(getValue(ipage, i));
   }
   return retval;
 }
+
+/// maximum number of times to attempt I2C transaction
+static const int max_tries = 5;
 
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_.set_bus_speed(1400);
@@ -45,10 +44,21 @@ uint8_t ROC::getValue(int ipage, int offset) {
   uint16_t fulladdr = (ipage << 5) | offset;
   pflib_log(debug) << "ROC::getValue(" << ipage << ", " << offset
                    << ") -> full addr " << fulladdr;
-  i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
-  i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
-  // now read
-  return i2c_.read_byte(roc_base_ + 2);
+
+  for (int i_try{0}; i_try < max_tries; i_try++) {
+    try {
+      i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
+      i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
+      // now read
+      return i2c_.read_byte(roc_base_ + 2);
+    } catch (const pflib::Exception& e) {
+      pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
+                       << " failed with [" << e.name() << "]: " << e.message();
+    }
+  }
+
+  PFEXCEPTION_RAISE("I2CFail",
+      "Failed to getValue after "+std::to_string(max_tries) +" attempts");
 }
 
 std::vector<std::string> ROC::getDirectAccessParameters() {
@@ -132,9 +142,22 @@ bool ROC::isRunMode() {
 void ROC::setValue(int page, int offset, uint8_t value) {
   i2c_.set_bus_speed(1400);
   uint16_t fulladdr = (page << 5) | offset;
-  i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
-  i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
-  i2c_.write_byte(roc_base_ + 2, value & 0xFF);
+
+  for (int i_try{0}; i_try < max_tries; i_try++) {
+    try {
+      i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
+      i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
+      i2c_.write_byte(roc_base_ + 2, value & 0xFF);
+      // leave to signal we don't need to try anymore
+      return;
+    } catch (const pflib::Exception& e) {
+      pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
+                       << " failed with [" << e.name() << "]: " << e.message();
+    }
+  }
+
+  PFEXCEPTION_RAISE("I2CFail",
+      "Failed to ROC::setValue after "+std::to_string(max_tries) +" attempts");
 }
 
 void ROC::setRegisters(const std::map<int, std::map<int, uint8_t>>& registers) {
