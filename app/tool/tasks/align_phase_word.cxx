@@ -42,6 +42,10 @@ void print_roc_status(pflib::ROC& roc) {
   }
 }
 
+void align_phase(Target* tgt, int iroc, int iecon, std::vector<int> channels){
+
+}
+
 void align_phase_word(Target* tgt) {
   bool on_zcu =
       (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
@@ -65,7 +69,7 @@ void align_phase_word(Target* tgt) {
   //     "0,1,2,3,4,5,6,7,8,9,10,11");
 
   // GET Channels dynamically from ROC to ECON object channel mapping
-  auto& mapping = tgt->getRocErxMapping();
+  auto& mapping = tgt->get_channel_mapping();
 
   // TESTING CODE
   std::cout << "Mapping test, roc 0: " << mapping[0].first << ", "
@@ -358,7 +362,7 @@ void align_phase_word(Target* tgt) {
     } else {
       // Header successfully found at snapshot_val. Check pattern match for all
       // eRx
-      for (int channel : all_channels) {
+      for (int channel : channels) {
         // print out pattern match for all channels
         std::string var_name_pm = std::to_string(channel) + "_PATTERN_MATCH";
         auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
