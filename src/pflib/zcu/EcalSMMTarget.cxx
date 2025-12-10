@@ -104,9 +104,6 @@ class EcalSMMTargetZCU : public Target {
     return buf;
   }
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping() {
-    return EcalModule::getRocErxMapping();
-  }
 
  private:
   std::shared_ptr<EcalModule> ecalModule_;
@@ -117,6 +114,10 @@ class EcalSMMTargetZCU : public Target {
   Target::DaqFormat format_;
   int contrib_id_;
 };
+
+const std::vector<std::pair<int, int>>& getRocErxMapping() {
+    return EcalModule::getRocErxMapping();
+}
 
 Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
 
