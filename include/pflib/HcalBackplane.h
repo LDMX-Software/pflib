@@ -14,7 +14,7 @@ namespace pflib {
  */
 class HcalBackplane : public Target {
  public:
-  virtual ~HcalBackplane() = default; 
+  virtual ~HcalBackplane() = default;
   HcalBackplane();
 
   /** number of boards */
