@@ -67,7 +67,7 @@ void EcalModule::softResetECON() {
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
 }
 
-const std::vector<std::pair<int, int>> roc_to_erx_map_ = {
+const std::vector<std::pair<int, int>> EcalModule::roc_to_erx_map_ = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
 const std::vector<std::pair<int, int>>& EcalModule::getRocErxMapping() {
