@@ -161,7 +161,7 @@ Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
   return new EcalSMMTargetBW(ilink, dev);
 }
 
-const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() {
+const std::vector<std::pair<int, int>>& getRocErxMapping() {
   return EcalModule::getRocErxMapping();
 }
 

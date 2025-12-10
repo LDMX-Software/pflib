@@ -104,7 +104,7 @@ class EcalSMMTargetZCU : public Target {
     return buf;
   }
 
-  const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
+  const std::vector<std::pair<int, int>>& getRocErxMapping() {
     return EcalModule::getRocErxMapping();
   }
 
