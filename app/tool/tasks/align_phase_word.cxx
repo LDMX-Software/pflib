@@ -67,7 +67,7 @@ void align_phase_word(Target* tgt) {
   //     "0,1,2,3,4,5,6,7,8,9,10,11");
 
   // GET Channels dynamically from ROC to ECON object channel mapping
-  auto& mapping = tgt->get_channel_mapping();
+  auto& mapping = tgt->getRocErxMapping();
 
   // TESTING CODE
   std::cout << "Mapping test, roc 0: " << mapping[0].first << ", "
