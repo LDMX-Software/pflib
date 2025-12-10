@@ -88,7 +88,8 @@ class EcalSMMTargetBW : public Target {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override; // because there is no header file.
+  const std::vector<std::pair<int, int>>& getRocErxMapping()
+      override;  // because there is no header file.
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }

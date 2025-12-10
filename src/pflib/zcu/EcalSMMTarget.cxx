@@ -46,7 +46,8 @@ class EcalSMMTargetZCU : public Target {
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override; // because there is no header file.
+  const std::vector<std::pair<int, int>>& getRocErxMapping()
+      override;  // because there is no header file.
 
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
