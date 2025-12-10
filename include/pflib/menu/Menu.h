@@ -445,7 +445,7 @@ class Menu : public BaseMenu {
   void print_path(std::ostream& s = std::cout) const {
     if (parent_ != nullptr) {
       parent_->print_path(s);
-      s << "/" << name_;
+      s << name_ << "/";
     } else {
       s << "/";  // root menu
     }
