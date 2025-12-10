@@ -5,7 +5,7 @@ namespace lpgbt {
 
 void I2C::set_bus_speed(int speed) {
   ispeed_ = speed;
-  lpgbt_.setup_i2c(ibus_, speed);
+  lpgbt_.setup_i2c_speed(ibus_, speed);
 }
 
 int I2C::get_bus_speed() { return ispeed_; }
