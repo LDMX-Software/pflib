@@ -353,7 +353,7 @@ class Menu : public BaseMenu {
   std::shared_ptr<Menu> submenu(const char* name, const char* desc,
                                 RenderFuncType f = 0,
                                 unsigned int category = 0) {
-    auto sb = std::make_shared<Menu>(f);
+    auto sb = std::make_shared<Menu>(f, 0, name, this);
     lines_.emplace_back(name, desc, sb, category);
     return sb;
   }
@@ -379,6 +379,12 @@ class Menu : public BaseMenu {
     lines_.emplace_back("EXIT", "leave this menu");
     lines_.emplace_back("HELP", "print help for this menu",
                         [this](TargetHandle tgt) { this->render(tgt); });
+  lines_.emplace_back("PWD", "print current menu path",
+                        [this](TargetHandle tgt) {
+                          pflib_log(info) << "Current menu: ";
+                          this->print_path();
+                          std::cout << std::endl;
+                        });
   }
 
   /**
@@ -406,8 +412,12 @@ class Menu : public BaseMenu {
   /**
    * Construct a menu with a rendering function
    */
-  Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0)
-      : render_func_{f}, hidden_categories_{hidden_categories} {}
+  Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0, 
+      const char* name = "", Menu* parent = nullptr)
+      : render_func_{f}, 
+        hidden_categories_{hidden_categories},
+        name_(name),
+        parent_(parent) {}
 
   /// set hidden categories
   void hide(unsigned int categories) {
@@ -425,6 +435,18 @@ class Menu : public BaseMenu {
       if ((l.category() & hidden_categories_) == 0) {
         l.print(s, indent);
       }
+    }
+  }
+
+  /**
+   * Print out the current path, showing the parents and where we are in the menu
+   */
+  void print_path(std::ostream& s = std::cout) const {
+    if (parent_ != nullptr) {
+      parent_->print_path(s);
+      s << "/" << name_;
+    } else {
+      s << "/";  // root menu
     }
   }
 
@@ -734,6 +756,7 @@ class Menu : public BaseMenu {
     MultipleTargetCommands mult_cmds_;
     /// category integer for disabling menu lines by groups
     unsigned int category_;
+
   };  // Line
 
  private:
@@ -743,6 +766,10 @@ class Menu : public BaseMenu {
   RenderFuncType render_func_;
   /// bit-wise OR of any category integers that should not be displayed
   unsigned int hidden_categories_;
+  /// name of this menu (empty for root)
+  std::string name_;
+  /// pointer to parent menu (nullptr for root)
+  Menu* parent_;
 };  // Menu
 
 }  // namespace pflib::menu
