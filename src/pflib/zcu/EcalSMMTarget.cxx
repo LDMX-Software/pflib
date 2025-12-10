@@ -1,4 +1,4 @@
-#include "pflib/Ecal.h" 
+#include "pflib/Ecal.h"
 #include "pflib/Target.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -46,7 +46,8 @@ class EcalSMMTargetZCU : public Target {
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
-  const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() override; // because there is no header file.
+  const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping()
+      override;  // because there is no header file.
 
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
@@ -103,12 +104,9 @@ class EcalSMMTargetZCU : public Target {
     return buf;
   }
 
-
-  const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping()
-  {
+  const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
     return EcalModule::getRocErxMapping();
   }
-
 
  private:
   std::shared_ptr<EcalModule> ecalModule_;
