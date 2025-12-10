@@ -14,7 +14,7 @@ namespace pflib {
  */
 class HcalBackplane : public Target {
  public:
-  virtual ~HcalBackplane() = default;
+  virtual ~HcalBackplane() = default; 
   HcalBackplane();
 
   /** number of boards */
@@ -57,7 +57,7 @@ class HcalBackplane : public Target {
   std::vector<std::pair<int, int>> roc_to_erx_map_;
 
   /** Get the ROC to eRx mapping */
-  const std::vector<std::pair<int, int>>& getRocErxMapping();
+  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
 
  protected:
   /** Add a ROC to the set of ROCs */
