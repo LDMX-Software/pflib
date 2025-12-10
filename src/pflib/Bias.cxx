@@ -25,6 +25,7 @@ MAX5825::MAX5825(std::shared_ptr<I2C> i2c, uint8_t addr)
 std::vector<uint8_t> MAX5825::get(uint8_t channel) {
   uint8_t cmd = (uint8_t)(MAX5825::CODEn | (channel & 0x07));
 
+  i2c_->set_bus_speed(100);
   std::vector<uint8_t> retval = i2c_->general_write_read(our_addr_, {cmd}, 2);
 
   return retval;
@@ -33,6 +34,7 @@ std::vector<uint8_t> MAX5825::get(uint8_t channel) {
 void MAX5825::set(uint8_t channel, uint16_t code) {
   uint8_t cmd = (uint8_t)(0xB0 | (channel & 0x07));
 
+  i2c_->set_bus_speed(100);
   std::vector<uint8_t> retval =
       i2c_->general_write_read(our_addr_,
                                {cmd, static_cast<uint8_t>((code << 4) >> 8),
@@ -58,18 +60,21 @@ Bias::Bias(std::shared_ptr<I2C> i2c_bias, std::shared_ptr<I2C> i2c_board) {
 
 void Bias::initialize() {
   // Reset all DAC:s
+  i2c_bias_->set_bus_speed(100);
   i2c_bias_->general_write_read(0x10, {0x35, 0x96, 0x30}, 0);
   i2c_bias_->general_write_read(0x12, {0x35, 0x96, 0x30}, 0);
   i2c_bias_->general_write_read(0x14, {0x35, 0x96, 0x30}, 0);
   i2c_bias_->general_write_read(0x18, {0x35, 0x96, 0x30}, 0);
 
   // Set internal ref on DAC to 4.096 V
+  i2c_bias_->set_bus_speed(100);
   i2c_bias_->general_write_read(0x10, {0x27, 0x00, 0x00}, 0);
   i2c_bias_->general_write_read(0x12, {0x27, 0x00, 0x00}, 0);
   i2c_bias_->general_write_read(0x14, {0x27, 0x00, 0x00}, 0);
   i2c_bias_->general_write_read(0x18, {0x27, 0x00, 0x00}, 0);
 
   // Set up the GPIO device MCP23008
+  i2c_board_->set_bus_speed(100);
   i2c_board_->general_write_read(0x20, {0x00, 0x70}, 0);
 
   // Turn on the status LED
@@ -88,6 +93,7 @@ void Bias::initialize() {
 }
 
 double Bias::readTemp() {
+  i2c_board_->set_bus_speed(100);
   i2c_board_->general_write_read(0x4A, {0x00}, 0);
   usleep(250);  // Response is a bit slow
   std::vector<uint8_t> ret = i2c_board_->general_write_read(0x4A, {}, 2);
