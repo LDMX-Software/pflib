@@ -379,7 +379,7 @@ class Menu : public BaseMenu {
     lines_.emplace_back("EXIT", "leave this menu");
     lines_.emplace_back("HELP", "print help for this menu",
                         [this](TargetHandle tgt) { this->render(tgt); });
-  lines_.emplace_back("PWD", "print current menu path",
+    lines_.emplace_back("PWD", "print current menu path",
                         [this](TargetHandle tgt) {
                           pflib_log(info) << "Current menu: ";
                           this->print_path();
@@ -412,9 +412,9 @@ class Menu : public BaseMenu {
   /**
    * Construct a menu with a rendering function
    */
-  Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0, 
-      const char* name = "", Menu* parent = nullptr)
-      : render_func_{f}, 
+  Menu(RenderFuncType f = 0, unsigned int hidden_categories = 0,
+       const char* name = "", Menu* parent = nullptr)
+      : render_func_{f},
         hidden_categories_{hidden_categories},
         name_(name),
         parent_(parent) {}
@@ -439,7 +439,8 @@ class Menu : public BaseMenu {
   }
 
   /**
-   * Print out the current path, showing the parents and where we are in the menu
+   * Print out the current path, showing the parents and where we are in the
+   * menu
    */
   void print_path(std::ostream& s = std::cout) const {
     if (parent_ != nullptr) {

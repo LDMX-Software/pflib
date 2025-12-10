@@ -10,8 +10,6 @@
 #include "pflib/logging/Logging.h"
 #include "pflib/menu/Menu.h"
 
-
-
 /**
  * get a logger using the file name as the channel name
  *
