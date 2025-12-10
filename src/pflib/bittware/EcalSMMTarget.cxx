@@ -1,6 +1,5 @@
 #include "pflib/Ecal.h"
-// #include "pflib/Target.h" // commenting this out because its now newly
-// included in ecal.h
+#include "pflib/Target.h" 
 #include "pflib/bittware/bittware_FastControl.h"
 #include "pflib/bittware/bittware_daq.h"
 #include "pflib/bittware/bittware_elinks.h"
@@ -89,6 +88,7 @@ class EcalSMMTargetBW : public Target {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
+  const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() override; // because there is no header file.
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
@@ -159,5 +159,11 @@ class EcalSMMTargetBW : public Target {
 Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
   return new EcalSMMTargetBW(ilink, dev);
 }
+
+const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping()
+{
+  return EcalModule::getRocErxMapping();
+}
+
 
 }  // namespace pflib

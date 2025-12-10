@@ -116,7 +116,7 @@ class Target {
   mutable logging::logger the_log_{logging::get("Target")};
   // private:
   // Mapping ROC channel → eRx channel
-  // std::vector<std::pair<int, int>> roc_to_erx_map_;
+  std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 Target* makeTargetFiberless();

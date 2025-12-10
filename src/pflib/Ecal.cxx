@@ -71,7 +71,7 @@ const std::vector<std::pair<int, int>> roc_to_erx_map_ = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
 const std::vector<std::pair<int, int>>& EcalModule::getRocErxMapping()
-    override {
+{
   return roc_to_erx_map_;
 }
 
