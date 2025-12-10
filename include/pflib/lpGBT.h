@@ -193,7 +193,8 @@ class lpGBT {
   /** Setup i2c bus speed
       \param ibus Which I2C bus (0-2)
       \param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
-      Note that this really just stores the information on what speed to use in a temporary variable
+      Note that this really just stores the information on what speed to use in
+     a temporary variable
    */
   void setup_i2c_speed(int ibus, int speed_khz);
 

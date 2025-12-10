@@ -596,8 +596,8 @@ void lpGBT::setup_i2c(int ibus, int speed_khz, bool scl_drive, bool strong_scl,
 
 void lpGBT::setup_i2c_speed(int ibus, int speed_khz) {
   if (ibus < 0 || ibus > 2) return;
-  
-  i2c_[ibus].ctl_reg &= 0x80; // keep the scl_drive
+
+  i2c_[ibus].ctl_reg &= 0x80;  // keep the scl_drive
   if (speed_khz > 125 && speed_khz < 300) i2c_[ibus].ctl_reg |= 0x01;
   if (speed_khz > 300 && speed_khz < 500) i2c_[ibus].ctl_reg |= 0x02;
   if (speed_khz > 500 && speed_khz < 2000) i2c_[ibus].ctl_reg |= 0x03;
