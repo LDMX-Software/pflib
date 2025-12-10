@@ -63,6 +63,7 @@ clean:
     rm -r build
 
 # dump 32-bit words per line
+[no-cd]
 hexdump *args:
     hexdump -v -e '1/4 "%08x" "\n"' {{ args }}
    
