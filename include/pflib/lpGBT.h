@@ -190,6 +190,13 @@ class lpGBT {
                  bool strong_scl = true, bool strong_sda = true,
                  bool pull_up_scl = false, bool pull_up_sda = false);
 
+  /** Setup i2c bus speed
+      \param ibus Which I2C bus (0-2)
+      \param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
+      Note that this really just stores the information on what speed to use in a temporary variable
+   */
+  void setup_i2c_speed(int ibus, int speed_khz);
+
   /** Start an I2C read */
   void start_i2c_read(int ibus, uint8_t i2c_addr, int len = 1);
 
