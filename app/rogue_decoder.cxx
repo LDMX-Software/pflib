@@ -33,7 +33,8 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
 
-    output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
+    output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+            << '\n';
   }
   void acceptFrame(
       std::shared_ptr<rogue::interfaces::stream::Frame> frame) override {
