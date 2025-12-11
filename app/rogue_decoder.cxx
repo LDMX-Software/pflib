@@ -63,7 +63,8 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     }
 
     if (contrib_id_ != 0 and contrib_id != contrib_id_) {
-      pflib_log(debug) << "Frame belongs to non-selected calo contributor " << contrib_id;
+      pflib_log(debug) << "Frame belongs to non-selected calo contributor "
+                       << contrib_id;
       return;
     }
 
@@ -228,7 +229,8 @@ int main(int argc, char* argv[]) {
   try {
     // setup stream
     auto reader = std::make_shared<rogue::utilities::fileio::StreamReader>();
-    auto writer = std::make_shared<CaloCSVWriter>(out_file, n_links, contrib_id);
+    auto writer =
+        std::make_shared<CaloCSVWriter>(out_file, n_links, contrib_id);
     reader->addSlave(writer);
 
     // run
