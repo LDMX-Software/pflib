@@ -49,7 +49,15 @@ if (DEFINED ENV{ROGUE_DIR})
 else()
   set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
 endif()
-find_package(Rogue)
+find_package(Rogue CONFIG)
+if (${Rogue_FOUND})
+  if (NOT TARGET Rogue::Rogue)
+    add_library(Rogue::Rogue INTERFACE IMPORTED)
+    set_target_properties(Rogue::Rogue PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${ROGUE_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${ROGUE_LIBRARIES}")
+  endif()
+endif()
 
 # construct a register_maps library that the compiler can use
 # to lookup registers given parameter names for a chip type
@@ -149,7 +157,7 @@ target_include_directories(pflib PUBLIC
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
 if (${Rogue_FOUND})
-  target_include_directories(pflib PUBLIC ${ROGUE_INCLUDE_ONLY})
+  target_link_libraries(pflib PUBLIC Rogue::Rogue)
 endif()
 add_dependencies(pflib direct_access lpgbt_regmap)
 
@@ -211,8 +219,10 @@ target_link_libraries(pfdecoder PRIVATE pflib)
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
 
-add_executable(rogue-decoder app/rogue_decoder.cxx)
-target_link_libraries(rogue-decoder PUBLIC pflib Boost::python Python3::Python ${ROGUE_LIBRARIES})
+if (${Rogue_FOUND})
+  add_executable(rogue-decoder app/rogue_decoder.cxx)
+  target_link_libraries(rogue-decoder PUBLIC pflib Rogue::Rogue)
+endif()
 
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
