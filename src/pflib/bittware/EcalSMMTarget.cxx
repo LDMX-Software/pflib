@@ -57,6 +57,7 @@ class EcalSMMTargetBW : public Target {
                           << "]: " << e.message();
         }
       }
+
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
                           "check Optical links";
@@ -68,12 +69,7 @@ class EcalSMMTargetBW : public Target {
 
     // Setup TRG lpGBT
     try {
-      int trg_pusm = trig_lpgbt_->status();
-      if (trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "TRG lpGBT is not ready, attempting standard config";
+        pflib_log(debug) << " Apply standard ECAL TRG config";
         try {
           setup_ecal(*trig_lpgbt_,
                      ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
@@ -82,7 +78,6 @@ class EcalSMMTargetBW : public Target {
           pflib_log(info) << "Failure to apply standard config [" << e.name()
                           << "]: " << e.message();
         }
-      }
     } catch (const pflib::Exception& e) {
       pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
                       << e.name() << "]: " << e.message();
