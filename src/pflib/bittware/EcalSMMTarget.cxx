@@ -39,16 +39,24 @@ class EcalSMMTargetBW : public Target {
 
     using namespace pflib::lpgbt::standard_config;
 
-    // Apply standard ECAL configuration for DAQ lpGBT
+    // Setup DAQ lpGBT
     try {
-      pflib_log(debug) << "Apply standard ECAL config";
-      try {
-        setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
-      } catch (const pflib::Exception& e) {
-        pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                        << "]: " << e.message();
-      }
+      int daq_pusm = daq_lpgbt_->status();
+      pflib::lpgbt::standard_config::setup_ecal_daq_gpio(*daq_lpgbt_);
 
+      if (daq_pusm == 19) {
+        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug)
+            << "DAQ lpGBT is not ready, attempting standard config";
+        try {
+          setup_ecal(*daq_lpgbt_,
+                     ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      }
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
                           "check Optical links";
@@ -58,16 +66,22 @@ class EcalSMMTargetBW : public Target {
                       << " and then re-open pftool.";
     }
 
-    // Apply standard ECAL configuration for TRG lpGBT
+    // Setup TRG lpGBT
     try {
-      pflib_log(debug) << " Apply standard ECAL TRG config";
-      try {
-        setup_ecal(*trig_lpgbt_,
-                   ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
-      } catch (const pflib::Exception& e) {
-        pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
-        pflib_log(info) << "Failure to apply standard config [" << e.name()
-                        << "]: " << e.message();
+      int trg_pusm = trig_lpgbt_->status();
+      if (trg_pusm == 19) {
+        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug)
+            << "TRG lpGBT is not ready, attempting standard config";
+        try {
+          setup_ecal(*trig_lpgbt_,
+                     ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
+          pflib_log(info) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
       }
     } catch (const pflib::Exception& e) {
       pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
