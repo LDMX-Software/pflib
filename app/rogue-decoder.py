@@ -27,9 +27,9 @@ def main():
     if args.contrib is None:
         contrib_id = 0 # undefined
     elif args.contrib == 'hcal':
-        contrib_id = 1
+        contrib_id = 20
     elif args.contrib == 'ecal':
-        contrib_id = 2
+        contrib_id = 40
     
     # number of links/channels enabled in the ECON-D
     #   for HcalBackplane -> 2 channels for 1 ROC

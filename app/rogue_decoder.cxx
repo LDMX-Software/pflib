@@ -183,9 +183,9 @@ int main(int argc, char* argv[]) {
         i_arg++;
         std::string contrib_name{argv[i_arg]};
         if (contrib_name == "hcal") {
-          contrib_id = 1;
+          contrib_id = 20;
         } else if (contrib_name == "ecal") {
-          contrib_id = 2;
+          contrib_id = 40;
         } else {
           pflib_log(fatal) << "unrecognized contributor name " << contrib_name
                            << " should be 'hcal' or 'ecal'";
