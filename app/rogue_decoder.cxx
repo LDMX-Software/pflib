@@ -23,11 +23,12 @@
 class CaloCSVWriter : public rogue::interfaces::stream::Slave {
   mutable pflib::logging::logger the_log_{pflib::logging::get("CaloCSVWriter")};
   std::ofstream output_;
+  int contrib_id_{0};
   pflib::packing::MultiSampleECONDEventPacket ep_;
 
  public:
-  CaloCSVWriter(const std::string& filepath, int nlinks)
-      : output_{filepath}, ep_{nlinks} {
+  CaloCSVWriter(const std::string& filepath, int nlinks, int contrib_id)
+      : output_{filepath}, ep_{nlinks}, contrib_id_{contrib_id} {
     if (not output_) {
       PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
@@ -50,16 +51,26 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     // skip first byte which is meaningless i guess?
     auto frame_it{frame->begin() + 1};
     // get subsystem id
-    uint8_t subsystem_id{0};
+    uint8_t subsystem_id{0}, contrib_id{0}, burn_count{0};
     rogue::interfaces::stream::fromFrame(frame_it, 1, &subsystem_id);
-    // get to end of first 32-bit word, skipping contributor_id, burn_count
-    frame_it += 2;
+    rogue::interfaces::stream::fromFrame(frame_it, 1, &contrib_id);
+    rogue::interfaces::stream::fromFrame(frame_it, 1, &burn_count);
 
-    if (subsystem_id != 5 and subsystem_id != 7) {
+    if (subsystem_id != 5) {
       pflib_log(debug) << "Frame belongs to non-calo subsystem "
                        << subsystem_id;
       return;
     }
+
+    if (contrib_id_ != 0 and contrib_id != contrib_id_) {
+      pflib_log(debug) << "Frame belongs to non-selected calo contributor " << contrib_id;
+      return;
+    }
+
+    uint32_t meaningless{0};
+    uint64_t timestamp{0};
+    rogue::interfaces::stream::fromFrame(frame_it, 4, &meaningless);
+    rogue::interfaces::stream::fromFrame(frame_it, 8, &timestamp);
 
     int frame_size{frame->end() - frame_it};
     pflib_log(debug) << "Frame size: " << frame_size;
@@ -73,11 +84,7 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       rogue::interfaces::stream::fromFrame(frame_it, 4, &(words[i_word]));
     }
 
-    // first three words are not related to ECOND
-    // 0: meaningless?
-    // 1: timestamp
-    // 2: timestamp
-    ep_.from(std::span(words.begin() + 3, words.end()));
+    ep_.from(words);
     ep_.to_csv(output_);
   }
 };
@@ -95,6 +102,7 @@ static void usage() {
                "all events possible)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
+               "  -c,--contrib : which contributor to focus on (hcal or ecal)\n"
             << std::endl;
 }
 
@@ -113,6 +121,7 @@ int main(int argc, char* argv[]) {
   }
 
   int n_links{-1};
+  int contrib_id{0};
   int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -164,6 +173,23 @@ int main(int argc, char* argv[]) {
                            << "' is not an integer.";
           return 1;
         }
+      } else if (arg == "-c" or arg == "--contrib") {
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires an argument after it.";
+          return 1;
+        }
+        i_arg++;
+        std::string contrib_name{argv[i_arg]};
+        if (contrib_name == "hcal") {
+          contrib_id = 1;
+        } else if (contrib_name == "ecal") {
+          contrib_id = 2;
+        } else {
+          pflib_log(fatal) << "unrecognized contributor name " << contrib_name
+                           << " should be 'hcal' or 'ecal'";
+          return 1;
+        }
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -202,7 +228,7 @@ int main(int argc, char* argv[]) {
   try {
     // setup stream
     auto reader = std::make_shared<rogue::utilities::fileio::StreamReader>();
-    auto writer = std::make_shared<CaloCSVWriter>(out_file, n_links);
+    auto writer = std::make_shared<CaloCSVWriter>(out_file, n_links, contrib_id);
     reader->addSlave(writer);
 
     // run

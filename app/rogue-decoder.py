@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--log-level', '-l', help='log level to print out while decoding',
             choices=list(pypflib.logging.level.names.keys()), default='info')
     parser.add_argument('--nevent', '-n', help='maximum number of events to decode', type=int)
+    parser.add_argument('--contrib', '-c', choices=['ecal','hcal'], help='contributor to focus on, without this dump all data from subsystem 5 which could be both Ecal and Hcal')
     args = parser.parse_args()
 
     if args.output is None:
@@ -21,6 +22,14 @@ def main():
 
     pypflib.logging.open(True)
     pypflib.logging.set(getattr(pypflib.logging.level, args.log_level))
+
+    contrib_id = None
+    if args.contrib is None:
+        contrib_id = 0 # undefined
+    elif args.contrib == 'hcal':
+        contrib_id = 1
+    elif args.contrib == 'ecal':
+        contrib_id = 2
     
     # number of links/channels enabled in the ECON-D
     #   for HcalBackplane -> 2 channels for 1 ROC
@@ -44,11 +53,18 @@ def main():
     
             # a byte from the Rogue header signals the subsystem
             # from slaclab/ldmx-firmware/common/tdaq/python/ldmx_tdaq/_Constants.py
+            subsys = data[1]
             # both Hcal and Ecal are using the EcalSubsystem in RunControl
             # meaning they are both using the ID 5 right now
-            if (data[1] != 5 and data[1] != 7):
+            if (subsys != 5):
                 continue
 
+            # we are planning to use the contributor_id to separate Ecal and Hcal
+            contrib = data[2]
+            if contrib_id != 0 and contrib != contrib_id:
+                continue
+
+            # check on event limit
             if args.nevent is not None and count >= args.nevent:
                 break
     
