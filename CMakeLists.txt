@@ -51,6 +51,7 @@ else()
 endif()
 find_package(Rogue CONFIG)
 if (${Rogue_FOUND})
+  list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
   if (NOT TARGET Rogue::Rogue)
     add_library(Rogue::Rogue INTERFACE IMPORTED)
     set_target_properties(Rogue::Rogue PROPERTIES

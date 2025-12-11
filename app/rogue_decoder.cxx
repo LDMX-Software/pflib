@@ -47,20 +47,36 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       return;
     }
 
+    // skip first byte which is meaningless i guess?
     auto frame_it{frame->begin() + 1};
+    // get subsystem id
     uint8_t subsystem_id{0};
     rogue::interfaces::stream::fromFrame(frame_it, 1, &subsystem_id);
+    // get to end of first 32-bit word, skipping contributor_id, burn_count
+    frame_it += 2;
 
     if (subsystem_id != 5 and subsystem_id != 7) {
       pflib_log(debug) << "Frame belongs to non-calo subsystem "
                        << subsystem_id;
+      return;
     }
 
-    // convert frame containing sequence of bytes into sequence of 32-bit words
-    std::vector<uint8_t> data{frame->begin() + 16, frame->end()};
-    std::vector<uint32_t> words{
-        *reinterpret_cast<std::vector<uint32_t>*>(data.data())};
-    ep_.from(words);
+    int frame_size{frame->end() - frame_it};
+    pflib_log(debug) << "Frame size: " << frame_size;
+    if (frame_size % 4 != 0) {
+      pflib_log(error) << "Frame size " << frame_size << " is not multiple of 4 bytes";
+    }
+
+    std::vector<uint32_t> words(frame_size / 4);
+    for (int i_word{0}; i_word < words.size(); i_word++) {
+      rogue::interfaces::stream::fromFrame(frame_it, 4, &(words[i_word]));
+    }
+
+    // first three words are not related to ECOND
+    // 0: meaningless?
+    // 1: timestamp
+    // 2: timestamp
+    ep_.from(std::span(words.begin()+3, words.end()));
     ep_.to_csv(output_);
   }
 };

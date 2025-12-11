@@ -8,6 +8,7 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input', help='input file to Hcal/Ecal data from')
+    parser.add_argument('--n-links', help='number of active links connected to the ECON-D', type=int, default=2)
     parser.add_argument('--output', '-o', help='output CSV to write to')
     parser.add_argument('--log-level', '-l', help='log level to print out while decoding',
             choices=list(pypflib.logging.level.names.keys()), default='info')
@@ -15,7 +16,7 @@ def main():
     args = parser.parse_args()
 
     if args.output is None:
-        args.output = str(Path(args.input).with_extension('.csv'))
+        args.output = str(Path(args.input).with_suffix('.csv'))
 
     pypflib.logging.open(True)
     pypflib.logging.set(getattr(pypflib.logging.level, args.log_level))
@@ -24,10 +25,10 @@ def main():
     #   for HcalBackplane -> 2 channels for 1 ROC
     #   for the EcalSMM -> complicated, depends on which layer
     #                      because some of the ROCs are not accessible
-    ep = pypflib.packing.MultiSampleECONDEventPacket(2)
+    ep = pypflib.packing.MultiSampleECONDEventPacket(args.n_links)
     
     out = pypflib.packing.OFStream()
-    out.open("test.csv")
+    out.open(args.output)
     ep.header_to_csv(out)
 
     count = 0
