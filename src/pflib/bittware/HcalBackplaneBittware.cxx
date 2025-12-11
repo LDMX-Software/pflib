@@ -35,18 +35,49 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
+    // Load GPIO configuration for lpGBTs
+    pflib::lpgbt::standard_config::setup_hcal_daq_gpio(*daq_lpgbt_);
+    pflib::lpgbt::standard_config::setup_hcal_trig_gpio(*trig_lpgbt_);
+
+    // Setup lpGBTs
     try {
-      pflib_log(debug) << "Apply standard HCAL config";
-      try {
-        pflib_log(debug) << "applying DAQ";
-        pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-        pflib_log(debug) << "pause to let hardware re-sync";
-        sleep(2);
-        pflib_log(debug) << "applying TRIG";
-        pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-      } catch (const pflib::Exception& e) {
-        pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                        << "]: " << e.message();
+      int daq_pusm = daq_lpgbt_->status();
+      int trg_pusm = trig_lpgbt_->status();
+      if (daq_pusm == 19 and trg_pusm == 19) {
+        // both lpGBTs are PUSM READY
+        pflib_log(debug) << "both lpGBTs are have status PUSM READY (19)";
+      } else if (daq_pusm != 19 and trg_pusm == 19) {
+        pflib_log(debug) << "TRG lpGBT has status PUSM READY (19)";
+        pflib_log(debug) << "applying standard DAQ lpGBT configuration";
+        try {
+          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      } else if (daq_pusm == 19 and trg_pusm != 19) {
+        pflib_log(debug) << "DAQ lpGBT has status PUSM READY (19)";
+        pflib_log(debug) << "applying standard TRG lpGBT configuration";
+        try {
+          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      } else /* both are not PUSM READY */ {
+        pflib_log(debug) << "neither lpGBT have status PUSM READY (19)";
+        pflib_log(debug) << "applying standard lpGBT configuration";
+        try {
+          pflib_log(debug) << "applying DAQ";
+          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+          pflib_log(debug) << "pause to let hardware re-sync";
+          sleep(2);
+          pflib_log(debug) << "applying TRIG";
+          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
       }
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "

@@ -409,7 +409,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     // Wait two seconds
     if (elapsed_us > 2000000) {
-      printf(" INFO: Current lock state = %d\n", group, state);
+      printf(" INFO: Current lock state = %d %d\n", group, state);
       break;
     }
     usleep(1000);
@@ -669,7 +669,7 @@ bool lpGBT::i2c_transaction_check(int ibus, bool wait) {
     if (val & SUCCESS) {
       return true;
     }
-    usleep(100);  //
+    usleep(100);
   } while (wait);
   return false;
 }

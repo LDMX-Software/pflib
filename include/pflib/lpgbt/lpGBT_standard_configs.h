@@ -9,9 +9,14 @@ namespace standard_config {
 
 /** Setup the standard set of I/Os for the HCAL backplane DAQ lpGBT */
 void setup_hcal_daq(pflib::lpGBT&);
+/** Setup the GPIO names for the HCAL backplane DAQ lpGBT */
+void setup_hcal_daq_gpio(pflib::lpGBT&);
+void setup_hcal_trig_gpio(pflib::lpGBT&);
 
 /** Setup the standard set of I/Os for the HCAL backplane TRIG lpGBT */
 void setup_hcal_trig(pflib::lpGBT&);
+/** Setup the GPIO names for the ECAL DAQ*/
+void setup_ecal_daq_gpio(pflib::lpGBT&);
 
 /** Setup the lpGBT to train the eRx phase */
 void setup_erxtraining(pflib::lpGBT&, bool prbs_on);
