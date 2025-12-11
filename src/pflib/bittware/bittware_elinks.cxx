@@ -20,7 +20,7 @@ std::vector<uint32_t> OptoElinksBW::spy(int ilink) {
   static constexpr int REG_SPY_BASE = 0x880;
 
   axil_.write(REG_PULSE, (1 << BIT_SPY_START));
-  axil_.writeMasked(REG_READ_WHICH, MASK_READ_WHICH, ilink);
+  axil_.writeMasked(REG_READ_WHICH, MASK_READ_WHICH, ilink+6*ilinkOpto_);
   usleep(1000);
   for (int i = 0; i < 32; i++) {
     usleep(1);
