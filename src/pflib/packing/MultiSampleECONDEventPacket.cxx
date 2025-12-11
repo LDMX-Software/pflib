@@ -9,21 +9,34 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
 const std::string MultiSampleECONDEventPacket::to_csv_header =
-    ECONDEventPacket::to_csv_header;
+    "i_link,bx,event,orbit,i_sample,channel,Tp,Tc,adc_tm1,adc,tot,toa";
 
 void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   /**
    * The columns of the output CSV are
    * ```
-   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * i_link, bx, event, orbit, i_sample, channel, Tp, Tc, adc_tm1, adc, tot, toa
    * ```
    *
    * The sample index is not persisted.
    *
    * @see ECONDEventPacket::to_csv for how a single sample is written.
    */
-  for (const auto& sample : samples) {
-    sample.to_csv(f);
+  for (std::size_t i_sample{0}; i_sample < samples.size(); i_sample++) {
+    const auto& sample{samples[i_sample]};
+    for (std::size_t i_link{0}; i_link < sample.links.size(); i_link++) {
+      const auto& daq_link{sample.links[i_link]};
+      f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+        << daq_link.orbit << ',' << i_sample << ',' << "calib,";
+      daq_link.calib.to_csv(f);
+      f << '\n';
+      for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+        f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
+          << daq_link.orbit << ',' << i_sample << ',' << i_ch << ',';
+        daq_link.channels[i_ch].to_csv(f);
+        f << '\n';
+      }
+    }
   }
 }
 

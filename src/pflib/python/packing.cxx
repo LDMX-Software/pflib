@@ -1,5 +1,7 @@
 #include "packing.h"
 
+#include <iostream>
+
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 
@@ -82,6 +84,41 @@ const pflib::packing::ECONDEventPacket& MultiSampleECONDEventPacket_sample(
   return ep.samples.at(index);
 }
 
+struct OFStream {
+  std::shared_ptr<std::ofstream> output_;
+  void open(const std::string& fp) {
+    if (!output_) {
+      output_ = std::make_shared<std::ofstream>();
+    }
+    output_->open(fp);
+  }
+  bool is_open() {
+    if (!output_) return false;
+    return output_->is_open();
+  }
+  void close() {
+    if (!output_) return;
+    output_->close();
+  }
+};
+
+void MultiSampleECONDEventPacket_header_to_csv(
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
+  if (not o.is_open()) {
+    throw std::runtime_error("OFStream has not been opened.");
+  }
+  (*o.output_) << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+               << '\n';
+}
+
+void MultiSampleECONDEventPacket_to_csv(
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
+  if (not o.is_open()) {
+    throw std::runtime_error("OFStream has not been opened.");
+  }
+  ep.to_csv(*(o.output_));
+}
+
 void setup_packing() {
   BOOST_PYTHON_SUBMODULE(packing);
 
@@ -89,6 +126,11 @@ void setup_packing() {
   bp::def("to_word_vector", "convert input python object into a WordVector",
       to_word_vector);
       */
+
+  bp::class_<OFStream, boost::noncopyable>("OFStream", bp::init<>())
+      .def("open", &OFStream::open)
+      .def("is_open", &OFStream::is_open)
+      .def("close", &OFStream::close);
 
   /**
    * We bind our standard raw-data object as a "WordVector"
@@ -142,5 +184,7 @@ void setup_packing() {
       .def_readonly("i_soi",
                     &pflib::packing::MultiSampleECONDEventPacket::i_soi)
       .def_readonly("econd_id",
-                    &pflib::packing::MultiSampleECONDEventPacket::econd_id);
+                    &pflib::packing::MultiSampleECONDEventPacket::econd_id)
+      .def("to_csv", &MultiSampleECONDEventPacket_to_csv)
+      .def("header_to_csv", &MultiSampleECONDEventPacket_header_to_csv);
 }
