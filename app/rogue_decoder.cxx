@@ -9,6 +9,7 @@
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/version/Version.h"
+#include "rogue/numpy.h"
 #include "rogue/GeneralError.h"
 #include "rogue/Helpers.h"
 #include "rogue/interfaces/stream/Frame.h"
@@ -89,14 +90,14 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
 static void usage() {
   std::cout << "\n"
                " USAGE:\n"
-               "  rogue-decoder [options] NLINKS input_file.dat\n"
+               "  rogue-decoder [options] input_file.dat\n"
                "\n"
                " OPTIONS:\n"
                "  -h,--help    : print this help and exit\n"
                "  -o,--output  : output CSV file to dump samples into "
                "(default is input file with extension changed)\n"
-               "  -n,--nevents : provide maximum number of events (default is "
-               "all events possible)\n"
+               "  --n-links    : number of active links connected to the"
+               " ECON-D (default 2)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
                "  -c,--contrib : which contributor to focus on (hcal or ecal)\n"
@@ -117,9 +118,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int n_links{-1};
+  int n_links{2};
   int contrib_id{0};
-  int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         }
         i_arg++;
         out_file = argv[i_arg];
-      } else if (arg == "-n" or arg == "--nevents") {
+      } else if (arg == "--n-links") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires an argument after it.";
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         }
         i_arg++;
         try {
-          nevents = std::stoi(argv[i_arg]);
+          n_links = std::stoi(argv[i_arg]);
         } catch (const std::invalid_argument& e) {
           pflib_log(fatal) << "The argument to " << arg << " '" << argv[i_arg]
                            << "' is not an integer.";
@@ -192,16 +192,7 @@ int main(int argc, char* argv[]) {
         return 1;
       }
     } else {
-      if (n_links <= 0) {
-        try {
-          n_links = std::stoi(arg);
-        } catch (const std::invalid_argument& e) {
-          pflib_log(fatal) << "The first positional argument needs to be the "
-                              "number of links, but '"
-                           << arg << "' is not an integer.";
-          return 1;
-        }
-      } else if (not in_file.empty()) {
+      if (not in_file.empty()) {
         pflib_log(fatal) << "Can only decode one file at a time.";
         return 1;
       } else {
