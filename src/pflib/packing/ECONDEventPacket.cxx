@@ -278,9 +278,9 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
   // first header word:
   //   shift out the Hamming
-  uint64_t header_crc_base = (data[0] >> 5);
+  uint64_t header_crc_base = (data[0] >> 6);
   //   move into position
-  header_crc_base <<= 29;
+  header_crc_base <<= 30;
   // second header word, shift out the CRC
   header_crc_base |= (data[1] >> 8);
 
