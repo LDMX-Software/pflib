@@ -33,7 +33,7 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
 
-    output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header;
+    output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
   }
   void acceptFrame(
       std::shared_ptr<rogue::interfaces::stream::Frame> frame) override {
@@ -48,13 +48,12 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       return;
     }
 
-    // skip first byte which is meaningless i guess?
-    auto frame_it{frame->begin() + 1};
-    // get subsystem id
-    uint8_t subsystem_id{0}, contrib_id{0}, burn_count{0};
+    auto frame_it = frame->begin();
+    uint8_t version{0}, subsystem_id{0}, contrib_id{0}, sentinel{0};
+    rogue::interfaces::stream::fromFrame(frame_it, 1, &version);
     rogue::interfaces::stream::fromFrame(frame_it, 1, &subsystem_id);
     rogue::interfaces::stream::fromFrame(frame_it, 1, &contrib_id);
-    rogue::interfaces::stream::fromFrame(frame_it, 1, &burn_count);
+    rogue::interfaces::stream::fromFrame(frame_it, 1, &sentinel);
 
     if (subsystem_id != 5) {
       pflib_log(debug) << "Frame belongs to non-calo subsystem "
@@ -68,24 +67,20 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       return;
     }
 
-    uint32_t meaningless{0};
-    uint64_t timestamp{0};
-    rogue::interfaces::stream::fromFrame(frame_it, 4, &meaningless);
-    rogue::interfaces::stream::fromFrame(frame_it, 8, &timestamp);
-
+    // reset since we peaked at first word already
+    frame_it = frame->begin();
     int frame_size{frame->end() - frame_it};
     pflib_log(debug) << "Frame size: " << frame_size;
     if (frame_size % 4 != 0) {
       pflib_log(error) << "Frame size " << frame_size
                        << " is not multiple of 4 bytes";
     }
-
     std::vector<uint32_t> words(frame_size / 4);
     for (int i_word{0}; i_word < words.size(); i_word++) {
       rogue::interfaces::stream::fromFrame(frame_it, 4, &(words[i_word]));
     }
 
-    ep_.from(words);
+    ep_.from(words, true);
     ep_.to_csv(output_);
   }
 };
