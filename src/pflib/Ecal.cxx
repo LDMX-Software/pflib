@@ -48,11 +48,16 @@ using pflib::utility::string_format;
 
 void EcalModule::hardResetROCs() {
   GPIO& gpio = lpGBT_.gpio_interface();
+  std::cout << "Hard reset ROC module " << imodule_ << std::endl;
   gpio.setGPO(string_format("M%d_ROC_RE_Hb", imodule_), false);
   gpio.setGPO(string_format("M%d_ROC_RE_Hb", imodule_), true);
 }
 void EcalModule::hardResetECONs() {
   GPIO& gpio = lpGBT_.gpio_interface();
+  lpGBT_.gpio_cfg_set(7, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG, "M0_ECON_RE_Hb");
+  lpGBT_.gpio_set(7, false);
+  lpGBT_.gpio_set(7, true);
+  std::cout << "Hard reset ECON module " << imodule_ << std::endl;
   gpio.setGPO(string_format("M%d_ECON_RE_Hb", imodule_), false);
   gpio.setGPO(string_format("M%d_ECON_RE_Hb", imodule_), true);
 }
