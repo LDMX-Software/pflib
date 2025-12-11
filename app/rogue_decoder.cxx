@@ -9,6 +9,9 @@
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/version/Version.h"
+#ifdef NEED_ROGUE_NUMPY
+#include "rogue/numpy.h"
+#endif
 #include "rogue/GeneralError.h"
 #include "rogue/Helpers.h"
 #include "rogue/interfaces/stream/Frame.h"
