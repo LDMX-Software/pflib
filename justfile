@@ -1,19 +1,17 @@
 help_message := "shared recipes for pflib development
 
-Use the environment variable PFLIB_CONTAINER to signal
-you are not on a prepared environment and want to
-mimic a DAQ server within a container
-else and wish to mimic the DAQ server with a container.
+We use 'denv' if there is a denv workspace in the pflib
+directory.
 
-  # without PFLIB_CONTAINER, we run with denv
+  # without pflib/.denv
   just -n configure
   cmake -B build -S .
 
-  # with PFLIB_CONTAINER, we assume the environment
-  # is already constructed properly
-  export PFLIB_CONTAINER=1
+  # with pflib/.denv
   just -n configure
   denv cmake -B build -S .
+
+Use 'just init <host>' to start using denv if desired.
 
 RECIPES:
 "
@@ -21,7 +19,8 @@ RECIPES:
 _default:
     @just --list --unsorted --justfile {{justfile()}} --list-heading "{{ help_message }}"
 
-env_cmd_prefix := if env("PFLIB_CONTAINER","0") == "1" { "denv " } else { "" }
+denv_exists := path_exists(justfile_directory() / ".denv")
+env_cmd_prefix := if denv_exists == "true" { "denv " } else { "" }
 
 _cmake *CONFIG:
     {{env_cmd_prefix}}cmake -B build -S . {{ CONFIG }}
@@ -82,7 +81,7 @@ test-menu:
 
 # test decoding in python bindings
 test-py-decoding:
-    {{env_cmd_prefix}}'PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py'
+    {{env_cmd_prefix}} PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py
 
 # py-rogue decode
 rogue-decode *args:
