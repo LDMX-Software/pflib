@@ -17,7 +17,7 @@ ep = pypflib.packing.MultiSampleECONDEventPacket(2)
 with pyrogue.utilities.fileio.FileReader(files=sys.argv[1]) as fd:
     for header, data in fd.records():
         if data[-1] == 0x0a or header.channel != 0:
-            # fucking magic byte signaling config packet
+            # magic byte signaling config packet
             continue
 
         # need to convert the data into a std::vector<uint32_t>
@@ -27,6 +27,11 @@ with pyrogue.utilities.fileio.FileReader(files=sys.argv[1]) as fd:
         v = pypflib.packing.WordVector()
         words = data.view('uint32')
         v.extend(words[4:].tolist())
+
+        # a byte from the Rogue header signals the subsystem
+        # from slaclab/ldmx-firmware/common/tdaq/python/ldmx_tdaq/_Constants.py
+        if (data[1] != 5 and data[1] != 7):
+            continue
 
         # this is the call that attempts to decode the word vector
         ep.from_word_vector(v)

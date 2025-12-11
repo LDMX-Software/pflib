@@ -211,6 +211,9 @@ target_link_libraries(pfdecoder PRIVATE pflib)
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
 
+add_executable(rogue-decoder app/rogue_decoder.cxx)
+target_link_libraries(rogue-decoder PUBLIC pflib Boost::python Python3::Python ${ROGUE_LIBRARIES})
+
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
