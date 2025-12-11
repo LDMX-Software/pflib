@@ -119,7 +119,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
     elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
+    daq_ = std::make_unique<bittware::BWdaq>(dev);
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
@@ -186,11 +186,11 @@ class HcalBackplaneBW : public HcalBackplane {
       for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
         // only one elink right now
         std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
+        buf.push_back((0x1 << 28) | ((daq().econid(0) & 0x3ff) << 18) |
                       (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
                       (subpacket.size()));
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
+        daq().advanceLinkReadPtr(0);
       }
       // FW puts in one last "header" that signals no more packets
       buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
@@ -207,7 +207,7 @@ class HcalBackplaneBW : public HcalBackplane {
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
-  std::unique_ptr<bittware::HcalBackplaneBW_Capture> daq_;
+  std::unique_ptr<bittware::BWdaq> daq_;
   std::shared_ptr<pflib::bittware::BWFastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;

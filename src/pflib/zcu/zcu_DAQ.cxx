@@ -61,11 +61,14 @@ void ZCU_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
   empty = (nevt == 0);
   full = (nevt == 0x7f);
 }
-void ZCU_Capture::setup(int econid, int samples_per_ror, int soi) {
-  pflib::DAQ::setup(econid, samples_per_ror, soi);
-  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_ECON_ID, econid);
+void ZCU_Capture::setup(int samples_per_ror, int soi) {
+  pflib::DAQ::setup(samples_per_ror, soi);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
+}
+void ZCU_Capture::setEconId(int ilink, int econid) {
+  pflib::DAQ::setEconId(ilink, econid);
+  capture_.writeMasked(ADDR_PACKET_SETUP, MASK_ECON_ID, econid);
 }
 void ZCU_Capture::enable(bool doenable) {
   if (doenable)
@@ -109,7 +112,7 @@ std::vector<uint32_t> ZCU_Capture::getLinkData(int ilink) {
   return retval;
 }
 
-void ZCU_Capture::advanceLinkReadPtr() {
+void ZCU_Capture::advanceLinkReadPtr(int ilink) {
   if (per_econ_)
     capture_.write(ADDR_ADV_IO, MASK_ADV_IO);  // auto-clear
   else

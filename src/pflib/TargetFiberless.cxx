@@ -125,7 +125,7 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         buffer[2] |= len_total;
         buffer.push_back(0xd07e2025);
         buffer.push_back(0x12345678);
-        daq().advanceLinkReadPtr();
+        daq().advanceLinkReadPtr(0);
       } break;
       case DaqFormat::ECOND_NO_ZS: {
         const int bc = 0;  // bx number...
@@ -150,7 +150,7 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           // add header giving specs around ECOND packet
           uint32_t header = formatter_.getPacket().size();
           header |= (0x1 << 28);
-          header |= (daq().econid() & 0x3ff) << 18;
+          header |= (daq().econid(0) & 0x3ff) << 18;
           header |= (il1a & 0x1f) << 13;
           if (il1a == daq().soi()) header |= (1 << 12);
           buffer.push_back(header);
@@ -160,13 +160,13 @@ std::vector<uint32_t> HcalFiberless::read_event() {
                         formatter_.getPacket().end());
 
           // advance L1A pointer
-          daq().advanceLinkReadPtr();
+          daq().advanceLinkReadPtr(0);
         }
         l1a_ += daq().samples_per_ror();
         // add a special "header" to mark that we have no more ECON packets
         uint32_t header{0};
         header |= (0x1 << 28);
-        header |= (daq().econid() & 0x3ff) << 18;
+        header |= (daq().econid(0) & 0x3ff) << 18;
         buffer.push_back(header);
         /*
         buffer.push_back(0x12345678);

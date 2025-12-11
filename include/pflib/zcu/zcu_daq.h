@@ -18,11 +18,12 @@ class ZCU_Capture : public DAQ {
     l1a_capture_width = -1;
   }
   virtual void bufferStatus(int ilink, bool& empty, bool& full);
-  virtual void setup(int econid, int samples_per_ror, int soi);
+  virtual void setup(int samples_per_ror, int soi);
+  virtual void setEconId(int ilink, int econid);
   virtual void enable(bool doenable);
   virtual bool enabled();
   virtual std::vector<uint32_t> getLinkData(int ilink);
-  virtual void advanceLinkReadPtr();
+  virtual void advanceLinkReadPtr(int ilink);
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask);
 
  private:

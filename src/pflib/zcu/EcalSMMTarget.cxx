@@ -89,11 +89,11 @@ class EcalSMMTargetZCU : public Target {
       for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
         // only one elink right now
         std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
+        buf.push_back((0x1 << 28) | ((daq().econid(0) & 0x3ff) << 18) |
                       (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
                       (subpacket.size()));
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
+        daq().advanceLinkReadPtr(0);
       }
     } else {
       PFEXCEPTION_RAISE("NoImpl",

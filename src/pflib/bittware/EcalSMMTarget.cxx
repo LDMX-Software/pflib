@@ -35,7 +35,7 @@ class EcalSMMTargetBW : public Target {
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
+    daq_ = std::make_unique<bittware::BWdaq>(dev);
 
     using namespace pflib::lpgbt::standard_config;
 
@@ -128,13 +128,16 @@ class EcalSMMTargetBW : public Target {
 
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
       for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
+        for (int ilink = 0; ilink < daq().nlinks(); ilink++) {
+          if (!daq().enabledECON(ilink)) continue;
+
+          std::vector<uint32_t> subpacket = daq().getLinkData(ilink);
+          buf.push_back((0x1 << 28) | ((daq().econid(ilink) & 0x3ff) << 18) |
+                        (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
+                        (subpacket.size()));
+          buf.insert(buf.end(), subpacket.begin(), subpacket.end());
+          daq().advanceLinkReadPtr(ilink);
+        }
       }
       // FW puts in one last "header" that signals no more packets
       buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
@@ -151,7 +154,7 @@ class EcalSMMTargetBW : public Target {
   std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
-  std::unique_ptr<bittware::HcalBackplaneBW_Capture> daq_;
+  std::unique_ptr<bittware::BWdaq> daq_;
   std::shared_ptr<pflib::bittware::BWFastControl> fc_;
   Target::DaqFormat format_;
   int contrib_id_;
