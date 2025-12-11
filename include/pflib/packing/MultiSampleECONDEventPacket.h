@@ -35,18 +35,12 @@ class MultiSampleECONDEventPacket {
   std::size_t i_soi;
   /// ID for this econ
   int econd_id;
-  /*
-  /// bunch counter/number for event
-  int bx;
-  /// event counter
-  int ievent;
-  /// contributor ID specifying ECOND
+  /// contributor ID
   int contrib_id;
-  /// subsystem ID specifying ECOND
+  /// subsystem ID
   int subsys_id;
-  /// run number
-  int run;
-  */
+  /// timestamp from RoR
+  uint64_t timestamp;
   /// get the sample of interest
   const ECONDEventPacket& soi() const;
   /// samples from ECOND stored in order of transmission
@@ -54,7 +48,7 @@ class MultiSampleECONDEventPacket {
   /// constructor defining how many links are connected to this ECOND
   MultiSampleECONDEventPacket(int n_links);
   /// unpack the given data into this structure
-  void from(std::span<uint32_t> data);
+  void from(std::span<uint32_t> data, bool expect_ldmx_ror_header = false);
   /// read into this structure from the input Reader
   Reader& read(Reader& r);
 
