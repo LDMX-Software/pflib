@@ -238,6 +238,7 @@ target_link_libraries(pfdefaults pflib)
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
+install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
 install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib

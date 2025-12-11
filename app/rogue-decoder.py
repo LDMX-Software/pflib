@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pyrogue.utilities.fileio
 import sys
 import numpy as np
