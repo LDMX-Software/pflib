@@ -64,7 +64,8 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     int frame_size{frame->end() - frame_it};
     pflib_log(debug) << "Frame size: " << frame_size;
     if (frame_size % 4 != 0) {
-      pflib_log(error) << "Frame size " << frame_size << " is not multiple of 4 bytes";
+      pflib_log(error) << "Frame size " << frame_size
+                       << " is not multiple of 4 bytes";
     }
 
     std::vector<uint32_t> words(frame_size / 4);
@@ -76,7 +77,7 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     // 0: meaningless?
     // 1: timestamp
     // 2: timestamp
-    ep_.from(std::span(words.begin()+3, words.end()));
+    ep_.from(std::span(words.begin() + 3, words.end()));
     ep_.to_csv(output_);
   }
 };
