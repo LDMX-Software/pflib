@@ -239,6 +239,8 @@ set_target_properties(pflib menu packing logging version utility register_maps P
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
 install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
+# not installing the C++ rogue-decoder because it won't work with Rogue 6.8
+# due to a linking error from within Rogue
 install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
