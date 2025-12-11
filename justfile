@@ -41,6 +41,12 @@ configure: _cmake
 # compile pflib
 build: _build
 
+default_install_dir := justfile_directory() / "install"
+
+# install pflib to passed location
+install dir=default_install_dir: (_cmake "-DCMAKE_INSTALL_PREFIX="+dir)
+    {{env_cmd_prefix}}cmake --build build --target install
+
 # alias for configure and then build
 compile: configure build
 
