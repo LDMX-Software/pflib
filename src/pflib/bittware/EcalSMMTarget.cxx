@@ -39,22 +39,17 @@ class EcalSMMTargetBW : public Target {
 
     using namespace pflib::lpgbt::standard_config;
 
+    // Apply standard ECAL configuration for DAQ lpGBT
     try {
-      int daq_pusm = daq_lpgbt_->status();
-
-      if (daq_pusm == 19) {
-        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "DAQ lpGBT is not ready, attempting standard config";
-        try {
-          setup_ecal(*daq_lpgbt_,
-                     ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << "Apply standard ECAL config";
+      try {
+        setup_ecal(*daq_lpgbt_,
+                    ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+      } catch (const pflib::Exception& e) {
+        pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
       }
+
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
                           "check Optical links";
@@ -64,13 +59,9 @@ class EcalSMMTargetBW : public Target {
                       << " and then re-open pftool.";
     }
 
+    // Apply standard ECAL configuration for TRG lpGBT
     try {
-      int trg_pusm = trig_lpgbt_->status();
-      if (trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "TRG lpGBT is not ready, attempting standard config";
+        pflib_log(debug) << " Apply standard ECAL TRG config";
         try {
           setup_ecal(*trig_lpgbt_,
                      ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
@@ -79,7 +70,6 @@ class EcalSMMTargetBW : public Target {
           pflib_log(info) << "Failure to apply standard config [" << e.name()
                           << "]: " << e.message();
         }
-      }
     } catch (const pflib::Exception& e) {
       pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
                       << e.name() << "]: " << e.message();
