@@ -50,7 +50,7 @@ def main():
             if data[-1] == 0x0a or header.channel != 0:
                 # magic byte signaling config packet
                 continue
-    
+
             # a byte from the Rogue header signals the subsystem
             # from slaclab/ldmx-firmware/common/tdaq/python/ldmx_tdaq/_Constants.py
             subsys = data[1]
@@ -67,17 +67,17 @@ def main():
             # check on event limit
             if args.nevent is not None and count >= args.nevent:
                 break
-    
+
             # need to convert the data into a std::vector<uint32_t>
             # data here is a np.ndarray('int8') so we re-view
             # it in our words and skip the first four words which
             # contain the Rogue-inserted EventHeader
             v = pypflib.packing.WordVector()
             words = data.view('uint32')
-            v.extend(words[4:].tolist())
+            v.extend(words.tolist())
     
             # this is the call that attempts to decode the word vector
-            ep.from_word_vector(v)
+            ep.from_word_vector(v, True)
     
             # write out decoded data to the CSV file
             ep.to_csv(out)
