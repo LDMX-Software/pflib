@@ -25,7 +25,7 @@ void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   for (std::size_t i_sample{0}; i_sample < samples.size(); i_sample++) {
     const auto& sample{samples[i_sample]};
     for (std::size_t i_link{0}; i_link < sample.links.size(); i_link++) {
-      const auto &daq_link{sample.links[i_link]};
+      const auto& daq_link{sample.links[i_link]};
       f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
         << daq_link.orbit << ',' << i_sample << ',' << "calib,";
       daq_link.calib.to_csv(f);

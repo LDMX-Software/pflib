@@ -1,10 +1,9 @@
 #include "packing.h"
 
-#include "pflib/packing/ECONDEventPacket.h"
-#include "pflib/packing/MultiSampleECONDEventPacket.h"
-
 #include <iostream>
 
+#include "pflib/packing/ECONDEventPacket.h"
+#include "pflib/packing/MultiSampleECONDEventPacket.h"
 
 /*
 // Template function to convert a python list to a C++ std::vector
@@ -87,13 +86,13 @@ const pflib::packing::ECONDEventPacket& MultiSampleECONDEventPacket_sample(
 
 struct OFStream {
   std::shared_ptr<std::ofstream> output_;
-  void open(const std::string& fp) { 
+  void open(const std::string& fp) {
     if (!output_) {
       output_ = std::make_shared<std::ofstream>();
     }
     output_->open(fp);
   }
-  bool is_open() { 
+  bool is_open() {
     if (!output_) return false;
     return output_->is_open();
   }
@@ -104,19 +103,16 @@ struct OFStream {
 };
 
 void MultiSampleECONDEventPacket_header_to_csv(
-    pflib::packing::MultiSampleECONDEventPacket& ep,
-    OFStream o
-    ) {
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
   if (not o.is_open()) {
     throw std::runtime_error("OFStream has not been opened.");
   }
-  (*o.output_) << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
+  (*o.output_) << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+               << '\n';
 }
 
 void MultiSampleECONDEventPacket_to_csv(
-    pflib::packing::MultiSampleECONDEventPacket& ep,
-    OFStream o
-    ) {
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
   if (not o.is_open()) {
     throw std::runtime_error("OFStream has not been opened.");
   }
@@ -132,9 +128,9 @@ void setup_packing() {
       */
 
   bp::class_<OFStream, boost::noncopyable>("OFStream", bp::init<>())
-    .def("open", &OFStream::open)
-    .def("is_open", &OFStream::is_open)
-    .def("close", &OFStream::close);
+      .def("open", &OFStream::open)
+      .def("is_open", &OFStream::is_open)
+      .def("close", &OFStream::close);
 
   /**
    * We bind our standard raw-data object as a "WordVector"

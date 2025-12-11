@@ -9,13 +9,12 @@
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/version/Version.h"
-
 #include "rogue/GeneralError.h"
-#include "rogue/utilities/fileio/StreamReader.h"
-#include "rogue/interfaces/stream/Slave.h"
+#include "rogue/Helpers.h"
 #include "rogue/interfaces/stream/Frame.h"
 #include "rogue/interfaces/stream/FrameIterator.h"
-#include "rogue/Helpers.h"
+#include "rogue/interfaces/stream/Slave.h"
+#include "rogue/utilities/fileio/StreamReader.h"
 
 /**
  * Accept frames from the rogue stream reader, filtering out non-Ecal stuff
@@ -25,36 +24,42 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
   mutable pflib::logging::logger the_log_{pflib::logging::get("CaloCSVWriter")};
   std::ofstream output_;
   pflib::packing::MultiSampleECONDEventPacket ep_;
+
  public:
-  CaloCSVWriter(const std::string& filepath, int nlinks): output_{filepath}, ep_{nlinks} {
+  CaloCSVWriter(const std::string& filepath, int nlinks)
+      : output_{filepath}, ep_{nlinks} {
     if (not output_) {
-      PFEXCEPTION_RAISE("NoOpen", "Unable to open file '"+filepath+"'.");
+      PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
 
     output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header;
   }
-  void acceptFrame(std::shared_ptr<rogue::interfaces::stream::Frame> frame) override {
+  void acceptFrame(
+      std::shared_ptr<rogue::interfaces::stream::Frame> frame) override {
     if (frame->getError()) {
       pflib_log(debug) << "Rogue header signaled error present";
       return;
     }
 
     if (frame->getChannel() != 0) {
-      pflib_log(debug) << "Frame belongs to non-data channel " << frame->getChannel();
+      pflib_log(debug) << "Frame belongs to non-data channel "
+                       << frame->getChannel();
       return;
     }
 
-    auto frame_it{frame->begin()+1};
+    auto frame_it{frame->begin() + 1};
     uint8_t subsystem_id{0};
     rogue::interfaces::stream::fromFrame(frame_it, 1, &subsystem_id);
 
     if (subsystem_id != 5 and subsystem_id != 7) {
-      pflib_log(debug) << "Frame belongs to non-calo subsystem " << subsystem_id;
+      pflib_log(debug) << "Frame belongs to non-calo subsystem "
+                       << subsystem_id;
     }
 
     // convert frame containing sequence of bytes into sequence of 32-bit words
-    std::vector<uint8_t> data{frame->begin()+16, frame->end()};
-    std::vector<uint32_t> words{*reinterpret_cast<std::vector<uint32_t>*>(data.data())};
+    std::vector<uint8_t> data{frame->begin() + 16, frame->end()};
+    std::vector<uint32_t> words{
+        *reinterpret_cast<std::vector<uint32_t>*>(data.data())};
     ep_.from(words);
     ep_.to_csv(output_);
   }
