@@ -35,26 +35,20 @@ class EcalSMMTargetBW : public Target {
         std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
     using namespace pflib::lpgbt::standard_config;
 
+    // Apply standard ECAL configuration for DAQ lpGBT
     try {
-      int daq_pusm = daq_lpgbt_->status();
-
-      if (daq_pusm == 19) {
-        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "DAQ lpGBT is not ready, attempting standard config";
-        try {
-          setup_ecal(*daq_lpgbt_,
-                     ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << "Apply standard ECAL config";
+      try {
+        setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+      } catch (const pflib::Exception& e) {
+        pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
       }
+
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
                           "check Optical links";
@@ -64,21 +58,16 @@ class EcalSMMTargetBW : public Target {
                       << " and then re-open pftool.";
     }
 
+    // Apply standard ECAL configuration for TRG lpGBT
     try {
-      int trg_pusm = trig_lpgbt_->status();
-      if (trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "TRG lpGBT is not ready, attempting standard config";
-        try {
-          setup_ecal(*trig_lpgbt_,
-                     ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
-          pflib_log(info) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << " Apply standard ECAL TRG config";
+      try {
+        setup_ecal(*trig_lpgbt_,
+                   ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+      } catch (const pflib::Exception& e) {
+        pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
+        pflib_log(info) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
       }
     } catch (const pflib::Exception& e) {
       pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
@@ -88,6 +77,8 @@ class EcalSMMTargetBW : public Target {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
+  const std::vector<std::pair<int, int>>& getRocErxMapping()
+      override;  // because there is no header file.
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
@@ -122,8 +113,27 @@ class EcalSMMTargetBW : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    PFEXCEPTION_RAISE("NoImpl", "EcalSMMTargetBW::read_event not implemented.");
-    return {};
+    std::vector<uint32_t> buf;
+
+    if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
+      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
+        // only one elink right now
+        std::vector<uint32_t> subpacket = daq().getLinkData(0);
+        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
+                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
+                      (subpacket.size()));
+        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
+        daq().advanceLinkReadPtr();
+      }
+      // FW puts in one last "header" that signals no more packets
+      buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
+    } else {
+      PFEXCEPTION_RAISE("NoImpl",
+                        "EcalSMMTargetBW::read_event not implemented "
+                        "for provided DaqFormat");
+    }
+
+    return buf;
   }
 
  private:
@@ -138,6 +148,10 @@ class EcalSMMTargetBW : public Target {
 
 Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
   return new EcalSMMTargetBW(ilink, dev);
+}
+
+const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() {
+  return EcalModule::getRocErxMapping();
 }
 
 }  // namespace pflib

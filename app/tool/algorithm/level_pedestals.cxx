@@ -1,8 +1,40 @@
 #include "level_pedestals.h"
 
 #include "../daq_run.h"
+#include "../tasks/level_pedestals.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
+
+namespace pflib::algorithm {
+
+/**
+ * Retrieve the ADC sample for the input channel from the input event packet
+ */
+template <class EventPacket>
+static int get_adc(const EventPacket& p, int ch) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::SingleROCEventPacket>) {
+    return p.channel(ch).adc();
+  } else if constexpr (std::is_same_v<
+                           EventPacket,
+                           pflib::packing::MultiSampleECONDEventPacket>) {
+    // Use link specific channel calculation, this is done in
+    // singleROCEventPacket.cxx for the other case
+    // Use the "Sample Of Interest" inside the EventPacket
+    // TODO this is only true if we only have one ROC's channels enabled
+    //      in the ECON-D. In the more realistic case, we should get the
+    //      link indices depending on which ROC we are aligning
+    int i_link = ch / 36;  // 0 or 1
+    int i_ch = ch % 36;    // 0 - 35
+
+    // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
+    // because it can have more than 2 links readout
+    return p.samples[p.i_soi].channel(i_link, i_ch).adc();
+  } else {
+    static_assert(sizeof(EventPacket) == 0,
+                  "Unsupported packet type in get_adc()");
+  }
+}
 
 /**
  * get the medians of the channel ADC values
@@ -18,42 +50,35 @@
  * Calib and Common Mode channels are ignored.
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
+template <class EventPacket>
 static std::array<int, 72> get_adc_medians(
-    const std::vector<pflib::packing::SingleROCEventPacket>& data) {
+    const std::vector<EventPacket>& data) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < adcs.size(); i++) {
-      adcs[i] = data[i].channel(ch).adc();
+      adcs[i] = get_adc(data[i], ch);
     }
     medians[ch] = pflib::utility::median(adcs);
   }
   return medians;
 }
 
-namespace pflib::algorithm {
-
-std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
-    Target* tgt, ROC roc) {
+// Helper function to pull the 3 runs
+template <class EventPacket>  // any use of <EventPacket> is a placeholder for
+                              // what the function gets called with.
+static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
+                          std::array<int, 72>& highend,
+                          std::array<int, 72>& lowend,
+                          std::array<int, 2>& target, size_t n_events) {
+  /// TODO for multi-ROC set ups, we could dynamically determine the number
+  //       of ROCs and the number of channels from the Target
+  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("level_pedestals")};
 
-  /// do three runs of 100 samples each to have well defined pedestals
-  static const std::size_t n_events = 100;
-
-  tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
-
-  std::array<int, 2> target;
-  std::array<int, 72> baseline, highend, lowend;
-  DecodeAndBuffer buffer{n_events};
-
-  // for future devs:
-  //   I do this weird extra brackets to limit the scope
-  //   of the test_handle object and force it to destruct
-  //   after the run is over (unsetting the parameters).
-
-  {  // baseline run
+  {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
     auto test_handle = roc.testParameters()
                            .add_all_channels("SIGN_DAC", 0)
@@ -62,7 +87,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
-    auto medians = get_adc_medians(buffer.get_buffer());
+    auto medians = get_adc_medians<EventPacket>(buffer.get_buffer());
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
@@ -75,7 +100,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     pflib_log(trace) << "got link medians";
   }
 
-  {  // highend run
+  {  // highend run scope
     pflib_log(info) << "100 event highend run";
     auto test_handle = roc.testParameters()
                            .add_all_channels("SIGN_DAC", 0)
@@ -83,7 +108,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    highend = get_adc_medians(buffer.get_buffer());
+    highend = get_adc_medians<EventPacket>(buffer.get_buffer());
   }
 
   {  // lowend run
@@ -94,7 +119,40 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    lowend = get_adc_medians(buffer.get_buffer());
+    lowend = get_adc_medians<EventPacket>(buffer.get_buffer());
+  }
+}
+
+std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
+    Target* tgt, ROC roc) {
+  static auto the_log_{::pflib::logging::get("level_pedestals")};
+
+  /// do three runs of 100 samples each to have well defined pedestals
+  static const std::size_t n_events = 100;
+
+  // tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
+  // Use the DAQ format selected in the pftool DAQ->FORMAT menu so the
+  // format mode can be chosen interactively by the user.
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+  pflib_log(info) << "Using DAQ format mode: "
+                  << static_cast<int>(pftool::state.daq_format_mode);
+
+  std::array<int, 2> target;
+  std::array<int, 72> baseline, highend, lowend;
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    pedestal_runs<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, baseline, highend, lowend, target, n_events);
+
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    pedestal_runs<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, baseline, highend, lowend, target, n_events);
+
+  } else {
+    pflib_log(warn) << "Unsupported DAQ format ("
+                    << static_cast<int>(pftool::state.daq_format_mode)
+                    << ") in level_pedestals. Skipping pedestal leveling...";
   }
 
   pflib_log(info) << "sample collections done, deducing settings";

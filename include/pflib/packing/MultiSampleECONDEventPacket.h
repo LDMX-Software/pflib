@@ -7,7 +7,7 @@ namespace pflib::packing {
 
 /**
  * Unpack an event that has potentially more than one sample
- * collected from a single ECOND.
+ * collected from a **single** ECOND.
  *
  * @see ECONDEventPacket for how a single sample from a single ECOND
  * is unpacked.
@@ -15,8 +15,6 @@ namespace pflib::packing {
  * @note This unpacking is not well tested and may change depending
  * on how the firmware/software progresses. The current draft was
  * written using TargetFiberless::read_event as a reference.
- * A second draft SoftWrappedECONDEventPacket was written using
- * the HcalBackplaneZCUTarget::read_event as reference.
  */
 class MultiSampleECONDEventPacket {
   /// handle to logging source
@@ -31,11 +29,13 @@ class MultiSampleECONDEventPacket {
    * Index | Description
    * ------|------------
    *  0    | full packet header flag mismatch
-   *  1    | subsystem ID not equal to 7 (HCAL)
+  std::array<bool, 1> corruption;
    */
-  std::array<bool, 2> corruption;
   /// index of the sample of interest (SOI)
   std::size_t i_soi;
+  /// ID for this econ
+  int econd_id;
+  /*
   /// bunch counter/number for event
   int bx;
   /// event counter
@@ -46,6 +46,9 @@ class MultiSampleECONDEventPacket {
   int subsys_id;
   /// run number
   int run;
+  */
+  /// get the sample of interest
+  const ECONDEventPacket& soi() const;
   /// samples from ECOND stored in order of transmission
   std::vector<ECONDEventPacket> samples;
   /// constructor defining how many links are connected to this ECOND
@@ -54,6 +57,12 @@ class MultiSampleECONDEventPacket {
   void from(std::span<uint32_t> data);
   /// read into this structure from the input Reader
   Reader& read(Reader& r);
+
+  /// header string if using to_csv
+  static const std::string to_csv_header;
+
+  /// write out all of the samples into the input CSV file
+  void to_csv(std::ofstream& f) const;
 };
 
 }  // namespace pflib::packing

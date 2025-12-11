@@ -23,6 +23,17 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 
 void pftool::State::init(Target* tgt, int cfg) {
   cfg_ = cfg;
+  /**
+   * set default format mode depending on readout config
+   *
+   * if fiberless, default to SIMPLEROC, otherwise assume
+   * ECOND readout
+   */
+  if (cfg_ == CFG_HCALFMC) {
+    daq_format_mode = Target::DaqFormat::SIMPLEROC;
+  } else {
+    daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
+  }
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->roc_ids()};
   for (int id : roc_ids) {

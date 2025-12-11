@@ -36,43 +36,17 @@ class HcalBackplaneBW : public HcalBackplane {
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     try {
-      int daq_pusm = daq_lpgbt_->status();
-      int trg_pusm = trig_lpgbt_->status();
-      if (daq_pusm == 19 and trg_pusm == 19) {
-        // both lpGBTs are PUSM READY
-        pflib_log(debug) << "both lpGBTs are have status PUSM READY (19)";
-      } else if (daq_pusm != 19 and trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT has status PUSM READY (19)";
-        pflib_log(debug) << "applying standard DAQ lpGBT configuration";
-        try {
-          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      } else if (daq_pusm == 19 and trg_pusm != 19) {
-        pflib_log(debug) << "DAQ lpGBT has status PUSM READY (19)";
-        pflib_log(debug) << "applying standard TRG lpGBT configuration";
-        try {
-          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      } else /* both are not PUSM READY */ {
-        pflib_log(debug) << "neither lpGBT have status PUSM READY (19)";
-        pflib_log(debug) << "applying standard lpGBT configuration";
-        try {
-          pflib_log(debug) << "applying DAQ";
-          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-          pflib_log(debug) << "pause to let hardware re-sync";
-          sleep(2);
-          pflib_log(debug) << "applying TRIG";
-          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << "Apply standard HCAL config";
+      try {
+        pflib_log(debug) << "applying DAQ";
+        pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+        pflib_log(debug) << "pause to let hardware re-sync";
+        sleep(2);
+        pflib_log(debug) << "applying TRIG";
+        pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+      } catch (const pflib::Exception& e) {
+        pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
       }
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
@@ -119,7 +93,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
     elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
@@ -174,12 +148,33 @@ class HcalBackplaneBW : public HcalBackplane {
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
     contrib_id_ = contrib_id;
+
+    daq().reset();
+    fc().clear_run();
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    PFEXCEPTION_RAISE("NoImpl",
-                      "HcalBackplaneBWTarget::read_event not implemented");
-    return {};
+    std::vector<uint32_t> buf;
+
+    if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
+      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
+        // only one elink right now
+        std::vector<uint32_t> subpacket = daq().getLinkData(0);
+        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
+                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
+                      (subpacket.size()));
+        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
+        daq().advanceLinkReadPtr();
+      }
+      // FW puts in one last "header" that signals no more packets
+      buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
+    } else {
+      PFEXCEPTION_RAISE("NoImpl",
+                        "HcalBackplaneBWTarget::read_event not implemented "
+                        "for provided DaqFormat");
+    }
+
+    return buf;
   }
 
  private:
