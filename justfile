@@ -33,7 +33,11 @@ _test *ARGS:
 
 # init a local denv for development ("zcu" or "bittware-host")
 init host:
+    rm -f .profile
     denv init ghcr.io/ldmx-software/pflib-env:{{host}}-latest
+    echo 'export PATH=${PATH}:${HOME}/install/bin' >> .profile
+    echo 'export PYTHONPATH=${PYTHONPATH}:${HOME}/install/lib' >> .profile
+    echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/install/lib' >> .profile
 
 # configure pflib build
 configure: _cmake
@@ -87,11 +91,11 @@ test-menu:
 
 # test decoding in python bindings
 test-py-decoding:
-    {{env_cmd_prefix}} PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py
+    {{env_cmd_prefix}}PYTHONPATH=${PWD}/build LD_LIBRARY_PATH=${PWD}/build python3 test/decoding.py
 
-# py-rogue decode
-rogue-decode *args:
-    {{env_cmd_prefix}}'PYTHONPATH=${PYTHONPATH}:${PWD}/build python3 ana/rogue-read.py {{args}}'
+# py-rogue decoder from source
+rogue-decoder *args:
+    {{env_cmd_prefix}}./app/rogue-decoder.py {{args}}
 
 # build the conda package on the DAQ server
 conda-package:
