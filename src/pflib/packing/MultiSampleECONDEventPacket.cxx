@@ -9,7 +9,8 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
 const std::string MultiSampleECONDEventPacket::to_csv_header =
-    "timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,toa";
+    "timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,"
+    "toa";
 
 void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   /**
@@ -22,23 +23,15 @@ void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
     const auto& sample{samples[i_sample]};
     for (std::size_t i_link{0}; i_link < sample.links.size(); i_link++) {
       const auto& daq_link{sample.links[i_link]};
-      f << timestamp << ',' 
-        << daq_link.orbit << ','
-        << daq_link.bx << ','
-        << daq_link.event << ','
-        << i_link << ','
-        << "calib,"
-        << i_sample << ',';
+      f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
+        << daq_link.event << ',' << i_link << ',' << "calib," << i_sample
+        << ',';
       daq_link.calib.to_csv(f);
       f << '\n';
       for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
-        f << timestamp << ',' 
-          << daq_link.orbit << ','
-          << daq_link.bx << ','
-          << daq_link.event << ','
-          << i_link << ','
-          << i_ch << ','
-          << i_sample << ',';
+        f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
+          << daq_link.event << ',' << i_link << ',' << i_ch << ',' << i_sample
+          << ',';
         daq_link.channels[i_ch].to_csv(f);
         f << '\n';
       }
@@ -46,7 +39,8 @@ void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   }
 }
 
-void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame, bool expect_ldmx_ror_header) {
+void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame,
+                                       bool expect_ldmx_ror_header) {
   samples.clear();
   contrib_id = 0;
   subsys_id = 0;
@@ -67,7 +61,7 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame, bool expect_ld
     subsys_id = ((frame[0] >> 8) & 0xff);
     uint8_t vers = static_cast<uint8_t>(frame[0] & 0xff);
 
-    //frame[1] == 0
+    // frame[1] == 0
 
     timestamp = ((frame[3] << 32) | frame[2]);
     offset += 4;

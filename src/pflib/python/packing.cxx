@@ -41,13 +41,13 @@ type "+bp::str(class_name));
 */
 
 /// wrapper to call EventPacket::from given a WordVector
-void ECONDEventPacket_from(pflib::packing::ECONDEventPacket& ep, std::vector<uint32_t>& wv) {
+void ECONDEventPacket_from(pflib::packing::ECONDEventPacket& ep,
+                           std::vector<uint32_t>& wv) {
   ep.from(wv);
 }
 
 void MultiSampleECONDEventPacket_from(
-    pflib::packing::MultiSampleECONDEventPacket& ep,
-    std::vector<uint32_t>& wv,
+    pflib::packing::MultiSampleECONDEventPacket& ep, std::vector<uint32_t>& wv,
     bool expect_ldmx_ror_header) {
   ep.from(wv, expect_ldmx_ror_header);
 }
@@ -179,8 +179,7 @@ void setup_packing() {
   bp::class_<pflib::packing::MultiSampleECONDEventPacket>(
       "MultiSampleECONDEventPacket", MultiSampleECONDEventPacket__doc__,
       bp::init<int>())
-      .def("from_word_vector",
-           &MultiSampleECONDEventPacket_from,
+      .def("from_word_vector", &MultiSampleECONDEventPacket_from,
            (bp::arg("words"), bp::arg("expect_ldmx_ror_header") = false))
       .def("soi", &pflib::packing::MultiSampleECONDEventPacket::soi,
            bp::return_value_policy<bp::reference_existing_object>())
