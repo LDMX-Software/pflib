@@ -36,18 +36,18 @@ class HcalBackplaneBW : public HcalBackplane {
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     try {
-        pflib_log(debug) << "Apply standard HCAL config";
-        try {
-          pflib_log(debug) << "applying DAQ";
-          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-          pflib_log(debug) << "pause to let hardware re-sync";
-          sleep(2);
-          pflib_log(debug) << "applying TRIG";
-          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << "Apply standard HCAL config";
+      try {
+        pflib_log(debug) << "applying DAQ";
+        pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
+        pflib_log(debug) << "pause to let hardware re-sync";
+        sleep(2);
+        pflib_log(debug) << "applying TRIG";
+        pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
+      } catch (const pflib::Exception& e) {
+        pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
+      }
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
                           "check Optical links";

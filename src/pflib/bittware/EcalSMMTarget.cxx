@@ -43,8 +43,7 @@ class EcalSMMTargetBW : public Target {
     try {
       pflib_log(debug) << "Apply standard ECAL config";
       try {
-        setup_ecal(*daq_lpgbt_,
-                    ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+        setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
       } catch (const pflib::Exception& e) {
         pflib_log(warn) << "Failure to apply standard config [" << e.name()
                         << "]: " << e.message();
@@ -61,15 +60,15 @@ class EcalSMMTargetBW : public Target {
 
     // Apply standard ECAL configuration for TRG lpGBT
     try {
-        pflib_log(debug) << " Apply standard ECAL TRG config";
-        try {
-          setup_ecal(*trig_lpgbt_,
-                     ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
-          pflib_log(info) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
+      pflib_log(debug) << " Apply standard ECAL TRG config";
+      try {
+        setup_ecal(*trig_lpgbt_,
+                   ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+      } catch (const pflib::Exception& e) {
+        pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
+        pflib_log(info) << "Failure to apply standard config [" << e.name()
+                        << "]: " << e.message();
+      }
     } catch (const pflib::Exception& e) {
       pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
                       << e.name() << "]: " << e.message();
