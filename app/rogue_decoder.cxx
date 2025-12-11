@@ -9,12 +9,12 @@
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/version/Version.h"
-#include "rogue/numpy.h"
 #include "rogue/GeneralError.h"
 #include "rogue/Helpers.h"
 #include "rogue/interfaces/stream/Frame.h"
 #include "rogue/interfaces/stream/FrameIterator.h"
 #include "rogue/interfaces/stream/Slave.h"
+#include "rogue/numpy.h"
 #include "rogue/utilities/fileio/StreamReader.h"
 
 /**
