@@ -40,119 +40,41 @@ void print_roc_status(pflib::ROC& roc) {
               << '\n';
     reset_stream();
   }
-}
+};
 
-void align_phase(Target* tgt, int iroc, int iecon, std::vector<int> channels) {}
+void align_phase(Target* tgt, pflib::ROC& roc, pflib::ECON& econ, std::vector<int> channels) {
+  print_roc_status(roc);
 
-void align_phase_word(Target* tgt) {
-  bool on_zcu =
-      (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
-      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
-      (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
-
-  debug_checks = pftool::readline_bool("Enable debug checks?", true);
-
-  int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
-  auto roc = tgt->roc(iroc);
-  // Ensure ROC is in Run mode
-  roc.setRunMode(true);
-
-  auto econ = tgt->econ(iecon);
-  int edgesel = 0;
-  int invertfcmd = 0;
-  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
-      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
-    invertfcmd = 1;
+  // Set ECON registers
+  std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
+  // TrackMode 1: ECON will automatically find phase
+  parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
+  // Enable the ERX and set channel to train
+  for (int ch : channels) {
+    parameters["ERX"][std::to_string(ch) + "_ENABLE"] = 1;
+    parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
   }
-  // Ensure ECON is in Run mode
-  econ.setRunMode(true, edgesel, invertfcmd);
+  econ.applyParameters(parameters);
 
-  // Get channels dynamically from ROC to eRx object channel mapping
-  auto& mapping = tgt->getRocErxMapping();
+  // Toggle Phase Training off
+  parameters.clear();
+  for (int ch : channels) {
+    parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
+  }
+  econ.applyParameters(parameters);
 
-  // Dynamic channels. Only 2 per link.
-  std::vector<int> channels;
-  channels.push_back(mapping[iroc].first);
-  channels.push_back(mapping[iroc].second);
-
-  uint32_t binary_channels = build_channel_mask(channels);
-  std::cout << "Channels to be configured: ";
-  for (int ch : channels) std::cout << ch << " ";
-  std::cout << std::endl;
-
-  // Check PUSM state
-  auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
-  if (debug_checks) {
-    std::cout << "Decimal value of channels: " << binary_channels << std::endl;
-    std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state)
+  // Check channel locks
+  for (int ch : channels) {
+    std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
+    auto val = econ.readParameter("CHEPRXGRP", name);
+    std::cout << "Channel_locked " << ch << " = " << val << ", " << hex(val)
               << std::endl;
     reset_stream();
   }
+}
 
-  if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
-    std::cout << "PUSM_STATE / runbit does not equal "
-              << ECON_EXPECTED_PUSM_STATE << ". Not running alignment task."
-              << std::endl;
-    return;
-  }
-
-  // Set IDLEs in ROC with enough bit transitions
-
-  auto roc_setup_builder =
-      roc.testParameters()
-          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_0", "BX_OFFSET", 1)
-          .add("DIGITALHALF_1", "BX_OFFSET", 1);
-  if (on_zcu) {
-    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
-        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
-  } else {
-    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-        .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
-  }
-
-  auto roc_test_params = roc_setup_builder.apply();
-
-  // ----- PHASE ALIGNMENT ----- //
-  {
-    print_roc_status(roc);
-
-    // Set ECON registers
-    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-    // TrackMode 1: ECON will automatically find phase
-    parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 1;
-    // Enable the ERX and set channel to train
-    for (int ch : channels) {
-      parameters["ERX"][std::to_string(ch) + "_ENABLE"] = 1;
-      parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
-    }
-    econ.applyParameters(parameters);
-
-    // Toggle Phase Training off
-    parameters.clear();
-    for (int ch : channels) {
-      parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
-    }
-    econ.applyParameters(parameters);
-
-    // Check channel locks
-    for (int ch : channels) {
-      std::string name = std::to_string(ch) + "_CHANNEL_LOCKED";
-      auto val = econ.readParameter("CHEPRXGRP", name);
-      std::cout << "Channel_locked " << ch << " = " << val << ", " << hex(val)
-                << std::endl;
-      reset_stream();
-    }
-  }
-  // ------ END PHASE ALIGNMENT ------ //
-
-  // ------------ WORD ALIGNMENT ----------- //
-  {
-    // print ROC status
+void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ, std::vector<int> channels, bool on_zcu){
+  // print ROC status
     if (debug_checks) {
       print_roc_status(roc);
     }
@@ -354,9 +276,88 @@ void align_phase_word(Target* tgt) {
                   << std::endl;
       }
     }
+}
 
-  }  // -------- END WORD ALIGNMENT ------- //
+void align_phase_word(Target* tgt) {
+  bool on_zcu =
+      (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
+      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
+      (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
+
+  debug_checks = pftool::readline_bool("Enable debug checks?", true);
+
+  int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
+  int iecon =
+      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+
+  auto roc = tgt->roc(iroc);
+  // Ensure ROC is in Run mode
+  roc.setRunMode(true);
+
+  auto econ = tgt->econ(iecon);
+  int edgesel = 0;
+  int invertfcmd = 0;
+  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
+      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
+    invertfcmd = 1;
+  }
+  // Ensure ECON is in Run mode
+  econ.setRunMode(true, edgesel, invertfcmd);
+
+  // Get channels dynamically from ROC to eRx object channel mapping
+  auto& mapping = tgt->getRocErxMapping();
+
+  // Dynamic channels. Only 2 per link.
+  std::vector<int> channels;
+  channels.push_back(mapping[iroc].first);
+  channels.push_back(mapping[iroc].second);
+
+  uint32_t binary_channels = build_channel_mask(channels);
+  std::cout << "Channels to be configured: ";
+  for (int ch : channels) std::cout << ch << " ";
+  std::cout << std::endl;
+
+  // Check PUSM state
+  auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
+  if (debug_checks) {
+    std::cout << "Decimal value of channels: " << binary_channels << std::endl;
+    std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state)
+              << std::endl;
+    reset_stream();
+  }
+
+  if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
+    std::cout << "PUSM_STATE / runbit does not equal "
+              << ECON_EXPECTED_PUSM_STATE << ". Not running alignment task."
+              << std::endl;
+    return;
+  }
+
+  // Set IDLEs in ROC with enough bit transitions
+
+  auto roc_setup_builder =
+      roc.testParameters()
+          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
+          .add("DIGITALHALF_0", "BX_OFFSET", 1)
+          .add("DIGITALHALF_1", "BX_OFFSET", 1);
+  if (on_zcu) {
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
+  } else {
+    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
+        .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+  }
+
+  auto roc_test_params = roc_setup_builder.apply();
+
+  // ----- PHASE ALIGNMENT ----- //
+  align_phase(tgt, roc, econ, channels);
+
+  // ----- WORD ALIGNMENT ----- //
+  align_word(tgt, roc, econ, channels, on_zcu);
+  
   // ensure 0 remaining 0's filling cout
-  std::cout << std::dec << std::setfill(' ');
+  reset_stream();
 
 }  // End
