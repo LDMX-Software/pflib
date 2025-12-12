@@ -717,7 +717,7 @@ std::string lpGBT::status_name(int pusm) {
                                  "READY"};
 
   if (pusm < 20) return states[pusm];
-  return "UNKNOWN " + std::to_string(pusm);
+  return "UNKNOWN "+std::to_string(pusm);
 }
 
 }  // namespace pflib
