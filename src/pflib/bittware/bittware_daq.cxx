@@ -41,8 +41,8 @@ static constexpr uint32_t ADDR_BASE_COUNTER = 0x840;
 static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;
 static constexpr uint32_t ADDR_INFO = 0x940;
 
-static constexpr uint32_t MASK_IO_NEVENTS = 0x000000fe;
-static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0001FF00;
+static constexpr uint32_t MASK_IO_NEVENTS = 0x00000007;
+static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FFF8;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
     : DAQ(1),
@@ -76,6 +76,8 @@ HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
   capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
   int econid = capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
   pflib::DAQ::setup(econid, samples_per_ror, soi);
+  uint32_t addr_info{capture_.read(ADDR_INFO)};
+  pflib_log(info) << hex(addr_info);
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
@@ -174,6 +176,7 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
 
   for (int ilink = 0; ilink < nlinks(); ilink++) {
     capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
+    dbg[string_format("ECON%d.ADDR_INFO", ilink)] = capture_.read(ADDR_INFO);
     dbg[string_format("ECON%d.COUNT_IDLES", ilink)] =
         capture_.read(ADDR_BASE_LINK_COUNTER);
     dbg[string_format("ECON%d.COUNT_NONIDLES", ilink)] =
