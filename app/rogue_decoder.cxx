@@ -17,7 +17,6 @@
 #include "rogue/interfaces/stream/Frame.h"
 #include "rogue/interfaces/stream/FrameIterator.h"
 #include "rogue/interfaces/stream/Slave.h"
-#include "rogue/numpy.h"
 #include "rogue/utilities/fileio/StreamReader.h"
 
 /**
