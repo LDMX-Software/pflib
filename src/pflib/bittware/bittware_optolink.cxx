@@ -40,35 +40,38 @@ BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
                                                    chipaddr, isdaq_);
 }
 
-void BWOptoLink::reset_link() {  // actually affects all links in a block
-  if (!isdaq_) return;           // only do these items for DAQ links for now
-  gtys_.write(0x080, 0x2);       // TX_RESET
-  gtys_.write(0x080, 0x1);       // GTH_RESET
-  gtys_.write(0x080, 0x4);       // RX_RESET
+void BWOptoLink::reset_link() {
+  /**
+   * This reset could affect all links in a block since
+   * we use the GTH_RESET if the RX_RESET isn't working.
+   */
 
-  uint32_t REG_STATUS = 0x804 + ilink_ * 4;
+  /// only do these items for daq links
+  if (!isdaq_) return;
 
-  int done;
+  const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
+  const uint32_t RX_RESET = 0x4 << ilink_;
+  const uint32_t TX_RESET = 0x2 << ilink_;
+  // global, not dependent on ilink_
+  const uint32_t GTH_RESET = 0x1;
+
+  // first, light attempt, just link-specific resets
+  gtys_.write(0x080, TX_RESET);
+  gtys_.write(0x080, RX_RESET);
+  usleep(1000);
+  int done = gtys_.readMasked(REG_STATUS, 0x1);
   int attempts = 1;
-  done = gtys_.readMasked(REG_STATUS, 0x1);
-
   while (!done and attempts < 1000) {
-    if (attempts % 2) {
-      gtys_.write(0x080, 0x1);  // GTH_RESET
+    if (attempts % 10 == 0) {
+      /// GTH_RESET about 1/10 of the attempts
+      gtys_.write(0x080, GTH_RESET);
       usleep(1000);
       done = gtys_.readMasked(REG_STATUS, 0x1);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
-        attempts,done);
-      */
     } else {
-      gtys_.write(0x080, 0x4);  // RX_RESET
+      /// RX_RESET the other 9/10 attempts
+      gtys_.write(0x080, RX_RESET);  // RX_RESET
       usleep(1000);
       done = gtys_.readMasked(REG_STATUS, 0x1);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
-        attempts,done);
-      */
     }
     attempts += 1;
   }
@@ -267,13 +270,13 @@ static constexpr uint32_t MASK_TX_EMPTY = 0x0200;
 BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr,
                                      bool isic)
     : transport_{coder}, ilink_{ilink}, chipaddr_{chipaddr}, isic_{isic} {
-  ctloffset_ = 16 * ilink + (isic_) ? (0) : (8);
+  ctloffset_ = 16 * ilink + (isic_ ? 0 : 8);
   stsreg_ = 0xC08 + 4 * ilink;
   stsmask_ = (isic_) ? (0xFFFF) : (0xFFFF0000u);
   pulsereg_ = (0x104) + (ilink / 2) * 4;
-  pulseshift_ = (ilink % 2) * 16 + (isic_) ? (0) : (8);
-  transport_.write(ctloffset_ + REG_CTL_N_READ,
-                   0);  // choose internal operation, disable spies, etc
+  pulseshift_ = (ilink % 2) * 16 + (isic_ ? 0 : 8);
+  // choose internal operation, disable spies, etc
+  transport_.write(ctloffset_ + REG_CTL_N_READ, 0);
   transport_.write(pulsereg_, 1 << (BIT_RESET_TX + pulseshift_));
   transport_.write(pulsereg_, 1 << (BIT_RESET_RX + pulseshift_));
 }

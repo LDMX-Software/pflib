@@ -4,10 +4,133 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "load_parameter_points.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
+
+// helper function to facilitate EventPacket dependent behaviour
+template <class EventPacket>
+void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
+                               size_t nevents, bool highrange, bool preCC,
+                               std::filesystem::path& parameter_points_file,
+                               std::vector<int>& channels, int& start_bx,
+                               int& n_bx, bool& totscan,
+                               std::array<bool, 2>& link) {
+  int phase_strobe{0};
+  int charge_to_l1a{0};
+  double time{0};
+  double clock_cycle{25.0};
+  int n_phase_strobe{16};
+  int offset{1};
+  std::size_t i_param_point{0};
+  int i_ch = 0;  // 0–35
+  int i_link = 0;
+  int n_links = determine_n_links(tgt);
+
+  pflib_log(info) << "loading parameter points file...";
+  auto [param_names, param_values] =
+      load_parameter_points(parameter_points_file);
+  pflib_log(info) << "successfully loaded parameter points";
+
+  DecodeAndWriteToCSV<EventPacket> writer{
+      fname,
+      [&](std::ofstream& f) {
+        nlohmann::json header;
+        header["highrange"] = highrange;
+        header["preCC"] = preCC;
+        f << std::boolalpha << "# " << header << '\n' << "time,";
+        for (const auto& [page, parameter] : param_names) {
+          f << page << '.' << parameter << ',';
+        }
+        f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
+      },
+      [&](std::ofstream& f, const EventPacket& ep) {
+        for (int ch : channels) {
+          i_link = (ch / 36);
+          i_ch = ch % 36;
+          f << time << ',';
+
+          for (const auto& val : param_values[i_param_point]) {
+            f << val << ',';
+          }
+          f << ch << ',';
+
+          if constexpr (std::is_same_v<
+                            EventPacket,
+                            pflib::packing::MultiSampleECONDEventPacket>) {
+            ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
+          } else if constexpr (std::is_same_v<
+                                   EventPacket,
+                                   pflib::packing::SingleROCEventPacket>) {
+            ep.channel(ch).to_csv(f);
+          } else {
+            PFEXCEPTION_RAISE("BadConf",
+                              "Unable to do all_channels_to_csv for the "
+                              "currently configured format.");
+          }
+          f << '\n';
+        }
+      },
+      n_links};
+
+  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
+                 1 /* dummy */);
+  for (; i_param_point < param_values.size(); i_param_point++) {
+    // set parameters
+    auto test_param_builder = roc.testParameters();
+    // Add implementation for other pages as well
+    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+      const auto& full_page = param_names[i_param].first;
+      std::string str_page = full_page.substr(0, full_page.find("_"));
+      const auto& param = param_names[i_param].second;
+      int value = param_values[i_param_point][i_param];
+
+      if (str_page == "CH") {
+        test_param_builder.add(full_page, param, value);
+      } else if (str_page == "TOP") {
+        test_param_builder.add(full_page, param, value);
+      } else {
+        for (int l = 0; l < 2; l++) {
+          if (link[l]) {
+            test_param_builder.add(str_page + "_" + std::to_string(l), param,
+                                   value);
+          }
+        }
+      }
+      pflib_log(info) << param << " = " << value;
+    }
+    auto test_param = test_param_builder.apply();
+    // timescan
+    auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    for (charge_to_l1a = central_charge_to_l1a + start_bx;
+         charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
+         charge_to_l1a++) {
+      tgt->fc().fc_setup_calib(charge_to_l1a);
+      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+      if (!totscan) {
+        for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+          auto phase_strobe_test_handle =
+              roc.testParameters()
+                  .add("TOP", "PHASE_STROBE", phase_strobe)
+                  .apply();
+          pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+          usleep(10);  // make sure parameters are applied
+          time =
+              (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
+              phase_strobe * clock_cycle / n_phase_strobe;
+          daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+        }
+      } else {
+        time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
+        daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+      }
+    }
+    // reset charge_to_l1a to central value
+    tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  }
+}
 
 void parameter_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
@@ -72,96 +195,97 @@ void parameter_timescan(Target* tgt) {
   std::filesystem::path parameter_points_file =
       pftool::readline("File of parameter points: ");
 
-  pflib_log(info) << "loading parameter points file...";
-  auto [param_names, param_values] =
-      load_parameter_points(parameter_points_file);
-  pflib_log(info) << "successfully loaded parameter points";
-
-  int phase_strobe{0};
-  int charge_to_l1a{0};
-  double time{0};
-  double clock_cycle{25.0};
-  int n_phase_strobe{16};
-  int offset{1};
-  std::size_t i_param_point{0};
-  DecodeAndWriteToCSV writer{
-      fname,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["highrange"] = highrange;
-        header["preCC"] = preCC;
-        f << std::boolalpha << "# " << header << '\n' << "time,";
-        for (const auto& [page, parameter] : param_names) {
-          f << page << '.' << parameter << ',';
-        }
-        f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
-      },
-      [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-        for (int ch : channels) {
-          f << time << ',';
-
-          for (const auto& val : param_values[i_param_point]) {
-            f << val << ',';
-          }
-          f << ch << ',';
-
-          ep.channel(ch).to_csv(f);
-          f << '\n';
-        }
-      }};
-  tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
-                 1 /* dummy */);
-  for (; i_param_point < param_values.size(); i_param_point++) {
-    // set parameters
-    auto test_param_builder = roc.testParameters();
-    // Add implementation for other pages as well
-    for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
-      const auto& full_page = param_names[i_param].first;
-      std::string str_page = full_page.substr(0, full_page.find("_"));
-      const auto& param = param_names[i_param].second;
-      int value = param_values[i_param_point][i_param];
-
-      if (str_page == "CH") {
-        test_param_builder.add(full_page, param, value);
-      } else if (str_page == "TOP") {
-        test_param_builder.add(full_page, param, value);
-      } else {
-        for (int l = 0; l < 2; l++) {
-          if (link[l]) {
-            test_param_builder.add(str_page + "_" + std::to_string(l), param,
-                                   value);
-          }
-        }
-      }
-      pflib_log(info) << param << " = " << value;
-    }
-    auto test_param = test_param_builder.apply();
-    // timescan
-    auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-    for (charge_to_l1a = central_charge_to_l1a + start_bx;
-         charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
-         charge_to_l1a++) {
-      tgt->fc().fc_setup_calib(charge_to_l1a);
-      pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-      if (!totscan) {
-        for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
-          auto phase_strobe_test_handle =
-              roc.testParameters()
-                  .add("TOP", "PHASE_STROBE", phase_strobe)
-                  .apply();
-          pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
-          usleep(10);  // make sure parameters are applied
-          time =
-              (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
-              phase_strobe * clock_cycle / n_phase_strobe;
-          daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
-        }
-      } else {
-        time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle;
-        daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
-      }
-    }
-    // reset charge_to_l1a to central value
-    tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    parameter_timescan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
+        channels, start_bx, n_bx, totscan, link);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    parameter_timescan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, fname, nevents, highrange, preCC, parameter_points_file,
+        channels, start_bx, n_bx, totscan, link);
   }
+
+  // DecodeAndWriteToCSV writer{
+  //     fname,
+  //     [&](std::ofstream& f) {
+  //       nlohmann::json header;
+  //       header["highrange"] = highrange;
+  //       header["preCC"] = preCC;
+  //       f << std::boolalpha << "# " << header << '\n' << "time,";
+  //       for (const auto& [page, parameter] : param_names) {
+  //         f << page << '.' << parameter << ',';
+  //       }
+  //       f << "channel," << pflib::packing::Sample::to_csv_header << '\n';
+  //     },
+  //     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+  //       for (int ch : channels) {
+  //         f << time << ',';
+
+  //         for (const auto& val : param_values[i_param_point]) {
+  //           f << val << ',';
+  //         }
+  //         f << ch << ',';
+
+  //         ep.channel(ch).to_csv(f);
+  //         f << '\n';
+  //       }
+  //     }};
+  // tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+  //                1 /* dummy */);
+  // for (; i_param_point < param_values.size(); i_param_point++) {
+  //   // set parameters
+  //   auto test_param_builder = roc.testParameters();
+  //   // Add implementation for other pages as well
+  //   for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {
+  //     const auto& full_page = param_names[i_param].first;
+  //     std::string str_page = full_page.substr(0, full_page.find("_"));
+  //     const auto& param = param_names[i_param].second;
+  //     int value = param_values[i_param_point][i_param];
+
+  //     if (str_page == "CH") {
+  //       test_param_builder.add(full_page, param, value);
+  //     } else if (str_page == "TOP") {
+  //       test_param_builder.add(full_page, param, value);
+  //     } else {
+  //       for (int l = 0; l < 2; l++) {
+  //         if (link[l]) {
+  //           test_param_builder.add(str_page + "_" + std::to_string(l), param,
+  //                                  value);
+  //         }
+  //       }
+  //     }
+  //     pflib_log(info) << param << " = " << value;
+  //   }
+  //   auto test_param = test_param_builder.apply();
+  //   // timescan
+  //   auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  //   for (charge_to_l1a = central_charge_to_l1a + start_bx;
+  //        charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
+  //        charge_to_l1a++) {
+  //     tgt->fc().fc_setup_calib(charge_to_l1a);
+  //     pflib_log(info) << "charge_to_l1a = " <<
+  //     tgt->fc().fc_get_setup_calib(); if (!totscan) {
+  //       for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++)
+  //       {
+  //         auto phase_strobe_test_handle =
+  //             roc.testParameters()
+  //                 .add("TOP", "PHASE_STROBE", phase_strobe)
+  //                 .apply();
+  //         pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+  //         usleep(10);  // make sure parameters are applied
+  //         time =
+  //             (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle
+  //             - phase_strobe * clock_cycle / n_phase_strobe;
+  //         daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+  //       }
+  //     } else {
+  //       time = (charge_to_l1a - central_charge_to_l1a + offset) *
+  //       clock_cycle; daq_run(tgt, "CHARGE", writer, nevents,
+  //       pftool::state.daq_rate);
+  //     }
+  //   }
+  //   // reset charge_to_l1a to central value
+  //   tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  // }
 }

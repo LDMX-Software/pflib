@@ -7,15 +7,24 @@ Following notes for [rogue's conda-recipe](https://github.com/slaclab/rogue/tree
 # once per machine, install conda and conda-build
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
 bash Miniforge3-Linux-x86_64.sh
+rm Miniforge3-Linux-x86_64.sh
 source ~/miniforge3/etc/profile.d/conda.sh
-conda config --set always_yes yes
-conda config --set channel_priority strict
-conda install -n base conda-libmamba-solver
-conda config --set solver libmamba
-conda install conda-build
-conda update -q conda conda-build
+conda config --set channel_priority strict # be strict about channel priority
+conda config --append channels tidair-tag # include rogue's channel in list of channels to search
+conda activate base # go into base environment
+conda install conda-libmamba-solver # install newer/faster package solver
+conda config --set solver libmamba # use newer/faster package solver
+conda install conda-build # install app to build packages
+conda update conda conda-build # update
 conda update --all
 ```
+
+You will need to
+```
+source ~/miniforge3/etc/profile.d/conda.sh
+conda activate base
+```
+when opening a new shell and before attempting to `conda-build`.
 
 2. Build the conda package
 ```
@@ -26,10 +35,11 @@ conda-build \
   --channel tidair-tag
 conda index conda-bld/
 ```
-- :warning: You need to `rm -r build` before running this command. I can't get conda to ignore the `build` directory.
+- :warning: The build script uses the `conda-build` directory to hold the pflib build. The build will fail if that directory exists.
+- I've summarized the `source` stuff above and these commands into the `conda-package` just recipe
 
 3. Use conda package
 ```
-conda -n ldmx-env -c file:///full/path/to/conda-bld pflib
+conda install -n my-env -c file:///full/path/to/conda-bld pflib
 ```
-Add the `conda-bld` directory (where-ever it is) as a "channel" and install the `pflib` package into the conda environment named `ldmx-env`.
+Add the `conda-bld` directory (where-ever it is) as a "channel" and install the `pflib` package into a conda environment named `my-env`.

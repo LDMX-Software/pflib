@@ -7,6 +7,7 @@
 #include "pflib/FastControl.h"
 #include "pflib/I2C.h"
 #include "pflib/ROC.h"
+#include "pflib/lpGBT.h"
 
 namespace pflib {
 
@@ -85,8 +86,13 @@ class Target {
   /// get an I2C bus by name
   I2C& get_i2c_bus(const std::string& name);
 
-  /// get set of optical links
-  const std::vector<OptoLink*>& optoLinks() const { return opto_; }
+  /// names of different Optical Links we could talk to
+  std::vector<std::string> opto_link_names() const;
+
+  /// get an OptoLink by name
+  OptoLink& get_opto_link(const std::string& name) const;
+
+  virtual const std::vector<std::pair<int, int>>& getRocErxMapping() = 0;
 
   /**
    * types of daq formats that we can do
@@ -105,9 +111,12 @@ class Target {
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
 
  protected:
-  std::map<std::string, std::shared_ptr<I2C> > i2c_;
-  std::vector<OptoLink*> opto_;
+  std::map<std::string, std::shared_ptr<I2C>> i2c_;
+  std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
+  // private:
+  // Mapping ROC channel → eRx channel
+  std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 Target* makeTargetFiberless();
@@ -115,6 +124,7 @@ Target* makeTargetHcalBackplaneZCU(int ilink, uint8_t board_mask);
 Target* makeTargetHcalBackplaneBittware(int ilink, uint8_t board_mask,
                                         const char* dev);
 Target* makeTargetEcalSMMZCU(int ilink);
+Target* makeTargetEcalSMMBittware(int ilink, const char* dev);
 
 }  // namespace pflib
 

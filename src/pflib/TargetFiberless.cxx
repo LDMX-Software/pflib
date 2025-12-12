@@ -61,7 +61,6 @@ class HcalFiberless : public HcalBackplane {
   virtual Elinks& elinks() override { return *elinks_; }
   virtual DAQ& daq() override { return *daq_; }
   virtual FastControl& fc() override { return *fc_; }
-
   virtual void setup_run(int run, Target::DaqFormat format, int contrib_id);
   virtual std::vector<uint32_t> read_event();
 
@@ -130,12 +129,14 @@ std::vector<uint32_t> HcalFiberless::read_event() {
       } break;
       case DaqFormat::ECOND_NO_ZS: {
         const int bc = 0;  // bx number...
+        /*
         buffer.push_back(0xb33f2025);
         buffer.push_back(run_);
         buffer.push_back((ievt_ << 8) | bc);
         buffer.push_back(0);
         buffer.push_back((0xA6u << 24) | (contribid_ << 16) |
                          (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
+        */
 
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           // assume orbit zero, L1A spaced by two
@@ -147,12 +148,11 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
-          uint32_t header = formatter_.getPacket().size() + 1;
+          uint32_t header = formatter_.getPacket().size();
           header |= (0x1 << 28);
-          header |= daq().econid() << 16;
-          if (il1a == daq().soi()) header |= 0x800;
-          if (il1a == daq().samples_per_ror() - 1) header |= 0x8000;
-          header |= il1a << 12;
+          header |= (daq().econid() & 0x3ff) << 18;
+          header |= (il1a & 0x1f) << 13;
+          if (il1a == daq().soi()) header |= (1 << 12);
           buffer.push_back(header);
 
           // insert ECOND packet into buffer
@@ -163,7 +163,14 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           daq().advanceLinkReadPtr();
         }
         l1a_ += daq().samples_per_ror();
+        // add a special "header" to mark that we have no more ECON packets
+        uint32_t header{0};
+        header |= (0x1 << 28);
+        header |= (daq().econid() & 0x3ff) << 18;
+        buffer.push_back(header);
+        /*
         buffer.push_back(0x12345678);
+        */
       } break;
       default: {
         PFEXCEPTION_RAISE("NoImpl", "DaqFormat provided is not implemented");

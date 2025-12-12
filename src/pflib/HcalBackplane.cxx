@@ -7,6 +7,9 @@ namespace pflib {
 HcalBackplane::HcalBackplane() {
   nhgcroc_ = 0;
   necon_ = 0;
+
+  // Default HCAL ROC→ECON mapping
+  roc_to_erx_map_ = {{3, 2}, {6, 7}, {4, 5}, {1, 0}};
 }
 
 bool HcalBackplane::have_roc(int iroc) const {
@@ -15,6 +18,10 @@ bool HcalBackplane::have_roc(int iroc) const {
 
 bool HcalBackplane::have_econ(int iecon) const {
   return econ_connections_.find(iecon) != econ_connections_.end();
+}
+
+const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
+  return roc_to_erx_map_;
 }
 
 std::vector<int> HcalBackplane::roc_ids() const {
@@ -47,7 +54,7 @@ void HcalBackplane::add_roc(int iroc, uint8_t roc_baseaddr,
   }
   nhgcroc_++;
   pflib::ROC roc{*roc_i2c, roc_baseaddr, roc_type_version};
-  pflib::Bias bias{bias_i2c};
+  pflib::Bias bias{bias_i2c, board_i2c};
   roc_connections_.emplace(iroc, ROCConnection{.roc_ = roc,
                                                .roc_i2c_ = roc_i2c,
                                                .bias_ = bias,

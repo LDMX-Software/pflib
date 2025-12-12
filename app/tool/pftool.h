@@ -7,6 +7,7 @@
 
 #include "pflib/ECON.h"
 #include "pflib/Target.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/menu/Menu.h"
 
 /**
@@ -29,6 +30,13 @@
  */
 using pflib::Target;
 
+/// category for commands that need an optical fiber
+static const unsigned int NEED_FIBER = 0b1u;
+/// category for commands that only are fiberless
+static const unsigned int ONLY_FIBERLESS = 0b10u;
+/// menus/commands that only make sense for the Hcal
+static const unsigned int ONLY_HCAL = 0b100u;
+
 /**
  * The type of menu we are constructing
  *
@@ -41,8 +49,10 @@ class pftool : public pflib::menu::Menu<Target*> {
   class State {
    public:
     static constexpr int CFG_HCALFMC = 1;
-    static constexpr int CFG_HCALOPTO = 2;
-    static constexpr int CFG_ECALOPTO = 3;
+    static constexpr int CFG_HCALOPTO_ZCU = 11;
+    static constexpr int CFG_ECALOPTO_ZCU = 12;
+    static constexpr int CFG_HCALOPTO_BW = 21;
+    static constexpr int CFG_ECALOPTO_BW = 22;
 
    private:
     /// list of page names for tab completion per ROC ID
@@ -73,6 +83,13 @@ class pftool : public pflib::menu::Menu<Target*> {
         pflib::ECON econ, const std::string& page) const;
     /// get the readout configurion
     int readout_config() const { return cfg_; }
+    /// check if we are reading out on a zcu
+    bool readout_config_is_zcu() const { return cfg_ < 20; }
+    /// check if we are reading out a Hcal HGCROC Board
+    bool readout_config_is_hcal() const {
+      return cfg_ == CFG_HCALFMC || cfg_ == CFG_HCALOPTO_ZCU ||
+             cfg_ == CFG_HCALOPTO_BW;
+    }
     /// index of HGCROC currently being interacted with
     int iroc{0};
     /// index of ECON currently being interacted with

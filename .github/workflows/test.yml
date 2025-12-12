@@ -13,7 +13,7 @@ jobs:
           - bittware-host
     steps:
       - name: checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: get just
         uses: extractions/setup-just@v3
       - name: get denv
@@ -24,3 +24,5 @@ jobs:
         run: |
           just init ${{ matrix.host }}
           just configure build test
+        env:
+          PFLIB_CONTAINER: 1

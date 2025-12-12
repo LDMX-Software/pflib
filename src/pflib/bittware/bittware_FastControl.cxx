@@ -9,6 +9,7 @@ static constexpr int REG_PULSE = 0x100;
 static constexpr int REG_CTL = 0x600;
 static constexpr uint32_t MASK_ENABLE_L1A = 0x00000001;
 static constexpr uint32_t MASK_DISABLE_EXTERNAL = 0x00000002;
+static constexpr uint32_t MASK_DISABLE_ROR_MASK = 0x00000010;
 static constexpr uint32_t MASK_USE_NZS = 0x00000004;
 static constexpr uint32_t MASK_L1A_PER_ROR = 0x00001F00;
 static constexpr uint32_t MASK_LINK_RESET_BX = 0xFFF00000;
@@ -39,6 +40,15 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
   static const int BX_FOR_LINK_RESET = 40 * 64 - 64;
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, BX_FOR_LINK_RESET);
+  printf("BW FastControl REG_CTL: %08x\n", axi_.read(REG_CTL));
+  printf("  ENABLE_L1A      : %B\n",
+         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1));
+  printf("  DISABLE_EXTERNAL: %B\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1));
+  printf("  DISABLE_ROR_MASK: %B\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1));
+  printf("  USE_NZS         : %B\n",
+         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1));
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -55,6 +65,7 @@ static constexpr const char* names[] = {"BCR",
                                         "L1A_NZS",
                                         "INT_ROR",
                                         "EXT_ROR",
+                                        "EXT_ROR_UNMASKED",
                                         0};
 
 std::map<std::string, uint32_t> BWFastControl::getCmdCounters() {
@@ -77,14 +88,21 @@ int BWFastControl::getL1AperROR() {
   return axi_.readMasked(REG_CTL, MASK_L1A_PER_ROR);
 }
 void BWFastControl::linkreset_rocs() {
+  uint32_t val = axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
+
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCD);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCT);
+  axi_.write(REG_CTL, val);
 }
 void BWFastControl::linkreset_econs() {
+  uint32_t val = axi_.read(REG_CTL);
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECOND);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECONT);
+  axi_.write(REG_CTL, val);
 }
 void BWFastControl::bufferclear() { axi_.write(REG_PULSE, 1 << BIT_FIRE_EBR); }
 void BWFastControl::orbit_count_reset() {
@@ -97,9 +115,20 @@ void BWFastControl::ledpulse() {
   axi_.write(REG_PULSE, 1 << BIT_FIRE_CALIB_EXT);
 }
 void BWFastControl::clear_run() {
-  bufferclear();
   resetCounters();
+  bufferclear();
+  orbit_count_reset();
+  axi_.write(REG_PULSE, 1 << BIT_FIRE_ECR);
 }
+
+void BWFastControl::fc_setup_link_reset(int bx) {
+  axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, bx);
+}
+
+void BWFastControl::fc_get_setup_link_reset(int& bx) {
+  bx = axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
+}
+
 void BWFastControl::fc_setup_calib(int charge_to_l1a) {
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_DELTA, charge_to_l1a);
 }
@@ -113,17 +142,23 @@ int BWFastControl::fc_get_setup_led() {
   return axi_.readMasked(REG_CALIB_EXT, MASK_CALIB_DELTA);
 }
 
-void BWFastControl::fc_enables_read(bool& ext_l1a, bool& ext_spill,
-                                    bool& timer_l1a) {
-  ext_spill = false;
-  timer_l1a = false;
+void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
+  l1a_overall = (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1);
   ext_l1a = (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 0);
 }
-void BWFastControl::fc_enables(bool ext_l1a, bool ext_spill, bool timer_l1a) {
-  if (ext_l1a)
+void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
+  axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall ? 1 : 0));
+  // disabling the ROR masking is dangerous but it seems to be necessary
+  // the ROR mask is supposed to prevent a link that is broken
+  // from accidentally sending a ROR but the logic seems to be messed up
+  // since we are never able to get a EXT_ROR to increment when EXT_ROR_UNMASKED
+  // increments
+  axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 1);
+  if (ext_l1a) {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
-  else
+  } else {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 1);
+  }
 }
 
 }  // namespace bittware

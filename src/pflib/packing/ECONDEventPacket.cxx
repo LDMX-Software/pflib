@@ -245,9 +245,16 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   pflib_log(trace) << "    length = " << length;
   corruption[1] = (data.size() - 2 != length);
   if (corruption[1]) {
-    pflib_log(warn) << "Incomplete event packet, stored payload length "
-                    << length << " does not equal packet length "
-                    << data.size() - 2;
+    if (data.size() - 2 < length) {
+      pflib_log(warn) << "Incomplete event packet, stored payload length "
+                      << length << " is larger than the packet length "
+                      << data.size() - 2;
+    } else {
+      pflib_log(debug) << "Oversized event packet, stored payload length "
+                       << length << " is smaller than the packet length "
+                       << data.size() - 2 << " so the last "
+                       << data.size() - 2 - length << " words will be ignored";
+    }
   }
 
   bool passthrough = ((data[0] >> 13) & mask<1>) == 1;
