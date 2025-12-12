@@ -62,8 +62,10 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame,
     uint8_t vers = static_cast<uint8_t>(frame[0] & 0xff);
 
     // frame[1] == 0
-
-    timestamp = ((frame[3] << 32) | frame[2]);
+    // timestamp is in frame[2] and frame[3]
+    // combine into uint64_t because timestamp is 64b but each word is 32b
+    timestamp = (static_cast<uint64_t>(frame[3]) << 32) |
+                static_cast<uint64_t>(frame[2]);
     offset += 4;
   }
   std::size_t i_sample{0};
