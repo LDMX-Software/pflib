@@ -243,17 +243,17 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
 
   uint32_t length = ((data[0] >> 14) & mask<9>);
   pflib_log(trace) << "    length = " << length;
-  corruption[1] = (data.size() - 2 != length);
+  corruption[1] = (data.size() != (length + 2));
   if (corruption[1]) {
-    if (data.size() - 2 < length) {
+    if (data.size() < (length + 2)) {
       pflib_log(warn) << "Incomplete event packet, stored payload length "
-                      << length << " is larger than the packet length "
-                      << data.size() - 2;
+                      << length << " is larger than the packet length ("
+                      << data.size() << " - 2)";
     } else {
       pflib_log(debug) << "Oversized event packet, stored payload length "
-                       << length << " is smaller than the packet length "
-                       << data.size() - 2 << " so the last "
-                       << data.size() - 2 - length << " words will be ignored";
+                       << length << " is smaller than the packet length ("
+                       << data.size() << "-2) so the last (" << data.size()
+                       << "-2-" << length << ") words will be ignored";
     }
   }
 
@@ -282,6 +282,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // the 8b CRC, which is computed last.
   uint32_t hamming = (data[0] & mask<6>);
   pflib_log(trace) << "    P=" << passthrough << " E=" << expected;
+
   pflib_log(trace) << "Econd header two: " << hex(data[1]);
   // BX on bits 31-20
   uint32_t bx = ((data[1] >> 20) & mask<12>);
