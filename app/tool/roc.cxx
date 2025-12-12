@@ -122,7 +122,8 @@ static void roc(const std::string& cmd, Target* pft) {
   pflib::ROC roc = pft->roc(pftool::state.iroc);
   bool isRunMode = roc.isRunMode();
   if (cmd == "STATUS") {
-    std::cout << "ROC" << pftool::state.iroc << " with RUNMODE: " << (isRunMode ? "ON" : "OFF") << std::endl;
+    std::cout << "ROC" << pftool::state.iroc
+              << " with RUNMODE: " << (isRunMode ? "ON" : "OFF") << std::endl;
     std::cout << roc.statusString() << std::flush;
   }
   if (cmd == "HARDRESET") {
