@@ -126,7 +126,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
 std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
-  
+
   std::string mask_file = pftool::readline_int("Path to maskfile: ", "");
   std::vector<int> masked_channels;
   std::ifstream ch_masks("");
