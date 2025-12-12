@@ -694,6 +694,7 @@ void lpGBT::finalize_setup() { write(REG_POWERUP2, 0x4 | 0x2); }
 int lpGBT::status() { return read(REG_POWERUP_STATUS); }
 
 std::string lpGBT::status_name(int pusm) {
+  static const int n_known_states = 20;
   static const char* states[] = {"ARESET",
                                  "RESET1",
                                  "WAIT_VDD_STABLE",
@@ -714,7 +715,9 @@ std::string lpGBT::status_name(int pusm) {
                                  "RESET_LOGIC_USING_DLL",
                                  "WAIT_CHNS_LOCKED",
                                  "READY"};
-  return states[pusm];
+
+  if (pusm < 20) return states[pusm];
+  return "UNKNOWN "+std::to_string(pusm);
 }
 
 }  // namespace pflib
