@@ -183,11 +183,11 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
     //   // Explicitly mark it masked
     //   settings[page]["MASKED"] = 1;
-      
+
     //   continue;
 
     // } else {
-    //   settings[page]["MASKED"] = 0; 
+    //   settings[page]["MASKED"] = 0;
     // }
 
     int i_link = ch / 36;
