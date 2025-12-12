@@ -223,6 +223,10 @@ target_link_libraries(econd-decoder PRIVATE pflib)
 if (${Rogue_FOUND})
   add_executable(rogue-decoder app/rogue_decoder.cxx)
   target_link_libraries(rogue-decoder PUBLIC pflib Rogue::Rogue)
+  string(REPLACE "v" "" version_no_v "${ROGUE_VERSION}")
+  if (version_no_v VERSION_GREATER "6.6.2")
+    target_compile_definitions(rogue-decoder PUBLIC NEED_ROGUE_NUMPY=1)
+  endif()
 endif()
 
 add_executable(pfcompile app/pfcompile.cxx)
@@ -241,7 +245,7 @@ set_target_properties(pypflib PROPERTIES PREFIX "")
 install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
 # not installing the C++ rogue-decoder because it won't work with Rogue 6.8
 # due to a linking error from within Rogue
-install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

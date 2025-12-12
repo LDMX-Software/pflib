@@ -111,7 +111,7 @@ int ECON::getPUSMStateValue() {
 }
 
 bool ECON::isRunMode() {
-  return getPUSMRunValue() == 1 && getPUSMRunValue() == 8;
+  return getPUSMRunValue() == 1 && getPUSMStateValue() == 8;
 }
 
 std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
