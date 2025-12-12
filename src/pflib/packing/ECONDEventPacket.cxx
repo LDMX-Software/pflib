@@ -257,20 +257,45 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
     }
   }
 
+  // Look at Section 18 of ECON-D_specification_working_doc_v1.4_5jan2023.pdf
+  // Passthrough is on bit 13
   bool passthrough = ((data[0] >> 13) & mask<1>) == 1;
+  // Expected is on bit 12
+  // E specifies whether an Event HDR/TRL received from the HGCROCs is expected.
   bool expected = ((data[0] >> 12) & mask<1>) == 1;
-  uint32_t ht_ebo = ((data[0] >> 8) & mask<5>);
+  // EBO is on bits 11-8
+  // H/T and E/B/O specifies 2b status of reconstruction of HGCROC Event HDR/TRL
+  // and Event/BX/Orbit numbers across all active eRx.
+  uint32_t ht_ebo = ((data[0] >> 8) & mask<4>);
+  // M is on bit 7
+  // M specifies whether the transmitted E/B/O (according to mode selected by
+  // user) matches the E/B/O value in the ECON-D L1A FIFO.
   bool m = ((data[0] >> 7) & mask<1>) == 1;
+  // T is on bit 6
+  // T specifies whether the packet is truncated for buffer overflow (see
+  // below).
   bool truncated = ((data[0] >> 6) & mask<1>) == 1;
+  // Hamming is on bits 5-0
+  //   Hamming(63,57) for Evt Hdr is a non-extended Hamming code that provides
+  //   single error correction (no
+  // double error detection) computed for the entire 2-word Evt Header EXCEPT
+  // the 8b CRC, which is computed last.
   uint32_t hamming = (data[0] & mask<6>);
   pflib_log(trace) << "    P=" << passthrough << " E=" << expected;
-
-  pflib_log(trace) << "econd header two: " << hex(data[1]);
+  pflib_log(trace) << "Econd header two: " << hex(data[1]);
+  // BX on bits 31-20
   uint32_t bx = ((data[1] >> 20) & mask<12>);
+  // L1A on bits 19-14
   uint32_t l1a = ((data[1] >> 14) & mask<6>);
+  // Orb on bits 13-11
   uint32_t orb = ((data[1] >> 11) & mask<3>);
   bool subpacket_error = ((data[1] >> 10) & mask<1>) == 1;
+  // RR on bits 9-8
+  // RR is the Reset Request described earlier.
   uint32_t rr = ((data[1] >> 8) & mask<2>);
+  // 8-bit CRC on bits 7-0
+  // 8b CRC for Evt Header is the 8b Bluetooth CRC computed for the entire
+  // 2-word Evt Header except the Hamming field.
   uint8_t crc = (data[1] & mask<8>);
   pflib_log(trace) << "    BX=" << bx << " L1A=" << l1a << " Orb=" << orb;
 

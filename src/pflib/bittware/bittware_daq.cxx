@@ -42,7 +42,8 @@ static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;
 static constexpr uint32_t ADDR_INFO = 0x940;
 
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
-static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
+// Bit 22-14: length (9 bits)
+static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x007FC000;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
     : DAQ(1),
