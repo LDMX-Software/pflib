@@ -133,6 +133,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   std::vector<int> masked_channels;
   std::string line;
   if (use_mask) {
+    std::getline(mask_file, line) //ditch first line
     std::ifstream mask_file(mask_file_path);
     while (std::getline(mask_file, line)) {
       int int_ch = std::atoi(line.c_str());
