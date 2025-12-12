@@ -133,14 +133,11 @@ def adc_all_channels(
             fig.savefig('Pedestal.png', dpi=400)
             plt.close(fig)
             continue
-        fig, ax = plt.subplots(2, 1, sharex=True, height_ratios=[4,1])
+        fig, ax1 = plt.subplots(1, 1)
         fig_time, ax_time = plt.subplots(1, 1)
-        ax1 = ax[0]
-        ax2 = ax[1]
-        ax1.set_ylabel(r'$\Delta$ADC (Max ADC - pedestal)')
-        ax2.set_xlabel('Channel')
-        ax2.set_ylabel('RMS')
-        ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+        ax1.set_ylabel(r'$\Delta$ADC (Max difference from pedestal)')
+        ax1.set_xlabel('Channel')
+        ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator())
         ax_time.set_ylabel(r'ADC')
         ax_time.set_xlabel(r'Time')
 
@@ -150,7 +147,7 @@ def adc_all_channels(
             param_group = [(None, charge_df)]
         cmap = plt.get_cmap('viridis')
         n = len(param_group)
-        #pick = 6 # Pick one parameter if needed
+        pick = 6 # Pick one parameter if needed
         for j, (param_id, param_df) in enumerate(param_group):
             if 'pick' in locals():
                 if j != pick:
@@ -168,6 +165,11 @@ def adc_all_channels(
                 .apply(lambda s: (s - pedestal).abs().max())
                 .reset_index(name='max_diff')
             )
+
+            if link == 0:
+                link_df = param_df[param_df['channel'] < 36]
+            else:
+                link_df = param_df[param_df['channel'] >= 36]
 
             rms_by_channel = []
             for ch_id, ch_df in param_df.groupby('channel'):
@@ -187,66 +189,61 @@ def adc_all_channels(
             rms_df = pd.DataFrame(rms_by_channel, columns=['channel', 'rms'])
             merged = max_diff_by_channel.merge(rms_df, on='channel')
             ax1.set_ylim(-10, max(merged['max_diff'])+10)
-            ax2.set_ylim(-2, 20)
-            if link == 0:
-                link_df = param_df[param_df['channel'] < 36]
-            else:
-                link_df = param_df[param_df['channel'] >= 36]
+
             ax1.scatter(merged['channel'], merged['max_diff'],
                         label=f'{key} = {val}',
                         s=5, color=color, lw=1)
-            ax2.errorbar(merged['channel'], merged['rms'],
-                        fmt='o', markersize=2, color=color,
-                        lw=1)
             chs = link_df.groupby('channel')
             cmap2 = plt.get_cmap('tab20')
-            n = len(chs)
+            n2 = len(chs)
             for k, (ch_id, ch_df) in enumerate(chs):
-                color = cmap2(k/n)
+                color2 = cmap2(k/n2)
                 ax_time.scatter(ch_df['time'], ch_df['adc'], 
-                        #label=f'{key} = {val}',
-                        s=5, color=color)
-        ax1.axhline(y=0, color='k', linestyle='--', linewidth=.8, label=f"Pedestal = {pedestal:.0f}")
+                        label=f'ch{ch_id}',
+                        s=5, color=color2)
+        ax1.axhline(y=0, color='k', linestyle='--', linewidth=.8, label=f"Pedestal = {pedestal:.0f} ADC")
         ax1.axvline(x=35.5, color='r', linestyle='--', linewidth=.8, label="Link boundary", alpha=0.5)
-        ax2.axhline(y=0, color='k', linestyle='--', linewidth=.8)
-        ax2.axvline(x=35.5, color='r', linestyle='--', linewidth=.8, alpha=0.5)
         ax1.legend(fontsize=8)
         ax1.grid(True, alpha=0.3)
-        ax2.grid(True, alpha=0.3)
         fig.savefig(f'adc_channels_{i}.png', dpi=400)
-        ax_time.legend(fontsize=8)
+        handles, labels = ax_time.get_legend_handles_labels()
+        if len(labels) < 37: # Value should depend on amount of channels
+            ax_time.legend(fontsize=4, ncols=3)
         fig_time.savefig(f'adc_time_{i}.png', dpi=400)
         plt.close(fig)
         plt.close(fig_time)
 
     # Transpose data
-   # activated_transposed = [list(col) for col in zip(*activated_channels_list)]
-   # rms_transposed = [list(col) for col in zip(*avg_rms_list)]
+    activated_transposed = [list(col) for col in zip(*activated_channels_list)]
+    rms_transposed = [list(col) for col in zip(*avg_rms_list)]
+    
+    parameter_values = sorted(parameter_values)
+    if len(activated_transposed) > 1:
+        slopes = []
+        intercepts = []
+        for i in range(len(rms_transposed)):
+            popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
+            slopes.append(popt[0])
+            intercepts.append(popt[1])
+            ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8)
+            xfit = np.linspace(min(activated_transposed[i]), 
+                               max(activated_transposed[i]), 
+                               100)
+            ax_rms.plot(xfit, linear(xfit, *popt), 
+                label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB = {parameter_values[i]}')
+        ax_rms.legend(fontsize=8)
+        fig_rms.savefig('avg_rms.png', dpi=400)
+        plt.close(fig_rms)
 
-   # parameter_values = sorted(parameter_values)
-   # slopes = []
-   # intercepts = []
-   # for i in range(len(rms_transposed)):
-   #     popt, pcov = curve_fit(linear, activated_transposed[i], rms_transposed[i])
-   #     slopes.append(popt[0])
-   #     intercepts.append(popt[1])
-   #     ax_rms.scatter(activated_transposed[i], rms_transposed[i], s=8)
-   #     xfit = np.linspace(min(activated_transposed[i]), max(activated_transposed[i]), 100)
-   #     ax_rms.plot(xfit, linear(xfit, *popt), 
-   #         label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB = {parameter_values[i]}')
-   # ax_rms.legend(fontsize=8)
-   # fig_rms.savefig('avg_rms.png', dpi=400)
-   # plt.close(fig_rms)
-
-   # # Plot the slope and intercept vs input parameter!
-   # fig_par, ax_par = plt.subplots(1,1)
-   # ax_par.scatter(parameter_values, slopes, label='slopes')
-   # ax_par.scatter(parameter_values, intercepts, label='intercepts')
-   # ax_par.legend(fontsize=8)
-   # ax_par.set_xlabel('CALIB')
-   # ax_par.set_title('Slope and intercepts as results from fits of avg RMS on non-activated channels')
-   # fig_par.savefig('slope_intercept.png', dpi=400)
-   # plt.close(fig_par)
+        # Plot the slope and intercept vs input parameter!
+        fig_par, ax_par = plt.subplots(1,1)
+        ax_par.scatter(parameter_values, slopes, label='slopes')
+        ax_par.scatter(parameter_values, intercepts, label='intercepts')
+        ax_par.legend(fontsize=8)
+        ax_par.set_xlabel('CALIB')
+        ax_par.set_title('Slope and intercepts as results from fits of avg RMS on non-activated channels')
+        fig_par.savefig('slope_intercept.png', dpi=400)
+        plt.close(fig_par)
 
 
 def time(
