@@ -126,21 +126,20 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
 std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
-  
 
-  // Load CHANNEL MASK file 
+  // Load CHANNEL MASK file
   std::string mask_file_path = pftool::readline("Path to maskfile: ", "");
   bool use_mask = !mask_file_path.empty();
   std::vector<int> masked_channels;
   std::string line;
-  if(use_mask){
+  if (use_mask) {
     std::ifstream mask_file(mask_file_path);
     while (std::getline(mask_file, line)) {
       int int_ch = std::stoi(line);
       masked_channels.push_back(int_ch);
     }
   }
-  for(int i=0; i< masked_channels.size(); i++){
+  for (int i = 0; i < masked_channels.size(); i++) {
     std::cout << "masked channel: " << masked_channels[i] << std::endl;
   }
 
@@ -179,15 +178,16 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
     // SKIP IF CHANNEL IS MASKED
     if (masked_channels.count(ch)) {
-        pflib_log(info) << "Channel " << ch << " is masked; skipping pedestal leveling.";
+      pflib_log(info) << "Channel " << ch
+                      << " is masked; skipping pedestal leveling.";
 
-        // Option 1: explicitly mark it
-        settings[page]["MASKED"] = 1;
+      // Option 1: explicitly mark it
+      settings[page]["MASKED"] = 1;
 
-        // Option 2: leave empty (no register modification)
-        // settings[page] = {};
+      // Option 2: leave empty (no register modification)
+      // settings[page] = {};
 
-        continue;
+      continue;
     }
 
     int i_link = ch / 36;
