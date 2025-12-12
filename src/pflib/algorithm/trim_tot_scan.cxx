@@ -9,11 +9,18 @@
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, uint64_t>> trim_tot_scan(
-    Target* tgt, ROC roc, std::array<int, 72> calibs) {
+    Target* tgt, ROC roc, std::array<int, 72> calibs, std::array<int, 2> tot_vrefs) {
   static auto the_log_{::pflib::logging::get("trim_tot_scan")};
 
   // Iterate through each channel. For each channel, trim down the tot threshold
   // and set the parameter to the point which minimizes abs(tot_efficiency-0.5).
+  
+  auto tot_vref_handle = roc.testParameters();
+  for (int i = 0; i < 2; i++ {
+    auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", i);
+    tot_vref_handle.add(refvol_page, "TOT_VREF", tot_vrefs[i]);
+  }
+  auto tot_vref_params = tot_vref_handle.apply();
 
   static const std::size_t n_events = 100;
   DecodeAndBuffer buffer{n_events};  // working in buffer, not in writer
