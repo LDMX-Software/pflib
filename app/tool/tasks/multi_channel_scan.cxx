@@ -13,11 +13,13 @@ void multi_channel_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
   int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
   bool isLED = pftool::readline_bool("Use external LED flashes?", false);
-  bool highrange = pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
+  bool highrange =
+      pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
   int link{0};
-  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0 : link = 1;
+  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
+                                                            : link = 1;
   std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
 
   int ch0{0};
@@ -25,10 +27,10 @@ void multi_channel_scan(Target* tgt) {
 
   auto roc{tgt->roc(pftool::state.iroc)};
   if (isLED) {
-    auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+    auto refvol_page =
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
     auto test_param_handle = roc.testParameters();
-    test_param_handle
-          .add(refvol_page, "INTCTEST", 1);
+    test_param_handle.add(refvol_page, "INTCTEST", 1);
     auto test_param = test_param_handle.apply();
 
     int phase_strobe{0};
@@ -45,13 +47,14 @@ void multi_channel_scan(Target* tgt) {
           header["highrange"] = highrange;
           header["preCC"] = !highrange;
           header["ledflash"] = isLED;
-          f << std::boolalpha << "# " << header << '\n' << "nr channels," << "time,";
+          f << std::boolalpha << "# " << header << '\n'
+            << "nr channels," << "time,";
           f << "channel,";
           f << pflib::packing::Sample::to_csv_header << '\n';
         },
         [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
-            f << nr_channels+1 << ',';
+            f << nr_channels + 1 << ',';
             f << time << ',';
             f << ch << ',';
 
@@ -64,7 +67,7 @@ void multi_channel_scan(Target* tgt) {
     // Do the scan for increasing amount of channels
     for (nr_channels; nr_channels < 1; nr_channels++) {
       auto test_param_handle = roc.testParameters();
-      if (nr_channels == -1) { // In case of -1, just take pedestal data
+      if (nr_channels == -1) {  // In case of -1, just take pedestal data
         daq_run(tgt, "PEDESTAL", writer, 1, pftool::state.daq_rate);
         continue;
       }
@@ -91,13 +94,13 @@ void multi_channel_scan(Target* tgt) {
       tgt->fc().fc_setup_led(central_charge_to_l1a);
     }
   } else {
-    auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+    auto refvol_page =
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
     auto test_param_handle = roc.testParameters();
-    test_param_handle
-          .add(refvol_page, "CALIB", highrange ? calib : 0)
-          .add(refvol_page, "CALIB_2V5", highrange ? 0 : calib)
-          .add(refvol_page, "INTCTEST", 1)
-          .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0);
+    test_param_handle.add(refvol_page, "CALIB", highrange ? calib : 0)
+        .add(refvol_page, "CALIB_2V5", highrange ? 0 : calib)
+        .add(refvol_page, "INTCTEST", 1)
+        .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0);
     auto test_param = test_param_handle.apply();
 
     std::filesystem::path parameter_points_file =
@@ -123,7 +126,8 @@ void multi_channel_scan(Target* tgt) {
           header["highrange"] = highrange;
           header["precc"] = !highrange;
           header["ledflash"] = isLED;
-          f << std::boolalpha << "# " << header << '\n' << "nr channels," << "time,";
+          f << std::boolalpha << "# " << header << '\n'
+            << "nr channels," << "time,";
           for (const auto& [page, parameter] : param_names) {
             f << page << '.' << parameter << ',';
           }
@@ -132,7 +136,7 @@ void multi_channel_scan(Target* tgt) {
         },
         [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
-            f << nr_channels+1 << ',';
+            f << nr_channels + 1 << ',';
             f << time << ',';
 
             for (const auto& val : param_values[i_param_point]) {
@@ -150,14 +154,13 @@ void multi_channel_scan(Target* tgt) {
     for (nr_channels; nr_channels < 18; nr_channels++) {
       pflib_log(info) << "running scan " << nr_channels + 1 << " out of 19";
       auto test_param_handle = roc.testParameters();
-      if (nr_channels == -1) { // In case of -1, just take pedestal data
+      if (nr_channels == -1) {  // In case of -1, just take pedestal data
         daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
         continue;
       }
-      for (int ch = ch0-nr_channels; ch <= ch0+nr_channels; ch++) {
+      for (int ch = ch0 - nr_channels; ch <= ch0 + nr_channels; ch++) {
         auto channel_page = pflib::utility::string_format("CH_%d", ch);
-        test_param_handle
-            .add(channel_page, "HIGHRANGE", 1);
+        test_param_handle.add(channel_page, "HIGHRANGE", 1);
       }
       auto test_param_two = test_param_handle.apply();
       i_param_point = 0;
@@ -174,7 +177,7 @@ void multi_channel_scan(Target* tgt) {
             test_param_builder.add(full_page, param, value);
           } else {
             test_param_builder.add(str_page + "_" + std::to_string(link), param,
-                                       value);
+                                   value);
           }
           pflib_log(info) << param << " = " << value;
         }
@@ -186,8 +189,10 @@ void multi_channel_scan(Target* tgt) {
              charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
              charge_to_l1a++) {
           tgt->fc().fc_setup_calib(charge_to_l1a);
-          pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
-          for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+          pflib_log(info) << "charge_to_l1a = "
+                          << tgt->fc().fc_get_setup_calib();
+          for (phase_strobe = 0; phase_strobe < n_phase_strobe;
+               phase_strobe++) {
             auto phase_strobe_test_handle =
                 roc.testParameters()
                     .add("TOP", "PHASE_STROBE", phase_strobe)

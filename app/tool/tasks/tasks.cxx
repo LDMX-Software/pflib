@@ -11,6 +11,7 @@
 #include "inv_vref_scan.h"
 #include "level_pedestals.h"
 #include "load_parameter_points.h"
+#include "multi_channel_scan.h"
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
@@ -20,7 +21,6 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
-#include "multi_channel_scan.h"
 
 namespace {
 auto menu_tasks =
