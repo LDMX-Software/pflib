@@ -51,17 +51,16 @@ static int get_adc(const EventPacket& p, int ch) {
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
 template <class EventPacket>
-static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data, std::vector<int>& masked_channels) {
+static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
+                                           std::vector<int>& masked_channels) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
-
-
-     if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
-      //Do Not include masked channels in the median calculation
-      medians[ch]=-0; //to maintain length of medians
+    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+      // Do Not include masked channels in the median calculation
+      medians[ch] = -0;  // to maintain length of medians
       continue;
     }
 
@@ -95,7 +94,8 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
-    auto medians = get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
+    auto medians =
+        get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
@@ -116,7 +116,8 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    highend = get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
+    highend =
+        get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
 
   {  // lowend run
