@@ -104,6 +104,7 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * via pflib::Target::roc with the currently active roc.
  *
  * ## Commands
+ * - STATUS : print the status of the active ROC
  * - HARDRESET : pflib::Target::hardResetROCs
  * - SOFTRESET : pflib::Target::softResetROC
  * - RUNMODE : enable run mode on the ROC
@@ -136,6 +137,11 @@ static void roc(const std::string& cmd, Target* pft) {
     pflib_log(debug) << "ROC " << pftool::state.iroc
                      << (isRunMode ? " set to RUNMODE"
                                    : " taken out of RUNMODE");
+  }
+  if (cmd == "STATUS") {
+    std::cout << "ROC" << pftool::state.iroc
+              << " with RUNMODE: " << (roc.isRunMode() ? "ON" : "OFF")
+              << std::endl;
   }
   if (cmd == "PAGE") {
     auto page = pftool::readline("Page? ", pftool::state.roc_page_names());
@@ -181,6 +187,7 @@ static void roc(const std::string& cmd, Target* pft) {
 namespace {
 auto menu_roc =
     pftool::menu("ROC", "Read-Out Chip Configuration", roc_render)
+        ->line("STATUS", "Show the ROC status", roc)
         ->line("HARDRESET", "Hard reset to all rocs", roc)
         ->line("SOFTRESET", "Soft reset to all rocs", roc)
         ->line("IROC", "Change the active ROC number", roc)
