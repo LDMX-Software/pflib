@@ -283,7 +283,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   uint32_t hamming = (data[0] & mask<6>);
   pflib_log(trace) << "    P=" << passthrough << " E=" << expected;
 
-  pflib_log(trace) << "Econd header two: " << hex(data[1]);
+  pflib_log(trace) << "econd header two: " << hex(data[1]);
   // BX on bits 31-20
   uint32_t bx = ((data[1] >> 20) & mask<12>);
   // L1A on bits 19-14
