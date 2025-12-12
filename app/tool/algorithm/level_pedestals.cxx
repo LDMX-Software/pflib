@@ -176,19 +176,19 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   for (int ch{0}; ch < 72; ch++) {
     std::string page{pflib::utility::string_format("CH_%d", ch)};
 
-    // SKIP IF CHANNEL IS MASKED
-    if (masked_channels.count(ch)) {
-      pflib_log(info) << "Channel " << ch
-                      << " is masked; skipping pedestal leveling.";
+    // // SKIP IF CHANNEL IS MASKED
+    // if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+    //   pflib_log(info) << "Channel " << ch
+    //                   << " is masked; skipping pedestal leveling.";
 
-      // Option 1: explicitly mark it
-      settings[page]["MASKED"] = 1;
+    //   // Explicitly mark it masked
+    //   settings[page]["MASKED"] = 1;
+      
+    //   continue;
 
-      // Option 2: leave empty (no register modification)
-      // settings[page] = {};
-
-      continue;
-    }
+    // } else {
+    //   settings[page]["MASKED"] = 0; 
+    // }
 
     int i_link = ch / 36;
     if (baseline.at(ch) < target.at(i_link)) {
