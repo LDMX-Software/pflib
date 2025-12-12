@@ -119,12 +119,6 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * @param[in] pft active target
  */
 static void roc(const std::string& cmd, Target* pft) {
-  pflib::ROC roc = pft->roc(pftool::state.iroc);
-  bool isRunMode = roc.isRunMode();
-  if (cmd == "STATUS") {
-    std::cout << "ROC" << pftool::state.iroc
-              << " with RUNMODE: " << (isRunMode ? "ON" : "OFF") << std::endl;
-  }
   if (cmd == "HARDRESET") {
     pft->hardResetROCs();
   }
@@ -135,12 +129,19 @@ static void roc(const std::string& cmd, Target* pft) {
     pftool::state.iroc =
         pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
   }
+  pflib::ROC roc = pft->roc(pftool::state.iroc);
   if (cmd == "RUNMODE") {
+    bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
     roc.setRunMode(isRunMode);
     pflib_log(debug) << "ROC " << pftool::state.iroc
                      << (isRunMode ? " set to RUNMODE"
                                    : " taken out of RUNMODE");
+  }
+  if (cmd == "STATUS") {
+    std::cout << "ROC" << pftool::state.iroc
+              << " with RUNMODE: " << (roc.isRunMode() ? "ON" : "OFF")
+              << std::endl;
   }
   if (cmd == "PAGE") {
     auto page = pftool::readline("Page? ", pftool::state.roc_page_names());
