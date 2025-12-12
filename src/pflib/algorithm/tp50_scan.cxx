@@ -174,14 +174,15 @@ std::array<int, 2> tp50_scan(Target* tgt, ROC roc, std::array<int, 72> calib) {
       double new_channel_eff = eff_scan(tgt, roc, channel, channel_vref,
                                         nevents, refvol_page, buffer);
       if (new_channel_eff < 0.5) {
-        pflib_log(info) << "More suitable vref of " << channel_vref << " found!";
+        pflib_log(info) << "More suitable vref of " << channel_vref
+                        << " found!";
         link_vref_list[link] = channel_vref;
         continue;
       } else {
         int channel_vref =
             global_vref_scan(tgt, roc, channel, nevents, refvol_page, buffer);
         if (channel_vref != -1) {
-          pflib_log(info) << "More suitable vref of " << channel_vref 
+          pflib_log(info) << "More suitable vref of " << channel_vref
                           << " found after global scan!";
           link_vref_list[link] = channel_vref;
           continue;
