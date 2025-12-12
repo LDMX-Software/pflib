@@ -32,17 +32,22 @@ for line in mapping_file:
 
 samples = pd.read_csv(args.data)
 
-events = sorted(list(set(samples['event'])))
-print(events)
+timestamps = list(set(samples['timestamp']))
+print(timestamps)
+
+#bunchCounts =[t & 0xFF for t in timestamps]
+#pulseId =[t >> 8 for t in timestamps]
+
+
+
+#events = sorted(list(set(samples['event'])))
+#print(events)
 
 event_i = 0
 
-while(True):
-    if int(args.n_events) != -1 and event_i >= int(args.n_events)*int(args.nsamples):
+for timestamp in timestamps:
+    if int(args.n_events) != -1 and event_i >= int(args.n_events):
         print("Quitting, exceeded n_events")
-        break
-    if event_i >= max(events):
-        print("Quitting, no more events in file")
         break
 
     print("Plotting event_i = " + str(event_i))
@@ -50,6 +55,8 @@ while(True):
     fig, axs = plt.subplots(4,6, figsize=(12,10))
     
     x = range(0,8)
+
+    event = samples[samples["timestamp"] == timestamp]
 
     for layer in range(1,7):
         for bar in range(0,4):
@@ -63,23 +70,23 @@ while(True):
             adc_left = []
             adc_right = []
 
-            for i in range(event_i, event_i+int(args.nsamples)):
-                    row_right = samples[samples["event"] == i]
-                    min_bx = min(row_right["bx"])
-                    row_right = row_right[row_right["bx"] == min_bx]
+            for i in range(0, int(args.nsamples)):
+                    #row_right = event[event["timestamp"] & 0xFF == bunchCount]
+                    row_right = event[event["i_sample"] == i]
+                    print(row_right)
                     row_right = row_right[row_right["channel"] == str(ch_right)]
+                    print(row_right)
                     row_right = row_right[row_right["i_link"] == ilink_right]
-                    min_orbit = min(row_right["orbit"])
-                    row_right = row_right[row_right["orbit"] == min_orbit]
+                    print(row_right)
+                    print(timestamp)
+                    print(ilink_right)
+                    print(ch_right)
                     adc_right.append(int(row_right['adc']))
 
-                    row_left = samples[samples["event"] == i]
-                    min_bx = min(row_left["bx"])
-                    row_left = row_left[row_left["bx"] == min_bx]
+                    #row_left = samples[samples["timestamp"] & 0xFF == bunchCount]
+                    row_left = event[event["i_sample"] == i]
                     row_left = row_left[row_left["channel"] == str(ch_left)]
                     row_left = row_left[row_left["i_link"] == ilink_left]
-                    min_orbit = min(row_left["orbit"])
-                    row_left = row_left[row_left["orbit"] == min_orbit]
                     adc_left.append(int(row_left['adc']))
 
 
@@ -109,5 +116,4 @@ while(True):
     plt.savefig(str(args.outputdir)+"/run_"+args.runnumber+"_event_"+str(event_i)+".png",dpi=300)
 
 
-    event_i += int(args.nsamples)
-
+    event_i += 1
