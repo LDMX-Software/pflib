@@ -58,11 +58,11 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
-    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
-      // Do Not include masked channels in the median calculation
-      medians[ch] = -0;  // to maintain length of medians
-      continue;
-    }
+    // if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+    //   // Do Not include masked channels in the median calculation
+    //   medians[ch] = -0;  // to maintain length of medians
+    //   continue;
+    // }
 
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
