@@ -254,8 +254,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                          << " is above target, setting SIGN_DAC=1 and DACB";
         settings[page]["SIGN_DAC"] = 1;
         settings[page]["DACB"] = val;
-         pflib_log(info) << "Channel " << ch
-                      << " has val: " << val << ".";
+        pflib_log(info) << "Channel " << ch << " has val: " << val << ".";
       }
     }
   }
