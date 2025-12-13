@@ -97,6 +97,9 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
     auto medians =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
     baseline = medians;
+    for(int i=0; i < 72 ; i++){
+      pflib_log(info) << "baseline: " << baseline[i];
+    }
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start{medians.begin() + 36 * i_link};
