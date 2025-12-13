@@ -6,9 +6,7 @@ namespace pflib::algorithm {
 
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
-    const std::vector<EventPacket>& data
-    , std::vector<int>& masked_channels) {
-
+    const std::vector<EventPacket>& data, std::vector<int>& masked_channels) {
   std::array<double, 72> efficiencies;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
@@ -48,11 +46,11 @@ std::array<double, 72> get_toa_efficiencies(
 // get toa efficiencies
 template std::array<double, 72>
 pflib::algorithm::get_toa_efficiencies<pflib::packing::SingleROCEventPacket>(
-    const std::vector<pflib::packing::SingleROCEventPacket>& data
-    , std::vector<int>& masked_channels);
+    const std::vector<pflib::packing::SingleROCEventPacket>& data,
+    std::vector<int>& masked_channels);
 template std::array<double, 72> pflib::algorithm::get_toa_efficiencies<
     pflib::packing::MultiSampleECONDEventPacket>(
-    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data
-    , std::vector<int>& masked_channels);
+    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data,
+    std::vector<int>& masked_channels);
 
 }  // namespace pflib::algorithm

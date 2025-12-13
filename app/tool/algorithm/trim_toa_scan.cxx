@@ -99,7 +99,8 @@ static void trim_tof_runs(
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa
                        << ", and calib = " << calib << ", getting efficiencies";
-      auto efficiencies = get_toa_efficiencies(buffer.get_buffer(),masked_channels);
+      auto efficiencies =
+          get_toa_efficiencies(buffer.get_buffer(), masked_channels);
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
         // need to divide by 4 because index is value/4 from final_data
@@ -149,8 +150,8 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    trim_tof_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                        final_data, masked_channels);
+    trim_tof_runs<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, n_events, final_data, masked_channels);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     trim_tof_runs<pflib::packing::MultiSampleECONDEventPacket>(

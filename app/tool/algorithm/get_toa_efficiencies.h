@@ -16,8 +16,7 @@ namespace pflib::algorithm {
 // templated to match any event packet type
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
-    const std::vector<EventPacket>& data
-    , std::vector<int>& masked_channels);
+    const std::vector<EventPacket>& data, std::vector<int>& masked_channels);
 
 // std::array<double, 72> get_toa_efficiencies(
 //     const std::vector<pflib::packing::SingleROCEventPacket>& data);

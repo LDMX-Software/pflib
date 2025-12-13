@@ -18,7 +18,6 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
 
   // loop over runs, from toa_vref = 0 to = 255
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
-
     // Load CHANNEL MASK file
     std::string mask_file_path = pftool::readline("Path to maskfile: ", "");
     bool use_mask = !mask_file_path.empty();
@@ -42,7 +41,8 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "finished toa_vref = " << toa_vref
                      << ", getting efficiencies";
-    auto efficiencies = get_toa_efficiencies(buffer.get_buffer(), masked_channels);
+    auto efficiencies =
+        get_toa_efficiencies(buffer.get_buffer(), masked_channels);
     pflib_log(trace)
         << "got channel efficiencies, getting max efficiency per link";
     for (int i_link{0}; i_link < 2; i_link++) {
