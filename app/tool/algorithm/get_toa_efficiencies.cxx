@@ -4,8 +4,8 @@
 
 namespace pflib::algorithm {
 
-//helper function
-bool is_masked(int ch, ){
+// helper function
+bool is_masked(int ch, ) {
   return count(masked_channels.begin(), masked_channels.end(), ch) > 0)
 }
 
