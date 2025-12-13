@@ -203,10 +203,9 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
     int i_link = ch / 36;
 
-    pflib_log(info) << "Channel, Baseline, Lowend, Highend: " 
-      << ch << ", " << baseline[ch] << ", " << lowend[ch] 
-      << ", " << highend[ch] << std::endl;
-
+    pflib_log(info) << "Channel, Baseline, Lowend, Highend: " << ch << ", "
+                    << baseline[ch] << ", " << lowend[ch] << ", " << highend[ch]
+                    << std::endl;
 
     if (baseline.at(ch) < target.at(i_link)) {
       pflib_log(debug) << "Channel " << ch
