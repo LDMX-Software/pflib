@@ -350,13 +350,15 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
 }
 
 const std::string ECONDEventPacket::to_csv_header =
-    "i_link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa";
+    "timestamp,i_link,bx,event,orbit,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,"
+    "toa";
 
 void ECONDEventPacket::to_csv(std::ofstream &f) const {
   /**
    * The columns of the output CSV are
    * ```
-   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * timestamp, i_link, bx, event, orbit, channel, i_sample, Tp, Tc, adc_tm1,
+   * adc, tot, toa
    * ```
    *
    * Since there are 36 channels and one calib channel per DAQ links,
