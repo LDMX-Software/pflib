@@ -15,11 +15,9 @@ static int get_adc(const EventPacket& p, int ch) {
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
     return p.channel(ch).adc();
-    std::cout << "am i here?" << std::endl;
   } else if constexpr (std::is_same_v<
                            EventPacket,
                            pflib::packing::MultiSampleECONDEventPacket>) {
-    std::cout << "OR i here?" << std::endl;
     // Use link specific channel calculation, this is done in
     // singleROCEventPacket.cxx for the other case
     // Use the "Sample Of Interest" inside the EventPacket
@@ -68,6 +66,7 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
 
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
+      std::cout << "here: ch, i, data_i, adcs_i " << ch << ", " << i << ", " << data[i] << ", " << adcs[i] << std::endl;
     }
     medians[ch] = pflib::utility::median(adcs);
   }
