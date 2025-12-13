@@ -6,7 +6,9 @@ namespace pflib::algorithm {
 
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
-    const std::vector<EventPacket>& data) {
+    const std::vector<EventPacket>& data
+    , std::vector<int>& masked_channels) {
+      
   std::array<double, 72> efficiencies;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
