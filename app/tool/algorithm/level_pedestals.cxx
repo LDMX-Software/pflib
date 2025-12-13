@@ -15,9 +15,12 @@ static int get_adc(const EventPacket& p, int ch) {
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
     return p.channel(ch).adc();
+    std::cout << "am i here?" << std::endl;
   } else if constexpr (std::is_same_v<
                            EventPacket,
                            pflib::packing::MultiSampleECONDEventPacket>) {
+
+    std::cout << "OR i here?" << std::endl;
     // Use link specific channel calculation, this is done in
     // singleROCEventPacket.cxx for the other case
     // Use the "Sample Of Interest" inside the EventPacket
