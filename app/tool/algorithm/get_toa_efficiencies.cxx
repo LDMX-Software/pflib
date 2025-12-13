@@ -4,6 +4,11 @@
 
 namespace pflib::algorithm {
 
+//helper function
+bool is_masked(int ch, ){
+  return count(masked_channels.begin(), masked_channels.end(), ch) > 0)
+}
+
 template <class EventPacket>
 std::array<double, 72> get_toa_efficiencies(
     const std::vector<EventPacket>& data, std::vector<int>& masked_channels) {
