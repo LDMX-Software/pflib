@@ -149,9 +149,6 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
       masked_channels.push_back(int_ch);
     }
   }
-  for (int i = 0; i < masked_channels.size(); i++) {
-    std::cout << "masked channel: " << masked_channels[i] << std::endl;
-  }
 
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
@@ -192,12 +189,12 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                       << " is masked; skipping pedestal leveling.";
 
       // Explicitly mark it masked
-      settings[page]["MASKED"] = 1;
+      // settings[page]["MASKED"] = 1;
 
       continue;
 
-    } else {
-      settings[page]["MASKED"] = 0;
+    // } else {
+    //   settings[page]["MASKED"] = 0;
     }
 
     int i_link = ch / 36;
