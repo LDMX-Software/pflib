@@ -97,9 +97,9 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
     auto medians =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
     baseline = medians;
-    for (int i = 0; i < 72; i++) {
-      pflib_log(info) << "baseline: " << baseline[i];
-    }
+    // for (int i = 0; i < 72; i++) {
+    //   pflib_log(info) << "baseline: " << baseline[i];
+    // }
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start{medians.begin() + 36 * i_link};
@@ -183,6 +183,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   pflib_log(info) << "sample collections done, deducing settings";
   std::map<std::string, std::map<std::string, uint64_t>> settings;
+
   for (int ch{0}; ch < 72; ch++) {
     std::string page{pflib::utility::string_format("CH_%d", ch)};
 
@@ -201,6 +202,12 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     // }
 
     int i_link = ch / 36;
+
+    pflib_log(info) << "Channel, Baseline, Lowend, Highend: " 
+      << ch << ", " << baseline[ch] << ", " << lowend[ch] 
+      << ", " << highend[ch] << std::endl;
+
+
     if (baseline.at(ch) < target.at(i_link)) {
       pflib_log(debug) << "Channel " << ch
                        << " is below target, setting TRIM_INV";
