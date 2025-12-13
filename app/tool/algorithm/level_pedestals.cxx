@@ -51,13 +51,19 @@ static int get_adc(const EventPacket& p, int ch) {
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
 template <class EventPacket>
-static std::array<int, 72> get_adc_medians(
-    const std::vector<EventPacket>& data) {
+static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
+                                           std::vector<int>& masked_channels) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
+    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+      // Do Not include masked channels in the median calculation
+      medians[ch] = -0;  // to maintain length of medians
+      continue;
+    }
+
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
     }
@@ -72,7 +78,8 @@ template <class EventPacket>  // any use of <EventPacket> is a placeholder for
 static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                           std::array<int, 72>& highend,
                           std::array<int, 72>& lowend,
-                          std::array<int, 2>& target, size_t n_events) {
+                          std::array<int, 2>& target, size_t n_events,
+                          std::vector<int>& masked_channels) {
   /// TODO for multi-ROC set ups, we could dynamically determine the number
   //       of ROCs and the number of channels from the Target
   DecodeAndBuffer<EventPacket> buffer{n_events, 2};
@@ -87,7 +94,8 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
-    auto medians = get_adc_medians<EventPacket>(buffer.get_buffer());
+    auto medians =
+        get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
@@ -108,7 +116,8 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    highend = get_adc_medians<EventPacket>(buffer.get_buffer());
+    highend =
+        get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
 
   {  // lowend run
@@ -119,13 +128,27 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-    lowend = get_adc_medians<EventPacket>(buffer.get_buffer());
+    lowend = get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
 }
 
 std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("level_pedestals")};
+
+  // Load CHANNEL MASK file
+  std::string mask_file_path = pftool::readline("Path to maskfile: ", "");
+  bool use_mask = !mask_file_path.empty();
+  std::vector<int> masked_channels;
+  std::string line;
+  if (use_mask) {
+    std::ifstream mask_file(mask_file_path);
+    std::getline(mask_file, line);  // ditch first line
+    while (std::getline(mask_file, line)) {
+      int int_ch = std::atoi(line.c_str());
+      masked_channels.push_back(int_ch);
+    }
+  }
 
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
@@ -142,12 +165,12 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     pedestal_runs<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, baseline, highend, lowend, target, n_events);
+        tgt, roc, baseline, highend, lowend, target, n_events, masked_channels);
 
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     pedestal_runs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, baseline, highend, lowend, target, n_events);
+        tgt, roc, baseline, highend, lowend, target, n_events, masked_channels);
 
   } else {
     pflib_log(warn) << "Unsupported DAQ format ("
@@ -159,6 +182,21 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int ch{0}; ch < 72; ch++) {
     std::string page{pflib::utility::string_format("CH_%d", ch)};
+
+    // SKIP IF CHANNEL IS MASKED
+    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+      pflib_log(info) << "Channel " << ch
+                      << " is masked; skipping pedestal leveling.";
+
+      // Explicitly mark it masked
+      // settings[page]["MASKED"] = 1;
+
+      continue;
+
+    // } else {
+    //   settings[page]["MASKED"] = 0;
+    }
+
     int i_link = ch / 36;
     if (baseline.at(ch) < target.at(i_link)) {
       pflib_log(debug) << "Channel " << ch
