@@ -67,18 +67,16 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
 
-      
       // print out multi sample event packet p here
       if constexpr (std::is_same_v<
-                           EventPacket,
-                           pflib::packing::MultiSampleECONDEventPacket>) {
-        std::cout << "p.soi, ch, ilink, adc: " 
-          << data[i].i_soi << ", " 
-          << ch << ", " << ch / 36 << ", " << adcs[i] << std::endl ;
-          } else {
-            std::cout << "NOT MULTI " << std::endl;
-          }
+                        EventPacket,
+                        pflib::packing::MultiSampleECONDEventPacket>) {
+        std::cout << "p.soi, ch, ilink, adc: " << data[i].i_soi << ", " << ch
+                  << ", " << ch / 36 << ", " << adcs[i] << std::endl;
+      } else {
+        std::cout << "NOT MULTI " << std::endl;
       }
+    }
     medians[ch] = pflib::utility::median(adcs);
     std::cout << "here: ch,  median " << ch << ", " << medians[ch] << std::endl;
   }
@@ -167,7 +165,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   }
 
   /// do three runs of 100 samples each to have well defined pedestals
-  static const std::size_t n_events = 1; // 100;
+  static const std::size_t n_events = 1;  // 100;
 
   // tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
   // Use the DAQ format selected in the pftool DAQ->FORMAT menu so the
