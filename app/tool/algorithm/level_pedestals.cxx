@@ -27,10 +27,6 @@ static int get_adc(const EventPacket& p, int ch) {
     int i_link = ch / 36;  // 0 or 1
     int i_ch = ch % 36;    // 0 - 35
 
-    // print out multi sample event packet p here
-    std::cout << "p.soi, ch, ilink, ich" << p.i_soi << ", " << ch << ", "
-              << i_link << ", " << i_ch << std::endl;
-
     // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
     // because it can have more than 2 links readout
     return p.samples[p.i_soi].channel(i_link, i_ch).adc();
@@ -70,6 +66,10 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
 
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
+      // print out multi sample event packet p here
+      std::cout << "p.soi, ch, ilink, adc: " 
+        << data.i_soi << ", " 
+        << ch << ", " << i_link <<, ", " << adcs[i] << std::endl ;
     }
     medians[ch] = pflib::utility::median(adcs);
     std::cout << "here: ch,  median " << ch << ", " << medians[ch] << std::endl;
