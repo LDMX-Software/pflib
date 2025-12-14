@@ -27,12 +27,10 @@ static int get_adc(const EventPacket& p, int ch) {
     int i_link = ch / 36;  // 0 or 1
     int i_ch = ch % 36;    // 0 - 35
 
-
     // print out multi sample event packet p here
-    std::cout << "p.soi, p.samples[soi], ch, ilink, ich" 
-      << p.i_soi << ", " << p.samples[i_soi] << ", " 
-      << ch << ", " << i_link << ", " << i_ch << std::endl ;
-
+    std::cout << "p.soi, p.samples[soi], ch, ilink, ich" << p.i_soi << ", "
+              << p.samples[i_soi] << ", " << ch << ", " << i_link << ", "
+              << i_ch << std::endl;
 
     // ECONDEventPacket.h defines channel differently to SingleROCEventPacket.h
     // because it can have more than 2 links readout
@@ -130,7 +128,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
     highend =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
-  
+
   {  // lowend run
     pflib_log(info) << "100 event lowend run";
     auto test_handle = roc.testParameters()
