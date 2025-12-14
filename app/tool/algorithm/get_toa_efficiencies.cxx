@@ -1,7 +1,8 @@
 #include "get_toa_efficiencies.h"
 
-#include "pflib/utility/efficiency.h"
 #include <limits>
+
+#include "pflib/utility/efficiency.h"
 
 namespace pflib::algorithm {
 
