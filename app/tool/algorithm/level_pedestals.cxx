@@ -97,6 +97,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
   //       of ROCs and the number of channels from the Target
   DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("level_pedestals")};
+  int n_events = 1; //100
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
@@ -105,7 +106,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
     pflib_log(trace) << "baseline run done, getting channel medians";
     auto medians =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
@@ -131,7 +132,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
     highend =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
@@ -143,7 +144,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 31)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
     lowend = get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
 }
