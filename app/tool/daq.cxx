@@ -666,6 +666,64 @@ static void daq_debug_trigger_timein(Target* tgt) {
       "Want to try another set of timing parameters?", false));
 }
 
+template<class EventPacket>
+std::unique_ptr<DecodeAndWriteToCSV<EventPacket>> make_all_channel_writer(const std::string& file_name) {
+  return std::make_unique<DecodeAndWriteToCSV<EventPacket>>(
+      file_name,
+      [](std::ofstream& f) {
+        f << std::boolalpha;
+        f << EventPacket::to_csv_header << '\n';
+      },
+      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); }, 2);
+}
+
+std::unique_ptr<DAQRunConsumer> make_all_channel_writer(Target::DaqFormat f, const std::string& file_name) {
+  switch (f) {
+    case Target::DaqFormat::ECOND_SW_HEADERS:
+      return make_all_channel_writer<pflib::packing::MultiSampleECONDEventPacket>(file_name);
+      break;
+    case Target::DaqFormat::SIMPLEROC:
+      return make_all_channel_writer<pflib::packing::SingleROCEventPacket>(file_name);
+      break;
+    default:
+      PFEXCEPTION_RAISE("NoDecode",
+          "Unable to decode format currently configured.");
+      break;
+  }
+}
+
+void daq_debug_charge_timein(Target* tgt) {
+  int nevents = pftool::readline_int(
+      "How many events per time offset? ", 1);
+  int calib = pftool::readline_int(
+      "Setting for calib pulse amplitude? ", 4095);
+  int min_offset =
+      pftool::readline_int("Minimum time offset to test? ", 1);
+  int max_offset =
+      pftool::readline_int("Maximum time offset to test? ", 128);
+  std::string fname = pftool::readline_path("charge-timein");
+
+  pflib::ROC& roc{tgt->roc(pftool::state.iroc)};
+  auto test_param_handle =
+      roc.testParameters()
+          .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+          .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+          .add("CH_61", "HIGHRANGE", 0)
+          .add("CH_61", "LOWRANGE", 1)
+          .apply();
+
+  auto writer{make_all_channel_writer(pftool::state.daq_format_mode, fname+".csv")};
+  for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+    tgt->setup_run(1, pftool::state.daq_format_mode, pftool::state.daq_contrib_id);
+    tgt->fc().fc_setup_calib(toffset);
+    usleep(10);
+    pflib_log(info) << "run with FAST_CONTROL.CALIB = "
+                    << tgt->fc().fc_get_setup_calib();
+    daq_run(tgt, "CHARGE", *writer, nevents, 1); //pftool::state.daq_rate);
+    usleep(10000);
+  }
+}
+
 namespace {
 
 auto menu_daq =
@@ -703,74 +761,7 @@ auto menu_daq_debug =
                [](Target* tgt) { tgt->fc().sendL1A(); })
         ->line("CHARGE_TIMEIN",
                "Scan pulse-l1a time offset to see when it should be",
-               [](Target* tgt) {
-                 int nevents = pftool::readline_int(
-                     "How many events per time offset? ", 100);
-                 int calib = pftool::readline_int(
-                     "Setting for calib pulse amplitude? ", 1024);
-                 int min_offset =
-                     pftool::readline_int("Minimum time offset to test? ", 0);
-                 int max_offset =
-                     pftool::readline_int("Maximum time offset to test? ", 128);
-                 std::string fname = pftool::readline_path("charge-timein");
-                 tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
-                                pftool::state.daq_contrib_id);
-
-                 pflib::ROC roc{tgt->roc(pftool::state.iroc)};
-                 auto test_param_handle =
-                     roc.testParameters()
-                         .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                         .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
-                         .add("CH_61", "HIGHRANGE", 0)
-                         .add("CH_61", "LOWRANGE", 0)
-                         .apply();
-
-                 switch (pftool::state.daq_format_mode) {
-                   case Target::DaqFormat::ECOND_SW_HEADERS: {
-                     DecodeAndWriteToCSV<
-                         pflib::packing::MultiSampleECONDEventPacket>
-                         writer{all_channels_to_csv<
-                             pflib::packing::MultiSampleECONDEventPacket>(
-                             fname + ".csv")};
-
-                     for (int toffset{min_offset}; toffset < max_offset;
-                          toffset++) {
-                       tgt->fc().fc_setup_calib(toffset);
-                       usleep(10);
-                       pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                       << tgt->fc().fc_get_setup_calib();
-                       daq_run(tgt, "CHARGE", writer, nevents,
-                               pftool::state.daq_rate);
-                     }
-                     break;
-                   }
-                   case Target::DaqFormat::SIMPLEROC: {
-                     DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
-                         writer{all_channels_to_csv<
-                             pflib::packing::SingleROCEventPacket>(fname +
-                                                                   ".csv")};
-
-                     for (int toffset{min_offset}; toffset < max_offset;
-                          toffset++) {
-                       tgt->fc().fc_setup_calib(toffset);
-                       usleep(10);
-                       pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                       << tgt->fc().fc_get_setup_calib();
-                       daq_run(tgt, "CHARGE", writer, nevents,
-                               pftool::state.daq_rate);
-                     }
-                     break;
-                   }
-                   default:
-                     PFEXCEPTION_RAISE(
-                         "BadConf",
-                         "Unable to do all_channels_to_csv for the currently "
-                         "configured format.");
-                 }
-
-                 // DecodeAndWriteToCSV writer{all_channels_to_csv(fname +
-                 // ".csv")};
-               })
+               daq_debug_charge_timein)
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,
