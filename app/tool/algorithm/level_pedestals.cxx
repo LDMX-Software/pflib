@@ -66,11 +66,19 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
 
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
+
+      
       // print out multi sample event packet p here
-      std::cout << "p.soi, ch, ilink, adc: " 
-        << data[i].i_soi << ", " 
-        << ch << ", " << ch / 36 << ", " << adcs[i] << std::endl ;
-    }
+      if constexpr (std::is_same_v<
+                           EventPacket,
+                           pflib::packing::MultiSampleECONDEventPacket>) {
+        std::cout << "p.soi, ch, ilink, adc: " 
+          << data[i].i_soi << ", " 
+          << ch << ", " << ch / 36 << ", " << adcs[i] << std::endl ;
+          } else {
+            std::cout << "NOT MULTI " << std::endl;
+          }
+      }
     medians[ch] = pflib::utility::median(adcs);
     std::cout << "here: ch,  median " << ch << ", " << medians[ch] << std::endl;
   }
