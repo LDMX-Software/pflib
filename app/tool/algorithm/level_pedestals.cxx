@@ -97,7 +97,6 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
   //       of ROCs and the number of channels from the Target
   DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("level_pedestals")};
-  int n_events = 1; //100
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
@@ -106,7 +105,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
     auto medians =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
@@ -132,7 +131,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 0)
                            .add_all_channels("TRIM_INV", 63)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     highend =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
@@ -144,7 +143,7 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
                            .add_all_channels("DACB", 31)
                            .add_all_channels("TRIM_INV", 0)
                            .apply();
-    daq_run(tgt, "PEDESTAL", buffer, n_events, n_events);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     lowend = get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
   }
 }
@@ -168,7 +167,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
   }
 
   /// do three runs of 100 samples each to have well defined pedestals
-  static const std::size_t n_events = 100;
+  static const std::size_t n_events = 1; // 100;
 
   // tgt->setup_run(1, Target::DaqFormat::SIMPLEROC, 1);
   // Use the DAQ format selected in the pftool DAQ->FORMAT menu so the
