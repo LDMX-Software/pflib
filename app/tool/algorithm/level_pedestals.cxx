@@ -78,7 +78,8 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
       // }
     }
     // medians[ch] = pflib::utility::median(adcs);
-    // std::cout << "here: ch,  median " << ch << ", " << medians[ch] << std::endl;
+    // std::cout << "here: ch,  median " << ch << ", " << medians[ch] <<
+    // std::endl;
   }
   return medians;
 }
