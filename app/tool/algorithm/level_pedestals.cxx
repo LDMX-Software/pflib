@@ -29,7 +29,7 @@ static int get_adc(const EventPacket& p, int ch) {
 
     // print out multi sample event packet p here
     std::cout << "p.soi, ch, ilink, ich" 
-      << p.i_soi << << ", " 
+      << p.i_soi << ", " 
       << ch << ", " << i_link << ", " << i_ch << std::endl ;
 
 
