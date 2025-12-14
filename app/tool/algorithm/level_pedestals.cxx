@@ -68,7 +68,7 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
       adcs[i] = get_adc(data[i], ch);
       // print out multi sample event packet p here
       std::cout << "p.soi, ch, ilink, adc: " 
-        << data.i_soi << ", " 
+        << data[i].i_soi << ", " 
         << ch << ", " << ch / 36 << ", " << adcs[i] << std::endl ;
     }
     medians[ch] = pflib::utility::median(adcs);
