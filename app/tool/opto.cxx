@@ -78,7 +78,8 @@ auto optom =
         ->line("CHOOSE", "Choose optical link to connect to", opto)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset optical link", opto)
-        ->line("RESET", "hard reset optical link (only do while frontend is OFF)", opto)
+        ->line("RESET",
+               "hard reset optical link (only do while frontend is OFF)", opto)
         ->line("POLARITY", "Adjust the polarity", opto)
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);

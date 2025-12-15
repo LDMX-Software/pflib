@@ -776,7 +776,8 @@ auto optom =
     tool::menu("OPTO", "Optical Link Functions")
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset the optical link", opto)
-        ->line("RESET", "hard reset optical link (may affect all links in block)", opto)
+        ->line("RESET",
+               "hard reset optical link (may affect all links in block)", opto)
         ->line("POLARITY", "Adjust the polarity", opto)
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);
