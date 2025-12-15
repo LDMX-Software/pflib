@@ -5,10 +5,12 @@
 namespace pflib {
 namespace bittware {
 
-static constexpr uint32_t GTY_QUAD_BASE_ADDRESS =
-    0x2000;  // compiled into the firmware
-static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS =
-    0x3000;  // compiled into the firmware
+/// address of coder resets block
+static constexpr uint32_t REG_DECODER_RESET = 0x100;
+/// gty base address compiled into firmware
+static constexpr uint32_t GTY_QUAD_BASE_ADDRESS = 0x2000;
+/// quad coder 0 base address compiled into firmware
+static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000;
 
 BWOptoLink::BWOptoLink(int ilink, const char* dev)
     : gtys_(GTY_QUAD_BASE_ADDRESS, dev, 0xFFF), ilink_(ilink), isdaq_(true) {
@@ -49,6 +51,9 @@ void BWOptoLink::soft_reset_link() {
   /// only apply for daq links
   if (!isdaq_) return;
 
+  const uint32_t SOFT_RESET = 0x1 << (ilink_ + 8);
+  printf("coder_->write(0x%03x, 0x%03x);\n", REG_DECODER_RESET, SOFT_RESET);
+  coder_->write(REG_DECODER_RESET, SOFT_RESET);
 }
 
 void BWOptoLink::reset_link() {
@@ -86,8 +91,6 @@ void BWOptoLink::reset_link() {
     }
     attempts += 1;
   }
-
-  uint32_t REG_DECODER_RESET = 0x100;
 
   coder_->write(REG_DECODER_RESET, 1 << ilink_);  // reset the DECODER
   uint32_t REG_ICEC_RESET = 0x104 + (ilink_ / 2) * 4;
