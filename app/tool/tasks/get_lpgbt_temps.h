@@ -44,5 +44,27 @@ inline double rtd_resistance_to_celsius(double resistance_ohms,
     return temperature;
 }
 
+inline bool yaml_has_chipid(const std::string& yaml_file,
+                     const std::string& lpgbt_name,
+                     uint32_t chipid)
+{
+    if (!file_exists(yaml_file))
+        return false;
+
+    YAML::Node results = YAML::LoadFile(yaml_file);
+    if (!results[lpgbt_name])
+        return false;
+
+    YAML::Node entry = results[lpgbt_name];
+    if (!entry["chipid"])
+        return false;
+
+    char buf[9];
+    snprintf(buf, sizeof(buf), "%08X", chipid);
+    std::string chipid_hex = buf;
+
+    return entry["chipid"].as<std::string>() == chipid_hex;
+}
+
 void get_lpgbt_temps(Target* tgt);
 

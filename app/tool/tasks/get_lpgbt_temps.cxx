@@ -82,10 +82,10 @@ void save_results(const std::string& results_file,
 
 static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, int n_pin, int curdacvalue, const std::string& results_file, int samples = 20) {
 
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
 
 	YAML::Node file_results = YAML::LoadFile(results_file);
-	YAML::Node entry = file_results["TRG"];
+	YAML::Node entry = file_results["DAQ"];
 	int vref_tune = entry["vref_tune"].as<int>();
 
 	std::vector<uint16_t> results;
@@ -167,10 +167,10 @@ double calculate_tj_user(const std::string& results_file,
 
 static void get_calib_constants(Target* tgt) {
 
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
 
 	CalibConstants c;
-	const std::string& lpgbt_name = "TRG";
+	const std::string& lpgbt_name = "DAQ";
 
 	printf(" --- Finding CHIPID ---\n");
 	uint32_t chipid = lpgbt_daq.read_efuse(0);
@@ -278,10 +278,10 @@ static void get_calib_constants(Target* tgt) {
 
 static void read_internal_temp(Target* tgt, const std::string& results_file) {
 
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("TRG").lpgbt_transport()};
-	double tj_user = calculate_tj_user("calibration_results.yaml", "TRG");
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+	double tj_user = calculate_tj_user("calibration_results.yaml", "DAQ");
 	YAML::Node results = YAML::LoadFile(results_file);
-	YAML::Node entry = results["TRG"];
+	YAML::Node entry = results["DAQ"];
 	YAML::Node cal = entry["calib_constants"];
 
     	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
@@ -314,34 +314,40 @@ static void read_internal_temp(Target* tgt, const std::string& results_file) {
 
 void get_lpgbt_temps(Target* tgt) {
 
-    const std::string yaml_file = "calibration_results.yaml";
+	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+	uint32_t chipid = lpgbt_daq.read_efuse(0);
+
+	
+	const std::string yaml_file = "calibration_results.yaml";
     const std::string csv_file = "lpgbt_calibration.csv";
     if (file_exists(yaml_file)) {
-        printf("  > Found existing calibration file '%s'. Skipping calibration step.\n",
+        printf("  > Found existing calibration file '%s'...\n",
                yaml_file.c_str());
-
-        read_internal_temp(tgt, "calibration_results.yaml");
-    } else {
-        printf("  > No calibration YAML file found. Running full calibration...\n");
-	if (file_exists(csv_file)) {
-
-        	get_calib_constants(tgt);
+		bool have_yaml_for_chip = yaml_has_chipid(yaml_file, "DAQ", chipid);
+		if (!have_yaml_for_chip) {
+			printf("  > Calibration constants for this CHIPID not found in present YAML.\n");
+			if (!file_exists(csv_file)) {
+				printf("  > No calibration CSV file found... Downloading from CERN...\n");
+				std::string dl_cmd = "wget https://lpgbt.web.cern.ch/lpgbt/calibration/lpgbt_calibration_latest.zip";
+				std::system(dl_cmd.c_str());
+		
+				printf("  > File downloaded... Unzipping...\n");
+				std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
+					std::system(unzip_cmd.c_str());	
+				
+				get_calib_constants(tgt);
+				read_internal_temp(tgt, "calibration_results.yaml");
+				
+				printf("  > Removing .zip and .db files...\n");
+				std::string rm_cmd = "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
+				std::system(rm_cmd.c_str());
+			} else {
+				get_calib_constants(tgt);
+				read_internal_temp(tgt, "calibration_results.yaml");
+			}
+		} else {
         	read_internal_temp(tgt, "calibration_results.yaml");
-	} else {
-		printf("  > No calibration CSV file found either... Downloading from CERN...\n");
-		std::string dl_cmd = "wget https://lpgbt.web.cern.ch/lpgbt/calibration/lpgbt_calibration_latest.zip";
-		std::system(dl_cmd.c_str());
-		
-		printf("  > File downloaded... Unzipping...\n");
-		std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
-	        std::system(unzip_cmd.c_str());	
-		
-		get_calib_constants(tgt);
-		read_internal_temp(tgt, "calibration_results.yaml");
-		
-		printf("  > Removing .zip and .db files...\n");
-		std::string rm_cmd = "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
-		std::system(rm_cmd.c_str());
-	}
+		}
     }
 }
+
