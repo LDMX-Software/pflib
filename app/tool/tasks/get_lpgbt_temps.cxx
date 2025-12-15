@@ -219,7 +219,7 @@ static void get_calib_constants(Target* tgt) {
 				for (size_t i = 0; i < row.size(); i++) {
 					const std::string& colname = header[i];
 					const std::string& raw     = row[i];
-					printf("     %s = %s\n", colname.c_str(), raw.c_str());
+					// printf("     %s = %s\n", colname.c_str(), raw.c_str());
 					// if (colname == "CHIPID") continue;
 					try {
 						c.values[colname] = raw;
@@ -307,87 +307,41 @@ static void read_internal_temp(Target* tgt, const std::string& results_file) {
 
 	printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
 	double temperature_c = (vadc_v * temp_slope) + temp_offset;
+	printf("  > ----------------------------------------------------\n");
 	printf("  > lpGBT Internal Temperature: %.2f degrees C\n", temperature_c);
-}
-
-static void read_rtd_temp(Target* tgt, int adc_channel, const std::string& results_file) {
-	
-	double tj_user = calculate_tj_user("calibration_results.yaml", "TRG");
-	
-	YAML::Node results = YAML::LoadFile(results_file);
-	YAML::Node entry = results["TRG"];
-	YAML::Node cal = entry["calib_constants"];
-
-    	double adc_slope       = cal["ADC_X2_SLOPE"].as<double>();
-    	double adc_slope_temp  = cal["ADC_X2_SLOPE_TEMP"].as<double>();
-    	double adc_offset      = cal["ADC_X2_OFFSET"].as<double>();
-        double adc_offset_temp = cal["ADC_X2_OFFSET_TEMP"].as<double>();
-	double temp_slope      = cal["TEMPERATURE_SLOPE"].as<double>();
-	double temp_offset     = cal["TEMPERATURE_OFFSET"].as<double>();
-
-	printf("  > Auto-ranging current to find optimal measurement point (~0.5V)...\n");
-	std::vector<double> measurements;
-
-	for (int current_val = 16; current_val < 255; current_val += 16) {
-	
-		std::vector<uint16_t> adc_vals  = read_adc_at_current(tgt, adc_channel, 15, current_val, "calibration_results.yaml");
-
-		double adc_sum = 0;
-		for (auto v : adc_vals) adc_sum += v;
-		double adc_avg = adc_sum / adc_vals.size();
-		
-		double vadc_v = adc_avg * (adc_slope + tj_user * adc_slope_temp) + adc_offset + tj_user * adc_offset_temp;
-		printf("    - Trying CURDAC=%-3d: V_ADC = %.3f V", current_val, vadc_v);
-		if (vadc_v > 0.4 && vadc_v < 0.6) {
-			printf(" -> In range!\n");
-			double cdac_slope       = cal["CDAC" + std::to_string(adc_channel) + "_SLOPE"].as<double>();
-			double cdac_slope_temp  = cal["CDAC" + std::to_string(adc_channel) + "_SLOPE_TEMP"].as<double>();
-			double cdac_offset      = cal["CDAC" + std::to_string(adc_channel) + "_OFFSET"].as<double>();
-			double cdac_offset_temp = cal["CDAC" + std::to_string(adc_channel) + "_OFFSET_TEMP"].as<double>();
-			double cdac_r0          = cal["CDAC" + std::to_string(adc_channel) + "_R0"].as<double>();
-			double cdac_r0_temp     = cal["CDAC" + std::to_string(adc_channel) + "_R0_TEMP"].as<double>();
-			
-			double current_a =
-                		(current_val - (cdac_offset + tj_user * cdac_offset_temp)) /
-                		(cdac_slope + tj_user * cdac_slope_temp);
-			double rout_ohm     = (cdac_r0 + tj_user * cdac_r0_temp) / current_val;
-			double rsense_ohm   = (vadc_v * rout_ohm) / (current_a * rout_ohm - vadc_v);
-			measurements.push_back(rsense_ohm);
-		} else {
-			printf("\n");
-		}
-
-		printf("    - ADC Average: %f\n", adc_avg);
-	}
-	double sum = 0;
-    	for (double r : measurements) sum += r;
-    	double avg_resistance = sum / measurements.size();
-
-    	// Convert resistance to temperature
-    	double temperature = rtd_resistance_to_celsius(avg_resistance);
-
-	printf("  Avg Resistance: %f", avg_resistance);
-	printf("  Temperature: %f\n", temperature);
-
+	printf("  > ----------------------------------------------------\n");
 }
 
 void get_lpgbt_temps(Target* tgt) {
 
     const std::string yaml_file = "calibration_results.yaml";
-
+    const std::string csv_file = "lpgbt_calibration.csv";
     if (file_exists(yaml_file)) {
         printf("  > Found existing calibration file '%s'. Skipping calibration step.\n",
                yaml_file.c_str());
 
         read_internal_temp(tgt, "calibration_results.yaml");
-	uint8_t adc_channel = pftool::readline_int("Which ADC channel (0-7)?", 1, true);
-	read_rtd_temp(tgt, adc_channel, "calibration_results.yaml");
     } else {
-        printf("  > No calibration file found. Running full calibration...\n");
+        printf("  > No calibration YAML file found. Running full calibration...\n");
+	if (file_exists(csv_file)) {
 
-        get_calib_constants(tgt);
-        read_internal_temp(tgt, "calibration_results.yaml");
-	uint8_t adc_channel = pftool::readline_int("Which ADC channel (0-7)?", 1, true);
-	read_rtd_temp(tgt, adc_channel, "calibration_results.yaml");
+        	get_calib_constants(tgt);
+        	read_internal_temp(tgt, "calibration_results.yaml");
+	} else {
+		printf("  > No calibration CSV file found either... Downloading from CERN...\n");
+		std::string dl_cmd = "wget https://lpgbt.web.cern.ch/lpgbt/calibration/lpgbt_calibration_latest.zip";
+		std::system(dl_cmd.c_str());
+		
+		printf("  > File downloaded... Unzipping...\n");
+		std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
+	        std::system(unzip_cmd.c_str());	
+		
+		get_calib_constants(tgt);
+		read_internal_temp(tgt, "calibration_results.yaml");
+		
+		printf("  > Removing .zip and .db files...\n");
+		std::string rm_cmd = "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
+		std::system(rm_cmd.c_str());
+	}
     }
 }
