@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
   try {
     o << std::boolalpha;
-    o << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
+    o << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
 
     pflib::packing::MultiSampleECONDEventPacket ep(n_links);
     // count is NOT written into output file,
