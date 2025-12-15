@@ -7,6 +7,7 @@ install**
 docs/html/**
 tool/test-menu
 conda-bld**
+data**
 
 # ignore all hidden files
 .*

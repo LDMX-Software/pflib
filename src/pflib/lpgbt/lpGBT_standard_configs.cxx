@@ -4,33 +4,38 @@ namespace pflib {
 namespace lpgbt {
 namespace standard_config {
 
-void setup_hcal_daq(pflib::lpGBT& lpgbt) {
+void setup_hcal_daq_gpio(pflib::lpGBT& lpgbt) {
   // setup the reset lines
   // each call configures the pin number, mode, and assigns a name
   // then we set an initial value (true = high, false = low)
   lpgbt.gpio_cfg_set(
       0, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC2_HRST");
-  lpgbt.gpio_set(0, true);
   lpgbt.gpio_cfg_set(
       1, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC2_SRST");
-  lpgbt.gpio_set(1, true);
   lpgbt.gpio_cfg_set(
       2, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC1_HRST");
-  lpgbt.gpio_set(2, true);
   lpgbt.gpio_cfg_set(
       4, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC1_SRST");
-  lpgbt.gpio_set(4, true);
   lpgbt.gpio_cfg_set(
       8, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC_I2C_RST");
-  lpgbt.gpio_set(8, true);
   lpgbt.gpio_cfg_set(
       11, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "TRIG_LPGBT_RSTB");
+
+}  // end of setup_hcal_daq_gpio
+
+void setup_hcal_daq(pflib::lpGBT& lpgbt) {
+  setup_hcal_daq_gpio(lpgbt);
+  lpgbt.gpio_set(0, true);
+  lpgbt.gpio_set(1, true);
+  lpgbt.gpio_set(2, true);
+  lpgbt.gpio_set(4, true);
+  lpgbt.gpio_set(8, true);
   lpgbt.gpio_set(11, true);
 
   // setup clocks
@@ -62,39 +67,45 @@ void setup_hcal_daq(pflib::lpGBT& lpgbt) {
   lpgbt.finalize_setup();
 }
 
-void setup_hcal_trig(pflib::lpGBT& lpgbt) {
+void setup_hcal_trig_gpio(pflib::lpGBT& lpgbt) {
   // setup the reset lines
   lpgbt.gpio_cfg_set(
       2, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "BOARD_I2C_RST");
-  lpgbt.gpio_set(2, true);
   lpgbt.gpio_cfg_set(
       4, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC0_HRST");
-  lpgbt.gpio_set(4, true);
   lpgbt.gpio_cfg_set(
       7, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC0_SRST");
-  lpgbt.gpio_set(7, true);
   lpgbt.gpio_cfg_set(
       6, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC3_HRST");
-  lpgbt.gpio_set(6, true);
   lpgbt.gpio_cfg_set(
       3, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "HGCROC3_SRST");
-  lpgbt.gpio_set(3, true);
   lpgbt.gpio_cfg_set(
       9, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "BIAS_I2C_RST");
-  lpgbt.gpio_set(9, true);
   lpgbt.gpio_cfg_set(
       8, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "ECON_HRST");
-  lpgbt.gpio_set(8, true);
+
   lpgbt.gpio_cfg_set(
       11, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
       "ECON_SRST");
+
+}  // end of setup_hcal_trig_gpio
+void setup_hcal_trig(pflib::lpGBT& lpgbt) {
+  setup_hcal_trig_gpio(lpgbt);
+
+  lpgbt.gpio_set(2, true);
+  lpgbt.gpio_set(3, true);
+  lpgbt.gpio_set(4, true);
+  lpgbt.gpio_set(6, true);
+  lpgbt.gpio_set(7, true);
+  lpgbt.gpio_set(8, true);
+  lpgbt.gpio_set(9, true);
   lpgbt.gpio_set(11, true);
 
   // setup the high speed inputs
@@ -109,32 +120,34 @@ void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
   /// TODO setup eRx for training mode
 }
 
+void setup_ecal_daq_gpio(pflib::lpGBT& lpgbt) {
+  lpgbt.gpio_cfg_set(
+      4,
+      lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
+      "M0_POWER_EN");
+  lpgbt.gpio_cfg_set(
+      5, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "M0_ROC_RE_Hb");
+  lpgbt.gpio_cfg_set(
+      6, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
+      "M0_ROC_RE_Sb");
+  lpgbt.gpio_cfg_set(
+      7,
+      lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
+      "M0_ECON_RE_Hb");
+  lpgbt.gpio_cfg_set(
+      8,
+      lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
+      "M0_ECON_RE_Sb");
+}  // end of setup_ecal_daq_gpio
+
 void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
+  setup_ecal_daq_gpio(lpgbt);
   if (mode == ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard) {
-    lpgbt.gpio_cfg_set(
-        4,
-        lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
-        "M0_POWER_EN");
     lpgbt.gpio_set(4, true);
-    lpgbt.gpio_cfg_set(
-        5,
-        lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
-        "M0_ROC_RE_Hb");
     lpgbt.gpio_set(5, true);
-    lpgbt.gpio_cfg_set(
-        6,
-        lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLUP | lpGBT::GPIO_IS_STRONG,
-        "M0_ROC_RE_Sb");
     lpgbt.gpio_set(6, true);
-    lpgbt.gpio_cfg_set(
-        7,
-        lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
-        "M0_ECON_RE_Hb");
     lpgbt.gpio_set(7, true);
-    lpgbt.gpio_cfg_set(
-        8,
-        lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
-        "M0_ECON_RE_Sb");
     lpgbt.gpio_set(8, true);
 
     /*
@@ -157,7 +170,8 @@ void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
 
     // finalize the setup
     lpgbt.finalize_setup();
-  }
+  }  // end condition on DAQ_SingleModuleMotherboard
+
   if (mode == ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard) {
     // setup the high speed inputs
     for (int i = 0; i < 6; i++) {
@@ -165,8 +179,8 @@ void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
     }
     // finalize the setup
     lpgbt.finalize_setup();
-  }
-}
+  }  // end condition on TRIG_SingleModuleMotherboard
+}  // end of setup_ecal
 
 }  // namespace standard_config
 }  // namespace lpgbt

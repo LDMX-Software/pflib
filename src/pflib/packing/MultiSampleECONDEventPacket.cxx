@@ -9,54 +9,66 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
 const std::string MultiSampleECONDEventPacket::to_csv_header =
-    ECONDEventPacket::to_csv_header;
+    "timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,"
+    "toa";
 
 void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
   /**
    * The columns of the output CSV are
    * ```
-   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
+   * timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,toa
    * ```
-   *
-   * The sample index is not persisted.
-   *
-   * @see ECONDEventPacket::to_csv for how a single sample is written.
    */
-  for (const auto& sample : samples) {
-    sample.to_csv(f);
+  for (std::size_t i_sample{0}; i_sample < samples.size(); i_sample++) {
+    const auto& sample{samples[i_sample]};
+    for (std::size_t i_link{0}; i_link < sample.links.size(); i_link++) {
+      const auto& daq_link{sample.links[i_link]};
+      f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
+        << daq_link.event << ',' << i_link << ',' << "calib," << i_sample
+        << ',';
+      daq_link.calib.to_csv(f);
+      f << '\n';
+      for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+        f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
+          << daq_link.event << ',' << i_link << ',' << i_ch << ',' << i_sample
+          << ',';
+        daq_link.channels[i_ch].to_csv(f);
+        f << '\n';
+      }
+    }
   }
 }
 
-void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame) {
+void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame,
+                                       bool expect_ldmx_ror_header) {
   samples.clear();
-  /*
-  run = frame[0];
-  pflib_log(trace) << hex(frame[0]) << " -> run = " << run;
-  ievent = (frame[1] >> 8);
-  bx = (frame[1] & mask<8>);
-  pflib_log(trace) << hex(frame[1]) << " -> ievent, bx = " << ievent << ", "
-                   << bx;
-  uint32_t zero = frame[2];  // should be total length?
-  pflib_log(trace) << hex(frame[2]) << " -> length ?= " << frame[2];
-  uint32_t head_flag = (frame[3] >> 24);
-  corruption[0] = (head_flag != 0xA6u);
-  if (corruption[0]) {
-    pflib_log(warn) << "Header flag is not the same as expected value "
-                    << hex<uint32_t, 2>(head_flag) << " != 0xA6";
-  }
-  contrib_id = ((frame[3] >> 16) & mask<8>);
-  subsys_id = ((frame[3] >> 8) & mask<8>);
-  corruption[1] = (subsys_id != 0x07);
-  if (corruption[1]) {
-    pflib_log(warn) << "Subsystem DAQ ID not equal to HCal ID "
-                    << hex<int, 2>(subsys_id) << " != 0x07";
-  }
-  pflib_log(trace) << hex(frame[3]) << " -> contrib, subsys = " << contrib_id
-                   << ", " << subsys_id;
+  contrib_id = 0;
+  subsys_id = 0;
+  timestamp = 0;
 
-  */
-  std::size_t i_sample{0};
   std::size_t offset{0};
+  if (expect_ldmx_ror_header) {
+    /**
+     * the ldmx ror header inserts 4 32-bit words (16 bytes) of the form
+     *
+     * 0xA5 | 8b contrib | 8b subsys | 8b VERS = 0
+     * 32b 0
+     * 64b timestamp
+     */
+
+    uint8_t sentinel = static_cast<uint8_t>((frame[0] >> 24) & 0xff);
+    contrib_id = ((frame[0] >> 16) & 0xff);
+    subsys_id = ((frame[0] >> 8) & 0xff);
+    uint8_t vers = static_cast<uint8_t>(frame[0] & 0xff);
+
+    // frame[1] == 0
+    // timestamp is in frame[2] and frame[3]
+    // combine into uint64_t because timestamp is 64b but each word is 32b
+    timestamp = (static_cast<uint64_t>(frame[3]) << 32) |
+                static_cast<uint64_t>(frame[2]);
+    offset += 4;
+  }
+  std::size_t i_sample{0};
   while (offset < frame.size()) {
     /**
      * The software emulation adds another header before the ECOND packet,

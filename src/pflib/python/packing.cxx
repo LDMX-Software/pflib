@@ -1,5 +1,7 @@
 #include "packing.h"
 
+#include <iostream>
+
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 
@@ -39,10 +41,15 @@ type "+bp::str(class_name));
 */
 
 /// wrapper to call EventPacket::from given a WordVector
-template <class EventPacket>
-void _from(EventPacket& ep, std::vector<uint32_t>& wv) {
-  // auto wv = to_word_vector(frame);
+void ECONDEventPacket_from(pflib::packing::ECONDEventPacket& ep,
+                           std::vector<uint32_t>& wv) {
   ep.from(wv);
+}
+
+void MultiSampleECONDEventPacket_from(
+    pflib::packing::MultiSampleECONDEventPacket& ep, std::vector<uint32_t>& wv,
+    bool expect_ldmx_ror_header) {
+  ep.from(wv, expect_ldmx_ror_header);
 }
 
 const char* WordVector__doc__ =
@@ -82,6 +89,41 @@ const pflib::packing::ECONDEventPacket& MultiSampleECONDEventPacket_sample(
   return ep.samples.at(index);
 }
 
+struct OFStream {
+  std::shared_ptr<std::ofstream> output_;
+  void open(const std::string& fp) {
+    if (!output_) {
+      output_ = std::make_shared<std::ofstream>();
+    }
+    output_->open(fp);
+  }
+  bool is_open() {
+    if (!output_) return false;
+    return output_->is_open();
+  }
+  void close() {
+    if (!output_) return;
+    output_->close();
+  }
+};
+
+void MultiSampleECONDEventPacket_header_to_csv(
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
+  if (not o.is_open()) {
+    throw std::runtime_error("OFStream has not been opened.");
+  }
+  (*o.output_) << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+               << '\n';
+}
+
+void MultiSampleECONDEventPacket_to_csv(
+    pflib::packing::MultiSampleECONDEventPacket& ep, OFStream o) {
+  if (not o.is_open()) {
+    throw std::runtime_error("OFStream has not been opened.");
+  }
+  ep.to_csv(*(o.output_));
+}
+
 void setup_packing() {
   BOOST_PYTHON_SUBMODULE(packing);
 
@@ -89,6 +131,11 @@ void setup_packing() {
   bp::def("to_word_vector", "convert input python object into a WordVector",
       to_word_vector);
       */
+
+  bp::class_<OFStream, boost::noncopyable>("OFStream", bp::init<>())
+      .def("open", &OFStream::open)
+      .def("is_open", &OFStream::is_open)
+      .def("close", &OFStream::close);
 
   /**
    * We bind our standard raw-data object as a "WordVector"
@@ -123,7 +170,7 @@ void setup_packing() {
    */
   bp::class_<pflib::packing::ECONDEventPacket>(
       "ECONDEventPacket", ECONDEventPacket__doc__, bp::init<std::size_t>())
-      .def("from_word_vector", &_from<pflib::packing::ECONDEventPacket>)
+      .def("from_word_vector", &ECONDEventPacket_from)
       .def("adc_cm0", &pflib::packing::ECONDEventPacket::adc_cm0)
       .def("adc_cm1", &pflib::packing::ECONDEventPacket::adc_cm1)
       .def("channel", &pflib::packing::ECONDEventPacket::channel)
@@ -132,8 +179,8 @@ void setup_packing() {
   bp::class_<pflib::packing::MultiSampleECONDEventPacket>(
       "MultiSampleECONDEventPacket", MultiSampleECONDEventPacket__doc__,
       bp::init<int>())
-      .def("from_word_vector",
-           &_from<pflib::packing::MultiSampleECONDEventPacket>)
+      .def("from_word_vector", &MultiSampleECONDEventPacket_from,
+           (bp::arg("words"), bp::arg("expect_ldmx_ror_header") = false))
       .def("soi", &pflib::packing::MultiSampleECONDEventPacket::soi,
            bp::return_value_policy<bp::reference_existing_object>())
       .add_property("n_samples", &MultiSampleECONDEventPacket_n_samples)
@@ -142,5 +189,13 @@ void setup_packing() {
       .def_readonly("i_soi",
                     &pflib::packing::MultiSampleECONDEventPacket::i_soi)
       .def_readonly("econd_id",
-                    &pflib::packing::MultiSampleECONDEventPacket::econd_id);
+                    &pflib::packing::MultiSampleECONDEventPacket::econd_id)
+      .def_readonly("contrib_id",
+                    &pflib::packing::MultiSampleECONDEventPacket::contrib_id)
+      .def_readonly("subsys_id",
+                    &pflib::packing::MultiSampleECONDEventPacket::subsys_id)
+      .def_readonly("timestamp",
+                    &pflib::packing::MultiSampleECONDEventPacket::timestamp)
+      .def("to_csv", &MultiSampleECONDEventPacket_to_csv)
+      .def("header_to_csv", &MultiSampleECONDEventPacket_header_to_csv);
 }
