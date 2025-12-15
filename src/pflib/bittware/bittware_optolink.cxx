@@ -40,6 +40,33 @@ BWOptoLink::BWOptoLink(int ilink, BWOptoLink& daqlink)
                                                    chipaddr, isdaq_);
 }
 
+void BWOptoLink::soft_reset_link() {
+  /**
+   * This reset does not affect all links in a block.
+   */
+  /// only apply for daq links
+  if (!isdaq_) return;
+
+  const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
+  const uint32_t RX_RESET = 0x4 << ilink_;
+  const uint32_t TX_RESET = 0x2 << ilink_;
+
+  gtys_.write(0x080, TX_RESET);
+  gtys_.write(0x080, RX_RESET);
+  usleep(1000);
+  int done = gtys_.readMasked(REG_STATUS, 0x1);
+
+  uint32_t REG_DECODER_RESET = 0x100;
+  coder_->write(REG_DECODER_RESET, 1 << ilink_);  // reset the DECODER
+  uint32_t REG_ICEC_RESET = 0x104 + (ilink_ / 2) * 4;
+  int BIT_IC_RESET = (ilink_ % 2) ? (16 + 6) : (6);
+  int BIT_EC_RESET = (ilink_ % 2) ? (16 + 6 + 8) : (6 + 8);
+  usleep(1000);
+  coder_->setclear(REG_ICEC_RESET, BIT_IC_RESET, true);  // self clearing
+  coder_->setclear(REG_ICEC_RESET, BIT_EC_RESET, true);  // self clearing
+  usleep(1000);
+}
+
 void BWOptoLink::reset_link() {
   /**
    * This reset could affect all links in a block since
