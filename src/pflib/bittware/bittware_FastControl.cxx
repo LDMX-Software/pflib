@@ -40,7 +40,15 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
   static const int BX_FOR_LINK_RESET = 40 * 64 - 64;
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, BX_FOR_LINK_RESET);
-  printf("%08x\n", axi_.read(REG_CTL));
+  printf("BW FastControl REG_CTL: %08x\n", axi_.read(REG_CTL));
+  printf("  ENABLE_L1A      : %B\n",
+         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1));
+  printf("  DISABLE_EXTERNAL: %B\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1));
+  printf("  DISABLE_ROR_MASK: %B\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1));
+  printf("  USE_NZS         : %B\n",
+         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1));
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -140,15 +148,16 @@ void BWFastControl::fc_enables_read(bool& l1a_overall, bool& ext_l1a) {
 }
 void BWFastControl::fc_enables(bool l1a_overall, bool ext_l1a) {
   axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, (l1a_overall ? 1 : 0));
+  // disabling the ROR masking is dangerous but it seems to be necessary
+  // the ROR mask is supposed to prevent a link that is broken
+  // from accidentally sending a ROR but the logic seems to be messed up
+  // since we are never able to get a EXT_ROR to increment when EXT_ROR_UNMASKED
+  // increments
+  axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 1);
   if (ext_l1a) {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 0);
-    axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 0);
   } else {
     axi_.writeMasked(REG_CTL, MASK_DISABLE_EXTERNAL, 1);
-    // disabling the ROR masking is dangerous but it seems to be necessary
-    // the ROR mask is supposed to prevent a link that is broken
-    // from accidentally sending a ROR
-    axi_.writeMasked(REG_CTL, MASK_DISABLE_ROR_MASK, 1);
   }
 }
 

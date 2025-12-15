@@ -8,7 +8,7 @@ namespace bittware {
 
 class OptoElinksBW : public Elinks {
  public:
-  OptoElinksBW(int ilink, const char* dev = "/dev/datadev_0");
+  OptoElinksBW(int ilink, const char* dev);
   virtual std::vector<uint32_t> spy(int ilink);
   virtual void setBitslip(int ilink, int bitslip) {
     /// only in ECON

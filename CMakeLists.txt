@@ -49,7 +49,16 @@ if (DEFINED ENV{ROGUE_DIR})
 else()
   set(Rogue_DIR ${CMAKE_PREFIX_PATH}/lib)
 endif()
-find_package(Rogue)
+find_package(Rogue CONFIG)
+if (${Rogue_FOUND})
+  list(REMOVE_ITEM ROGUE_LIBRARIES "PUBLIC")
+  if (NOT TARGET Rogue::Rogue)
+    add_library(Rogue::Rogue INTERFACE IMPORTED)
+    set_target_properties(Rogue::Rogue PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${ROGUE_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${ROGUE_LIBRARIES}")
+  endif()
+endif()
 
 # construct a register_maps library that the compiler can use
 # to lookup registers given parameter names for a chip type
@@ -85,7 +94,6 @@ add_library(packing SHARED
   src/pflib/packing/SingleROCEventPacket.cxx
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
-  src/pflib/packing/SoftWrappedECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -150,7 +158,7 @@ target_include_directories(pflib PUBLIC
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(pflib PUBLIC yaml-cpp::yaml-cpp packing version utility logging register_maps)
 if (${Rogue_FOUND})
-  target_include_directories(pflib PUBLIC ${ROGUE_INCLUDE_ONLY})
+  target_link_libraries(pflib PUBLIC Rogue::Rogue)
 endif()
 add_dependencies(pflib direct_access lpgbt_regmap)
 
@@ -212,6 +220,15 @@ target_link_libraries(pfdecoder PRIVATE pflib)
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
 
+if (${Rogue_FOUND})
+  add_executable(rogue-decoder app/rogue_decoder.cxx)
+  target_link_libraries(rogue-decoder PUBLIC pflib Rogue::Rogue)
+  string(REPLACE "v" "" version_no_v "${ROGUE_VERSION}")
+  if (version_no_v VERSION_GREATER "6.6.2")
+    target_compile_definitions(rogue-decoder PUBLIC NEED_ROGUE_NUMPY=1)
+  endif()
+endif()
+
 add_executable(pfcompile app/pfcompile.cxx)
 target_link_libraries(pfcompile pflib)
 
@@ -225,7 +242,10 @@ target_link_libraries(pfdefaults pflib)
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
 set_target_properties(pypflib PROPERTIES PREFIX "")
-install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder pfdecompile pfcompile pfdefaults
+install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
+# not installing the C++ rogue-decoder because it won't work with Rogue 6.8
+# due to a linking error from within Rogue
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

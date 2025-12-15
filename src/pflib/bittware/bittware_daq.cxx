@@ -41,8 +41,8 @@ static constexpr uint32_t ADDR_BASE_COUNTER = 0x840;
 static constexpr uint32_t ADDR_BASE_LINK_COUNTER = 0x900;
 static constexpr uint32_t ADDR_INFO = 0x940;
 
-static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007F;
-static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0000FF80;
+static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007f;
+static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0001FF00;
 
 HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
     : DAQ(1),
@@ -82,9 +82,16 @@ void HcalBackplaneBW_Capture::reset() {
 }
 int HcalBackplaneBW_Capture::getEventOccupancy() {  // hmm... multiple econs...
   capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
-  return capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS) / samples_per_ror();
+  auto nsamples = capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
+  if (samples_per_ror() == 0) {
+    pflib_log(warn) << "DAQ not configured, Samples/ROR set to zero.";
+    return nsamples;
+  }
+  return nsamples / samples_per_ror();
 }
 void HcalBackplaneBW_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
+  // TODO should this be events (for us) or events (for ECON)?
+  //      i.e. nsampeles or nsamples / samples_per_ror?
   int nevt = getEventOccupancy();
   empty = (nevt == 0);
   full = (nevt == 0x7f);
@@ -93,9 +100,8 @@ void HcalBackplaneBW_Capture::setup(int econid, int samples_per_ror, int soi) {
   pflib::DAQ::setup(econid, samples_per_ror, soi);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
-  capture_.writeMasked(
-      ADDR_PICK_ECON, MASK_PICK_ECON,
-      0);  // TODO: handle multiple ECONs (needs support higher in the chain)
+  // TODO: handle multiple ECONs (needs support higher in the chain)
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
   capture_.writeMasked(ADDR_ECON0_ID, MASK_ECON0_ID, econid);
 }
 void HcalBackplaneBW_Capture::enable(bool doenable) {
@@ -139,8 +145,8 @@ std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   return retval;
 }
 void HcalBackplaneBW_Capture::advanceLinkReadPtr() {
-  capture_.write(ADDR_ADV_IO,
-                 1);  // auto-clear, only correct for one econ right now
+  // auto-clear, only correct for one econ right now
+  capture_.write(ADDR_ADV_IO, 1);
 }
 
 std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(

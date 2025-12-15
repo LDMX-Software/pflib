@@ -35,6 +35,11 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
+    // Load GPIO configuration for lpGBTs
+    pflib::lpgbt::standard_config::setup_hcal_daq_gpio(*daq_lpgbt_);
+    pflib::lpgbt::standard_config::setup_hcal_trig_gpio(*trig_lpgbt_);
+
+    // Setup lpGBTs
     try {
       int daq_pusm = daq_lpgbt_->status();
       int trg_pusm = trig_lpgbt_->status();
@@ -119,7 +124,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
     elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>();
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
@@ -192,9 +197,11 @@ class HcalBackplaneBW : public HcalBackplane {
         buf.insert(buf.end(), subpacket.begin(), subpacket.end());
         daq().advanceLinkReadPtr();
       }
+      // FW puts in one last "header" that signals no more packets
+      buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
     } else {
       PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
+                        "HcalBackplaneBWTarget::read_event not implemented "
                         "for provided DaqFormat");
     }
 

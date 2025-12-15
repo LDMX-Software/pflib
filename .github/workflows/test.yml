@@ -2,6 +2,10 @@ name: test
 
 on:
   push:
+  workflow_run:
+    workflows: ["clang-format"]
+    types:
+      - completed
 
 jobs:
   test:
@@ -24,3 +28,5 @@ jobs:
         run: |
           just init ${{ matrix.host }}
           just configure build test
+        env:
+          PFLIB_CONTAINER: 1

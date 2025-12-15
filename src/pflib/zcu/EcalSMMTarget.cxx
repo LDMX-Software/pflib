@@ -46,6 +46,9 @@ class EcalSMMTargetZCU : public Target {
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
+  const std::vector<std::pair<int, int>>& getRocErxMapping()
+      override;  // because there is no header file.
+
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
@@ -94,7 +97,7 @@ class EcalSMMTargetZCU : public Target {
       }
     } else {
       PFEXCEPTION_RAISE("NoImpl",
-                        "HcalBackplaneZCUTarget::read_event not implemented "
+                        "EcalSMMZCU::read_event not implemented "
                         "for provided DaqFormat");
     }
 
@@ -110,6 +113,10 @@ class EcalSMMTargetZCU : public Target {
   Target::DaqFormat format_;
   int contrib_id_;
 };
+
+const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
+  return EcalModule::getRocErxMapping();
+}
 
 Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
 

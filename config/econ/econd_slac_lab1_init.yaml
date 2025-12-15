@@ -17,6 +17,7 @@ ETX:
   0_INVERT_DATA: 1 # invert data
 FORMATTERBUFFER:
   GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
+  GLOBAL_IDLE_PATTERN: 0x1277cc
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1 # pass through mode 
   GLOBAL_MATCH_THRESHOLD: 0 # number of eRx that must agree on a Header Word for that word to be considered a Header Word

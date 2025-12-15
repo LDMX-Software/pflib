@@ -97,16 +97,6 @@ class ECONDEventPacket {
    * by software emulation or hardware.
    */
   void from(std::span<uint32_t> data);
-
-  /// header string if using to_csv
-  static const std::string to_csv_header;
-
-  /**
-   * write current packet into a CSV
-   *
-   * @param[in,out] f file to write CSV to
-   */
-  void to_csv(std::ofstream& f) const;
 };
 
 }  // namespace pflib::packing

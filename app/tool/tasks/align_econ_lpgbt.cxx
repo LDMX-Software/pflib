@@ -3,7 +3,7 @@
 #include "pflib/OptoLink.h"
 
 static void print_locked_status(pflib::lpGBT& lpgbt) {
-  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
+  constexpr uint16_t REG_EPRX0LOCKED = 0x142;
 
   auto read_result = lpgbt.read({REG_EPRX0LOCKED});
 

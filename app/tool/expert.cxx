@@ -234,6 +234,12 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().fc_setup_calib(offset);
   }
 
+  if (cmd == "LED") {
+    int offset = pft->fc().fc_get_setup_led();
+    offset = pftool::readline_int("Calibration L1A offset for LED?", offset);
+    pft->fc().fc_setup_led(offset);
+  }
+
   if (cmd == "STATUS" || do_status) {
     static const std::map<int, std::string> bit_comments = {
         {0, "encoding errors"},
@@ -299,5 +305,6 @@ auto menu_fc =
         ->line("BUFFER_CLEAR", "Send a buffer clear", fc)
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
-        ->line("CALIB", "Setup calibration pulse", fc);
+        ->line("CALIB", "Setup calibration pulse", fc)
+        ->line("LED", "Setup LED calibration pulse", fc);
 }  // namespace

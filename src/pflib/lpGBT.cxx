@@ -409,7 +409,7 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     // Wait two seconds
     if (elapsed_us > 2000000) {
-      printf(" INFO: Current lock state = %d\n", group, state);
+      printf(" INFO: Current lock state = %d %d\n", group, state);
       break;
     }
     usleep(1000);
@@ -669,7 +669,7 @@ bool lpGBT::i2c_transaction_check(int ibus, bool wait) {
     if (val & SUCCESS) {
       return true;
     }
-    usleep(100);  //
+    usleep(100);
   } while (wait);
   return false;
 }
@@ -694,6 +694,7 @@ void lpGBT::finalize_setup() { write(REG_POWERUP2, 0x4 | 0x2); }
 int lpGBT::status() { return read(REG_POWERUP_STATUS); }
 
 std::string lpGBT::status_name(int pusm) {
+  static const int n_known_states = 20;
   static const char* states[] = {"ARESET",
                                  "RESET1",
                                  "WAIT_VDD_STABLE",
@@ -714,7 +715,9 @@ std::string lpGBT::status_name(int pusm) {
                                  "RESET_LOGIC_USING_DLL",
                                  "WAIT_CHNS_LOCKED",
                                  "READY"};
-  return states[pusm];
+
+  if (pusm < 20) return states[pusm];
+  return "UNKNOWN " + std::to_string(pusm);
 }
 
 }  // namespace pflib
