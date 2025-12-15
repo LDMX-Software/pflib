@@ -29,7 +29,8 @@ auto menu_tasks =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
                charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
-	->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT", get_lpgbt_temps)
+        ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
+               get_lpgbt_temps)
         ->line("PARAMETER_TIMESCAN",
                "scan charge/calib pulse over time for varying parameters",
                parameter_timescan)
