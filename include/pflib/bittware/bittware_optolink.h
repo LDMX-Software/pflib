@@ -38,6 +38,7 @@ class BWOptoLink : public pflib::OptoLink {
   const char* dev() const { return gtys_.dev(); }
   virtual int ilink() { return ilink_; }
   virtual bool is_bidirectional() { return isdaq_; }
+  virtual void soft_reset_link() override;
   virtual void reset_link();
   virtual void run_linktrick();
 

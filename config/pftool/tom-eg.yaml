@@ -1,4 +1,5 @@
 pftool: !file "pftool.yaml"
 target:
-  type: "HcalBackplaneZCU"
+  type: "HcalBackplaneBittware"
   ilink: 0
+  boardmask: 1
