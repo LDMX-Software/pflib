@@ -74,10 +74,6 @@ void save_results(const std::string& results_file,
     fout.close();
 
     printf("  > Successfully wrote calibration data to '%s'\n", results_file.c_str());
-    // printf("\n---------------------------------------------------------\n");
-    // printf("  >>> Optimal VREFTUNE for %08X is: %d <<<\n",
-    //        chipid, optimal_vref_tune);
-    // printf("---------------------------------------------------------\n");
 }
 
 static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, int n_pin, int curdacvalue, const std::string& results_file, int samples = 20) {
@@ -98,7 +94,6 @@ static std::vector<uint16_t> read_adc_at_current(Target* tgt, int adc_channel, i
 
 	
 	uint8_t curdac_value = lpgbt_daq.read(REG_CURDACVALUE);
-	// printf("  > CURDACVALUE: %d\n", curdac_value);
 
     	for (int i = 0; i < samples; ++i) {
 		if (curdacvalue == 0) {
@@ -176,7 +171,7 @@ static void get_calib_constants(Target* tgt) {
 	uint32_t chipid = lpgbt_daq.read_efuse(0);
 	printf(" CHIPID: %08X\n", chipid);
 	
-	char chipid_str[9];          // 8 hex chars + null terminator
+	char chipid_str[9];
 	snprintf(chipid_str, sizeof(chipid_str), "%08X", chipid);
 	std::string chipid_hex = chipid_str;
 
@@ -219,8 +214,6 @@ static void get_calib_constants(Target* tgt) {
 				for (size_t i = 0; i < row.size(); i++) {
 					const std::string& colname = header[i];
 					const std::string& raw     = row[i];
-					// printf("     %s = %s\n", colname.c_str(), raw.c_str());
-					// if (colname == "CHIPID") continue;
 					try {
 						c.values[colname] = raw;
 						} catch (...) {
@@ -232,13 +225,12 @@ static void get_calib_constants(Target* tgt) {
 			break;
 			}
 		}
-	}	
-	
-    	// if (!found) {
-        // 	printf("  > ERROR: CHIPID '%s' not found in calibration DB.\n",
-        //        	chipid.c_str());
-        // 	return;
-    	// }
+    	 	if (!found) {
+         		printf("  > ERROR: CHIPID '%s' not found in calibration DB.\n",
+               		chipid_hex.c_str());
+        		return;
+    		}
+	}		
 
     	printf("  > Success! Loaded constants for %08X\n", chipid);
 
@@ -314,12 +306,13 @@ static void read_internal_temp(Target* tgt, const std::string& results_file) {
 
 void get_lpgbt_temps(Target* tgt) {
 
-	pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
-	uint32_t chipid = lpgbt_daq.read_efuse(0);
-
-	
-	const std::string yaml_file = "calibration_results.yaml";
+    pflib::lpGBT lpgbt_daq{tgt->get_opto_link("DAQ").lpgbt_transport()};
+    uint32_t chipid = lpgbt_daq.read_efuse(0);
+    printf(" --- Current lpGBT CHIPID: %08X ---\n", chipid);	
+    
+    const std::string yaml_file = "calibration_results.yaml";
     const std::string csv_file = "lpgbt_calibration.csv";
+    
     if (file_exists(yaml_file)) {
         printf("  > Found existing calibration file '%s'...\n",
                yaml_file.c_str());
@@ -333,7 +326,7 @@ void get_lpgbt_temps(Target* tgt) {
 		
 				printf("  > File downloaded... Unzipping...\n");
 				std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
-					std::system(unzip_cmd.c_str());	
+				std::system(unzip_cmd.c_str());	
 				
 				get_calib_constants(tgt);
 				read_internal_temp(tgt, "calibration_results.yaml");
@@ -346,8 +339,26 @@ void get_lpgbt_temps(Target* tgt) {
 				read_internal_temp(tgt, "calibration_results.yaml");
 			}
 		} else {
-        	read_internal_temp(tgt, "calibration_results.yaml");
+        		read_internal_temp(tgt, "calibration_results.yaml");
 		}
+    } else {
+	   printf("  > YAML file doesn't exist... turning to CSV...\n");
+	   if (!file_exists(csv_file)) {
+		printf("  > No calibration CSV file found... Downloading from CERN...\n");
+		std::string dl_cmd = "wget https://lpgbt.web.cern.ch/lpgbt/calibration/lpgbt_calibration_latest.zip";
+		std::system(dl_cmd.c_str());
+		
+		printf("  > File downloaded... Unzipping...\n");
+		std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
+		std::system(unzip_cmd.c_str());	
+				
+		printf("  > Removing .zip and .db files...\n");
+		std::string rm_cmd = "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
+		std::system(rm_cmd.c_str());
+	   }
+    	   get_calib_constants(tgt);
+	   read_internal_temp(tgt, "calibration_results.yaml");
     }
+
 }
 
