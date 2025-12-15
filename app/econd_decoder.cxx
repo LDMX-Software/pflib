@@ -13,12 +13,14 @@
 static void usage() {
   std::cout << "\n"
                " USAGE:\n"
-               "  econd-decoder [options] NLINKS input_file.raw\n"
+               "  econd-decoder [options] input_file.raw\n"
                "\n"
                " OPTIONS:\n"
                "  -h,--help    : print this help and exit\n"
                "  -o,--output  : output CSV file to dump samples into "
                "(default is input file with extension changed)\n"
+               "  --n-links    : number of active links connected to the ECOND"
+               " (default is 2)\n"
                "  -n,--nevents : provide maximum number of events (default is "
                "all events possible)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]) {
 
   bool trigger{false};
 
-  int n_links{-1};
+  int n_links{2};
   int nevents{-1};
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -60,6 +62,20 @@ int main(int argc, char* argv[]) {
         }
         i_arg++;
         out_file = argv[i_arg];
+      } else if (arg == "--n-links") {
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires an argument after it.";
+          return 1;
+        }
+        i_arg++;
+        try {
+          n_links = std::stoi(argv[i_arg]);
+        } catch (const std::invalid_argument& e) {
+          pflib_log(fatal) << "The argument to " << arg << " '" << argv[i_arg]
+                           << "' is not an integer.";
+          return 1;
+        }
       } else if (arg == "-n" or arg == "--nevents") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
@@ -99,16 +115,7 @@ int main(int argc, char* argv[]) {
         return 1;
       }
     } else {
-      if (n_links <= 0) {
-        try {
-          n_links = std::stoi(arg);
-        } catch (const std::invalid_argument& e) {
-          pflib_log(fatal) << "The first positional argument needs to be the "
-                              "number of links, but '"
-                           << arg << "' is not an integer.";
-          return 1;
-        }
-      } else if (not in_file.empty()) {
+      if (not in_file.empty()) {
         pflib_log(fatal) << "Can only decode one file at a time.";
         return 1;
       } else {
@@ -143,7 +150,7 @@ int main(int argc, char* argv[]) {
 
   try {
     o << std::boolalpha;
-    o << pflib::packing::ECONDEventPacket::to_csv_header << '\n';
+    o << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
 
     pflib::packing::MultiSampleECONDEventPacket ep(n_links);
     // count is NOT written into output file,

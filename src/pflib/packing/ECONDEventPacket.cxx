@@ -349,39 +349,6 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   }
 }
 
-const std::string ECONDEventPacket::to_csv_header =
-    "timestamp,i_link,bx,event,orbit,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,"
-    "toa";
-
-void ECONDEventPacket::to_csv(std::ofstream &f) const {
-  /**
-   * The columns of the output CSV are
-   * ```
-   * timestamp, i_link, bx, event, orbit, channel, i_sample, Tp, Tc, adc_tm1,
-   * adc, tot, toa
-   * ```
-   *
-   * Since there are 36 channels and one calib channel per DAQ links,
-   * there are N*(36+1) rows written for each call to this function
-   * where N is the number of links.
-   *
-   * The trigger links are entirely ignored.
-   */
-  for (std::size_t i_link{0}; i_link < links.size(); i_link++) {
-    const auto &daq_link{links[i_link]};
-    f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-      << daq_link.orbit << ',' << "calib,";
-    daq_link.calib.to_csv(f);
-    f << '\n';
-    for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
-      f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << i_ch << ',';
-      daq_link.channels[i_ch].to_csv(f);
-      f << '\n';
-    }
-  }
-}
-
 int ECONDEventPacket::adc_cm0(int i_link) const {
   return links.at(i_link).adc_cm0;
 }
