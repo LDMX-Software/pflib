@@ -1,4 +1,4 @@
 target:
   type: "EcalSMMBittware"
   ilink: 0 
-  dev: "/dev/datadev_2"
+  dev: "/dev/datadev_1"
