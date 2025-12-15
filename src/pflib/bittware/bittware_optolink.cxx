@@ -52,7 +52,6 @@ void BWOptoLink::soft_reset_link() {
   if (!isdaq_) return;
 
   const uint32_t SOFT_RESET = 0x1 << (ilink_ + 8);
-  printf("coder_->write(0x%03x, 0x%03x);\n", REG_DECODER_RESET, SOFT_RESET);
   coder_->write(REG_DECODER_RESET, SOFT_RESET);
 }
 

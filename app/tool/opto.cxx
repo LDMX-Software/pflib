@@ -52,6 +52,9 @@ void opto(const std::string& cmd, Target* target) {
              i.second);
     }
   }
+  if (cmd == "SOFTRESET") {
+    olink.soft_reset_link();
+  }
   if (cmd == "RESET") {
     olink.reset_link();
   }
@@ -74,7 +77,8 @@ auto optom =
     pftool::menu("OPTO", "Optical Link Functions", opto_render, NEED_FIBER)
         ->line("CHOOSE", "Choose optical link to connect to", opto)
         ->line("FULLSTATUS", "Get full status", opto)
-        ->line("RESET", "Reset optical link", opto)
+        ->line("SOFTRESET", "soft reset optical link", opto)
+        ->line("RESET", "hard reset optical link (only do while frontend is OFF)", opto)
         ->line("POLARITY", "Adjust the polarity", opto)
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);
