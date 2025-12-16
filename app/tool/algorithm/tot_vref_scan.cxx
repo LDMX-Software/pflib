@@ -39,14 +39,14 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     calibs = get_calibs<pflib::packing::SingleROCEventPacket>(tgt, roc, target_adc);
     vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                vref_targets);
+                                                calibs, vref_targets);
     trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
                                                 calibs, vref_targets, trim_targets);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     calibs = get_calibs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, target_adc); 
     vref_targets = tp50_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events,
-                                          vref_targets);
+                                          calibs, vref_targets);
     trim_targets = trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, 
                                           n_events, calibs, vref_targets, trim_targets);
   } else {
@@ -59,7 +59,7 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   for (int i_link{0}; i_link < 2; i_link++) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-    settings[refvol_page]["TOT_VREF"] = target[i_link];
+    settings[refvol_page]["TOT_VREF"] = vref_targets[i_link];
   }
 
   for (int ch{0}; ch < 72; ch++) {

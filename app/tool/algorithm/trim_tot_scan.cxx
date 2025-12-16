@@ -47,11 +47,22 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, int& n_events,
       auto test_handle =
           roc.testParameters().add(ch_page, "TRIM_TOT", trim_tot).apply();
       usleep(10);
-      tgt->daq_run("CHARGE", buffer, n_events, 100);
+      daq_run(tgt, "CHARGE", buffer, n_events, 100);
       auto data = buffer.get_buffer();
       std::vector<int> tots(data.size());
       for (std::size_t i{0}; i < tots.size(); i++) {
-        tots[i] = data[i].channel(ch).tot();
+        if constexpr (std::is_same_v<
+                          EventPacket,
+                          pflib::packing::MultiSampleECONDEventPacket>) {
+          tots[i] = data[i].samples[data[i].i_soi].channel(i_link, ch).tot();
+        } else if constexpr (std::is_same_v <
+                                  EventPacket,
+                                  pflib::packing::SingleROCEventPacket>) {
+          tots[i] = data[i].channel(ch).tot();
+        } else {
+          PFEXCEPTION_RAISE("BadConf",
+                            "Unable to get tot for the configured format");
+        }
       }
       auto efficiency = pflib::utility::efficiency(tots);
       pflib_log(info) << "tot efficiency is " << efficiency;
@@ -68,5 +79,20 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, int& n_events,
   pflib_log(info) << "Trim_tot retrieved for all channels";
   return tot_trims;
 }
+
+template std::array<int, 72>
+trim_tot_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, 
+                                  int& n_events,
+                                  std::array<int, 72>& calibs,
+                                  std::array<int, 2>& tot_vrefs,
+                                  std::array<int, 72>& tot_trims);
+
+template std::array<int, 72>
+trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, 
+                                  int& n_events,
+                                  std::array<int, 72>& calibs,
+                                  std::array<int, 2>& tot_vrefs,
+                                  std::array<int, 72>& tot_trims);
+
 
 }  // namespace pflib::algorithm
