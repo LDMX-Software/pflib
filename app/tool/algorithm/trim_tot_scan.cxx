@@ -9,7 +9,7 @@
 namespace pflib::algorithm {
 
 template <class EventPacket>
-std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, int& n_events,
+std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
                                   std::array<int, 72>& calibs,
                                   std::array<int, 2>& tot_vrefs,
                                   std::array<int, 72>& tot_trims) {
@@ -82,14 +82,14 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, int& n_events,
 
 template std::array<int, 72>
 trim_tot_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, 
-                                  int& n_events,
+                                  size_t& n_events,
                                   std::array<int, 72>& calibs,
                                   std::array<int, 2>& tot_vrefs,
                                   std::array<int, 72>& tot_trims);
 
 template std::array<int, 72>
 trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, 
-                                  int& n_events,
+                                  size_t& n_events,
                                   std::array<int, 72>& calibs,
                                   std::array<int, 2>& tot_vrefs,
                                   std::array<int, 72>& tot_trims);

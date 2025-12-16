@@ -32,23 +32,29 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   std::array<int, 72>
       trim_targets;
 
-  int n_events = 100;
+  size_t n_events = 100;
 
   tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    calibs = get_calibs<pflib::packing::SingleROCEventPacket>(tgt, roc, target_adc);
-    vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                calibs, vref_targets);
-    trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                calibs, vref_targets, trim_targets);
+    calibs = get_calibs<pflib::packing::SingleROCEventPacket>
+                                              (tgt, roc, target_adc);
+    vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>
+                                              (tgt, roc, n_events,
+                                              calibs, vref_targets);
+    trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>
+                                              (tgt, roc, n_events,
+                                              calibs, vref_targets, trim_targets);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    calibs = get_calibs<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, target_adc); 
-    vref_targets = tp50_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events,
-                                          calibs, vref_targets);
-    trim_targets = trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, 
-                                          n_events, calibs, vref_targets, trim_targets);
+    calibs = get_calibs<pflib::packing::MultiSampleECONDEventPacket>
+                                              (tgt, roc, target_adc); 
+    vref_targets = tp50_scan<pflib::packing::MultiSampleECONDEventPacket>
+                                              (tgt, roc, n_events,
+                                              calibs, vref_targets);
+    trim_targets = trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>
+                                              (tgt, roc, n_events, 
+                                              calibs, vref_targets, trim_targets);
   } else {
     pflib_log(warn) << "Unsupported DAQ format ("
                     << static_cast<int>(pftool::state.daq_format_mode)

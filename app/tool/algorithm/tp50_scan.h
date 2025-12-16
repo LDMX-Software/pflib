@@ -20,7 +20,7 @@ namespace pflib::algorithm {
  * @note Only functional for single-ROC targets
  */
 template <class EventPacket>
-std::array<int, 2> tp50_scan(Target* tgt, ROC roc, int& n_events,
+std::array<int, 2> tp50_scan(Target* tgt, ROC& roc, size_t& n_events,
         std::array<int, 72>& calibs, std::array<int, 2>& link_vref_list);
 
 }  // namespace pflib::algorithm
