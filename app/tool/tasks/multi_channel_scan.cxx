@@ -9,23 +9,11 @@
 
 ENABLE_LOGGING();
 
-void multi_channel_scan(Target* tgt) {
-  int nevents = pftool::readline_int("How many events per time point? ", 1);
-  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
-  bool isLED = pftool::readline_bool("Use external LED flashes?", false);
-  bool highrange =
-      pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
-  int start_bx = pftool::readline_int("Starting BX? ", -1);
-  int n_bx = pftool::readline_int("Number of BX? ", 3);
-  int link{0};
-  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
-                                                            : link = 1;
-  std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
+template <class EventPacket>
+static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc, size_t n_events,
+                                      int calib, bool isLED, int highrange, int link,
+                                      std::string fname, int start_bx, int n_bx) {
 
-  int ch0{0};
-  link == 0 ? ch0 = 18 : ch0 = 54;
-
-  auto roc{tgt->roc(pftool::state.iroc)};
   if (isLED) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
@@ -40,7 +28,7 @@ void multi_channel_scan(Target* tgt) {
     int n_phase_strobe{16};
     int offset{1};
     int nr_channels{-1};
-    DecodeAndWriteToCSV writer{
+    DecodeAndWriteToCSV<EventPacket> writer{
         fname,
         [&](std::ofstream& f) {
           nlohmann::json header;
@@ -57,12 +45,23 @@ void multi_channel_scan(Target* tgt) {
             f << nr_channels + 1 << ',';
             f << time << ',';
             f << ch << ',';
-
-            ep.channel(ch).to_csv(f);
+            if constexpr (std::is_same_v<
+                              EventPacket,
+                              pflib::packing::MultiSampleECONDEventPacket>) {
+              ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+            } else if constexpr (std::is_same_v<
+                                     EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
+              ep.channel(ch).to_csv(f);
+            } else {
+              PFEXCEPTION_RAISE("BadConf",
+                                "Unable to do all_channels_to_csv for the "
+                                "currently configured format.");
+            }
             f << '\n';
           }
         }};
-    tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+    tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
     for (nr_channels; nr_channels < 1; nr_channels++) {
@@ -144,18 +143,30 @@ void multi_channel_scan(Target* tgt) {
             }
             f << ch << ',';
 
-            ep.channel(ch).to_csv(f);
+            if constexpr (std::is_same_v<
+                              EventPacket,
+                              pflib::packing::MultiSampleECONDEventPacket>) {
+              ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+            } else if constexpr (std::is_same_v<
+                                     EventPacket,
+                                     pflib::packing::SingleROCEventPacket>) {
+              ep.channel(ch).to_csv(f);
+            } else {
+              PFEXCEPTION_RAISE("BadConf",
+                                "Unable to do all_channels_to_csv for the "
+                                "currently configured format.");
+            }
             f << '\n';
           }
         }};
-    tgt->setup_run(1 /* dummy - not stored */, Target::DaqFormat::SIMPLEROC,
+    tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
     for (nr_channels; nr_channels < 18; nr_channels++) {
       pflib_log(info) << "running scan " << nr_channels + 1 << " out of 19";
       auto test_param_handle = roc.testParameters();
       if (nr_channels == -1) {  // In case of -1, just take pedestal data
-        daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
+        daq_run(tgt, "PEDESTAL", writer, n_events, pftool::state.daq_rate);
         continue;
       }
       for (int ch = ch0 - nr_channels; ch <= ch0 + nr_channels; ch++) {
@@ -202,12 +213,38 @@ void multi_channel_scan(Target* tgt) {
             time =
                 (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
                 phase_strobe * clock_cycle / n_phase_strobe;
-            daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+            daq_run(tgt, "CHARGE", writer, n_events, pftool::state.daq_rate);
           }
         }
         // reset charge_to_l1a to central value
         tgt->fc().fc_setup_calib(central_charge_to_l1a);
       }
     }
+}
+
+
+void multi_channel_scan(Target* tgt) {
+  size_t n_events = pftool::readline_int("How many events per time point? ", 1);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
+  bool isLED = pftool::readline_bool("Use external LED flashes?", false);
+  bool highrange =
+      pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
+  int start_bx = pftool::readline_int("Starting BX? ", -1);
+  int n_bx = pftool::readline_int("Number of BX? ", 3);
+  int link{0};
+  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
+                                                            : link = 1;
+  std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
+
+  int ch0{0};
+  link == 0 ? ch0 = 18 : ch0 = 54;
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    multi_channel_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx, n_bx);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    multi_channel_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx, n_bx);
   }
 }
