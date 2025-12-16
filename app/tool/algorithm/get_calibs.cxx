@@ -59,12 +59,13 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
         if constexpr (std::is_same_v<
-                        EventPacket,
-                        pflib::packing::MultiSampleECONDEventPacket>) {
-          adcs.push_back(data[i].samples[data[i].i_soi].channel(i_link, ch).adc());
-        } else if constexpr (std::is_same_v <
-                              EventPacket,
-                              pflib::packing::SingleROCEventPacket>) {
+                          EventPacket,
+                          pflib::packing::MultiSampleECONDEventPacket>) {
+          adcs.push_back(
+              data[i].samples[data[i].i_soi].channel(i_link, ch).adc());
+        } else if constexpr (std::is_same_v<
+                                 EventPacket,
+                                 pflib::packing::SingleROCEventPacket>) {
           adcs.push_back(data[i].channel(ch).adc());
         } else {
           PFEXCEPTION_RAISE("BadConf",
@@ -88,12 +89,11 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
   return calibs;
 }
 
-template std::array<int, 72>
-get_calibs<pflib::packing::SingleROCEventPacket>
-                  (Target* tgt, ROC& roc, int& target_adc);
+template std::array<int, 72> get_calibs<pflib::packing::SingleROCEventPacket>(
+    Target* tgt, ROC& roc, int& target_adc);
 
 template std::array<int, 72>
-get_calibs<pflib::packing::MultiSampleECONDEventPacket>
-                  (Target* tgt, ROC& roc, int& targt_adc);
+get_calibs<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
+                                                        int& targt_adc);
 
 }  // namespace pflib::algorithm
