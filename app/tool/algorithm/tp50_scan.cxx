@@ -194,24 +194,5 @@ tp50_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
                             size_t& n_events,
                             std::array<int, 72>& calib, 
                             std::array<int, 2>& link_vref_list);
-//template int
-//local_vref_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, 
-//                      int& channel, int& vref_value,
-//                      int& n_events, auto& refvol_page, auto& buffer, int& i_link);
-// 
-//template int
-//local_vref_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, 
-//                      int& channel, int& vref_value,
-//                      int& n_events, auto& refvol_page, auto& buffer, int& i_link);
-//
-//template int
-//global_vref_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, 
-//                      int& channel, int& n_events,
-//                      auto& refvol_page, auto& buffer, int& i_link);
-//
-//template int
-//global_vref_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, 
-//                      int& channel, int& n_events,
-//                      auto& refvol_page, auto& buffer, int& i_link);
 
 }  // namespace pflib::algorithm
