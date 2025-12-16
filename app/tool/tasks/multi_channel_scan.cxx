@@ -10,10 +10,11 @@
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc, size_t n_events,
-                                      int calib, bool isLED, int highrange, int link,
-                                      std::string fname, int start_bx, int n_bx) {
-
+static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
+                                      size_t n_events, int calib, bool isLED,
+                                      int highrange, int link,
+                                      std::string fname, int start_bx,
+                                      int n_bx) {
   if (isLED) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
@@ -220,31 +221,34 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc, size_t n_eve
         tgt->fc().fc_setup_calib(central_charge_to_l1a);
       }
     }
-}
-
-
-void multi_channel_scan(Target* tgt) {
-  size_t n_events = pftool::readline_int("How many events per time point? ", 1);
-  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
-  bool isLED = pftool::readline_bool("Use external LED flashes?", false);
-  bool highrange =
-      pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
-  int start_bx = pftool::readline_int("Starting BX? ", -1);
-  int n_bx = pftool::readline_int("Number of BX? ", 3);
-  int link{0};
-  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
-                                                            : link = 1;
-  std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
-
-  int ch0{0};
-  link == 0 ? ch0 = 18 : ch0 = 54;
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    multi_channel_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx, n_bx);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    multi_channel_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx, n_bx);
   }
-}
+
+  void multi_channel_scan(Target * tgt) {
+    size_t n_events =
+        pftool::readline_int("How many events per time point? ", 1);
+    int calib =
+        pftool::readline_int("Setting for calib pulse amplitude? ", 256);
+    bool isLED = pftool::readline_bool("Use external LED flashes?", false);
+    bool highrange =
+        pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
+    int start_bx = pftool::readline_int("Starting BX? ", -1);
+    int n_bx = pftool::readline_int("Number of BX? ", 3);
+    int link{0};
+    pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
+                                                              : link = 1;
+    std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
+
+    int ch0{0};
+    link == 0 ? ch0 = 18 : ch0 = 54;
+
+    if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+      multi_channel_scan_writer<pflib::packing::SingleROCEventPacket>(
+          tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
+          n_bx);
+    } else if (pftool::state.daq_format_mode ==
+               Target::DaqFormat::ECOND_SW_HEADERS) {
+      multi_channel_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+          tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
+          n_bx);
+    }
+  }
