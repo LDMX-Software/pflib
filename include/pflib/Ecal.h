@@ -83,6 +83,7 @@ class EcalModule {
   int n_econs_;
   /// two ECONs
   std::array<std::unique_ptr<ECON>, 2> econs_;
+
  private:
   /// mapping of ROC halves to ECON-D eRx channels
   static const std::vector<std::pair<int, int>> roc_to_erx_map_;

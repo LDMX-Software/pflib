@@ -13,11 +13,13 @@ class ZCU_Capture : public DAQ {
   ZCU_Capture();
   virtual void reset() final;
   virtual int getEventOccupancy() final;
-  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) final {
+  virtual void setupLink(int ilink, int l1a_delay,
+                         int l1a_capture_width) final {
     // none of these parameters are relevant for the econd capture, which is
     // data-pattern based
   }
-  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) final {
+  virtual void getLinkSetup(int ilink, int& l1a_delay,
+                            int& l1a_capture_width) final {
     l1a_delay = -1;
     l1a_capture_width = -1;
   }
@@ -28,6 +30,7 @@ class ZCU_Capture : public DAQ {
   virtual std::vector<uint32_t> getLinkData(int ilink) final;
   virtual void advanceLinkReadPtr() final;
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) final;
+
  private:
   UIO capture_;
   bool per_econ_;

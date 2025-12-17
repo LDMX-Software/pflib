@@ -11,7 +11,8 @@
 
 namespace pflib {
 
-ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr, const std::string& type_version)
+ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
+         const std::string& type_version)
     : i2c_{i2c},
       roc_base_{roc_base_addr},
       type_version_{type_version},

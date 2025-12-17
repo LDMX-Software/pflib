@@ -26,8 +26,8 @@ class EcalSMMTargetZCU : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0, roc_mask);
+    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
+                                                      0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
@@ -106,6 +106,8 @@ const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
   return EcalModule::getRocErxMapping();
 }
 
-Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) { return new EcalSMMTargetZCU(ilink, roc_mask); }
+Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) {
+  return new EcalSMMTargetZCU(ilink, roc_mask);
+}
 
 }  // namespace pflib

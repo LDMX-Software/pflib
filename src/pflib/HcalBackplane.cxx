@@ -1,8 +1,7 @@
 #include "pflib/HcalBackplane.h"
 
-#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/lpgbt/I2C.h"
-
+#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -22,7 +21,8 @@ HcalBackplane::HcalBackplane() {
   roc_to_erx_map_ = {{3, 2}, {6, 7}, {4, 5}, {1, 0}};
 }
 
-void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardmask) {
+void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
+                         int hgcroc_boardmask) {
   // Load GPIO configuration for lpGBTs
   pflib::lpgbt::standard_config::setup_hcal_daq_gpio(daq_lpgbt);
   pflib::lpgbt::standard_config::setup_hcal_trig_gpio(trig_lpgbt);
@@ -84,8 +84,8 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardma
   econs_[1] = std::make_unique<ECON>(econ_i2c, (0x20 | 0), "econt");
   econs_[2] = std::make_unique<ECON>(econ_i2c, (0x20 | 1), "econt");
 
-  auto roc_i2c
-    = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
+  auto roc_i2c =
+      std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
   roc_i2c->set_bus_speed(1000);
   for (int ibd = 0; ibd < 4; ibd++) {
     if ((hgcroc_boardmask & (1 << ibd)) == 0) continue;
@@ -93,20 +93,18 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardma
         std::make_shared<pflib::lpgbt::I2CwithMux>(trig_lpgbt, I2C_BUS_BIAS,
                                                    ADDR_MUX_BIAS, (1 << ibd));
     std::shared_ptr<pflib::I2C> board_i2c =
-        std::make_shared<pflib::lpgbt::I2CwithMux>(
-            trig_lpgbt, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
+        std::make_shared<pflib::lpgbt::I2CwithMux>(trig_lpgbt, I2C_BUS_BOARD,
+                                                   ADDR_MUX_BOARD, (1 << ibd));
 
     nhgcroc_++;
     rocs_[ibd] = std::make_unique<HGCROCBoard>(
         ROC(roc_i2c, (0x20 | (ibd * 8)), "sipm_rocv3b"),
-        Bias(bias_i2c, board_i2c)
-    );
+        Bias(bias_i2c, board_i2c));
     i2c_[pflib::utility::string_format("HGCROC_%d", ibd)] = roc_i2c;
     i2c_[pflib::utility::string_format("BOARD_%d", ibd)] = board_i2c;
     i2c_[pflib::utility::string_format("BIAS_%d", ibd)] = bias_i2c;
   }
 }
-
 
 bool HcalBackplane::have_roc(int iroc) const {
   if (iroc < 0 or iroc >= rocs_.size()) {
@@ -154,8 +152,8 @@ ROC& HcalBackplane::roc(int which) {
                                           "ROC %d is not a valid ROC ID"));
   }
   if (not rocs_[which]) {
-    PFEXCEPTION_RAISE("DisabledROC", pflib::utility::string_format(
-                                          "ROC %d is disabled"));
+    PFEXCEPTION_RAISE("DisabledROC",
+                      pflib::utility::string_format("ROC %d is disabled"));
   }
   return rocs_[which]->roc;
 }
@@ -166,9 +164,8 @@ ECON& HcalBackplane::econ(int which) {
                                           "ROC %d is not a valid ROC ID"));
   }
   if (not econs_[which]) {
-    PFEXCEPTION_RAISE("DisabledECON", pflib::utility::string_format(
-                                          "ECON %d is disabled"));
-    
+    PFEXCEPTION_RAISE("DisabledECON",
+                      pflib::utility::string_format("ECON %d is disabled"));
   }
   return *(econs_[which]);
 }
@@ -179,8 +176,8 @@ Bias HcalBackplane::bias(int which) {
                                           "ROC %d is not a valid ROC ID"));
   }
   if (not rocs_[which]) {
-    PFEXCEPTION_RAISE("DisabledROC", pflib::utility::string_format(
-                                          "ROC %d is disabled"));
+    PFEXCEPTION_RAISE("DisabledROC",
+                      pflib::utility::string_format("ROC %d is disabled"));
   }
   return rocs_[which]->bias;
 }

@@ -10,7 +10,8 @@
 
 namespace pflib {
 
-ECON::ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr, const std::string& type_version)
+ECON::ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr,
+           const std::string& type_version)
     : i2c_{i2c},
       econ_base_{econ_base_addr},
       compiler_{Compiler::get(type_version)},

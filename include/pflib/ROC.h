@@ -19,7 +19,8 @@ class ROC {
   static const int N_REGISTERS_PER_PAGE = 32;
 
  public:
-  ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr, const std::string& type_version);
+  ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
+      const std::string& type_version);
 
   void setRunMode(bool active = true);
   bool isRunMode();

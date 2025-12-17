@@ -31,8 +31,8 @@ class EcalSMMTargetBW : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0, roc_mask);
+    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
+                                                      0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
@@ -146,7 +146,8 @@ class EcalSMMTargetBW : public Target {
   int contrib_id_;
 };
 
-Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask, const char* dev) {
+Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask,
+                                  const char* dev) {
   return new EcalSMMTargetBW(ilink, roc_mask, dev);
 }
 

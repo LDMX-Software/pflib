@@ -3,10 +3,10 @@
 #include <iostream>
 #include <memory>
 
-#include "pflib/zcu/UIO.h"
 #include "pflib/ECOND_Formatter.h"
 #include "pflib/HcalBackplane.h"
 #include "pflib/I2C_Linux.h"
+#include "pflib/zcu/UIO.h"
 
 namespace pflib {
 
@@ -104,7 +104,8 @@ int FiberlessCapture::getEventOccupancy() {
   return uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS,
                          MASK_OCCUPANCY);
 }
-void FiberlessCapture::setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
+void FiberlessCapture::setupLink(int ilink, int l1a_delay,
+                                 int l1a_capture_width) {
   int ictl = ctl_for(ilink);
   // gather lengths if we don't have them
   if (l1a_capture_width_.empty()) {
@@ -120,7 +121,7 @@ void FiberlessCapture::setupLink(int ilink, int l1a_delay, int l1a_capture_width
   uio_.writeMasked(ictl, MASK_CAPTURE_WIDTH, l1a_capture_width);
 }
 void FiberlessCapture::getLinkSetup(int ilink, int& l1a_delay,
-                               int& l1a_capture_width) {
+                                    int& l1a_capture_width) {
   int ictl = ctl_for(ilink);
   l1a_delay = uio_.readMasked(ictl, MASK_CAPTURE_DELAY);
   l1a_capture_width = uio_.readMasked(ictl, MASK_CAPTURE_WIDTH);
@@ -171,7 +172,7 @@ class HcalFiberless : public HcalBackplane {
 
   virtual int nrocs() override { return 1; }
   virtual int necons() override { return 0; }
-  virtual bool have_roc(int i) const override { return (i==0); }
+  virtual bool have_roc(int i) const override { return (i == 0); }
   virtual std::vector<int> roc_ids() const override { return {0}; }
 
   HcalFiberless() : HcalBackplane() {
@@ -184,10 +185,8 @@ class HcalFiberless : public HcalBackplane {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
 
-    rocs_[0] = std::make_unique<HGCROCBoard>(
-        ROC(i2croc, 0x20, "sipm_rocv3b"),
-        Bias(i2cboard, i2cboard)
-    );
+    rocs_[0] = std::make_unique<HGCROCBoard>(ROC(i2croc, 0x20, "sipm_rocv3b"),
+                                             Bias(i2cboard, i2cboard));
     nhgcroc_++;
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
@@ -221,7 +220,7 @@ class HcalFiberless : public HcalBackplane {
 
   ECON& econ(int which) override {
     PFEXCEPTION_RAISE("InvalidECONid",
-        "No ECONs connected for Fiberless targets.");
+                      "No ECONs connected for Fiberless targets.");
   }
 
   virtual Elinks& elinks() override { return *capture_; }
