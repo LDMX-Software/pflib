@@ -303,7 +303,15 @@ class FastControlCMS_MMap : public FastControl {
     uint32_t preval = uio_.read(ADDR_CTL_REG);
     uio_.write(ADDR_CTL_REG, ((preval | CTL_ENABLE_L1AS) ^ CTL_ENABLE_L1AS));
 
+    resetCounters();
+    usleep(1000);
+    bufferclear();
+    usleep(1000);
+    orbit_count_reset();
+    usleep(1000);
     uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
+    usleep(1000);
+
     // restore previous situation
     uio_.write(ADDR_CTL_REG, preval);
   }
