@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "../econ_links.h"
 #include "load_parameter_points.h"
 #include "pflib/utility/string_format.h"
 
@@ -15,6 +16,10 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                       int highrange, int link,
                                       std::string fname, int start_bx,
                                       int n_bx) {
+  int ch0{0};
+  link == 0 ? ch0 = 18 : ch0 = 54;
+  int n_links = determine_n_links(tgt);
+
   if (isLED) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
@@ -41,7 +46,7 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
           f << "channel,";
           f << pflib::packing::Sample::to_csv_header << '\n';
         },
-        [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+        [&](std::ofstream& f, const EventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
             f << nr_channels + 1 << ',';
             f << time << ',';
@@ -60,8 +65,9 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                 "currently configured format.");
             }
             f << '\n';
-          }
-        }};
+          }},
+          n_links // number of links
+        };
     tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
@@ -119,7 +125,7 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
     int offset{1};
     std::size_t i_param_point{0};
     int nr_channels{-1};
-    DecodeAndWriteToCSV writer{
+    DecodeAndWriteToCSV<EventPacket> writer{
         fname,
         [&](std::ofstream& f) {
           nlohmann::json header;
@@ -134,7 +140,7 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
           f << "channel,";
           f << pflib::packing::Sample::to_csv_header << '\n';
         },
-        [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
+        [&](std::ofstream& f, const EventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
             f << nr_channels + 1 << ',';
             f << time << ',';
@@ -158,8 +164,9 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                 "currently configured format.");
             }
             f << '\n';
-          }
-        }};
+          }},
+          n_links // number of links
+        };
     tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
@@ -222,33 +229,33 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
       }
     }
   }
+}
 
-  void multi_channel_scan(Target * tgt) {
-    size_t n_events =
-        pftool::readline_int("How many events per time point? ", 1);
-    int calib =
-        pftool::readline_int("Setting for calib pulse amplitude? ", 256);
-    bool isLED = pftool::readline_bool("Use external LED flashes?", false);
-    bool highrange =
-        pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
-    int start_bx = pftool::readline_int("Starting BX? ", -1);
-    int n_bx = pftool::readline_int("Number of BX? ", 3);
-    int link{0};
-    pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
-                                                              : link = 1;
-    std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
+void multi_channel_scan(Target * tgt) {
+  size_t n_events =
+      pftool::readline_int("How many events per time point? ", 1);
+  int calib =
+      pftool::readline_int("Setting for calib pulse amplitude? ", 256);
+  bool isLED = pftool::readline_bool("Use external LED flashes?", false);
+  bool highrange =
+      pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
+  int start_bx = pftool::readline_int("Starting BX? ", -1);
+  int n_bx = pftool::readline_int("Number of BX? ", 3);
+  int link{0};
+  pftool::readline_bool("Link 0 [Y] or link 1 [N]", "true") ? link = 0
+                                                            : link = 1;
+  std::string fname = pftool::readline_path("multi-channel-scan", ".csv");
 
-    int ch0{0};
-    link == 0 ? ch0 = 18 : ch0 = 54;
+  pflib::ROC roc{tgt->roc(pftool::state.iroc)};
 
-    if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-      multi_channel_scan_writer<pflib::packing::SingleROCEventPacket>(
-          tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
-          n_bx);
-    } else if (pftool::state.daq_format_mode ==
-               Target::DaqFormat::ECOND_SW_HEADERS) {
-      multi_channel_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-          tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
-          n_bx);
-    }
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    multi_channel_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
+        n_bx);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    multi_channel_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, n_events, calib, isLED, highrange, link, fname, start_bx,
+        n_bx);
   }
+}
