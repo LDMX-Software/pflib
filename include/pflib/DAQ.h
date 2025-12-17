@@ -75,8 +75,6 @@ class DAQ {
   int samples_, soi_;
 };
 
-DAQ* get_DAQ_zcu();
-
 }  // namespace pflib
 
 #endif  // PFLIB_DAQ_H_INCLUDED

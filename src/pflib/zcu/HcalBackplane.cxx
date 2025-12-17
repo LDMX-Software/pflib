@@ -87,29 +87,14 @@ class HcalBackplaneZCU : public HcalBackplane {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    std::vector<uint32_t> buf;
-
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
-      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
-      }
-      // special trailer word
-      // TODO: update to match FW, I just set ievt, soi, and subpacket size to
-      // zero
-      buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18));
+      return daq_->read_event_sw_headers();
     } else {
       PFEXCEPTION_RAISE("NoImpl",
                         "HcalBackplaneZCUTarget::read_event not implemented "
                         "for provided DaqFormat");
     }
-
-    return buf;
+    return {};
   }
 
  private:
