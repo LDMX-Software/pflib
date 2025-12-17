@@ -74,14 +74,21 @@ class HcalBackplane : public Target {
   /** The GPIO interface */
   std::unique_ptr<GPIO> gpio_;
 
-  /** The HGCROC objects connected to this backplane */
-  std::map<int, ROC> rocs_;
+  /**
+   * an HGCROC board contains one ROC, one Bias board
+   * and some other utilities that are accessible
+   * via the Bias C++ object
+   */
+  struct HGCROCBoard {
+    ROC roc;
+    Bias bias;
+  };
 
-  /// the extra chips on the HGCROC boards on this backplane
-  std::map<int, Bias> biases_;
+  /// the backplane can hold up to 4 HGCROC boards
+  std::array<std::unique_ptr<HGCROCBoard>, 4> rocs_;
 
   /// the ECONs on the ECON Mezzanine on this backplane
-  std::map<int, ECON> econs_;
+  std::array<std::unique_ptr<ECON>, 3> econs_;
 };
 
 }  // namespace pflib

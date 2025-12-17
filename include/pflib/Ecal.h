@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -21,18 +20,18 @@ class EcalModule {
   EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber);
 
   /** number of hgcrocs */
-  int nrocs() const { return 6; }
-  /// number of econds
-  int necons() const { return 2; }
+  int nrocs() const;
+  /// number of econs
+  int necons() const;
 
   /** do we have a roc with this id? */
-  bool have_roc(int iroc) const { return iroc >= 0 && iroc <= nrocs(); }
+  bool have_roc(int iroc) const;
 
   static constexpr const int ECON_D = 0;
   static constexpr const int ECON_T = 1;
 
   /** do we have an econ with this id? */
-  bool have_econ(int iecon) const { return iecon == ECON_D || iecon == ECON_T; }
+  bool have_econ(int iecon) const;
 
   /** get a list of the IDs we have set up */
   std::vector<int> roc_ids() const;
@@ -66,11 +65,16 @@ class EcalModule {
   int i2cbus_;
   int imodule_;
   std::shared_ptr<I2C> i2c_;
-  /// representation of Ecal HexaModule
-  std::vector<ROC> rocs_;
-  std::vector<ECON> econs_;
-  // Mapping ROC channel → ERX channel
+  /// number of ROCs that are enabled
+  int n_rocs_;
+  /// up to 6 ROCs some of which could be disabled
+  std::array<std::unique_ptr<ROC>, 6> rocs_;
+  /// number of ECONs that are enabled
+  int n_econs_;
+  /// two ECONs
+  std::array<std::unique_ptr<ECON>, 2> econs_;
  private:
+  /// mapping of ROC halves to ECON-D eRx channels
   static const std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
@@ -83,7 +87,7 @@ class EcalMotherboard {
   EcalModule& module(int imodule);
 
  private:
-  std::vector<std::shared_ptr<EcalModule*>> modules_;
+  std::vector<std::shared_ptr<EcalModule>> modules_;
 };
 
 }  // namespace pflib

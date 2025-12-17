@@ -28,17 +28,6 @@ class ZCU_Capture : public DAQ {
   virtual std::vector<uint32_t> getLinkData(int ilink) final;
   virtual void advanceLinkReadPtr() final;
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) final;
-
-
-  /**
-   * read out a whole event given the current setup
-   *
-   * since the ZCU firmware does not insert some headers we expect
-   * in the final system using Bittwares, we attempt to emulate that
-   * behavior and manually insert them.
-   */
-  std::vector<uint32_t> read_event_sw_headers();
-
  private:
   UIO capture_;
   bool per_econ_;

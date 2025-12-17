@@ -114,6 +114,7 @@ set(pflib_src
   src/pflib/GPIO.cxx
   src/pflib/Elinks.cxx
   src/pflib/Parameters.cxx
+  src/pflib/DAQ.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx

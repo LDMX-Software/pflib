@@ -11,37 +11,79 @@ static constexpr int I2C_ROCS[] = {0x08, 0x18, 0x28, 0x48, 0x58, 0x68};
 
 EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int imodule)
     : lpGBT_{lpgbt}, i2cbus_{i2cbus}, imodule_{imodule} {
+  n_rocs_ = 0;
+  n_econs_ = 0;
   i2c_ = std::make_shared<pflib::lpgbt::I2C>(lpGBT_, i2cbus_);
-  econs_.push_back(ECON(i2c_, I2C_ECON_D, "econd"));
-  econs_.push_back(ECON(i2c_, I2C_ECON_T, "econt"));
-  for (int i = 0; i < nrocs(); i++)
-    // confirm this is the right version
-    rocs_.push_back(ROC(i2c_, I2C_ROCS[i], "si_rocv3b"));
+  econs_[ECON_D] = std::make_unique<ECON>(i2c_, I2C_ECON_D, "econd");
+  n_econs_++;
+  econs_[ECON_T] = std::make_unique<ECON>(i2c_, I2C_ECON_T, "econt");
+  n_econs_++;
+  for (int i = 0; i < rocs_.size(); i++) {
+    rocs_[i] = std::make_unique<ROC>(i2c_, I2C_ROCS[i], "si_rocv3b");
+    n_rocs_++;
+  }
+}
+
+int EcalModule::nrocs() const {
+  return n_rocs_;
+}
+
+int EcalModule::necons() const {
+  return n_econs_;
+}
+
+bool EcalModule::have_roc(int which) const {
+  if (which < 0 or which >= rocs_.size()) {
+    return false;
+  }
+  return bool(rocs_[which]);
+}
+
+bool EcalModule::have_econ(int which) const {
+  if (which < 0 or which >= econs_.size()) {
+    return false;
+  }
+  return bool(econs_[which]);
 }
 
 std::vector<int> EcalModule::roc_ids() const {
   std::vector<int> ids;
-  for (int i = 0; i < nrocs(); i++) ids.push_back(i);
+  for (int i = 0; i < rocs_.size(); i++) {
+    if (rocs_[i]) {
+      ids.push_back(i);
+    }
+  }
   return ids;
 }
+
 std::vector<int> EcalModule::econ_ids() const {
   std::vector<int> ids;
-  for (int i = 0; i < necons(); i++) ids.push_back(i);
+  for (int i = 0; i < econs_.size(); i++) {
+    if (econs_[i]) {
+      ids.push_back(i);
+    }
+  }
   return ids;
 }
 
 ROC& EcalModule::roc(int which) {
-  if (which < 0 || which >= nrocs()) {
-    PFEXCEPTION_RAISE("InvalidROC", "Invalid ROC requested");
+  if (which < 0 || which >= rocs_.size()) {
+    PFEXCEPTION_RAISE("InvalidROC", "ROC "+std::to_string(which)+" is invalid");
   }
-  return rocs_[which];
+  if (not rocs_[which]) {
+    PFEXCEPTION_RAISE("DisabledROC", "ROC "+std::to_string(which)+" is disabled");
+  }
+  return *(rocs_[which]);
 }
 
 ECON& EcalModule::econ(int which) {
-  if (which < 0 || which >= nrocs()) {
-    PFEXCEPTION_RAISE("InvalidECON", "Invalid ECON requested");
+  if (which < 0 || which >= econs_.size()) {
+    PFEXCEPTION_RAISE("InvalidECON", "ECON "+std::to_string(which)+" is invalid");
   }
-  return econs_[which];
+  if (not econs_[which]) {
+    PFEXCEPTION_RAISE("DisabledECON", "ECON "+std::to_string(which)+" is disabled");
+  }
+  return *(econs_[which]);
 }
 
 using pflib::utility::string_format;

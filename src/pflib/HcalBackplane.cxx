@@ -80,18 +80,9 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardma
   auto econ_i2c = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_ECONS);
   econ_i2c->set_bus_speed(1000);
   i2c_["ECON"] = econ_i2c;
-  econs_.emplace(std::piecewise_construct,
-      std::forward_as_tuple(0),
-      std::forward_as_tuple(econ_i2c, (0x60 | 0), "econd")
-  );
-  econs_.emplace(std::piecewise_construct,
-      std::forward_as_tuple(1),
-      std::forward_as_tuple(econ_i2c, (0x20 | 0), "econt")
-  );
-  econs_.emplace(std::piecewise_construct,
-      std::forward_as_tuple(2),
-      std::forward_as_tuple(econ_i2c, (0x20 | 1), "econt")
-  );
+  econs_[0] = std::make_unique<ECON>(econ_i2c, (0x60 | 0), "econd");
+  econs_[1] = std::make_unique<ECON>(econ_i2c, (0x20 | 0), "econt");
+  econs_[2] = std::make_unique<ECON>(econ_i2c, (0x20 | 1), "econt");
 
   auto roc_i2c
     = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
@@ -106,13 +97,9 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardma
             trig_lpgbt, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
 
     nhgcroc_++;
-    rocs_.emplace(std::piecewise_construct,
-        std::forward_as_tuple(ibd),
-        std::forward_as_tuple(roc_i2c, (0x20 | (ibd * 8)), "sipm_rocv3b")
-    );
-    biases_.emplace(std::piecewise_construct,
-        std::forward_as_tuple(ibd),
-        std::forward_as_tuple(bias_i2c, board_i2c)
+    rocs_[ibd] = std::make_unique<HGCROCBoard>(
+        ROC(roc_i2c, (0x20 | (ibd * 8)), "sipm_rocv3b"),
+        Bias(bias_i2c, board_i2c)
     );
     i2c_[pflib::utility::string_format("HGCROC_%d", ibd)] = roc_i2c;
     i2c_[pflib::utility::string_format("BOARD_%d", ibd)] = board_i2c;
@@ -122,11 +109,17 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardma
 
 
 bool HcalBackplane::have_roc(int iroc) const {
-  return rocs_.find(iroc) != rocs_.end();
+  if (iroc < 0 or iroc >= rocs_.size()) {
+    return false;
+  }
+  return bool(rocs_[iroc]);
 }
 
 bool HcalBackplane::have_econ(int iecon) const {
-  return econs_.find(iecon) != econs_.end();
+  if (iecon < 0 or iecon >= econs_.size()) {
+    return false;
+  }
+  return bool(econs_[iecon]);
 }
 
 const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
@@ -136,8 +129,10 @@ const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
 std::vector<int> HcalBackplane::roc_ids() const {
   std::vector<int> ids;
   ids.reserve(rocs_.size());
-  for (const auto& [id, _conn] : rocs_) {
-    ids.push_back(id);
+  for (int i{0}; i < rocs_.size(); i++) {
+    if (rocs_[i]) {
+      ids.push_back(i);
+    }
   }
   return ids;
 }
@@ -145,38 +140,49 @@ std::vector<int> HcalBackplane::roc_ids() const {
 std::vector<int> HcalBackplane::econ_ids() const {
   std::vector<int> ids;
   ids.reserve(econs_.size());
-  for (const auto& [id, _conn] : econs_) {
-    ids.push_back(id);
+  for (int i{0}; i < econs_.size(); i++) {
+    if (econs_[i]) {
+      ids.push_back(i);
+    }
   }
   return ids;
 }
 
 ROC& HcalBackplane::roc(int which) {
-  auto roc_it{rocs_.find(which)};
-  if (roc_it == rocs_.end()) {
+  if (which < 0 or which >= rocs_.size()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
-                                          "Unknown ROC id %d", which));
+                                          "ROC %d is not a valid ROC ID"));
   }
-  return roc_it->second;
+  if (not rocs_[which]) {
+    PFEXCEPTION_RAISE("DisabledROC", pflib::utility::string_format(
+                                          "ROC %d is disabled"));
+  }
+  return rocs_[which]->roc;
 }
 
 ECON& HcalBackplane::econ(int which) {
-  auto econ_it{econs_.find(which)};
-  if (econ_it == econs_.end()) {
-    PFEXCEPTION_RAISE("InvalidECONid", pflib::utility::string_format(
-                                           "Unknown ECON id %d", which));
+  if (which < 0 or which >= econs_.size()) {
+    PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
+                                          "ROC %d is not a valid ROC ID"));
   }
-  return econ_it->second;
+  if (not econs_[which]) {
+    PFEXCEPTION_RAISE("DisabledECON", pflib::utility::string_format(
+                                          "ECON %d is disabled"));
+    
+  }
+  return *(econs_[which]);
 }
 
 Bias HcalBackplane::bias(int which) {
-  auto bias_it{biases_.find(which)};
-  if (bias_it == biases_.end()) {
-    PFEXCEPTION_RAISE("InvalidBoardId", pflib::utility::string_format(
-                                            "Unknown board id %d", which));
+  if (which < 0 or which >= rocs_.size()) {
+    PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
+                                          "ROC %d is not a valid ROC ID"));
   }
-
-  return bias_it->second;
+  if (not rocs_[which]) {
+    PFEXCEPTION_RAISE("DisabledROC", pflib::utility::string_format(
+                                          "ROC %d is disabled"));
+  }
+  return rocs_[which]->bias;
 }
 
 }  // namespace pflib

@@ -61,10 +61,19 @@ class DAQ {
   /// Advance link read pointer
   virtual void advanceLinkReadPtr() {}
 
-  // get any useful debugging data
+  /// get any useful debugging data
   virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) {
     return std::map<std::string, uint32_t>();
   }
+
+  /**
+   * readout an event including emulation of the headers the firmware inserts
+   *
+   * The Bittware firmware includes headers when copying the data into the axi
+   * stream and we include those here so that the non-axis readout can have
+   * data that is in the same format as axis data.
+   */
+  std::vector<uint32_t> read_event_sw_headers();
 
  private:
   /// number of links

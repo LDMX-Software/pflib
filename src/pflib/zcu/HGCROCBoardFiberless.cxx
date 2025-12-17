@@ -184,14 +184,11 @@ class HcalFiberless : public HcalBackplane {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
 
-    rocs_.emplace(std::piecewise_construct,
-        std::forward_as_tuple(0),
-        std::forward_as_tuple(i2croc, 0x20, "sipm_rocv3b")
+    rocs_[0] = std::make_unique<HGCROCBoard>(
+        ROC(i2croc, 0x20, "sipm_rocv3b"),
+        Bias(i2cboard, i2cboard)
     );
-    biases_.emplace(std::piecewise_construct,
-        std::forward_as_tuple(0),
-        std::forward_as_tuple(i2cboard, i2cboard)
-    );
+    nhgcroc_++;
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
