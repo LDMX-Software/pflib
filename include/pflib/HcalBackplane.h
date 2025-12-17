@@ -22,8 +22,13 @@ class HcalBackplane : public Target {
   /**
    * Common initialization for slow control given lpGBT
    * objects and a mask for which HGCROC boards are connected
+   *
+   * @param[in] daq_lpgbt accessor to DAQ lpGBT
+   * @param[in] trig_lpgbt accessor to TRIG lpGBT
+   * @param[in] hgcroc_boards bit-mask saying if a board is active/enabled (1)
+   * or inactive/disabled (0) - the bit in position i represents board i
    */
-  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardmask);
+  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boards);
 
   /** number of boards */
   virtual int nrocs() override { return nhgcroc_; }
