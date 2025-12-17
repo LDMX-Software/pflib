@@ -18,7 +18,7 @@ class EcalSMMTargetBW : public Target {
   mutable logging::logger the_log_{logging::get("EcalSMMBW")};
 
  public:
-  EcalSMMTargetBW(int itarget, const char* dev) {
+  EcalSMMTargetBW(int itarget, uint8_t roc_mask, const char* dev) {
     using namespace pflib::bittware;
     // first, setup the optical links
     auto daq_olink = std::make_shared<BWOptoLink>(itarget, dev);
@@ -32,7 +32,7 @@ class EcalSMMTargetBW : public Target {
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
+        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
@@ -146,8 +146,8 @@ class EcalSMMTargetBW : public Target {
   int contrib_id_;
 };
 
-Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
-  return new EcalSMMTargetBW(ilink, dev);
+Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask, const char* dev) {
+  return new EcalSMMTargetBW(ilink, roc_mask, dev);
 }
 
 const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() {

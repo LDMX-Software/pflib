@@ -9,8 +9,8 @@ static constexpr int I2C_ECON_D = 0x64;
 static constexpr int I2C_ECON_T = 0x24;
 static constexpr int I2C_ROCS[] = {0x08, 0x18, 0x28, 0x48, 0x58, 0x68};
 
-EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int imodule)
-    : lpGBT_{lpgbt}, i2cbus_{i2cbus}, imodule_{imodule} {
+EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber, uint8_t roc_mask)
+    : lpGBT_{lpgbt}, i2cbus_{i2cbus}, imodule_{modulenumber} {
   n_rocs_ = 0;
   n_econs_ = 0;
   i2c_ = std::make_shared<pflib::lpgbt::I2C>(lpGBT_, i2cbus_);
@@ -19,6 +19,7 @@ EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int imodule)
   econs_[ECON_T] = std::make_unique<ECON>(i2c_, I2C_ECON_T, "econt");
   n_econs_++;
   for (int i = 0; i < rocs_.size(); i++) {
+    if ((roc_mask & (1 << i)) == 0) continue;
     rocs_[i] = std::make_unique<ROC>(i2c_, I2C_ROCS[i], "si_rocv3b");
     n_rocs_++;
   }

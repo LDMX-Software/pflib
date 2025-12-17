@@ -17,7 +17,17 @@ namespace pflib {
  */
 class EcalModule {
  public:
-  EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber);
+  /**
+   * Construct access to an EcalModule given the DAQ lpGBT
+   * it talks through
+   *
+   * @param[in] lpgbt accessor to the lpgbt
+   * @param[in] i2cbus bus on which the EcalModule is
+   * @param[in] modulenumber module ID number
+   * @param[in] roc_mask bit-mask saying if a board is activate/enabled (1)
+   * or inactive/disabled (0) - position i represents ROC i
+   */
+  EcalModule(lpGBT& lpgbt, int i2cbus, int modulenumber, uint8_t roc_mask);
 
   /** number of hgcrocs */
   int nrocs() const;

@@ -12,7 +12,7 @@ static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetZCU : public Target {
  public:
-  EcalSMMTargetZCU(int itarget) {
+  EcalSMMTargetZCU(int itarget, uint8_t roc_mask) {
     using namespace pflib::zcu;
     // first, setup the optical links
     std::string uio_coder =
@@ -27,7 +27,7 @@ class EcalSMMTargetZCU : public Target {
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
     ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
+        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
@@ -106,6 +106,6 @@ const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
   return EcalModule::getRocErxMapping();
 }
 
-Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
+Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) { return new EcalSMMTargetZCU(ilink, roc_mask); }
 
 }  // namespace pflib
