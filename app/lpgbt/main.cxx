@@ -49,6 +49,9 @@ void opto(const std::string& cmd, ToolBox* target) {
   if (cmd == "RESET") {
     olink.reset_link();
   }
+  if (cmd == "SOFTRESET") {
+    olink.soft_reset_link();
+  }
   if (cmd == "POLARITY") {
     bool change;
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
@@ -772,7 +775,9 @@ auto gen =
 auto optom =
     tool::menu("OPTO", "Optical Link Functions")
         ->line("FULLSTATUS", "Get full status", opto)
-        ->line("RESET", "Reset optical link", opto)
+        ->line("SOFTRESET", "soft reset the optical link", opto)
+        ->line("RESET",
+               "hard reset optical link (may affect all links in block)", opto)
         ->line("POLARITY", "Adjust the polarity", opto)
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);

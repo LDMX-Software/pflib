@@ -35,9 +35,9 @@ void ECOND_Formatter::finishEvent() {
   // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
   // first header word:
   //   shift out the Hamming
-  uint64_t header_crc_base = (packet_[0] >> 5);
-  //   move into position
-  header_crc_base <<= 29;
+  uint64_t header_crc_base = (packet_[0] >> 6);
+  //   move into position (need 30 bits space: 6 zeros + 24 bits from word1)
+  header_crc_base <<= 30;
   // second header word, shift out the CRC
   header_crc_base |= (packet_[1] >> 8);
   packet_[1] += utility::econd_crc8(header_crc_base);

@@ -2,6 +2,10 @@ name: test
 
 on:
   push:
+  workflow_run:
+    workflows: ["clang-format"]
+    types:
+      - completed
 
 jobs:
   test:

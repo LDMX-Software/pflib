@@ -51,6 +51,7 @@ def main():
             # it in our words and skip the first four words which
             # contain the Rogue-inserted EventHeader
             words = data.view('uint32')
+            print('--------')
             for w in words:
                 print(f'{w:08x}')
 

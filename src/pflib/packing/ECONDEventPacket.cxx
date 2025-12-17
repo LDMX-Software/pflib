@@ -243,34 +243,60 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
 
   uint32_t length = ((data[0] >> 14) & mask<9>);
   pflib_log(trace) << "    length = " << length;
-  corruption[1] = (data.size() - 2 != length);
+  corruption[1] = (data.size() != (length + 2));
   if (corruption[1]) {
-    if (data.size() - 2 < length) {
+    if (data.size() < (length + 2)) {
       pflib_log(warn) << "Incomplete event packet, stored payload length "
-                      << length << " is larger than the packet length "
-                      << data.size() - 2;
+                      << length << " is larger than the packet length ("
+                      << data.size() << " - 2)";
     } else {
       pflib_log(debug) << "Oversized event packet, stored payload length "
-                       << length << " is smaller than the packet length "
-                       << data.size() - 2 << " so the last "
-                       << data.size() - 2 - length << " words will be ignored";
+                       << length << " is smaller than the packet length ("
+                       << data.size() << "-2) so the last (" << data.size()
+                       << "-2-" << length << ") words will be ignored";
     }
   }
 
+  // Look at Section 18 of ECON-D_specification_working_doc_v1.4_5jan2023.pdf
+  // Passthrough is on bit 13
   bool passthrough = ((data[0] >> 13) & mask<1>) == 1;
+  // Expected is on bit 12
+  // E specifies whether an Event HDR/TRL received from the HGCROCs is expected.
   bool expected = ((data[0] >> 12) & mask<1>) == 1;
-  uint32_t ht_ebo = ((data[0] >> 8) & mask<5>);
+  // EBO is on bits 11-8
+  // H/T and E/B/O specifies 2b status of reconstruction of HGCROC Event HDR/TRL
+  // and Event/BX/Orbit numbers across all active eRx.
+  uint32_t ht_ebo = ((data[0] >> 8) & mask<4>);
+  // M is on bit 7
+  // M specifies whether the transmitted E/B/O (according to mode selected by
+  // user) matches the E/B/O value in the ECON-D L1A FIFO.
   bool m = ((data[0] >> 7) & mask<1>) == 1;
+  // T is on bit 6
+  // T specifies whether the packet is truncated for buffer overflow (see
+  // below).
   bool truncated = ((data[0] >> 6) & mask<1>) == 1;
+  // Hamming is on bits 5-0
+  //   Hamming(63,57) for Evt Hdr is a non-extended Hamming code that provides
+  //   single error correction (no
+  // double error detection) computed for the entire 2-word Evt Header EXCEPT
+  // the 8b CRC, which is computed last.
   uint32_t hamming = (data[0] & mask<6>);
   pflib_log(trace) << "    P=" << passthrough << " E=" << expected;
 
   pflib_log(trace) << "econd header two: " << hex(data[1]);
+  // BX on bits 31-20
   uint32_t bx = ((data[1] >> 20) & mask<12>);
+  // L1A on bits 19-14
   uint32_t l1a = ((data[1] >> 14) & mask<6>);
+  // Orb on bits 13-11
   uint32_t orb = ((data[1] >> 11) & mask<3>);
   bool subpacket_error = ((data[1] >> 10) & mask<1>) == 1;
+  // RR on bits 9-8
+  // RR is the Reset Request described earlier.
   uint32_t rr = ((data[1] >> 8) & mask<2>);
+  // 8-bit CRC on bits 7-0
+  // 8b CRC for Evt Header is the 8b Bluetooth CRC computed for the entire
+  // 2-word Evt Header except the Hamming field.
   uint8_t crc = (data[1] & mask<8>);
   pflib_log(trace) << "    BX=" << bx << " L1A=" << l1a << " Orb=" << orb;
 
@@ -278,9 +304,9 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
   // first header word:
   //   shift out the Hamming
-  uint64_t header_crc_base = (data[0] >> 5);
+  uint64_t header_crc_base = (data[0] >> 6);
   //   move into position
-  header_crc_base <<= 29;
+  header_crc_base <<= 30;
   // second header word, shift out the CRC
   header_crc_base |= (data[1] >> 8);
 
@@ -320,37 +346,6 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
     pflib_log(warn)
         << "CRC over all link sub-packets does not match transmitted value "
         << hex(crc_val) << " != " << hex(target);
-  }
-}
-
-const std::string ECONDEventPacket::to_csv_header =
-    "i_link,bx,event,orbit,channel,Tp,Tc,adc_tm1,adc,tot,toa";
-
-void ECONDEventPacket::to_csv(std::ofstream &f) const {
-  /**
-   * The columns of the output CSV are
-   * ```
-   * i_link, bx, event, orbit, channel, Tp, Tc, adc_tm1, adc, tot, toa
-   * ```
-   *
-   * Since there are 36 channels and one calib channel per DAQ links,
-   * there are N*(36+1) rows written for each call to this function
-   * where N is the number of links.
-   *
-   * The trigger links are entirely ignored.
-   */
-  for (std::size_t i_link{0}; i_link < links.size(); i_link++) {
-    const auto &daq_link{links[i_link]};
-    f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-      << daq_link.orbit << ',' << "calib,";
-    daq_link.calib.to_csv(f);
-    f << '\n';
-    for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
-      f << i_link << ',' << daq_link.bx << ',' << daq_link.event << ','
-        << daq_link.orbit << ',' << i_ch << ',';
-      daq_link.channels[i_ch].to_csv(f);
-      f << '\n';
-    }
   }
 }
 

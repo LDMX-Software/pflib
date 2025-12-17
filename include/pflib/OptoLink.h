@@ -21,6 +21,8 @@ class OptoLink {
   virtual int ilink() = 0;
   /// is this link bidirectional (e.g. a DAQ lpGBT)
   virtual bool is_bidirectional() { return true; }
+  /// soft reset that should not have side-effects
+  virtual void soft_reset_link() {}
   /// reset a given optical link, may have side-effects
   virtual void reset_link() = 0;
 
