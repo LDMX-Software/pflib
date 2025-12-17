@@ -11,12 +11,12 @@ static constexpr int I2C_ROCS[] = {0x08, 0x18, 0x28, 0x48, 0x58, 0x68};
 
 EcalModule::EcalModule(lpGBT& lpgbt, int i2cbus, int imodule)
     : lpGBT_{lpgbt}, i2cbus_{i2cbus}, imodule_{imodule} {
-  i2c_ = std::make_unique<pflib::lpgbt::I2C>(lpGBT_, i2cbus_);
-  econs_.push_back(ECON(*i2c_, I2C_ECON_D, "econd"));
-  econs_.push_back(ECON(*i2c_, I2C_ECON_T, "econt"));
+  i2c_ = std::make_shared<pflib::lpgbt::I2C>(lpGBT_, i2cbus_);
+  econs_.push_back(ECON(i2c_, I2C_ECON_D, "econd"));
+  econs_.push_back(ECON(i2c_, I2C_ECON_T, "econt"));
   for (int i = 0; i < nrocs(); i++)
     // confirm this is the right version
-    rocs_.push_back(ROC(*i2c_, I2C_ROCS[i], "si_rocv3b"));
+    rocs_.push_back(ROC(i2c_, I2C_ROCS[i], "si_rocv3b"));
 }
 
 std::vector<int> EcalModule::roc_ids() const {

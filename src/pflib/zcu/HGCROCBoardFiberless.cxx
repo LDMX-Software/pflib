@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "pflib/ECOND_Formatter.h"
-#include "pflib/GPIO.h"
+#include "pflib/Elinks.h"
 #include "pflib/HcalBackplane.h"
 #include "pflib/I2C_Linux.h"
 
@@ -16,16 +16,29 @@ class HcalFiberless : public HcalBackplane {
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
+  virtual int nrocs() override { return 1; }
+  virtual int necons() override { return 0; }
+  virtual bool have_roc(int i) const override { return (i==0); }
+  virtual std::vector<int> roc_ids() const override { return {0}; }
+
   HcalFiberless() : HcalBackplane() {
-    i2croc_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
-    if (i2croc_ < 0) {
+    auto i2croc = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
+    if (not i2croc) {
       PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
     }
-    i2cboard_ = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
-    if (i2cboard_ < 0) {
+    auto i2cboard = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-23"));
+    if (not i2cboard) {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
-    add_roc(0, 0x20, "sipm_rocv3b", i2croc_, i2cboard_, i2cboard_);
+
+    rocs_.emplace(std::piecewise_construct,
+        std::forward_as_tuple(0),
+        std::forward_as_tuple(i2croc, 0x20, "sipm_rocv3b")
+    );
+    biases_.emplace(std::piecewise_construct,
+        std::forward_as_tuple(0),
+        std::forward_as_tuple(i2cboard, i2cboard)
+    );
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
@@ -34,12 +47,12 @@ class HcalFiberless : public HcalBackplane {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);
 
-    elinks_ = get_Elinks_zcu();
-    daq_ = get_DAQ_zcu();
+    elinks_ = std::shared_ptr<Elinks>(get_Elinks_zcu());
+    daq_ = std::shared_ptr<DAQ>(get_DAQ_zcu());
 
-    i2c_["HGCROC"] = i2croc_;
-    i2c_["BOARD"] = i2cboard_;
-    i2c_["BIAS"] = i2cboard_;
+    i2c_["HGCROC"] = i2croc;
+    i2c_["BOARD"] = i2cboard;
+    i2c_["BIAS"] = i2cboard;
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
@@ -48,7 +61,6 @@ class HcalFiberless : public HcalBackplane {
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, false);  // active low
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, false);   // active low
     usleep(10);
-    printf("HARD\n");
     gpio_->setGPO(GPO_HGCROC_RESET_HARD, true);  // active low
     gpio_->setGPO(GPO_HGCROC_RESET_I2C, true);   // active low
   }
@@ -58,6 +70,11 @@ class HcalFiberless : public HcalBackplane {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);   // active low
   }
 
+  ECON& econ(int which) override {
+    PFEXCEPTION_RAISE("InvalidECONid",
+        "No ECONs connected for Fiberless targets.");
+  }
+
   virtual Elinks& elinks() override { return *elinks_; }
   virtual DAQ& daq() override { return *daq_; }
   virtual FastControl& fc() override { return *fc_; }
@@ -65,11 +82,9 @@ class HcalFiberless : public HcalBackplane {
   virtual std::vector<uint32_t> read_event();
 
  public:
-  std::shared_ptr<I2C> i2croc_;
-  std::shared_ptr<I2C> i2cboard_;
   std::shared_ptr<FastControl> fc_;
-  Elinks* elinks_;
-  DAQ* daq_;
+  std::shared_ptr<Elinks> elinks_;
+  std::shared_ptr<DAQ> daq_;
   int run_;
   Target::DaqFormat daqformat_;
   int ievt_, l1a_;

@@ -14,8 +14,16 @@ namespace pflib {
  */
 class HcalBackplane : public Target {
  public:
+  /// virtual destructor since we'll be holding this as a Target
   virtual ~HcalBackplane() = default;
+
   HcalBackplane();
+
+  /**
+   * Common initialization for slow control given lpGBT
+   * objects and a mask for which HGCROC boards are connected
+   */
+  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boardmask);
 
   /** number of boards */
   virtual int nrocs() override { return nhgcroc_; }
@@ -57,16 +65,6 @@ class HcalBackplane : public Target {
   const std::vector<std::pair<int, int>>& getRocErxMapping() override;
 
  protected:
-  /** Add a ROC to the set of ROCs */
-  void add_roc(int iroc, uint8_t roc_baseaddr,
-               const std::string& roc_type_version,
-               std::shared_ptr<I2C> roc_i2c, std::shared_ptr<I2C> bias_i2c,
-               std::shared_ptr<I2C> board_i2c);
-
-  /** Add a ECON to the set of ECONs */
-  void add_econ(int iecon, uint8_t econ_baseaddr, const std::string& econ_type,
-                std::shared_ptr<I2C> econ_i2c);
-
   /** Number of HGCROC boards in this system */
   int nhgcroc_;
 
@@ -76,22 +74,14 @@ class HcalBackplane : public Target {
   /** The GPIO interface */
   std::unique_ptr<GPIO> gpio_;
 
-  /** The I2C interfaces and objects for a HGCROC board */
-  struct ROCConnection {
-    pflib::ROC roc_;
-    std::shared_ptr<I2C> roc_i2c_;
-    pflib::Bias bias_;
-    std::shared_ptr<I2C> bias_i2c_;
-    std::shared_ptr<I2C> board_i2c_;
-  };
-  std::map<int, ROCConnection> roc_connections_;
+  /** The HGCROC objects connected to this backplane */
+  std::map<int, ROC> rocs_;
 
-  /** The I2C interface and object for a ECON board */
-  struct ECONConnection {
-    pflib::ECON econ_;
-    std::shared_ptr<I2C> i2c_;
-  };
-  std::map<int, ECONConnection> econ_connections_;
+  /// the extra chips on the HGCROC boards on this backplane
+  std::map<int, Bias> biases_;
+
+  /// the ECONs on the ECON Mezzanine on this backplane
+  std::map<int, ECON> econs_;
 };
 
 }  // namespace pflib

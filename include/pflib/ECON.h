@@ -17,7 +17,7 @@ namespace pflib {
  */
 class ECON {
  public:
-  ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version);
+  ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr, const std::string& type_version);
 
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);
@@ -77,7 +77,7 @@ class ECON {
   TestParameters::Builder testParameters();
 
  private:
-  I2C& i2c_;
+  std::shared_ptr<I2C> i2c_;
   uint8_t econ_base_;
   Compiler compiler_;
   std::string type_;

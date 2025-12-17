@@ -65,7 +65,7 @@ class EcalModule {
   lpGBT& lpGBT_;
   int i2cbus_;
   int imodule_;
-  std::unique_ptr<I2C> i2c_;
+  std::shared_ptr<I2C> i2c_;
   /// representation of Ecal HexaModule
   std::vector<ROC> rocs_;
   std::vector<ECON> econs_;

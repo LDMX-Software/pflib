@@ -11,12 +11,6 @@ namespace pflib {
 
 static constexpr int ADDR_HCAL_BACKPLANE_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_HCAL_BACKPLANE_TRIG = 0x78;
-static constexpr int I2C_BUS_ECONS = 0;    // DAQ
-static constexpr int I2C_BUS_HGCROCS = 1;  // DAQ
-static constexpr int I2C_BUS_BIAS = 1;     // TRIG
-static constexpr int I2C_BUS_BOARD = 0;    // TRIG
-static constexpr int ADDR_MUX_BIAS = 0x70;
-static constexpr int ADDR_MUX_BOARD = 0x71;
 
 class HcalBackplaneBW : public HcalBackplane {
   mutable logging::logger the_log_{logging::get("HcalBackplaneBW")};
@@ -35,92 +29,7 @@ class HcalBackplaneBW : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    // Load GPIO configuration for lpGBTs
-    pflib::lpgbt::standard_config::setup_hcal_daq_gpio(*daq_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_trig_gpio(*trig_lpgbt_);
-
-    // Setup lpGBTs
-    try {
-      int daq_pusm = daq_lpgbt_->status();
-      int trg_pusm = trig_lpgbt_->status();
-      if (daq_pusm == 19 and trg_pusm == 19) {
-        // both lpGBTs are PUSM READY
-        pflib_log(debug) << "both lpGBTs are have status PUSM READY (19)";
-      } else if (daq_pusm != 19 and trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT has status PUSM READY (19)";
-        pflib_log(debug) << "applying standard DAQ lpGBT configuration";
-        try {
-          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      } else if (daq_pusm == 19 and trg_pusm != 19) {
-        pflib_log(debug) << "DAQ lpGBT has status PUSM READY (19)";
-        pflib_log(debug) << "applying standard TRG lpGBT configuration";
-        try {
-          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      } else /* both are not PUSM READY */ {
-        pflib_log(debug) << "neither lpGBT have status PUSM READY (19)";
-        pflib_log(debug) << "applying standard lpGBT configuration";
-        try {
-          pflib_log(debug) << "applying DAQ";
-          pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-          pflib_log(debug) << "pause to let hardware re-sync";
-          sleep(2);
-          pflib_log(debug) << "applying TRIG";
-          pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      }
-    } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
-                          "check Optical links";
-      pflib_log(warn) << "Failure to check lpGBT status [" << e.name()
-                      << "]: " << e.message();
-      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
-                      << " and then re-open pftool.";
-    }
-
-    // next, create the Hcal I2C objects
-    econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
-    econ_i2c_->set_bus_speed(1000);
-    add_econ(0, 0x60 | 0, "econd", econ_i2c_);
-    add_econ(1, 0x20 | 0, "econt", econ_i2c_);
-    add_econ(2, 0x20 | 1, "econt", econ_i2c_);
-
-    roc_i2c_ =
-        std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
-    roc_i2c_->set_bus_speed(1000);
-    for (int ibd = 0; ibd < 4; ibd++) {
-      if ((board_mask & (1 << ibd)) == 0) continue;
-      std::shared_ptr<pflib::I2C> bias_i2c =
-          std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_, I2C_BUS_BIAS,
-                                                     ADDR_MUX_BIAS, (1 << ibd));
-      std::shared_ptr<pflib::I2C> board_i2c =
-          std::make_shared<pflib::lpgbt::I2CwithMux>(
-              *trig_lpgbt_, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
-
-      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
-              board_i2c);
-    }
-
-    // copy I2C connections into Target
-    // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn] : roc_connections_) {
-      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
-      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
-      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
-    }
-    for (auto [bid, conn] : econ_connections_) {
-      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
-    }
+    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask);
 
     elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
@@ -210,7 +119,6 @@ class HcalBackplaneBW : public HcalBackplane {
 
  private:
   std::unique_ptr<pflib::lpGBT> daq_lpgbt_, trig_lpgbt_;
-  std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
   std::unique_ptr<bittware::HcalBackplaneBW_Capture> daq_;
   std::shared_ptr<pflib::bittware::BWFastControl> fc_;

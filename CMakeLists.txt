@@ -121,7 +121,6 @@ set(pflib_src
   src/pflib/lpgbt/lpGBT_standard_configs.cxx
   src/pflib/lpgbt/I2C.cxx
   src/pflib/lpgbt/GPIO.cxx
-  src/pflib/TargetFiberless.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
   src/pflib/ECOND_Formatter.cxx
@@ -131,8 +130,9 @@ set(pflib_src
   src/pflib/zcu/zcu_elinks.cxx
   src/pflib/zcu/zcu_DAQ.cxx
   src/pflib/zcu/zcu_optolink.cxx
-  src/pflib/zcu/HcalBackplaneZCU.cxx
-  src/pflib/zcu/EcalSMMTarget.cxx
+  src/pflib/zcu/HcalBackplane.cxx
+  src/pflib/zcu/EcalSMM.cxx
+  src/pflib/zcu/HGCROCBoardFiberless.cxx
   src/pflib/Ecal.cxx
   src/pflib/Bias.cxx
 )
@@ -144,8 +144,8 @@ if (${Rogue_FOUND})
     src/pflib/bittware/bittware_elinks.cxx
     src/pflib/bittware/bittware_daq.cxx
     src/pflib/bittware/bittware_FastControl.cxx
-    src/pflib/bittware/HcalBackplaneBittware.cxx
-    src/pflib/bittware/EcalSMMTarget.cxx
+    src/pflib/bittware/HcalBackplane.cxx
+    src/pflib/bittware/EcalSMM.cxx
     )
 endif()
 

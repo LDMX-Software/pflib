@@ -9,13 +9,6 @@
 
 namespace pflib {
 
-static constexpr int I2C_BUS_ECONS = 0;    // DAQ
-static constexpr int I2C_BUS_HGCROCS = 1;  // DAQ
-static constexpr int I2C_BUS_BIAS = 1;     // TRIG
-static constexpr int I2C_BUS_BOARD = 0;    // TRIG
-static constexpr int ADDR_MUX_BIAS = 0x70;
-static constexpr int ADDR_MUX_BOARD = 0x71;
-
 class HcalBackplaneZCU : public HcalBackplane {
  public:
   HcalBackplaneZCU(int itarget, uint8_t board_mask) {
@@ -32,50 +25,11 @@ class HcalBackplaneZCU : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    // next, create the Hcal I2C objects
-    econ_i2c_ = std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_ECONS);
-    econ_i2c_->set_bus_speed(1000);
-    add_econ(0, 0x60 | 0, "econd", econ_i2c_);
-    add_econ(1, 0x20 | 0, "econt", econ_i2c_);
-    add_econ(2, 0x20 | 1, "econt", econ_i2c_);
-
-    roc_i2c_ =
-        std::make_shared<pflib::lpgbt::I2C>(*daq_lpgbt_, I2C_BUS_HGCROCS);
-    roc_i2c_->set_bus_speed(1000);
-    for (int ibd = 0; ibd < 4; ibd++) {
-      if ((board_mask & (1 << ibd)) == 0) continue;
-      std::shared_ptr<pflib::I2C> bias_i2c =
-          std::make_shared<pflib::lpgbt::I2CwithMux>(*trig_lpgbt_, I2C_BUS_BIAS,
-                                                     ADDR_MUX_BIAS, (1 << ibd));
-      std::shared_ptr<pflib::I2C> board_i2c =
-          std::make_shared<pflib::lpgbt::I2CwithMux>(
-              *trig_lpgbt_, I2C_BUS_BOARD, ADDR_MUX_BOARD, (1 << ibd));
-      // TODO allow for board->typ_version configuration to be passed here
-      // right now its hardcoded because everyone has one of these
-      // but we could modify this constructor and its calling factory
-      // function in order to pass in a configuration
-
-      add_roc(ibd, 0x20 | (ibd * 8), "sipm_rocv3b", roc_i2c_, bias_i2c,
-              board_i2c);
-    }
+    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<ZCU_Capture>();
-
-    pflib::lpgbt::standard_config::setup_hcal_trig(*trig_lpgbt_);
-    pflib::lpgbt::standard_config::setup_hcal_daq(*daq_lpgbt_);
-
-    // copy I2C connections into Target
-    // in case user wants to do raw I2C transactions for testing
-    for (auto [bid, conn] : roc_connections_) {
-      i2c_[pflib::utility::string_format("HGCROC_%d", bid)] = conn.roc_i2c_;
-      i2c_[pflib::utility::string_format("BOARD_%d", bid)] = conn.board_i2c_;
-      i2c_[pflib::utility::string_format("BIAS_%d", bid)] = conn.bias_i2c_;
-    }
-    for (auto [bid, conn] : econ_connections_) {
-      i2c_[pflib::utility::string_format("ECON_%d", bid)] = conn.i2c_;
-    }
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
@@ -160,7 +114,6 @@ class HcalBackplaneZCU : public HcalBackplane {
 
  private:
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
-  std::shared_ptr<pflib::I2C> roc_i2c_, econ_i2c_;
   std::unique_ptr<pflib::zcu::OptoElinksZCU> elinks_;
   std::unique_ptr<pflib::zcu::ZCU_Capture> daq_;
   std::shared_ptr<pflib::FastControl> fc_;
