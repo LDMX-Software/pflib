@@ -65,9 +65,10 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                 "currently configured format.");
             }
             f << '\n';
-          }},
-          n_links // number of links
-        };
+          }
+        },
+        n_links  // number of links
+    };
     tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
@@ -164,9 +165,10 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                 "currently configured format.");
             }
             f << '\n';
-          }},
-          n_links // number of links
-        };
+          }
+        },
+        n_links  // number of links
+    };
     tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                    1 /* dummy */);
     // Do the scan for increasing amount of channels
@@ -231,11 +233,9 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
   }
 }
 
-void multi_channel_scan(Target * tgt) {
-  size_t n_events =
-      pftool::readline_int("How many events per time point? ", 1);
-  int calib =
-      pftool::readline_int("Setting for calib pulse amplitude? ", 256);
+void multi_channel_scan(Target* tgt) {
+  size_t n_events = pftool::readline_int("How many events per time point? ", 1);
+  int calib = pftool::readline_int("Setting for calib pulse amplitude? ", 256);
   bool isLED = pftool::readline_bool("Use external LED flashes?", false);
   bool highrange =
       pftool::readline_bool("Use highrange (Y) or preCC (N)? ", false);
