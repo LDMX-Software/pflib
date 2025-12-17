@@ -236,14 +236,14 @@ void ECON::setRegisters(
 std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     const std::map<int, std::map<int, uint8_t>>& selected) {
   constexpr int MAX_BATCH_SIZE = 128;
-  
+
   std::map<int, std::map<int, uint8_t>> chip_reg;
   const int page_id = 0;
   std::map<int, uint8_t> all_regs;
 
   // Build sorted list of registers to read
   std::vector<std::pair<int, int>> reads_to_perform;  // (address, nbytes)
-  
+
   if (selected.empty()) {
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
       reads_to_perform.emplace_back(reg_addr, nbytes);
@@ -264,12 +264,12 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
   if (!reads_to_perform.empty()) {
     int start_addr = reads_to_perform[0].first;
     int current_end = start_addr + reads_to_perform[0].second;
-    
+
     for (size_t i = 1; i < reads_to_perform.size(); ++i) {
       int next_addr = reads_to_perform[i].first;
       int next_nbytes = reads_to_perform[i].second;
       int potential_size = next_addr + next_nbytes - start_addr;
-      
+
       // Check if contiguous AND under size limit
       if (next_addr == current_end && potential_size <= MAX_BATCH_SIZE) {
         // Extend the batch
@@ -278,17 +278,17 @@ std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
         // Non-contiguous or too large - perform the batch
         int batch_size = current_end - start_addr;
         std::vector<uint8_t> batch_data = getValues(start_addr, batch_size);
-        
+
         for (int j = 0; j < batch_size; ++j) {
           all_regs[start_addr + j] = batch_data[j];
         }
-        
+
         // Start new batch
         start_addr = next_addr;
         current_end = next_addr + next_nbytes;
       }
     }
-    
+
     // Perform the final batch
     int batch_size = current_end - start_addr;
     std::vector<uint8_t> batch_data = getValues(start_addr, batch_size);
