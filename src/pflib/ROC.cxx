@@ -11,7 +11,8 @@
 
 namespace pflib {
 
-ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
+ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
+         const std::string& type_version)
     : i2c_{i2c},
       roc_base_{roc_base_addr},
       type_version_{type_version},
@@ -22,7 +23,7 @@ ROC::ROC(I2C& i2c, uint8_t roc_base_addr, const std::string& type_version)
 const std::string& ROC::type() const { return type_version_; }
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
-  i2c_.set_bus_speed(1400);
+  i2c_->set_bus_speed(1400);
 
   // printf("i2c base address %#x\n", roc_base_);
   std::vector<uint8_t> retval;
@@ -37,7 +38,7 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 static const int max_tries = 5;
 
 uint8_t ROC::getValue(int ipage, int offset) {
-  i2c_.set_bus_speed(1400);
+  i2c_->set_bus_speed(1400);
 
   // set the address
   uint16_t fulladdr = (ipage << 5) | offset;
@@ -46,10 +47,10 @@ uint8_t ROC::getValue(int ipage, int offset) {
 
   for (int i_try{0}; i_try < max_tries; i_try++) {
     try {
-      i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
-      i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
+      i2c_->write_byte(roc_base_ + 0, fulladdr & 0xFF);
+      i2c_->write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
       // now read
-      return i2c_.read_byte(roc_base_ + 2);
+      return i2c_->read_byte(roc_base_ + 2);
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
                        << " failed with [" << e.name() << "]: " << e.message();
@@ -87,7 +88,7 @@ bool ROC::getDirectAccess(int reg, int bit) {
     PFEXCEPTION_RAISE(
         "BadBit", "Direct access bit locations are the indices from 0 to 7.");
   }
-  uint8_t reg_val = i2c_.read_byte(roc_base_ + reg);
+  uint8_t reg_val = i2c_->read_byte(roc_base_ + reg);
   return ((reg_val >> bit) & 0b1) == 1;
 }
 
@@ -113,13 +114,13 @@ void ROC::setDirectAccess(int reg, int bit, bool val) {
         "BadBit", "Direct access bit locations are the indices from 0 to 7.");
   }
   // get the register
-  uint8_t reg_val = i2c_.read_byte(roc_base_ + reg);
+  uint8_t reg_val = i2c_->read_byte(roc_base_ + reg);
   // clear the value in that bit position
   reg_val &= ~(static_cast<uint8_t>(1) << bit);
   // set the bit to the same as our value
   reg_val |= (static_cast<uint8_t>(val ? 1 : 0) << bit);
   // write the register back
-  i2c_.write_byte(roc_base_ + reg, reg_val);
+  i2c_->write_byte(roc_base_ + reg, reg_val);
 }
 
 static const int TOP_PAGE = 45;
@@ -139,14 +140,14 @@ bool ROC::isRunMode() {
 }
 
 void ROC::setValue(int page, int offset, uint8_t value) {
-  i2c_.set_bus_speed(1400);
+  i2c_->set_bus_speed(1400);
   uint16_t fulladdr = (page << 5) | offset;
 
   for (int i_try{0}; i_try < max_tries; i_try++) {
     try {
-      i2c_.write_byte(roc_base_ + 0, fulladdr & 0xFF);
-      i2c_.write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
-      i2c_.write_byte(roc_base_ + 2, value & 0xFF);
+      i2c_->write_byte(roc_base_ + 0, fulladdr & 0xFF);
+      i2c_->write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
+      i2c_->write_byte(roc_base_ + 2, value & 0xFF);
       // leave to signal we don't need to try anymore
       return;
     } catch (const pflib::Exception& e) {

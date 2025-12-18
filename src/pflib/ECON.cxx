@@ -10,7 +10,8 @@
 
 namespace pflib {
 
-ECON::ECON(I2C& i2c, uint8_t econ_base_addr, const std::string& type_version)
+ECON::ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr,
+           const std::string& type_version)
     : i2c_{i2c},
       econ_base_{econ_base_addr},
       compiler_{Compiler::get(type_version)},
@@ -124,7 +125,7 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
   waddr.push_back(static_cast<uint8_t>((reg_addr >> 8) & 0xFF));
   waddr.push_back(static_cast<uint8_t>(reg_addr & 0xFF));
   std::vector<uint8_t> data =
-      i2c_.general_write_read(econ_base_, waddr, nbytes);
+      i2c_->general_write_read(econ_base_, waddr, nbytes);
 
   /*
   std::ostringstream oss;
@@ -181,7 +182,7 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
   wbuf.insert(wbuf.end(), values.begin(), values.end());
 
   // perform write
-  i2c_.general_write_read(econ_base_, wbuf, values.size());
+  i2c_->general_write_read(econ_base_, wbuf, values.size());
 }
 
 void ECON::setRegisters(

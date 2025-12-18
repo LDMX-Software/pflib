@@ -352,14 +352,15 @@ int main(int argc, char* argv[]) {
       if (ilink < 0 or ilink > 1) {
         PFEXCEPTION_RAISE("BadLink", "ZCU EcalSMM ilink can only be 0 or 1");
       }
-      tgt.reset(pflib::makeTargetEcalSMMZCU(ilink));
+      auto rocmask = target.get<int>("rocmask", 0x3f);
+      tgt.reset(pflib::makeTargetEcalSMMZCU(ilink, rocmask));
       readout_cfg = pftool::State::CFG_ECALOPTO_ZCU;
       pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
     } else if (target_type == "HcalBackplaneBittware") {
 #ifdef USE_ROGUE
       // need ilink to be in configuration
       auto ilink = target.get<int>("ilink");
-      auto boardmask = target.get<int>("boardmask", 0xff);
+      auto boardmask = target.get<int>("boardmask", 0xf);
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
       tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask,
                                                        dev.c_str()));
@@ -374,7 +375,8 @@ int main(int argc, char* argv[]) {
       // need ilink to be in configuration
       auto ilink = target.get<int>("ilink");
       auto dev = target.get<std::string>("dev", "/dev/datadev_0");
-      tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, dev.c_str()));
+      auto rocmask = target.get<int>("rocmask", 0x3f);
+      tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, rocmask, dev.c_str()));
       readout_cfg = pftool::State::CFG_ECALOPTO_BW;
       pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
 #else
