@@ -27,8 +27,11 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
   std::size_t i_param_point{0};
   int i_ch = 0;  // 0–35
   int i_link = 0;
-  int n_links = determine_n_links(tgt);
-
+  int n_links = 2;
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
+    n_links = determine_n_links(tgt);
+  }
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
       load_parameter_points(parameter_points_file);
