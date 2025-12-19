@@ -16,9 +16,8 @@ static void trim_inv_dacb_scan(Target* tgt, pflib::ROC& roc, size_t nevents,
   int link = 0;
   int i_ch = 0;  // 0–35
   int n_links = 2;
-  if constexpr (std::is_same_v<
-                    EventPacket,
-                    pflib::packing::MultiSampleECONDEventPacket>) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
     n_links = determine_n_links(tgt);
   }
   DecodeAndWriteToCSV<EventPacket> writer{

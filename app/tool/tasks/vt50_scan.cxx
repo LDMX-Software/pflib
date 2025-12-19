@@ -22,9 +22,8 @@ static void vt50_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   double tot_eff{0};
   int i_ch = channel % 36;  // 0–35
   int n_links = 2;
-  if constexpr (std::is_same_v<
-                    EventPacket,
-                    pflib::packing::MultiSampleECONDEventPacket>) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
     n_links = determine_n_links(tgt);
   }
   // Vectors for storing tot_eff and calib for the current param_point

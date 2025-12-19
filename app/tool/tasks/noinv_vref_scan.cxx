@@ -15,9 +15,8 @@ static void noinv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int i_ch = 0;  // 0–35
   int noinv_vref = 0;
   int n_links = 2;
-  if constexpr (std::is_same_v<
-                      EventPacket,
-                      pflib::packing::MultiSampleECONDEventPacket>) {
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
     n_links = determine_n_links(tgt);
   }
   DecodeAndWriteToCSV<EventPacket> writer{
