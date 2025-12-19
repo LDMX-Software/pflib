@@ -236,33 +236,65 @@ void ECON::setRegisters(
 
 std::map<int, std::map<int, uint8_t>> ECON::getRegisters(
     const std::map<int, std::map<int, uint8_t>>& selected) {
-  // output map: page_id -> (register address -> value)
-  std::map<int, std::map<int, uint8_t>> chip_reg;
-  const int page_id = 0;  // always page 0
+  constexpr int MAX_BATCH_SIZE = 128;
 
+  std::map<int, std::map<int, uint8_t>> chip_reg;
+  const int page_id = 0;
   std::map<int, uint8_t> all_regs;
 
+  // Build sorted list of registers to read
+  std::vector<std::pair<int, int>> reads_to_perform;  // (address, nbytes)
+
   if (selected.empty()) {
-    // if no specific registers are requested, read all registers
-    // printf("[DEBUG] Selected map is empty — reading all registers.\n");
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
-      std::vector<uint8_t> values = getValues(reg_addr, nbytes);
-      for (int i = 0; i < values.size(); ++i) {
-        // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-        all_regs[reg_addr + i] = values[i];
-      }
+      reads_to_perform.emplace_back(reg_addr, nbytes);
     }
   } else {
-    // only read the registers in selected[0]
     const auto& reg_map = selected.at(page_id);
     for (const auto& [reg_addr, nbytes] : econ_reg_nbytes_lut_) {
       if (reg_map.find(reg_addr) != reg_map.end()) {
-        std::vector<uint8_t> values = getValues(reg_addr, nbytes);
-        for (int i = 0; i < (int)values.size(); ++i) {
-          // printf("Read [0x%04x] = 0x%02x\n", reg_addr + i, values[i]);
-          all_regs[reg_addr + i] = values[i];
-        }
+        reads_to_perform.emplace_back(reg_addr, nbytes);
       }
+    }
+  }
+
+  // Sort by address
+  std::sort(reads_to_perform.begin(), reads_to_perform.end());
+
+  // Batch adjacent reads with size limit
+  if (!reads_to_perform.empty()) {
+    int start_addr = reads_to_perform[0].first;
+    int current_end = start_addr + reads_to_perform[0].second;
+
+    for (size_t i = 1; i < reads_to_perform.size(); ++i) {
+      int next_addr = reads_to_perform[i].first;
+      int next_nbytes = reads_to_perform[i].second;
+      int potential_size = next_addr + next_nbytes - start_addr;
+
+      // Check if contiguous AND under size limit
+      if (next_addr == current_end && potential_size <= MAX_BATCH_SIZE) {
+        // Extend the batch
+        current_end = next_addr + next_nbytes;
+      } else {
+        // Non-contiguous or too large - perform the batch
+        int batch_size = current_end - start_addr;
+        std::vector<uint8_t> batch_data = getValues(start_addr, batch_size);
+
+        for (int j = 0; j < batch_size; ++j) {
+          all_regs[start_addr + j] = batch_data[j];
+        }
+
+        // Start new batch
+        start_addr = next_addr;
+        current_end = next_addr + next_nbytes;
+      }
+    }
+
+    // Perform the final batch
+    int batch_size = current_end - start_addr;
+    std::vector<uint8_t> batch_data = getValues(start_addr, batch_size);
+    for (int j = 0; j < batch_size; ++j) {
+      all_regs[start_addr + j] = batch_data[j];
     }
   }
 
