@@ -8,6 +8,7 @@
 #include "align_phase_word.h"
 #include "charge_timescan.h"
 #include "gen_scan.h"
+#include "get_lpgbt_temps.h"
 #include "inv_vref_scan.h"
 #include "level_pedestals.h"
 #include "load_parameter_points.h"
@@ -30,6 +31,8 @@ auto menu_tasks =
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
                charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
+        ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
+               get_lpgbt_temps)
         ->line("PARAMETER_TIMESCAN",
                "scan charge/calib pulse over time for varying parameters",
                parameter_timescan)
