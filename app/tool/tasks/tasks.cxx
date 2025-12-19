@@ -11,6 +11,7 @@
 #include "inv_vref_scan.h"
 #include "level_pedestals.h"
 #include "load_parameter_points.h"
+#include "multi_channel_scan"
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
@@ -40,6 +41,9 @@ auto menu_tasks =
         ->line("SAMPLING_PHASE_SCAN",
                "scan phase_ck, pedestal for clock phase alignment",
                sampling_phase_scan)
+        ->line("MULTI_CHANNEL_SCAN",
+               "scans multiple channels to look for cross-talk",
+               multi_channel_scan)
         ->line("VT50_SCAN",
                "Hones in on the vt50 with a binary or bisectional scan",
                vt50_scan)
