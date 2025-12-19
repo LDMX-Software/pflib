@@ -116,8 +116,29 @@ static void econ_status(const std::string& cmd, Target* tgt) {
            econ.getValues(fctrl_base + offset, 1).at(0));
   }
 
+  /**
+   * The PUSM state names are copied from the online ECON-D/T manual
+   * https://econ-user-manual.docs.cern.ch/CommonBlocks/pusm/
+   *
+   * The numbering there is offset by one compared to the indices that
+   * we are reading out from the chip, but I think that makes sense.
+   */
+  static const std::array<const char*, 9> pusm_state_names = {
+    "RESET",
+    "IDLE",
+    "RESET_PLL",
+    "WAIT_PLL_LOCK",
+    "RESET_DLLS",
+    "WAIT_DLL_RESET_DONE",
+    "WAIT_DLL_LOCK",
+    "RESET_LOGIC_USING_DLL",
+    "READY"
+  }; 
+  int pusm_state = econ.getPUSMStateValue();
+  const char* pusm_state_name = ((pusm_state >= 0 and pusm_state < pusm_state_names.size()) ? pusm_state_names[pusm_state] : "???");
+
   printf(" %18s: %d\n", "PUSM Run Val", econ.getPUSMRunValue());
-  printf(" %18s: %d\n", "PUSM State Val", econ.getPUSMStateValue());
+  printf(" %18s: %d %s\n", "PUSM State Val", pusm_state, pusm_state_name);
   printf(" %18s: %d\n", "Run Mode", econ.isRunMode());
 }
 
