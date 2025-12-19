@@ -14,8 +14,12 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::array<int, 2>& channels, int& inv_vref) {
   int link = 0;
   int i_ch = 0;  // 0–35
-  int n_links = determine_n_links(tgt);
-
+  int n_links = 2;
+  if constexpr (std::is_same_v<
+                        EventPacket,
+                        pflib::packing::MultiSampleECONDEventPacket>) {
+    n_links = determine_n_links(tgt);
+  }
   DecodeAndWriteToCSV<EventPacket> writer{
       output_filepath,
       [&](std::ofstream& f) {
