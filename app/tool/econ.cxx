@@ -217,6 +217,18 @@ static void econ(const std::string& cmd, Target* pft) {
     econ.readParameters(fname);
   }
   if (cmd == "DUMP") {
+    // request that the counters are synchronously copied from internal to
+    // readable registers avoiding compiler overhead for these parameters since
+    // the compiler is very slow
+    if (econ.type() == "econd") {
+      // ROCDAQCTRL.STROBE_2_STATUS_CAPTURE
+      econ.setValue(0x40f, (1 << 2), 1);
+      // WATCHDOG.CAPTURE
+      econ.setValue(0xd55, (1 << 2), 1);
+    } else {
+      // MISC.STATUS_CAPTURE
+      econ.setValue(0xce0, (1 << 1), 1);
+    }
     std::string fname = pftool::readline_path(
         econ.type() + "_" + std::to_string(pftool::state.iecon) + "_settings",
         ".yaml");
