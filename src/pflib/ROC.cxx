@@ -35,7 +35,7 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 }
 
 /// maximum number of times to attempt I2C transaction
-static const int max_tries = 5;
+static const int max_tries = 10;
 
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_->set_bus_speed(1400);
@@ -54,6 +54,7 @@ uint8_t ROC::getValue(int ipage, int offset) {
     } catch (const pflib::Exception& e) {
       pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
                        << " failed with [" << e.name() << "]: " << e.message();
+      usleep(100);
     }
   }
 
