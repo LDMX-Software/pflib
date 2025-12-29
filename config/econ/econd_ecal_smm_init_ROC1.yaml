@@ -28,6 +28,7 @@ ETX:
 ELINKPROCESSORS:
   GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same 
   GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
+  GLOBAL_ERX_MASK_CRC: 0xFFF  # mask CRC issues for all 12 eRx links (bits 0-11)
 FORMATTERBUFFER:
   GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
   GLOBAL_IDLE_PATTERN: 0x1277cc
