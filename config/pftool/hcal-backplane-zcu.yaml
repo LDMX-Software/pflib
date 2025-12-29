@@ -1,3 +1,4 @@
 target:
   type: "HcalBackplaneZCU"
   ilink: 0
+  boardmask: 0x1
