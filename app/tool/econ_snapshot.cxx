@@ -16,8 +16,6 @@ uint32_t build_channel_mask(std::vector<int>& channels) {
 }
 
 void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
-  uint32_t binary_channels =
-      build_channel_mask(channels);  // defined in align_phase_word.cxx
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
   std::cout << std::endl;
@@ -28,20 +26,15 @@ void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
 
-  // ------- Scan when the ECON takes snapshot -----
-  int snapshot_val = 3531;  // near your orbit region of interest
-
   // ---- SETTING ECON REGISTERS ---- //
   parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
-  parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
   auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
   // FAST CONTROL - LINK_RESET
   tgt->fc().linkreset_rocs();
 
-  std::cout << "Outputting snapshot at BX " << snapshot_val << std::endl;
   for (int channel : channels) {
     // print out snapshot
 
@@ -66,7 +59,7 @@ void econ_snapshot(Target* tgt, pflib::ECON& econ, std::vector<int>& channels) {
     // shift by 1
     boost::multiprecision::uint256_t shifted1 = (snapshot >> 1);
 
-    std::cout << "Snapshot Printout: " << snapshot_val << std::endl
+    std::cout << "Snapshot Printout: "
               << " (channel " << channel << ") " << std::endl
               << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
               << shifted1 << std::dec << std::endl;
