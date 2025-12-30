@@ -11,7 +11,12 @@ ENABLE_LOGGING();
 bool debug_checks = false;
 
 // ROC Idle Frame
-constexpr uint32_t ROC_IDLE_FRAME = 0x5555555;
+constexpr uint32_t ROC_IDLE_FRAME = 0x12c5c57;
+
+constexpr uint64_t ECON_ROC_ALIGN_PATTERN = (
+  (0x9ull << 60) | (static_cast<uint64_t>(ROC_IDLE_FRAME) << 32) |
+  (0xaull << 28) | ROC_IDLE_FRAME
+);
 
 // ECON PUSM State READY
 constexpr int ECON_EXPECTED_PUSM_STATE = 8;
@@ -79,6 +84,8 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   // print ROC status
   if (debug_checks) {
     print_roc_status(roc);
+    std::cout << "ROC_IDLE_FRAME: 0x" << std::hex << ROC_IDLE_FRAME << std::endl;
+    std::cout << "ECON_ROC_ALIGN_PATTERN: 0x" << std::hex << ECON_ROC_ALIGN_PATTERN << std::endl;
   }
 
   // ---- SETTING ECON REGISTERS ---- //
@@ -108,7 +115,7 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
   // Set GLOBAL_MATCH_PATTERN_VAL
-  econ.setValue(0x0381, 0x95555555A5555555, 8);
+  econ.setValue(0x0381, ECON_ROC_ALIGN_PATTERN, 8);
 
   // Verify that channels are still locked
   for (int ch : channels) {
@@ -307,7 +314,6 @@ void align_phase_word(Target* tgt) {
   channels.push_back(mapping[iroc].first);
   channels.push_back(mapping[iroc].second);
 
-  uint32_t binary_channels = build_channel_mask(channels);
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
   std::cout << std::endl;
@@ -315,7 +321,6 @@ void align_phase_word(Target* tgt) {
   // Check PUSM state
   auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
   if (debug_checks) {
-    std::cout << "Decimal value of channels: " << binary_channels << std::endl;
     std::cout << "PUSM_STATE = " << pusm_state << ", " << hex(pusm_state)
               << std::endl;
     reset_stream();
