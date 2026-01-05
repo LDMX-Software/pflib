@@ -10,6 +10,7 @@ general plotting parameters.
 import update_path
 from plt_gen import plt_gen
 from get_params import get_params
+from astropy.stats import sigma_clipped_stats
 
 import os
 
@@ -17,7 +18,11 @@ from pathlib import Path
 import argparse
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+from scipy.optimize import curve_fit
 import numpy as np
+import pandas as pd
 
 from read import read_pflib_csv
 
@@ -30,7 +35,7 @@ parser.add_argument('-o','--output', type=Path, help='file to which to print, de
 parser.add_argument('-od', '--output_directory', type=Path, help='directory to which to print.')
 parser.add_argument('-r', '--repository', type=bool, help='True if you would like to indicate that the input is a repository with csv files rather than a single csv file.')
 plot_types = ['SCATTER', 'HEATMAP']
-plot_funcs = ['ADC-TIME', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
+plot_funcs = ['ADC-TIME', 'ADC-ALL-CHANNELS', 'TOT-TIME', 'TOT', 'TOT-EFF', 'PARAMS', 'MULTI-CHANNEL']
 parser.add_argument('-pt','--plot_type', choices=plot_types, default=plot_types[0], type=str, help=f'Plotting type. Options: {", ".join(plot_types)}')
 parser.add_argument('-pf','--plot_function', choices=plot_funcs, default=plot_types[0], type=str, help=f'Plotting function. Options: {", ".join(plot_types)}')
 parser.add_argument('-xl','--xlabel', default='time [ns]', type=str, help=f'What to label the x-axis with.')
@@ -71,9 +76,196 @@ def set_xticks (
     xmin = 25*np.floor(xmin/25)
     xmax = 25*np.ceil(xmax/25)
     ax.set_xticks(ticks = np.arange(xmin, xmax+1, 25), minor=False)
-    ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True) 
+    ax.set_xticks(ticks = np.arange(xmin, xmax, 25/16), minor=True)
+
+#################### HELPER FUNCTIONS ########################
+
+def linear(x, k, m):
+    return k*x + m
 
 #################### PLOTTING FUNCTIONS ########################
+
+def adc_all_channels(
+        samples, 
+        run_params, 
+        ax_holder,
+        plot_params="all",   # "all" or "one"
+        param_index=6        # used only when plot_params="one"
+):
+    """
+    Plot max ADC vs channels, compute RMS trends, and fit dependence on parameters.
+    """
+
+    def compute_rms(ch_df, pedestal):
+        """RMS for a single channel dataframe."""
+        return np.sqrt(((ch_df['adc'] - pedestal)**2).mean())
+
+    def compute_all_rms(df, pedestal):
+        """Return {channel: rms}"""
+        rms = df.groupby('channel').apply(lambda c: compute_rms(c, pedestal))
+        return rms.reset_index(name='rms')
+
+    def conditional_legend(ax, max_labels=37, **kwargs):
+        """Only draw legend if below threshold."""
+        handles, labels = ax.get_legend_handles_labels()
+        if len(labels) < max_labels:
+            ax.legend(**kwargs)
+
+    def save_and_close(fig, fname):
+        fig.savefig(fname, dpi=400)
+        plt.close(fig)
+
+    charges_group = samples.groupby("nr channels")
+    fig_rms, ax_rms = plt.subplots(1, 1)
+    ax_rms.set_xlabel('Channels activated')
+    ax_rms.set_ylabel('Average RMS of non-activated channels')
+
+    link = 0
+    central_val = 54 if link == 1 else 18
+
+    activated_channels_list = []
+    avg_rms_list = []
+
+    runs = len(charges_group)
+    activated_channels_list = [[] for _ in range(runs - 1)]
+    avg_rms_list = [[] for _ in range(runs - 1)]
+
+    parameter_values = set()
+
+    # Loop over charge groups
+    for i, (charge_id, charge_df) in enumerate(charges_group):
+        print(f'Running {i+1} out of {runs}')
+        # Pedestal case
+        if i == 0:
+            fig, ax = plt.subplots()
+            df = charge_df[charge_df['nr channels'] == 0]
+
+            df = df[df['channel'] < 36] if link == 0 else df[df['channel'] >= 36]
+
+            mean, med, std = sigma_clipped_stats(df['adc'], sigma=3)
+            pedestal = mean
+
+            ax.scatter(df['channel'], df['adc'], s=5, color='r', lw=1)
+            ax.set_ylabel('ADC')
+            ax.set_xlabel('Channel')
+
+            save_and_close(fig, 'Pedestal.png')
+            continue
+
+        fig, ax1 = plt.subplots()
+        fig_time, ax_time = plt.subplots()
+
+        ax1.set_ylabel(r'$\Delta$ADC')
+        ax1.set_xlabel('Channel')
+        ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+
+        ax_time.set_ylabel('ADC')
+        ax_time.set_xlabel('Time')
+
+        # Parameter grouping
+        try:
+            param_group, param_name = get_params(charge_df, 0)
+        except Exception:
+            param_group = [(None, charge_df)]
+
+        cmap = plt.get_cmap('viridis')
+
+        for j, (param_id, param_df) in enumerate(param_group):
+
+            # --- Parameter selection ---
+            if plot_params == "one":
+                if j != param_index:
+                    continue
+
+            try:
+                key = param_name.split('.')[1]
+                val = param_df[param_name].iloc[0]
+            except Exception:  
+                key = "Channels flashed, voltage [mVpp]"
+                val = (4, 2000)
+
+            parameter_values.add(val)
+
+            max_diff = (
+                param_df
+                .groupby('channel')['adc']
+                .apply(lambda s: (s - pedestal).abs().max())
+                .reset_index(name='max_diff')
+            )
+            
+            # Get RMS
+            rms_df = compute_all_rms(param_df, pedestal)
+            rms_vals = rms_df['rms'].tolist()
+            avg_rms = 0
+            count = 0
+            for k in range(central_val - 18, central_val + 18):
+                if central_val - (i - 1) <= k <= central_val + (i - 1):
+                    continue
+                avg_rms += rms_vals[k]
+                count += 1
+
+            if count > 0:
+                avg_rms /= count
+                avg_rms_list[i - 1].append(avg_rms)
+                activated_channels_list[i - 1].append(i)
+
+            merged = max_diff.merge(rms_df, on='channel')
+            ax1.set_ylim(-10, merged['max_diff'].max() + 10)
+            ax1.scatter(
+                merged['channel'], merged['max_diff'],
+                label=f'{key} = {val}',
+                s=5, color=cmap(j / len(param_group)), lw=1
+            )
+            if link == 0:
+                link_df = param_df[param_df['channel'] < 36]
+            elif link == 1:
+                link_df = param_df[param_df['channel'] >= 36]
+            for k, (ch_id, ch_df) in enumerate(link_df.groupby('channel')):
+                ax_time.scatter(
+                    ch_df['time'], ch_df['adc'],
+                    label=f'ch{ch_id}',
+                    s=5, color=plt.get_cmap('tab20')(k / 20)
+                    )
+
+        # Pedestal and link lines
+        ax1.axhline(y=0, color='k', linestyle='--', linewidth=0.8)
+        ax1.axvline(x=35.5, color='r', linestyle='--', alpha=0.5)
+
+        conditional_legend(ax1, fontsize=8)
+        conditional_legend(ax_time, fontsize=4, ncols=3)
+
+        save_and_close(fig, f'adc_channels_{i}.png')
+        save_and_close(fig_time, f'adc_time_{i}.png')
+
+    # slope/intercept plots
+    activated_T = list(map(list, zip(*activated_channels_list)))
+    rms_T = list(map(list, zip(*avg_rms_list)))
+    parameter_values = sorted(parameter_values)
+
+    if len(activated_T) > 1:
+        slopes = []
+        intercepts = []
+
+        for xvals, yvals in zip(activated_T, rms_T):
+            popt, _ = curve_fit(linear, xvals, yvals)
+            slopes.append(popt[0])
+            intercepts.append(popt[1])
+
+            ax_rms.scatter(xvals, yvals, s=8)
+            xfit = np.linspace(min(xvals), max(xvals), 100)
+            ax_rms.plot(xfit, linear(xfit, *popt),
+                        label=f'Fit: y={popt[0]:.3f}x + {popt[1]:.3f}, CALIB={parameter_values[len(slopes)-1]}')
+
+        conditional_legend(ax_rms, fontsize=8)
+        save_and_close(fig_rms, 'avg_rms.png')
+
+        fig_par, ax_par = plt.subplots()
+        ax_par.scatter(parameter_values, slopes, label='slopes')
+        ax_par.scatter(parameter_values, intercepts, label='intercepts')
+        ax_par.legend()
+        ax_par.set_xlabel('CALIB')
+        ax_par.set_title('Slope and intercepts from fits')
+        save_and_close(fig_par, 'slope_intercept.png')
 
 def time(
     samples,
@@ -373,6 +565,10 @@ def multiparams(
             param(samples_collection[i], run_params_collection[i], ax)
 
 ############################## MAIN ###################################
+
+if args.plot_function == 'ADC-ALL-CHANNELS':
+    plt_gen(adc_all_channels, samples, run_params, args.output,
+            xlabel = args.xlabel, ylabel = args.ylabel)
 
 if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
     plt_gen(partial(time, yval = 'adc'), samples, run_params, args.output,

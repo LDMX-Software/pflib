@@ -18,7 +18,7 @@ class EcalSMMTargetBW : public Target {
   mutable logging::logger the_log_{logging::get("EcalSMMBW")};
 
  public:
-  EcalSMMTargetBW(int itarget, const char* dev) {
+  EcalSMMTargetBW(int itarget, uint8_t roc_mask, const char* dev) {
     using namespace pflib::bittware;
     // first, setup the optical links
     auto daq_olink = std::make_shared<BWOptoLink>(itarget, dev);
@@ -31,8 +31,8 @@ class EcalSMMTargetBW : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
+    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
+                                                      0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
@@ -91,8 +91,7 @@ class EcalSMMTargetBW : public Target {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping()
-      override;  // because there is no header file.
+  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
   virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
@@ -127,27 +126,14 @@ class EcalSMMTargetBW : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    std::vector<uint32_t> buf;
-
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
-      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
-      }
-      // FW puts in one last "header" that signals no more packets
-      buf.push_back((0x1 << 28) | (0x3ff << 18) | (0x1f << 13));
+      return daq().read_event_sw_headers();
     } else {
       PFEXCEPTION_RAISE("NoImpl",
                         "EcalSMMTargetBW::read_event not implemented "
                         "for provided DaqFormat");
     }
-
-    return buf;
+    return {};
   }
 
  private:
@@ -160,8 +146,9 @@ class EcalSMMTargetBW : public Target {
   int contrib_id_;
 };
 
-Target* makeTargetEcalSMMBittware(int ilink, const char* dev) {
-  return new EcalSMMTargetBW(ilink, dev);
+Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask,
+                                  const char* dev) {
+  return new EcalSMMTargetBW(ilink, roc_mask, dev);
 }
 
 const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() {

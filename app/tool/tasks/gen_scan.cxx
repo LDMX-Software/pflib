@@ -18,8 +18,11 @@ static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   std::size_t i_param_point{0};
   int link = (channel / 36);
   int i_ch = channel % 36;  // 0–35
-  int n_links = determine_n_links(tgt);
-
+  int n_links = 2;
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
+    n_links = determine_n_links(tgt);
+  }
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
       load_parameter_points(parameter_points_file);

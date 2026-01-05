@@ -12,7 +12,7 @@ static constexpr int I2C_BUS_M0 = 1;
 
 class EcalSMMTargetZCU : public Target {
  public:
-  EcalSMMTargetZCU(int itarget) {
+  EcalSMMTargetZCU(int itarget, uint8_t roc_mask) {
     using namespace pflib::zcu;
     // first, setup the optical links
     std::string uio_coder =
@@ -26,8 +26,8 @@ class EcalSMMTargetZCU : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ =
-        std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0, 0);
+    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
+                                                      0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
@@ -46,8 +46,7 @@ class EcalSMMTargetZCU : public Target {
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping()
-      override;  // because there is no header file.
+  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
 
   virtual int nrocs() { return ecalModule_->nrocs(); }
   virtual int necons() { return ecalModule_->necons(); }
@@ -83,25 +82,14 @@ class EcalSMMTargetZCU : public Target {
   }
 
   virtual std::vector<uint32_t> read_event() override {
-    std::vector<uint32_t> buf;
-
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
-      for (int ievt = 0; ievt < daq().samples_per_ror(); ievt++) {
-        // only one elink right now
-        std::vector<uint32_t> subpacket = daq().getLinkData(0);
-        buf.push_back((0x1 << 28) | ((daq().econid() & 0x3ff) << 18) |
-                      (ievt << 13) | ((ievt == daq().soi()) ? (1 << 12) : (0)) |
-                      (subpacket.size()));
-        buf.insert(buf.end(), subpacket.begin(), subpacket.end());
-        daq().advanceLinkReadPtr();
-      }
+      return daq_->read_event_sw_headers();
     } else {
       PFEXCEPTION_RAISE("NoImpl",
                         "EcalSMMZCU::read_event not implemented "
                         "for provided DaqFormat");
     }
-
-    return buf;
+    return {};
   }
 
  private:
@@ -118,6 +106,8 @@ const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
   return EcalModule::getRocErxMapping();
 }
 
-Target* makeTargetEcalSMMZCU(int ilink) { return new EcalSMMTargetZCU(ilink); }
+Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) {
+  return new EcalSMMTargetZCU(ilink, roc_mask);
+}
 
 }  // namespace pflib

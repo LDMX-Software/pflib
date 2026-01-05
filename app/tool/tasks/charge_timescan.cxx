@@ -20,8 +20,11 @@ static void charge_timescan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
-  int n_links = determine_n_links(tgt);
-
+  int n_links = 2;
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
+    n_links = determine_n_links(tgt);
+  }
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,
       [&](std::ofstream& f) {

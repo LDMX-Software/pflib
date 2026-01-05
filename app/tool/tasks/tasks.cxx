@@ -12,12 +12,14 @@
 #include "inv_vref_scan.h"
 #include "level_pedestals.h"
 #include "load_parameter_points.h"
+#include "multi_channel_scan.h"
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
+#include "tot_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
@@ -42,6 +44,9 @@ auto menu_tasks =
         ->line("SAMPLING_PHASE_SCAN",
                "scan phase_ck, pedestal for clock phase alignment",
                sampling_phase_scan)
+        ->line("MULTI_CHANNEL_SCAN",
+               "scans multiple channels to look for cross-talk",
+               multi_channel_scan)
         ->line("VT50_SCAN",
                "Hones in on the vt50 with a binary or bisectional scan",
                vt50_scan)
@@ -54,6 +59,9 @@ auto menu_tasks =
         ->line("TOA_SCAN",
                "just does that bro (changes CALIB while saving only TOA)",
                toa_scan)
+        ->line("TOT_SCAN",
+               "scan over VREF and TRIM parameters for TOT calibration",
+               tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
