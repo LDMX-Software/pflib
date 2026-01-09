@@ -92,7 +92,6 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
   // BX value econ resets to when it receives BCR (linkreset)
   // Overall phase marker between ROC and ECON
-  parameters["ALIGNER"]["GLOBAL_MATCH_MASK_VAL"] = 0;
   parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
@@ -144,20 +143,16 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
 
-  // TO DO
-  // // Read BX value of link reset rocd
-  // tgt->fc().bx_custom(3, 0xfff000, 3000);
+  // TODO: Read BX value of link reset rocd
 
   // ------- Scan when the ECON takes snapshot -----
-  int start_val, end_val, testval, snapshot_match;
+  int start_val, end_val, snapshot_match;
   if (on_zcu) {
     start_val = 3490;  // 3531;  // near your orbit region of interest
     end_val = 3540;    // up to orbit rollover
-    testval = 3532;
   } else {
     start_val = 64 * 40 - 60;  // near your orbit region of interest
     end_val = 64 * 40 - 1;     // up to orbit rollover
-    testval = start_val + 1;
   }
 
   std::cout << "Iterating over snapshots to find SPECIAL HEADER: " << std::endl;
@@ -167,7 +162,6 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
     std::cout << " --------------------------------------------------- "
               << std::endl;
 
-    // int snapshot_val = testval;
     parameters.clear();
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
     auto econ_word_align_currentvals = econ.applyParameters(parameters);
