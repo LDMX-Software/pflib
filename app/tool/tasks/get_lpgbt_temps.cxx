@@ -154,7 +154,7 @@ void get_lpgbt_temps(Target* tgt) {
         "  > Did not find calibration file '%s', producing a file from "
         "'%s'...\n",
         yaml_file.c_str(), csv_file.c_str());
-    
+
     get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
     read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
     return;
