@@ -386,15 +386,15 @@ int lpGBT::find_vref_tune(double vref_slope, double vref_offset,
 
 void lpGBT::read_internal_temp_avg() {
   double adc_avg = adc_average();
-  printf("  > ADC Average: %f\n", adc_avg);
   double tj_user = adc_avg * AVG_TEMPERATURE_UNCALVREF_SLOPE +
                    AVG_TEMPERATURE_UNCALVREF_OFFSET;
-  printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n",
-         tj_user);
-
   double vadc_v =
       adc_avg * (AVG_ADC_X2_SLOPE + tj_user * AVG_ADC_X2_SLOPE_TEMP) +
       AVG_ADC_X2_OFFSET + tj_user * AVG_ADC_X2_OFFSET_TEMP;
+
+  printf("  > ADC Average: %f\n", adc_avg);
+  printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n",
+         tj_user);
   printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
 
   double temperature_c =
@@ -429,6 +429,10 @@ void lpGBT::read_internal_temp_precise(YAML::Node cal_data) {
   double adc_avg = adc_average();
   double vadc_v = adc_avg * (ADC_SLOPE + tj_user * ADC_SLOPE_TEMP) +
                   ADC_OFFSET + tj_user * ADC_OFFSET_TEMP;
+
+  printf("  > ADC Average: %f\n", adc_avg);
+  printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n",
+         tj_user);
   printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
 
   double temperature_c = (vadc_v * TEMP_SLOPE) + TEMP_OFFSET;

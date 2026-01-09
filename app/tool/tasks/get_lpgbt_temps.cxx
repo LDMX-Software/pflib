@@ -134,7 +134,7 @@ void get_lpgbt_temps(Target* tgt) {
     bool verify = pftool::readline_bool(
         "Using precise constants may require downloading and unzipping a large "
         "CSV file (330 MB) - Continue?",
-        false);
+        true);
     if (!verify) {
       printf("  > Continuing with average constants...\n");
       lpgbt_card.read_internal_temp_avg();
