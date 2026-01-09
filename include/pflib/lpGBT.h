@@ -121,7 +121,8 @@ class lpGBT {
 
   /** Find a good vref_tune for temperature measurement
    */
-  int find_vref_tune(double vref_slope, double vref_offset, double temp_uncal_slope, double temp_uncal_offset);
+  int find_vref_tune(double vref_slope, double vref_offset,
+                     double temp_uncal_slope, double temp_uncal_offset);
 
   static constexpr double AVG_ADC_X2_OFFSET = -3.29456020e-02;
   static constexpr double AVG_ADC_X2_OFFSET_TEMP = 1.33582562e-06;
@@ -134,14 +135,16 @@ class lpGBT {
   static constexpr double AVG_VREF_OFFSET = 1.34761703e+02;
   static constexpr double AVG_VREF_SLOPE = -3.35998109e-01;
 
-  /** Calculate the internal temperature of the lpGBT using averaged calibration constants
+  /** Calculate the internal temperature of the lpGBT using averaged calibration
+   * constants
    */
   void read_internal_temp_avg();
 
-  /** Calculate the internal temperature of the lpGBT using precise calibration constants
+  /** Calculate the internal temperature of the lpGBT using precise calibration
+   * constants
    */
   void read_internal_temp_precise(YAML::Node cal_data);
-  
+
   /** Setup the given eclk
       \param ieclk Number of the ECLK on the mezzanine interface
       \param rate LHC-nominal clock rate in MHz -- 0/40/80/160/320/640/1280 --

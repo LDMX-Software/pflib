@@ -17,8 +17,8 @@ struct CalibConstants {
   }
 };
 
-static void get_calib_constants(std::string& chipid, std::string csv_file, std::string yaml_file, std::string lpgbt_name) {
-
+static void get_calib_constants(std::string& chipid, std::string csv_file,
+                                std::string yaml_file, std::string lpgbt_name) {
   CalibConstants calib;
 
   printf(" --- Fetching calibration constants from .csv for %s ---\n",
@@ -72,7 +72,7 @@ static void get_calib_constants(std::string& chipid, std::string csv_file, std::
   YAML::Node results;
 
   std::ifstream fin(yaml_file);
-  
+
   if (fin.good()) {
     try {
       results = YAML::Load(fin);
@@ -86,27 +86,28 @@ static void get_calib_constants(std::string& chipid, std::string csv_file, std::
   YAML::Node cal;
 
   for (const auto& kv : calib.values) {
-	  const std::string& key = kv.first;
-	  std::string val = kv.second;
-	  cal[key] = val;
+    const std::string& key = kv.first;
+    std::string val = kv.second;
+    cal[key] = val;
   }
   entry["card_type"] = lpgbt_name;
   entry["calib_constants"] = cal;
   results[chipid] = entry;
 
   std::ofstream fout(yaml_file);
-  if(!fout.good()) { 
-	  printf("  > ERROR: Could not write to YAML file '%s'\n", yaml_file.c_str());
-	  return;
+  if (!fout.good()) {
+    printf("  > ERROR: Could not write to YAML file '%s'\n", yaml_file.c_str());
+    return;
   }
   fout << results;
   fout.close();
   printf("  > Successfully wrote calibration data to '%s'\n",
-		  yaml_file.c_str());
+         yaml_file.c_str());
 }
 
-static void read_internal_temp(pflib::lpGBT lpgbt_card, const std::string& chipid_hex, const std::string& results_file) {
-   
+static void read_internal_temp(pflib::lpGBT lpgbt_card,
+                               const std::string& chipid_hex,
+                               const std::string& results_file) {
   YAML::Node results = YAML::LoadFile(results_file);
   YAML::Node entry = results[chipid_hex];
   YAML::Node cal = entry["calib_constants"];
@@ -115,7 +116,6 @@ static void read_internal_temp(pflib::lpGBT lpgbt_card, const std::string& chipi
 }
 
 void get_lpgbt_temps(Target* tgt) {
-
   std::string lpgbt_name = "DAQ";
   pflib::lpGBT lpgbt_card{tgt->get_opto_link(lpgbt_name).lpgbt_transport()};
   uint32_t chipid = lpgbt_card.read_efuse(0);
@@ -134,13 +134,16 @@ void get_lpgbt_temps(Target* tgt) {
     lpgbt_card.read_internal_temp_avg();
     return;
   } else {
-    bool verify = pftool::readline_bool("Using precise constants may require downloading and unzipping a large CSV file (330 MB) - Continue?", false);
+    bool verify = pftool::readline_bool(
+        "Using precise constants may require downloading and unzipping a large "
+        "CSV file (330 MB) - Continue?",
+        false);
     if (!verify) {
       printf("  > Continuing with average constants...\n");
       lpgbt_card.read_internal_temp_avg();
       return;
-      }
     }
+  }
 
   bool have_yaml_for_chip = yaml_has_chipid(yaml_file, chipid_hex);
 
@@ -148,26 +151,30 @@ void get_lpgbt_temps(Target* tgt) {
     printf("  > Found calibration constants...\n");
     read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
     return;
-  } else if (file_exists(csv_file)){
-      printf("  > Did not find calibration file '%s', producing a file from '%s'...\n", yaml_file.c_str(), csv_file.c_str());
-      get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
-      read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
-      return;
+  } else if (file_exists(csv_file)) {
+    printf(
+        "  > Did not find calibration file '%s', producing a file from "
+        "'%s'...\n",
+        yaml_file.c_str(), csv_file.c_str());
+    get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
+    read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
+    return;
   } else {
-      printf("  > Did not find calibration CSV file... Downloading from CERN...\n");
-      std::string dl_cmd =
-	      "wget "
-	      "https://lpgbt.web.cern.ch/lpgbt/calibration/"
-	      "lpgbt_calibration_latest.zip";
-      std::system(dl_cmd.c_str());
-      std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
-      std::system(unzip_cmd.c_str());
-      std::string rm_cmd =
-	      "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
-      std::system(rm_cmd.c_str());
+    printf(
+        "  > Did not find calibration CSV file... Downloading from CERN...\n");
+    std::string dl_cmd =
+        "wget "
+        "https://lpgbt.web.cern.ch/lpgbt/calibration/"
+        "lpgbt_calibration_latest.zip";
+    std::system(dl_cmd.c_str());
+    std::string unzip_cmd = "unzip lpgbt_calibration_latest.zip";
+    std::system(unzip_cmd.c_str());
+    std::string rm_cmd =
+        "rm -rf lpgbt_calibration_latest.zip lpgbt_calibration.db";
+    std::system(rm_cmd.c_str());
 
-      get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
-      read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
-      return;
+    get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
+    read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
+    return;
   }
 }

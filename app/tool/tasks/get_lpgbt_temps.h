@@ -39,8 +39,7 @@ inline double rtd_resistance_to_celsius(double resistance_ohms,
   return temperature;
 }
 
-inline bool yaml_has_chipid(const std::string& yaml_file,
-                            std::string& chipid) {
+inline bool yaml_has_chipid(const std::string& yaml_file, std::string& chipid) {
   if (!file_exists(yaml_file)) return false;
   YAML::Node results = YAML::LoadFile(yaml_file);
   if (!results[chipid]) return false;
