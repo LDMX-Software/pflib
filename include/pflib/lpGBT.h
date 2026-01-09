@@ -2,6 +2,7 @@
 #define PFLIB_lpGBT_H_INCLUDED
 
 #include <stdint.h>
+#include <yaml-cpp/yaml.h>
 
 #include <vector>
 
@@ -114,6 +115,33 @@ class lpGBT {
    */
   uint16_t adc_resistance_read(int ipos, int current, int gain = 1);
 
+  /** Get an average ADC read using the adc_read function
+   */
+  double adc_average();
+
+  /** Find a good vref_tune for temperature measurement
+   */
+  int find_vref_tune(double vref_slope, double vref_offset, double temp_uncal_slope, double temp_uncal_offset);
+
+  static constexpr double AVG_ADC_X2_OFFSET = -3.29456020e-02;
+  static constexpr double AVG_ADC_X2_OFFSET_TEMP = 1.33582562e-06;
+  static constexpr double AVG_ADC_X2_SLOPE = 1.04131896e-03;
+  static constexpr double AVG_ADC_X2_SLOPE_TEMP = -2.57597742e-09;
+  static constexpr double AVG_TEMPERATURE_OFFSET = -1.84069912e+02;
+  static constexpr double AVG_TEMPERATURE_SLOPE = 4.10623053e+02;
+  static constexpr double AVG_TEMPERATURE_UNCALVREF_OFFSET = -2.10640722e+02;
+  static constexpr double AVG_TEMPERATURE_UNCALVREF_SLOPE = 4.56134956e-01;
+  static constexpr double AVG_VREF_OFFSET = 1.34761703e+02;
+  static constexpr double AVG_VREF_SLOPE = -3.35998109e-01;
+
+  /** Calculate the internal temperature of the lpGBT using averaged calibration constants
+   */
+  void read_internal_temp_avg();
+
+  /** Calculate the internal temperature of the lpGBT using precise calibration constants
+   */
+  void read_internal_temp_precise(YAML::Node cal_data);
+  
   /** Setup the given eclk
       \param ieclk Number of the ECLK on the mezzanine interface
       \param rate LHC-nominal clock rate in MHz -- 0/40/80/160/320/640/1280 --

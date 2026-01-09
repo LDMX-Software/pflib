@@ -27,8 +27,6 @@ inline bool file_exists(const std::string& name) {
   return (stat(name.c_str(), &buffer) == 0);
 }
 
-inline double to_double(const std::string& s) { return std::stod(s); }
-
 // Assumes a PT1000 sensor by default (r0=1000)
 inline double rtd_resistance_to_celsius(double resistance_ohms,
                                         double r0 = 1000.0,
@@ -42,20 +40,14 @@ inline double rtd_resistance_to_celsius(double resistance_ohms,
 }
 
 inline bool yaml_has_chipid(const std::string& yaml_file,
-                            const std::string& lpgbt_name, uint32_t chipid) {
+                            std::string& chipid) {
   if (!file_exists(yaml_file)) return false;
-
   YAML::Node results = YAML::LoadFile(yaml_file);
-  if (!results[lpgbt_name]) return false;
+  if (!results[chipid]) return false;
+  YAML::Node entry = results[chipid];
+  YAML::Node cal = entry["calib_constants"];
 
-  YAML::Node entry = results[lpgbt_name];
-  if (!entry["chipid"]) return false;
-
-  char buf[9];
-  snprintf(buf, sizeof(buf), "%08X", chipid);
-  std::string chipid_hex = buf;
-
-  return entry["chipid"].as<std::string>() == chipid_hex;
+  return cal["CHIPID"].as<std::string>() == chipid;
 }
 
 void get_lpgbt_temps(Target* tgt);
