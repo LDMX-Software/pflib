@@ -3,9 +3,6 @@
 #include "pflib/OptoLink.h"
 
 struct CalibConstants {
-  int vref_tune = 0;
-  double tj_user = 0.0;
-
   // automatically filled from .csv
   std::map<std::string, std::string> values;
 
@@ -35,12 +32,11 @@ static void get_calib_constants(std::string& chipid, std::string csv_file,
     std::getline(file, line);
     auto header = split_csv(line);
 
-    // Build name → index map
+    // Build name -> index map
     std::unordered_map<std::string, int> col;
     for (int i = 0; i < header.size(); i++) col[header[i]] = i;
 
     // Search row by row for  CHIPID
-
     bool found = false;
     while (std::getline(file, line)) {
       auto row = split_csv(line);
@@ -68,6 +64,7 @@ static void get_calib_constants(std::string& chipid, std::string csv_file,
     }
   }
 
+  // Now save out the results to the yaml file
   printf(" --- Saving Calibration Results ---\n");
   YAML::Node results;
 
@@ -77,7 +74,7 @@ static void get_calib_constants(std::string& chipid, std::string csv_file,
     try {
       results = YAML::Load(fin);
     } catch (...) {
-      printf("  > WARNING: Failed to parse existing YAML. Starting fresh.\n");
+      printf("  > WARNING: Failed to parse existing YAML. Starting fresh...\n");
     }
   }
   fin.close();
@@ -128,8 +125,8 @@ void get_lpgbt_temps(Target* tgt) {
   const std::string yaml_file = "calibration_results.yaml";
   const std::string csv_file = "lpgbt_calibration.csv";
 
+  // If the user wants to use the average values
   bool use_avgs = pftool::readline_bool("Use average constants?", true);
-
   if (use_avgs) {
     lpgbt_card.read_internal_temp_avg();
     return;
@@ -145,20 +142,23 @@ void get_lpgbt_temps(Target* tgt) {
     }
   }
 
+  // If the user wants precise calculations
   bool have_yaml_for_chip = yaml_has_chipid(yaml_file, chipid_hex);
-
   if (have_yaml_for_chip) {
     printf("  > Found calibration constants...\n");
     read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
     return;
+
   } else if (file_exists(csv_file)) {
     printf(
         "  > Did not find calibration file '%s', producing a file from "
         "'%s'...\n",
         yaml_file.c_str(), csv_file.c_str());
+    
     get_calib_constants(chipid_hex, csv_file, yaml_file, lpgbt_name);
     read_internal_temp(lpgbt_card, chipid_hex, yaml_file);
     return;
+
   } else {
     printf(
         "  > Did not find calibration CSV file... Downloading from CERN...\n");

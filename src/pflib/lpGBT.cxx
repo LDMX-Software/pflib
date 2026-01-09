@@ -374,12 +374,10 @@ int lpGBT::find_vref_tune(double vref_slope, double vref_offset,
                           double temp_uncal_slope, double temp_uncal_offset) {
   write(REG_VREFTUNE, 0);
   double adc_avg = adc_average();
-  // printf("  > adc_avg = %f\n", adc_avg);
   double tj_user = adc_avg * temp_uncal_slope + temp_uncal_offset;
-  // printf("  > tj_user = %f\n", tj_user);
   int optimal_vref_tune =
       static_cast<int>(std::round(tj_user * vref_slope + vref_offset));
-  printf("  > Optimal VREFTUNE: %d -- Writing to REG_VREFTUNE\n",
+  printf("  > Optimal VREFTUNE: %d;  Writing to REG_VREFTUNE...\n",
          optimal_vref_tune);
   write(REG_VREFTUNE, optimal_vref_tune);
 
