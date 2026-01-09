@@ -109,6 +109,7 @@ static constexpr uint16_t REG_PIOINH = 0x1AF;
 static constexpr uint16_t REG_PIOINL = 0x1B0;
 
 static constexpr uint16_t REG_VREFCNTR = 0x01c;
+static constexpr uint16_t REG_VREFTUNE = 0x01d;
 static constexpr uint16_t REG_DAC_CONFIG_H = 0x06a;
 static constexpr uint16_t REG_CURDAC_VALUE = 0x06c;
 static constexpr uint16_t REG_CURDAC_CHN = 0x06d;
@@ -348,6 +349,96 @@ uint16_t lpGBT::adc_read(int ipos, int ineg, int gain) {
   tport_.write_reg(REG_VREFCNTR, 0);
 
   return adc_value;
+}
+
+double lpGBT::adc_average() {
+  int samples = 20;
+  int temp_sensor = 14;
+  int vref = 15;
+  int gain = 0;
+  std::vector<uint16_t> adc_values;
+  adc_values.reserve(samples);
+
+  for (int i = 0; i < samples; ++i) {
+    uint16_t adc_value = adc_read(temp_sensor, vref, gain);
+    adc_values.push_back(adc_value);
+  }
+
+  double adc_sum = 0;
+  for (auto v : adc_values) adc_sum += v;
+  double adc_avg = adc_sum / adc_values.size();
+  return adc_avg;
+}
+
+int lpGBT::find_vref_tune(double vref_slope, double vref_offset,
+                          double temp_uncal_slope, double temp_uncal_offset) {
+  write(REG_VREFTUNE, 0);
+  double adc_avg = adc_average();
+  double tj_user = adc_avg * temp_uncal_slope + temp_uncal_offset;
+  int optimal_vref_tune =
+      static_cast<int>(std::round(tj_user * vref_slope + vref_offset));
+  printf("  > Optimal VREFTUNE: %d;  Writing to REG_VREFTUNE...\n",
+         optimal_vref_tune);
+  write(REG_VREFTUNE, optimal_vref_tune);
+
+  return optimal_vref_tune;
+}
+
+void lpGBT::read_internal_temp_avg() {
+  double adc_avg = adc_average();
+  double tj_user = adc_avg * AVG_TEMPERATURE_UNCALVREF_SLOPE +
+                   AVG_TEMPERATURE_UNCALVREF_OFFSET;
+  double vadc_v =
+      adc_avg * (AVG_ADC_X2_SLOPE + tj_user * AVG_ADC_X2_SLOPE_TEMP) +
+      AVG_ADC_X2_OFFSET + tj_user * AVG_ADC_X2_OFFSET_TEMP;
+
+  printf("  > ADC Average: %f\n", adc_avg);
+  printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n",
+         tj_user);
+  printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
+
+  double temperature_c =
+      (vadc_v * AVG_TEMPERATURE_SLOPE) + AVG_TEMPERATURE_OFFSET;
+  printf("  > ----------------------------------------------------\n");
+  printf("  > lpGBT Internal Temperature: %.2f degrees C\n", temperature_c);
+  printf("  > ----------------------------------------------------\n");
+}
+
+void lpGBT::read_internal_temp_precise(YAML::Node cal_data) {
+  double VREF_OFFSET = cal_data["VREF_OFFSET"].as<double>();
+  double VREF_SLOPE = cal_data["VREF_SLOPE"].as<double>();
+  double ADC_SLOPE = cal_data["ADC_X2_SLOPE"].as<double>();
+  double ADC_SLOPE_TEMP = cal_data["ADC_X2_SLOPE_TEMP"].as<double>();
+  double ADC_OFFSET = cal_data["ADC_X2_OFFSET"].as<double>();
+  double ADC_OFFSET_TEMP = cal_data["ADC_X2_OFFSET_TEMP"].as<double>();
+  double TEMP_SLOPE = cal_data["TEMPERATURE_SLOPE"].as<double>();
+  double TEMP_OFFSET = cal_data["TEMPERATURE_OFFSET"].as<double>();
+  double TEMP_UNCALVREF_SLOPE =
+      cal_data["TEMPERATURE_UNCALVREF_SLOPE"].as<double>();
+  double TEMP_UNCALVREF_OFFSET =
+      cal_data["TEMPERATURE_UNCALVREF_OFFSET"].as<double>();
+
+  write(REG_ADCMON, 1 << 5);
+  usleep(1000);
+  write(REG_ADCMON, 0 << 5);
+
+  int vref_tune = find_vref_tune(VREF_SLOPE, VREF_OFFSET, TEMP_UNCALVREF_SLOPE,
+                                 TEMP_UNCALVREF_OFFSET);
+  double tj_user = (vref_tune - VREF_OFFSET) / VREF_SLOPE;
+
+  double adc_avg = adc_average();
+  double vadc_v = adc_avg * (ADC_SLOPE + tj_user * ADC_SLOPE_TEMP) +
+                  ADC_OFFSET + tj_user * ADC_OFFSET_TEMP;
+
+  printf("  > ADC Average: %f\n", adc_avg);
+  printf("  > Esitimated junction temperature (TJ_USER): %f degrees C\n",
+         tj_user);
+  printf("  > Calibrated Voltage: %.4f V\n", vadc_v);
+
+  double temperature_c = (vadc_v * TEMP_SLOPE) + TEMP_OFFSET;
+  printf("  > ----------------------------------------------------\n");
+  printf("  > lpGBT Internal Temperature: %.2f degrees C\n", temperature_c);
+  printf("  > ----------------------------------------------------\n");
 }
 
 void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
