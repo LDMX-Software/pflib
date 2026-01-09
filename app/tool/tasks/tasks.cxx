@@ -24,10 +24,77 @@
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
+// 12 bits, default 0x2
+static const int ALIGNER_ORBSYN_CNT_SNAPSHOT = 0x0380 + 0x16;
+
+static const int CHALIGNER_BASE[12] = {
+  0x000,
+  0x040,
+  0x080,
+  0x0c0,
+  0x100,
+  0x140,
+  0x180,
+  0x1c0,
+  0x200,
+  0x240,
+  0x280,
+  0x2c0
+};
+
+// 1b, flag if pattern found
+static const int CHALIGNER_PATTERN_MATCH = 0x0;
+
+// snapshot location, 192b
+static const int CHALIGNER_SNAPSHOT = 0x2;
+
+void scan_l1a_offset(Target* tgt) {
+  auto& econ{tgt->econ(0)};
+  for (int t_snapshot{3490}; t_snapshot < 3540; t_snapshot+=4) {
+    econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 3);
+    // pause to make sure new snapshot is taken?
+    usleep(1000);
+
+    printf("%d:\n", t_snapshot);
+    for (int ch{9}; ch < 11; ch++) {
+      std::string channel = std::to_string(ch);
+      std::string var_name_pm = channel + "_PATTERN_MATCH";
+      auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
+      bool pattern_match = (ch_pm == 1);
+
+      std::string var_name_snapshot1 = channel + "_SNAPSHOT_0";
+      std::string var_name_snapshot2 = channel + "_SNAPSHOT_1";
+      std::string var_name_snapshot3 = channel + "_SNAPSHOT_2";
+      auto ch_snapshot_1 = econ.readParameter("CHALIGNER", var_name_snapshot1);
+      auto ch_snapshot_2 = econ.readParameter("CHALIGNER", var_name_snapshot2);
+      auto ch_snapshot_3 = econ.readParameter("CHALIGNER", var_name_snapshot3);
+      printf(" %2d: %s %08x %08x %08x\n",
+        ch, (pattern_match ? "*": " "),
+        ch_snapshot_3, ch_snapshot_2, ch_snapshot_1);
+
+      /*
+       * attempting to do a quick mimic failed
+      bool pattern_match = ((econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_PATTERN_MATCH, 1)[0] & 0x1)==1);
+      auto snapshot = econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_SNAPSHOT, 24);
+
+      printf(" %2d: %s", ch, (pattern_match ? "*": " "));
+      // snapshot is little-endian
+      printf("%2d", snapshot.size());
+      for (std::size_t i_byte{snapshot.size()}; i_byte > 0; i_byte--) {
+        printf("%02x", static_cast<int>(snapshot[i_byte]));
+        if (i_byte % 8 == 0) printf(" ");
+      }
+      printf("\n");
+      */
+    }
+  }
+}
+
 namespace {
 auto menu_tasks =
     pftool::menu("TASKS",
                  "tasks for studying the chip and tuning its parameters")
+        ->line("SCAN_L1A_OFFSET", "scan L1A offset in ECON to try to find data", scan_l1a_offset)
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
                charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
