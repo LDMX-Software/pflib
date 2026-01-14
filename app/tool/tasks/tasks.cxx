@@ -24,10 +24,14 @@
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
-// 12 bits, default 0x2
-static const int ALIGNER_ORBSYN_CNT_SNAPSHOT = 0x0380 + 0x16;
+static const ALIGNER_BASE = 0x0380;
 
-static const int CHALIGNER_BASE[12] = {
+// 12 bits, default 0x2
+static const int ALIGNER_ORBSYN_CNT_SNAPSHOT = ALIGNER_BASE + 0x16;
+// 1 bit flag
+static const int ALIGNER_SNAPSHOT_EN = ALIGNER_BASE + 000;
+
+static const int CHALIGNER_RW[12] = {
   0x000,
   0x040,
   0x080,
@@ -42,6 +46,21 @@ static const int CHALIGNER_BASE[12] = {
   0x2c0
 };
 
+static const int CHALIGNER_RO[12] = {
+  0x014,
+  0x054,
+  0x094,
+  0x0d4,
+  0x114,
+  0x154,
+  0x194,
+  0x1d4,
+  0x214,
+  0x254,
+  0x294,
+  0x2d4
+};
+
 // 1b, flag if pattern found
 static const int CHALIGNER_PATTERN_MATCH = 0x0;
 
@@ -50,13 +69,15 @@ static const int CHALIGNER_SNAPSHOT = 0x2;
 
 void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
-  for (int t_snapshot{3490}; t_snapshot < 3540; t_snapshot+=4) {
-    econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 3);
+  for (int t_snapshot{3490}; t_snapshot < 3494 /*3540*/; t_snapshot++) { //+=4) {
+    econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
     // pause to make sure new snapshot is taken?
     usleep(1000);
 
     printf("%d:\n", t_snapshot);
     for (int ch{9}; ch < 11; ch++) {
+      /*
+       * using compiler is very slow
       std::string channel = std::to_string(ch);
       std::string var_name_pm = channel + "_PATTERN_MATCH";
       auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
@@ -71,21 +92,29 @@ void scan_l1a_offset(Target* tgt) {
       printf(" %2d: %s %08x %08x %08x\n",
         ch, (pattern_match ? "*": " "),
         ch_snapshot_3, ch_snapshot_2, ch_snapshot_1);
+      */
 
-      /*
-       * attempting to do a quick mimic failed
-      bool pattern_match = ((econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_PATTERN_MATCH, 1)[0] & 0x1)==1);
-      auto snapshot = econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_SNAPSHOT, 24);
+      /* pattern_match is unset after auto-alignment is done (i think)
+      uint8_t chaligner_flags = econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_PATTERN_MATCH, 1)[0];
+      bool pattern_match = ((chaligner_flags >> 5) & 0x1) == 1;
+       */
+      std::vector<uint8_t> snapshot;
+      // have to read in 8byte chunks
+      snapshot.reserve(8*8*3);
+      for (int i_snp{0}; i_snp < 3; i_snp++) {
+        auto word = econ.getValues(CHALIGNER_RO[ch]+CHALIGNER_SNAPSHOT+8*i_snp, 8);
+        for (uint8_t byte : word) {
+          snapshot.push_back(byte);
+        }
+      }
 
-      printf(" %2d: %s", ch, (pattern_match ? "*": " "));
-      // snapshot is little-endian
-      printf("%2d", snapshot.size());
-      for (std::size_t i_byte{snapshot.size()}; i_byte > 0; i_byte--) {
-        printf("%02x", static_cast<int>(snapshot[i_byte]));
+      printf(" %2d: ", ch);
+      for (std::size_t i_byte{0}; i_byte < snapshot.size(); i_byte++) {
         if (i_byte % 8 == 0) printf(" ");
+        // snapshot is little-endian
+        printf("%02x", static_cast<int>(snapshot[snapshot.size()-i_byte-1]));
       }
       printf("\n");
-      */
     }
   }
 }
