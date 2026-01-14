@@ -24,12 +24,10 @@
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
-static const ALIGNER_BASE = 0x0380;
+static const int ALIGNER_BASE = 0x0380;
 
 // 12 bits, default 0x2
 static const int ALIGNER_ORBSYN_CNT_SNAPSHOT = ALIGNER_BASE + 0x16;
-// 1 bit flag
-static const int ALIGNER_SNAPSHOT_EN = ALIGNER_BASE + 000;
 
 static const int CHALIGNER_RW[12] = {
   0x000,
@@ -69,8 +67,29 @@ static const int CHALIGNER_SNAPSHOT = 0x2;
 
 void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
+
+  /**
+   * we want to do manually-triggered I2C snapshots
+   * These snapshots will still happen on the ORBSYN_CNT_SNAPTSHOT value
+   * within the orbit, but will not only happen after a link reset is sent
+   * to the ROC.
+   */
+  auto manual_snaps = econ.testParameters()
+    .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 1)
+    .add("ALIGNER", "GLOBAL_SNAPSHOT_ARM", 0)
+    .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)
+    .add("CHALIGNER",  "9_PER_CH_ALIGN_EN", 0)
+    .add("CHALIGNER", "10_PER_CH_ALIGN_EN", 0)
+    .add("ERX",  "9_ENABLE", 1)
+    .add("ERX", "10_ENABLE", 1)
+    .apply();
+
+  std::vector<uint8_t> aligner_flags(1);
   for (int t_snapshot{3490}; t_snapshot < 3494 /*3540*/; t_snapshot++) { //+=4) {
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
+    aligner_flags = econ.getValues(ALIGNER_BASE, 1);
+    aligner_flags[0] |= 0b1; // toggle SNAPSHOT_ARM
+    econ.setValues(ALIGNER_BASE, aligner_flags);
     // pause to make sure new snapshot is taken?
     usleep(1000);
 
