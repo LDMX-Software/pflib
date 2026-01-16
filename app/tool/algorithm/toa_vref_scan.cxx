@@ -8,7 +8,7 @@
 
 namespace pflib::algorithm {
 
-// Templated helpder function
+// Templated helper function
 template <class EventPacket>
 static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
                           std::array<int, 2>& target) {
@@ -18,6 +18,20 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
 
   // loop over runs, from toa_vref = 0 to = 255
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
+    // Load CHANNEL MASK file
+    std::string mask_file_path = pftool::readline("Path to maskfile: ", "");
+    bool use_mask = !mask_file_path.empty();
+    std::vector<int> masked_channels;
+    std::string line;
+    if (use_mask) {
+      std::ifstream mask_file(mask_file_path);
+      std::getline(mask_file, line);  // ditch first line
+      while (std::getline(mask_file, line)) {
+        int int_ch = std::atoi(line.c_str());
+        masked_channels.push_back(int_ch);
+      }
+    }
+
     pflib_log(info) << "testing toa_vref = " << toa_vref;
     auto test_handle = roc.testParameters()
                            .add("REFERENCEVOLTAGE_0", "TOA_VREF", toa_vref)
@@ -27,7 +41,8 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "finished toa_vref = " << toa_vref
                      << ", getting efficiencies";
-    auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
+    auto efficiencies =
+        get_toa_efficiencies(buffer.get_buffer(), masked_channels);
     pflib_log(trace)
         << "got channel efficiencies, getting max efficiency per link";
     for (int i_link{0}; i_link < 2; i_link++) {

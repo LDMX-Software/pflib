@@ -68,7 +68,8 @@ namespace pflib::algorithm {
 template <class EventPacket>
 static void trim_tof_runs(
     Target* tgt, ROC& roc, size_t n_events,
-    std::array<std::array<std::array<double, 72>, 8>, 200>& final_data) {
+    std::array<std::array<std::array<double, 72>, 8>, 200>& final_data,
+    std::vector<int>& masked_channels) {
   // working in buffer, not in writer
   DecodeAndBuffer<EventPacket> buffer{n_events, 2};
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
@@ -98,7 +99,8 @@ static void trim_tof_runs(
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa
                        << ", and calib = " << calib << ", getting efficiencies";
-      auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
+      auto efficiencies =
+          get_toa_efficiencies(buffer.get_buffer(), masked_channels);
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
         // need to divide by 4 because index is value/4 from final_data
@@ -124,6 +126,20 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
   static const std::size_t n_events = 100;
 
+  // Load CHANNEL MASK file
+  std::string mask_file_path = pftool::readline("Path to maskfile: ", "");
+  bool use_mask = !mask_file_path.empty();
+  std::vector<int> masked_channels;
+  std::string line;
+  if (use_mask) {
+    std::ifstream mask_file(mask_file_path);
+    std::getline(mask_file, line);  // ditch first line
+    while (std::getline(mask_file, line)) {
+      int int_ch = std::atoi(line.c_str());
+      masked_channels.push_back(int_ch);
+    }
+  }
+
   tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
   // trim_toa is a channel-wise parameter (1 value per channel)
@@ -134,12 +150,12 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    trim_tof_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                        final_data);
+    trim_tof_runs<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, n_events, final_data, masked_channels);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     trim_tof_runs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, final_data);
+        tgt, roc, n_events, final_data, masked_channels);
   } else {
     pflib_log(warn) << "Unsupported DAQ format ("
                     << static_cast<int>(pftool::state.daq_format_mode)

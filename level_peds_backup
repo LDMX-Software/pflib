@@ -58,28 +58,16 @@ static std::array<int, 72> get_adc_medians(const std::vector<EventPacket>& data,
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
-    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
-      // Do Not include masked channels in the median calculation
-      medians[ch] = -999;  // to maintain length of medians
-      continue;
-    }
+    // if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+    //   // Do Not include masked channels in the median calculation
+    //   medians[ch] = -0;  // to maintain length of medians
+    //   continue;
+    // }
 
     for (std::size_t i{0}; i < adcs.size(); i++) {
       adcs[i] = get_adc(data[i], ch);
-
-      // // print out multi sample event packet p here
-      // if constexpr (std::is_same_v<
-      //                   EventPacket,
-      //                   pflib::packing::MultiSampleECONDEventPacket>) {
-      //   std::cout << "p.soi, ch, ilink, adc: " << data[i].i_soi << ", " << ch
-      //             << ", " << ch / 36 << ", " << adcs[i] << std::endl;
-      // } else {
-      //   std::cout << "NOT MULTI " << std::endl;
-      // }
     }
-    // medians[ch] = pflib::utility::median(adcs);
-    // std::cout << "here: ch,  median " << ch << ", " << medians[ch] <<
-    // std::endl;
+    medians[ch] = pflib::utility::median(adcs);
   }
   return medians;
 }
@@ -109,9 +97,6 @@ static void pedestal_runs(Target* tgt, ROC& roc, std::array<int, 72>& baseline,
     auto medians =
         get_adc_medians<EventPacket>(buffer.get_buffer(), masked_channels);
     baseline = medians;
-    // for (int i = 0; i < 72; i++) {
-    //   pflib_log(info) << "baseline: " << baseline[i];
-    // }
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_link{0}; i_link < 2; i_link++) {
       auto start{medians.begin() + 36 * i_link};
@@ -195,30 +180,24 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   pflib_log(info) << "sample collections done, deducing settings";
   std::map<std::string, std::map<std::string, uint64_t>> settings;
-
   for (int ch{0}; ch < 72; ch++) {
     std::string page{pflib::utility::string_format("CH_%d", ch)};
 
-    // SKIP IF CHANNEL IS MASKED
-    if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
-      pflib_log(info) << "Channel " << ch
-                      << " is masked; skipping pedestal leveling.";
+    // // SKIP IF CHANNEL IS MASKED
+    // if (count(masked_channels.begin(), masked_channels.end(), ch) > 0) {
+    //   pflib_log(info) << "Channel " << ch
+    //                   << " is masked; skipping pedestal leveling.";
 
-      // Explicitly mark it masked
-      // settings[page]["MASKED"] = 1;
+    //   // Explicitly mark it masked
+    //   // settings[page]["MASKED"] = 1;
 
-      continue;
+    //   continue;
 
-      // } else {
-      //   settings[page]["MASKED"] = 0;
-    }
+    // // } else {
+    // //   settings[page]["MASKED"] = 0;
+    // }
 
     int i_link = ch / 36;
-
-    pflib_log(info) << "Channel, Baseline, Lowend, Highend: " << ch << ", "
-                    << baseline[ch] << ", " << lowend[ch] << ", " << highend[ch]
-                    << std::endl;
-
     if (baseline.at(ch) < target.at(i_link)) {
       pflib_log(debug) << "Channel " << ch
                        << " is below target, setting TRIM_INV";
@@ -275,7 +254,6 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
                          << " is above target, setting SIGN_DAC=1 and DACB";
         settings[page]["SIGN_DAC"] = 1;
         settings[page]["DACB"] = val;
-        pflib_log(info) << "Channel " << ch << " has val: " << val << ".";
       }
     }
   }
