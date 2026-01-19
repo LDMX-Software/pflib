@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <optional>
 
 #include "pflib/logging/Logging.h"
 #include "pflib/packing/FileReader.h"
@@ -13,7 +14,7 @@
 static void usage() {
   std::cout << "\n"
                " USAGE:\n"
-               "  econd-decoder [options] NLINKS input_file.raw\n"
+               "  econd-decoder [options] NLINKS input_file.{raw,data}\n"
                "\n"
                " OPTIONS:\n"
                "  -h,--help    : print this help and exit\n"
@@ -23,6 +24,8 @@ static void usage() {
                "all events possible)\n"
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
+               "  --is[-not]-rogue : set if the input file was written by Rogue or "
+               "not (default is to check extension)"
             << std::endl;
 }
 
@@ -41,6 +44,7 @@ int main(int argc, char* argv[]) {
   }
 
   bool trigger{false};
+  std::optional<bool> is_rogue;
 
   int n_links{-1};
   int nevents{-1};
@@ -94,6 +98,10 @@ int main(int argc, char* argv[]) {
                            << "' is not an integer.";
           return 1;
         }
+      } else if (arg == "--is-rogue") {
+        is_rogue = true;
+      } else if (arg == "--is-not-rogue") {
+        is_rogue = false;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -125,6 +133,22 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  if (not is_rogue.has_value()) {
+    pflib_log(debug) << "neither --is-rogue nor --is-not-rogue provided"
+                     << " on command line, checking extension";
+    auto ext = in_file.substr(in_file.find_last_of("."));
+    if (ext == ".raw") {
+      is_rogue = false;
+    } else if (ext == ".dat") {
+      is_rogue = true;
+    } else {
+      pflib_log(warn) << "unrecognized extension '" << ext
+                      << "' from input file '" << in_file
+                      << "'. Guessing NOT rogue.";
+      is_rogue = false;
+    }
+  }
+
   if (out_file.empty()) {
     out_file = in_file.substr(0, in_file.find_last_of(".")) + ".csv";
   }
@@ -152,9 +176,47 @@ int main(int argc, char* argv[]) {
     // the output CSV if desired
     int count{0};
 
+    uint32_t size, flags_err_ch, header;
+    std::vector<uint32_t> frame;
     while (r) {
       pflib_log(info) << "popping " << count << " event from stream";
-      r >> ep;
+      if (is_rogue.value()) {
+        using pflib::packing::mask;
+        if(!r >> size >> flags_err_ch) {
+          pflib_log(error) << "failure to readout header Rogue File Frame header";
+          return 1;
+        }
+        long unsigned int ch{flags_err_ch & mask<8>};
+        if (ch != 0) {
+          pflib_log(debug) << "skipping frame not corresponding to data (channel = " << ch << ")";
+          r.seek(size);
+          continue;
+        }
+        // Rogue channel=0 (data), peak at next word to see if its the correct subsystem
+        if (!(r >> header)) {
+          pflib_log(error) << "partial frame transmitted, failure to readout LDMX RoR Header";
+          return 1;
+        }
+        printf("%08x\n", header);
+        long unsigned int subsys{((header >> 16) & mask<8>)};
+        if (subsys != 5) {
+          pflib_log(debug) << "skipping frame not corresponding to calorimeter subsystem (subsys = " << subsys << ")";
+          r.seek(size - 4);
+          continue;
+        }
+        frame.clear();
+        frame.push_back(header);
+        std::size_t n_words{(size - 4)/4}, offset{1};
+        if(!r.Reader::read(frame, n_words, offset)) {
+          pflib_log(error) << "partial frame transmitted, failure to read frame";
+          return 1;
+        }
+        ep.from(frame, true);
+      } else {
+        // the non-rogue writer within pflib contains nothing
+        // except a sequence of ECOND event packets
+        r >> ep;
+      }
       pflib_log(debug) << "r.eof(): " << std::boolalpha << r.eof()
                        << " and bool(r): " << bool(r);
       ep.to_csv(o);
