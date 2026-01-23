@@ -1,4 +1,10 @@
-"""heatmap of pedestal data separated by link_channel"""
+"""
+heatmap of pedestal data separated by link_channel
+
+Given a dataset which contains both inv_vref and noinv_vref parameters (pedestal scan),
+gives two 1D plots of ADC vs each parameters, and a 2D heatmaps of the parameters and ADC.
+
+"""
 
 import pandas as pd
 import numpy as np
