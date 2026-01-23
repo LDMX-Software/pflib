@@ -22,31 +22,6 @@ double median(std::vector<T>& val) {
     return 0.5 * (*mid + *mid2);
 }
 
-// Class
-
-class DataFitter
-{
-  public:
-    DataFitter();
-
-    // Member functions
-    
-    void sort_and_append(std::vector<int>& inv_vrefs,
-                         std::vector<int>& pedestals);
-
-    // Member variables
-
-    struct Point {
-      int x_;
-      int y_;
-      double LH_;
-      double RH_;
-    };
-    std::vector<Point> linear_;
-    std::vector<Point> nonlinear_;
-
-};
-
 void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& pedestals) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   // We ignore first and last elements since they miss derivs
@@ -66,7 +41,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& 
 
     // Threshold check. CMS uses 0.05
     if (std::abs(LH) <= flat_threshold || std::abs(RH) <= flat_threshold) { // flat regime
-      nonlinear_.push_back(inv_vrefs[i], pedestals[i], LH, RH)
+      nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
     } else { // we're in a linear regime or there's an outlier
       slope_points.push_back({i, LH, RH});
       LH_derivs.push_back(LH);
@@ -79,7 +54,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& 
   
   for (const auto& p : slope_points) {
     if (std::abs(p.LH - LH_median) < 0.3 * LH_median) { // Linear regime. implement RH_median here as well? 
-      linear_.push_back(inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH);
+      linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
   }
 
@@ -149,9 +124,9 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   // increment inv_vref in increments of 20. 10 bit value but only scanning to
   // 600
   int range = 10; // defines range of inv_vref values (x-range)
-  std::vector<double> pedestals_l0;
-  std::vector<double> pedestals_l1;
-  std::vector<double> inv_vrefs;
+  std::vector<int> pedestals_l0;
+  std::vector<int> pedestals_l1;
+  std::vector<int> inv_vrefs;
 
   for (inv_vref = 300; inv_vref <= 310; inv_vref += 1) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
