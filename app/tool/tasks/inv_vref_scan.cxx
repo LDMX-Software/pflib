@@ -161,7 +161,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                           .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
                           .apply();
     // store current scan state in header for writer access
-    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", buffer, nevents, pftool::state.daq_rate);
 
     auto data = buffer.get_buffer();
 
@@ -192,8 +192,8 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   // sort data and fit
   DataFitter fitter_l0;
   DataFitter fitter_l1;
-  fitter_l0.sort_and_append(inv_vrefs, pedestals.l0);
-  fitter_l1.sort_and_append(inv_vrefs, pedestals.l1);
+  fitter_l0.sort_and_append(inv_vrefs, pedestals_l0);
+  fitter_l1.sort_and_append(inv_vrefs, pedestals_l1);
   
 }
 
