@@ -7,7 +7,8 @@
 
 ENABLE_LOGGING();
 
-double median(std::vector<double>& val) {
+template <typename T>
+double median(std::vector<T>& val) {
     size_t n = val.size();
     if (n == 0) return 0.0;
 
@@ -50,7 +51,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& 
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   // We ignore first and last elements since they miss derivs
   struct DerivPoint {
-    int i;	double tmedian;
+    int i;
     double LH;
     double RH;
   };
@@ -78,7 +79,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& 
   
   for (const auto& p : slope_points) {
     if (std::abs(p.LH - LH_median) < 0.3 * LH_median) { // Linear regime. implement RH_median here as well? 
-      append_linear(inv_vrefs[p.i], pedestals[p.i], LH, RH);
+      linear_.push_back(inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH);
     }
   }
 
@@ -86,7 +87,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, std::vector<int>& 
 
   std::vector<double> intercepts;
   for (int i = 1; i < linear_.size()-1; i++) {
-    double m = linear_[i].y - linear_[i].LH * linear_[i].x;
+    double m = linear_[i].y_ - linear_[i].LH_ * linear_[i].x_;
     intercepts.push_back(m);
   }
   double median_intercept = median(intercepts);
@@ -101,7 +102,7 @@ template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::string& output_filepath,
                                  std::array<int, 2>& channels, int& inv_vref) {
-  int link = 0;
+  int i_link = 0;
   int i_ch = 0;  // 0–35
   int n_links = 2;
   if constexpr (std::is_same_v<EventPacket,
@@ -125,7 +126,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   //    [&](std::ofstream& f, const EventPacket& ep) {
   //      f << inv_vref;
   //      for (int ch : channels) {
-  //        link = (ch / 36);
+  //        i_link = (ch / 36);
   //        i_ch = ch % 36;
   //        if constexpr (std::is_same_v<EventPacket,
   //                                     pflib::packing::SingleROCEventPacket>) {
@@ -133,7 +134,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   //        } else if constexpr (
   //            std::is_same_v<EventPacket,
   //                           pflib::packing::MultiSampleECONDEventPacket>) {
-  //          f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
+  //          f << ',' << ep.samples[ep.i_soi].channel(i_link, i_ch).adc();
   //        }
   //      }
   //      f << '\n';
@@ -148,8 +149,9 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   // increment inv_vref in increments of 20. 10 bit value but only scanning to
   // 600
   int range = 10; // defines range of inv_vref values (x-range)
-  std::vector<int> pedestals;
-  std::vector<int> inv_vrefs;
+  std::vector<double> pedestals_l0;
+  std::vector<double> pedestals_l1;
+  std::vector<double> inv_vrefs;
 
   for (inv_vref = 300; inv_vref <= 310; inv_vref += 1) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
@@ -159,32 +161,39 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                           .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
                           .apply();
     // store current scan state in header for writer access
-    daq_run(tgt, "PEDESTAL", buffer, 100, pftool::state.daq_rate);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
 
     auto data = buffer.get_buffer();
 
-    std::vector<int> adcs;
+    std::vector<int> adcs_l0;
+    std::vector<int> adcs_l1;
+
     for (std::size_t i{0}; i < data.size(); i++) {
       if constexpr (std::is_same_v<
                         EventPacket,
                         pflib::packing::MultiSampleECONDEventPacket>) {
-        adcs.push_back(
-            data[i].samples[data[i].i_soi].channel(i_link, ch).adc());
+        adcs_l0.push_back(
+            data[i].samples[data[i].i_soi].channel(i_link, channels[0]).adc());
+        adcs_l1.push_back(
+            data[i].samples[data[i].i_soi].channel(i_link, channels[1]).adc());
       } else if constexpr (std::is_same_v<
                                EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
-        adcs.push_back(data[i].channel(ch).adc());
+        adcs_l0.push_back(data[i].channel(channels[0]).adc());
+        adcs_l1.push_back(data[i].channel(channels[1]).adc());
       } else {
         PFEXCEPTION_RAISE("BadConf",
                           "Unable to get adc for the cofigured format");
+        }
       }
-    }
-    pedestals.push_back(adcs.median());
+    pedestals_l0.push_back(median(adcs_l0)); pedestals_l1.push_back(median(adcs_l1));
     inv_vrefs.push_back(inv_vref);
-  }
+    }
   // sort data and fit
-  DataFitter fitter;
-  fitter.sort_and_append(inv_vrefs, pedestals);
+  DataFitter fitter_l0;
+  DataFitter fitter_l1;
+  fitter_l0.sort_and_append(inv_vrefs, pedestals.l0);
+  fitter_l1.sort_and_append(inv_vrefs, pedestals.l1);
   
 }
 
