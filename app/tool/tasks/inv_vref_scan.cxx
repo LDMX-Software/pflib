@@ -7,6 +7,8 @@
 
 ENABLE_LOGGING();
 
+DataFitter::DataFitter() {};
+
 template <typename T>
 double median(std::vector<T>& val) {
     size_t n = val.size();

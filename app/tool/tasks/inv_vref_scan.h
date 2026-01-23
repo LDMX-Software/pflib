@@ -8,12 +8,10 @@
  * Perform INV_VREF scan for each link
  * used to trim adc pedestals between two links
  */
-void inv_vref_scan(Target* tgt);
-
 class DataFitter
 {
   public:
-    void DataFitter();
+    DataFitter();
 
     // Member functions
 
@@ -32,3 +30,5 @@ class DataFitter
     std::vector<Point> nonlinear_;
 
 };
+
+void inv_vref_scan(Target* tgt);
