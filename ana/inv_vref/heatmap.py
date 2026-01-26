@@ -28,8 +28,8 @@ fig, axes = plt.subplots(1, 2)
 
 # pedestal per link vs noinv
 
-link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 600)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 600)]
+link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 612)]
+link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 612)]
 
 median_adc_0 = link0_df.groupby('noinv_vref')['adc'].median().sort_index()
 median_adc_1 = link1_df.groupby('noinv_vref')['adc'].median().sort_index()
@@ -49,8 +49,8 @@ plt.close()
 
 fig, axes = plt.subplots(1, 2)
 
-link0_df = samples[(samples['ch'] < 32) & (samples['noinv_vref'] == 600)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['noinv_vref'] == 600)]
+link0_df = samples[(samples['ch'] < 32) & (samples['noinv_vref'] == 612)]
+link1_df = samples[(samples['ch'] >= 32) & (samples['noinv_vref'] == 612)]
 
 median_adc_0 = link0_df.groupby('inv_vref')['adc'].median().sort_index()
 median_adc_1 = link1_df.groupby('inv_vref')['adc'].median().sort_index()
@@ -64,6 +64,37 @@ axes[0].set_title('link 0')
 axes[1].set_title('link 1')
 
 plt.savefig('inv_scan.png', dpi=400, bbox_inches='tight')
+plt.close()
+
+# LH and RH derivatives
+
+fig, axes = plt.subplots(2, 2, height_ratios=[2, 1], sharex=True)
+
+LH_deriv = []
+RH_deriv = []
+x_vals = []
+
+for i in range(1,len(median_adc_0.index)-1):
+    LH = (median_adc_0.values[i] - median_adc_0.values[i-1]) / (median_adc_0.index[i] - median_adc_0.index[i-1])
+    RH = (median_adc_0.values[i] - median_adc_0.values[i+1]) / (median_adc_0.index[i] - median_adc_0.index[i+1]) 
+    LH_deriv.append((LH))
+    RH_deriv.append((RH))
+    x_vals.append(median_adc_0.index[i])
+
+axes[0][0].plot(x_vals, LH_deriv)
+axes[0][1].plot(x_vals, RH_deriv)
+fig.supylabel('Difference to nearest neighbour [ADC]')
+axes[0][0].set_title('LH')
+axes[0][1].set_title('RH')
+
+axes[1][0].plot(x_vals, LH_deriv)
+axes[1][1].plot(x_vals, RH_deriv)
+axes[1][0].set_xlabel('inv_vref')
+axes[1][0].set_xlabel('inv_vref')
+axes[1][0].set_ylim(-2,2)
+axes[1][1].set_ylim(-2,2)
+
+plt.savefig('inv_derivs.png', dpi=400, bbox_inches='tight')
 plt.close()
 
 # Heatmap
