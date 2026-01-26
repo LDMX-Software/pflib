@@ -16,7 +16,9 @@ class DataFitter
     // Member functions
 
     void sort_and_append(std::vector<int>& inv_vrefs,
-                         std::vector<int>& pedestals);
+                         std::vector<int>& pedestals,
+                         int& step);
+    int fit(int target);
 
     // Member variables
 
@@ -28,6 +30,8 @@ class DataFitter
     };
     std::vector<Point> linear_;
     std::vector<Point> nonlinear_;
+    int LH_median_;
+    int RH_median_;
 
 };
 
