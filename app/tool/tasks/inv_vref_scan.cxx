@@ -11,40 +11,53 @@ ENABLE_LOGGING();
 DataFitter::DataFitter() {};
 
 void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, 
-                                 std::vector<int>& pedestals, 
+                                 std::vector<int>& pedestals,
+                                 std::vector<double>& stds,
                                  int& step) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:sort")};
   // We ignore first and last elements since they miss derivs
   struct DerivPoint {
     int i;
     double LH;
+    double LH_std;
     double RH;
+    double RH_std;
   };
   std::vector<DerivPoint> slope_points;
 
   double flat_threshold = 0.05 * step;
   std::vector<double> LH_derivs;
+  std::vector<double> LH_stds;
   std::vector<double> RH_derivs;
   for (int i = 1; i < inv_vrefs.size()-1; i++) {
     double LH = static_cast<double>(pedestals[i] - pedestals[i-1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
     double RH = static_cast<double>(pedestals[i] - pedestals[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
 
-    // Threshold check. CMS uses 0.05. Need to consider stepsize
+    // Threshold check. CMS uses 0.05. This value fits with my analysis as well.
     if (std::abs(LH) < flat_threshold || std::abs(RH) < flat_threshold) { // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
-    } else { // we're in a linear regime or there's an outlier
-      slope_points.push_back({i, LH, RH});
+    } else { // we're in a linear regime or there's outliers
+      double LH_err = std::abs(stds[i] - stds[i-1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
+      double RH_err = std::abs(stds[i] - stds[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
+      slope_points.push_back({i, LH, LH_err, RH, RH_err});
       LH_derivs.push_back(LH);
+      LH_stds.push_back(err);
       RH_derivs.push_back(RH);
     }
   }
-  // Now we get the slopey region, removing outliers by using the median
+  // Now we get the slopey region. CMS removes outliers by using the ADC median.
+  // From my analysis I chose to consider the std of each point, which is huge for outliers
+  // compared to the points in the linear region. We set a selection of linear points when
+  // they have a std < median(std).
+  // We could use both LH and RH derivs to improve selections.
+
+  
+  LH_std_median_ = pflib::utility::median(LH_stds);
   LH_median_ = pflib::utility::median(LH_derivs);
-  RH_median_ = pflib::utility::median(RH_derivs);
   
   for (const auto& p : slope_points) {
     if ((std::abs(p.LH - LH_median_) < 0.3*std::abs(LH_median_)) &&
-         std::abs(p.RH - RH_median_) < 0.3*std::abs(RH_median_)) { // Linear regime. 
+         p.LH_err < LH_std_median_) { // Linear regime. 
       pflib_log(info) << "inv_vref is : " << inv_vrefs[p.i];
       linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
@@ -101,7 +114,9 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                  1 /* dummy */);
 
   std::vector<int> pedestals_l0;
+  std::vector<double> stds_l0;
   std::vector<int> pedestals_l1;
+  std::vector<double> stds_l1;
   std::vector<int> inv_vrefs;
 
   int step = 1;
@@ -141,15 +156,17 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                           "Unable to get adc for the cofigured format");
         }
       }
-    pedestals_l0.push_back(pflib::utility::median(adcs_l0)); 
+    pedestals_l0.push_back(pflib::utility::median(adcs_l0));
+    stds_l0.push_back(pflib::utility::std(adcs_l0));
     pedestals_l1.push_back(pflib::utility::median(adcs_l1));
+    stds_l1.push_back(pflib::utility::std(adcs_l1));
     inv_vrefs.push_back(inv_vref);
     }
   // sort data and fit
   DataFitter fitter_l0;
   DataFitter fitter_l1;
-  fitter_l0.sort_and_append(inv_vrefs, pedestals_l0, step);
-  fitter_l1.sort_and_append(inv_vrefs, pedestals_l1, step);
+  fitter_l0.sort_and_append(inv_vrefs, pedestals_l0, stds_l0, step);
+  fitter_l1.sort_and_append(inv_vrefs, pedestals_l1, stds_l1, step);
   int inv_vref_l0 = fitter_l0.fit(target_adc);
   int inv_vref_l1 = fitter_l1.fit(target_adc);
   

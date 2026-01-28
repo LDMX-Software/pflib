@@ -17,6 +17,7 @@ class DataFitter
 
     void sort_and_append(std::vector<int>& inv_vrefs,
                          std::vector<int>& pedestals,
+                         std::vector<double>& stds,
                          int& step);
     int fit(int target);
 
@@ -31,6 +32,7 @@ class DataFitter
     std::vector<Point> linear_;
     std::vector<Point> nonlinear_;
     int LH_median_;
+    double LH_std_median_;
     int RH_median_;
 
 };
