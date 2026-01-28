@@ -1,22 +1,23 @@
 #include "pflib/utility/mean.h"
 
-#include <algorithm>
-
+#include <numeric>   // std::accumulate
 
 namespace pflib::utility {
 
-template <typename T>
-double median(std::vector<T> samples) {
+double mean(std::vector<int> samples) {
   // The mean is the sum over the size of the samples
-  static_assert(std::is_same<T, int> || std::is_same<T, double>,
-                "Type of samples should be int or double"); 
-  int n = samples.size();
-  if (n == 0) {
+  if (samples.size() == 0) {
     throw "Trying to get the mean of an empty vector";
   }
-  double sum = std::accumulate(samples.begin(), samples.end(), 0);
-  double mean = sum / n;
-  return mean;
+  return std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
+}
+
+double mean(std::vector<double> samples) {
+  // The mean is the sum over the size of the samples
+  if (samples.size() == 0) {
+    throw "Trying to get the mean of an empty vector";
+  }
+  return std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
 }
 
 }  // namespace pflib::utility

@@ -12,7 +12,8 @@ namespace pflib::utility {
  *
  * Method based on the method used by numpy.std. See numpy.std documentation.
  */
-template <typename T>
-double median(std::vector<T> samples);
+
+double stdev(std::vector<int> samples);
+double stdev(std::vector<double> samples);
 
 }  // namespace pflib::utility

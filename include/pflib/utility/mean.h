@@ -10,7 +10,7 @@ namespace pflib::utility {
  * @param[in] samples list of samples to find mean of
  * @return mean of the samples
  */
-template <typename T>
-double median(std::vector<T> samples);
+double mean(std::vector<int> samples);
+double mean(std::vector<double> samples);
 
 }  // namespace pflib::utility
