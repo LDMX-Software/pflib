@@ -1,7 +1,7 @@
 #include "pflib/utility/mean.h"
 
-#include <numeric>  // std::accumulate
 #include <limits>
+#include <numeric>  // std::accumulate
 
 namespace pflib::utility {
 
