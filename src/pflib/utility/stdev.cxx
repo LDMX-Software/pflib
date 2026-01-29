@@ -2,15 +2,16 @@
 
 #include <cmath>    // std::sqrt, std::pow, std::abs
 #include <numeric>  // std::accumulate
+#include <limits>
 
 #include "pflib/utility/mean.h"
 
 namespace pflib::utility {
 
 template <typename T>
-double stdev(const std::vector<int>& samples) {
+double stdev_impl(const std::vector<T>& samples) {
   if (samples.size() == 0) {
-    return std::numeric_limits<doubl>::nan();
+    return std::numeric_limits<double>::quiet_NaN();
   }
   double mean = pflib::utility::mean(samples);
   double sum = std::accumulate(samples.begin(), samples.end(), 0.0,
@@ -21,8 +22,8 @@ double stdev(const std::vector<int>& samples) {
 
 }
 
-double stdev(const std::vector<double>& samples) { return stdev(samples); }
+double stdev(const std::vector<double>& samples) { return stdev_impl(samples); }
 
-double stdev(const std::vector<int>& samples) { return stdev(samples); }
+double stdev(const std::vector<int>& samples) { return stdev_impl(samples); }
 
 }  // namespace pflib::utility
