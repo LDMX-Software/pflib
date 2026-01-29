@@ -7,30 +7,22 @@
 
 namespace pflib::utility {
 
-double stdev(std::vector<int> samples) {
-  int n = samples.size();
-  if (n == 0) {
-    throw "Trying to take the stdev of an empty vector";
+template <typename T>
+double stdev(const std::vector<int>& samples) {
+  if (samples.size() == 0) {
+    return std::numeric_limits<doubl>::nan();
   }
   double mean = pflib::utility::mean(samples);
-  std::vector<double> d2;
-  for (int i = 0; i < n; i++) {
-    d2.push_back(std::pow(std::abs(samples[i] - mean), 2));
-  }
-  return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / n);
+  double sum = std::accumulate(samples.begin(), samples.end(), 0.0,
+    [mean](double acc, double v) {
+        return acc + std::pow(std::abs((v - mean)),2);
+  });
+  return std::sqrt(sum / samples.size());
+
 }
 
-double stdev(std::vector<double> samples) {
-  int n = samples.size();
-  if (n == 0) {
-    throw "Trying to take the stdev of an empty vector";
-  }
-  double mean = pflib::utility::mean(samples);
-  std::vector<double> d2;
-  for (int i = 0; i < n; i++) {
-    d2.push_back(std::pow(std::abs(samples[i] - mean), 2));
-  }
-  return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / n);
-}
+double stdev(const std::vector<double>& samples) { return stdev(samples); }
+
+double stdev(const std::vector<int>& samples) { return stdev(samples); }
 
 }  // namespace pflib::utility
