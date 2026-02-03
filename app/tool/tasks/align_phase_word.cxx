@@ -294,11 +294,11 @@ void align_phase_word(Target* tgt) {
       (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
       (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
 
-  debug_checks = pftool::readline_bool("Enable debug checks?", true);
+  debug_checks = false; //pftool::readline_bool("Enable debug checks?", true);
 
-  int iroc = pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+  int iroc = 0; //pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
+  int iecon = 0;
+      //pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto roc = tgt->roc(iroc);
   // Ensure ROC is in Run mode
