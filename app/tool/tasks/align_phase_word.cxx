@@ -142,12 +142,11 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
     }
   }
 
-  auto global_match_pattern_val =
-      econ.readParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
-  auto cnt_load_val =
-      econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-
   if (debug_checks) {
+    auto global_match_pattern_val =
+        econ.readParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
+    auto cnt_load_val =
+        econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
     std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val
               << ", 0x" << std::hex << global_match_pattern_val << std::dec
               << std::endl;
@@ -181,14 +180,11 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
     auto econ_word_align_currentvals = econ.applyParameters(parameters);
 
-    auto tmp_load_val =
-        econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
     if (debug_checks) {
+      auto tmp_load_val =
+          econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
       std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
                 << std::hex << tmp_load_val << std::dec << std::endl;
-      std::cout << "Looking for special header pattern: "
-                << global_match_pattern_val << ", 0x" << std::hex
-                << global_match_pattern_val << std::dec << std::endl;
     }
 
     // FAST CONTROL - LINK_RESET
@@ -226,9 +222,9 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
         std::cout << "Header match in Snapshot: " << snapshot_val << std::endl
                   << "(channel " << channel << "): " << std::endl
                   << "snapshot_hex shifted >> 1bit: 0x" << std::hex
-                  << std::uppercase << shifted1 << std::dec << std::endl;
+                  << shifted1 << std::dec << std::endl;
 
-        std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+        std::cout << "snapshot_hex: 0x" << std::hex
                   << snapshot << std::dec << std::endl;
 
         std::cout << " pattern_match = " << ch_pm << ", 0x" << std::hex << ch_pm
@@ -242,8 +238,11 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
         // shift and mask the snapshot to confirm special header
         boost::multiprecision::uint256_t shifted =
             (snapshot >> (ch_select - 32)) & 0xffffffffffffffffULL;
-        std::cout << "Shifted and masked: 0x" << std::hex << std::uppercase
-                  << shifted << std::dec << std::endl;
+        std::cout << "Shifted and masked: 0x"
+                  << std::hex << shifted << std::dec
+                  << " (match: " << std::boolalpha
+                  << (shifted == ECON_ROC_ALIGN_PATTERN) << ")"
+                  << std::endl;
 
         header_found = true;
         std::cout << " --------------------------------------------------- "
@@ -254,9 +253,9 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
         break;  // out of channel loop.
       } else if (debug_checks) {
         std::cout << " (Channel " << channel << ") " << std::endl
-                  << "snapshot_hex_shifted: 0x" << std::hex << std::uppercase
+                  << "snapshot_hex_shifted: 0x" << std::hex
                   << shifted1 << std::dec << std::endl;
-        std::cout << "snapshot_hex: 0x" << std::hex << std::uppercase
+        std::cout << "snapshot_hex: 0x" << std::hex
                   << snapshot << std::dec << std::endl;
       } else if (!debug_checks) {
         std::cout << "No header pattern match found in Snapshot:  "
