@@ -14,8 +14,13 @@ bool debug_checks = false;
 constexpr uint32_t ROC_IDLE_FRAME = 0x12c5c57;
 
 constexpr uint64_t ECON_ROC_ALIGN_PATTERN = (
+/* old, 64-bit match pattern
+ * auto-aligner only looks at top 32-bits so its not working
+ */
   (0x9ull << 60) | (static_cast<uint64_t>(ROC_IDLE_FRAME) << 32) |
   (0xaull << 28) | ROC_IDLE_FRAME
+  // 32-bit pattern including ROC_IDLE and new-orbit header nibble 0xa
+  //(0xaull << 28) | ROC_IDLE_FRAME
 );
 
 // ECON PUSM State READY
@@ -114,7 +119,17 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
   // Set GLOBAL_MATCH_PATTERN_VAL
-  econ.setValue(0x0381, ECON_ROC_ALIGN_PATTERN, 8);
+  //econ.setValue(0x0380+0x1, ECON_ROC_ALIGN_PATTERN, 8);
+  // don't mask out any of the pattern
+  // not sure if this means the match_mask should be all ones:
+  //econ.setValue(0x0380+0x9, 0xffffffffffffffffull, 8);
+  // or all zeros:
+  //econ.setValue(0x0380+0x9, 0x0ull, 8);
+  // or the default:
+  econ.setValue(0x0380+0x9, 0xffffffff00000000ull, 8);
+  // another option is not to mess with the match_mask at all
+  // and just have the lower 32-bits be the correct pattern
+  econ.setValue(0x0380+0x1, ECON_ROC_ALIGN_PATTERN >> 32, 8);
 
   // Verify that channels are still locked
   for (int ch : channels) {
