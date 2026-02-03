@@ -128,14 +128,15 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
       i2c_->general_write_read(econ_base_, waddr, nbytes);
 
   /*
-  std::ostringstream oss;
-  oss << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") ->
-  ["; for (size_t i = 0; i < data.size(); ++i) { if (i > 0) oss << " "; oss <<
-  std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(data[i]);
+  std::cout << "ECON::getValues(" << packing::hex(reg_addr)
+            << ", " << nbytes << ") -> [";
+  for (size_t i = 0; i < data.size(); ++i) {
+    if (i > 0) std::cout << " ";
+    std::cout << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(data[i]);
   }
-  oss << "]";
-  pflib_log(debug) << oss.str();
-  */
+  std::cout << "]\n";
+   */
 
   return data;
 }
