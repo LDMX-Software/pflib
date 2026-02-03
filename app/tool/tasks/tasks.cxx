@@ -67,6 +67,7 @@ static const int CHALIGNER_SNAPSHOT = 0x2;
 
 void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
+  auto& roc{tgt->roc(0)};
 
   /**
    * we want to do manually-triggered I2C snapshots
@@ -85,11 +86,27 @@ void scan_l1a_offset(Target* tgt) {
     .apply();
 
   std::vector<uint8_t> aligner_flags(1);
-  for (int t_snapshot{3490}; t_snapshot < 3494 /*3540*/; t_snapshot++) { //+=4) {
+  for (int t_snapshot{3490}; t_snapshot < 3540; t_snapshot++) {
+    /*
+     * Changed the IDLEFRAME to make sure I was taking different snapshots
+     * (I was)
+    auto test = roc.testParameters().add("DIGITALHALF_0", "IDLEFRAME", t_snapshot).apply();
+     */
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
     aligner_flags = econ.getValues(ALIGNER_BASE, 1);
-    aligner_flags[0] |= 0b1; // toggle SNAPSHOT_ARM
+    // need to make sure that SNAPSHOT_ARM goes from 0 to 1
+    // first, clear lowest bit to 0
+    aligner_flags[0] &= 0xf6;
     econ.setValues(ALIGNER_BASE, aligner_flags);
+    
+    // send L1A
+    // not sure if this is well timed
+    tgt->fc().sendL1A();
+
+    // then, raise lowest bit to 1
+    aligner_flags[0] |= 0b1;
+    econ.setValues(ALIGNER_BASE, aligner_flags);
+
     // pause to make sure new snapshot is taken?
     usleep(1000);
 
@@ -129,7 +146,7 @@ void scan_l1a_offset(Target* tgt) {
 
       printf(" %2d: ", ch);
       for (std::size_t i_byte{0}; i_byte < snapshot.size(); i_byte++) {
-        if (i_byte % 8 == 0) printf(" ");
+        if (i_byte % 4 == 0) printf(" ");
         // snapshot is little-endian
         printf("%02x", static_cast<int>(snapshot[snapshot.size()-i_byte-1]));
       }
