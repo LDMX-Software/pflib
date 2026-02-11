@@ -28,21 +28,23 @@ print(samples.columns.values)
 
 fig, axes = plt.subplots(1, 2)
 
+samples = (samples
+            .groupby(['noinv_vref', 'inv_vref', 'ch'], as_index=False)
+            .agg(adc=('adc', 'median'), std=('adc', 'std')))
+
 # pedestal per link vs noinv
 
 link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 620)]
 link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 620)]
+selected_df = samples[samples['inv_vref'] == 620]
 
-median_adc_0 = link0_df.groupby('noinv_vref')['adc'].median().sort_index()
-median_adc_1 = link1_df.groupby('noinv_vref')['adc'].median().sort_index()
-
-axes[0].plot(median_adc_0.index, median_adc_0.values)
-axes[1].plot(median_adc_1.index, median_adc_1.values)
-axes[0].set_ylabel('median pedestal [ADC]')
-axes[0].set_xlabel('noinv_vref')
-axes[1].set_xlabel('noinv_vref')
-axes[0].set_title('link 0')
-axes[1].set_title('link 1')
+chs = selected_df.groupby('ch')
+for ch_id, ch_df in chs:
+    ax.errorbar(ch_df['noinv_vref'], ch_df['adc'], 
+                    yerr=ch_df['std'], label=f'ch {ch_id}')
+ax.legend()
+ax.set_ylabel('median pedestal [ADC]')
+ax.set_xlabel('noinv_vref')
 
 plt.savefig('noinv_scan.png', dpi=400, bbox_inches='tight')
 plt.close()
