@@ -65,10 +65,19 @@ void level_pedestals_inv_vref(Target* tgt) {
   combined = std::move(filtered);
   */
 
-YAML::Emitter out;
-settings_to_yaml(out, combined);
+ YAML::Emitter out;
+  settings_to_yaml(out, combined);
 
-f << out.c_str() << std::endl;
+  // 5) Save YAML
+  std::string fname = pftool::readline_path(
+      "level-pedestals-inv-vref-roc-" + std::to_string(pftool::state.iroc) + "-settings",
+      ".yaml");
+
+  std::ofstream f{fname};
+  if (!f.is_open()) {
+    PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+  }
+  f << out.c_str() << std::endl;
 
   // Optional: also print summary
   std::cout << "Applied pedestal leveling and INV_VREF alignment.\n"
