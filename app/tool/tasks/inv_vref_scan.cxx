@@ -5,6 +5,8 @@
 #include "../daq_run.h"
 #include "../econ_links.h"
 #include "pflib/utility/median.h"
+#include "pflib/utility/mean.h"
+#include "pflib/utility/stdev.h"
 
 ENABLE_LOGGING();
 
@@ -12,22 +14,23 @@ DataFitter::DataFitter() {};
 
 void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, 
                                  std::vector<int>& pedestals,
-                                 std::vector<double>& stds,
+                                 std::vector<double>& stdevs,
                                  int& step) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:sort")};
+  pflib_log(info) << "Sorting Data";
   // We ignore first and last elements since they miss derivs
   struct DerivPoint {
     int i;
     double LH;
-    double LH_std;
+    double LH_stdev;
     double RH;
-    double RH_std;
+    double RH_stdev;
   };
   std::vector<DerivPoint> slope_points;
 
-  double flat_threshold = 0.05 * step;
+  double flat_threshold = 0.1;
   std::vector<double> LH_derivs;
-  std::vector<double> LH_stds;
+  std::vector<double> LH_stdevs;
   std::vector<double> RH_derivs;
   for (int i = 1; i < inv_vrefs.size()-1; i++) {
     double LH = static_cast<double>(pedestals[i] - pedestals[i-1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
@@ -37,11 +40,11 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
     if (std::abs(LH) < flat_threshold || std::abs(RH) < flat_threshold) { // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
     } else { // we're in a linear regime or there's outliers
-      double LH_err = std::abs(stds[i] - stds[i-1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
-      double RH_err = std::abs(stds[i] - stds[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
+      double LH_err = (stdevs[i] - stdevs[i+1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
+      double RH_err = (stdevs[i] - stdevs[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
       slope_points.push_back({i, LH, LH_err, RH, RH_err});
       LH_derivs.push_back(LH);
-      LH_stds.push_back(err);
+      LH_stdevs.push_back(LH_err);
       RH_derivs.push_back(RH);
     }
   }
@@ -52,22 +55,28 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   // We could use both LH and RH derivs to improve selections.
 
   
-  LH_std_median_ = pflib::utility::median(LH_stds);
+  LH_std_median_ = pflib::utility::median(LH_stdevs);
   LH_median_ = pflib::utility::median(LH_derivs);
+
+  pflib_log(info) << "Median stdev = " << LH_std_median_;
+  pflib_log(info) << "Median LH = " << LH_median_;
   
   for (const auto& p : slope_points) {
-    if ((std::abs(p.LH - LH_median_) < 0.3*std::abs(LH_median_)) &&
-         p.LH_err < LH_std_median_) { // Linear regime. 
+    pflib_log(info) << "stdev = " << p.LH_stdev;
+    pflib_log(info) << "LH = " << p.LH;
+    if ((std::abs(p.LH - LH_median_) < 0.7*std::abs(LH_median_)) &&
+         std::abs(p.LH_stdev) < LH_std_median_) { // Linear regime. 
       pflib_log(info) << "inv_vref is : " << inv_vrefs[p.i];
       linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
   }
-
 }
 
 int DataFitter::fit(int target) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:fit")};
+  pflib_log(info) << "Fitting Data";
   // Calculate the median intercept and slope
+  pflib_log(info) << linear_.size();
 
   std::vector<double> intercepts;
   for (const auto& p : linear_) {
@@ -99,6 +108,7 @@ int DataFitter::fit(int target) {
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::array<int, 2>& channels) {
+  static auto the_log_{::pflib::logging::get("inv_vref_scan:writer")};
   int n_links = 2;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
@@ -119,7 +129,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   std::vector<double> stds_l1;
   std::vector<int> inv_vrefs;
 
-  int step = 1;
+  int step = 20;
 
   for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
@@ -150,6 +160,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
         adcs_l0.push_back(data[i].channel(channels[0]).adc());
+        pflib_log(info) << "adc = " << data[i].channel(channels[0]).adc();
         adcs_l1.push_back(data[i].channel(channels[1]).adc());
       } else {
         PFEXCEPTION_RAISE("BadConf",
@@ -157,9 +168,9 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
         }
       }
     pedestals_l0.push_back(pflib::utility::median(adcs_l0));
-    stds_l0.push_back(pflib::utility::std(adcs_l0));
+    stds_l0.push_back(pflib::utility::stdev(adcs_l0));
     pedestals_l1.push_back(pflib::utility::median(adcs_l1));
-    stds_l1.push_back(pflib::utility::std(adcs_l1));
+    stds_l1.push_back(pflib::utility::stdev(adcs_l1));
     inv_vrefs.push_back(inv_vref);
     }
   // sort data and fit
