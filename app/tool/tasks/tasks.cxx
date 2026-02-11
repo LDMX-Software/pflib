@@ -68,7 +68,7 @@ auto menu_tasks =
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
                align_econ_lpgbt)
-        ->line("LEVEL_PEDESTALS_FULL", "Level pedestals across both links", level_pedestals_inv_vref)
+        ->line("LEVEL_PEDESTALS_FULL", "Level pedestals across both links", level_pedestals_inv_vref);
 
 
 }
