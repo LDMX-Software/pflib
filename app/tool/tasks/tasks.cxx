@@ -23,7 +23,7 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
-#include level_pedestals_inv_vref.h
+#include "level_pedestals_inv_vref.h"
 
 namespace {
 auto menu_tasks =
