@@ -19,6 +19,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.lines import Line2D
 
 from scipy.optimize import curve_fit
 import numpy as np
@@ -108,6 +109,7 @@ def adc_all_channels(
     def conditional_legend(ax, max_labels=37, **kwargs):
         """Only draw legend if below threshold."""
         handles, labels = ax.get_legend_handles_labels()
+        # handles is a list, so append manual patch
         if len(labels) < max_labels:
             ax.legend(**kwargs)
 
@@ -135,6 +137,15 @@ def adc_all_channels(
     # Loop over charge groups
     for i, (charge_id, charge_df) in enumerate(charges_group):
         print(f'Running {i+1} out of {runs}')
+        
+        # Calculate the median
+
+        charge_df['adc'] = (
+            charge_df
+            .groupby(['channel', 'time'])['adc']
+            .transform('median')
+        )
+
         # Pedestal case
         if i == 0:
             fig, ax = plt.subplots()
@@ -160,7 +171,12 @@ def adc_all_channels(
         ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator())
 
         ax_time.set_ylabel('ADC')
-        ax_time.set_xlabel('Time')
+        ax_time.set_xlabel('Time [ns]')
+        ax_time.grid(which='major', axis='y')
+        ax_time.set_title(r'$V_0 = 100 mV, V_{ct} = 900 mV$')
+        #ax_time.set_title(r'$V_0 = 100 mV, V_{ct} = 100 mV, \Delta t = -25 ns$')
+        #ax_time.set_title(r'$V_0 = 100 mV$')
+
 
         # Parameter grouping
         try:
@@ -169,6 +185,8 @@ def adc_all_channels(
             param_group = [(None, charge_df)]
 
         cmap = plt.get_cmap('viridis')
+
+        ref_max = 0
 
         for j, (param_id, param_df) in enumerate(param_group):
 
@@ -224,16 +242,25 @@ def adc_all_channels(
                 ax_time.scatter(
                     ch_df['time'], ch_df['adc'],
                     label=f'ch{ch_id}',
-                    s=5, color=plt.get_cmap('tab20')(k / 20)
+                    s=5, color=plt.get_cmap('tab20')((k) / (20))
                     )
+            ref_max = link_df[link_df['channel'] == 16]['adc'].max()
+            
 
         # Pedestal and link lines
         ax1.axhline(y=0, color='k', linestyle='--', linewidth=0.8)
         ax1.axvline(x=35.5, color='r', linestyle='--', alpha=0.5)
 
         conditional_legend(ax1, fontsize=8)
-        conditional_legend(ax_time, fontsize=4, ncols=3)
+        conditional_legend(ax_time, fontsize=8, ncols=3)
 
+        ax_time.text(
+            3, 2.8,
+            f"Max ADC of ref = {ref_max}",
+            transform=ax.transAxes,
+            va='top'
+        )
+    
         save_and_close(fig, f'adc_channels_{i}.png')
         save_and_close(fig_time, f'adc_time_{i}.png')
 
