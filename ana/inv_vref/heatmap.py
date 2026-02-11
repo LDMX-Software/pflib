@@ -24,12 +24,14 @@ if args.output is None:
 
 samples = pd.read_csv(args.pedestals)
 
+print(samples.columns.values)
+
 fig, axes = plt.subplots(1, 2)
 
 # pedestal per link vs noinv
 
-link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 612)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 612)]
+link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 620)]
+link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 620)]
 
 median_adc_0 = link0_df.groupby('noinv_vref')['adc'].median().sort_index()
 median_adc_1 = link1_df.groupby('noinv_vref')['adc'].median().sort_index()
@@ -49,8 +51,8 @@ plt.close()
 
 fig, axes = plt.subplots(1, 2)
 
-link0_df = samples[(samples['ch'] < 32) & (samples['noinv_vref'] == 612)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['noinv_vref'] == 612)]
+link0_df = samples[(samples['ch'] < 32) & (samples['noinv_vref'] == 620)]
+link1_df = samples[(samples['ch'] >= 32) & (samples['noinv_vref'] == 620)]
 
 median_adc_0 = link0_df.groupby('inv_vref')['adc'].median().sort_index()
 median_adc_1 = link1_df.groupby('inv_vref')['adc'].median().sort_index()
