@@ -6,9 +6,10 @@
 #include "../algorithm/level_pedestals.h"
 #include "../algorithm/inv_vref_align.h"
 
-static YAML::Emitter settings_to_yaml(
+static void settings_to_yaml(
+    YAML::Emitter& out,
     const std::map<std::string, std::map<std::string, uint64_t>>& settings) {
-  YAML::Emitter out;
+
   out << YAML::BeginMap;
   for (const auto& page : settings) {
     out << YAML::Key << page.first;
@@ -19,7 +20,6 @@ static YAML::Emitter settings_to_yaml(
     out << YAML::EndMap;
   }
   out << YAML::EndMap;
-  return out;
 }
 
 void level_pedestals_inv_vref(Target* tgt) {
@@ -65,18 +65,10 @@ void level_pedestals_inv_vref(Target* tgt) {
   combined = std::move(filtered);
   */
 
-  auto out = settings_to_yaml(combined);
+YAML::Emitter out;
+settings_to_yaml(out, combined);
 
-  // 5) Save YAML (no prompts; deterministic default name)
-  std::string fname = pftool::readline_path(
-      "level-pedestals-inv-vref-roc-" + std::to_string(pftool::state.iroc) + "-settings",
-      ".yaml");
-
-  std::ofstream f{fname};
-  if (!f.is_open()) {
-    PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
-  }
-  f << out.c_str() << std::endl;
+f << out.c_str() << std::endl;
 
   // Optional: also print summary
   std::cout << "Applied pedestal leveling and INV_VREF alignment.\n"
