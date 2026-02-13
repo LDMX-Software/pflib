@@ -36,8 +36,8 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    calibs =
-        get_calibs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, target_adc);
+    calibs = get_calibs<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, n_events, target_adc);
     vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>(
         tgt, roc, n_events, calibs, vref_targets);
     trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>(

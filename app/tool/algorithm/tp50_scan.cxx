@@ -109,8 +109,8 @@ int local_vref_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
   static auto the_log_{::pflib::logging::get("tp50_scan:local_vref_scan")};
   for (int vref = vref_value; vref <= 600; vref++) {
     pflib_log(info) << "Testing vref = " << vref;
-    double efficiency = eff_scan<EventPacket>(
-        tgt, roc, channel, vref, n_events, refvol_page, buffer, i_link);
+    double efficiency = eff_scan<EventPacket>(tgt, roc, channel, vref, n_events,
+                                              refvol_page, buffer, i_link);
     pflib_log(info) << "tot efficiency is " << efficiency;
     if (efficiency < 0.5) {
       return vref;

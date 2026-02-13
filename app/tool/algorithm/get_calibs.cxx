@@ -10,7 +10,8 @@
 namespace pflib::algorithm {
 
 template <class EventPacket>
-std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events, int& target_adc) {
+std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
+                               int& target_adc) {
   static auto the_log_{::pflib::logging::get("get_calibs")};
   std::array<int, 72> calibs;
   /// reserve a vector of the appropriate size to avoid repeating allocation
@@ -94,7 +95,8 @@ template std::array<int, 72> get_calibs<pflib::packing::SingleROCEventPacket>(
     Target* tgt, ROC& roc, size_t& n_events, int& target_adc);
 
 template std::array<int, 72>
-get_calibs<pflib::packing::MultiSampleECONDEventPacket>(
-    Target* tgt, ROC& roc, size_t& n_events, int& target_adc);
+get_calibs<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
+                                                        size_t& n_events,
+                                                        int& target_adc);
 
 }  // namespace pflib::algorithm

@@ -16,6 +16,7 @@ namespace pflib::algorithm {
  *            target calib value
  */
 template <class EventPacket>
-std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events, int& target_adc);
+std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
+                               int& target_adc);
 
 }  // namespace pflib::algorithm
