@@ -1,9 +1,17 @@
 """
-heatmap of pedestal data separated by link_channel
+Plots the median ADC per timepoint given a nr of samples per timepoint.
 
-Given a dataset which contains both inv_vref and noinv_vref parameters (pedestal scan),
-gives two 1D plots of ADC vs each parameters, and a 2D heatmaps of the parameters and ADC.
+Plots:
+    1D plots:
+        inv_vref for constant noinv_vref
+        noinv_vref for constant inv_vref
+        Nearest neighbour derivatives for inv_vref with constant noinv_vref
+        (constants set with the -pv argument)
 
+    2D heatmap of inv_vref and noinv_vref
+
+Takes a dataset which contains both inv_vref and noinv_vref parameters of all channels,
+from vref_2d_scan in app/tool/tasks.
 """
 
 import pandas as pd
@@ -15,90 +23,107 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('pedestals', type=Path, help='decoded pedestal CSV file to summarize')
-parser.add_argument('-o','--output', type=Path, help='file to which to print, default is pedestal file with "-heatmap" suffix and extension changed to ".png"')
-parser.add_argument('--full-range', action='store_true', help='use full 10-bit range rather than dynamically change the binning to fit between the min/max of the data')
+parser.add_argument('-pv', '--parameter-value', type=int, help='constant parameter values for 1D plots', default=620)
 args = parser.parse_args()
-
-if args.output is None:
-    args.output = args.pedestals.parent / (args.pedestals.stem + '-heatmap.png')
 
 samples = pd.read_csv(args.pedestals)
 
-print(samples.columns.values)
+plt.rcParams['figure.figsize'] = [15, 12]
+plt.rcParams['xtick.labelsize'] = 16
+plt.rcParams['ytick.labelsize'] = 16
 
-fig, axes = plt.subplots(1, 2)
+fig, ax = plt.subplots(1, 1)
 
 samples = (samples
             .groupby(['noinv_vref', 'inv_vref', 'ch'], as_index=False)
             .agg(adc=('adc', 'median'), std=('adc', 'std')))
 
-# pedestal per link vs noinv
-
-link0_df = samples[(samples['ch'] < 32) & (samples['inv_vref'] == 620)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['inv_vref'] == 620)]
-selected_df = samples[samples['inv_vref'] == 620]
+# Pedestals vs noinv
+selected_df = samples[samples['inv_vref'] == args.parameter_value]
 
 chs = selected_df.groupby('ch')
 for ch_id, ch_df in chs:
     ax.errorbar(ch_df['noinv_vref'], ch_df['adc'], 
                     yerr=ch_df['std'], label=f'ch {ch_id}')
-ax.legend()
-ax.set_ylabel('median pedestal [ADC]')
-ax.set_xlabel('noinv_vref')
+ax.legend(fontsize=12, ncols=4)
+ax.set_ylabel('Median ADC [a.u.]', fontsize=24)
+ax.set_xlabel(r'noinv$_{\text{vref}}$', fontsize=24)
+ax.grid(which='major', axis='y')
 
 plt.savefig('noinv_scan.png', dpi=400, bbox_inches='tight')
 plt.close()
 
-# pedestal per link vs inv
+# Pedestals vs inv
 
-fig, axes = plt.subplots(1, 2)
+fig, ax = plt.subplots(1, 1)
 
-link0_df = samples[(samples['ch'] < 32) & (samples['noinv_vref'] == 620)]
-link1_df = samples[(samples['ch'] >= 32) & (samples['noinv_vref'] == 620)]
+selected_df = samples[samples['noinv_vref'] == args.parameter_value]
 
-median_adc_0 = link0_df.groupby('inv_vref')['adc'].median().sort_index()
-median_adc_1 = link1_df.groupby('inv_vref')['adc'].median().sort_index()
-
-axes[0].plot(median_adc_0.index, median_adc_0.values)
-axes[1].plot(median_adc_1.index, median_adc_1.values)
-axes[0].set_ylabel('median pedestal [ADC]')
-axes[0].set_xlabel('inv_vref')
-axes[1].set_xlabel('inv_vref')
-axes[0].set_title('link 0')
-axes[1].set_title('link 1')
+chs = selected_df.groupby('ch')
+for ch_id, ch_df in chs:
+    ax.errorbar(ch_df['inv_vref'], ch_df['adc'], 
+                    yerr=ch_df['std'], label=f'ch {ch_id}')
+ax.legend(fontsize=12, ncols=4)
+ax.set_ylabel('Median ADC [a.u.]', fontsize=24)
+ax.set_xlabel(r'inv$_{\text{vref}}$', fontsize=24)
+ax.grid(which='major', axis='y')
 
 plt.savefig('inv_scan.png', dpi=400, bbox_inches='tight')
 plt.close()
 
-# LH and RH derivatives
+# Plot nearest neighbour differential
 
-fig, axes = plt.subplots(2, 2, height_ratios=[2, 1], sharex=True)
+def compute_slopes(g):
+    x = g['inv_vref'].to_numpy()
+    y = g['adc'].to_numpy()
+    y_dev = g['std'].to_numpy()
 
-LH_deriv = []
-RH_deriv = []
-x_vals = []
+    LH = np.full(len(g), np.nan, dtype=float)
+    RH = np.full(len(g), np.nan, dtype=float)
+    LH_dev = np.full(len(g), np.nan, dtype=float)
+    RH_dev = np.full(len(g), np.nan, dtype=float)
 
-for i in range(1,len(median_adc_0.index)-1):
-    LH = (median_adc_0.values[i] - median_adc_0.values[i-1]) / (median_adc_0.index[i] - median_adc_0.index[i-1])
-    RH = (median_adc_0.values[i] - median_adc_0.values[i+1]) / (median_adc_0.index[i] - median_adc_0.index[i+1]) 
-    LH_deriv.append((LH))
-    RH_deriv.append((RH))
-    x_vals.append(median_adc_0.index[i])
+    LH[1:-1] = (y[1:-1] - y[:-2]) / (x[1:-1] - x[:-2])
+    RH[1:-1] = (y[1:-1] - y[2:])  / (x[1:-1] - x[2:])
+    LH_dev[1:-1] = (y_dev[1:-1] + y_dev[:-2])
+    RH_dev[1:-1] = (y_dev[1:-1] + y_dev[2:])
 
-axes[0][0].plot(x_vals, LH_deriv)
-axes[0][1].plot(x_vals, RH_deriv)
-fig.supylabel('Difference to nearest neighbour [ADC]')
-axes[0][0].set_title('LH')
-axes[0][1].set_title('RH')
+    g = g.copy()
+    g['LH'] = LH
+    g['RH'] = RH
+    g['LH-std'] = abs(LH_dev)
+    g['RH-std'] = abs(RH_dev)
+    return g
 
-axes[1][0].plot(x_vals, LH_deriv)
-axes[1][1].plot(x_vals, RH_deriv)
-axes[1][0].set_xlabel('inv_vref')
-axes[1][0].set_xlabel('inv_vref')
-axes[1][0].set_ylim(-2,2)
-axes[1][1].set_ylim(-2,2)
+sorted_df = selected_df.sort_values(['ch', 'inv_vref']).copy()
+result = (
+    sorted_df
+    .groupby('ch', group_keys=False)
+    .apply(compute_slopes)
+)
 
-plt.savefig('inv_derivs.png', dpi=400, bbox_inches='tight')
+fig, ax = plt.subplots(1,1)
+fig_err, ax_err = plt.subplots(2,1, sharex=True)
+
+ch_group = result.groupby('ch')
+for ch_id, ch_df in ch_group:
+    ax_err[0].errorbar(ch_df['inv_vref'], ch_df['LH'], yerr=ch_df['LH-std'], fmt='o', label=f'ch {ch_id}')
+    ax_err[1].errorbar(ch_df['inv_vref'], ch_df['LH'], yerr=ch_df['LH-std'], fmt='o', label=f'ch {ch_id}')
+    ax.plot(ch_df['inv_vref'], ch_df['LH'], label=f'ch {ch_id}')
+
+ax.legend(fontsize=12, ncols=6)
+ax_err[0].legend(fontsize=10, ncols=8)
+
+ax.set_xlabel(r'inv$_{\text{vref}}$', fontsize=32)
+ax.set_ylabel(r'$\Delta ADC / \Delta \text{inv}_{\text{vref}}$ [a.u.]', fontsize=32)
+
+ax_err[1].set_xlabel(r'inv$_{\text{vref}}$', fontsize=32)
+fig_err.supylabel(r'$\Delta ADC / \Delta \text{inv}_{\text{vref}}$ [a.u.]', fontsize=32, x=0.04)
+ax_err[1].set_ylim(-5,5)
+
+fig_err.savefig('inv_derivs_with_err.png', dpi=400, bbox_inches='tight')
+fig.savefig('inv_derivs.png', dpi=400, bbox_inches='tight')
+
 plt.close()
 
 # Heatmap
@@ -117,7 +142,6 @@ for ch_id, ch_df in channels:
         .sort_index()
         .sort_index(axis=1)
     )
-
     plt.imshow(
         heat.values,
         extent=[
@@ -128,8 +152,11 @@ for ch_id, ch_df in channels:
         aspect="auto",
         #cmap="tab20"
     )
-    plt.colorbar(label="median pedestal [ADC]")
-    plt.xlabel("inv_vref")
-    plt.ylabel("noinv_vref")
+    cbar = plt.colorbar()
+    cbar.set_label('Median ADC [a.u.]', fontsize=32, labelpad=20)
+    cbar.ax.tick_params(labelsize=16)
+    plt.xlabel(r"inv$_{\text{vref}}$", fontsize=32)
+    plt.ylabel(r"noinv$_{\text{vref}}$", fontsize=32)
+    plt.tick_params(axis='both', labelsize=16) 
     plt.savefig(f'heatmap_ch_{ch_id}.png', dpi=400, bbox_inches='tight')
     plt.close()

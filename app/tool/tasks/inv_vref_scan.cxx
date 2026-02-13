@@ -56,7 +56,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
 
   // increment inv_vref in increments of 20. 10 bit value but only scanning to
   // 600
-  for (inv_vref = 0; inv_vref <= 1024; inv_vref += 20) {
+  for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
     // set inv_vref simultaneously for both links
     auto test_param = roc.testParameters()
