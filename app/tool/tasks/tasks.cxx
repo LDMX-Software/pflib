@@ -22,8 +22,8 @@
 #include "tot_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
-#include "vt50_scan.h"
 #include "vref_2d_scan.h"
+#include "vt50_scan.h"
 
 namespace {
 auto menu_tasks =
@@ -40,7 +40,8 @@ auto menu_tasks =
         ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter",
                trim_inv_dacb_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
-        ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF", vref_2d_scan)
+        ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF",
+               vref_2d_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
                noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN",
