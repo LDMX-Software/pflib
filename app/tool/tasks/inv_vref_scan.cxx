@@ -48,11 +48,13 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
       RH_derivs.push_back(RH);
     }
   }
-  // Now we get the slopey region. CMS removes outliers by using the ADC median.
-  // From my analysis I chose to consider the std of each point, which is huge for outliers
-  // compared to the points in the linear region. We set a selection of linear points when
-  // they have a std < median(std).
-  // We could use both LH and RH derivs to improve selections.
+  // Now we get the linear region. CMS removes outliers by using the ADC median.
+  // From my analysis I chose to also consider the stdev of each point, which is 0 in 
+  // the low inv_vref region (inv_vref approx less than 250).
+  // NOTE! This seems to vary between boards, and more analysis between boards should be 
+  // done to find the optimal selections.
+  //
+  // We could use both LH and RH derivs to improve selections (?).
 
   
   LH_std_median_ = pflib::utility::median(LH_stdevs);
@@ -62,10 +64,8 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   pflib_log(info) << "Median LH = " << LH_median_;
   
   for (const auto& p : slope_points) {
-    pflib_log(info) << "stdev = " << p.LH_stdev;
-    pflib_log(info) << "LH = " << p.LH;
     if ((std::abs(p.LH - LH_median_) < 0.7*std::abs(LH_median_)) &&
-         std::abs(p.LH_stdev) < LH_std_median_) { // Linear regime. 
+         std::abs(p.LH_stdev) > 0.0001) { // Linear regime. 
       pflib_log(info) << "inv_vref is : " << inv_vrefs[p.i];
       linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
@@ -79,19 +79,24 @@ int DataFitter::fit(int target) {
   pflib_log(info) << linear_.size();
 
   std::vector<double> intercepts;
+  std::vector<double> slopes;
   for (const auto& p : linear_) {
+    pflib_log(info) << "linear data:";
+    pflib_log(info) << "LH deriv = " << p.LH_ << " at inv_vref = " << p.x_;
     double b = p.y_ - p.LH_ * p.x_;
     intercepts.push_back(b);
+    slopes.push_back(p.LH_);
   }
   double median_intercept = pflib::utility::median(intercepts);
-  pflib_log(info) << "The median intercept is " << median_intercept;
+  double median_slope = pflib::utility::median(slopes);
+  pflib_log(info) << "The median intercept is = " << median_intercept << " and the median deriv is = " << median_slope;
 
   // Find intersect with target. Start at the beginning of the linear regime
   int inv_vref = 0;
   int adc = 0;
   int n = linear_.size();
-  while (inv_vref < 500) {
-    adc = RH_median_ * inv_vref + median_intercept;
+  while (inv_vref < 1024) {
+    adc = median_slope * inv_vref + median_intercept;
     //pflib_log(info) << "inv_vref = " << inv_vref << " with adc = " << adc;
     if (adc <= target) {
       break;
@@ -160,7 +165,6 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                EventPacket,
                                pflib::packing::SingleROCEventPacket>) {
         adcs_l0.push_back(data[i].channel(channels[0]).adc());
-        pflib_log(info) << "adc = " << data[i].channel(channels[0]).adc();
         adcs_l1.push_back(data[i].channel(channels[1]).adc());
       } else {
         PFEXCEPTION_RAISE("BadConf",
