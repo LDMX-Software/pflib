@@ -312,4 +312,65 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
       "The generated register LUT does not match the expected LUT");
 }
 
+BOOST_AUTO_TEST_CASE(read_three_aligner_params) {
+  pflib::Compiler c = pflib::Compiler::get("econd");
+
+  std::map<int, std::map<int, uint8_t>> registers;
+
+  // First, set all registers to zero to avoid warnings
+  auto reg_lut = c.build_register_byte_lut();
+  for (const auto& [reg_addr, nbytes] : reg_lut) {
+    for (size_t i = 0; i < nbytes; i++) {
+      registers[0][reg_addr + i] = 0;
+    }
+  }
+
+  // Now overwrite with our three parameters of interest
+  c.compile("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL", 10760600711006082389ULL,
+            registers);
+  c.compile("ALIGNER", "GLOBAL_IDLE_HDR_VAL", 12, registers);
+  c.compile("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL", 3514, registers);
+
+  // Decompile
+  auto chip_params = c.decompile(registers, true, true);
+  auto aligner_it = chip_params.find("ALIGNER");
+  if (aligner_it != chip_params.end()) {
+    const auto& params = aligner_it->second;
+
+    auto check_param = [&](const std::string& param_name, uint64_t expected) {
+      auto it = params.find(param_name);
+      if (it != params.end()) {
+        bool match = (it->second == expected);
+        std::cout << param_name << ":" << std::endl;
+        std::cout << "  Found:    " << std::dec << it->second << " (0x"
+                  << std::hex << std::uppercase << it->second << ")"
+                  << std::endl;
+        std::cout << "  Expected: " << std::dec << expected << " (0x"
+                  << std::hex << std::uppercase << expected << ")" << std::endl;
+        std::cout << "  Status:   " << (match ? "PASS ✓" : "FAIL ✗")
+                  << std::endl
+                  << std::endl;
+        BOOST_CHECK_EQUAL(it->second, expected);
+      } else {
+        std::cout << param_name << ":" << std::endl;
+        std::cout << "  Status:   NOT FOUND ✗" << std::endl;
+        std::cout << "  Expected: " << std::dec << expected << " (0x"
+                  << std::hex << std::uppercase << expected << ")" << std::endl
+                  << std::endl;
+        BOOST_FAIL("Parameter not found: " + param_name);
+      }
+    };
+
+    check_param("GLOBAL_MATCH_PATTERN_VAL", 10760600711006082389ULL);
+    check_param("GLOBAL_IDLE_HDR_VAL", 12);
+    check_param("GLOBAL_ORBSYN_CNT_LOAD_VAL", 3514);
+  } else {
+    std::cout << "ERROR: ALIGNER page not found in decompiled output!"
+              << std::endl;
+    BOOST_FAIL("ALIGNER page not found");
+  }
+
+  std::cout << "=== End of Test ===" << std::endl;
+}  // end of BOOST_AUTO_TEST_CASE(read_three_aligner_params)
+
 BOOST_AUTO_TEST_SUITE_END()
