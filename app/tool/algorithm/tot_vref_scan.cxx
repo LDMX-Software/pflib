@@ -37,7 +37,7 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     calibs =
-        get_calibs<pflib::packing::SingleROCEventPacket>(tgt, roc, target_adc);
+        get_calibs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, target_adc);
     vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>(
         tgt, roc, n_events, calibs, vref_targets);
     trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>(
@@ -45,7 +45,7 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     calibs = get_calibs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, target_adc);
+        tgt, roc, n_events, target_adc);
     vref_targets = tp50_scan<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, n_events, calibs, vref_targets);
     trim_targets = trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(

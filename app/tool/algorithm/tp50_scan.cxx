@@ -11,7 +11,7 @@ double eff_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
                 size_t& n_events, auto& refvol_page, auto& buffer,
                 int& i_link) {  // will the script understand auto refvol_page
                                 // and auto buffer?
-  static auto the_log_{::pflib::logging::get("eff_scan")};
+  static auto the_log_{::pflib::logging::get("tp50_scan:eff_scan")};
   auto vref_test_param = roc.testParameters()
                              .add(refvol_page, "TOT_VREF", vref_value)
                              .apply();  // applying relevant parameters
@@ -47,7 +47,7 @@ double eff_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
 template <class EventPacket>
 int global_vref_scan(Target* tgt, ROC& roc, int& channel, size_t& n_events,
                      auto& refvol_page, auto& buffer, int& i_link) {
-  static auto the_log_{::pflib::logging::get("tp50_scan")};
+  static auto the_log_{::pflib::logging::get("tp50_scan:global_vref_scan")};
   std::vector<double> tot_eff_list;
   std::vector<int> vref_list = {0, 600};
   int vref_value{100000};
@@ -106,11 +106,12 @@ int local_vref_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
                     size_t& n_events, auto& refvol_page, auto& buffer,
                     int& i_link) {
   // Increase vref value until eff < 0.5
-  static auto the_log_{::pflib::logging::get("local_vref_scan")};
+  static auto the_log_{::pflib::logging::get("tp50_scan:local_vref_scan")};
   for (int vref = vref_value; vref <= 600; vref++) {
     pflib_log(info) << "Testing vref = " << vref;
     double efficiency = eff_scan<EventPacket>(
-        tgt, roc, channel, vref_value, n_events, refvol_page, buffer, i_link);
+        tgt, roc, channel, vref, n_events, refvol_page, buffer, i_link);
+    pflib_log(info) << "tot efficiency is " << efficiency;
     if (efficiency < 0.5) {
       return vref;
     }
@@ -159,9 +160,7 @@ std::array<int, 2> tp50_scan(Target* tgt, ROC& roc, size_t& n_events,
         tgt, roc, channel, vref, n_events, refvol_page, buffer, i_link);
 
     if (channel_eff < 0.5) {
-      pflib_log(info) << "Channel accounted for by previous vref!"
-                      << " The vref value is " << vref << " and the eff is "
-                      << channel_eff;
+      pflib_log(info) << "Channel accounted for by previous vref!";
       continue;
     } else {
       pflib_log(info)
