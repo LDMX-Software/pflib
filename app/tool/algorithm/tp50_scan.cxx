@@ -98,6 +98,9 @@ int global_vref_scan(Target* tgt, ROC& roc, int& channel, size_t& n_events,
     }
   }
   pflib_log(info) << "Final vref value is " << vref_value;
+  if (vref_value == -1) {
+    throw std::invalid_argument("No TOT values found on this channel! Have you set TOA parameters?");
+  }
   return vref_value;
 }
 
