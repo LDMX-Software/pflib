@@ -50,7 +50,7 @@ run_params_collection = []
 xl = []
 V0 = 0
 
-if (args.plot_parameter == plot_parameters[0]):
+if (args.plot_parameter == 'voltage'):
     for csv in args.time_scan:
         if ('ext' not in str(csv)):
             V0 = (int(str(csv).split('-')[-1].split('m')[0]))
@@ -113,7 +113,6 @@ if (args.plot_parameter == plot_parameters[0]):
         # Limit data range
         #ch_lim = ch_df[(ch_df['adc'] > ch_df['adc'].median()) & (ch_df['time'] >= (x_mean - 30)) & (ch_df['time'] <= (x_mean + 30))]
         ch_lim = ch_df[(ch_df['time'] >= (x_mean-50)) & (ch_df['time'] <= (x_mean+50))]
-        #ch_lim['adc'] = ch_lim['adc'].transform(lambda x: x - ch_df['adc'].median())
 
         p0 = ([ch_lim['adc'].median(),
              ch_lim['adc'].max() - ch_lim['adc'].median(),
@@ -149,31 +148,51 @@ if (args.plot_parameter == plot_parameters[0]):
         ch_maxs = [ch['adc'].max() for _, ch in sorted_df.groupby('channel')]
 
         # Get the average dip. Iterate over quiet channels
-        #dips = [df['adc'].min() for _, df in sorted_df.groupby('channel')]
-        #dips_errs = [df[df['adc'] == df['adc'].min()]['std'].iloc[0] for _, df in sorted_df.groupby('channel')]
-        dips = []
-        dips_errs = []
+        time_max = ch_df.loc[ch_df['adc'].idxmax(), 'time']
 
-        time_max = ch_df[ch_df['adc'] == ch_df['adc'].max()]['time'].iloc[0] 
-
+        # The 2nd requirement is very hand-wavy. Works for my data so far.
+        pedestal_mask = (
+            (sorted_df['channel'] < 36) &
+            (sorted_df.groupby('channel')['adc'].transform('max') < np.median(ch_maxs) + 50)         )
+        time_loc_mask = (sorted_df['time'] == time_max)
+        mask = pedestal_mask & time_loc_mask
+        sel = sorted_df.loc[mask, ['adc', 'std']]
+        
+        dips = sel['adc'].tolist()
+        dips_errs = sel['std'].tolist()
+        
+        # Pedestal Analysis
         if (args.plot_pedestals == True):
             chs = sorted_df.groupby('channel')
             fig, ax = plt.subplots(1,1)
+            fig2, ax2 = plt.subplots(1,1)
             for ch_id, ch in chs:
                 if (ch_id >= 36):
                     break
                 if (ch['adc'].max() < np.median(ch_maxs) + 50):
-                    dips.append(ch[ch['time'] == time_max]['adc'].iloc[0])
-                    dips_errs.append(ch[ch['time'] == time_max]['std'].iloc[0])
                     #ax.errorbar(ch['time'], ch['adc'], yerr=ch['std'], label=f"ch {ch_id})")
                     ax.plot(ch['time'], ch['adc'], label=f"ch {ch_id}")
-            plt.legend(fontsize=12, ncols=3)
+                    minima = ch[ch['adc'] == ch['adc'].min()]
+                    ax2.scatter(ch_id, minima['adc'].median(), label=f'ch {ch_id}')
+            ax.legend(fontsize=12, ncols=3)
             ax.set_xlabel('Time [ns]', fontsize=18)
             ax.set_ylabel('Median ADC [a.u.]', fontsize=18)
             ax.grid(which='major', axis='y')
             ax.tick_params(axis='both', labelsize=12)
             ax.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', fontsize=24, y=1.003)
-            fig.savefig(f'Pedestal_quiet_{x}.png', dpi=400, bbox_inches='tight')
+            ax2.set_xlabel('Channel', fontsize=18)
+            ax2.set_ylabel('Time [ns]', fontsize=18)
+            ax2.grid(which='major', axis='y')
+            ax2.tick_params(axis='both', labelsize=12)
+            ax2.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', fontsize=24, y=1.003)
+            ax2.axvline(x = 16, color = 'b', linestyle='--', label = 'ref channel')
+            ax2.axvline(x = 4, color = 'r', linestyle='--', label = 'oc channel')
+            ax2.axvline(x = 5, color = 'r', linestyle='--')
+            ax2.axvline(x = 6, color = 'r', linestyle='--')
+            ax2.axvline(x = 7, color = 'r', linestyle='--')
+            ax2.legend(fontsize=12, ncols=3)
+            #fig.savefig(f'Pedestal_quiet_{x}.png', dpi=400, bbox_inches='tight')
+            fig2.savefig(f'non_injected_ch_{x}.png', dpi=400, bbox_inches='tight')
             plt.close()
 
         mean_dip = np.median(dips)
@@ -289,7 +308,7 @@ if (args.plot_parameter == plot_parameters[0]):
 
         plt.savefig('attenuation_of_signal_in_voltage.png', dpi=400, bbox_inches='tight')
 
-elif (args.plot_parameter == plot_parameters[1]):
+elif (args.plot_parameter == 'time'):
     for csv in args.time_scan:
         xl.append(int(str(csv).split('_')[-1].split('n')[0]))
         samples, run_params = read_pflib_csv(csv)
