@@ -54,6 +54,9 @@ class FastControl {
   /** send a link reset to the ECONs*/
   virtual void linkreset_econs() {};
 
+  /// turn on/off orbit blinker
+  virtual void fc_orbit_blinker(bool enable = true) {}
+
   /** send a buffer clear */
   virtual void bufferclear() = 0;
 
