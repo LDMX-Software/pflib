@@ -13,43 +13,6 @@
 #include "../daq_run.h"
 #include "../econ_links.h"
 
-static void settings_to_yaml(
-    YAML::Emitter& out,
-    const std::map<std::string, std::map<std::string, uint64_t>>& settings) {
-
-  out << YAML::BeginMap;
-  for (const auto& page : settings) {
-    out << YAML::Key << page.first;
-    out << YAML::Value << YAML::BeginMap;
-    for (const auto& param : page.second) {
-      out << YAML::Key << param.first << YAML::Value << param.second;
-    }
-    out << YAML::EndMap;
-  }
-  out << YAML::EndMap;
-}
-
-void inv_vref_scan(Target* tgt) {
-  int nevents = 1;
-  int inv_vref = 0;
-
-  std::string output_filepath = "inv_vref_scan_level.csv";
-  int ch_link0 = 17;
-  int ch_link1 = 51;
-  std::array<int, 2> channels = {ch_link0, ch_link1};
-
-  auto roc = tgt->roc(pftool::state.iroc);
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, output_filepath, channels, inv_vref);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    inv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, output_filepath, channels, inv_vref);
-  }
-}
-
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::string& output_filepath,
@@ -109,6 +72,45 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
+
+static void settings_to_yaml(
+    YAML::Emitter& out,
+    const std::map<std::string, std::map<std::string, uint64_t>>& settings) {
+
+  out << YAML::BeginMap;
+  for (const auto& page : settings) {
+    out << YAML::Key << page.first;
+    out << YAML::Value << YAML::BeginMap;
+    for (const auto& param : page.second) {
+      out << YAML::Key << param.first << YAML::Value << param.second;
+    }
+    out << YAML::EndMap;
+  }
+  out << YAML::EndMap;
+}
+
+void inv_vref_scan(Target* tgt) {
+  int nevents = 1;
+  int inv_vref = 0;
+
+  std::string output_filepath = "inv_vref_scan_level.csv";
+  int ch_link0 = 17;
+  int ch_link1 = 51;
+  std::array<int, 2> channels = {ch_link0, ch_link1};
+
+  auto roc = tgt->roc(pftool::state.iroc);
+
+  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+    inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
+        tgt, roc, nevents, output_filepath, channels, inv_vref);
+  } else if (pftool::state.daq_format_mode ==
+             Target::DaqFormat::ECOND_SW_HEADERS) {
+    inv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+        tgt, roc, nevents, output_filepath, channels, inv_vref);
+  }
+}
+
+
 #include <numeric>
 #include <cmath>
 #include <algorithm>
