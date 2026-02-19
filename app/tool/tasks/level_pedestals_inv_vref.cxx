@@ -12,7 +12,30 @@
 
 #include "../daq_run.h"
 #include "../econ_links.h"
+#include <numeric>
+#include <cmath>
+#include <algorithm>
 
+// Define the logging context so pflib_log(info) works
+PFLOG_CONTEXT("level_pedestals_inv_vref")
+
+static void settings_to_yaml(
+    YAML::Emitter& out,
+    const std::map<std::string, std::map<std::string, uint64_t>>& settings) {
+
+  out << YAML::BeginMap;
+  for (const auto& page : settings) {
+    out << YAML::Key << page.first;
+    out << YAML::Value << YAML::BeginMap;
+    for (const auto& param : page.second) {
+      out << YAML::Key << param.first << YAML::Value << param.second;
+    }
+    out << YAML::EndMap;
+  }
+  out << YAML::EndMap;
+}
+
+// 1. Move the template writer ABOVE the scan function
 template <class EventPacket>
 static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::string& output_filepath,
@@ -56,47 +79,25 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
-  // increment inv_vref in increments of 20. 10 bit value but only scanning to
-  // 600
   for (inv_vref = 0; inv_vref <= 600; inv_vref += 20) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
-    // set inv_vref simultaneously for both links
-    auto test_param = roc.testParameters()
-                          .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
-                          .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
-                          .apply();
-    // store current scan state in header for writer access
+    roc.testParameters()
+          .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
+          .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
+          .apply();
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
 
-static void settings_to_yaml(
-    YAML::Emitter& out,
-    const std::map<std::string, std::map<std::string, uint64_t>>& settings) {
-
-  out << YAML::BeginMap;
-  for (const auto& page : settings) {
-    out << YAML::Key << page.first;
-    out << YAML::Value << YAML::BeginMap;
-    for (const auto& param : page.second) {
-      out << YAML::Key << param.first << YAML::Value << param.second;
-    }
-    out << YAML::EndMap;
-  }
-  out << YAML::EndMap;
-}
-
+// 2. Scan Function
 void inv_vref_scan(Target* tgt) {
   int nevents = 1;
   int inv_vref = 0;
 
   std::string output_filepath = "inv_vref_scan_level.csv";
-  int ch_link0 = 17;
-  int ch_link1 = 51;
-  std::array<int, 2> channels = {ch_link0, ch_link1};
+  std::array<int, 2> channels = {17, 51};
 
   auto roc = tgt->roc(pftool::state.iroc);
 
@@ -104,35 +105,29 @@ void inv_vref_scan(Target* tgt) {
     inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
         tgt, roc, nevents, output_filepath, channels, inv_vref);
   } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
+               Target::DaqFormat::ECOND_SW_HEADERS) {
     inv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, nevents, output_filepath, channels, inv_vref);
   }
 }
 
-
-#include <numeric>
-#include <cmath>
-#include <algorithm>
-
-// Helper to calculate optimal VREF from the scan data
+// 3. Algorithm Helper
 static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_alignment(
     const std::string& csv_path, int target_adc) {
     
     std::map<std::string, std::map<std::string, uint64_t>> results;
-    
-    // 1. Read the CSV (Simplified parsing for the specific format in inv_vref_scan_writer)
     std::ifstream file(csv_path);
+    if (!file.is_open()) return results;
+
     std::string line, header;
-    std::getline(file, line); // Skip JSON comment line
-    std::getline(file, header); // Read CSV headers (INV_VREF,ch1,ch2...)
+    std::getline(file, line); // Skip JSON
+    std::getline(file, header); // Read Headers
 
     std::stringstream ss(header);
     std::vector<std::string> col_names;
     std::string col;
     while (std::getline(ss, col, ',')) col_names.push_back(col);
 
-    // Data containers: Key is channel string, Value is vector of ADC counts
     std::map<std::string, std::vector<double>> data;
     std::vector<double> vref_axis;
 
@@ -146,14 +141,12 @@ static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_ali
         }
     }
 
-    // 2. Perform Linear Regression for each channel
     for (auto const& [ch_str, adc_values] : data) {
         if (ch_str == "INV_VREF") continue;
         auto [min_it, max_it] = std::minmax_element(adc_values.begin(), adc_values.end());
-        double min_val = *min_it;
-        double max_val = *max_it;
-        double lower = 0.1 * (max_val - min_val) + min_val;
-        double upper = 0.8 * (max_val - min_val) + min_val;
+        double min_v = *min_it, max_v = *max_it;
+        double lower = 0.1 * (max_v - min_v) + min_v;
+        double upper = 0.8 * (max_v - min_v) + min_v;
 
         std::vector<double> x_reg, y_reg;
         for (size_t i = 0; i < adc_values.size(); ++i) {
@@ -162,10 +155,8 @@ static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_ali
                 y_reg.push_back(adc_values[i]);
             }
         }
-
         if (x_reg.size() < 2) continue;
 
-        // Linear Regression: y = mx + c
         double n = x_reg.size();
         double sX = std::accumulate(x_reg.begin(), x_reg.end(), 0.0);
         double sY = std::accumulate(y_reg.begin(), y_reg.end(), 0.0);
@@ -174,65 +165,41 @@ static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_ali
 
         double slope = (n * sXY - sX * sY) / (n * sXX - sX * sX);
         double intercept = (sY - slope * sX) / n;
-
-        // Solve for target: vref = (target - intercept) / slope
         uint64_t opt_vref = std::round((target_adc - intercept) / slope);
         
         int ch = std::stoi(ch_str);
         std::string page = (ch <= 35) ? "REFERENCEVOLTAGE_0" : "REFERENCEVOLTAGE_1";
         results[page]["INV_VREF"] = opt_vref;
     }
-
     return results;
 }
+
+// 4. Main Task Function
 void level_pedestals_inv_vref(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
 
-  // level pedestals in each link
+  // Level pedestals
   auto ped_settings = pflib::algorithm::level_pedestals(tgt, roc);
   roc.applyParameters(ped_settings);
 
-  // run inv_vref_scan
-  inv_vref_scan(Target* tgt);
+  // Run scan (FIXED CALL SYNTAX)
+  inv_vref_scan(tgt);
 
-  // algorithm to determine optimal inv_vref levels
-  std::string scan_file = "inv_vref_scan_level.csv";
-  int target_adc = 150; // Matching your Python default
-  
-  auto vref_settings = calculate_vref_alignment(scan_file, target_adc);
-
-  // Apply these new VREF settings to the ROC before saving
+  // Calculate alignment
+  auto vref_settings = calculate_vref_alignment("inv_vref_scan_level.csv", 100);
   roc.applyParameters(vref_settings);
-  
 
-  // 4) Merge for YAML output
-  // Start with pedestal settings, then overlay inv_vref pages
+  // Merge for YAML
   auto combined = ped_settings;
   for (const auto& page : vref_settings) {
-    combined[page.first] = page.second;
-  }
-
-  // If you truly want only INV_VREF/TRIM_INV/DACB, you can filter here.
-  // BUT: DACB sometimes requires SIGN_DAC=1 to be meaningful when reapplying YAML.
-  // I recommend keeping SIGN_DAC when present.
-  //
-  // If you want strict filtering, uncomment below:
-  /*
-  std::map<std::string, std::map<std::string, uint64_t>> filtered;
-  for (const auto& page : combined) {
-    for (const auto& kv : page.second) {
-      if (kv.first == "INV_VREF" || kv.first == "TRIM_INV" || kv.first == "DACB" || kv.first == "SIGN_DAC") {
-        filtered[page.first][kv.first] = kv.second;
-      }
+    for (const auto& entry : page.second) {
+        combined[page.first][entry.first] = entry.second;
     }
   }
-  combined = std::move(filtered);
-  */
 
- YAML::Emitter out;
+  YAML::Emitter out;
   settings_to_yaml(out, combined);
 
-  // 5) Save YAML
   std::string fname = pftool::readline_path(
       "level-pedestals-inv-vref-roc-" + std::to_string(pftool::state.iroc) + "-settings",
       ".yaml");
@@ -243,7 +210,5 @@ void level_pedestals_inv_vref(Target* tgt) {
   }
   f << out.c_str() << std::endl;
 
-  // Optional: also print summary
-  std::cout << "Applied pedestal leveling and INV_VREF alignment.\n"
-            << "Wrote combined settings to " << fname << "\n";
+  std::cout << "Applied alignment and wrote settings to " << fname << "\n";
 }
