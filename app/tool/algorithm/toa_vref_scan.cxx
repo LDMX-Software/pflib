@@ -44,7 +44,7 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
   // from bottom up.
   for (int i_link{0}; i_link < 2; i_link++) {
     int highest_non_zero_eff = -1;  // just a placeholder in case it's not found
-    for (int toa_vref = final_effs[0].size(); toa_vref >= 0; toa_vref--) {
+    for (int toa_vref = final_effs[0].size() - 1; toa_vref >= 0; toa_vref--) {
       if (final_effs[i_link][toa_vref] > 0.0) {
         highest_non_zero_eff =
             toa_vref + 10;  // need to add 10 since we don't want to overlap
