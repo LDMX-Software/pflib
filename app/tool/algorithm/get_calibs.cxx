@@ -10,7 +10,8 @@
 namespace pflib::algorithm {
 
 template <class EventPacket>
-std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
+std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
+                               int& target_adc) {
   static auto the_log_{::pflib::logging::get("get_calibs")};
   std::array<int, 72> calibs;
   /// reserve a vector of the appropriate size to avoid repeating allocation
@@ -55,7 +56,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
       //    adcs.push_back(data[i].channel(ch).adc());
       //  }
       //}
-      daq_run(tgt, "CHARGE", buffer, 1, 100);
+      daq_run(tgt, "CHARGE", buffer);  // using default nevents and rate
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
         if constexpr (std::is_same_v<
@@ -90,10 +91,11 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, int& target_adc) {
 }
 
 template std::array<int, 72> get_calibs<pflib::packing::SingleROCEventPacket>(
-    Target* tgt, ROC& roc, int& target_adc);
+    Target* tgt, ROC& roc, size_t& n_events, int& target_adc);
 
 template std::array<int, 72>
 get_calibs<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
-                                                        int& targt_adc);
+                                                        size_t& n_events,
+                                                        int& target_adc);
 
 }  // namespace pflib::algorithm
