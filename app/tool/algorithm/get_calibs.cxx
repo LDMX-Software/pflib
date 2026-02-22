@@ -56,8 +56,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
       //    adcs.push_back(data[i].channel(ch).adc());
       //  }
       //}
-      daq_run(tgt, "CHARGE", buffer, 1, 100);
-      // daq_run(tgt, "CHARGE", buffer, n_events, 100)
+      daq_run(tgt, "CHARGE", buffer); // using default nevents and rate
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
         if constexpr (std::is_same_v<
