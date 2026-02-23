@@ -207,9 +207,6 @@ static void elinks(const std::string& cmd, Target* pft) {
  */
 static void fc(const std::string& cmd, Target* pft) {
   bool do_status = false;
-  // the standard setup loaded on startup either does not have an orbit blinker (bittware)
-  // or has it disabled (zcu)
-  static bool blinker_on = false;
 
   if (cmd == "SW_L1A") {
     pft->fc().sendL1A();
@@ -232,9 +229,13 @@ static void fc(const std::string& cmd, Target* pft) {
     do_status = true;
   }
   if (cmd == "ORBIT_BLINKER") {
-    blinker_on = not blinker_on;
-    pft->fc().fc_orbit_blinker(blinker_on);
-    return;
+    bool blinker_on{true};
+    int bx{0};
+    pft->fc().fc_get_orbit_blinker(blinker_on, bx);
+    blinker_on = pftool::readline_bool("Turn on orbit blinker?", not blinker_on);
+    bx = pftool::readline_int("Which BX to send an L1A on every orbit?", bx);
+    pft->fc().fc_setup_orbit_blinker(blinker_on, bx);
+    do_status = true;
   }
   if (cmd == "CALIB") {
     int offset = pft->fc().fc_get_setup_calib();

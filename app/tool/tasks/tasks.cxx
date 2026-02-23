@@ -69,29 +69,35 @@ void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
   auto& roc{tgt->roc(0)};
 
+  auto output_filepath{pftool::readline_path("full-orbit-scan-snapshots", ".txt")};
+  FILE* output{fopen(output_filepath.c_str(), "w")};
+
   /**
    * we want to do manually-triggered I2C snapshots
    * These snapshots will still happen on the ORBSYN_CNT_SNAPTSHOT value
    * within the orbit, but will not only happen after a link reset is sent
    * to the ROC.
    */
-  auto manual_snaps = econ.testParameters()
+  auto manual_snaps_builder = econ.testParameters()
+    .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", 0xFFF)
     .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 1)
     .add("ALIGNER", "GLOBAL_SNAPSHOT_ARM", 0)
-    .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1)
-    .add("CHALIGNER",  "9_PER_CH_ALIGN_EN", 0)
-    .add("CHALIGNER", "10_PER_CH_ALIGN_EN", 0)
-    .add("ERX",  "9_ENABLE", 1)
-    .add("ERX", "10_ENABLE", 1)
-    .apply();
+    .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1);
+  for (int i_econ_ch{0}; i_econ_ch < 12; i_econ_ch++) {
+    auto prefix{std::to_string(i_econ_ch)};
+    manual_snaps_builder
+      .add("CHALIGNER", prefix+"_PER_CH_ALIGN_EN", 0)
+      .add("ERX", prefix+"_ENABLE", 1);
+  }
+  auto manual_snaps = manual_snaps_builder.apply();
+
+  // start sending an L1A on *every* orbit so that we should have seen
+  // one no matter which orbit we end up taking the snapshots in
+  int bx = 10;
+  tgt->fc().fc_setup_orbit_blinker(true, bx);
 
   std::vector<uint8_t> aligner_flags(1);
-  for (int t_snapshot{3490}; t_snapshot < 3540; t_snapshot++) {
-    /*
-     * Changed the IDLEFRAME to make sure I was taking different snapshots
-     * (I was)
-    auto test = roc.testParameters().add("DIGITALHALF_0", "IDLEFRAME", t_snapshot).apply();
-     */
+  for (int t_snapshot{0}; t_snapshot < 3564; t_snapshot++) {
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
     aligner_flags = econ.getValues(ALIGNER_BASE, 1);
     // need to make sure that SNAPSHOT_ARM goes from 0 to 1
@@ -99,10 +105,6 @@ void scan_l1a_offset(Target* tgt) {
     aligner_flags[0] &= 0xf6;
     econ.setValues(ALIGNER_BASE, aligner_flags);
     
-    // send L1A
-    // not sure if this is well timed
-    tgt->fc().sendL1A();
-
     // then, raise lowest bit to 1
     aligner_flags[0] |= 0b1;
     econ.setValues(ALIGNER_BASE, aligner_flags);
@@ -110,30 +112,8 @@ void scan_l1a_offset(Target* tgt) {
     // pause to make sure new snapshot is taken?
     usleep(1000);
 
-    printf("%d:\n", t_snapshot);
-    for (int ch{9}; ch < 11; ch++) {
-      /*
-       * using compiler is very slow
-      std::string channel = std::to_string(ch);
-      std::string var_name_pm = channel + "_PATTERN_MATCH";
-      auto ch_pm = econ.readParameter("CHALIGNER", var_name_pm);
-      bool pattern_match = (ch_pm == 1);
-
-      std::string var_name_snapshot1 = channel + "_SNAPSHOT_0";
-      std::string var_name_snapshot2 = channel + "_SNAPSHOT_1";
-      std::string var_name_snapshot3 = channel + "_SNAPSHOT_2";
-      auto ch_snapshot_1 = econ.readParameter("CHALIGNER", var_name_snapshot1);
-      auto ch_snapshot_2 = econ.readParameter("CHALIGNER", var_name_snapshot2);
-      auto ch_snapshot_3 = econ.readParameter("CHALIGNER", var_name_snapshot3);
-      printf(" %2d: %s %08x %08x %08x\n",
-        ch, (pattern_match ? "*": " "),
-        ch_snapshot_3, ch_snapshot_2, ch_snapshot_1);
-      */
-
-      /* pattern_match is unset after auto-alignment is done (i think)
-      uint8_t chaligner_flags = econ.getValues(CHALIGNER_BASE[ch]+CHALIGNER_PATTERN_MATCH, 1)[0];
-      bool pattern_match = ((chaligner_flags >> 5) & 0x1) == 1;
-       */
+    fprintf(output, "%d:\n", t_snapshot);
+    for (int ch{0}; ch < 12; ch++) {
       std::vector<uint8_t> snapshot;
       // have to read in 8byte chunks
       snapshot.reserve(8*8*3);
@@ -144,15 +124,18 @@ void scan_l1a_offset(Target* tgt) {
         }
       }
 
-      printf(" %2d: ", ch);
+      fprintf(output, " %2d: ", ch);
       for (std::size_t i_byte{0}; i_byte < snapshot.size(); i_byte++) {
-        if (i_byte % 4 == 0) printf(" ");
+        if (i_byte % 4 == 0) fprintf(output, " ");
         // snapshot is little-endian
-        printf("%02x", static_cast<int>(snapshot[snapshot.size()-i_byte-1]));
+        fprintf(output, "%02x", static_cast<int>(snapshot[snapshot.size()-i_byte-1]));
       }
-      printf("\n");
+      fprintf(output, "\n");
     }
   }
+
+  tgt->fc().fc_setup_orbit_blinker(false, bx);
+  fclose(output);
 }
 
 namespace {

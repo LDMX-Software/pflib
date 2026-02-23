@@ -173,10 +173,17 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
   }
 
-  virtual void fc_orbit_blinker(bool enable) override {
+  virtual void fc_setup_orbit_blinker(bool enable, int bx) override {
     Periodic orbit_blinker(periodic(ORBIT_BLINKER));
+    orbit_blinker.bx = bx;
     orbit_blinker.enable = enable;
     orbit_blinker.pack();
+  }
+
+  virtual void fc_get_orbit_blinker(bool &enable, int &bx) override {
+    Periodic orbit_blinker(periodic(ORBIT_BLINKER));
+    bx = orbit_blinker.bx;
+    enable = orbit_blinker.enable;
   }
 
   virtual int fc_get_setup_calib() override {
