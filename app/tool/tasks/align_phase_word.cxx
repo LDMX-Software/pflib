@@ -52,10 +52,7 @@ void print_roc_status(pflib::ROC& roc) {
   }
 };
 
-void align_phase(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
-                 std::vector<int> channels) {
-  print_roc_status(roc);
-
+void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
   // Set ECON registers
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
   // TrackMode 1: ECON will automatically find phase
@@ -84,11 +81,10 @@ void align_phase(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
   }
 }
 
-void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
+void align_word(Target* tgt, pflib::ECON& econ,
                 std::vector<int> channels, bool on_zcu) {
   // print ROC status
   if (debug_checks) {
-    print_roc_status(roc);
     std::cout << "ROC_IDLE_FRAME: 0x" << std::hex << ROC_IDLE_FRAME << std::endl;
     std::cout << "ECON_ROC_ALIGN_PATTERN: 0x" << std::hex << ECON_ROC_ALIGN_PATTERN << std::endl;
   }
@@ -237,11 +233,14 @@ void align_word(Target* tgt, pflib::ROC& roc, pflib::ECON& econ,
 
         // shift and mask the snapshot to confirm special header
         boost::multiprecision::uint256_t shifted =
-            (snapshot >> (ch_select - 32)) & 0xffffffffffffffffULL;
+            // full 64bits
+            //(snapshot >> (ch_select - 32)) & 0xffffffffffffffffULL;
+            // lower 32bits
+            (snapshot >> (ch_select - 32)) & 0xffffffffULL;
         std::cout << "Shifted and masked: 0x"
                   << std::hex << shifted << std::dec
                   << " (match: " << std::boolalpha
-                  << (shifted == ECON_ROC_ALIGN_PATTERN) << ")"
+                  << (shifted == (ECON_ROC_ALIGN_PATTERN >> 32)) << ")"
                   << std::endl;
 
         header_found = true;
@@ -296,13 +295,8 @@ void align_phase_word(Target* tgt) {
 
   debug_checks = false; //pftool::readline_bool("Enable debug checks?", true);
 
-  int iroc = 0; //pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
   int iecon = 0;
       //pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
-  auto roc = tgt->roc(iroc);
-  // Ensure ROC is in Run mode
-  roc.setRunMode(true);
 
   auto econ = tgt->econ(iecon);
   int edgesel = 0;
@@ -314,13 +308,16 @@ void align_phase_word(Target* tgt) {
   // Ensure ECON is in Run mode
   econ.setRunMode(true, edgesel, invertfcmd);
 
-  // Get channels dynamically from ROC to eRx object channel mapping
-  auto& mapping = tgt->getRocErxMapping();
 
   // Dynamic channels. Only 2 per link.
-  std::vector<int> channels;
+  std::vector<int> channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+
+/*
+  // Get channels dynamically from ROC to eRx object channel mapping
+  auto& mapping = tgt->getRocErxMapping();
   channels.push_back(mapping[iroc].first);
   channels.push_back(mapping[iroc].second);
+  */
 
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
@@ -342,30 +339,31 @@ void align_phase_word(Target* tgt) {
   }
 
   // Set IDLEs in ROC with enough bit transitions
-
-  auto roc_setup_builder =
-      roc.testParameters()
-          .add("DIGITALHALF_0", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_1", "IDLEFRAME", ROC_IDLE_FRAME)
-          .add("DIGITALHALF_0", "BX_OFFSET", 1)
-          .add("DIGITALHALF_1", "BX_OFFSET", 1);
-  if (on_zcu) {
-    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 3543)
-        .add("DIGITALHALF_1", "BX_TRIGGER", 3543);
-  } else {
-    roc_setup_builder.add("DIGITALHALF_0", "BX_TRIGGER", 64 * 40 - 20)
-        .add("DIGITALHALF_1", "BX_TRIGGER", 64 * 40 - 20);
+  int roc_bx_trigger = on_zcu ? 3543 : (64*40 - 20);
+  std::map<std::string, std::map<std::string, uint64_t>> fancy_roc_idles;
+  fancy_roc_idles["DIGITALHALF_0"]["IDLEFRAME"] = ROC_IDLE_FRAME;
+  fancy_roc_idles["DIGITALHALF_1"]["IDLEFRAME"] = ROC_IDLE_FRAME;
+  fancy_roc_idles["DIGITALHALF_0"]["BX_OFFSET"] = 1;
+  fancy_roc_idles["DIGITALHALF_1"]["BX_OFFSET"] = 1;
+  fancy_roc_idles["DIGITALHALF_0"]["BX_TRIGGER"] = roc_bx_trigger;
+  fancy_roc_idles["DIGITALHALF_1"]["BX_TRIGGER"] = roc_bx_trigger;
+  std::vector<std::map<int, std::map<int, uint8_t>>> resets(6);
+  for (int i_roc{0}; i_roc < 6; i_roc++) {
+    auto& roc{tgt->roc(i_roc)};
+    print_roc_status(roc);
+    resets[i_roc] = roc.applyParameters(fancy_roc_idles);
   }
 
-  auto roc_test_params = roc_setup_builder.apply();
-
   // ----- PHASE ALIGNMENT ----- //
-  align_phase(tgt, roc, econ, channels);
+  align_phase(tgt, econ, channels);
 
   // ----- WORD ALIGNMENT ----- //
-  align_word(tgt, roc, econ, channels, on_zcu);
+  align_word(tgt, econ, channels, on_zcu);
 
   // ensure 0 remaining 0's filling cout
   reset_stream();
+  for (int i_roc{0}; i_roc < 6; i_roc++) {
+    tgt->roc(i_roc).setRegisters(resets[i_roc]);
+  }
 
 }  // End
