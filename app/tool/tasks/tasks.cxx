@@ -24,6 +24,8 @@
 #include "trim_toa_scan.h"
 #include "vt50_scan.h"
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 static const int ALIGNER_BASE = 0x0380;
 
 // 12 bits, default 0x2
@@ -69,8 +71,8 @@ void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
   auto& roc{tgt->roc(0)};
 
-  auto output_filepath{pftool::readline_path("full-orbit-scan-snapshots", ".txt")};
-  FILE* output{fopen(output_filepath.c_str(), "w")};
+  auto output_filepath{pftool::readline_path("full-orbit-scan-snapshots", ".csv")};
+  std::ofstream output{output_filepath};
 
   /**
    * we want to do manually-triggered I2C snapshots
@@ -79,7 +81,6 @@ void scan_l1a_offset(Target* tgt) {
    * to the ROC.
    */
   auto manual_snaps_builder = econ.testParameters()
-    .add("ROCDAQCTRL", "GLOBAL_ACTIVE_ERXS", 0xFFF)
     .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 1)
     .add("ALIGNER", "GLOBAL_SNAPSHOT_ARM", 0)
     .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1);
@@ -90,14 +91,31 @@ void scan_l1a_offset(Target* tgt) {
       .add("ERX", prefix+"_ENABLE", 1);
   }
   auto manual_snaps = manual_snaps_builder.apply();
+  auto original_snapshot_t =
+          econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
 
   // start sending an L1A on *every* orbit so that we should have seen
   // one no matter which orbit we end up taking the snapshots in
-  int bx = 10;
-  tgt->fc().fc_setup_orbit_blinker(true, bx);
+  bool enable_orbit_blinker{false};
+  int bx{0};
+  tgt->fc().fc_get_orbit_blinker(enable_orbit_blinker, bx);
+  enable_orbit_blinker = pftool::readline_bool("Should the orbit blinker be turned on?", enable_orbit_blinker);
+  if (enable_orbit_blinker) {
+    int bx = pftool::readline_int("What BX should it blink on?", bx);
+    tgt->fc().fc_setup_orbit_blinker(true, bx);
+  }
+
+  std::map<int,int> select;
+  for (int ch{0}; ch < 12; ch++) {
+    select[ch] = econ.getValues(CHALIGNER_RO[ch]+0x1, 1)[0];
+  }
+
+  bool show_raw_snapshot = pftool::readline_bool("Show raw snapshot (Y) or shift by align select (N)?", false);
+
+  output << "t_snapshot,00,01,02,03,04,05,06,07,08,09,10,11\n";
 
   std::vector<uint8_t> aligner_flags(1);
-  for (int t_snapshot{0}; t_snapshot < 3564; t_snapshot++) {
+  for (int t_snapshot{0}; t_snapshot < 10 /*3564*/; t_snapshot++) {
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
     aligner_flags = econ.getValues(ALIGNER_BASE, 1);
     // need to make sure that SNAPSHOT_ARM goes from 0 to 1
@@ -112,30 +130,31 @@ void scan_l1a_offset(Target* tgt) {
     // pause to make sure new snapshot is taken?
     usleep(1000);
 
-    fprintf(output, "%d:\n", t_snapshot);
+    output << t_snapshot;
     for (int ch{0}; ch < 12; ch++) {
-      std::vector<uint8_t> snapshot;
+
+      boost::multiprecision::uint256_t snapshot{0};
       // have to read in 8byte chunks
-      snapshot.reserve(8*8*3);
       for (int i_snp{0}; i_snp < 3; i_snp++) {
         auto word = econ.getValues(CHALIGNER_RO[ch]+CHALIGNER_SNAPSHOT+8*i_snp, 8);
-        for (uint8_t byte : word) {
-          snapshot.push_back(byte);
+        for (int i_byte{0}; i_byte < 8; i_byte++) {
+          snapshot |= (boost::multiprecision::uint256_t(word[i_byte]) << (8*(8*i_snp + i_byte)));
         }
       }
 
-      fprintf(output, " %2d: ", ch);
-      for (std::size_t i_byte{0}; i_byte < snapshot.size(); i_byte++) {
-        if (i_byte % 4 == 0) fprintf(output, " ");
-        // snapshot is little-endian
-        fprintf(output, "%02x", static_cast<int>(snapshot[snapshot.size()-i_byte-1]));
+      if (show_raw_snapshot) {
+        output << ',' << std::hex << snapshot << std::dec;
+      } else {
+        output << ',' << std::hex << ((snapshot >> (select[ch] - 32)) & 0xffffffff) << std::dec;
       }
-      fprintf(output, "\n");
     }
+    output << '\n';
   }
 
-  tgt->fc().fc_setup_orbit_blinker(false, bx);
-  fclose(output);
+  if (enable_orbit_blinker) {
+    tgt->fc().fc_setup_orbit_blinker(false, bx);
+  }
+  econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, original_snapshot_t, 2);
 }
 
 namespace {
