@@ -18,7 +18,7 @@ ENABLE_LOGGING();
 
 // helper function to facilitate EventPacket dependent behaviour
 template <class EventPacket>
-static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+static void inv_vref_scan_writer_2(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::string& output_filepath,
                                  std::array<int, 2>& channels, int& inv_vref) {
   int link = 0;
@@ -77,7 +77,7 @@ static void inv_vref_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   }
 }
 
-void inv_vref_scan(Target* tgt) {
+void inv_vref_scan_2(Target* tgt) {
   int nevents = 1;
   int inv_vref = 0;
 
@@ -89,11 +89,11 @@ void inv_vref_scan(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    inv_vref_scan_writer<pflib::packing::SingleROCEventPacket>(
+    inv_vref_scan_writer_2<pflib::packing::SingleROCEventPacket>(
         tgt, roc, nevents, output_filepath, channels, inv_vref);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    inv_vref_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+    inv_vref_scan_writer_2<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, nevents, output_filepath, channels, inv_vref);
   }
 }
