@@ -111,104 +111,104 @@ void inv_vref_scan(Target* tgt) {
   }
 }
 
-// // 3. Algorithm Helper
-// static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_alignment(
-//     const std::string& csv_path, int target_adc) {
+// 3. Algorithm Helper
+static std::map<std::string, std::map<std::string, uint64_t>> calculate_vref_alignment(
+    const std::string& csv_path, int target_adc) {
     
-//     std::map<std::string, std::map<std::string, uint64_t>> results;
-//     std::ifstream file(csv_path);
-//     if (!file.is_open()) return results;
+    std::map<std::string, std::map<std::string, uint64_t>> results;
+    std::ifstream file(csv_path);
+    if (!file.is_open()) return results;
 
-//     std::string line, header;
-//     std::getline(file, line); // Skip JSON
-//     std::getline(file, header); // Read Headers
+    std::string line, header;
+    std::getline(file, line); // Skip JSON
+    std::getline(file, header); // Read Headers
 
-//     std::stringstream ss(header);
-//     std::vector<std::string> col_names;
-//     std::string col;
-//     while (std::getline(ss, col, ',')) col_names.push_back(col);
+    std::stringstream ss(header);
+    std::vector<std::string> col_names;
+    std::string col;
+    while (std::getline(ss, col, ',')) col_names.push_back(col);
 
-//     std::map<std::string, std::vector<double>> data;
-//     std::vector<double> vref_axis;
+    std::map<std::string, std::vector<double>> data;
+    std::vector<double> vref_axis;
 
-//     while (std::getline(file, line)) {
-//         std::stringstream ss_row(line);
-//         std::string val;
-//         for (size_t i = 0; i < col_names.size(); ++i) {
-//             if (!std::getline(ss_row, val, ',')) break;
-//             if (i == 0) vref_axis.push_back(std::stod(val));
-//             else data[col_names[i]].push_back(std::stod(val));
-//         }
-//     }
+    while (std::getline(file, line)) {
+        std::stringstream ss_row(line);
+        std::string val;
+        for (size_t i = 0; i < col_names.size(); ++i) {
+            if (!std::getline(ss_row, val, ',')) break;
+            if (i == 0) vref_axis.push_back(std::stod(val));
+            else data[col_names[i]].push_back(std::stod(val));
+        }
+    }
 
-//     for (auto const& [ch_str, adc_values] : data) {
-//         if (ch_str == "INV_VREF") continue;
-//         auto [min_it, max_it] = std::minmax_element(adc_values.begin(), adc_values.end());
-//         double min_v = *min_it, max_v = *max_it;
-//         double lower = 0.1 * (max_v - min_v) + min_v;
-//         double upper = 0.8 * (max_v - min_v) + min_v;
+    for (auto const& [ch_str, adc_values] : data) {
+        if (ch_str == "INV_VREF") continue;
+        auto [min_it, max_it] = std::minmax_element(adc_values.begin(), adc_values.end());
+        double min_v = *min_it, max_v = *max_it;
+        double lower = 0.1 * (max_v - min_v) + min_v;
+        double upper = 0.8 * (max_v - min_v) + min_v;
 
-//         std::vector<double> x_reg, y_reg;
-//         for (size_t i = 0; i < adc_values.size(); ++i) {
-//             if (adc_values[i] >= lower && adc_values[i] <= upper) {
-//                 x_reg.push_back(vref_axis[i]);
-//                 y_reg.push_back(adc_values[i]);
-//             }
-//         }
-//         if (x_reg.size() < 2) continue;
+        std::vector<double> x_reg, y_reg;
+        for (size_t i = 0; i < adc_values.size(); ++i) {
+            if (adc_values[i] >= lower && adc_values[i] <= upper) {
+                x_reg.push_back(vref_axis[i]);
+                y_reg.push_back(adc_values[i]);
+            }
+        }
+        if (x_reg.size() < 2) continue;
 
-//         double n = x_reg.size();
-//         double sX = std::accumulate(x_reg.begin(), x_reg.end(), 0.0);
-//         double sY = std::accumulate(y_reg.begin(), y_reg.end(), 0.0);
-//         double sXX = std::inner_product(x_reg.begin(), x_reg.end(), x_reg.begin(), 0.0);
-//         double sXY = std::inner_product(x_reg.begin(), x_reg.end(), y_reg.begin(), 0.0);
+        double n = x_reg.size();
+        double sX = std::accumulate(x_reg.begin(), x_reg.end(), 0.0);
+        double sY = std::accumulate(y_reg.begin(), y_reg.end(), 0.0);
+        double sXX = std::inner_product(x_reg.begin(), x_reg.end(), x_reg.begin(), 0.0);
+        double sXY = std::inner_product(x_reg.begin(), x_reg.end(), y_reg.begin(), 0.0);
 
-//         double slope = (n * sXY - sX * sY) / (n * sXX - sX * sX);
-//         double intercept = (sY - slope * sX) / n;
-//         uint64_t opt_vref = std::round((target_adc - intercept) / slope);
+        double slope = (n * sXY - sX * sY) / (n * sXX - sX * sX);
+        double intercept = (sY - slope * sX) / n;
+        uint64_t opt_vref = std::round((target_adc - intercept) / slope);
         
-//         int ch = std::stoi(ch_str);
-//         std::string page = (ch <= 35) ? "REFERENCEVOLTAGE_0" : "REFERENCEVOLTAGE_1";
-//         results[page]["INV_VREF"] = opt_vref;
-//     }
-//     return results;
-// }
+        int ch = std::stoi(ch_str);
+        std::string page = (ch <= 35) ? "REFERENCEVOLTAGE_0" : "REFERENCEVOLTAGE_1";
+        results[page]["INV_VREF"] = opt_vref;
+    }
+    return results;
+}
 
 // 4. Main Task Function
 void level_pedestals_inv_vref(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
 
   // Level pedestals
-  // auto ped_settings = pflib::algorithm::level_pedestals(tgt, roc);
-  // roc.applyParameters(ped_settings);
+  auto ped_settings = pflib::algorithm::level_pedestals(tgt, roc);
+  roc.applyParameters(ped_settings);
 
   // Run scan (FIXED CALL SYNTAX)
   inv_vref_scan(tgt);
 
   // Calculate alignment
-  // auto vref_settings = calculate_vref_alignment("inv_vref_scan_level.csv", 100);
-  // roc.applyParameters(vref_settings);
+  auto vref_settings = calculate_vref_alignment("inv_vref_scan_level.csv", 100);
+  roc.applyParameters(vref_settings);
 
-  // // Merge for YAML
-  // auto combined = ped_settings;
-  // for (const auto& page : vref_settings) {
-  //   for (const auto& entry : page.second) {
-  //       combined[page.first][entry.first] = entry.second;
-  //   }
-  // }
+  // Merge for YAML
+  auto combined = ped_settings;
+  for (const auto& page : vref_settings) {
+    for (const auto& entry : page.second) {
+        combined[page.first][entry.first] = entry.second;
+    }
+  }
 
-  // YAML::Emitter out;
-  // settings_to_yaml(out, combined);
+  YAML::Emitter out;
+  settings_to_yaml(out, combined);
 
-  // std::string fname = pftool::readline_path(
-  //     "level-pedestals-inv-vref-roc-" + std::to_string(pftool::state.iroc) + "-settings",
-  //     ".yaml");
+  std::string fname = pftool::readline_path(
+      "level-pedestals-inv-vref-roc-" + std::to_string(pftool::state.iroc) + "-settings",
+      ".yaml");
 
-  // std::ofstream f{fname};
-  // if (!f.is_open()) {
-  //   PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
-  // }
-  // f << out.c_str() << std::endl;
+  std::ofstream f{fname};
+  if (!f.is_open()) {
+    PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+  }
+  f << out.c_str() << std::endl;
 
-  // std::cout << "Applied alignment and wrote settings to " << fname << "\n";
+  std::cout << "Applied alignment and wrote settings to " << fname << "\n";
 }
