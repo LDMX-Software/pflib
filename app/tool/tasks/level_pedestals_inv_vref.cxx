@@ -13,6 +13,7 @@
 #include <numeric>
 #include <cmath>
 #include <algorithm>
+#include "../pftool.h"
 
 ENABLE_LOGGING();
 
@@ -98,6 +99,6 @@ void inv_vref_scan_2(Target* tgt) {
   }
 }
 
-void level_pedestals_inv_vref(pflib::Target* tgt){
+void level_pedestals_inv_vref(Target* tgt){
   void inv_vref_scan(Target* tgt);
 }
