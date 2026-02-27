@@ -292,7 +292,8 @@ void align_word(Target* tgt, pflib::ECON& econ,
           auto shifted((snapshot >> (select - 32)) & 0xffffffffull);
           std::cout << " select = " << int(select)
                     << " shifted: 0x" << std::hex << shifted << std::dec
-                    << " (match: " << std::boolalpha << (shifted == (ECON_ROC_ALIGN_PATTERN >> 32)) << ")"
+                    << " (match: " << std::boolalpha
+                    << (shifted == (ECON_ROC_ALIGN_PATTERN >> 32)) << ")"
                     << std::endl;
         }
       }
@@ -385,6 +386,7 @@ void align_phase_word(Target* tgt) {
   align_phase(tgt, econ, channels);
 
   // do something funkier for word alignment
+  // to ensure that word alignment is functioning properly
   fancy_roc_idles.clear();
   fancy_roc_idles["DIGITALHALF_0"]["IDLEFRAME"] = ROC_WORD_IDLE_FRAME;
   fancy_roc_idles["DIGITALHALF_1"]["IDLEFRAME"] = ROC_WORD_IDLE_FRAME;

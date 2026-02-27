@@ -25,6 +25,8 @@
 #include "vt50_scan.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
+#include "pflib/packing/Hex.h"
+using pflib::packing::hex;
 
 static const int ALIGNER_BASE = 0x0380;
 
@@ -67,12 +69,27 @@ static const int CHALIGNER_PATTERN_MATCH = 0x0;
 // snapshot location, 192b
 static const int CHALIGNER_SNAPSHOT = 0x2;
 
+void watch_orbit_blinker(Target* tgt) {
+  int bx = pftool::readline_int("What BX should it blink on?", 10);
+  std::cout << tgt->daq().getEventOccupancy() << std::endl;
+  tgt->fc().fc_setup_orbit_blinker(true, bx);
+  usleep(10000);
+  tgt->fc().fc_setup_orbit_blinker(false, bx);
+  std::cout << tgt->daq().getEventOccupancy() << std::endl;
+}
+
 void scan_l1a_offset(Target* tgt) {
   auto& econ{tgt->econ(0)};
-  auto& roc{tgt->roc(0)};
 
-  auto output_filepath{pftool::readline_path("full-orbit-scan-snapshots", ".csv")};
-  std::ofstream output{output_filepath};
+  bool to_screen{pftool::readline_bool("Print snapshots to screen?", true)};
+  std::ofstream file_output;
+  if (not to_screen) {
+    auto output_filepath{pftool::readline_path("full-orbit-scan-snapshots", ".csv")};
+    file_output.open(output_filepath);
+  }
+
+  int start_snapshot = pftool::readline_int("First snapshot time?", 0);
+  int end_snapshot = pftool::readline_int("Last snapshot time?", 3564);
 
   /**
    * we want to do manually-triggered I2C snapshots
@@ -80,17 +97,16 @@ void scan_l1a_offset(Target* tgt) {
    * within the orbit, but will not only happen after a link reset is sent
    * to the ROC.
    */
-  auto manual_snaps_builder = econ.testParameters()
-    .add("ALIGNER", "GLOBAL_I2C_SNAPSHOT_EN", 1)
-    .add("ALIGNER", "GLOBAL_SNAPSHOT_ARM", 0)
-    .add("ALIGNER", "GLOBAL_SNAPSHOT_EN", 1);
+  std::map<std::string, std::map<std::string, uint64_t>> manual_snaps;
+  manual_snaps["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 1;
+  manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
+  manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
   for (int i_econ_ch{0}; i_econ_ch < 12; i_econ_ch++) {
     auto prefix{std::to_string(i_econ_ch)};
-    manual_snaps_builder
-      .add("CHALIGNER", prefix+"_PER_CH_ALIGN_EN", 0)
-      .add("ERX", prefix+"_ENABLE", 1);
+    manual_snaps["CHALIGNER"][prefix+"_PER_CH_ALIGN_EN"] = 0;
+    manual_snaps["ERX"][prefix+"_ENABLE"] = 1;
   }
-  auto manual_snaps = manual_snaps_builder.apply();
+  econ.applyParameters(manual_snaps);
   auto original_snapshot_t =
           econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
 
@@ -99,23 +115,38 @@ void scan_l1a_offset(Target* tgt) {
   bool enable_orbit_blinker{false};
   int bx{0};
   tgt->fc().fc_get_orbit_blinker(enable_orbit_blinker, bx);
-  enable_orbit_blinker = pftool::readline_bool("Should the orbit blinker be turned on?", enable_orbit_blinker);
+  enable_orbit_blinker = pftool::readline_bool(
+    "Should the orbit blinker be turned on?", enable_orbit_blinker);
   if (enable_orbit_blinker) {
     int bx = pftool::readline_int("What BX should it blink on?", bx);
     tgt->fc().fc_setup_orbit_blinker(true, bx);
   }
 
   std::map<int,int> select;
+  std::cout << "select shifts: { ";
   for (int ch{0}; ch < 12; ch++) {
     select[ch] = econ.getValues(CHALIGNER_RO[ch]+0x1, 1)[0];
+    if (ch > 0) {
+      std::cout << ", ";
+    }
+    std::cout << ch << " : " << select[ch];
+  }
+  std::cout << " }\n";
+
+  bool show_raw_snapshot = pftool::readline_bool(
+    "Show raw snapshot (Y) or shift by align select (N)?", false);
+  bool skip_normal_idles = pftool::readline_bool(
+    "Skip printing normal idles?", true);
+
+  static const char* header{"t_snapshot,daq_event_occupancy,00,01,02,03,04,05,06,07,08,09,10,11\n"};
+  if (to_screen) {
+    std::cout << header;
+  } else {
+    file_output << header;
   }
 
-  bool show_raw_snapshot = pftool::readline_bool("Show raw snapshot (Y) or shift by align select (N)?", false);
-
-  output << "t_snapshot,00,01,02,03,04,05,06,07,08,09,10,11\n";
-
   std::vector<uint8_t> aligner_flags(1);
-  for (int t_snapshot{0}; t_snapshot < 10 /*3564*/; t_snapshot++) {
+  for (int t_snapshot{start_snapshot}; t_snapshot < end_snapshot; t_snapshot++) {
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, t_snapshot, 2);
     aligner_flags = econ.getValues(ALIGNER_BASE, 1);
     // need to make sure that SNAPSHOT_ARM goes from 0 to 1
@@ -128,9 +159,11 @@ void scan_l1a_offset(Target* tgt) {
     econ.setValues(ALIGNER_BASE, aligner_flags);
 
     // pause to make sure new snapshot is taken?
-    usleep(1000);
+    usleep(100);
 
-    output << t_snapshot;
+    std::stringstream row;
+    row << std::setw(4) << t_snapshot << ',' << tgt->daq().getEventOccupancy();
+    bool should_print{not skip_normal_idles};
     for (int ch{0}; ch < 12; ch++) {
 
       boost::multiprecision::uint256_t snapshot{0};
@@ -142,13 +175,25 @@ void scan_l1a_offset(Target* tgt) {
         }
       }
 
+      uint32_t val{((snapshot >> (select[ch] - 32)) & 0xffffffff)};
+      if (val != 0xaccccccc) {
+        should_print = true;
+      }
+
       if (show_raw_snapshot) {
-        output << ',' << std::hex << snapshot << std::dec;
+        row << ',' << std::hex << snapshot << std::dec;
       } else {
-        output << ',' << std::hex << ((snapshot >> (select[ch] - 32)) & 0xffffffff) << std::dec;
+        row << ',' << hex(val);
       }
     }
-    output << '\n';
+    row << '\n';
+    if (should_print) {
+      if (to_screen) {
+        std::cout << row.str();
+      } else {
+        file_output << row.str();
+      }
+    }
   }
 
   if (enable_orbit_blinker) {
@@ -200,5 +245,7 @@ auto menu_tasks =
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
-               align_econ_lpgbt);
+               align_econ_lpgbt)
+        ->line("WATCH_ORBIT_BLINKER", "enable orbit blinker and watch for events",
+               watch_orbit_blinker);
 }

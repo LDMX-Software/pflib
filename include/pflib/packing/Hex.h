@@ -19,7 +19,7 @@ struct hex {
   friend inline std::ostream& operator<<(
       std::ostream& os, const pflib::packing::hex<WordType, HexWidth>& h) {
     os << "0x" << std::setfill('0') << std::setw(HexWidth) << std::hex
-       << h.word_ << std::dec;
+       << h.word_ << std::dec << std::setfill(' ');
     return os;
   }
 };
