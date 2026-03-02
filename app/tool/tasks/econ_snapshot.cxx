@@ -13,7 +13,7 @@ void econ_snapshot(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  auto econ = tgt->econ(iecon);
+  auto &econ = tgt->econ(iecon);
 
   std::string ch_str = pftool::readline(
       "Enter channels (comma-separated), default is all channels: ",

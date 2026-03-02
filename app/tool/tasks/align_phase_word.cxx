@@ -325,7 +325,7 @@ void align_phase_word(Target* tgt) {
   int iecon = 0;
       //pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  auto econ = tgt->econ(iecon);
+  auto& econ = tgt->econ(iecon);
   int edgesel = 0;
   int invertfcmd = 0;
   if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||

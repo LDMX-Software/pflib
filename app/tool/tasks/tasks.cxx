@@ -76,9 +76,13 @@ void watch_orbit_blinker(Target* tgt) {
   static const int wait_time_us = 10000;
   int bx = pftool::readline_int("What BX should it blink on?", 10);
   bool poke = pftool::readline_bool("Read an ECON parameter while blinker is on?", false);
+  std::map<std::string, uint32_t> dbg = tgt->daq().get_debug(0);
+  uint32_t starts{dbg.at("COUNT_STARTS")}, stops{dbg.at("COUNT_STOPS")};
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
-  printf("%06d :  Pre-Blinker DAQ Occupancy: %3d\n", tv0.tv_usec, tgt->daq().getEventOccupancy());
+  printf("            : t / us : Occu Start Stop\n");
+  printf(" Pre-Blinker: %06d : %4d %5d %4d\n",
+         tv0.tv_usec, tgt->daq().getEventOccupancy(), starts, stops);
   tgt->fc().fc_setup_orbit_blinker(true, bx);
   if (poke) {
     bool aligner_done = (econ.getValues(0x398, 1)[0] & 0x1);
@@ -91,10 +95,55 @@ void watch_orbit_blinker(Target* tgt) {
   }
   tgt->fc().fc_setup_orbit_blinker(false, bx);
   gettimeofday(&tvi, 0);
-  printf("%06d : Post-Blinker DAQ Occupancy: %3d\n", tvi.tv_usec, tgt->daq().getEventOccupancy());
+  dbg = tgt->daq().get_debug(0);
+  starts = dbg.at("COUNT_STARTS");
+  stops = dbg.at("COUNT_STOPS");
+  printf("Post-Blinker: %06d : %4d %5d %4d\n",
+         tvi.tv_usec, tgt->daq().getEventOccupancy(), starts, stops);
 }
 
 void scan_l1a_offset(Target* tgt) {
+  auto& econ{tgt->econ(0)};
+  /**
+   * Scan the ECON's L1A timing parameters
+   *
+   * l1a_to_hgcroc_out: 5bits starting at 0
+   * econ_buffer_delay: 5bits starting at 5
+   * l1a_offset       : 4bits starting at 10
+   */
+  static const int ROCDAQCTRL_RW = 0x410;
+  static const int ROCDAQCTRL_TIMING = ROCDAQCTRL_RW + 0x3;
+
+  auto timing_bytes = econ.getValues(ROCDAQCTRL_TIMING, 2);
+  auto orig_timing_bytes = timing_bytes;
+  printf("%02x %02x\n", timing_bytes.at(1), timing_bytes.at(0));
+  printf("l1a_to_hgcroc_out: %d\n", (timing_bytes.at(0) & 0x1f));
+  printf("econ_buffer_delay: %d\n", (timing_bytes.at(0) >> 5) | (timing_bytes.at(1) & 0x3));
+  printf("l1a_offset       : %d\n", timing_bytes.at(1) >> 2);
+
+  for (int l1a_diff{0}; l1a_diff < 32; l1a_diff++) {
+    timing_bytes[0] |= 0x1f;
+    timing_bytes[0] ^= 0x1f;
+    timing_bytes[0] |= (l1a_diff & 0x1f);
+    econ.setValues(ROCDAQCTRL_TIMING, timing_bytes);
+
+    tgt->fc().sendL1A();
+    usleep(100);
+
+    printf("%2d 0x%02x%02x %d\n",
+      l1a_diff, timing_bytes[1], timing_bytes[0],
+      tgt->daq().getEventOccupancy());
+  }
+
+  econ.setValues(ROCDAQCTRL_TIMING, orig_timing_bytes);
+}
+
+void scan_orbit(Target* tgt) {
+  /**
+   * Take a snapshot on each BX of an orbit while (optionally)
+   * sending an L1A once per orbit to see if the words are
+   * aligned
+   */
   auto& econ{tgt->econ(0)};
 
   bool to_screen{pftool::readline_bool("Print snapshots to screen?", true)};
@@ -118,6 +167,7 @@ void scan_l1a_offset(Target* tgt) {
    * These snapshots will still happen on the ORBSYN_CNT_SNAPTSHOT value
    * within the orbit, but will not only happen after a link reset is sent
    * to the ROC.
+   */
   std::map<std::string, std::map<std::string, uint64_t>> manual_snaps;
   manual_snaps["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 1;
   manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
@@ -128,7 +178,6 @@ void scan_l1a_offset(Target* tgt) {
     manual_snaps["ERX"][prefix+"_ENABLE"] = 1;
   }
   econ.applyParameters(manual_snaps);
-   */
   auto original_snapshot_t =
           econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
   std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy() << std::endl;
@@ -229,6 +278,7 @@ auto menu_tasks =
     pftool::menu("TASKS",
                  "tasks for studying the chip and tuning its parameters")
         ->line("SCAN_L1A_OFFSET", "scan L1A offset in ECON to try to find data", scan_l1a_offset)
+        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data", scan_orbit)
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
                charge_timescan)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)

@@ -75,12 +75,12 @@ const std::vector<std::string>& pftool::State::roc_param_names(
 }
 
 const std::vector<std::string>& pftool::State::econ_page_names(
-    pflib::ECON econ) const {
+    pflib::ECON& econ) const {
   return econ_page_names_.at(econ.type());
 }
 
 const std::vector<std::string>& pftool::State::econ_param_names(
-    pflib::ECON econ, const std::string& page) const {
+    pflib::ECON& econ, const std::string& page) const {
   auto PAGE{pflib::upper_cp(page)};
   auto param_list_it = econ_param_names_.at(econ.type()).find(PAGE);
   if (param_list_it == econ_param_names_.at(econ.type()).end()) {

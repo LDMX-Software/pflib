@@ -9,7 +9,7 @@ using pflib::packing::hex;
 // Detect number of ECON links active
 // use of inline, so that only one copy of the function exists
 inline int determine_n_links(pflib::Target* tgt) {
-  auto econ = tgt->econ(pftool::state.iecon);
+  auto& econ = tgt->econ(pftool::state.iecon);
   int n_links = 0;
 
   for (int ch = 0; ch < 12; ch++) {

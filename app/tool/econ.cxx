@@ -20,7 +20,7 @@ void print_econs(Target* tgt) {
  */
 static void econ_render(Target* tgt) {
   try {
-    auto econ{tgt->econ(pftool::state.iecon)};
+    auto& econ{tgt->econ(pftool::state.iecon)};
     printf(" Active ECON: %d (%s)\n", pftool::state.iecon, econ.type().c_str());
   } catch (const std::exception&) {
     printf(" Active ECON: %d (Not Configured)\n", pftool::state.iecon);
@@ -51,7 +51,7 @@ static void econ_expert_render(Target* tgt) {
  * - WRITE : write to a specific register
  */
 static void econ_expert(const std::string& cmd, Target* tgt) {
-  auto econ = tgt->econ(pftool::state.iecon);
+  auto& econ = tgt->econ(pftool::state.iecon);
   if (cmd == "READ") {
     std::string addr_str =
         pftool::readline("Register address (hex): ", "0x0000");
@@ -76,7 +76,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
 }
 
 static void econ_status(const std::string& cmd, Target* tgt) {
-  auto econ{tgt->econ(pftool::state.iecon)};
+  auto& econ{tgt->econ(pftool::state.iecon)};
 
   // request that the counters are synchronously copied from internal to
   // readable registers avoiding compiler overhead for these parameters since
@@ -156,7 +156,7 @@ static void econ(const std::string& cmd, Target* pft) {
     pftool::state.iecon =
         pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   }
-  pflib::ECON econ = pft->econ(pftool::state.iecon);
+  pflib::ECON& econ = pft->econ(pftool::state.iecon);
   if (cmd == "PAGENAMES") {
     for (const std::string& pn : pftool::state.econ_page_names(econ)) {
       std::cout << pn << "\n";
@@ -238,7 +238,7 @@ static void econ(const std::string& cmd, Target* pft) {
     int iecon =
         pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-    auto econ = pft->econ(iecon);
+    auto& econ = pft->econ(iecon);
 
     std::string ch_str = pftool::readline(
         "Enter channels (comma-separated), default is all channels: ",
