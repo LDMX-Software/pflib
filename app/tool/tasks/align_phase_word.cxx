@@ -339,6 +339,10 @@ void align_phase_word(Target* tgt) {
    * Right now, we are assuming that all of the ROCs the target handles
    * are connected to the same ECON (DAQ or TRG) as selected by the user
    * earlier.
+   *
+   * If targets evolve to multiple ECONs that each have different sets
+   * of ROCs, this code will need to change to select only the ROCs
+   * corresponding to the ECON that is being configured.
    */
   auto roc_ids = tgt->roc_ids();
   // Get channels dynamically from ROC to eRx object channel mapping
@@ -370,14 +374,9 @@ void align_phase_word(Target* tgt) {
 
   // Set IDLEs in ROC with enough bit transitions
   // phase alignment wants the idle to be all A
-  int roc_bx_trigger = on_zcu ? 3543 : (64*40 - 20);
   std::map<std::string, std::map<std::string, uint64_t>> fancy_roc_idles;
   fancy_roc_idles["DIGITALHALF_0"]["IDLEFRAME"] = 0xaaaaaaa;
   fancy_roc_idles["DIGITALHALF_1"]["IDLEFRAME"] = 0xaaaaaaa;
-  fancy_roc_idles["DIGITALHALF_0"]["BX_OFFSET"] = 1;
-  fancy_roc_idles["DIGITALHALF_1"]["BX_OFFSET"] = 1;
-  //fancy_roc_idles["DIGITALHALF_0"]["BX_TRIGGER"] = roc_bx_trigger;
-  //fancy_roc_idles["DIGITALHALF_1"]["BX_TRIGGER"] = roc_bx_trigger;
   std::map<int, std::map<int, std::map<int, uint8_t>>> resets;
   for (int i_roc : roc_ids) {
     auto& roc{tgt->roc(i_roc)};
