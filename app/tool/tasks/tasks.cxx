@@ -69,13 +69,29 @@ static const int CHALIGNER_PATTERN_MATCH = 0x0;
 // snapshot location, 192b
 static const int CHALIGNER_SNAPSHOT = 0x2;
 
+#include <sys/time.h>
+
 void watch_orbit_blinker(Target* tgt) {
+  auto& econ{tgt->econ(0)};
+  static const int wait_time_us = 10000;
   int bx = pftool::readline_int("What BX should it blink on?", 10);
-  std::cout << tgt->daq().getEventOccupancy() << std::endl;
+  bool poke = pftool::readline_bool("Read an ECON parameter while blinker is on?", false);
+  timeval tv0, tvi;
+  gettimeofday(&tv0, 0);
+  printf("%06d :  Pre-Blinker DAQ Occupancy: %3d\n", tv0.tv_usec, tgt->daq().getEventOccupancy());
   tgt->fc().fc_setup_orbit_blinker(true, bx);
-  usleep(10000);
+  if (poke) {
+    bool aligner_done = (econ.getValues(0x398, 1)[0] & 0x1);
+    printf("Aligner Done: %d\n", aligner_done);
+  }
+  gettimeofday(&tvi, 0);
+  int usec_left = wait_time_us - int(tvi.tv_usec - tv0.tv_usec);
+  if (tvi.tv_sec == tv0.tv_sec and usec_left > 100) {
+    usleep(usec_left);
+  }
   tgt->fc().fc_setup_orbit_blinker(false, bx);
-  std::cout << tgt->daq().getEventOccupancy() << std::endl;
+  gettimeofday(&tvi, 0);
+  printf("%06d : Post-Blinker DAQ Occupancy: %3d\n", tvi.tv_usec, tgt->daq().getEventOccupancy());
 }
 
 void scan_l1a_offset(Target* tgt) {
@@ -88,15 +104,20 @@ void scan_l1a_offset(Target* tgt) {
     file_output.open(output_filepath);
   }
 
+  bool show_raw_snapshot = pftool::readline_bool(
+    "Show raw snapshot (Y) or shift by align select (N)?", false);
+  bool skip_normal_idles = pftool::readline_bool(
+    "Skip printing normal idles?", true);
+
   int start_snapshot = pftool::readline_int("First snapshot time?", 0);
   int end_snapshot = pftool::readline_int("Last snapshot time?", 3564);
+  std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy() << std::endl;
 
   /**
    * we want to do manually-triggered I2C snapshots
    * These snapshots will still happen on the ORBSYN_CNT_SNAPTSHOT value
    * within the orbit, but will not only happen after a link reset is sent
    * to the ROC.
-   */
   std::map<std::string, std::map<std::string, uint64_t>> manual_snaps;
   manual_snaps["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 1;
   manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
@@ -107,20 +128,10 @@ void scan_l1a_offset(Target* tgt) {
     manual_snaps["ERX"][prefix+"_ENABLE"] = 1;
   }
   econ.applyParameters(manual_snaps);
+   */
   auto original_snapshot_t =
           econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
-
-  // start sending an L1A on *every* orbit so that we should have seen
-  // one no matter which orbit we end up taking the snapshots in
-  bool enable_orbit_blinker{false};
-  int bx{0};
-  tgt->fc().fc_get_orbit_blinker(enable_orbit_blinker, bx);
-  enable_orbit_blinker = pftool::readline_bool(
-    "Should the orbit blinker be turned on?", enable_orbit_blinker);
-  if (enable_orbit_blinker) {
-    int bx = pftool::readline_int("What BX should it blink on?", bx);
-    tgt->fc().fc_setup_orbit_blinker(true, bx);
-  }
+  std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy() << std::endl;
 
   std::map<int,int> select;
   std::cout << "select shifts: { ";
@@ -133,10 +144,21 @@ void scan_l1a_offset(Target* tgt) {
   }
   std::cout << " }\n";
 
-  bool show_raw_snapshot = pftool::readline_bool(
-    "Show raw snapshot (Y) or shift by align select (N)?", false);
-  bool skip_normal_idles = pftool::readline_bool(
-    "Skip printing normal idles?", true);
+  // start sending an L1A on *every* orbit so that we should have seen
+  // one no matter which orbit we end up taking the snapshots in
+  bool enable_orbit_blinker{false};
+  int bx{0};
+  tgt->fc().fc_get_orbit_blinker(enable_orbit_blinker, bx);
+  enable_orbit_blinker = pftool::readline_bool(
+    "Should the orbit blinker be turned on?", enable_orbit_blinker);
+  if (enable_orbit_blinker) {
+    int bx = pftool::readline_int("What BX should it blink on?", bx);
+    tgt->fc().fc_setup_orbit_blinker(true, bx);
+  }
+  std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy() << std::endl;
+  usleep(100);
+  //std::cout << "ALIGNER.DONE = " << (econ.getValues(0x398, 1)[0] & 0x1) << std::endl;
+  std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy() << std::endl;
 
   static const char* header{"t_snapshot,daq_event_occupancy,00,01,02,03,04,05,06,07,08,09,10,11\n"};
   if (to_screen) {
