@@ -37,8 +37,6 @@ class EcalSMMTargetBW : public Target {
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
-    using namespace pflib::lpgbt::standard_config;
-
     // Setup DAQ lpGBT
     try {
       int daq_pusm = daq_lpgbt_->status();
@@ -50,7 +48,7 @@ class EcalSMMTargetBW : public Target {
         pflib_log(debug)
             << "DAQ lpGBT is not ready, attempting standard config";
         try {
-          setup_ecal(*daq_lpgbt_,
+          pflib::lpgbt::standard_config::setup_ecal(*daq_lpgbt_,
                      ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(warn) << "Failure to apply standard config [" << e.name()
@@ -75,7 +73,7 @@ class EcalSMMTargetBW : public Target {
         pflib_log(debug)
             << "TRG lpGBT is not ready, attempting standard config";
         try {
-          setup_ecal(*trig_lpgbt_,
+          pflib::lpgbt::standard_config::setup_ecal(*trig_lpgbt_,
                      ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
