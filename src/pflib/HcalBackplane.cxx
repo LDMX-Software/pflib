@@ -149,11 +149,11 @@ std::vector<int> HcalBackplane::econ_ids() const {
 ROC& HcalBackplane::roc(int which) {
   if (which < 0 or which >= rocs_.size()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
-                                          "ROC %d is not a valid ROC ID"));
+                                          "ROC %d is not a valid ROC ID", which));
   }
   if (not rocs_[which]) {
     PFEXCEPTION_RAISE("DisabledROC",
-                      pflib::utility::string_format("ROC %d is disabled"));
+                      pflib::utility::string_format("ROC %d is disabled", which));
   }
   return rocs_[which]->roc;
 }
@@ -161,11 +161,11 @@ ROC& HcalBackplane::roc(int which) {
 ECON& HcalBackplane::econ(int which) {
   if (which < 0 or which >= econs_.size()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
-                                          "ROC %d is not a valid ROC ID"));
+                                          "ROC %d is not a valid ROC ID", which));
   }
   if (not econs_[which]) {
     PFEXCEPTION_RAISE("DisabledECON",
-                      pflib::utility::string_format("ECON %d is disabled"));
+                      pflib::utility::string_format("ECON %d is disabled", which));
   }
   return *(econs_[which]);
 }
@@ -173,11 +173,11 @@ ECON& HcalBackplane::econ(int which) {
 Bias HcalBackplane::bias(int which) {
   if (which < 0 or which >= rocs_.size()) {
     PFEXCEPTION_RAISE("InvalidROCid", pflib::utility::string_format(
-                                          "ROC %d is not a valid ROC ID"));
+                                          "ROC %d is not a valid ROC ID", which));
   }
   if (not rocs_[which]) {
     PFEXCEPTION_RAISE("DisabledROC",
-                      pflib::utility::string_format("ROC %d is disabled"));
+                      pflib::utility::string_format("ROC %d is disabled", which));
   }
   return rocs_[which]->bias;
 }
