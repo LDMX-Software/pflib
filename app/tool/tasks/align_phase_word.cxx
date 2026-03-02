@@ -335,16 +335,20 @@ void align_phase_word(Target* tgt) {
   // Ensure ECON is in Run mode
   econ.setRunMode(true, edgesel, invertfcmd);
 
-
-  // Dynamic channels. Only 2 per link.
-  std::vector<int> channels = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-
-  /*
+  /**
+   * Right now, we are assuming that all of the ROCs the target handles
+   * are connected to the same ECON (DAQ or TRG) as selected by the user
+   * earlier.
+   */
+  auto roc_ids = tgt->roc_ids();
   // Get channels dynamically from ROC to eRx object channel mapping
   auto& mapping = tgt->getRocErxMapping();
-  channels.push_back(mapping[iroc].first);
-  channels.push_back(mapping[iroc].second);
-  */
+  // Dynamic channels. 2 eRx per ROC
+  std::vector<int> channels;
+  for (int i_roc : roc_ids) {
+    channels.push_back(mapping[i_roc].first);
+    channels.push_back(mapping[i_roc].second);
+  }
 
   std::cout << "Channels to be configured: ";
   for (int ch : channels) std::cout << ch << " ";
@@ -374,8 +378,8 @@ void align_phase_word(Target* tgt) {
   fancy_roc_idles["DIGITALHALF_1"]["BX_OFFSET"] = 1;
   //fancy_roc_idles["DIGITALHALF_0"]["BX_TRIGGER"] = roc_bx_trigger;
   //fancy_roc_idles["DIGITALHALF_1"]["BX_TRIGGER"] = roc_bx_trigger;
-  std::vector<std::map<int, std::map<int, uint8_t>>> resets(6);
-  for (int i_roc{0}; i_roc < 6; i_roc++) {
+  std::map<int, std::map<int, std::map<int, uint8_t>>> resets;
+  for (int i_roc : roc_ids) {
     auto& roc{tgt->roc(i_roc)};
     resets[i_roc] = roc.applyParameters(fancy_roc_idles);
     std::cout << "roc " << i_roc << " ";
@@ -390,7 +394,7 @@ void align_phase_word(Target* tgt) {
   fancy_roc_idles.clear();
   fancy_roc_idles["DIGITALHALF_0"]["IDLEFRAME"] = ROC_WORD_IDLE_FRAME;
   fancy_roc_idles["DIGITALHALF_1"]["IDLEFRAME"] = ROC_WORD_IDLE_FRAME;
-  for (int i_roc{0}; i_roc < 6; i_roc++) {
+  for (int i_roc : roc_ids) {
     auto& roc{tgt->roc(i_roc)};
     // do NOT store the resets from here, use resets from first
     // apply call to revert back to prior state
@@ -402,7 +406,7 @@ void align_phase_word(Target* tgt) {
   // ----- WORD ALIGNMENT ----- //
   align_word(tgt, econ, channels, on_zcu);
 
-  for (int i_roc{0}; i_roc < 6; i_roc++) {
+  for (int i_roc : roc_ids) {
     tgt->roc(i_roc).setRegisters(resets[i_roc]);
   }
 }
