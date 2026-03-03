@@ -34,7 +34,7 @@ class DAQRunConsumer {
  * @param[in] rate how fast to collect events, default 100
  */
 void daq_run(pflib::Target* tgt, const std::string& cmd,
-             DAQRunConsumer& consumer, int nevents, int rate = 100);
+             DAQRunConsumer& consumer, int nevents = 1, int rate = 100);
 
 /**
  * just copy input event packets to the output file as binary
