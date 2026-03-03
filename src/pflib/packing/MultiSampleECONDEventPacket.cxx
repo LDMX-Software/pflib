@@ -144,7 +144,7 @@ Reader& MultiSampleECONDEventPacket::read(Reader& r) {
     uint32_t new_econd_id = ((word >> 18) & mask<10>);
     uint32_t il1a = ((word >> 13) & mask<5>);
     bool is_soi = (((word >> 12) & mask<1>) == 1);
-    uint32_t econd_len = word & mask<8>;
+    uint32_t econd_len = word & mask<12>;
     pflib_log(trace) << hex(word)
                      << " -> vers, econd_len, il1a, econd_id, is_soi = " << vers
                      << ", " << econd_len << ", " << il1a << ", "
