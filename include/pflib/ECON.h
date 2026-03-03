@@ -21,6 +21,7 @@ class ECON {
        const std::string& type_version);
 
   ECON(const ECON&) = delete;
+  ECON& operator=(const ECON&) = delete;
 
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);

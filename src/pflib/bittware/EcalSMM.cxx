@@ -49,7 +49,7 @@ class EcalSMMTargetBW : public Target {
             << "DAQ lpGBT is not ready, attempting standard config";
         try {
           pflib::lpgbt::standard_config::setup_ecal(*daq_lpgbt_,
-                     ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+                     pflib::lpgbt::standard_config::ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(warn) << "Failure to apply standard config [" << e.name()
                           << "]: " << e.message();
@@ -74,7 +74,7 @@ class EcalSMMTargetBW : public Target {
             << "TRG lpGBT is not ready, attempting standard config";
         try {
           pflib::lpgbt::standard_config::setup_ecal(*trig_lpgbt_,
-                     ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
+                     pflib::lpgbt::standard_config::ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
           pflib_log(info) << "Failure to apply standard config [" << e.name()

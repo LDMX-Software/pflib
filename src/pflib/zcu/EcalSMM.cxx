@@ -26,13 +26,6 @@ class EcalSMMTargetZCU : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
-                                                      0, roc_mask);
-
-    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
-                                              itarget);
-    daq_ = std::make_unique<ZCU_Capture>();
-
     // Setup DAQ lpGBT
     try {
       int daq_pusm = daq_lpgbt_->status();
@@ -82,7 +75,15 @@ class EcalSMMTargetZCU : public Target {
                       << e.name() << "]: " << e.message();
     }
 
+    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
+                                                      0, roc_mask);
+
+    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
+                                              itarget);
+    daq_ = std::make_unique<ZCU_Capture>();
+
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
   }
 
   const std::vector<std::pair<int, int>>& getRocErxMapping() override;
