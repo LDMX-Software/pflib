@@ -83,7 +83,7 @@ class FastControl {
    * @param[out] enable whether the blinker is on/off
    * @param[out] bx which BX the L1A is sent on
    */
-  virtual void fc_get_orbit_blinker(bool &enable, int &bx) {}
+  virtual void fc_get_orbit_blinker(bool& enable, int& bx) {}
 
   /** setup the link reset timing */
   virtual void fc_setup_link_reset(int bx) {}

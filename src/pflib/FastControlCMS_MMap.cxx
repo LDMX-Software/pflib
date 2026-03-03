@@ -180,7 +180,7 @@ class FastControlCMS_MMap : public FastControl {
     orbit_blinker.pack();
   }
 
-  virtual void fc_get_orbit_blinker(bool &enable, int &bx) override {
+  virtual void fc_get_orbit_blinker(bool& enable, int& bx) override {
     Periodic orbit_blinker(periodic(ORBIT_BLINKER));
     bx = orbit_blinker.bx;
     enable = orbit_blinker.enable;

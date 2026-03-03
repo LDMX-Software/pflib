@@ -232,7 +232,8 @@ static void fc(const std::string& cmd, Target* pft) {
     bool blinker_on{true};
     int bx{0};
     pft->fc().fc_get_orbit_blinker(blinker_on, bx);
-    blinker_on = pftool::readline_bool("Turn on orbit blinker?", not blinker_on);
+    blinker_on =
+        pftool::readline_bool("Turn on orbit blinker?", not blinker_on);
     bx = pftool::readline_int("Which BX to send an L1A on every orbit?", bx);
     pft->fc().fc_setup_orbit_blinker(blinker_on, bx);
     do_status = true;
@@ -289,5 +290,6 @@ auto menu_fc =
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
         ->line("LED", "Setup LED calibration pulse", fc)
-        ->line("ORBIT_BLINKER", "send L1A once every orbit for alignment testing (10kHz)", fc);
+        ->line("ORBIT_BLINKER",
+               "send L1A once every orbit for alignment testing (10kHz)", fc);
 }  // namespace

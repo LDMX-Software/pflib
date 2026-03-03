@@ -139,11 +139,9 @@ static void roc(const std::string& cmd, Target* pft) {
                                    : " taken out of RUNMODE");
   }
   if (cmd == "STATUS") {
-    for (const auto& i: pft->roc_ids()) {
-      printf("ROC%d is %3s%s\n",
-        i,
-        (pft->roc(i).isRunMode() ? "ON" : "OFF"),
-        (i == pftool::state.iroc ? " <- selected" : ""));
+    for (const auto& i : pft->roc_ids()) {
+      printf("ROC%d is %3s%s\n", i, (pft->roc(i).isRunMode() ? "ON" : "OFF"),
+             (i == pftool::state.iroc ? " <- selected" : ""));
     }
   }
   if (cmd == "PAGE") {

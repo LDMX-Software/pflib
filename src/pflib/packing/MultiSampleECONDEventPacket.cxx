@@ -33,27 +33,25 @@ class DAQHeader {
   uint32_t i_l1a_;
   bool is_soi_;
   uint32_t econd_len_;
+
  public:
   void from(uint32_t word) {
     version_ = ((word >> 28) & mask<4>);
     econd_id_ = ((word >> 18) & mask<10>);
-    i_l1a_   = ((word >> 13) & mask<5>);
-    is_soi_  = (((word >> 12) & mask<1>) == 1);
+    i_l1a_ = ((word >> 13) & mask<5>);
+    is_soi_ = (((word >> 12) & mask<1>) == 1);
     econd_len_ = (word & mask<12>);
   }
   /**
    * output stream operator to make logging easier
    */
   friend std::ostream& operator<<(std::ostream& o, const DAQHeader& h) {
-    return (
-      o << "DAQHeader { "
-        << "version: " << h.version() << ", "
-        << "econd_id: " << h.econd_id() << ", "
-        << "i_l1a: " << h.i_l1a() << ", "
-        << "is_soi: " << h.is_soi() << ", "
-        << "econd_len: " << h.econd_len()
-        << " }"
-    );
+    return (o << "DAQHeader { "
+              << "version: " << h.version() << ", "
+              << "econd_id: " << h.econd_id() << ", "
+              << "i_l1a: " << h.i_l1a() << ", "
+              << "is_soi: " << h.is_soi() << ", "
+              << "econd_len: " << h.econd_len() << " }");
   }
   /**
    * A special form of this DAQ header is used to signal
@@ -64,21 +62,11 @@ class DAQHeader {
   bool is_ending_trailer() const {
     return ((i_l1a_ == 0x1f) and (econd_id_ == 0x3ff));
   }
-  uint32_t version() const {
-    return version_;
-  }
-  uint32_t econd_id() const {
-    return econd_id_;
-  }
-  uint32_t i_l1a() const {
-    return i_l1a_;
-  }
-  bool is_soi() const {
-    return is_soi_;
-  }
-  uint32_t econd_len() const {
-    return econd_len_;
-  }
+  uint32_t version() const { return version_; }
+  uint32_t econd_id() const { return econd_id_; }
+  uint32_t i_l1a() const { return i_l1a_; }
+  bool is_soi() const { return is_soi_; }
+  uint32_t econd_len() const { return econd_len_; }
 };
 
 void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {

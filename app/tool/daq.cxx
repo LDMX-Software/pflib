@@ -707,7 +707,8 @@ auto menu_daq_debug =
                    usleep(100);
                    if (last == tgt->daq().getEventOccupancy()) {
                      PFEXCEPTION_RAISE("InfLoop",
-                        "Event occupancy is not changing when we advance the read ptr");
+                                       "Event occupancy is not changing when "
+                                       "we advance the read ptr");
                    }
                    last = tgt->daq().getEventOccupancy();
                  }

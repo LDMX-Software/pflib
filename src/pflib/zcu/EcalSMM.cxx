@@ -37,8 +37,9 @@ class EcalSMMTargetZCU : public Target {
         pflib_log(debug)
             << "DAQ lpGBT is not ready, attempting standard config";
         try {
-          pflib::lpgbt::standard_config::setup_ecal(*daq_lpgbt_,
-                     pflib::lpgbt::standard_config::ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+          pflib::lpgbt::standard_config::setup_ecal(
+              *daq_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               DAQ_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(warn) << "Failure to apply standard config [" << e.name()
                           << "]: " << e.message();
@@ -62,8 +63,9 @@ class EcalSMMTargetZCU : public Target {
         pflib_log(debug)
             << "TRG lpGBT is not ready, attempting standard config";
         try {
-          pflib::lpgbt::standard_config::setup_ecal(*trig_lpgbt_,
-                     pflib::lpgbt::standard_config::ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
+          pflib::lpgbt::standard_config::setup_ecal(
+              *trig_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                                DAQ_SingleModuleMotherboard);
         } catch (const pflib::Exception& e) {
           pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
           pflib_log(info) << "Failure to apply standard config [" << e.name()
@@ -83,7 +85,6 @@ class EcalSMMTargetZCU : public Target {
     daq_ = std::make_unique<ZCU_Capture>();
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
-
   }
 
   const std::vector<std::pair<int, int>>& getRocErxMapping() override;
