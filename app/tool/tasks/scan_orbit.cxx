@@ -1,8 +1,8 @@
 #include "scan_orbit.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "pflib/packing/Hex.h"
 using pflib::packing::hex;
