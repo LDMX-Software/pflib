@@ -440,7 +440,7 @@ int ECON::nLinks() {
   std::vector<uint8_t> bytes(1);
   int n_links = 0;
   for (int ch = 0; ch < 12; ch++) {
-    bytes = getValues(ERX_RW+ch, 1);
+    bytes = getValues(ERX_RW + ch, 1);
     if ((bytes[0] & 0x1) == 1) {
       n_links += 1;
     }

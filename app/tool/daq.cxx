@@ -747,7 +747,8 @@ auto menu_daq_debug =
                          pflib::packing::MultiSampleECONDEventPacket>
                          writer{all_channels_to_csv<
                              pflib::packing::MultiSampleECONDEventPacket>(
-                             fname + ".csv", tgt->econ(pftool::state.iecon).nLinks())};
+                             fname + ".csv",
+                             tgt->econ(pftool::state.iecon).nLinks())};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {
@@ -763,8 +764,8 @@ auto menu_daq_debug =
                    case Target::DaqFormat::SIMPLEROC: {
                      DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
                          writer{all_channels_to_csv<
-                             pflib::packing::SingleROCEventPacket>(fname +
-                                                                   ".csv", 2)};
+                             pflib::packing::SingleROCEventPacket>(
+                             fname + ".csv", 2)};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {

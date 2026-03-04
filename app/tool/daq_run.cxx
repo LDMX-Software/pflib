@@ -184,7 +184,8 @@ template class DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket>;
 
 // all_channels_to_csv free-function template
 template DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
-all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&, int);
+all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&,
+                                                          int);
 
 template DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>
 all_channels_to_csv<pflib::packing::MultiSampleECONDEventPacket>(
