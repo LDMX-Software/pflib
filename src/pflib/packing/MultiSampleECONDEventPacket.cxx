@@ -19,13 +19,14 @@ const std::string MultiSampleECONDEventPacket::to_csv_header =
  * This needs to be its own class since it is used in both
  * MultiSamleECONDEventPacket::from and MultiSampleECONDEventPacket::read
  *
- * 4b vers | 10b ECON ID | 5b il1a | S | 0 | 8b length
+ * 4b vers | 10b ECON ID | 5b il1a | S | 12b length
  *
  * - vers is the format version
  * - ECOND ID is what it was configured in the software to be
  * - il1a is the index of the sample relative to this event
  * - S signals if this is the sample of interest (1) or not (0)
  * - length is the total length of this link subpacket NOT including this
+ *   header
  */
 class DAQHeader {
   uint32_t version_;

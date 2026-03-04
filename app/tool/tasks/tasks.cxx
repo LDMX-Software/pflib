@@ -5,9 +5,8 @@
  */
 
 #include "../pftool.h"
-#include "setup/align_econ_lpgbt.h"
-#include "setup/align_phase_word.h"
 #include "charge_timescan.h"
+#include "expert/scan_orbit.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
 #include "inv_vref_scan.h"
@@ -17,8 +16,9 @@
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
-#include "expert/scan_orbit.h"
 #include "set_toa.h"
+#include "setup/align_econ_lpgbt.h"
+#include "setup/align_phase_word.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_vref_scan.h"
