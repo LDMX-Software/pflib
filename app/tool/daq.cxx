@@ -399,7 +399,7 @@ static void daq(const std::string& cmd, Target* pft) {
                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
               },
-              2);
+              pft->econ(pftool::state.iecon).nLinks());
           break;
         case Target::DaqFormat::SIMPLEROC:
           consumer = std::make_unique<
@@ -699,6 +699,22 @@ auto menu_daq_debug =
                })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
+        ->line("CLEAR", "advance readout until zero event occupancy and reset",
+               [](Target* tgt) {
+                 int last{tgt->daq().getEventOccupancy()};
+                 while (tgt->daq().getEventOccupancy() > 0) {
+                   tgt->daq().advanceLinkReadPtr();
+                   usleep(100);
+                   if (last == tgt->daq().getEventOccupancy()) {
+                     PFEXCEPTION_RAISE("InfLoop",
+                                       "Event occupancy is not changing when "
+                                       "we advance the read ptr");
+                   }
+                   last = tgt->daq().getEventOccupancy();
+                 }
+
+                 tgt->daq().reset();
+               })
         ->line("SW_L1A", "send a L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
         ->line("CHARGE_TIMEIN",
@@ -731,7 +747,8 @@ auto menu_daq_debug =
                          pflib::packing::MultiSampleECONDEventPacket>
                          writer{all_channels_to_csv<
                              pflib::packing::MultiSampleECONDEventPacket>(
-                             fname + ".csv")};
+                             fname + ".csv",
+                             tgt->econ(pftool::state.iecon).nLinks())};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {
@@ -747,8 +764,8 @@ auto menu_daq_debug =
                    case Target::DaqFormat::SIMPLEROC: {
                      DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
                          writer{all_channels_to_csv<
-                             pflib::packing::SingleROCEventPacket>(fname +
-                                                                   ".csv")};
+                             pflib::packing::SingleROCEventPacket>(
+                             fname + ".csv", 2)};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {

@@ -107,7 +107,7 @@ class DecodeAndWriteToCSV : public DecodeAndWrite<EventPacket> {
 
 template <class EventPacket>
 DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
-    const std::string& file_name);
+    const std::string& file_name, int n_links = 2);
 
 /**
  * Consume an event packet, decode it, and save to buffer.

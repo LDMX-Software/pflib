@@ -4,7 +4,6 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 #include "load_parameter_points.h"
 #include "pflib/utility/string_format.h"
 
@@ -30,7 +29,7 @@ void parameter_timescan_writer(Target* tgt, pflib::ROC& roc, std::string& fname,
   int n_links = 2;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = determine_n_links(tgt);
+    n_links = tgt->econ(pftool::state.iecon).nLinks();
   }
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =

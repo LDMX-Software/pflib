@@ -69,6 +69,22 @@ class FastControl {
   /** reset counters for a new run */
   virtual void clear_run() {}
 
+  /**
+   * setup the orbit blinker L1A
+   *
+   * @param[in] enable turn on/off orbit blinker
+   * @param[in] bx which BX the L1A is sent on
+   */
+  virtual void fc_setup_orbit_blinker(bool enable, int bx) {}
+
+  /**
+   * get the orbit blinker's settings
+   *
+   * @param[out] enable whether the blinker is on/off
+   * @param[out] bx which BX the L1A is sent on
+   */
+  virtual void fc_get_orbit_blinker(bool& enable, int& bx) {}
+
   /** setup the link reset timing */
   virtual void fc_setup_link_reset(int bx) {}
 

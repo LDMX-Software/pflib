@@ -128,14 +128,15 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
       i2c_->general_write_read(econ_base_, waddr, nbytes);
 
   /*
-  std::ostringstream oss;
-  oss << "ECON::getValues(" << packing::hex(reg_addr) << ", " << nbytes << ") ->
-  ["; for (size_t i = 0; i < data.size(); ++i) { if (i > 0) oss << " "; oss <<
-  std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(data[i]);
+  std::cout << "ECON::getValues(" << packing::hex(reg_addr)
+            << ", " << nbytes << ") -> [";
+  for (size_t i = 0; i < data.size(); ++i) {
+    if (i > 0) std::cout << " ";
+    std::cout << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(data[i]);
   }
-  oss << "]";
-  pflib_log(debug) << oss.str();
-  */
+  std::cout << "]\n";
+   */
 
   return data;
 }
@@ -427,6 +428,24 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
   }
 
   f.flush();
+}
+
+int ECON::nLinks() {
+  /**
+   * We avoid using the compiler in order to inspect the ERX.NN.ENABLE
+   * parameters because the compiler is slow.
+   * https://github.com/LDMX-Software/pflib/issues/266
+   */
+  static const int ERX_RW = 0x3e4;
+  std::vector<uint8_t> bytes(1);
+  int n_links = 0;
+  for (int ch = 0; ch < 12; ch++) {
+    bytes = getValues(ERX_RW + ch, 1);
+    if ((bytes[0] & 0x1) == 1) {
+      n_links += 1;
+    }
+  }
+  return n_links;
 }
 
 ECON::TestParameters::TestParameters(
