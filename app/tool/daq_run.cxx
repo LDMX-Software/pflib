@@ -124,14 +124,14 @@ void DecodeAndWriteToCSV<EventPacket>::write_event(const EventPacket& ep) {
 
 template <class EventPacket>
 DecodeAndWriteToCSV<EventPacket> all_channels_to_csv(
-    const std::string& file_name) {
+    const std::string& file_name, int n_links) {
   return DecodeAndWriteToCSV<EventPacket>(
       file_name,
       [](std::ofstream& f) {
         f << std::boolalpha;
         f << EventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); }, 2);
+      [](std::ofstream& f, const EventPacket& ep) { ep.to_csv(f); }, n_links);
 }
 
 template <class EventPacket>
@@ -184,8 +184,8 @@ template class DecodeAndBuffer<pflib::packing::MultiSampleECONDEventPacket>;
 
 // all_channels_to_csv free-function template
 template DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
-all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&);
+all_channels_to_csv<pflib::packing::SingleROCEventPacket>(const std::string&, int);
 
 template DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>
 all_channels_to_csv<pflib::packing::MultiSampleECONDEventPacket>(
-    const std::string&);
+    const std::string&, int);

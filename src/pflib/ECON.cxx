@@ -430,6 +430,24 @@ void ECON::dumpSettings(const std::string& filename, bool should_decompile) {
   f.flush();
 }
 
+int ECON::nLinks() {
+  /**
+   * We avoid using the compiler in order to inspect the ERX.NN.ENABLE
+   * parameters because the compiler is slow.
+   * https://github.com/LDMX-Software/pflib/issues/266
+   */
+  static const int ERX_RW = 0x3e4;
+  std::vector<uint8_t> bytes(1);
+  int n_links = 0;
+  for (int ch = 0; ch < 12; ch++) {
+    bytes = getValues(ERX_RW+ch, 1);
+    if ((bytes[0] & 0x1) == 1) {
+      n_links += 1;
+    }
+  }
+  return n_links;
+}
+
 ECON::TestParameters::TestParameters(
     ECON& econ,
     std::map<std::string, std::map<std::string, uint64_t>> new_params)

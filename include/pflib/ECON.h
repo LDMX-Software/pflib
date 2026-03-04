@@ -28,6 +28,8 @@ class ECON {
   int getPUSMRunValue();
   int getPUSMStateValue();
   bool isRunMode();
+  /// get the number of readout links that are enabled
+  int nLinks();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
   void setValue(int reg_addr, uint64_t value, int nbytes);

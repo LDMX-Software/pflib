@@ -399,7 +399,7 @@ static void daq(const std::string& cmd, Target* pft) {
                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
               },
-              2);
+              pft->econ(pftool::state.iecon).nLinks());
           break;
         case Target::DaqFormat::SIMPLEROC:
           consumer = std::make_unique<
@@ -747,7 +747,7 @@ auto menu_daq_debug =
                          pflib::packing::MultiSampleECONDEventPacket>
                          writer{all_channels_to_csv<
                              pflib::packing::MultiSampleECONDEventPacket>(
-                             fname + ".csv")};
+                             fname + ".csv", tgt->econ(pftool::state.iecon).nLinks())};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {
@@ -764,7 +764,7 @@ auto menu_daq_debug =
                      DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
                          writer{all_channels_to_csv<
                              pflib::packing::SingleROCEventPacket>(fname +
-                                                                   ".csv")};
+                                                                   ".csv", 2)};
 
                      for (int toffset{min_offset}; toffset < max_offset;
                           toffset++) {
