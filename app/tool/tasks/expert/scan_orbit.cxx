@@ -166,4 +166,8 @@ void scan_orbit(Target* tgt) {
     tgt->fc().fc_setup_orbit_blinker(false, bx);
   }
   econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, original_snapshot_t, 2);
+  aligner_flags = econ.getValues(ALIGNER_BASE, 1);
+  // need to make sure that SNAPSHOT_ARM goes back to 0
+  aligner_flags[0] &= 0xf6;
+  econ.setValues(ALIGNER_BASE, aligner_flags);
 }

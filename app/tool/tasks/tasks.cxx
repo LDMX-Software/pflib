@@ -3,11 +3,10 @@
  *
  * Definition of TASKS menu commands
  */
-#include <boost/multiprecision/cpp_int.hpp>
 
 #include "../pftool.h"
-#include "align_econ_lpgbt.h"
-#include "align_phase_word.h"
+#include "setup/align_econ_lpgbt.h"
+#include "setup/align_phase_word.h"
 #include "charge_timescan.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
@@ -18,7 +17,7 @@
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
-#include "scan_orbit.h"
+#include "expert/scan_orbit.h"
 #include "set_toa.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"

@@ -2,25 +2,20 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "../econ_snapshot.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 
 ENABLE_LOGGING();
 
-bool debug_checks = false;
-
 // ROC Idle Frame
 constexpr uint32_t ROC_WORD_IDLE_FRAME = 0x12c5c57;
 
+/**
+ * The ECON-ROC alignment pattern uses the new-orbit nibble 0x9
+ * prefixing the 28-bit idle word that the ROC is sending
+ */
 constexpr uint64_t ECON_ROC_ALIGN_PATTERN = (
-    /* old, 64-bit match pattern
-     * auto-aligner only looks at top 32-bits so its not working
-     */
-    (0x9ull << 60) | (static_cast<uint64_t>(ROC_WORD_IDLE_FRAME) << 32) |
-    (0xaull << 28) | ROC_WORD_IDLE_FRAME
-    // 32-bit pattern including ROC_IDLE and new-orbit header nibble 0xa
-    //(0xaull << 28) | ROC_WORD_IDLE_FRAME
+    (0x9ull << 28) | ROC_WORD_IDLE_FRAME
 );
 
 // ECON PUSM State READY
@@ -45,23 +40,52 @@ static const int CHALIGNER_SNAPSHOT = 0x2;
 
 using pflib::packing::hex;
 
-void print_roc_status(pflib::ROC& roc) {
-  auto top_params = roc.getParameters("TOP");
-  auto RunL = top_params.find("RUNL")->second;
-  auto RunR = top_params.find("RUNR")->second;
-  std::cout << "{ RunL = " << RunL << ", RunR = " << RunR;
-  for (int half = 0; half < 2; ++half) {
-    auto params = roc.getParameters("DIGITALHALF_" + std::to_string(half));
-
-    auto idle = params.at("IDLEFRAME");
-    auto bx = params.at("BX_OFFSET");
-    auto bxtrig = params.at("BX_TRIGGER");
-
-    std::cout << ", idle_" << half << " = 0x" << std::hex << idle << std::dec
-              << ", bx_offset_" << half << " = " << bx << ", bx_trigger_"
-              << half << " = " << bxtrig;
+/**
+ * emit specific parameters of the roc relevant for alignment
+ *
+ * keep this operator overload in this file since other areas
+ * may want different stuff printed
+ */
+class ROCAlignParams {
+  pflib::ROC& roc_;
+ public:
+  ROCAlignParams(pflib::ROC& roc) : roc_{roc} {}
+  friend inline std::ostream& operator<<(std::ostream& o, const ROCAlignParams& self) {
+    auto top_params = self.roc_.getParameters("TOP");
+    auto RunL = top_params.find("RUNL")->second;
+    auto RunR = top_params.find("RUNR")->second;
+    o << "{ RunL = " << RunL << ", RunR = " << RunR;
+    for (int half = 0; half < 2; ++half) {
+      auto params = self.roc_.getParameters("DIGITALHALF_" + std::to_string(half));
+  
+      auto idle = params.at("IDLEFRAME");
+      auto bx = params.at("BX_OFFSET");
+      auto bxtrig = params.at("BX_TRIGGER");
+  
+      o << ", idle_" << half << " = 0x" << std::hex << idle << std::dec
+        << ", bx_offset_" << half << " = " << bx << ", bx_trigger_"
+        << half << " = " << bxtrig;
+    }
+    o << " }";
+    return o;
   }
-  std::cout << " }\n";
+};
+
+/**
+ * emit a vector as a space-separate list
+ */
+class SpaceSeparated {
+  const std::vector<int>& v_;
+ public:
+  SpaceSeparated(const std::vector<int>& v) : v_{v} {}
+  friend inline std::ostream& operator<<(std::ostream& o, const SpaceSeparated& self) {
+    o << "[";
+    for (const auto& v: self.v_) {
+      o << " " << v;
+    }
+    o << " ]";
+    return o;
+  }
 };
 
 /**
@@ -85,9 +109,9 @@ std::pair<bool, std::map<int, int>> check_channel_phase_lock(
     int phase = ((status[0] >> 2) & 0xf);
     phases[ch] = phase;
     all_locked = (all_locked and locked);
-    std::cout << "channel " << ch << std::boolalpha << " locked = " << locked
-              << " dll_locked = " << dll_locked << " dll_state = " << dll_state
-              << " phase = " << phase << std::endl;
+    pflib_log(debug) << "channel " << ch << std::boolalpha << " locked = " << locked
+                     << " dll_locked = " << dll_locked << " dll_state = " << dll_state
+                     << " phase = " << phase;
   }
   return std::make_pair(all_locked, phases);
 }
@@ -116,7 +140,6 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
   econ.applyParameters(parameters);
 
   auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
-  std::cout << "all locked: " << all_locked << std::endl;
 
   /**
    * manual says we should go into fixed phase mode (track_mode = 0)
@@ -124,6 +147,7 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
    * written down somewhere
    */
   if (all_locked) {
+    pflib_log(info) << "all channels found phase lock, fixing phase into ECON configuration";
     // go into fixed phase mode to avoid the phase shifting
     parameters.clear();
     parameters["EPRXGRPTOP"]["GLOBAL_TRACK_MODE"] = 0;
@@ -141,12 +165,8 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
 void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
                 bool on_zcu) {
   // print ROC status
-  if (debug_checks) {
-    std::cout << "ROC_WORD_IDLE_FRAME: 0x" << std::hex << ROC_WORD_IDLE_FRAME
-              << std::dec << std::endl;
-    std::cout << "ECON_ROC_ALIGN_PATTERN: 0x" << std::hex
-              << ECON_ROC_ALIGN_PATTERN << std::dec << std::endl;
-  }
+  pflib_log(debug) << "ROC_WORD_IDLE_FRAME: 0x" << std::hex << ROC_WORD_IDLE_FRAME << std::dec;
+  pflib_log(debug) << "ECON_ROC_ALIGN_PATTERN: 0x" << std::hex << ECON_ROC_ALIGN_PATTERN << std::dec;
 
   // ---- SETTING ECON REGISTERS ---- //
   std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
@@ -155,11 +175,10 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   parameters["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
   parameters["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
+  parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 1;
   if (on_zcu) {
-    parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 1;    // 0xdba
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 3563;  // 0xdeb
   } else {
-    parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_LOAD_VAL"] = 40 * 64 - 39;
     parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_MAX_VAL"] = 40 * 64 - 1;
   }
 
@@ -173,30 +192,8 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   }
   auto econ_word_align_currentvals_check = econ.applyParameters(parameters);
 
-  // Set GLOBAL_MATCH_PATTERN_VAL
-  // econ.setValue(ALIGNER_BASE+0x1, ECON_ROC_ALIGN_PATTERN, 8);
-  // don't mask out any of the pattern
-  // not sure if this means the match_mask should be all ones:
-  // econ.setValue(ALIGNER_BASE+0x9, 0xffffffffffffffffull, 8);
-  // or all zeros:
-  // econ.setValue(ALIGNER_BASE+0x9, 0x0ull, 8);
-  // or the default:
-  econ.setValue(ALIGNER_BASE + 0x9, 0xffffffff00000000ull, 8);
-  // another option is not to mess with the match_mask at all
-  // and just have the lower 32-bits be the correct pattern
-  econ.setValue(ALIGNER_BASE + 0x1, ECON_ROC_ALIGN_PATTERN >> 32, 8);
-
-  if (debug_checks) {
-    auto global_match_pattern_val =
-        econ.readParameter("ALIGNER", "GLOBAL_MATCH_PATTERN_VAL");
-    auto cnt_load_val =
-        econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_LOAD_VAL");
-    std::cout << "GLOBAL_MATCH_PATTERN_VAL test: " << global_match_pattern_val
-              << ", 0x" << std::hex << global_match_pattern_val << std::dec
-              << std::endl;
-    std::cout << "Orbsyn_cnt_load_val = " << cnt_load_val << ", 0x" << std::hex
-              << cnt_load_val << std::dec << std::endl;
-  }
+  // configure the ECON to look for the correct alignment pattern
+  econ.setValue(ALIGNER_BASE + 0x1, ECON_ROC_ALIGN_PATTERN, 8);
 
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
@@ -204,7 +201,8 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   // TODO: Read BX value of link reset rocd
 
   // ------- Scan when the ECON takes snapshot -----
-  int start_val, end_val;
+  int start_val{1}, end_val{51};
+  /*
   if (on_zcu) {
     start_val = 1;  // 3490;  // near your orbit region of interest
     end_val = 51;   // 3540;    // up to orbit rollover
@@ -212,32 +210,18 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
     start_val = 64 * 40 - 60;  // near your orbit region of interest
     end_val = 64 * 40 - 1;     // up to orbit rollover
   }
+  */
 
-  std::cout << "Iterating over snapshots to find SPECIAL HEADER: " << std::endl;
   bool aligned{false};
   for (int snapshot_val = start_val; snapshot_val <= end_val;
-       snapshot_val += 1) {
-    std::cout << " --------------------------------------------------- "
-              << std::endl;
+       snapshot_val++) {
 
-    /*
-    parameters.clear();
-    parameters["ALIGNER"]["GLOBAL_ORBSYN_CNT_SNAPSHOT"] = snapshot_val;
-    auto econ_word_align_currentvals = econ.applyParameters(parameters);
-    */
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, snapshot_val, 2);
-
-    if (debug_checks) {
-      auto tmp_load_val =
-          econ.readParameter("ALIGNER", "GLOBAL_ORBSYN_CNT_SNAPSHOT");
-      std::cout << "Current snapshot BX = " << tmp_load_val << ", 0x"
-                << std::hex << tmp_load_val << std::dec << std::endl;
-    }
 
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
 
-    std::cout << "Checking Snapshot: " << snapshot_val << std::endl;
+    pflib_log(debug) << "checking snapshot on bx " << snapshot_val;
 
     bool should_continue = false;
     for (int channel : channels) {
@@ -263,33 +247,28 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
         should_continue = true;
       }
 
-      if (true) {  // debug_checks) {
-        std::cout << "channel " << channel << " match: " << std::boolalpha
-                  << (ch_pm == 1) << " : 0x" << std::hex << snapshot << std::dec
-                  << std::endl;
-        if (ch_pm == 1) {
-          auto shifted((snapshot >> (select - 32)) & 0xffffffffull);
-          std::cout << " select = " << int(select) << " shifted: 0x" << std::hex
-                    << shifted << std::dec << " (match: " << std::boolalpha
-                    << (shifted == (ECON_ROC_ALIGN_PATTERN >> 32)) << ")"
-                    << std::endl;
-        }
+      pflib_log(debug) << "channel " << channel << " match: " << std::boolalpha
+                       << (ch_pm == 1) << " : 0x" << std::hex << snapshot << std::dec;
+      if (ch_pm == 1) {
+        auto shifted((snapshot >> (select - 32)) & 0xffffffffull);
+        pflib_log(debug) << " select = " << int(select) << " shifted: 0x" << std::hex
+                         << shifted << std::dec << " (match: " << std::boolalpha
+                         << (shifted == ECON_ROC_ALIGN_PATTERN) << ")";
       }
     }  // loop over channels
     if (not should_continue) {
       aligned = true;
-      std::cout << "all channels found pattern match on snapshot "
-                << snapshot_val << std::endl;
+      pflib_log(info) << "all channels found pattern match with snapshot on bx "
+                      << snapshot_val;
       auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
-      std::cout << "all locked: " << all_locked << std::endl;
+      pflib_log(info) << "all channels have phase lock (still): "
+                      << std::boolalpha << all_locked;
       break;
     }
   }
   // -------------- END SNAPSHOT BX SCAN ------------ //
   if (not aligned) {
-    std::cout << "------------------------------------------" << std::endl
-              << "Failure to match header pattern in ANY Snapshot."
-              << std::endl;
+    pflib_log(warn) << "failed to find header pattern in any BX checked";
   }
 }
 
@@ -298,8 +277,6 @@ void align_phase_word(Target* tgt) {
       (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
       (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
       (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
-
-  debug_checks = false;  // pftool::readline_bool("Enable debug checks?", true);
 
   int iecon = 0;
   // pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
@@ -333,21 +310,16 @@ void align_phase_word(Target* tgt) {
     channels.push_back(mapping[i_roc].second);
   }
 
-  std::cout << "Channels to be configured: ";
-  for (int ch : channels) std::cout << ch << " ";
-  std::cout << std::endl;
+  pflib_log(info) << "Channels to be configured: " << SpaceSeparated(channels);
 
   // Check PUSM state
   auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
-  if (debug_checks) {
-    std::cout << "PUSM_STATE = " << pusm_state << ", " << std::hex << pusm_state
-              << std::dec << std::endl;
-  }
+  pflib_log(debug) << "econ PUSM STATE = " << pusm_state;
 
   if (pusm_state != ECON_EXPECTED_PUSM_STATE) {
-    std::cout << "PUSM_STATE / runbit does not equal "
-              << ECON_EXPECTED_PUSM_STATE << ". Not running alignment task."
-              << std::endl;
+    pflib_log(warn) << "ECON PUSM STATE does not equal the expected value " << ECON_EXPECTED_PUSM_STATE
+                    << " implying that more configuration/setup needs to happen before alignment";
+    pflib_log(error) << "NOT running ECON-ROC alignment"; 
     return;
   }
 
@@ -360,8 +332,7 @@ void align_phase_word(Target* tgt) {
   for (int i_roc : roc_ids) {
     auto& roc{tgt->roc(i_roc)};
     resets[i_roc] = roc.applyParameters(fancy_roc_idles);
-    std::cout << "roc " << i_roc << " ";
-    print_roc_status(roc);
+    pflib_log(debug) << "roc " << i_roc << " " << ROCAlignParams(roc);
   }
 
   // ----- PHASE ALIGNMENT ----- //
@@ -377,8 +348,7 @@ void align_phase_word(Target* tgt) {
     // do NOT store the resets from here, use resets from first
     // apply call to revert back to prior state
     roc.applyParameters(fancy_roc_idles);
-    std::cout << "roc " << i_roc << " ";
-    print_roc_status(roc);
+    pflib_log(debug) << "roc " << i_roc << " " << ROCAlignParams(roc);
   }
 
   // ----- WORD ALIGNMENT ----- //
