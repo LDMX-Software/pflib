@@ -200,6 +200,7 @@ static void elinks(const std::string& cmd, Target* pft) {
  * - STATUS : print mutlisample status and Error and Command counters
  *   pflib::FastControl::getErrorCounters, pflib::FastControl::getCmdCounters,
  *   pflib::FastControl::getMultisampleSetup
+ * - ORBIT_BLINKER: toggle if orbit blinker is on or not
  *
  * @param[in] cmd FC menu command
  * @param[in] pft active target
@@ -227,7 +228,16 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().resetCounters();
     do_status = true;
   }
-
+  if (cmd == "ORBIT_BLINKER") {
+    bool blinker_on{true};
+    int bx{0};
+    pft->fc().fc_get_orbit_blinker(blinker_on, bx);
+    blinker_on =
+        pftool::readline_bool("Turn on orbit blinker?", not blinker_on);
+    bx = pftool::readline_int("Which BX to send an L1A on every orbit?", bx);
+    pft->fc().fc_setup_orbit_blinker(blinker_on, bx);
+    do_status = true;
+  }
   if (cmd == "CALIB") {
     int offset = pft->fc().fc_get_setup_calib();
     offset = pftool::readline_int("Calibration L1A offset?", offset);
@@ -241,33 +251,6 @@ static void fc(const std::string& cmd, Target* pft) {
   }
 
   if (cmd == "STATUS" || do_status) {
-    static const std::map<int, std::string> bit_comments = {
-        {0, "encoding errors"},
-        {3, "l1a/read requests"},
-        {4, "l1a NZS requests"},
-        {5, "orbit/bcr requests"},
-        {6, "orbit count resets"},
-        {7, "internal calib pulse requests"},
-        {8, "external calib pulse requests"},
-        {9, "chipsync resets"},
-        {10, "event count resets"},
-        {11, "event buffer resets"},
-        {12, "link reset roc-t"},
-        {13, "link reset roc-d"},
-        {14, "link reset econ-t"},
-        {15, "link reset econ-d"},
-    };
-    /*
-    bool multi;
-    int nextra;
-    pft->fc().getMultisampleSetup(multi,nextra);
-    if (multi) printf(" Multisample readout enabled : %d extra L1a (%d total
-    samples)\n",nextra,nextra+1); else printf(" Multisaple readout disabled\n");
-    printf(" Snapshot: %03x\n",pft->wb->wb_read(1,3));
-    uint32_t sbe,dbe;
-    pft->fc().getErrorCounters(sbe,dbe);
-    printf("  Single bit errors: %d     Double bit errors: %d\n",sbe,dbe);
-    */
     std::map<std::string, uint32_t> cnt = pft->fc().getCmdCounters();
     for (const auto& pair : cnt) {
       printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
@@ -306,5 +289,7 @@ auto menu_fc =
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
-        ->line("LED", "Setup LED calibration pulse", fc);
+        ->line("LED", "Setup LED calibration pulse", fc)
+        ->line("ORBIT_BLINKER",
+               "send L1A once every orbit for alignment testing (10kHz)", fc);
 }  // namespace

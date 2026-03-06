@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 
 ENABLE_LOGGING();
 
@@ -17,7 +16,7 @@ void sampling_phase_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int n_links = 2;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = determine_n_links(tgt);
+    n_links = tgt->econ(pftool::state.iecon).nLinks();
   }
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,  // output file name

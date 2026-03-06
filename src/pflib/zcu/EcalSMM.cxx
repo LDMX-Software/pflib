@@ -26,22 +26,63 @@ class EcalSMMTargetZCU : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
+    // Setup DAQ lpGBT
+    try {
+      int daq_pusm = daq_lpgbt_->status();
+      pflib::lpgbt::standard_config::setup_ecal_daq_gpio(*daq_lpgbt_);
+
+      if (daq_pusm == 19) {
+        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug)
+            << "DAQ lpGBT is not ready, attempting standard config";
+        try {
+          pflib::lpgbt::standard_config::setup_ecal(
+              *daq_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               DAQ_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(warn) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      }
+    } catch (const pflib::Exception& e) {
+      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
+                          "check Optical links";
+      pflib_log(warn) << "Failure to check DAQ lpGBT status [" << e.name()
+                      << "]: " << e.message();
+      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
+                      << " and then re-open pftool.";
+    }
+
+    // Setup TRG lpGBT
+    try {
+      int trg_pusm = trig_lpgbt_->status();
+      if (trg_pusm == 19) {
+        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
+      } else {
+        pflib_log(debug)
+            << "TRG lpGBT is not ready, attempting standard config";
+        try {
+          pflib::lpgbt::standard_config::setup_ecal(
+              *trig_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                                DAQ_SingleModuleMotherboard);
+        } catch (const pflib::Exception& e) {
+          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
+          pflib_log(info) << "Failure to apply standard config [" << e.name()
+                          << "]: " << e.message();
+        }
+      }
+    } catch (const pflib::Exception& e) {
+      pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
+                      << e.name() << "]: " << e.message();
+    }
+
     ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
                                                       0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
     daq_ = std::make_unique<ZCU_Capture>();
-
-    using namespace pflib::lpgbt::standard_config;
-
-    setup_ecal(*daq_lpgbt_, ECAL_lpGBT_Config::DAQ_SingleModuleMotherboard);
-
-    try {
-      setup_ecal(*trig_lpgbt_, ECAL_lpGBT_Config::TRIG_SingleModuleMotherboard);
-    } catch (std::exception& e) {
-      printf("Problem (non critical) setting up TRIGGER lpgbt\n");
-    }
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
@@ -79,6 +120,9 @@ class EcalSMMTargetZCU : public Target {
   virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
     format_ = format;
     contrib_id_ = contrib_id;
+
+    daq().reset();
+    fc().clear_run();
   }
 
   virtual std::vector<uint32_t> read_event() override {

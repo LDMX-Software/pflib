@@ -8,7 +8,9 @@
 
 void tot_vref_scan(Target* tgt) {
   auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::tot_vref_scan(tgt, roc);
+  size_t n_events_calib = pftool::readline_int(
+      "How many events per time point for finding the target calibs?", 100);
+  auto settings = pflib::algorithm::tot_vref_scan(tgt, roc, n_events_calib);
   YAML::Emitter out;
   out << YAML::BeginMap;
   for (const auto& page : settings) {
