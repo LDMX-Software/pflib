@@ -124,18 +124,16 @@ static void econ_status(const std::string& cmd, Target* tgt) {
    * we are reading out from the chip, but I think that makes sense.
    */
   static const std::array<const char*, 9> pusm_state_names = {
-    "RESET",
-    "IDLE",
-    "RESET_PLL",
-    "WAIT_PLL_LOCK",
-    "RESET_DLLS",
-    "WAIT_DLL_RESET_DONE",
-    "WAIT_DLL_LOCK",
-    "RESET_LOGIC_USING_DLL",
-    "READY"
-  }; 
+      "RESET",         "IDLE",
+      "RESET_PLL",     "WAIT_PLL_LOCK",
+      "RESET_DLLS",    "WAIT_DLL_RESET_DONE",
+      "WAIT_DLL_LOCK", "RESET_LOGIC_USING_DLL",
+      "READY"};
   int pusm_state = econ.getPUSMStateValue();
-  const char* pusm_state_name = ((pusm_state >= 0 and pusm_state < pusm_state_names.size()) ? pusm_state_names[pusm_state] : "???");
+  const char* pusm_state_name =
+      ((pusm_state >= 0 and pusm_state < pusm_state_names.size())
+           ? pusm_state_names[pusm_state]
+           : "???");
 
   printf(" %18s: %d\n", "PUSM Run Val", econ.getPUSMRunValue());
   printf(" %18s: %d %s\n", "PUSM State Val", pusm_state, pusm_state_name);
