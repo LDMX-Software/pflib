@@ -28,8 +28,47 @@ struct ToolBox {
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
+enum class OlinkRoute {
+  DAQ = 0,
+  TRG = 1
+};
+
+pflib::OptoLink& get_olink(ToolBox* tgt, OlinkRoute route) {
+  switch (route) {
+    case OlinkRoute::DAQ: {
+      if (not tgt->olink_daq) {
+        PFEXCEPTION_RAISE("BadSel",
+          "OlinkRoute::DAQ not created");
+      }
+      return *(tgt->olink_daq);
+    } case OlinkRoute::TRG: {
+      if (not tgt->olink_trig) {
+        PFEXCEPTION_RAISE("BadSel",
+          "OlinkRoute::TRG not created");
+      }
+      return *(tgt->olink_trig);
+    } default:
+      PFEXCEPTION_RAISE("BadSel",
+        "Unrecogznied OlinkRoute");
+  }
+}
+
 void opto(const std::string& cmd, ToolBox* target) {
-  pflib::OptoLink& olink = *(target->olink_daq);
+  static OlinkRoute olink_choice = OlinkRoute::DAQ;
+  if (cmd == "CHOOSE") {
+    static const std::vector<std::string> opts{"DAQ", "TRG"};
+    auto choice = tool::readline("Which Olink? ", opts);
+    if (choice == "DAQ") {
+      olink_choice = OlinkRoute::DAQ;
+    } else if (choice == "TRG") {
+      olink_choice = OlinkRoute::TRG;
+    } else {
+      std::cerr << "Choice not DAQ or TRG" << std::endl;
+      return;
+    }
+  }
+  auto& olink{get_olink(target, olink_choice)};
+
   if (cmd == "FULLSTATUS") {
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
@@ -62,8 +101,7 @@ void opto(const std::string& cmd, ToolBox* target) {
     if (change) olink.set_rx_polarity(!olink.get_rx_polarity());
   }
   if (cmd == "LINKTRICK") {
-    if (target->olink_daq != 0) target->olink_daq->run_linktrick();
-    if (target->olink_trig != 0) target->olink_trig->run_linktrick();
+    olink.run_linktrick();
   }
 }
 
@@ -774,6 +812,7 @@ auto gen =
 
 auto optom =
     tool::menu("OPTO", "Optical Link Functions")
+        ->line("CHOOSE", "change which optical link to focus on", opto)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset the optical link", opto)
         ->line("RESET",
