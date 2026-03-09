@@ -856,6 +856,7 @@ int main(int argc, char* argv[]) {
       nomezz = true;
       i++;
       target_name = "standardLpGBTpair-";
+      i_link = std::stoi(argv[i]);
       target_name += argv[i][0];
       printf("%s\n", target_name.c_str());
     }
@@ -909,8 +910,8 @@ int main(int argc, char* argv[]) {
   ToolBox t;
 
   if (!bittware) {
-    t.olink_daq = new pflib::zcu::ZCUOptoLink(target_name);
-    t.olink_trig = new pflib::zcu::ZCUOptoLink(target_name, 1, false);
+    t.olink_daq = new pflib::zcu::ZCUOptoLink(target_name, 2*i_link+0, true);
+    t.olink_trig = new pflib::zcu::ZCUOptoLink(target_name, 2*i_link+1, false);
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE
