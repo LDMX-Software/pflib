@@ -20,19 +20,20 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
       std::make_unique<lpGBT_ICEC_Simple>(coder_name, !isdaq, chipaddr);
 }
 
-static const uint32_t REG_STATUS_BASE = 3;
+static const uint32_t REG_STATUS = 3;
 
-void ZCUOptoLink::reset_link() {  // actually affects all links in a block
+void ZCUOptoLink::reset_link() {
   /**
-   * This reset could affect all links in a block
+   * This reset actually affects all links (SFPs) in a block (quad)
+   * connected to the ZCU.
+   *
+   * The entire quad shares the same reset and status bits.
    */
-  const uint32_t REG_STATUS = REG_STATUS_BASE + ilink_;
-  const uint32_t RX_RESET = 0x4 << ilink_;
-  const uint32_t TX_RESET = 0x2 << ilink_;
-  // global, not dependent on ilink_
-  const uint32_t GTH_RESET = 0x1;
-
+  static const int GTH_RESET = 0x1;
+  static const int TX_RESET = 0x2;
+  static const int RX_RESET = 0x4;
   transright_.write(0x0, TX_RESET);
+  transright_.write(0x0, GTH_RESET);
   transright_.write(0x0, RX_RESET);
   usleep(1000);
   int done = transright_.readMasked(REG_STATUS, 0x8);
@@ -110,7 +111,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
     {0x0, "resets"},
     {0x1, "polarity"},
     {0x2, "enable"},
-    {0x3, "sfp0 status"},
+    {0x3, "sfp status"},
     {0x7, "cdr lock"}
   };
   for (uint32_t reg{0}; reg < 0x10; reg++) {
@@ -121,7 +122,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
     retval[string_format("0x%02x %12s", reg, name)] = transright_.read(reg);
   }
 
-  uint32_t val = transright_.read(REG_STATUS_BASE + ilink_);
+  uint32_t val = transright_.read(REG_STATUS);
   retval["TX_RESETDONE"] = (val >> 0) & 0x1;
   retval["RX_RESETDONE"] = (val >> 1) & 0x1;
   retval["CDR_STABLE"] = (val >> 2) & 0x1;
@@ -155,19 +156,31 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
       transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
-    const char* cnames[] = {"LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40",
-                            0};
+    static const std::array<const char*, 4> cnames = {
+      "LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40"
+    };
     const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
+    for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
+    }
   } else {
-    const char* cnames[] = {"DAQ_LINK_WORD",  "TRIG_LINK_WORD",
-                            "DAQ_LINK_ERROR", "TRIG_LINK_ERROR",
-                            "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
-                            "CLOCK_40",       0};
+    static const std::array<const char*, 7> cnames = {
+      "DAQ_LINK_WORD",  "TRIG_LINK_WORD",
+       "DAQ_LINK_ERROR", "TRIG_LINK_ERROR",
+       "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
+       "CLOCK_40"
+    };
     const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
-      retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
+    for (int i = 0; i < cnames.size(); i++) {
+      retval[string_format("%d %s", CRATES_OFFSET+i, cnames[i])] = coder_.read(CRATES_OFFSET + i);
+    }
+
+    for (int i{64}; i < 100; i++) {
+      if (i > CRATES_OFFSET - 1 and i < CRATES_OFFSET + cnames.size()) {
+        continue;
+      }
+      retval[string_format("%d", i)] = coder_.read(i);
+    }
   }
 
   return retval;
