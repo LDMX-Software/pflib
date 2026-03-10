@@ -28,48 +28,35 @@ struct ToolBox {
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
-enum class OlinkRoute {
-  DAQ = 0,
-  TRG = 1
-};
-
-pflib::OptoLink& get_olink(ToolBox* tgt, OlinkRoute route) {
-  switch (route) {
-    case OlinkRoute::DAQ: {
-      if (not tgt->olink_daq) {
-        PFEXCEPTION_RAISE("BadSel",
-          "OlinkRoute::DAQ not created");
-      }
-      return *(tgt->olink_daq);
-    } case OlinkRoute::TRG: {
-      if (not tgt->olink_trig) {
-        PFEXCEPTION_RAISE("BadSel",
-          "OlinkRoute::TRG not created");
-      }
-      return *(tgt->olink_trig);
-    } default:
+pflib::OptoLink& get_olink(ToolBox* tgt, const std::string& link_choice) {
+  if (link_choice == "DAQ") {
+    if (not tgt->olink_daq) {
       PFEXCEPTION_RAISE("BadSel",
-        "Unrecogznied OlinkRoute");
+        "OlinkRoute::DAQ not created");
+    }
+    return *(tgt->olink_daq);
+  } else if (link_choice == "TRG") {
+    if (not tgt->olink_trig) {
+      PFEXCEPTION_RAISE("BadSel",
+        "OlinkRoute::TRG not created");
+    }
+    return *(tgt->olink_trig);
+  } else {
+    PFEXCEPTION_RAISE("BadSel",
+      "Unrecogznied OlinkRoute");
   }
 }
 
 void opto(const std::string& cmd, ToolBox* target) {
-  static OlinkRoute olink_choice = OlinkRoute::DAQ;
+  static std::string olink_choice = "DAQ";
   if (cmd == "CHOOSE") {
     static const std::vector<std::string> opts{"DAQ", "TRG"};
-    auto choice = tool::readline("Which Olink? ", opts);
-    if (choice == "DAQ") {
-      olink_choice = OlinkRoute::DAQ;
-    } else if (choice == "TRG") {
-      olink_choice = OlinkRoute::TRG;
-    } else {
-      std::cerr << "Choice not DAQ or TRG" << std::endl;
-      return;
-    }
+    olink_choice = tool::readline("Which Olink? ", opts);
   }
   auto& olink{get_olink(target, olink_choice)};
 
   if (cmd == "FULLSTATUS") {
+    printf("Olink: %s\n", olink_choice.c_str());
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
     std::map<std::string, uint32_t> info;
@@ -93,6 +80,7 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "POLARITY") {
     bool change;
+    printf("Olink: %s\n", olink_choice.c_str());
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
     change = tool::readline_bool("Change TX polarity? ", false);
