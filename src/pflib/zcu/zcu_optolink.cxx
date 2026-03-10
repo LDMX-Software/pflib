@@ -1,4 +1,7 @@
 #include "pflib/zcu/zcu_optolink.h"
+#include "pflib/utility/string_format.h"
+using pflib::utility::string_format;
+
 namespace pflib {
 namespace zcu {
 
@@ -17,45 +20,48 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
       std::make_unique<lpGBT_ICEC_Simple>(coder_name, !isdaq, chipaddr);
 }
 
-static const uint32_t REG_STATUS = 3;
+static const uint32_t REG_STATUS_BASE = 3;
 
 void ZCUOptoLink::reset_link() {  // actually affects all links in a block
-  transright_.write(0x0, 0x2);    // TX_RESET
-  transright_.write(0x0, 0x1);    // GTH_RESET
-  transright_.write(0x0, 0x4);    // RX_RESET
+  /**
+   * This reset could affect all links in a block
+   */
+  const uint32_t REG_STATUS = REG_STATUS_BASE + ilink_;
+  const uint32_t RX_RESET = 0x4 << ilink_;
+  const uint32_t TX_RESET = 0x2 << ilink_;
+  // global, not dependent on ilink_
+  const uint32_t GTH_RESET = 0x1;
 
-  int done;
+  transright_.write(0x0, TX_RESET);
+  transright_.write(0x0, RX_RESET);
+  usleep(1000);
+  int done = transright_.readMasked(REG_STATUS, 0x8);
   int attempts = 1;
-  done = transright_.readMasked(REG_STATUS, 0x8);
-
+  printf("  Attempt %d:  RX_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
   while (!done and attempts < 100) {
-    if (attempts % 2) {
-      transright_.write(0x0, 0x1);  // GTH_RESET
+    if (attempts % 10 == 0) {
+      transright_.write(0x0, GTH_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
-        attempts,done);
-      */
+      printf("  Attempt %d: GTH_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
     } else {
-      transright_.write(0x0, 0x4);  // RX_RESET
+      transright_.write(0x0, RX_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
-        attempts,done);
-      */
+      printf("  Attempt %d:  RX_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
     }
     attempts += 1;
   }
 
-  coder_.write(0, 1);  // reset the DECODER
+  if (!done) {
+    printf("Failed to get BUFFBYPASS_DONE after %d attempts\n", attempts);
+    return;
+  }
+
+  coder_.write(0, 1);  // reset the DECODER - depend on ilink?
   usleep(1000);
-  coder_.write(65, 0x40000000);  // reset IC
-  coder_.write(67, 0x40000000);  // reset EC
-  usleep(1000);
-  coder_.write(65, 0x00000000);  // reset IC
-  coder_.write(67, 0x00000000);  // reset EC
+  coder_.write(65, 0x40000000);  // reset IC - depend on ilink?
+  coder_.write(67, 0x40000000);  // reset EC - depend on ilink?
 }
 
 void ZCUOptoLink::run_linktrick() {
@@ -99,7 +105,23 @@ void ZCUOptoLink::set_tx_polarity(bool polarity) {
 
 std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
-  uint32_t val = transright_.read(REG_STATUS);
+
+  std::map<int, const char*> unique_names = {
+    {0x0, "resets"},
+    {0x1, "polarity"},
+    {0x2, "enable"},
+    {0x3, "sfp0 status"},
+    {0x7, "cdr lock"}
+  };
+  for (uint32_t reg{0}; reg < 0x10; reg++) {
+    const char* name = "";
+    if (auto it{unique_names.find(reg)}; it != unique_names.end()) {
+      name = it->second;
+    }
+    retval[string_format("0x%02x %12s", reg, name)] = transright_.read(reg);
+  }
+
+  uint32_t val = transright_.read(REG_STATUS_BASE + ilink_);
   retval["TX_RESETDONE"] = (val >> 0) & 0x1;
   retval["RX_RESETDONE"] = (val >> 1) & 0x1;
   retval["CDR_STABLE"] = (val >> 2) & 0x1;
@@ -115,24 +137,21 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   return retval;
 }
 
+
 std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   std::map<std::string, uint32_t> retval;
 
-  /*
-  const char* tnames[] = {
-    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK", "RX00", "RX01",
-    "RX02",       "RX03",     "RX04",       "RX05",       "RX06", "RX07",
-    "RX08",       "RX09",     "RX10",       "RX11",       0};
-  */
-  const char* tnames[] = {"S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK",
-                          0};
-  const int twhich[] = {0, 1, 2, 3, -1};
+  static const std::array<const char*, 15> tnames = {
+    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK",
+    "RX00", "RX01", "RX02", "RX04", "RX05", "RX06", "RX07",
+    "RX08", "RX09", "RX10", "RX11"
+  };
+  static const int TRIGHT_RATES_OFFSET = 0x10;
+  for (std::size_t i{0}; i < tnames.size(); i++) {
+    retval[string_format("%s (0x%02x)", tnames[i], TRIGHT_RATES_OFFSET+i)] = transright_.read(TRIGHT_RATES_OFFSET + i);
+  }
 
-  const int TRIGHT_RATES_OFFSET = 16;
-  for (int i = 0; tnames[i] != 0; i++)
-    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + twhich[i]);
-
-  retval["RX-LINK"] =
+  retval[string_format("RX-LINK (%x)", TRIGHT_RATES_OFFSET+4+SFP0_OFFSET+ilink_)] =
       transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
