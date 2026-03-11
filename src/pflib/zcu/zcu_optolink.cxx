@@ -39,18 +39,15 @@ void ZCUOptoLink::reset_link() {
   usleep(1000);
   int done = transright_.readMasked(REG_STATUS, 0x8);
   int attempts = 1;
-  printf("  Attempt %d:  RX_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
   while (!done and attempts < 100) {
     if (attempts % 10 == 0) {
       transright_.write(0x0, GTH_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      printf("  Attempt %d: GTH_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
     } else {
       transright_.write(0x0, RX_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      printf("  Attempt %d:  RX_RESET -> BUFFBYPASS_DONE=%d\n", attempts, done);
     }
     attempts += 1;
   }
@@ -60,10 +57,18 @@ void ZCUOptoLink::reset_link() {
     return;
   }
 
-  coder_.write(0, 1);  // reset the DECODER - depend on ilink?
+  /**
+   * After BUFFBYPASS_DONE, then we reset the decoder, IC, and EC.
+   *
+   * Unsure if this should depend on ilink. Currently, it does not.
+   */
+  coder_.write(0, 1);  // reset the DECODER
   usleep(1000);
-  coder_.write(65, 0x40000000);  // reset IC - depend on ilink?
-  coder_.write(67, 0x40000000);  // reset EC - depend on ilink?
+  coder_.write(65, 0x40000000);  // reset IC
+  coder_.write(67, 0x40000000);  // reset EC
+  usleep(1000);
+  coder_.write(65, 0x00000000);  // reset IC
+  coder_.write(67, 0x00000000);  // reset EC
 }
 
 void ZCUOptoLink::run_linktrick() {
@@ -162,6 +167,7 @@ int ZCUOptoLink::get_elink_tx_mode(int elink) {
   if (elink < 0 || elink > 3 || !isdaq_) return -1;
   return coder_.read(REG_DOWNLINK_MODE0 + elink);
 }
+
 void ZCUOptoLink::set_elink_tx_mode(int elink, int mode) {
   if (elink < 0 || elink > 3 || !isdaq_) return;
   coder_.write(REG_DOWNLINK_MODE0 + elink, mode & MASK_DOWNLINK_MODE);
