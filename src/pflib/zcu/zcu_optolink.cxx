@@ -107,21 +107,6 @@ void ZCUOptoLink::set_tx_polarity(bool polarity) {
 std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
 
-  std::map<int, const char*> unique_names = {
-    {0x0, "resets"},
-    {0x1, "polarity"},
-    {0x2, "enable"},
-    {0x3, "sfp status"},
-    {0x7, "cdr lock"}
-  };
-  for (uint32_t reg{0}; reg < 0x10; reg++) {
-    const char* name = "";
-    if (auto it{unique_names.find(reg)}; it != unique_names.end()) {
-      name = it->second;
-    }
-    retval[string_format("0x%02x %12s", reg, name)] = transright_.read(reg);
-  }
-
   uint32_t val = transright_.read(REG_STATUS);
   retval["TX_RESETDONE"] = (val >> 0) & 0x1;
   retval["RX_RESETDONE"] = (val >> 1) & 0x1;
@@ -142,18 +127,16 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
 std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   std::map<std::string, uint32_t> retval;
 
-  static const std::array<const char*, 15> tnames = {
-    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK",
-    "RX00", "RX01", "RX02", "RX04", "RX05", "RX06", "RX07",
-    "RX08", "RX09", "RX10", "RX11"
+  static const std::array<const char*, 4> tnames = {
+    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK"
   };
   static const int TRIGHT_RATES_OFFSET = 0x10;
   for (std::size_t i{0}; i < tnames.size(); i++) {
-    retval[string_format("%s (0x%02x)", tnames[i], TRIGHT_RATES_OFFSET+i)] = transright_.read(TRIGHT_RATES_OFFSET + i);
+    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + i);
   }
 
-  retval[string_format("RX-LINK (%x)", TRIGHT_RATES_OFFSET+4+SFP0_OFFSET+ilink_)] =
-      transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
+  retval["RX-LINK"] =
+    transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
     static const std::array<const char*, 4> cnames = {
@@ -172,14 +155,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
     };
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
-      retval[string_format("%d %s", CRATES_OFFSET+i, cnames[i])] = coder_.read(CRATES_OFFSET + i);
-    }
-
-    for (int i{64}; i < 100; i++) {
-      if (i > CRATES_OFFSET - 1 and i < CRATES_OFFSET + cnames.size()) {
-        continue;
-      }
-      retval[string_format("%d", i)] = coder_.read(i);
+      retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
     }
   }
 
