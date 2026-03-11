@@ -1,4 +1,5 @@
 #include "pflib/zcu/zcu_optolink.h"
+
 #include "pflib/utility/string_format.h"
 using pflib::utility::string_format;
 
@@ -123,36 +124,31 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   return retval;
 }
 
-
 std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   std::map<std::string, uint32_t> retval;
 
-  static const std::array<const char*, 4> tnames = {
-    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK"
-  };
+  static const std::array<const char*, 4> tnames = {"S_AXI_ACLK", "AXIS_clk",
+                                                    "GTH_REFCLK", "EXT_REFCLK"};
   static const int TRIGHT_RATES_OFFSET = 0x10;
   for (std::size_t i{0}; i < tnames.size(); i++) {
     retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + i);
   }
 
   retval["RX-LINK"] =
-    transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
+      transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
-    static const std::array<const char*, 4> cnames = {
-      "LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40"
-    };
+    static const std::array<const char*, 4> cnames = {"LINK_WORD", "LINK_ERROR",
+                                                      "LINK_CLOCK", "CLOCK_40"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
     }
   } else {
     static const std::array<const char*, 7> cnames = {
-      "DAQ_LINK_WORD",  "TRIG_LINK_WORD",
-       "DAQ_LINK_ERROR", "TRIG_LINK_ERROR",
-       "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
-       "CLOCK_40"
-    };
+        "DAQ_LINK_WORD",   "TRIG_LINK_WORD", "DAQ_LINK_ERROR",
+        "TRIG_LINK_ERROR", "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
+        "CLOCK_40"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);

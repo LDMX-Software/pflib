@@ -31,19 +31,16 @@ using tool = pflib::menu::Menu<ToolBox*>;
 pflib::OptoLink& get_olink(ToolBox* tgt, const std::string& link_choice) {
   if (link_choice == "DAQ") {
     if (not tgt->olink_daq) {
-      PFEXCEPTION_RAISE("BadSel",
-        "OlinkRoute::DAQ not created");
+      PFEXCEPTION_RAISE("BadSel", "OlinkRoute::DAQ not created");
     }
     return *(tgt->olink_daq);
   } else if (link_choice == "TRG") {
     if (not tgt->olink_trig) {
-      PFEXCEPTION_RAISE("BadSel",
-        "OlinkRoute::TRG not created");
+      PFEXCEPTION_RAISE("BadSel", "OlinkRoute::TRG not created");
     }
     return *(tgt->olink_trig);
   } else {
-    PFEXCEPTION_RAISE("BadSel",
-      "Unrecogznied OlinkRoute");
+    PFEXCEPTION_RAISE("BadSel", "Unrecogznied OlinkRoute");
   }
 }
 
@@ -937,8 +934,10 @@ int main(int argc, char* argv[]) {
   ToolBox t;
 
   if (!bittware) {
-    t.olink_daq = new pflib::zcu::ZCUOptoLink(target_name, 2*i_link+0, true);
-    t.olink_trig = new pflib::zcu::ZCUOptoLink(target_name, 2*i_link+1, false);
+    t.olink_daq =
+        new pflib::zcu::ZCUOptoLink(target_name, 2 * i_link + 0, true);
+    t.olink_trig =
+        new pflib::zcu::ZCUOptoLink(target_name, 2 * i_link + 1, false);
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE

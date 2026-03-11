@@ -18,8 +18,10 @@ class HcalBackplaneZCU : public HcalBackplane {
     std::string uio_coder =
         pflib::utility::string_format("standardLpGBTpair-%d", itarget);
 
-    opto_["DAQ"] = std::make_shared<ZCUOptoLink>(uio_coder, 2*itarget+0, true);
-    opto_["TRG"] = std::make_shared<ZCUOptoLink>(uio_coder, 2*itarget+1, false);
+    opto_["DAQ"] =
+        std::make_shared<ZCUOptoLink>(uio_coder, 2 * itarget + 0, true);
+    opto_["TRG"] =
+        std::make_shared<ZCUOptoLink>(uio_coder, 2 * itarget + 1, false);
 
     daq_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["DAQ"]->lpgbt_transport());
