@@ -100,5 +100,5 @@ void inv_vref_scan_2(Target* tgt) {
 }
 
 void level_pedestals_inv_vref(Target* tgt){
-  void inv_vref_scan(Target* tgt);
+  inv_vref_scan_2(tgt);
 }
