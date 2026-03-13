@@ -134,7 +134,7 @@ namespace pflib::algorithm {
           } else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
             nl_vector = nl_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events, channel, i_link, delays, CALIBs, optimal_bx);
           }
-          inl_list.push_back(nl_array[0]);
+          inl_list.push_back(nl_vector[0]);
         }
       }
     }

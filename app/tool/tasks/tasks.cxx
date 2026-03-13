@@ -26,6 +26,7 @@
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
+#include "set_delays.h"
 
 namespace {
 auto menu_tasks =
@@ -68,7 +69,9 @@ auto menu_tasks =
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+	->line("SET_DELAYS",
+		"calibrate the ADC-bit delay parameters for each link using INL", set_delays);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
