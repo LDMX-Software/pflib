@@ -14,7 +14,6 @@ class GPIO {
   GPIO() {}
 
  public:
-  
   virtual ~GPIO() = default;
 
   /**
