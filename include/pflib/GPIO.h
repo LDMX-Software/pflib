@@ -14,6 +14,9 @@ class GPIO {
   GPIO() {}
 
  public:
+  
+  virtual ~GPIO() = default;
+
   /**
    * Get the set of GPO pin names
    */
