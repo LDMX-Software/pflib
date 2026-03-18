@@ -3,13 +3,12 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void global_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
+static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                                    std::string fname, int stepsize, 
                                    int start_bx, int n_bx,
                                    int min_ch, int max_ch) {
@@ -27,7 +26,7 @@ static void global_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevent
   std::vector<double> data;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = determine_n_links(tgt);
+    n_links = tgt->econ(pftool::state.iecon).nLinks(); 
   }
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,
@@ -90,23 +89,9 @@ static void global_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevent
               roc.testParameters().add("TOP", "PHASE_STROBE", phase_strobe).apply();
           pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
           usleep(10);  // make sure parameters are applied
-          //auto params = roc.getParameters("REFERENCEVOLTAGE_1");
-          //auto toa = params["TOA_VREF"];
-          //for (auto eh : params) {
-          //  pflib_log(info) << "param info: " << eh.first << " " << eh.second;
-          //}
-          //pflib_log(info) << "TOA_VREF = " << toa;
           time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
                   phase_strobe * clock_cycle / n_phase_strobe;
           daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
-          //if (ch >= 36) {
-          //  for (int l = 0; l < data.size(); l++) {
-          //    if (data[l] == 1) {
-          //      throw std::invalid_argument("The Tc is active!");
-          //    }
-          //  }
-          //}
-          //if (ch >= 37) {throw std::invalid_argument("The Tc never activated on link 1");}
         }
       }
       // reset charge_to_l1a to central value
@@ -115,8 +100,8 @@ static void global_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevent
   }
 }
 
-void global_calib_scan(Target* tgt) {
-  int nevents = pftool::readline_int("How many events per time point? ", 2);
+void channel_wise_calib_scan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 10);
   int stepsize = pftool::readline_int("How many steps between calibs? ", 50);
   int start_bx = pftool::readline_int("Starting BX? ", 0);
   int n_bx = pftool::readline_int("Number of BX? ", 2);
@@ -127,7 +112,7 @@ void global_calib_scan(Target* tgt) {
 
   auto test_param_builder = roc.testParameters();
 
-  fname = pftool::readline_path("global-calib-scan", ".csv");
+  fname = pftool::readline_path("channel-wise-calib-scan", ".csv");
   for (int i_link = 0; i_link < 2; i_link++) {
     auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link); 
     test_param_builder.add(refvol_page, "INTCTEST", 1)
@@ -136,12 +121,12 @@ void global_calib_scan(Target* tgt) {
   auto test_param_handle = test_param_builder.apply();
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    global_calib_scan_writer<pflib::packing::SingleROCEventPacket>(
+    channel_wise_calib_scan_writer<pflib::packing::SingleROCEventPacket>(
         tgt, roc, nevents, fname, stepsize,
         start_bx, n_bx, min_ch, max_ch);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
-    global_calib_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
+    channel_wise_calib_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
         tgt, roc, nevents, fname, stepsize,
         start_bx, n_bx, min_ch, max_ch);
   }
