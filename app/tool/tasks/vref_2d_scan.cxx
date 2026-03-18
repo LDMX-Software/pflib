@@ -1,7 +1,6 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 #include "charge_timescan.h"
 #include "pflib/utility/string_format.h"
 
@@ -13,7 +12,7 @@ static void vref_2d_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
   int n_links = 2;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = determine_n_links(tgt);
+    n_links = tgt->econ(pftool::state.iecon).nLinks();
   }
 
   int ch = 0;

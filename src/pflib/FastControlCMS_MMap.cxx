@@ -104,6 +104,7 @@ class FastControlCMS_MMap : public FastControl {
 
   Periodic periodic(int i) { return Periodic(uio_, 0x20 + i * 2); }
 
+  static const int ORBIT_BLINKER = 1;
   static const int PEDESTAL_PERIODIC = 2;
   static const int CHARGE_PERIODIC = 3;
   static const int CHARGE_L1A_PERIODIC = 4;
@@ -111,6 +112,14 @@ class FastControlCMS_MMap : public FastControl {
   static const int LED_L1A_PERIODIC = 6;
 
   void standard_setup() override {
+    Periodic orbit_blinker(periodic(ORBIT_BLINKER));
+    orbit_blinker.bx = 10;
+    orbit_blinker.flavor = 0;
+    orbit_blinker.orbit_prescale = 0;
+    orbit_blinker.enable_follow = false;
+    orbit_blinker.enable = false;
+    orbit_blinker.pack();
+
     Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
     std_l1a.bx = 10;
     std_l1a.flavor = 0;
@@ -162,6 +171,19 @@ class FastControlCMS_MMap : public FastControl {
 
   virtual void resetCounters() override {
     uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
+  }
+
+  virtual void fc_setup_orbit_blinker(bool enable, int bx) override {
+    Periodic orbit_blinker(periodic(ORBIT_BLINKER));
+    orbit_blinker.bx = bx;
+    orbit_blinker.enable = enable;
+    orbit_blinker.pack();
+  }
+
+  virtual void fc_get_orbit_blinker(bool& enable, int& bx) override {
+    Periodic orbit_blinker(periodic(ORBIT_BLINKER));
+    bx = orbit_blinker.bx;
+    enable = orbit_blinker.enable;
   }
 
   virtual int fc_get_setup_calib() override {
@@ -303,7 +325,15 @@ class FastControlCMS_MMap : public FastControl {
     uint32_t preval = uio_.read(ADDR_CTL_REG);
     uio_.write(ADDR_CTL_REG, ((preval | CTL_ENABLE_L1AS) ^ CTL_ENABLE_L1AS));
 
+    resetCounters();
+    usleep(1000);
+    bufferclear();
+    usleep(1000);
+    orbit_count_reset();
+    usleep(1000);
     uio_.rmw(ADDR_REQUEST, REQ_ecr, REQ_ecr);
+    usleep(1000);
+
     // restore previous situation
     uio_.write(ADDR_CTL_REG, preval);
   }

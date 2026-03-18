@@ -16,6 +16,6 @@ namespace pflib::algorithm {
  * @note Only functional for single-ROC targets
  */
 std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
-    Target* tgt, ROC roc);
+    Target* tgt, ROC roc, size_t n_events_calib);
 
 }  // namespace pflib::algorithm

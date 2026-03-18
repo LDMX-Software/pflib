@@ -20,11 +20,16 @@ class ECON {
   ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr,
        const std::string& type_version);
 
+  ECON(const ECON&) = delete;
+  ECON& operator=(const ECON&) = delete;
+
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);
   int getPUSMRunValue();
   int getPUSMStateValue();
   bool isRunMode();
+  /// get the number of readout links that are enabled
+  int nLinks();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
   void setValue(int reg_addr, uint64_t value, int nbytes);

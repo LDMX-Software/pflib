@@ -12,8 +12,7 @@ namespace zcu {
 
 class ZCUOptoLink : public pflib::OptoLink {
  public:
-  ZCUOptoLink(const std::string& name = "singleLPGBT", int ilink = 0,
-              bool isdaq = true);
+  ZCUOptoLink(const std::string& name, int ilink, bool isdaq);
 
   virtual int ilink() { return ilink_; }
   virtual bool is_bidirectional() { return isdaq_; }
