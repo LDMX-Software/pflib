@@ -15,6 +15,8 @@ class FastControl {
  public:
   FastControl() : l1a_per_ror_{1} {}
 
+  virtual ~FastControl() = default;
+
   /**
    * Get the counters for all the different fast control commands
    */
