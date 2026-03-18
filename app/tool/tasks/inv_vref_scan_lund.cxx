@@ -4,11 +4,11 @@
 
 #include <fstream>
 
-#include "../algorithm/inv_vref_scan_lund.h"
+#include "../algorithm/inv_vref_lund.h"
 
-void tot_vref_scan(Target* tgt) {
+void inv_vref_scan_lund(Target* tgt) {
   auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::inv_vref_scan_lund(tgt, roc);
+  auto settings = pflib::algorithm::inv_vref_lund(tgt, roc);
   YAML::Emitter out;
   out << YAML::BeginMap;
   for (const auto& page : settings) {
@@ -31,7 +31,7 @@ void tot_vref_scan(Target* tgt) {
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
     std::string fname = pftool::readline_path(
-        "tot-vref-scan-" + std::to_string(pftool::state.iroc) + "-settings",
+        "inv_vref_scan_lund-" + std::to_string(pftool::state.iroc) + "-settings",
         ".yaml");
 
     std::ofstream f{fname};

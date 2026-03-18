@@ -2,7 +2,7 @@
 
 #include "../daq_run.h"
 #include "../econ_links.h"
-#include "../tasks/inv_vref_lund.h"
+#include "../tasks/inv_vref_scan_lund.h"
 #include "pflib/utility/string_format.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/mean.h"
@@ -70,6 +70,42 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
       linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
   }
+}
+
+int DataFitter::fit(int target) {
+  static auto the_log_{::pflib::logging::get("inv_vref_scan:fit")};
+  pflib_log(info) << "Fitting Data";
+  // Calculate the median intercept and slope
+  pflib_log(info) << linear_.size();
+
+  std::vector<double> intercepts;
+  std::vector<double> slopes;
+  for (const auto& p : linear_) {
+    pflib_log(info) << "linear data:";
+    pflib_log(info) << "LH deriv = " << p.LH_ << " at inv_vref = " << p.x_;
+    double b = p.y_ - p.LH_ * p.x_;
+    intercepts.push_back(b);
+    slopes.push_back(p.LH_);
+  }
+  double median_intercept = pflib::utility::median(intercepts);
+  double median_slope = pflib::utility::median(slopes);
+  pflib_log(info) << "The median intercept is = " << median_intercept << " and the median deriv is = " << median_slope;
+
+  // Find intersect with target. Start at the beginning of the linear regime
+  int inv_vref = 0;
+  int adc = 0;
+  int n = linear_.size();
+  while (inv_vref < 1024) {
+    adc = median_slope * inv_vref + median_intercept;
+    //pflib_log(info) << "inv_vref = " << inv_vref << " with adc = " << adc;
+    if (adc <= target) {
+      break;
+    }
+    inv_vref++;
+  }
+  inv_vref = inv_vref;
+  pflib_log(info) << "Final inv_vref is " << inv_vref;
+  return inv_vref;
 }
 
 // helper function to facilitate EventPacket dependent behaviour
@@ -155,6 +191,9 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
 
 std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
+  static auto the_log_{::pflib::logging::get("inv_vref_scan")};
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+  std::array<int, 2> channels = {17, 51};
 
   std::array<int, 2> inv_vref;
   std::array<int, 2> noinv_vref;

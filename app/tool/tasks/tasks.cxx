@@ -41,7 +41,7 @@ auto menu_tasks =
                trim_inv_dacb_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
         ->line("INV_VREF_SCAN_LUND", "Scan over INV_VREF for calibration", 
-                                        inv_vref_scan_lund),
+                                        inv_vref_scan_lund)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
                noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN",

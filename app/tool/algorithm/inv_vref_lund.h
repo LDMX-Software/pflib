@@ -53,7 +53,7 @@ class DataFitter
  *
  * @note Only functional for single-ROC targets
  */
-std::map<std::string, std::map<std::string, uint64_t>> inv_vref_scan(
+std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc);
 
 }  // namespace pflib::algorithm
