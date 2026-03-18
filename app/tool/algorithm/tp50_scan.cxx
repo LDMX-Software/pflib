@@ -47,7 +47,7 @@ double eff_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
 template <class EventPacket>
 int global_vref_scan(Target* tgt, ROC& roc, int& channel, size_t& n_events,
                      auto& refvol_page, auto& buffer, int& i_link) {
-  static auto the_log_{::pflib::logging::get("global_vref_scan")};
+  static auto the_log_{::pflib::logging::get("tp50_scan")};
   std::vector<double> tot_eff_list;
   std::vector<int> vref_list = {0, 600};
   int vref_value{100000};
