@@ -9,7 +9,7 @@
 #include "align_econ_lpgbt.h"
 #include "align_phase_word.h"
 #include "channel_wise_calib_scan.h"
-=======
+    =======
 >>>>>>> main
 #include "charge_timescan.h"
 #include "expert/scan_orbit.h"
@@ -33,61 +33,64 @@
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
 
-namespace {
-auto menu_tasks =
-    pftool::menu("TASKS",
-                 "tasks for studying the chip and tuning its parameters")
-        ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
-               charge_timescan)
-        ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
-        ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
-               get_lpgbt_temps)
-        ->line("PARAMETER_TIMESCAN",
-               "scan charge/calib pulse over time for varying parameters",
-               parameter_timescan)
-        ->line("CHANNEL_WISE_CALIB_SCAN",
-               "scan calib over all channels, one at a time",
-               channel_wise_calib_scan)
-        ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter",
-               trim_inv_dacb_scan)
-        ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
-        ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF",
-               vref_2d_scan)
-        ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
-               noinv_vref_scan)
-        ->line("SAMPLING_PHASE_SCAN",
-               "scan phase_ck, pedestal for clock phase alignment",
-               sampling_phase_scan)
-        ->line("MULTI_CHANNEL_SCAN",
-               "scans multiple channels to look for cross-talk",
-               multi_channel_scan)
-        ->line("VT50_SCAN",
-               "Hones in on the vt50 with a binary or bisectional scan",
-               vt50_scan)
-        ->line(
-            "LEVEL_PEDESTALS",
-            "tune trim_inv and dacb to level pedestals with their link median",
-            level_pedestals)
-        ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
-               toa_vref_scan)
-        ->line("TOA_SCAN",
-               "just does that bro (changes CALIB while saving only TOA)",
-               toa_scan)
-        ->line("TOT_SCAN",
-               "scan over VREF and TRIM parameters for TOT calibration",
-               tot_vref_scan)
-        ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+    namespace {
+  auto menu_tasks =
+      pftool::menu("TASKS",
+                   "tasks for studying the chip and tuning its parameters")
+          ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
+                 charge_timescan)
+          ->line("GEN_SCAN", "scan over file of input parameter points",
+                 gen_scan)
+          ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
+                 get_lpgbt_temps)
+          ->line("PARAMETER_TIMESCAN",
+                 "scan charge/calib pulse over time for varying parameters",
+                 parameter_timescan)
+          ->line("CHANNEL_WISE_CALIB_SCAN",
+                 "scan calib over all channels, one at a time",
+                 channel_wise_calib_scan)
+          ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter",
+                 trim_inv_dacb_scan)
+          ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
+          ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF",
+                 vref_2d_scan)
+          ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
+                 noinv_vref_scan)
+          ->line("SAMPLING_PHASE_SCAN",
+                 "scan phase_ck, pedestal for clock phase alignment",
+                 sampling_phase_scan)
+          ->line("MULTI_CHANNEL_SCAN",
+                 "scans multiple channels to look for cross-talk",
+                 multi_channel_scan)
+          ->line("VT50_SCAN",
+                 "Hones in on the vt50 with a binary or bisectional scan",
+                 vt50_scan)
+          ->line("LEVEL_PEDESTALS",
+                 "tune trim_inv and dacb to level pedestals with their link "
+                 "median",
+                 level_pedestals)
+          ->line("TOA_VREF_SCAN",
+                 "scan over VREF parameters for TOA calibration", toa_vref_scan)
+          ->line("TOA_SCAN",
+                 "just does that bro (changes CALIB while saving only TOA)",
+                 toa_scan)
+          ->line("TOT_SCAN",
+                 "scan over VREF and TRIM parameters for TOT calibration",
+                 tot_vref_scan)
+          ->line("TRIM_TOA_SCAN",
+                 "calibrate TRIM_TOA parameters for each channel",
+                 trim_toa_scan);
 
-auto menu_expert_tasks =
-    menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
-        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
-               scan_orbit);
+  auto menu_expert_tasks =
+      menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
+          ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
+                 scan_orbit);
 
-auto menu_setup_tasks =
-    menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")
-        ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
-        ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
-               align_econ_lpgbt);
+  auto menu_setup_tasks =
+      menu_tasks
+          ->submenu("SETUP", "tasks when setting up a newly-powered system")
+          ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
+          ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
+                 align_econ_lpgbt);
 
 }  // namespace
