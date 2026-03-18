@@ -1,7 +1,6 @@
 #include "inv_vref_lund.h"
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 #include "../tasks/inv_vref_scan_lund.h"
 #include "pflib/utility/mean.h"
 #include "pflib/utility/median.h"
@@ -119,11 +118,6 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
                                  std::array<int, 2>& inv_vref_tgt,
                                  std::array<int, 2>& noinv_vref_tgt) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:getter")};
-  int n_links = 2;
-  if constexpr (std::is_same_v<EventPacket,
-                               pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = determine_n_links(tgt);
-  }
 
   int noinv_vref = 612;
   int target_adc = 200;
