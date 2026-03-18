@@ -31,7 +31,8 @@ void inv_vref_scan_lund(Target* tgt) {
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
     std::string fname = pftool::readline_path(
-        "inv_vref_scan_lund-" + std::to_string(pftool::state.iroc) + "-settings",
+        "inv_vref_scan_lund-" + std::to_string(pftool::state.iroc) +
+            "-settings",
         ".yaml");
 
     std::ofstream f{fname};

@@ -3,19 +3,18 @@
 #include "../daq_run.h"
 #include "../econ_links.h"
 #include "../tasks/inv_vref_scan_lund.h"
-#include "pflib/utility/string_format.h"
-#include "pflib/utility/median.h"
 #include "pflib/utility/mean.h"
+#include "pflib/utility/median.h"
 #include "pflib/utility/stdev.h"
+#include "pflib/utility/string_format.h"
 
 namespace pflib::algorithm {
 
 DataFitter::DataFitter() {};
 
-void DataFitter::sort_and_append(std::vector<int>& inv_vrefs, 
+void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                                  std::vector<int>& pedestals,
-                                 std::vector<double>& stdevs,
-                                 int& step) {
+                                 std::vector<double>& stdevs, int& step) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:sort")};
   pflib_log(info) << "Sorting Data";
   // We ignore first and last elements since they miss derivs
@@ -32,16 +31,21 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   std::vector<double> LH_derivs;
   std::vector<double> LH_stdevs;
   std::vector<double> RH_derivs;
-  for (int i = 1; i < inv_vrefs.size()-1; i++) {
-    double LH = static_cast<double>(pedestals[i] - pedestals[i-1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
-    double RH = static_cast<double>(pedestals[i] - pedestals[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
+  for (int i = 1; i < inv_vrefs.size() - 1; i++) {
+    double LH = static_cast<double>(pedestals[i] - pedestals[i - 1]) /
+                (inv_vrefs[i] - inv_vrefs[i - 1]);
+    double RH = static_cast<double>(pedestals[i] - pedestals[i + 1]) /
+                (inv_vrefs[i] - inv_vrefs[i + 1]);
 
     // Threshold check. CMS uses 0.05. This value fits with my analysis as well.
-    if (std::abs(LH) < flat_threshold || std::abs(RH) < flat_threshold) { // flat regime
+    if (std::abs(LH) < flat_threshold ||
+        std::abs(RH) < flat_threshold) {  // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
-    } else { // we're in a linear regime or there's outliers
-      double LH_err = (stdevs[i] - stdevs[i+1]) / (inv_vrefs[i] - inv_vrefs[i-1]);
-      double RH_err = (stdevs[i] - stdevs[i+1]) / (inv_vrefs[i] - inv_vrefs[i+1]);
+    } else {  // we're in a linear regime or there's outliers
+      double LH_err =
+          (stdevs[i] - stdevs[i + 1]) / (inv_vrefs[i] - inv_vrefs[i - 1]);
+      double RH_err =
+          (stdevs[i] - stdevs[i + 1]) / (inv_vrefs[i] - inv_vrefs[i + 1]);
       slope_points.push_back({i, LH, LH_err, RH, RH_err});
       LH_derivs.push_back(LH);
       LH_stdevs.push_back(LH_err);
@@ -49,23 +53,22 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
     }
   }
   // Now we get the linear region. CMS removes outliers by using the ADC median.
-  // From my analysis I chose to also consider the stdev of each point, which is 0 in 
-  // the low inv_vref region (inv_vref approx less than 250).
-  // NOTE! This seems to vary between boards, and more analysis between boards should be 
+  // From my analysis I chose to also consider the stdev of each point, which is
+  // 0 in the low inv_vref region (inv_vref approx less than 250). NOTE! This
+  // seems to vary between boards, and more analysis between boards should be
   // done to find the optimal selections.
   //
   // We could use both LH and RH derivs to improve selections (?).
 
-  
   LH_std_median_ = pflib::utility::median(LH_stdevs);
   LH_median_ = pflib::utility::median(LH_derivs);
 
   pflib_log(info) << "Median stdev = " << LH_std_median_;
   pflib_log(info) << "Median LH = " << LH_median_;
-  
+
   for (const auto& p : slope_points) {
-    if ((std::abs(p.LH - LH_median_) < 0.7*std::abs(LH_median_)) &&
-         std::abs(p.LH_stdev) > 0.0001) { // Linear regime. 
+    if ((std::abs(p.LH - LH_median_) < 0.7 * std::abs(LH_median_)) &&
+        std::abs(p.LH_stdev) > 0.0001) {  // Linear regime.
       pflib_log(info) << "inv_vref is : " << inv_vrefs[p.i];
       linear_.push_back({inv_vrefs[p.i], pedestals[p.i], p.LH, p.RH});
     }
@@ -89,7 +92,8 @@ int DataFitter::fit(int target) {
   }
   double median_intercept = pflib::utility::median(intercepts);
   double median_slope = pflib::utility::median(slopes);
-  pflib_log(info) << "The median intercept is = " << median_intercept << " and the median deriv is = " << median_slope;
+  pflib_log(info) << "The median intercept is = " << median_intercept
+                  << " and the median deriv is = " << median_slope;
 
   // Find intersect with target. Start at the beginning of the linear regime
   int inv_vref = 0;
@@ -97,7 +101,7 @@ int DataFitter::fit(int target) {
   int n = linear_.size();
   while (inv_vref < 1024) {
     adc = median_slope * inv_vref + median_intercept;
-    //pflib_log(info) << "inv_vref = " << inv_vref << " with adc = " << adc;
+    // pflib_log(info) << "inv_vref = " << inv_vref << " with adc = " << adc;
     if (adc <= target) {
       break;
     }
@@ -123,7 +127,7 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
 
   int noinv_vref = 612;
   int target_adc = 200;
-  
+
   DecodeAndBuffer<EventPacket> buffer{1, 2};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
@@ -170,14 +174,14 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
       } else {
         PFEXCEPTION_RAISE("BadConf",
                           "Unable to get adc for the cofigured format");
-        }
       }
+    }
     pedestals_l0.push_back(pflib::utility::median(adcs_l0));
     stds_l0.push_back(pflib::utility::stdev(adcs_l0));
     pedestals_l1.push_back(pflib::utility::median(adcs_l1));
     stds_l1.push_back(pflib::utility::stdev(adcs_l1));
     inv_vrefs.push_back(inv_vref);
-    }
+  }
   // sort data and fit
   DataFitter fitter_l0;
   DataFitter fitter_l1;
