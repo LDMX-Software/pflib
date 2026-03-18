@@ -28,9 +28,32 @@ struct ToolBox {
 
 using tool = pflib::menu::Menu<ToolBox*>;
 
+pflib::OptoLink& get_olink(ToolBox* tgt, const std::string& link_choice) {
+  if (link_choice == "DAQ") {
+    if (not tgt->olink_daq) {
+      PFEXCEPTION_RAISE("BadSel", "OlinkRoute::DAQ not created");
+    }
+    return *(tgt->olink_daq);
+  } else if (link_choice == "TRG") {
+    if (not tgt->olink_trig) {
+      PFEXCEPTION_RAISE("BadSel", "OlinkRoute::TRG not created");
+    }
+    return *(tgt->olink_trig);
+  } else {
+    PFEXCEPTION_RAISE("BadSel", "Unrecogznied OlinkRoute");
+  }
+}
+
 void opto(const std::string& cmd, ToolBox* target) {
-  pflib::OptoLink& olink = *(target->olink_daq);
+  static std::string olink_choice = "DAQ";
+  if (cmd == "CHOOSE") {
+    static const std::vector<std::string> opts{"DAQ", "TRG"};
+    olink_choice = tool::readline("Which Olink? ", opts);
+  }
+  auto& olink{get_olink(target, olink_choice)};
+
   if (cmd == "FULLSTATUS") {
+    printf("Olink: %s\n", olink_choice.c_str());
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
     std::map<std::string, uint32_t> info;
@@ -54,6 +77,7 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
   if (cmd == "POLARITY") {
     bool change;
+    printf("Olink: %s\n", olink_choice.c_str());
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
     change = tool::readline_bool("Change TX polarity? ", false);
@@ -62,8 +86,7 @@ void opto(const std::string& cmd, ToolBox* target) {
     if (change) olink.set_rx_polarity(!olink.get_rx_polarity());
   }
   if (cmd == "LINKTRICK") {
-    if (target->olink_daq != 0) target->olink_daq->run_linktrick();
-    if (target->olink_trig != 0) target->olink_trig->run_linktrick();
+    olink.run_linktrick();
   }
 }
 
@@ -774,6 +797,7 @@ auto gen =
 
 auto optom =
     tool::menu("OPTO", "Optical Link Functions")
+        ->line("CHOOSE", "change which optical link to focus on", opto)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset the optical link", opto)
         ->line("RESET",
@@ -856,6 +880,7 @@ int main(int argc, char* argv[]) {
       nomezz = true;
       i++;
       target_name = "standardLpGBTpair-";
+      i_link = std::stoi(argv[i]);
       target_name += argv[i][0];
       printf("%s\n", target_name.c_str());
     }
@@ -909,8 +934,10 @@ int main(int argc, char* argv[]) {
   ToolBox t;
 
   if (!bittware) {
-    t.olink_daq = new pflib::zcu::ZCUOptoLink(target_name);
-    t.olink_trig = new pflib::zcu::ZCUOptoLink(target_name, 1, false);
+    t.olink_daq =
+        new pflib::zcu::ZCUOptoLink(target_name, 2 * i_link + 0, true);
+    t.olink_trig =
+        new pflib::zcu::ZCUOptoLink(target_name, 2 * i_link + 1, false);
     t.coder_name = target_name;
   } else {
 #ifdef USE_ROGUE

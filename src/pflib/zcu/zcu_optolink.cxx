@@ -1,4 +1,8 @@
 #include "pflib/zcu/zcu_optolink.h"
+
+#include "pflib/utility/string_format.h"
+using pflib::utility::string_format;
+
 namespace pflib {
 namespace zcu {
 
@@ -19,36 +23,45 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
 
 static const uint32_t REG_STATUS = 3;
 
-void ZCUOptoLink::reset_link() {  // actually affects all links in a block
-  transright_.write(0x0, 0x2);    // TX_RESET
-  transright_.write(0x0, 0x1);    // GTH_RESET
-  transright_.write(0x0, 0x4);    // RX_RESET
-
-  int done;
+void ZCUOptoLink::reset_link() {
+  /**
+   * This reset actually affects all links (SFPs) in a block (quad)
+   * connected to the ZCU.
+   *
+   * The entire quad shares the same reset and status bits.
+   */
+  static const int GTH_RESET = 0x1;
+  static const int TX_RESET = 0x2;
+  static const int RX_RESET = 0x4;
+  transright_.write(0x0, TX_RESET);
+  transright_.write(0x0, GTH_RESET);
+  transright_.write(0x0, RX_RESET);
+  usleep(1000);
+  int done = transright_.readMasked(REG_STATUS, 0x8);
   int attempts = 1;
-  done = transright_.readMasked(REG_STATUS, 0x8);
-
   while (!done and attempts < 100) {
-    if (attempts % 2) {
-      transright_.write(0x0, 0x1);  // GTH_RESET
+    if (attempts % 10 == 0) {
+      transright_.write(0x0, GTH_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (GTH_RESET)\n",
-        attempts,done);
-      */
     } else {
-      transright_.write(0x0, 0x4);  // RX_RESET
+      transright_.write(0x0, RX_RESET);
       usleep(1000);
       done = transright_.readMasked(REG_STATUS, 0x8);
-      /*
-        printf("   After %d attempts, BUFFBYPASS_DONE is %d (RX_RESET)\n",
-        attempts,done);
-      */
     }
     attempts += 1;
   }
 
+  if (!done) {
+    printf("Failed to get BUFFBYPASS_DONE after %d attempts\n", attempts);
+    return;
+  }
+
+  /**
+   * After BUFFBYPASS_DONE, then we reset the decoder, IC, and EC.
+   *
+   * Unsure if this should depend on ilink. Currently, it does not.
+   */
   coder_.write(0, 1);  // reset the DECODER
   usleep(1000);
   coder_.write(65, 0x40000000);  // reset IC
@@ -99,6 +112,7 @@ void ZCUOptoLink::set_tx_polarity(bool polarity) {
 
 std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::map<std::string, uint32_t> retval;
+
   uint32_t val = transright_.read(REG_STATUS);
   retval["TX_RESETDONE"] = (val >> 0) & 0x1;
   retval["RX_RESETDONE"] = (val >> 1) & 0x1;
@@ -118,37 +132,32 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
 std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   std::map<std::string, uint32_t> retval;
 
-  /*
-  const char* tnames[] = {
-    "S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK", "RX00", "RX01",
-    "RX02",       "RX03",     "RX04",       "RX05",       "RX06", "RX07",
-    "RX08",       "RX09",     "RX10",       "RX11",       0};
-  */
-  const char* tnames[] = {"S_AXI_ACLK", "AXIS_clk", "GTH_REFCLK", "EXT_REFCLK",
-                          0};
-  const int twhich[] = {0, 1, 2, 3, -1};
-
-  const int TRIGHT_RATES_OFFSET = 16;
-  for (int i = 0; tnames[i] != 0; i++)
-    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + twhich[i]);
+  static const std::array<const char*, 4> tnames = {"S_AXI_ACLK", "AXIS_clk",
+                                                    "GTH_REFCLK", "EXT_REFCLK"};
+  static const int TRIGHT_RATES_OFFSET = 0x10;
+  for (std::size_t i{0}; i < tnames.size(); i++) {
+    retval[tnames[i]] = transright_.read(TRIGHT_RATES_OFFSET + i);
+  }
 
   retval["RX-LINK"] =
       transright_.read(TRIGHT_RATES_OFFSET + 4 + SFP0_OFFSET + ilink_);
 
   if (coder_name_ == "singleLPGBT") {
-    const char* cnames[] = {"LINK_WORD", "LINK_ERROR", "LINK_CLOCK", "CLOCK_40",
-                            0};
+    static const std::array<const char*, 4> cnames = {"LINK_WORD", "LINK_ERROR",
+                                                      "LINK_CLOCK", "CLOCK_40"};
     const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
+    for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
+    }
   } else {
-    const char* cnames[] = {"DAQ_LINK_WORD",  "TRIG_LINK_WORD",
-                            "DAQ_LINK_ERROR", "TRIG_LINK_ERROR",
-                            "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
-                            "CLOCK_40",       0};
+    static const std::array<const char*, 7> cnames = {
+        "DAQ_LINK_WORD",   "TRIG_LINK_WORD", "DAQ_LINK_ERROR",
+        "TRIG_LINK_ERROR", "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
+        "CLOCK_40"};
     const int CRATES_OFFSET = 80;
-    for (int i = 0; cnames[i] != 0; i++)
+    for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
+    }
   }
 
   return retval;
@@ -158,6 +167,7 @@ int ZCUOptoLink::get_elink_tx_mode(int elink) {
   if (elink < 0 || elink > 3 || !isdaq_) return -1;
   return coder_.read(REG_DOWNLINK_MODE0 + elink);
 }
+
 void ZCUOptoLink::set_elink_tx_mode(int elink, int mode) {
   if (elink < 0 || elink > 3 || !isdaq_) return;
   coder_.write(REG_DOWNLINK_MODE0 + elink, mode & MASK_DOWNLINK_MODE);

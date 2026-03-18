@@ -77,10 +77,10 @@ class pftool : public pflib::menu::Menu<Target*> {
     const std::vector<std::string>& roc_param_names(
         const std::string& page) const;
     /// get page names for tab completion
-    const std::vector<std::string>& econ_page_names(pflib::ECON econ) const;
+    const std::vector<std::string>& econ_page_names(pflib::ECON& econ) const;
     /// get the parameter names for tab completion
     const std::vector<std::string>& econ_param_names(
-        pflib::ECON econ, const std::string& page) const;
+        pflib::ECON& econ, const std::string& page) const;
     /// get the readout configurion
     int readout_config() const { return cfg_; }
     /// check if we are reading out on a zcu

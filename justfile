@@ -45,6 +45,17 @@ configure: _cmake
 # compile pflib
 build: _build
 
+# redirect build to log and open if build failed
+build-log:
+  #!/bin/bash
+  set -o nounset
+  set -o errexit
+  just build |& tee build.log
+  if ! [ ${PIPESTATUS[0]} -eq 0 ]; then
+    less -R build.log
+  fi
+
+
 default_install_dir := justfile_directory() / "install"
 
 # install pflib to passed location
