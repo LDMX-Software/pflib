@@ -5,12 +5,7 @@
  */
 
 #include "../pftool.h"
-<<<<<<< global_calib_scan_andreas
-#include "align_econ_lpgbt.h"
-#include "align_phase_word.h"
 #include "channel_wise_calib_scan.h"
-    =======
->>>>>>> main
 #include "charge_timescan.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
@@ -33,8 +28,8 @@
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
 
-    namespace {
-  auto menu_tasks =
+namespace {
+auto menu_tasks =
       pftool::menu("TASKS",
                    "tasks for studying the chip and tuning its parameters")
           ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
@@ -81,16 +76,16 @@
                  "calibrate TRIM_TOA parameters for each channel",
                  trim_toa_scan);
 
-  auto menu_expert_tasks =
-      menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
-          ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
-                 scan_orbit);
+auto menu_expert_tasks =
+    menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
+        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
+               scan_orbit);
 
-  auto menu_setup_tasks =
-      menu_tasks
-          ->submenu("SETUP", "tasks when setting up a newly-powered system")
-          ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
-          ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
-                 align_econ_lpgbt);
+auto menu_setup_tasks =
+    menu_tasks
+        ->submenu("SETUP", "tasks when setting up a newly-powered system")
+        ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
+        ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
+               align_econ_lpgbt);
 
 }  // namespace
