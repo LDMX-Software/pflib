@@ -94,6 +94,6 @@ template std::array<int, 72> get_calibs<pflib::packing::SingleROCEventPacket>(
 
 template std::array<int, 72>
 get_calibs<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
-                                                        int& target_adc);
+                                                        int& targt_adc);
 
 }  // namespace pflib::algorithm
