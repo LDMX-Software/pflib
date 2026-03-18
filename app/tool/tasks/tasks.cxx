@@ -10,6 +10,7 @@
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
 #include "inv_vref_scan.h"
+#include "inv_vref_scan_lund.h"
 #include "level_pedestals.h"
 #include "load_parameter_points.h"
 #include "multi_channel_scan.h"
