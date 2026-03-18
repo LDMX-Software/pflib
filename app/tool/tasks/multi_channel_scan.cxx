@@ -4,7 +4,6 @@
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
-#include "../econ_links.h"
 #include "load_parameter_points.h"
 #include "pflib/utility/string_format.h"
 
@@ -18,7 +17,11 @@ static void multi_channel_scan_writer(Target* tgt, pflib::ROC& roc,
                                       int n_bx) {
   int ch0{0};
   link == 0 ? ch0 = 18 : ch0 = 54;
-  int n_links = determine_n_links(tgt);
+  int n_links = 2;
+  if constexpr (std::is_same_v<EventPacket,
+                               pflib::packing::MultiSampleECONDEventPacket>) {
+    n_links = tgt->econ(pftool::state.iecon).nLinks();
+  }
 
   if (isLED) {
     auto refvol_page =

@@ -3,10 +3,10 @@
  *
  * Definition of TASKS menu commands
  */
+
 #include "../pftool.h"
-#include "align_econ_lpgbt.h"
-#include "align_phase_word.h"
 #include "charge_timescan.h"
+#include "expert/scan_orbit.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
 #include "inv_vref_scan.h"
@@ -18,11 +18,14 @@
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
+#include "setup/align_econ_lpgbt.h"
+#include "setup/align_phase_word.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
+#include "vref_2d_scan.h"
 #include "vt50_scan.h"
 
 namespace {
@@ -42,6 +45,8 @@ auto menu_tasks =
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
         ->line("INV_VREF_SCAN_LUND", "Scan over INV_VREF for calibration", 
                                         inv_vref_scan_lund)
+        ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF",
+               vref_2d_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
                noinv_vref_scan)
         ->line("SAMPLING_PHASE_SCAN",
@@ -66,8 +71,17 @@ auto menu_tasks =
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+
+auto menu_expert_tasks =
+    menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
+        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
+               scan_orbit);
+
+auto menu_setup_tasks =
+    menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
                align_econ_lpgbt);
-}
+
+}  // namespace

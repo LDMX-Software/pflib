@@ -73,6 +73,8 @@ add_library(utility SHARED
   src/pflib/utility/str_to_int.cxx
   src/pflib/utility/median.cxx
   src/pflib/utility/efficiency.cxx
+  src/pflib/utility/mean.cxx
+  src/pflib/utility/stdev.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
