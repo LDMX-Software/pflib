@@ -6,6 +6,7 @@
 #include "../pftool.h"
 #include "align_econ_lpgbt.h"
 #include "align_phase_word.h"
+#include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
@@ -24,7 +25,6 @@
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
-#include "channel_wise_calib_scan.h"
 
 namespace {
 auto menu_tasks =

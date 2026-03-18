@@ -1,17 +1,16 @@
-#include "charge_timescan.h"
-
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
+#include "charge_timescan.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
 
 template <class EventPacket>
-static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                   std::string fname, int stepsize, 
-                                   int start_bx, int n_bx,
-                                   int min_ch, int max_ch) {
+static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc,
+                                           size_t nevents, std::string fname,
+                                           int stepsize, int start_bx, int n_bx,
+                                           int min_ch, int max_ch) {
   int central_charge_to_l1a;
   int charge_to_l1a{0};
   int phase_strobe{0};
@@ -26,13 +25,14 @@ static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t 
   std::vector<double> data;
   if constexpr (std::is_same_v<EventPacket,
                                pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = tgt->econ(pftool::state.iecon).nLinks(); 
+    n_links = tgt->econ(pftool::state.iecon).nLinks();
   }
   DecodeAndWriteToCSV<EventPacket> writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
-        f << "time,calib,channel," << pflib::packing::Sample::to_csv_header << '\n';
+        f << "time,calib,channel," << pflib::packing::Sample::to_csv_header
+          << '\n';
       },
       [&](std::ofstream& f, const EventPacket& ep) {
         if (ch < 36) {
@@ -65,7 +65,7 @@ static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t 
 
   central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
 
-  for (ch = min_ch; ch < max_ch+1; ch++) {
+  for (ch = min_ch; ch < max_ch + 1; ch++) {
     pflib_log(info) << "Scanning channel " << ch;
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
     for (calib = 0; calib < 550; calib += stepsize) {
@@ -73,10 +73,10 @@ static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t 
       auto calib_handle_builder = roc.testParameters();
       if (ch < 36) {
         calib_handle_builder.add("REFERENCEVOLTAGE_0", "CALIB", calib)
-                            .add(channel_page, "HIGHRANGE", 1);
+            .add(channel_page, "HIGHRANGE", 1);
       } else {
         calib_handle_builder.add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                            .add(channel_page, "HIGHRANGE", 1);
+            .add(channel_page, "HIGHRANGE", 1);
       }
       auto calib_handle = calib_handle_builder.apply();
       for (charge_to_l1a = central_charge_to_l1a + start_bx;
@@ -86,11 +86,14 @@ static void channel_wise_calib_scan_writer(Target* tgt, pflib::ROC& roc, size_t 
         pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
         for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
           auto phase_strobe_test_handle =
-              roc.testParameters().add("TOP", "PHASE_STROBE", phase_strobe).apply();
+              roc.testParameters()
+                  .add("TOP", "PHASE_STROBE", phase_strobe)
+                  .apply();
           pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
           usleep(10);  // make sure parameters are applied
-          time = (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
-                  phase_strobe * clock_cycle / n_phase_strobe;
+          time =
+              (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
+              phase_strobe * clock_cycle / n_phase_strobe;
           daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
         }
       }
@@ -114,7 +117,8 @@ void channel_wise_calib_scan(Target* tgt) {
 
   fname = pftool::readline_path("channel-wise-calib-scan", ".csv");
   for (int i_link = 0; i_link < 2; i_link++) {
-    auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link); 
+    auto refvol_page =
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
     test_param_builder.add(refvol_page, "INTCTEST", 1)
         .add(refvol_page, "CHOICE_CINJ", 1);
   }
@@ -122,12 +126,10 @@ void channel_wise_calib_scan(Target* tgt) {
 
   if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
     channel_wise_calib_scan_writer<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, fname, stepsize,
-        start_bx, n_bx, min_ch, max_ch);
+        tgt, roc, nevents, fname, stepsize, start_bx, n_bx, min_ch, max_ch);
   } else if (pftool::state.daq_format_mode ==
              Target::DaqFormat::ECOND_SW_HEADERS) {
     channel_wise_calib_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, fname, stepsize,
-        start_bx, n_bx, min_ch, max_ch);
+        tgt, roc, nevents, fname, stepsize, start_bx, n_bx, min_ch, max_ch);
   }
 }
