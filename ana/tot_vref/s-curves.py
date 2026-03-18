@@ -1,5 +1,7 @@
 """
 Plots the s-curves of toa and tot efficencies, on all channels.
+Meant for data from channel_wise_calib_scan.cxx in tasks
+Also plots the linearity of the max_adc
 
 The s-curves of all channels should idealy line up, and we can use this fact to test if the
 tot and toa scripts are behaving as they should, and to see if the boards is OK.
