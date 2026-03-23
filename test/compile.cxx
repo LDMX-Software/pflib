@@ -290,22 +290,24 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   // map of register address and nbytes
   std::map<uint16_t, size_t> page_reg_byte_lut, expected;
   expected[0x0389] = 8;
-  expected[0x03c5] = 3;
-  expected[0x03c5] = 3;
-  expected[0x0f2c] = 7;
-  expected[0x0452] = 6;
+  expected[0x03c7] = 1;
   expected[0x03e4] = 1;
   expected[0x03e5] = 1;
+  expected[0x0452] = 6;
+  expected[0x0f2c] = 2;
+  expected[0x0f2d] = 2;
+  expected[0x0f2e] = 4;
+  expected[0x0f31] = 2;
 
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*
-  */
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
     std::cout << "0x" << std::hex << std::uppercase << std::setw(4)
               << std::setfill('0') << reg << " -> " << std::dec << nbytes
               << " bytes\n";
   }
+  */
 
   BOOST_CHECK_MESSAGE(
       page_reg_byte_lut == expected,
