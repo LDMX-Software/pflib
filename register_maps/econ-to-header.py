@@ -93,8 +93,8 @@ def make_register_locations(address, mask, shift, size_byte):
     reg_locs = []
     n_bits_total = bin(mask).count("1")
     if n_bits_total == 0:
-        # if no bits used all bytes get n_bits=0
-        return [f"RegisterLocation(0x{address + i:04x}, 0, 0)" for i in range(size_byte)]
+        # if no bits
+        return []
 
     # determine which byte the parameter starts in
     start_byte_offset = shift // 8
