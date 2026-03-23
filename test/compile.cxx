@@ -300,12 +300,12 @@ BOOST_AUTO_TEST_CASE(full_lut_econd) {
   page_reg_byte_lut = c.build_register_byte_lut();
 
   /*
+  */
   for (const auto& [reg, nbytes] : page_reg_byte_lut) {
     std::cout << "0x" << std::hex << std::uppercase << std::setw(4)
               << std::setfill('0') << reg << " -> " << std::dec << nbytes
               << " bytes\n";
   }
-  */
 
   BOOST_CHECK_MESSAGE(
       page_reg_byte_lut == expected,

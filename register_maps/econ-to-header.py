@@ -118,6 +118,9 @@ def make_register_locations(address, mask, shift, size_byte):
         else:
             # if not, use 0
             bits_in_byte = 0
+
+        if bits_in_byte == 0:
+            continue
             
         # shift for the byte: first byte uses start_bit_offset, others 0
         shift_for_byte = start_bit_offset if param_byte_index == 0 and bits_in_byte > 0 else 0
