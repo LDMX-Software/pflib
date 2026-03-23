@@ -98,7 +98,7 @@ def compute_slopes(g):
 sorted_df = selected_df.sort_values(['ch', 'inv_vref']).copy()
 result = (
     sorted_df
-    .groupby('ch', group_keys=False)
+    .groupby('ch')
     .apply(compute_slopes)
 )
 
