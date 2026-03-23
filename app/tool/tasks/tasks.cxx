@@ -5,6 +5,7 @@
  */
 
 #include "../pftool.h"
+#include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
@@ -40,6 +41,9 @@ auto menu_tasks =
         ->line("PARAMETER_TIMESCAN",
                "scan charge/calib pulse over time for varying parameters",
                parameter_timescan)
+        ->line("CHANNEL_WISE_CALIB_SCAN",
+               "scan calib over all channels, one at a time",
+               channel_wise_calib_scan)
         ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter",
                trim_inv_dacb_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
@@ -58,10 +62,10 @@ auto menu_tasks =
         ->line("VT50_SCAN",
                "Hones in on the vt50 with a binary or bisectional scan",
                vt50_scan)
-        ->line(
-            "LEVEL_PEDESTALS",
-            "tune trim_inv and dacb to level pedestals with their link median",
-            level_pedestals)
+        ->line("LEVEL_PEDESTALS",
+               "tune trim_inv and dacb to level pedestals with their link "
+               "median",
+               level_pedestals)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
                toa_vref_scan)
         ->line("TOA_SCAN",
