@@ -189,6 +189,18 @@ def process_register(name_prefix, props, lines, register_byte_lut = {}):
                 process_register(new_prefix, subval, lines, register_byte_lut)
 
 
+def append_luts(lines, page_names):
+    lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
+    for name in page_names:
+        lines.append(f'  {{"{name}", {name}}},')
+    lines.append("});")
+
+    lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
+    for name in page_names:
+        lines.append(f'  {{"{name}", {{0, {name}}}}},')
+    lines.append("});")
+
+
 def generate_header(input_yaml, data, econ_type):
     """Generate the C++ header content for a given page."""
     lines = []
@@ -222,16 +234,16 @@ def generate_header(input_yaml, data, econ_type):
         lines.append(f"const Page {page_var} = get_{page_var}();\n")
 
     # print(register_byte_lut)
-        
-    lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
-    for name in page_names:
-        lines.append(f'  {{"{name}", {name}}},')
-    lines.append("});")
+    if econ_type == "d":
+        # default LUT ignores the ZS parameters since there are so many of them
+        append_luts(lines, [name for name in page_names if "ZS" not in name])
 
-    lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
-    for name in page_names:
-        lines.append(f'  {{"{name}", {{0, {name}}}}},')
-    lines.append("});")
+        # have secondary LUT that has the ZS parameters accessible under econd::with_zs
+        lines.append("\nnamespace with_zs {\n");
+        append_luts(lines, page_names)
+        lines.append("\n} //"+f" namespace with_zs\n")
+    else:
+        append_luts(lines, page_names)
     
     lines.append("\n} //"+f" namespace econ{econ_type}\n")
 
