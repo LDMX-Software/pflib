@@ -34,7 +34,7 @@ parser.add_argument('-s', '--samples', type=int, help='Number of samples per pha
 parser.add_argument('-cs', '--cluster_scan', action='store_true', help='Perform an outliers cluster-scan (default)')
 parser.add_argument('-wh', '--wrong_header', action='store_true', help='Lund board-testing specific - some HR data have the wrong header')
 parser.add_argument('-ts', '--threshold_scan', action='store_true', help='Perform a threshold outliers-scan with default thresholds (only HR works)')
-parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform phase analysis of the outliers')
+parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform and plot phase analysis of the outliers (include -pd for plot directory path)')
 parser.add_argument('-p', '--plot', choices=plot_types, type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given path')
@@ -283,9 +283,16 @@ def cluster_outlier_search(dataset : list):
 
 # -------  DATA ANALYSIS -------
 
-def outlier_frequency_analysis(dataset : list):
+def outlier_phase_analysis(dataset : list):
 
     outlier_times = []
+    pot_outlier_times = []
+    outlier_counts = []
+    pot_outlier_counts = []
+    outlier_phase_counts = []
+    pot_outlier_phase_counts = []
+
+    total_outlier_number = 0
 
     phases = {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [],
               8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: []}
@@ -297,8 +304,47 @@ def outlier_frequency_analysis(dataset : list):
         if n == 16: n = 0
 
     for sample in dataset:
+        outlier_times.append(sample.outliers_time)
+        pot_outlier_times.append(sample.potential_outliers_time)
+        total_outlier_number += sample.outliers_number + sample.potential_outliers_number
+    outlier_times = np.concatenate(outlier_times).tolist()
+    pot_outlier_times = np.concatenate(pot_outlier_times).tolist()
 
+    for phase in phases:
+        for time in phases[phase]:
+            if time in outlier_times:
+                outlier_counts.append([phase, time, outlier_times.count(time)])
+            else: outlier_counts.append([phase, time, 0])
+            if time in pot_outlier_times:
+                pot_outlier_counts.append([phase, time, pot_outlier_times.count(time)])
+            else: pot_outlier_counts.append([phase, time, 0])
+    outlier_counts = np.array(outlier_counts)
+    pot_outlier_counts = np.array(pot_outlier_counts)
+    
+    for phase in phases:
+        mask1 = outlier_counts[:,0] == phase
+        mask2 = pot_outlier_counts[:,0] == phase
+        phase_counts = outlier_counts[mask1][:,2].sum()
+        pot_phase_counts = pot_outlier_counts[mask2][:,2].sum()
+        outlier_phase_counts.append([phase, phase_counts])
+        pot_outlier_phase_counts.append([phase, pot_phase_counts])
+    outlier_phase_counts = np.array(outlier_phase_counts)
+    pot_outlier_phase_counts = np.array(pot_outlier_phase_counts)
 
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12,8))
+
+    ax1.bar(dataset[0].time, outlier_counts[:,2]/total_outlier_number, color='r', label = 'Outliers')
+    ax1.bar(dataset[0].time, pot_outlier_counts[:,2]/total_outlier_number, color='b', alpha = 0.5, label = 'Potential outliers')
+    ax2.bar(outlier_phase_counts[:,0], outlier_phase_counts[:,1]/total_outlier_number, color='r')
+    ax2.bar(pot_outlier_phase_counts[:,0], pot_outlier_phase_counts[:,1]/total_outlier_number, color='b', alpha = 0.5)
+    ax1.set(xlabel='Time [ns]', ylabel = 'Proportion of outliers')
+    ax2.set(xlabel='Phase', ylabel = 'Proportion of outliers')
+    ax1.legend()
+    if args.plot_directory:
+        plt.savefig(os.path.join(args.plot_directory,f'outlier_phase_analysis.png'), dpi=400)
+        plt.close()
+    else:
+        plt.show()
 
 # -------  PLOTTING DATA -------
 
@@ -349,10 +395,6 @@ def plot_outliers(dataset : list, plot_type : str):
                 plt.show()
                 plt.close()
 
-def plot_frequency(dataset: list):
-    '''WIP'''
-    return
-
 # -------  SAVING DATA -------
 
 def write_to_csv(dataset : list, save_path : Path, data_parameters):
@@ -384,8 +426,6 @@ raw_data, data_parameters = read_data(args.dataset)
 processed_data = sort_data(raw_data, data_parameters)
 working_data = classify_data(processed_data, data_parameters)
 
-outlier_frequency_analysis(working_data)
-
 if args.cluster_scan: 
     cluster_outlier_search(working_data)
 
@@ -394,6 +434,10 @@ if args.threshold_scan:
                         f"Default options for HR data: {HR_thresholds}\n" \
                         "Threshold: "))
     threshold_outlier_search(working_data, th_value)
+
+if args.phase_analysis:
+    outlier_phase_analysis(working_data)
+
 
 if args.csv:
     write_to_csv(working_data, args.csv, data_parameters)
