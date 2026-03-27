@@ -35,7 +35,7 @@ parser.add_argument('-cs', '--cluster_scan', action='store_true', help='Perform 
 parser.add_argument('-wh', '--wrong_header', action='store_true', help='Lund board-testing specific - some HR data have the wrong header')
 parser.add_argument('-ts', '--threshold_scan', action='store_true', help='Perform a threshold outliers-scan with default thresholds (only HR works)')
 parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform phase analysis of the outliers')
-parser.add_argument('-p', '--plot', choices=plot_types, default=plot_types[0], type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
+parser.add_argument('-p', '--plot', choices=plot_types, type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given path')
 args = parser.parse_args()
@@ -285,11 +285,20 @@ def cluster_outlier_search(dataset : list):
 
 def outlier_frequency_analysis(dataset : list):
 
-    '''It seems like phases go from highest to lowest abs(time) in bx? 
-    It's strange (time 0 is phase 15, for example) - I need to double-check this before I implement phase analysis'''
+    outlier_times = []
 
-    '''WIP'''
-    return
+    phases = {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [],
+              8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: []}
+    
+    n = 0
+    for time in dataset[0].time:
+        phases[n].append(time)
+        n += 1
+        if n == 16: n = 0
+
+    for sample in dataset:
+
+
 
 # -------  PLOTTING DATA -------
 
@@ -374,6 +383,8 @@ def write_to_csv(dataset : list, save_path : Path, data_parameters):
 raw_data, data_parameters = read_data(args.dataset)
 processed_data = sort_data(raw_data, data_parameters)
 working_data = classify_data(processed_data, data_parameters)
+
+outlier_frequency_analysis(working_data)
 
 if args.cluster_scan: 
     cluster_outlier_search(working_data)
