@@ -1,4 +1,4 @@
-#include "pflib/ECOND_Formatter.h"
+#include "pflib/packing/ECONDFormatter.h"
 
 #include <stdio.h>
 
@@ -6,20 +6,30 @@
 
 #include "pflib/utility/crc.h"
 
-namespace pflib {
+namespace pflib::packing {
 
-ECOND_Formatter::ECOND_Formatter() {}
+ECONDFormatter::ECONDFormatter(bool disable_zs): disable_zs_{disable_zs} {
+  // reserve the maximum size of a packet
+  packet_.reserve(471);
+}
 
-void ECOND_Formatter::startEvent(int bx, int l1a, int orbit) {
+
+void ECONDFormatter::disableZS(bool disable) {
+  disable_zs_ = disable;
+}
+
+void ECONDFormatter::startEvent(int bx, int l1a, int orbit) {
   packet_.clear();
-  packet_.push_back((0xAA << 24) |
-                    (1 << 7));  // header marker, no hamming,  matching
+  // first header word contains marker, size (to be updated), and flags
+  packet_.push_back((0xAA << 24) | (1 << 7));
+  // second header word contains
+  // bx, l1a, orbit, S=0, RR=0, no CRC-8
   packet_.push_back(
       ((bx & 0xFFF) << 20) | ((l1a & 0x3F) << 14) |
-      ((orbit & 0x7) << 11));  // bx, l1a, orbit, S=0, RR=0, no CRC-8
+      ((orbit & 0x7) << 11));
 };
 
-void ECOND_Formatter::add_elink_packet(int ielink,
+void ECONDFormatter::add_elink_packet(int ielink,
                                        const std::vector<uint32_t>& src) {
   // format the elink's data
   std::vector<uint32_t> subpacket = format_elink(ielink, src);
@@ -30,7 +40,7 @@ void ECOND_Formatter::add_elink_packet(int ielink,
       (packet_[0] & 0xFF803FFFu) | (((packet_.size() - 2 + 1) & 0x1FF) << 14);
 }
 
-void ECOND_Formatter::finishEvent() {
+void ECONDFormatter::finishEvent() {
   // event header 8-bit CRC
   // uses 8 leading zeros and zeroed Hamming so it is independent from Hamming
   // first header word:
@@ -46,15 +56,13 @@ void ECOND_Formatter::finishEvent() {
       utility::crc32(std::span(packet_.begin() + 2, packet_.end())));
 }
 
-std::vector<uint32_t> ECOND_Formatter::format_elink(
+std::vector<uint32_t> ECONDFormatter::format_elink(
     int ielink, const std::vector<uint32_t>& src) {
   std::vector<uint32_t> dest;
   int n_readout = 0;
   // check for right number of words, correct header, etc
   if (src.size() != 40 || ((src[0] >> 28) & 0xF) != 0xF) {
-    //      if (src.size()!=40 || ((src[0]>>28)&0xF)!=0xF || (((src[0]&0xF)!=0x5
-    //      && (src[0]&0xF)!=0x2))) {
-    printf("Invalid contents\n");
+    printf("ECONDFormatter received a unrecognized packet.\n");
     return dest;
   }
   dest.push_back(0);
@@ -132,7 +140,7 @@ std::vector<uint32_t> ECOND_Formatter::format_elink(
 
   return dest;
 }
-int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
+int ECONDFormatter::zs_process(int ielink, int ic, uint32_t word) {
   // eventually, implement detailed code to carry out different classes of ZS
   // with provided parameters.  For now, we just look at the tc/tp code
   int tctp = (word >> 30) & 0x3;
@@ -140,7 +148,7 @@ int ECOND_Formatter::zs_process(int ielink, int ic, uint32_t word) {
   if (tctp == 0b10) return 0b1000;  // is strange
   if (tctp == 0b01) return 0b0010;  // is invalid due to ongoing TOT
   /// at this point, we have tctp=0, so we can apply zs algorithms
-  if (disable_ZS_) return 0b0100;
+  if (disable_zs_) return 0b0100;
   // TOA zs...
   bool no_toa = ((word & 0x3FF) == 0);
   if (no_toa) return 0b0000;

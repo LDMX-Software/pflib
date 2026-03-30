@@ -1,10 +1,10 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
-#include "pflib/ECOND_Formatter.h"
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
 #include "pflib/packing/ECONDEventPacket.h"
+#include "pflib/packing/ECONDFormatter.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
@@ -540,8 +540,7 @@ BOOST_AUTO_TEST_CASE(roundtrip_with_formatter) {
   using pflib::packing::hex;
   int bx{1111}, l1a{24}, orb{0};
   auto test_frame = gen_test_daq_link_frame();
-  pflib::ECOND_Formatter formatter;
-  formatter.disable_zs();
+  pflib::packing::ECONDFormatter formatter(true);
   formatter.startEvent(bx, l1a, orb);
   for (int i{0}; i < 2; i++) {
     formatter.add_elink_packet(i, test_frame);

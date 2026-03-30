@@ -95,6 +95,7 @@ add_library(packing SHARED
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
   src/pflib/packing/ECONDEventPacket.cxx
+  src/pflib/packing/ECONDFormatter.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
 )
 target_include_directories(packing PUBLIC 
@@ -126,7 +127,6 @@ set(pflib_src
   src/pflib/lpgbt/GPIO.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
-  src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/zcu/zcu_elinks.cxx

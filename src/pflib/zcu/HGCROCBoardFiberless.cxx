@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 
-#include "pflib/ECOND_Formatter.h"
+#include "pflib/packing/ECONDFormatter.h"
 #include "pflib/HcalBackplane.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/zcu/UIO.h"
@@ -236,7 +236,7 @@ class HcalFiberless : public HcalBackplane {
   Target::DaqFormat daqformat_;
   int ievt_, l1a_;
   int contribid_;
-  ECOND_Formatter formatter_;
+  packing::ECONDFormatter formatter_{true};
 };
 
 static const int SUBSYSTEM_ID_HCAL_DAQ = 0x07;

@@ -22,7 +22,7 @@ namespace pflib::packing {
  *    zero-suppression of multiple varieties including full eliminating
  *    channels that are empty
  *
- * The ECOND_Formatter emulates the ECON-D re-formatting of the HGCROC
+ * The ECONDFormatter emulates the ECON-D re-formatting of the HGCROC
  * event packets into the ECON-D event packet. This unpacking is done
  * separately from this formatter so that it can be applied to data
  * actually extracted from an ECON-D.
