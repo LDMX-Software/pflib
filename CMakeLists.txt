@@ -92,6 +92,7 @@ add_library(packing SHARED
   src/pflib/packing/BufferReader.cxx
   src/pflib/packing/Sample.cxx
   src/pflib/packing/DAQLinkFrame.cxx
+  src/pflib/packing/DAQSampleHeader.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
   src/pflib/packing/ECONDEventPacket.cxx

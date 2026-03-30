@@ -4,6 +4,8 @@
 #include <memory>
 
 #include "pflib/packing/ECONDFormatter.h"
+#include "pflib/packing/DAQSampleHeader.h"
+
 #include "pflib/HcalBackplane.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/zcu/UIO.h"
@@ -289,17 +291,8 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         buffer.push_back(0x12345678);
         daq().advanceLinkReadPtr();
       } break;
-      case DaqFormat::ECOND_NO_ZS: {
+      case DaqFormat::ECOND_SW_HEADERS: {
         const int bc = 0;  // bx number...
-        /*
-        buffer.push_back(0xb33f2025);
-        buffer.push_back(run_);
-        buffer.push_back((ievt_ << 8) | bc);
-        buffer.push_back(0);
-        buffer.push_back((0xA6u << 24) | (contribid_ << 16) |
-                         (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
-        */
-
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           // assume orbit zero, L1A spaced by two
           formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
@@ -310,12 +303,15 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
-          uint32_t header = formatter_.getPacket().size();
-          header |= (0x1 << 28);
-          header |= (daq().econid() & 0x3ff) << 18;
-          header |= (il1a & 0x1f) << 13;
-          if (il1a == daq().soi()) header |= (1 << 12);
-          buffer.push_back(header);
+          buffer.push_back(
+            pflib::packing::DAQSampleHeader{
+              .version = 1,
+              .econd_id = static_cast<uint32_t>(daq().econid()),
+              .i_l1a = static_cast<uint32_t>(il1a),
+              .is_soi = (il1a == daq().soi()),
+              .econd_len = static_cast<uint32_t>(formatter_.getPacket().size())
+            }.to()
+          );
 
           // insert ECOND packet into buffer
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),
@@ -326,13 +322,7 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         }
         l1a_ += daq().samples_per_ror();
         // add a special "header" to mark that we have no more ECON packets
-        uint32_t header{0};
-        header |= (0x1 << 28);
-        header |= (daq().econid() & 0x3ff) << 18;
-        buffer.push_back(header);
-        /*
-        buffer.push_back(0x12345678);
-        */
+        buffer.push_back(pflib::packing::DAQSampleHeader::ending_trailer());
       } break;
       default: {
         PFEXCEPTION_RAISE("NoImpl", "DaqFormat provided is not implemented");
