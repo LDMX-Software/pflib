@@ -59,8 +59,8 @@ class measurements():
         self.time = np.array(t)
         self.adc = np.array(val)
         self.dadc = []
-        self.calib = c
-        self.channel = ch
+        self.calib = int(c)
+        self.channel = int(ch)
         self.sample = sample
         self.parameters = parameters
 
@@ -348,7 +348,7 @@ def outlier_phase_analysis(dataset : list):
 
 # -------  PLOTTING DATA -------
 
-def plot_outliers(dataset : list, plot_type : str):
+def plot_outliers(dataset : list, plot_type : str, data_parameters):
 
     outs = []
     potouts = []
@@ -369,6 +369,7 @@ def plot_outliers(dataset : list, plot_type : str):
         plt.xlim(np.min(dataset[0].time)-1, np.max(dataset[0].time)+1)
         plt.ylabel('ADC')
         plt.xlabel('time [ns]')
+        plt.title(f"highrange = {data_parameters['highrange']}, preCC = {data_parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}; {data_parameters['samples']} samples")
         plt.legend()
         if args.plot_directory:
             plt.savefig(os.path.join(args.plot_directory,f'clustered_outliers.png'), dpi=400)
@@ -387,6 +388,7 @@ def plot_outliers(dataset : list, plot_type : str):
             plt.xlim(np.min(dataset[0].time)-1, np.max(dataset[0].time)+1)
             plt.ylabel('ADC')
             plt.xlabel('time [ns]')
+            plt.title(f"highrange = {data_parameters['highrange']}, preCC = {data_parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}")
             plt.legend()
             if args.plot_directory:
                 plt.savefig(os.path.join(args.plot_directory,f'sample_{i}_outliers.png'), dpi=300)
@@ -443,4 +445,4 @@ if args.csv:
     write_to_csv(working_data, args.csv, data_parameters)
 
 if args.plot:
-    plot_outliers(working_data, args.plot)
+    plot_outliers(working_data, args.plot, data_parameters)
