@@ -46,7 +46,7 @@ void channel_wise_calib_scan(Target* tgt) {
           << '\n';
       },
       [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
-        // TODO 384
+        // TODO 348
         if (ch < 36) {
           link = 0;
         } else if (ch >= 36) {
