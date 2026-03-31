@@ -111,18 +111,19 @@ int DataFitter::fit(int target) {
   return inv_vref;
 }
 
-// helper function to facilitate EventPacket dependent behaviour
-template <class EventPacket>
-static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                 std::array<int, 2>& channels,
-                                 std::array<int, 2>& inv_vref_tgt,
-                                 std::array<int, 2>& noinv_vref_tgt) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan:getter")};
+std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
+    Target* tgt, ROC& roc) {
+  static auto the_log_{::pflib::logging::get("inv_vref_scan")};
+  int nevents = pftool::readline_int("Number of events per point: ", 1);
+  std::array<int, 2> channels = {17, 51};
+
+  std::array<int, 2> inv_vref_tgt;
+  std::array<int, 2> noinv_vref_tgt;
 
   int noinv_vref = 612;
   int target_adc = 200;
 
-  DecodeAndBuffer<EventPacket> buffer{1, 2};
+  DecodeAndBuffer buffer{1, 2};
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
@@ -153,22 +154,10 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
     std::vector<int> adcs_l1;
 
     for (std::size_t i{0}; i < data.size(); i++) {
-      if constexpr (std::is_same_v<
-                        EventPacket,
-                        pflib::packing::MultiSampleECONDEventPacket>) {
         adcs_l0.push_back(
             data[i].samples[data[i].i_soi].channel(0, channels[0]).adc());
         adcs_l1.push_back(
             data[i].samples[data[i].i_soi].channel(1, channels[1]).adc());
-      } else if constexpr (std::is_same_v<
-                               EventPacket,
-                               pflib::packing::SingleROCEventPacket>) {
-        adcs_l0.push_back(data[i].channel(channels[0]).adc());
-        adcs_l1.push_back(data[i].channel(channels[1]).adc());
-      } else {
-        PFEXCEPTION_RAISE("BadConf",
-                          "Unable to get adc for the cofigured format");
-      }
     }
     pedestals_l0.push_back(pflib::utility::median(adcs_l0));
     stds_l0.push_back(pflib::utility::stdev(adcs_l0));
@@ -185,35 +174,13 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
   inv_vref_tgt[1] = fitter_l1.fit(target_adc);
   noinv_vref_tgt[0] = noinv_vref;
   noinv_vref_tgt[1] = noinv_vref;
-}
 
-std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
-    Target* tgt, ROC& roc) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan")};
-  int nevents = pftool::readline_int("Number of events per point: ", 1);
-  std::array<int, 2> channels = {17, 51};
-
-  std::array<int, 2> inv_vref;
-  std::array<int, 2> noinv_vref;
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    inv_vref_scan_getter<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, nevents, channels, inv_vref, noinv_vref);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    inv_vref_scan_getter<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, channels, inv_vref, noinv_vref);
-  } else {
-    pflib_log(warn) << "Unsupported DAQ format ("
-                    << static_cast<int>(pftool::state.daq_format_mode)
-                    << ") in level_pedestals. Skipping pedestal leveling...";
-  }
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-    settings[refvol_page]["INV_VREF"] = inv_vref[i_link];
-    settings[refvol_page]["NOINV_VREF"] = noinv_vref[i_link];
+    settings[refvol_page]["INV_VREF"] = inv_vref_tgt[i_link];
+    settings[refvol_page]["NOINV_VREF"] = noinv_vref_tgt[i_link];
   }
   return settings;
 }

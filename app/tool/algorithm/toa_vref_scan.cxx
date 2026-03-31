@@ -8,13 +8,21 @@
 
 namespace pflib::algorithm {
 
-// Templated helpder function
-template <class EventPacket>
-static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
-                          std::array<int, 2>& target) {
+std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
+    Target* tgt, ROC roc) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
+
+  /// do a run of 100 samples per toa_vref to measure the TOA
+  /// efficiency when looking at pedestal data
+
+  static const std::size_t n_events = 100;
+
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+
+  std::array<int, 2> target;
   std::array<std::array<double, 256>, 2> final_effs;
-  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
+  //TODO 348
+  DecodeAndBuffer buffer{n_events, 2};
 
   // loop over runs, from toa_vref = 0 to = 255
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
@@ -54,34 +62,7 @@ static void toa_vref_runs(Target* tgt, ROC& roc, size_t n_events,
     }
     target[i_link] = highest_non_zero_eff;  // store value
   }
-}
-
-std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
-    Target* tgt, ROC roc) {
-  static auto the_log_{::pflib::logging::get("toa_vref_scan")};
-
-  /// do a run of 100 samples per toa_vref to measure the TOA
-  /// efficiency when looking at pedestal data
-
-  static const std::size_t n_events = 100;
-
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
-
-  std::array<int, 2> target;
   // toa_vref is a global parameter (1 value per link)
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    toa_vref_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                        target);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    toa_vref_runs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, target);
-  } else {
-    pflib_log(warn) << "Unsupported DAQ format ("
-                    << static_cast<int>(pftool::state.daq_format_mode)
-                    << ") in level_pedestals. Skipping pedestal leveling...";
-  }
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {

@@ -64,14 +64,33 @@ std::tuple<double, double> siegel_regression(
  */
 namespace pflib::algorithm {
 
-// Templated helpder function
-template <class EventPacket>
-static void trim_tof_runs(
-    Target* tgt, ROC& roc, size_t n_events,
-    std::array<std::array<std::array<double, 72>, 8>, 200>& final_data) {
+std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
+    Target* tgt, ROC roc) {
+  static auto the_log_{::pflib::logging::get("trim_toa_scan")};
+
+  /**
+   * Charge injection scan (100 samples) while varying TRIM_TOA.
+   * Purpose is to align TRIM_TOA for each channel.
+   * Calculates TOA efficiency while looking at charge injection data.
+   * Then uses Siegel Linear Regression to calculate the aligned
+   * TRIM_TOA value for each channel to match a common "calib" value.
+   *
+   * @note Reduce the sample size (ex: 100 to 10) to decrease the scan time.
+   */
+
+  static const std::size_t n_events = 100;
+
+  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+
+  // trim_toa is a channel-wise parameter (1 value per channel)
+  std::array<uint64_t, 72> target;
+
+  // TODO 348
+  // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency
+  // here.
+  std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
   // working in buffer, not in writer
-  DecodeAndBuffer<EventPacket> buffer{n_events, 2};
-  static auto the_log_{::pflib::logging::get("toa_vref_scan")};
+  DecodeAndBuffer buffer{n_events, 2};
 
   // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
   // loop over calib, from calib = 0 to 800 by skipping over 4
@@ -106,44 +125,6 @@ static void trim_tof_runs(
         final_data[calib / 4][trim_toa / 4][ch] = efficiencies[ch];
       }
     }
-  }
-}
-std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
-    Target* tgt, ROC roc) {
-  static auto the_log_{::pflib::logging::get("trim_toa_scan")};
-
-  /**
-   * Charge injection scan (100 samples) while varying TRIM_TOA.
-   * Purpose is to align TRIM_TOA for each channel.
-   * Calculates TOA efficiency while looking at charge injection data.
-   * Then uses Siegel Linear Regression to calculate the aligned
-   * TRIM_TOA value for each channel to match a common "calib" value.
-   *
-   * @note Reduce the sample size (ex: 100 to 10) to decrease the scan time.
-   */
-
-  static const std::size_t n_events = 100;
-
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
-
-  // trim_toa is a channel-wise parameter (1 value per channel)
-  std::array<uint64_t, 72> target;
-
-  // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency
-  // here.
-  std::array<std::array<std::array<double, 72>, 8>, 200> final_data;
-
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    trim_tof_runs<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events,
-                                                        final_data);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    trim_tof_runs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, final_data);
-  } else {
-    pflib_log(warn) << "Unsupported DAQ format ("
-                    << static_cast<int>(pftool::state.daq_format_mode)
-                    << ") in level_pedestals. Skipping pedestal leveling...";
   }
 
   pflib_log(info) << "sample collections done, deducing settings";

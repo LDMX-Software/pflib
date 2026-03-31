@@ -35,26 +35,12 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   tgt->setup_run(1, pftool::state.daq_format_mode, 1);
 
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    calibs = get_calibs<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, n_events_calib, target_adc);
-    vref_targets = tp50_scan<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, n_events, calibs, vref_targets);
-    trim_targets = trim_tot_scan<pflib::packing::SingleROCEventPacket>(
-        tgt, roc, n_events, calibs, vref_targets, trim_targets);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    calibs = get_calibs<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events_calib, target_adc);
-    vref_targets = tp50_scan<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, calibs, vref_targets);
-    trim_targets = trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, n_events, calibs, vref_targets, trim_targets);
-  } else {
-    pflib_log(warn) << "Unsupported DAQ format ("
-                    << static_cast<int>(pftool::state.daq_format_mode)
-                    << ") in level_pedestals. Skipping pedestal leveling...";
-  }
+  calibs = get_calibs(
+      tgt, roc, n_events_calib, target_adc);
+  vref_targets = tp50_scan(
+      tgt, roc, n_events, calibs, vref_targets);
+  trim_targets = trim_tot_scan(
+      tgt, roc, n_events, calibs, vref_targets, trim_targets);
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {
