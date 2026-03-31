@@ -98,8 +98,7 @@ void gen_scan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
   for (; i_param_point < param_values.size(); i_param_point++) {
     auto test_param_builder = roc.testParameters();
     for (std::size_t i_param{0}; i_param < param_names.size(); i_param++) {

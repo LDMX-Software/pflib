@@ -30,8 +30,7 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
 
   DecodeAndBuffer buffer{nevents, 2};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
   for (int toa_vref = 100; toa_vref < 250; toa_vref++) {
     auto test_handle =
         roc.testParameters().add(refvol_page, "TOA_VREF", toa_vref).apply();

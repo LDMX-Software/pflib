@@ -84,8 +84,7 @@ void vt50_scan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
   for (vref_value = vref_lower; vref_value <= vref_upper;
        vref_value += nsteps) {
     // reset for every iteration

@@ -40,8 +40,7 @@ void noinv_vref_scan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   // increment inv_vref in increments of 20. 10 bit value but only scanning to
   // 600

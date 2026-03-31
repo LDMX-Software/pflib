@@ -125,8 +125,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
 
   DecodeAndBuffer buffer{1, 2};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   std::vector<int> pedestals_l0;
   std::vector<double> stds_l0;

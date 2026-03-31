@@ -33,7 +33,7 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   size_t n_events = 100;
 
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   calibs = get_calibs(
       tgt, roc, n_events_calib, target_adc);

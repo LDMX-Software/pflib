@@ -116,8 +116,7 @@ void parameter_timescan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
   for (; i_param_point < param_values.size(); i_param_point++) {
     // set parameters
     auto test_param_builder = roc.testParameters();

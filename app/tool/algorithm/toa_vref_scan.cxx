@@ -17,7 +17,7 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   std::array<int, 2> target;
   std::array<std::array<double, 256>, 2> final_effs;

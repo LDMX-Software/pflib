@@ -58,8 +58,7 @@ void channel_wise_calib_scan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
 

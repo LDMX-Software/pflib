@@ -80,7 +80,7 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
   static const std::size_t n_events = 100;
 
-  tgt->setup_run(1, pftool::state.daq_format_mode, 1);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   // trim_toa is a channel-wise parameter (1 value per channel)
   std::array<uint64_t, 72> target;

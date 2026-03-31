@@ -65,8 +65,8 @@ void multi_channel_scan(Target* tgt) {
         },
         n_links  // number of links
     };
-    tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                   1 /* dummy */);
+
+    tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
     // Do the scan for increasing amount of channels
     for (nr_channels; nr_channels < 1; nr_channels++) {
       auto test_param_handle = roc.testParameters();

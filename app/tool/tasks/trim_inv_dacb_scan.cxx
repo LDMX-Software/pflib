@@ -42,8 +42,7 @@ void trim_inv_dacb_scan(Target* tgt) {
       },
       n_links};
 
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   // take pedestal run for dacb parameter points (trim_inv = 0)
   auto sign_dac_builder = roc.testParameters();
