@@ -115,6 +115,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   int nevents = pftool::readline_int("Number of events per point: ", 1);
+  // TODO 348
   std::array<int, 2> channels = {17, 51};
 
   std::array<int, 2> inv_vref_tgt;
@@ -156,7 +157,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
         adcs_l0.push_back(
             data[i].samples[data[i].i_soi].channel(0, channels[0]).adc());
         adcs_l1.push_back(
-            data[i].samples[data[i].i_soi].channel(1, channels[1]).adc());
+            data[i].samples[data[i].i_soi].channel(1, channels[1] / 36).adc());
     }
     pedestals_l0.push_back(pflib::utility::median(adcs_l0));
     stds_l0.push_back(pflib::utility::stdev(adcs_l0));
