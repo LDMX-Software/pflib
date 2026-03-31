@@ -6,7 +6,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+import matplotlib.colors
+import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 parser = argparse.ArgumentParser()
 parser.add_argument('pedestals', type=Path, nargs='+', help='decoded pedestal CSV file to summarize')
@@ -38,6 +40,20 @@ ax0.set_title('link0')
 ax1.set_title('link1')
 ax0.set_xlim(link0['adc'].min()-3, link0['adc'].max()+3)
 ax1.set_xlim(link1['adc'].min()-3, link1['adc'].max()+3)
+
+norm = matplotlib.colors.Normalize(vmin=0, vmax=35)
+sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+sm.set_array([])
+axins0 = inset_axes(ax0, width='20%', height='4%', loc='upper right', borderpad=1.4)
+cbar0 = fig.colorbar(sm, cax=axins0, orientation='horizontal', ticks=[0, 35])
+cbar0.ax.set_xticklabels(['0', '35'])
+axins1 = inset_axes(ax1, width='20%', height='4%', loc='upper right', borderpad=1.4)
+cbar1 = fig.colorbar(sm, cax=axins1, orientation='horizontal', ticks=[0, 35])
+cbar1.ax.set_xticklabels(['0', '35'])
+axins0.xaxis.set_ticks_position('bottom')
+axins1.xaxis.set_ticks_position('bottom')
+axins0.set_title('channels', fontsize=10)
+axins1.set_title('channels', fontsize=10)
 
 filename = 'pedestal_distribution.png'
 fig.savefig(filename)
