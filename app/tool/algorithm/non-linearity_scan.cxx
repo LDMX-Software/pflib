@@ -117,10 +117,52 @@ namespace pflib::algorithm {
     return dnl_max;
   }
 
-  template <class EventPacket>
-  std::vector<double> nl_scan(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,3> delays, std::vector<double> CALIBs, double& optimal_bx) {
+  double new_dnl_calculation(std::vector<double> calibs, std::vector<double> peaks) {
 
-    static auto the_log_{::pflib::logging::get("INL_scan")};
+    int max_adc = *std::max_element(peaks.begin(), peaks.end());
+    int min_adc = *std::min_element(peaks.begin(), peaks.end());
+
+    double width_ideal = (calibs.size)/(max_adc-min_adc+1);
+    
+    std::vector<double> DNL;
+    std::vector<double> steps;
+
+    double width = 0;
+    int i = 0;
+
+    for (int val{0}; val < peaks.size(); val++) {
+
+      int step_start = std::floor(peaks[i]);
+      double diff = std::abs(peaks[val] - step_start); // should probably be absolute value here
+
+      if (diff < 1) {
+        width++;
+      }
+      else {
+        if (std::abs(peaks[val + 1] - step_start) < 1) {
+          width++; // accounts for outliers within step
+        }
+        else { // new step
+          i = val;
+          steps.push_back(width);
+          width = 1;
+        }
+      }
+    }
+    
+    for (double step : steps) {
+      DNL.push_back(std::abs((step/width_ideal) - 1));
+    }
+
+    double max_DNL = *std::max_element(DNL.begin(), DNL.end());
+
+    return max_DNL;
+  }
+
+  template <class EventPacket>
+  std::vector<double> nl_scan(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,4> delays, std::vector<double> CALIBs, double& optimal_bx) {
+
+    static auto the_log_{::pflib::logging::get("NL_scan")};
 
     auto channel_page = pflib::utility::string_format("CH_%d", channel);
     auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
@@ -140,9 +182,10 @@ namespace pflib::algorithm {
                   1 /* dummy */);
 
     auto vref_test_param = roc.testParameters()
-                              .add(globalanalog_page, "DELAY65", delays[0])
-                              .add(globalanalog_page, "DELAY87", delays[1])
-                              .add(globalanalog_page, "DELAY9", delays[2])
+                              .add(globalanalog_page, "DELAY40", delays[0])
+                              .add(globalanalog_page, "DELAY65", delays[1])
+                              .add(globalanalog_page, "DELAY87", delays[2])
+                              .add(globalanalog_page, "DELAY9", delays[3])
                               .add(refvol_page, "INTCTEST", 1)
                               .add(refvol_page, "CHOICE_CINJ", 0)
                               .add(channel_page, "HIGHRANGE", 1)
@@ -191,14 +234,14 @@ namespace pflib::algorithm {
     linear_fit(CALIBs, peaks, m, b);
     double fit_inl = linear_fit_inl_calculation(CALIBs, peaks, m, b);
     double ideal_inl = ideal_steps_inl_calculation(CALIBs, peaks);
-    double max_dnl = dnl_calculation(peaks);
+    double max_dnl = new_dnl_calculation(CALIBs, peaks);
 
     nl_results = {ideal_inl, fit_inl, max_dnl};
 
     return nl_results;
   }
 
-  template std::vector<double> nl_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,3> delays, std::vector<double> CALIBs, double& optimal_bx);
-  template std::vector<double> nl_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,3> delays, std::vector<double> CALIBs, double& optimal_bx);
+  template std::vector<double> nl_scan<pflib::packing::SingleROCEventPacket>(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,4> delays, std::vector<double> CALIBs, double& optimal_bx);
+  template std::vector<double> nl_scan<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& i_link, std::array<int,4> delays, std::vector<double> CALIBs, double& optimal_bx);
 
 }

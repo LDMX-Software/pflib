@@ -12,6 +12,6 @@
 namespace pflib::algorithm {
 
   template <class EventPacket>
-  std::vector<double> nl_scan(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& link, std::array<int,3> delays, std::vector<double> CALIBs, double& optimal_bx);
+  std::vector<double> nl_scan(Target* tgt, ROC& roc, size_t& n_events, int& channel, int& link, std::array<int,4> delays, std::vector<double> CALIBs, double& optimal_bx);
 
 }

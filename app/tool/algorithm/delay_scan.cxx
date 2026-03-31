@@ -19,15 +19,15 @@ namespace pflib::algorithm {
 
     size_t n_events = pftool::readline_int("How many events per time point? ", 1);
     int channel = pftool::readline_int("Channel to pulse into? ", 61);
-    int start_calib = pftool::readline_int("Starting CALIB : ", 3000);
-    int end_calib = pftool::readline_int("Final CALIB : ", 3100);
-    int steps = pftool::readline_int("CALIB step magnitude : ", 10);
+    //int start_calib = pftool::readline_int("Starting CALIB : ", 3000);
+    //int end_calib = pftool::readline_int("Final CALIB : ", 3100);
+    //int steps = pftool::readline_int("CALIB step magnitude : ", 10);
     int start_delay_setting = pftool::readline_int("Starting delay settings (1-8): ", 1);
     int end_delay_setting = pftool::readline_int("Final delay settings (1-8)", 3); 
     int i_link = (channel / 36);
-    std::vector<std::array<int, 3>> delay_list;
-    std::vector<double> inl_list;
-    std::vector<double> CALIBs;
+    std::vector<double> D9_CALIBs;
+    std::vector<double> D85_CALIBs;
+    std::vector<double> D40_CALIBs;
 
     if (start_delay_setting > end_delay_setting) {
       pflib_log(warn) << "Your final delay setting is lower than your starting delay setting!";
@@ -40,10 +40,20 @@ namespace pflib::algorithm {
       end_delay_setting = pftool::readline_int("Final delay settings (1-8)", 3); 
     }
 
-    for (double c = start_calib; c <= end_calib; c += steps)
+    for (double c = 1700 ; c <= 2850 ; c++) // ADC equivalent 400-600
     {
-      CALIBs.push_back(c);
+      D9_CALIBs.push_back(c);
     }
+    for (double c = 90; c <= 2325; c++) // ADC equivalent 120-500
+    {
+      D85_CALIBs.push_back(c);
+    }
+    for (double c = 850; c <= 990; c++) // ADC equivalent 256-272
+    {
+      D40_CALIBs.push_back(c);
+    }
+
+    std::vector<std::vector<double>> CALIBs{D9_CALIBs, D85_CALIBs, D85_CALIBs, D40_CALIBs};
 
     // Finding the bx corresponding to the ADC peak (preCC) ------
 
@@ -118,50 +128,48 @@ namespace pflib::algorithm {
     // ------
 
     double optimal_bx = charge_to_l1a;
+    std::array<int, 4> delays{0,0,0,0};
     
-    for (int i = start_delay_setting; i <= end_delay_setting; i++)
-    {
-      for (int j = start_delay_setting; j <= end_delay_setting; j++)
-      {
-        for (int k = start_delay_setting; k <= end_delay_setting; k++)
-        {
-          pflib_log(info) << "Trying delays : " << i << ", " << j << ", " << k;
-          std::array<int, 3> delays{i, j, k};
-          delay_list.push_back({i, j, k});
-          std::vector<double> nl_vector{0.,0.,0.};
-          if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-            nl_vector = nl_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, channel, i_link, delays, CALIBs, optimal_bx);
-          } else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
-            nl_vector = nl_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events, channel, i_link, delays, CALIBs, optimal_bx);
-          }
-          inl_list.push_back(nl_vector[0]);
+    for (int n = 0; n <= 3; n++){
+
+      std::vector<int> delay_list;
+      std::vector<double> dnl_list;
+
+      for (int i = start_delay_setting; i <= end_delay_setting; i++){
+    
+        pflib_log(info) << "Bit group " << n << " : trying delay value = " << i;
+
+        delays[n] = i;
+        delay_list.push_back(i);
+        std::vector<double> nl_vector{0.,0.,0.};
+        if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
+          nl_vector = nl_scan<pflib::packing::SingleROCEventPacket>(tgt, roc, n_events, channel, i_link, delays, CALIBs[n], optimal_bx);
+        } else if (pftool::state.daq_format_mode == Target::DaqFormat::ECOND_SW_HEADERS) {
+          nl_vector = nl_scan<pflib::packing::MultiSampleECONDEventPacket>(tgt, roc, n_events, channel, i_link, delays, CALIBs[n], optimal_bx);
         }
+        dnl_list.push_back(nl_vector[2]);
       }
+      
+      auto min_dnl = *std::min_element(dnl_list.begin(), dnl_list.end());
+      auto min_dnl_it = std::find(dnl_list.begin(), dnl_list.end(), min_dnl);
+      size_t min_dnl_index;
+      if (min_dnl_it != dnl_list.end())
+      {
+        min_dnl_index = std::distance(dnl_list.begin(), min_dnl_it);
+      }
+      int optimal_delay = delay_list[min_dnl_index];
+
+      pflib_log(info) << "Optimal delay for bit group " << n << " is : " << optimal_delay;
+      delays[n] = optimal_delay;
     }
-    for (double value : inl_list)
-    {
-      pflib_log(info) << "All max INLs :" << value;
-    }
-    // minimize the inl
-    auto min_value = std::min_element(inl_list.begin(), inl_list.end());
-    double min_inl = *min_value;
-    auto min_inl_it = std::find(inl_list.begin(), inl_list.end(), min_inl);
-    size_t min_inl_index;
-    if (min_inl_it != inl_list.end())
-    {
-      min_inl_index = std::distance(inl_list.begin(), min_inl_it);
-    }
-    std::array<int, 3> optimal_delay = delay_list[min_inl_index];
-    pflib_log(info) << "Optimal delay settings found: " << optimal_delay[0] << ", " << optimal_delay[1] << ", " << optimal_delay[2] << ";\n"
-                    << "Minimum INL: " << min_inl;
-    
 
     std::map<std::string, std::map<std::string, uint64_t>> delay_settings;
     for (int i_link{0}; i_link < 2; i_link++) {
       globalanalog_page = pflib::utility::string_format("GLOBALANALOG_%d", i_link);
-      delay_settings[globalanalog_page]["DELAY65"] = optimal_delay[0];
-      delay_settings[globalanalog_page]["DELAY87"] = optimal_delay[1];
-      delay_settings[globalanalog_page]["DELAY9"] = optimal_delay[2];
+      delay_settings[globalanalog_page]["DELAY40"] = delays[3];
+      delay_settings[globalanalog_page]["DELAY65"] = delays[2];
+      delay_settings[globalanalog_page]["DELAY87"] = delays[1];
+      delay_settings[globalanalog_page]["DELAY9"] = delays[0];
     }
     
     return delay_settings;
