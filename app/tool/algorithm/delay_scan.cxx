@@ -94,7 +94,7 @@ namespace pflib::algorithm {
       pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
       usleep(10);
 
-      int calib = CALIBs[0];
+      int calib = 1024;
 
       for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++)
       {
