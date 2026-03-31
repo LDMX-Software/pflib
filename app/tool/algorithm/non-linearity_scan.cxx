@@ -122,7 +122,7 @@ namespace pflib::algorithm {
     int max_adc = *std::max_element(peaks.begin(), peaks.end());
     int min_adc = *std::min_element(peaks.begin(), peaks.end());
 
-    double width_ideal = (calibs.size)/(max_adc-min_adc+1);
+    double width_ideal = (calibs.size())/(max_adc-min_adc+1);
     
     std::vector<double> DNL;
     std::vector<double> steps;
