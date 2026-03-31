@@ -6,43 +6,32 @@
 
 ENABLE_LOGGING();
 
-template <class EventPacket>
-static void vref_2d_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                                std::string fname, int stepsize) {
-  int n_links = 2;
-  if constexpr (std::is_same_v<EventPacket,
-                               pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = tgt->econ(pftool::state.iecon).nLinks();
-  }
+void vref_2d_scan(Target* tgt) {
+  int nevents = pftool::readline_int("How many events per time point? ", 100);
+  int stepsize =
+      pftool::readline_int("How big stepsize between vref values? ", 20);
+  pflib::ROC roc{tgt->roc(pftool::state.iroc)};
+  std::string fname;
+  fname = pftool::readline_path("vref_2d_scan", ".csv");
+  int n_links = 2*tgt->nrocs();
 
   int ch = 0;
   int inv_vref = 0;
   int noinv_vref = 0;
 
-  DecodeAndWriteToCSV<EventPacket> writer{
+  DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
         f << "noinv_vref,inv_vref,ch," << pflib::packing::Sample::to_csv_header
           << '\n';
       },
-      [&](std::ofstream& f, const EventPacket& ep) {
+      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
         for (ch = 0; ch < 72; ch++) {
+          // TODO 348
           int link = (ch / 36);
           f << noinv_vref << ',' << inv_vref << ',' << ch << ',';
-          if constexpr (std::is_same_v<
-                            EventPacket,
-                            pflib::packing::MultiSampleECONDEventPacket>) {
-            ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
-          } else if constexpr (std::is_same_v<
-                                   EventPacket,
-                                   pflib::packing::SingleROCEventPacket>) {
-            ep.channel(ch).to_csv(f);
-          } else {
-            PFEXCEPTION_RAISE("BadConf",
-                              "Unable to do all_channels_to_csv for the "
-                              "currently configured format.");
-          }
+          ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
           f << '\n';
         }
       },
@@ -65,22 +54,5 @@ static void vref_2d_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                       << ", INV_VREF = " << inv_vref;
       daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
     }
-  }
-}
-
-void vref_2d_scan(Target* tgt) {
-  int nevents = pftool::readline_int("How many events per time point? ", 100);
-  int stepsize =
-      pftool::readline_int("How big stepsize between vref values? ", 20);
-  pflib::ROC roc{tgt->roc(pftool::state.iroc)};
-  std::string fname;
-  fname = pftool::readline_path("vref_2d_scan", ".csv");
-  if (pftool::state.daq_format_mode == Target::DaqFormat::SIMPLEROC) {
-    vref_2d_scan_writer<pflib::packing::SingleROCEventPacket>(tgt, roc, nevents,
-                                                              fname, stepsize);
-  } else if (pftool::state.daq_format_mode ==
-             Target::DaqFormat::ECOND_SW_HEADERS) {
-    vref_2d_scan_writer<pflib::packing::MultiSampleECONDEventPacket>(
-        tgt, roc, nevents, fname, stepsize);
   }
 }
