@@ -95,6 +95,20 @@ class Target {
   virtual const std::vector<std::pair<int, int>>& getRocErxMapping() = 0;
 
   /**
+   * Convert the input ECON (link, channel) index to the ROC (index, channel)
+   * using the RocErxMapping defined for the Target and the number of active ROCs.
+   *
+   * @note This logic only works for single-ECON-D setups where all the ROCs are
+   * going into a single ECON-D.
+   *
+   * @param[in] i_link link index as output after decoding
+   * @param[in] channel channel index within that link (0-36)
+   * @return [i_roc, channel] where i_roc is the ROC index (retrieve with roc(i_roc))
+   * and channel is the channel within that ROC (0-72)
+   */
+  std::pair<int, int> toROCChannel(int i_link, int channel);
+
+  /**
    * types of daq formats that we can do
    */
   enum class DaqFormat {

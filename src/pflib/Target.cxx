@@ -32,4 +32,27 @@ OptoLink& Target::get_opto_link(const std::string& name) const {
   return *(it->second);
 }
 
+std::vector<int> invertRocErxMapping(const std::vector<std::pair<int,int>> roc_to_erx) {
+  std::vector<int> erx_to_roc(2*roc_to_erx.size());
+  int i_link_offset{100};
+  for (int i_roc{0}; i_roc < roc_to_erx.size(); i_roc++) {
+    for (int i_link : roc_to_erx.at(i_roc)) {
+      if (has_roc(i_roc)) {
+        erx_to_roc[i_link] = i_roc;
+        if (i_link < i_link_offset) {
+          i_link_offset = i_link;
+        }
+      } else {
+        erx_to_roc[i_link] = -1;
+      }
+    }
+  }
+  return erx_to_roc;
+}
+
+std::pair<int, int> toROCChannel(int i_link, int channel) {
+  static const erx_to_roc{invertRocErxMapping(getRocErxMapping())};
+
+}
+
 }  // namespace pflib
