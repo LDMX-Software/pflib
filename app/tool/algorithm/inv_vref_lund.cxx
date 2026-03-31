@@ -120,7 +120,7 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
   static auto the_log_{::pflib::logging::get("inv_vref_scan:getter")};
 
   int noinv_vref = 612;
-  int target_adc = 200;
+  int target_adc = 100;
 
   DecodeAndBuffer<EventPacket> buffer{1, 2};
 
