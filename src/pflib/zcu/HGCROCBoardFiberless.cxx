@@ -6,7 +6,9 @@
 #include "pflib/packing/ECONDFormatter.h"
 #include "pflib/packing/DAQSampleHeader.h"
 
-#include "pflib/HcalBackplane.h"
+#include "pflib/Bias.h"
+#include "pflib/GPIO.h"
+#include "pflib/Target.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/zcu/UIO.h"
 
@@ -166,18 +168,37 @@ void FiberlessCapture::advanceLinkReadPtr() {
     uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
 }
 
-class HcalFiberless : public HcalBackplane {
+class HcalFiberless : public Target {
  public:
   static constexpr const char* GPO_HGCROC_RESET_HARD = "HGCROC_HARD_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
+  const std::vector<std::pair<int, int>>& getRocErxMapping() override {
+    static const std::vector<std::pair<int, int>> THE_MAP = {{0,1}};
+    return THE_MAP;
+  }
+  virtual Bias bias(int which) {
+    if (which == 0) return *bias_;
+    PFEXCEPTION_RAISE("NoMore", "Only one bias board (index=0) for fiberless setup.");
+  }
+  virtual ROC& roc(int which) override {
+    if (which == 0) return *roc_;
+    PFEXCEPTION_RAISE("NoMore", "Only one ROC (index=0) for fiberless setup.");
+  }
+  virtual ECON& econ(int which) override {
+    PFEXCEPTION_RAISE("InvalidECONid",
+                      "No ECONs connected for Fiberless targets.");
+  }
+  virtual GPIO& gpio() { return *gpio_; }
   virtual int nrocs() override { return 1; }
-  virtual int necons() override { return 0; }
   virtual bool have_roc(int i) const override { return (i == 0); }
   virtual std::vector<int> roc_ids() const override { return {0}; }
+  virtual int necons() override { return 0; }
+  virtual bool have_econ(int iecon) const override { return false; }
+  virtual std::vector<int> econ_ids() const override { return {}; }
 
-  HcalFiberless() : HcalBackplane() {
+  HcalFiberless() : Target() {
     auto i2croc = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     if (not i2croc) {
       PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
@@ -187,9 +208,8 @@ class HcalFiberless : public HcalBackplane {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
 
-    rocs_[0] = std::make_unique<HGCROCBoard>(ROC(i2croc, 0x20, "sipm_rocv3b"),
-                                             Bias(i2cboard, i2cboard));
-    nhgcroc_++;
+    roc_ = std::make_unique<ROC>(i2croc, 0x20, "sipm_rocv3b");
+    bias_ = std::make_unique<Bias>(i2cboard, i2cboard);
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
@@ -220,11 +240,6 @@ class HcalFiberless : public HcalBackplane {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);   // active low
   }
 
-  ECON& econ(int which) override {
-    PFEXCEPTION_RAISE("InvalidECONid",
-                      "No ECONs connected for Fiberless targets.");
-  }
-
   virtual Elinks& elinks() override { return *capture_; }
   virtual DAQ& daq() override { return *capture_; }
   virtual FastControl& fc() override { return *fc_; }
@@ -232,8 +247,11 @@ class HcalFiberless : public HcalBackplane {
   virtual std::vector<uint32_t> read_event();
 
  public:
+  std::unique_ptr<GPIO> gpio_;
   std::shared_ptr<FastControl> fc_;
   std::shared_ptr<FiberlessCapture> capture_;
+  std::unique_ptr<ROC> roc_;
+  std::unique_ptr<Bias> bias_;
   int run_;
   Target::DaqFormat daqformat_;
   int ievt_, l1a_;
