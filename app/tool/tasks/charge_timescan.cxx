@@ -12,6 +12,7 @@ void charge_timescan(Target* tgt) {
   bool isLED = pftool::readline_bool(
       "Flash LED instead of the internal calibration pulse?", true);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
+  // TODO 348
   int link = (channel / 36);
   int i_ch = channel % 36;  // 0–35
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
