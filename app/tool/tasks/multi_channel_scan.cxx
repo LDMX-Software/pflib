@@ -59,7 +59,8 @@ void multi_channel_scan(Target* tgt) {
             f << nr_channels + 1 << ',';
             f << time << ',';
             f << ch << ',';
-            ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+            // TODO 348
+            ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
             f << '\n';
           }
         },
@@ -145,7 +146,10 @@ void multi_channel_scan(Target* tgt) {
               f << val << ',';
             }
             f << ch << ',';
-            ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+            // TODO 348
+            int i_link = ch % 36;
+            int i_ch = ch / 36;
+            ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
             f << '\n';
           }
         },

@@ -60,7 +60,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
         adcs.push_back(
-            data[i].samples[data[i].i_soi].channel(i_link, ch).adc());
+            data[i].samples[data[i].i_soi].channel(i_link, ch % 36).adc());
       }
       int max_adc = *std::max_element(adcs.begin(), adcs.end());
       if (std::abs(max_adc - target_adc) <= 2) {

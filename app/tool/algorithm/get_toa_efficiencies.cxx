@@ -10,13 +10,10 @@ std::array<double, 72> get_toa_efficiencies(
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> toas(data.size());
-  int i_ch = 0;  // 0–35
-  int i_link = 0;
-
-  // TODO: 348
   for (int ch{0}; ch < 72; ch++) {
-    i_link = (ch / 36);
-    i_ch = ch % 36;
+    // TODO: 348
+    int i_link = (ch / 36);
+    int i_ch = ch % 36;
     for (std::size_t i{0}; i < toas.size(); i++) {
       toas[i] = data[i].samples[data[i].i_soi].channel(i_link, i_ch).toa();
     }

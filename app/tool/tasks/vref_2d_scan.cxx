@@ -28,10 +28,9 @@ void vref_2d_scan(Target* tgt) {
       },
       [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
         for (ch = 0; ch < 72; ch++) {
-          // TODO 348
-          int link = (ch / 36);
           f << noinv_vref << ',' << inv_vref << ',' << ch << ',';
-          ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+          // TODO 348
+          ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
           f << '\n';
         }
       },

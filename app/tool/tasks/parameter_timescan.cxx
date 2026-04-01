@@ -79,9 +79,6 @@ void parameter_timescan(Target* tgt) {
   int n_phase_strobe{16};
   int offset{1};
   std::size_t i_param_point{0};
-  // TODO 348
-  int i_ch = 0;
-  int i_link = 0;
   int n_links = 2*tgt->nrocs();
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
@@ -102,15 +99,13 @@ void parameter_timescan(Target* tgt) {
       },
       [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
         for (int ch : channels) {
-          i_link = (ch / 36);
-          i_ch = ch % 36;
           f << time << ',';
-
           for (const auto& val : param_values[i_param_point]) {
             f << val << ',';
           }
           f << ch << ',';
-          ep.samples[ep.i_soi].channel(i_link, i_ch).to_csv(f);
+          // TODO 348
+          ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
           f << '\n';
         }
       },

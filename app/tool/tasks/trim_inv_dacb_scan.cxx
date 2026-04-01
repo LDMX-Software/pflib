@@ -13,8 +13,6 @@ void trim_inv_dacb_scan(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
   int trim_inv = 0;
   int dacb = 0;
-  int link = 0;
-  int i_ch = 0;
   int n_links = 2*tgt->nrocs();
   DecodeAndWriteToCSV writer{
       output_filepath,
@@ -34,9 +32,7 @@ void trim_inv_dacb_scan(Target* tgt) {
         f << trim_inv << ',' << dacb;
         for (int ch{0}; ch < 72; ch++) {
           // TODO 348
-          link = (ch / 36);
-          i_ch = ch % 36;
-          f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
+          f << ',' << ep.samples[ep.i_soi].channel(ch / 36, ch % 36).adc();
         }
         f << '\n';
       },

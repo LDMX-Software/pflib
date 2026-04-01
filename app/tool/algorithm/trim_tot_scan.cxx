@@ -51,7 +51,7 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
       auto data = buffer.get_buffer();
       std::vector<int> tots(data.size());
       for (std::size_t i{0}; i < tots.size(); i++) {
-        tots[i] = data[i].samples[data[i].i_soi].channel(i_link, ch).tot();
+        tots[i] = data[i].samples[data[i].i_soi].channel(i_link, ch % 36).tot();
       }
       auto efficiency = pflib::utility::efficiency(tots);
       pflib_log(info) << "tot efficiency is " << efficiency;

@@ -10,9 +10,6 @@ void noinv_vref_scan(Target* tgt) {
   int nevents = pftool::readline_int("Number of events per point: ", 1);
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
   auto roc = tgt->roc(pftool::state.iroc);
-  // TODO 348
-  int link = 0;
-  int i_ch = 0;  // 0–35
   int noinv_vref = 0;
   int n_links = 2*tgt->nrocs();
   DecodeAndWriteToCSV writer{
@@ -32,9 +29,8 @@ void noinv_vref_scan(Target* tgt) {
       [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << noinv_vref;
         for (int ch{0}; ch < 72; ch++) {
-          link = (ch / 36);
-          i_ch = ch % 36;
-          f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
+          // TODO 348
+          f << ',' << ep.samples[ep.i_soi].channel(ch / 36, ch % 36).adc();
         }
         f << '\n';
       },

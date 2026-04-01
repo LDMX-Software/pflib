@@ -10,9 +10,6 @@ void sampling_phase_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 100);
   std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
   auto roc = tgt->roc(pftool::state.iroc);
-  // TODO 348
-  int link = 0;
-  int i_ch = 0;
   int phase_ck = 0;
   int n_links = 2*tgt->nrocs();
   DecodeAndWriteToCSV writer{
@@ -32,8 +29,9 @@ void sampling_phase_scan(Target* tgt) {
       [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << phase_ck;
         for (int ch{0}; ch < 72; ch++) {
-          link = (ch / 36);
-          i_ch = ch % 36;
+          // TODO 348
+          int link = (ch / 36);
+          int i_ch = ch % 36;
           f << ',' << ep.samples[ep.i_soi].channel(link, i_ch).adc();
         }
         f << "\n";

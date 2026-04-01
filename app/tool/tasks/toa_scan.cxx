@@ -12,7 +12,6 @@ void toa_scan(Target* tgt) {
   std::string output_filepath = pftool::readline_path("toa_scan", ".csv");
 
   auto roc = tgt->roc(pftool::state.iroc);
-  // TODO 348
   int calib = 0;
   int n_links = 2*tgt->nrocs();
   DecodeAndWriteToCSV writer{
@@ -34,7 +33,7 @@ void toa_scan(Target* tgt) {
         // Write the TOA values for each channel
         for (int ch{0}; ch < 72; ch++) {
           // TODO 348
-          f << "," << ep.soi().channel(0, ch).toa();
+          f << "," << ep.soi().channel(ch / 36, ch % 36).toa();
         }
         f << "\n";
       },

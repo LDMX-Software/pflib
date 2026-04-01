@@ -22,7 +22,8 @@ double eff_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
   auto data = buffer.get_buffer();
   std::vector<double> tot_list;
   for (std::size_t i{0}; i < data.size(); i++) {
-    double tot = data[i].samples[data[i].i_soi].channel(i_link, channel).tot();
+    // TODO 348
+    double tot = data[i].samples[data[i].i_soi].channel(i_link, channel % 36).tot();
     if (tot >= 0) {  // tot = -1 when it is not triggered
       tot_list.push_back(tot);
     }
