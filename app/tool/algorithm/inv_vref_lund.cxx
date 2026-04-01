@@ -17,6 +17,13 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   static auto the_log_{::pflib::logging::get("inv_vref_scan:sort")};
   pflib_log(info) << "Sorting Data";
   // We ignore first and last elements since they miss derivs
+  // Guard against empty or too-small vectors
+  if (inv_vrefs.size() < 3) {
+    pflib_log(error) << "Not enough data points to sort ("
+                     << inv_vrefs.size() << "). Need at least 3.";
+    return;
+  }
+
   struct DerivPoint {
     int i;
     double LH;
@@ -77,8 +84,11 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
 int DataFitter::fit(int target) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:fit")};
   pflib_log(info) << "Fitting Data";
-  // Calculate the median intercept and slope
-  pflib_log(info) << linear_.size();
+
+  if (linear_.empty()) {
+    pflib_log(error) << "No linear region found - cannot fit.";
+    return -1;
+  }
 
   std::vector<double> intercepts;
   std::vector<double> slopes;
@@ -91,22 +101,32 @@ int DataFitter::fit(int target) {
   }
   double median_intercept = pflib::utility::median(intercepts);
   double median_slope = pflib::utility::median(slopes);
+
+  // Guard against zerp slope
+  if (std::abs(median_slope) < 0.001) {
+    pflib_log(error) << "Median slope is near zero — fit is unreliable.";
+    return -1;
+  }
+
   pflib_log(info) << "The median intercept is = " << median_intercept
                   << " and the median deriv is = " << median_slope;
 
-  // Find intersect with target. Start at the beginning of the linear regime
   int inv_vref = 0;
   int adc = 0;
-  int n = linear_.size();
   while (inv_vref < 1024) {
     adc = median_slope * inv_vref + median_intercept;
-    // pflib_log(info) << "inv_vref = " << inv_vref << " with adc = " << adc;
     if (adc <= target) {
       break;
     }
     inv_vref++;
   }
-  inv_vref = inv_vref;
+
+  // Guard against hitting the upper bound
+  if (inv_vref >= 1024) {
+    pflib_log(error) << "Fit did not converge within range.";
+    return -1;
+  }
+
   pflib_log(info) << "Final inv_vref is " << inv_vref;
   return inv_vref;
 }
@@ -126,6 +146,49 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
 
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
+
+  std::array<std::vector<int>, 2> fallbacks = {{{17, 15, 19, 13}}, {{17, 15, 19, 13}}};
+
+  // check for bad channels that would be bad for fitting/dead
+  auto test_param = roc.testParameters()
+                        .add("REFERENCEVOLTAGE_0", "INV_VREF", test_inv_vref)
+                        .add("REFERENCEVOLTAGE_1", "INV_VREF", test_inv_vref)
+                        .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
+                        .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
+                        .apply();
+  daq_run(tgt, "PEDESTAL", buffer, nevents, pftool::state.daq_rate);
+  auto test_data = buffer.get_buffer();
+
+  for (int link = 0; link < 2; link++) {
+    bool found_good = false;
+    for (int candidate : fallbacks[link]) {
+      std::vector<int> test_adcs;
+      for (std::size_t i = 0; i < test_data.size(); i++) {
+        if constexpr (std::is_same_v<EventPacket,
+                          pflib::packing::MultiSampleECONDEventPacket>) {
+          test_adcs.push_back(
+              test_data[i].samples[test_data[i].i_soi].channel(link, candidate).adc());
+        } else if constexpr (std::is_same_v<EventPacket,
+                                pflib::packing::SingleROCEventPacket>) {
+          test_adcs.push_back(test_data[i].channel(candidate).adc());
+        }
+      }
+      double s = pflib::utility::stdev(test_adcs);
+      if (s > 0.001 && s < 50.0) {
+        channels[link] = candidate;
+        pflib_log(info) << "Link " << link << " using channel " << candidate
+                        << " (stdev=" << s << ")";
+        found_good = true;
+        break;
+      }
+      pflib_log(warn) << "Link " << link << " channel " << candidate
+                      << " looks bad (stdev=" << s << "), trying next...";
+    }
+    if (!found_good) {
+      pflib_log(error) << "Link " << link << " has no good channels!";
+      return;
+    }
+  }
 
   std::vector<int> pedestals_l0;
   std::vector<double> stds_l0;
