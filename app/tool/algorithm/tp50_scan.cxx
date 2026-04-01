@@ -1,6 +1,6 @@
-#include <vector>
-
 #include "tp50_scan.h"
+
+#include <vector>
 
 #include "../daq_run.h"
 #include "pflib/utility/efficiency.h"
