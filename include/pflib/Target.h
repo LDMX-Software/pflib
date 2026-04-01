@@ -107,6 +107,7 @@ class Target {
    * and channel is the channel within that ROC (0-72)
    */
   std::pair<int, int> toROCChannel(int i_link, int channel);
+  std::pair<int, int> toECONChannel(int i_roc, int channel);
 
   /**
    * types of daq formats that we can do
