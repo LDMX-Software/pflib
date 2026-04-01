@@ -193,7 +193,7 @@ namespace pflib::algorithm {
                               .apply();  // applying static parameters
     usleep(10);
 
-    // INL scan
+    // NL scan
 
     tgt->fc().fc_setup_calib(optimal_bx);
     pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
@@ -221,8 +221,13 @@ namespace pflib::algorithm {
           }
           adc.push_back(data_adc);
         }
-        double avg = pflib::utility::mean(adc);
-        avg_adc.push_back(avg);
+        if (n_events > 1){
+          double avg = pflib::utility::mean(adc);
+          avg_adc.push_back(avg);
+        }
+        else{
+          avg_adc.push_back(adc[0]);
+        } 
       }
       auto max_value = std::max_element(avg_adc.begin(), avg_adc.end());
       double max_adc = *max_value;
