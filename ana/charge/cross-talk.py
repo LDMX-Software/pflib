@@ -30,9 +30,11 @@ parser.add_argument('-pp', '--plot_parameter', choices=plot_parameters, default=
 parser.add_argument('-ppu', '--plot_pulses', type=bool, help='Choose if you want to plot the pulses of all channels on the link')
 parser.add_argument('-ppe', '--plot_pedestals', type=bool, help='Choose if you want to plot the pedestals of all quiet channels on the link')
 parser.add_argument('-a', '--amplitude', choices=amplitude_defs, default=amplitude_defs[0], type=str, help=f'What amplitude definition to use. Options: {", ".join(amplitude_defs)}')
+parser.add_argument('-st', '--style_sheet', type=Path, help='Style sheet for plots in .mplstyle format')
 args = parser.parse_args()
 
-plt.rcParams['figure.figsize'] = [15, 12]
+if args.style_sheet:
+    plt.style.use(args.style_sheet)
 
 def linear(x, m, b):
     return m*x + b
@@ -81,13 +83,11 @@ if (args.plot_parameter == 'voltage'):
                     .agg(adc=('adc', 'median'), std=('adc', 'std')))
                 ax_p.errorbar(sorted_df['time'], sorted_df['adc'], 
                             yerr=sorted_df['std'], fmt='o', markersize=4, label=f'ch {i}')
-            ax_p.legend(fontsize=12, ncols=3)
-            ax_p.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', fontsize=24, y=1.003)
-            ax_p.set_xlabel("Time [ns]", fontsize=18)
-            ax_p.set_ylabel("Median ADC [a.u.]", fontsize=18)
-            ax_p.grid(which='major', axis='y')
-            ax_p.tick_params(axis='both', labelsize=12)
-            fig_p.savefig(f"Time_adc_{x}mv.png", dpi=400, bbox_inches='tight')
+            ax_p.legend(fontsize=6, ncols=3)
+            ax_p.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', y=1.003)
+            ax_p.set_xlabel("Time [ns]")
+            ax_p.set_ylabel("Median ADC [a.u.]")
+            fig_p.savefig(f"Time_adc_{x}mv.png")
             plt.close()
 
     Aprimes = []
@@ -174,25 +174,21 @@ if (args.plot_parameter == 'voltage'):
                     ax.plot(ch['time'], ch['adc'], label=f"ch {ch_id}")
                     minima = ch[ch['adc'] == ch['adc'].min()]
                     ax2.scatter(ch_id, minima['adc'].median(), label=f'ch {ch_id}')
-            ax.legend(fontsize=12, ncols=3)
-            ax.set_xlabel('Time [ns]', fontsize=18)
-            ax.set_ylabel('Median ADC [a.u.]', fontsize=18)
-            ax.grid(which='major', axis='y')
-            ax.tick_params(axis='both', labelsize=12)
-            ax.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', fontsize=24, y=1.003)
-            ax2.set_xlabel('Channel', fontsize=18)
-            ax2.set_ylabel('Time [ns]', fontsize=18)
-            ax2.grid(which='major', axis='y')
-            ax2.tick_params(axis='both', labelsize=12)
-            ax2.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', fontsize=24, y=1.003)
+            ax.legend(fontsize=6, ncols=3)
+            ax.set_xlabel('Time [ns]')
+            ax.set_ylabel('Median ADC [a.u.]')
+            ax.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', y=1.003)
+            ax2.set_xlabel('Channel')
+            ax2.set_ylabel('Time [ns]')
+            ax2.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', y=1.003)
             ax2.axvline(x = 16, color = 'b', linestyle='--', label = 'ref channel')
             ax2.axvline(x = 4, color = 'r', linestyle='--', label = 'oc channel')
             ax2.axvline(x = 5, color = 'r', linestyle='--')
             ax2.axvline(x = 6, color = 'r', linestyle='--')
             ax2.axvline(x = 7, color = 'r', linestyle='--')
-            ax2.legend(fontsize=12, ncols=3)
-            #fig.savefig(f'Pedestal_quiet_{x}.png', dpi=400, bbox_inches='tight')
-            fig2.savefig(f'non_injected_ch_{x}.png', dpi=400, bbox_inches='tight')
+            ax2.legend(fontsize=6, ncols=3)
+            #fig.savefig(f'Pedestal_quiet_{x}.png')
+            fig2.savefig(f'non_injected_ch_{x}.png')
             plt.close()
 
         mean_dip = np.median(dips)
@@ -247,12 +243,12 @@ if (args.plot_parameter == 'voltage'):
     if (args.amplitude == 'all'):
         fig, ax = plt.subplots(2, 2, 
                                sharex=True, gridspec_kw={"hspace": 0.1})
-        ax[1][0].set_xlabel('Voltage [mV]', fontsize=18)
-        ax[1][1].set_xlabel('Voltage [mV]', fontsize=18)
-        ax[0][0].set_ylabel('Absolute peak ADC of fit [a.u.]', fontsize=18)
-        ax[0][1].set_ylabel('Pedestal-subtracted peak ADC [a.u.]', fontsize=18)
-        ax[1][0].set_ylabel('Peak-to-dip ADC [a.u.]', fontsize=18)
-        ax[1][1].set_ylabel('FWHM [ns]', fontsize=18)
+        ax[1][0].set_xlabel('Voltage [mV]')
+        ax[1][1].set_xlabel('Voltage [mV]')
+        ax[0][0].set_ylabel('Absolute peak ADC of fit [a.u.]')
+        ax[0][1].set_ylabel('Pedestal-subtracted peak ADC [a.u.]')
+        ax[1][0].set_ylabel('Peak-to-dip ADC [a.u.]')
+        ax[1][1].set_ylabel('FWHM [ns]')
 
         fits = []
         xls = []
@@ -267,14 +263,12 @@ if (args.plot_parameter == 'voltage'):
                               label=f'Fit: {popt[0]:.5f}x + {popt[1]:.2f}', 
                               zorder=10)
                 #ax[i][j].legend(fontsize=12)
-                ax[i][j].grid(which='major', axis='y')
-                ax[i][j].tick_params(axis='both', labelsize=12)
                 handles, labels = ax[i][j].get_legend_handles_labels()
                 # sort both labels and handles by labels
                 labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-                ax[i][j].legend(handles, labels, fontsize=16)
+                ax[i][j].legend(handles, labels)
 
-        fig.savefig('attenuation_of_signal_all_amplitudes.png', dpi=400, bbox_inches="tight")
+        fig.savefig('attenuation_of_signal_all_amplitudes.png')
 
     else:
         # Make a fit of data points
@@ -282,17 +276,17 @@ if (args.plot_parameter == 'voltage'):
         slope, intercept = popt[0], popt[1]
 
         fig, ax = plt.subplots(1, 1)
-        ax.set_xlabel('Voltage [mV]', fontsize=18)
+        ax.set_xlabel('Voltage [mV]')
         if (args.amplitude == 'FWHM'):
-            ax.set_ylabel('FWHM of ref pulse [ns]', fontsize=18)
+            ax.set_ylabel('FWHM of ref pulse [ns]')
         elif (args.amplitude == 'rel_pedestal'):
-            ax.set_ylabel('Pedestal-subtracted peak ADC [a.u.]', fontsize=18)
+            ax.set_ylabel('Pedestal-subtracted peak ADC [a.u.]')
         elif (args.amplitude == 'rel_dip'):
-            ax.set_ylabel('Peak-to-dip ADC [a.u.]', fontsize=18)
+            ax.set_ylabel('Peak-to-dip ADC [a.u.]')
         elif (args.amplitude == 'max_adc_fit'):
-            ax.set_ylabel('Absolute peak ADC of fit [a.u.]', fontsize=18)
+            ax.set_ylabel('Absolute peak ADC of fit [a.u.]')
         else:
-            ax.set_ylabel('Absolute peak ADC [a.u.]', fontsize=18)
+            ax.set_ylabel('Absolute peak ADC [a.u.]')
         ax.grid(which='major', axis='y')
 
         ax.errorbar(xl, Aprimes, fmt='o', yerr=stdevs, label='Data', zorder=0)
@@ -301,12 +295,9 @@ if (args.plot_parameter == 'voltage'):
 
         handles, labels = ax.get_legend_handles_labels()
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-        ax.legend(handles, labels, fontsize=14)
+        ax.legend(handles, labels)
 
-        ax.grid(which='major', axis='y')
-        ax.tick_params(axis='both', labelsize=12)
-
-        plt.savefig('attenuation_of_signal_in_voltage.png', dpi=400, bbox_inches='tight')
+        plt.savefig('attenuation_of_signal_in_voltage.png')
 
 elif (args.plot_parameter == 'time'):
     for csv in args.time_scan:
@@ -334,9 +325,8 @@ elif (args.plot_parameter == 'time'):
     fig, ax = plt.subplots(1, 1)
     ax.set_xlabel(r'Phase difference [ns]')
     ax.set_ylabel('Max ADC of reference pulse')
-    ax.grid(which='major', axis='y') 
 
     ax.scatter(xl, Aprimes, s=15, label='data')
     ax.legend()
 
-    plt.savefig('attenuation_of_signal_in_time.png', dpi=400, bbox_inches='tight')
+    plt.savefig('attenuation_of_signal_in_time.png')
