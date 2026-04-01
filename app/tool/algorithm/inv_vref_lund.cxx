@@ -147,8 +147,8 @@ static void inv_vref_scan_getter(Target* tgt, pflib::ROC& roc, size_t nevents,
   tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
                  1 /* dummy */);
 
-  std::array<std::vector<int>, 2> fallbacks = {{{17, 15, 19, 13}}, {{17, 15, 19, 13}}};
-
+  std::array<std::vector<int>, 2> fallbacks = {{std::vector<int>{17, 15, 19, 13}, std::vector<int>{17, 15, 19, 13}}};
+  int test_inv_vref = 500;
   // check for bad channels that would be bad for fitting/dead
   auto test_param = roc.testParameters()
                         .add("REFERENCEVOLTAGE_0", "INV_VREF", test_inv_vref)
