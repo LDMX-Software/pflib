@@ -53,39 +53,48 @@ OptoLink& Target::get_opto_link(const std::string& name) const {
  * use std::map - I just use std::vector (but I'm still thinking of them
  * as maps where the "keys" are the vector indices).
  */
-std::pair<
-  std::vector<int>,
-  std::vector<std::pair<int,int>>
-> invertRocErxMapping(Target* tgt) {
-  std::vector<std::pair<int,int>> erx_to_roc_half(2*tgt->getRocErxMapping().size());
-  std::vector<int> active_erx;
-  int i_link_offset{100};
-  for (int i_roc{0}; i_roc < tgt->getRocErxMapping().size(); i_roc++) {
-    auto [erx_half_0, erx_half_1] = tgt->getRocErxMapping().at(i_roc);
-    erx_to_roc_half[erx_half_0] = std::make_pair(i_roc, 0);
-    erx_to_roc_half[erx_half_1] = std::make_pair(i_roc, 1);
-    if (tgt->have_roc(i_roc)) {
-      active_erx.push_back(erx_half_0);
-      active_erx.push_back(erx_half_1);
+void Target::invertRocErxMapping() {
+  erx_to_roc_half_.resize(2*getRocErxMapping().size());
+  i_erx_to_erx_.clear();
+  for (int i_roc{0}; i_roc < getRocErxMapping().size(); i_roc++) {
+    auto [erx_half_0, erx_half_1] = getRocErxMapping().at(i_roc);
+    erx_to_roc_half_[erx_half_0] = std::make_pair(i_roc, 0);
+    erx_to_roc_half_[erx_half_1] = std::make_pair(i_roc, 1);
+    if (have_roc(i_roc)) {
+      i_erx_to_erx_.push_back(erx_half_0);
+      i_erx_to_erx_.push_back(erx_half_1);
     }
   }
-  std::sort(active_erx.begin(), active_erx.end());
-  return std::make_pair(active_erx, erx_to_roc_half);
+  std::sort(i_erx_to_erx_.begin(), i_erx_to_erx_.end());
+  // maximum of 12 eRx for an ECON
+  erx_to_i_erx_.resize(12);
+  // mark inactive eRx with a negative index
+  for (int& i_erx : erx_to_i_erx_) {
+    i_erx = -1;
+  }
+  // invert map of indexed eRx
+  for (std::size_t i_erx{0}; i_erx < i_erx_to_erx_.size(); i_erx++) {
+    erx_to_i_erx_.at(i_erx_to_erx_[i_erx]) = i_erx;
+  }
 }
 
-std::pair<int, int> Target::toECONChannel(int i_roc, int channel) {
-  int half = channel % 36;
-  int link_channel = channel / 36;
+std::pair<int, int> Target::toErxChannel(int i_roc, int channel) {
+  assert(channel >= 0 && channel < 72);
+  int half = channel / 36;
+  int channel_in_erx = channel % 36;
   const auto& [half_0_eRx, half_1_eRx] = getRocErxMapping().at(i_roc);
   return std::make_pair(
-      (half == 0) ? half_0_eRx : half_1_eRx,
-      link_channel
+      erx_to_i_erx_.at((half == 0) ? half_0_eRx : half_1_eRx),
+      channel_in_erx
   );
 }
 
-std::pair<int, int> Target::toROCChannel(int i_link, int channel) {
-  static const auto [active_erx, erx_to_roc_half] = invertRocErxMapping(this);
-  auto [iroc, half] = erx_to_roc_half.at(active_erx.at(i_link));
+std::pair<int, int> Target::toROCChannel(int i_erx, int channel) {
+  assert(channel >= 0 and channel < 36);
+  if (i_erx_to_erx_.empty()) {
+    invertRocErxMapping();
+  }
+  auto [iroc, half] = erx_to_roc_half_.at(i_erx_to_erx_.at(i_erx));
   return std::make_pair(iroc, channel + half*36);
 }
 
