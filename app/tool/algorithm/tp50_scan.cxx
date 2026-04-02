@@ -1,3 +1,5 @@
+#include "tp50_scan.h"
+
 #include <vector>
 
 #include "tp50_scan.h"
