@@ -29,8 +29,10 @@ fig, axes = plt.subplots(
 )
 
 labels = []
+limits = []
 for pedestals in args.pedestals:
     samples = pd.read_csv(pedestals)
+    limits.append([min(samples.adc), max(samples.adc)])
     channels = ['calib']+[str(c) for c in range(36)]
     for link, ax in enumerate(axes):
         ax.set_title(f'Link {link}')
@@ -42,11 +44,17 @@ for pedestals in args.pedestals:
                 mpl.patches.Patch(color=art['bodies'][0].get_facecolor().flatten()),
                 pedestals.stem))
 
+if limits[0][0] < limits[1][0]: ymin = limits[0][0]
+else: ymin = limits[1][0]
+
+if limits[0][1] > limits[1][1]: ymax = limits[0][1]
+else: ymax = limits[1][1]
+
 for ax in axes:
     ax.grid()
     ax.set_ylabel('ADC')
     if args.ylim != [100,300]: ax.set_ylim(*args.ylim)
-    else: ax.set_ylim([min(samples.adc)-50, max(samples.adc)+100])
+    else: ax.set_ylim([ymin-50, ymax+50])
     
     
 axes[-1].set_xticks(
