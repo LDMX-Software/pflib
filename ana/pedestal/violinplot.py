@@ -45,7 +45,9 @@ for pedestals in args.pedestals:
 for ax in axes:
     ax.grid()
     ax.set_ylabel('ADC')
-    ax.set_ylim(*args.ylim)
+    if args.ylim != [100,300]: ax.set_ylim(*args.ylim)
+    else: ax.set_ylim([min(samples.adc)-50, max(samples.adc)+100])
+    
     
 axes[-1].set_xticks(
     [i+1 for i in range(len(channels))],
