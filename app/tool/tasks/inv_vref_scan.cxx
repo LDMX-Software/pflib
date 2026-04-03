@@ -19,7 +19,7 @@ void inv_vref_scan(Target* tgt) {
   // TODO 348
   int link = 0;
   int i_ch = 0;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
@@ -34,7 +34,8 @@ void inv_vref_scan(Target* tgt) {
         }
         f << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << inv_vref;
         for (int ch : channels) {
           link = (ch / 36);

@@ -3,13 +3,12 @@
 #include <iostream>
 #include <memory>
 
-#include "pflib/packing/ECONDFormatter.h"
-#include "pflib/packing/DAQSampleHeader.h"
-
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
-#include "pflib/Target.h"
 #include "pflib/I2C_Linux.h"
+#include "pflib/Target.h"
+#include "pflib/packing/DAQSampleHeader.h"
+#include "pflib/packing/ECONDFormatter.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -175,12 +174,13 @@ class HcalFiberless : public Target {
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
   const std::vector<std::pair<int, int>>& getRocErxMapping() override {
-    static const std::vector<std::pair<int, int>> THE_MAP = {{0,1}};
+    static const std::vector<std::pair<int, int>> THE_MAP = {{0, 1}};
     return THE_MAP;
   }
   virtual Bias bias(int which) {
     if (which == 0) return *bias_;
-    PFEXCEPTION_RAISE("NoMore", "Only one bias board (index=0) for fiberless setup.");
+    PFEXCEPTION_RAISE("NoMore",
+                      "Only one bias board (index=0) for fiberless setup.");
   }
   virtual ROC& roc(int which) override {
     if (which == 0) return *roc_;
@@ -321,15 +321,13 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
-          buffer.push_back(
-            pflib::packing::DAQSampleHeader{
+          buffer.push_back(pflib::packing::DAQSampleHeader{
               .version = 1,
               .econd_id = static_cast<uint32_t>(daq().econid()),
               .i_l1a = static_cast<uint32_t>(il1a),
               .is_soi = (il1a == daq().soi()),
-              .econd_len = static_cast<uint32_t>(formatter_.getPacket().size())
-            }.to()
-          );
+              .econd_len = static_cast<uint32_t>(formatter_.getPacket().size())}
+                               .to());
 
           // insert ECOND packet into buffer
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),

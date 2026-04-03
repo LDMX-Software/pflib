@@ -84,7 +84,9 @@ static void daq_setup(const std::string& cmd, Target* pft) {
       printf("Format options:\n");
       printf(" (1) ROC with ad-hoc headers as in TB2022\n");
       printf(" (2) ECON with full readout\n");
-      printf(" WARN: Many TASKS will only function with the emulated ECON format.\n");
+      printf(
+          " WARN: Many TASKS will only function with the emulated ECON "
+          "format.\n");
       int i_format = pftool::readline_int(
           " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
       if (i_format < 1 or i_format > 2) {
@@ -398,7 +400,7 @@ static void daq(const std::string& cmd, Target* pft) {
                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
               },
-              pft->nrocs()*2);
+              pft->nrocs() * 2);
           break;
         case Target::DaqFormat::SIMPLEROC:
           PFEXCEPTION_RAISE("BadConf",
@@ -706,51 +708,54 @@ auto menu_daq_debug =
                })
         ->line("SW_L1A", "send a L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
-        ->line("CHARGE_TIMEIN",
-               "Scan pulse-l1a time offset to see when it should be",
-               [](Target* tgt) {
-                 if (pftool::state.daq_format_mode != Target::DaqFormat::ECOND_SW_HEADERS) {
-                    PFEXCEPTION_RAISE("BadConf",
-                        "Higher-level tasks that require live-decoding are only supported via the ECON-D DAQ format."
-                        "User lower-level tasks (like manual PEDESTAL and CHARGE runs) to confirm that the ECON-D"
-                        " formatter is functional in a fiberless setup."
-                        );
-                 }
+        ->line(
+            "CHARGE_TIMEIN",
+            "Scan pulse-l1a time offset to see when it should be",
+            [](Target* tgt) {
+              if (pftool::state.daq_format_mode !=
+                  Target::DaqFormat::ECOND_SW_HEADERS) {
+                PFEXCEPTION_RAISE(
+                    "BadConf",
+                    "Higher-level tasks that require live-decoding are only "
+                    "supported via the ECON-D DAQ format."
+                    "User lower-level tasks (like manual PEDESTAL and CHARGE "
+                    "runs) to confirm that the ECON-D"
+                    " formatter is functional in a fiberless setup.");
+              }
 
-                 int nevents = pftool::readline_int(
-                     "How many events per time offset? ", 100);
-                 int calib = pftool::readline_int(
-                     "Setting for calib pulse amplitude? ", 1024);
-                 int min_offset =
-                     pftool::readline_int("Minimum time offset to test? ", 0);
-                 int max_offset =
-                     pftool::readline_int("Maximum time offset to test? ", 128);
-                 std::string fname = pftool::readline_path("charge-timein");
+              int nevents = pftool::readline_int(
+                  "How many events per time offset? ", 100);
+              int calib = pftool::readline_int(
+                  "Setting for calib pulse amplitude? ", 1024);
+              int min_offset =
+                  pftool::readline_int("Minimum time offset to test? ", 0);
+              int max_offset =
+                  pftool::readline_int("Maximum time offset to test? ", 128);
+              std::string fname = pftool::readline_path("charge-timein");
 
-                 tgt->setup_run(1, pftool::state.daq_format_mode,
-                                pftool::state.daq_contrib_id);
+              tgt->setup_run(1, pftool::state.daq_format_mode,
+                             pftool::state.daq_contrib_id);
 
-                  pflib::ROC& roc{tgt->roc(pftool::state.iroc)};
-                 auto test_param_handle =
-                     roc.testParameters()
-                         .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                         .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
-                         .add("CH_61", "HIGHRANGE", 0)
-                         .add("CH_61", "LOWRANGE", 0)
-                         .apply();
+              pflib::ROC& roc{tgt->roc(pftool::state.iroc)};
+              auto test_param_handle =
+                  roc.testParameters()
+                      .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+                      .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+                      .add("CH_61", "HIGHRANGE", 0)
+                      .add("CH_61", "LOWRANGE", 0)
+                      .apply();
 
-                  DecodeAndWriteToCSV writer{all_channels_to_csv(fname + ".csv", tgt->nrocs()*2)};
+              DecodeAndWriteToCSV writer{
+                  all_channels_to_csv(fname + ".csv", tgt->nrocs() * 2)};
 
-                  for (int toffset{min_offset}; toffset < max_offset;
-                       toffset++) {
-                    tgt->fc().fc_setup_calib(toffset);
-                    usleep(10);
-                    pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                    << tgt->fc().fc_get_setup_calib();
-                    daq_run(tgt, "CHARGE", writer, nevents,
-                            pftool::state.daq_rate);
-                  }
-               })
+              for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+                tgt->fc().fc_setup_calib(toffset);
+                usleep(10);
+                pflib_log(info) << "run with FAST_CONTROL.CALIB = "
+                                << tgt->fc().fc_get_setup_calib();
+                daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+              }
+            })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,

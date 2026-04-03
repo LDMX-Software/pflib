@@ -65,13 +65,15 @@ class DecodeAndWrite : public DAQRunConsumer {
   explicit DecodeAndWrite(int n_links);
   virtual ~DecodeAndWrite() = default;
   /**
-   * Decode the input event packet into our pflib::packing::MultiSampleECONDEventPacket
-   * and then call write_event on it.
+   * Decode the input event packet into our
+   * pflib::packing::MultiSampleECONDEventPacket and then call write_event on
+   * it.
    */
   virtual void consume(std::vector<uint32_t>& event) final;
 
   /// pure virtual function for writing out decoded event
-  virtual void write_event(const pflib::packing::MultiSampleECONDEventPacket& ep) = 0;
+  virtual void write_event(
+      const pflib::packing::MultiSampleECONDEventPacket& ep) = 0;
 
  protected:
   /// logging for warning messages on empty events
@@ -90,20 +92,26 @@ class DecodeAndWriteToCSV : public DecodeAndWrite {
   /// output file writing to
   std::ofstream file_;
   /// function that writes row(s) to csv given an event
-  std::function<void(std::ofstream&, const pflib::packing::MultiSampleECONDEventPacket&)> write_event_;
+  std::function<void(std::ofstream&,
+                     const pflib::packing::MultiSampleECONDEventPacket&)>
+      write_event_;
 
  public:
   DecodeAndWriteToCSV(
       const std::string& file_name,
       std::function<void(std::ofstream&)> write_header,
-      std::function<void(std::ofstream&, const pflib::packing::MultiSampleECONDEventPacket&)> write_event,
+      std::function<void(std::ofstream&,
+                         const pflib::packing::MultiSampleECONDEventPacket&)>
+          write_event,
       int n_links);
   virtual ~DecodeAndWriteToCSV() = default;
   /// call write_event with our file handle
-  virtual void write_event(const pflib::packing::MultiSampleECONDEventPacket& ep) final;
+  virtual void write_event(
+      const pflib::packing::MultiSampleECONDEventPacket& ep) final;
 };
 
-DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name, int n_links = 2);
+DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name,
+                                        int n_links = 2);
 
 /**
  * Consume an event packet, decode it, and save to buffer.
@@ -127,11 +135,13 @@ class DecodeAndBuffer : public DecodeAndWrite {
   DecodeAndBuffer(std::size_t nevents, int n_links);
   virtual ~DecodeAndBuffer() = default;
   /// get buffer
-  const std::vector<pflib::packing::MultiSampleECONDEventPacket>& get_buffer() const;
+  const std::vector<pflib::packing::MultiSampleECONDEventPacket>& get_buffer()
+      const;
   /// Set the buffer size
   void set_buffer_size(std::size_t nevents);
   /// Save to buffer
-  virtual void write_event(const pflib::packing::MultiSampleECONDEventPacket& ep) override;
+  virtual void write_event(
+      const pflib::packing::MultiSampleECONDEventPacket& ep) override;
   /// Check that the buffer was read and flushed since last run
   virtual void start_run() override;
 

@@ -56,6 +56,6 @@ struct DAQSampleHeader {
   static uint32_t ending_trailer();
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

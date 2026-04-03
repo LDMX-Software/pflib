@@ -13,7 +13,7 @@ void vref_2d_scan(Target* tgt) {
   pflib::ROC roc{tgt->roc(pftool::state.iroc)};
   std::string fname;
   fname = pftool::readline_path("vref_2d_scan", ".csv");
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
 
   int ch = 0;
   int inv_vref = 0;
@@ -26,7 +26,8 @@ void vref_2d_scan(Target* tgt) {
         f << "noinv_vref,inv_vref,ch," << pflib::packing::Sample::to_csv_header
           << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         for (ch = 0; ch < 72; ch++) {
           f << noinv_vref << ',' << inv_vref << ',' << ch << ',';
           // TODO 348

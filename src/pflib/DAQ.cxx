@@ -17,15 +17,13 @@ std::vector<uint32_t> DAQ::read_event_sw_headers() {
   for (int ievt = 0; ievt < samples_per_ror(); ievt++) {
     /// @note only one elink right now
     std::vector<uint32_t> subpacket = getLinkData(0);
-    buf.push_back(
-      pflib::packing::DAQSampleHeader{
+    buf.push_back(pflib::packing::DAQSampleHeader{
         .version = 1,
         .econd_id = static_cast<uint32_t>(econid()),
         .i_l1a = static_cast<uint32_t>(ievt),
         .is_soi = (ievt == soi()),
-        .econd_len = static_cast<uint32_t>(subpacket.size())
-      }.to()
-    );
+        .econd_len = static_cast<uint32_t>(subpacket.size())}
+                      .to());
     buf.insert(buf.end(), subpacket.begin(), subpacket.end());
     advanceLinkReadPtr();
   }

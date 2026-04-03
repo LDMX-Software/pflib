@@ -13,7 +13,7 @@ void trim_inv_dacb_scan(Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
   int trim_inv = 0;
   int dacb = 0;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
@@ -28,7 +28,8 @@ void trim_inv_dacb_scan(Target* tgt) {
         }
         f << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << trim_inv << ',' << dacb;
         for (int ch{0}; ch < 72; ch++) {
           // TODO 348
@@ -78,5 +79,4 @@ void trim_inv_dacb_scan(Target* tgt) {
     auto trim_inv_test = trim_inv_test_builder.apply();
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
-
 }

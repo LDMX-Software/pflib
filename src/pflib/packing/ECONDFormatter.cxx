@@ -8,15 +8,12 @@
 
 namespace pflib::packing {
 
-ECONDFormatter::ECONDFormatter(bool disable_zs): disable_zs_{disable_zs} {
+ECONDFormatter::ECONDFormatter(bool disable_zs) : disable_zs_{disable_zs} {
   // reserve the maximum size of a packet
   packet_.reserve(471);
 }
 
-
-void ECONDFormatter::disableZS(bool disable) {
-  disable_zs_ = disable;
-}
+void ECONDFormatter::disableZS(bool disable) { disable_zs_ = disable; }
 
 void ECONDFormatter::startEvent(int bx, int l1a, int orbit) {
   packet_.clear();
@@ -24,13 +21,12 @@ void ECONDFormatter::startEvent(int bx, int l1a, int orbit) {
   packet_.push_back((0xAA << 24) | (1 << 7));
   // second header word contains
   // bx, l1a, orbit, S=0, RR=0, no CRC-8
-  packet_.push_back(
-      ((bx & 0xFFF) << 20) | ((l1a & 0x3F) << 14) |
-      ((orbit & 0x7) << 11));
+  packet_.push_back(((bx & 0xFFF) << 20) | ((l1a & 0x3F) << 14) |
+                    ((orbit & 0x7) << 11));
 };
 
 void ECONDFormatter::add_elink_packet(int ielink,
-                                       const std::vector<uint32_t>& src) {
+                                      const std::vector<uint32_t>& src) {
   // format the elink's data
   std::vector<uint32_t> subpacket = format_elink(ielink, src);
   // copy in the formatted data
@@ -156,4 +152,4 @@ int ECONDFormatter::zs_process(int ielink, int ic, uint32_t word) {
              // zs logic
 }
 
-}  // namespace pflib
+}  // namespace pflib::packing

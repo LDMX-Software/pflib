@@ -23,7 +23,8 @@ double eff_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
   std::vector<double> tot_list;
   for (std::size_t i{0}; i < data.size(); i++) {
     // TODO 348
-    double tot = data[i].samples[data[i].i_soi].channel(i_link, channel % 36).tot();
+    double tot =
+        data[i].samples[data[i].i_soi].channel(i_link, channel % 36).tot();
     if (tot >= 0) {  // tot = -1 when it is not triggered
       tot_list.push_back(tot);
     }
@@ -60,7 +61,8 @@ int global_vref_scan(Target* tgt, ROC& roc, int& channel, size_t& n_events,
       vref_value = (vref_list.back() + vref_list.front()) / 2;
     }
     pflib_log(info) << "the vref value is " << vref_value;
-    double efficiency = eff_scan(tgt, roc, channel, vref_value, n_events, refvol_page, buffer, i_link);
+    double efficiency = eff_scan(tgt, roc, channel, vref_value, n_events,
+                                 refvol_page, buffer, i_link);
     pflib_log(info) << "tot efficiency is " << efficiency;
     if (std::abs(efficiency - 0.5) < tol) {
       pflib_log(info) << "Efficiency within tolerance!";
@@ -100,8 +102,8 @@ int local_vref_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
   static auto the_log_{::pflib::logging::get("tp50_scan:local_vref_scan")};
   for (int vref = vref_value; vref <= 600; vref++) {
     pflib_log(info) << "Testing vref = " << vref;
-    double efficiency = eff_scan(tgt, roc, channel, vref, n_events,
-                                 refvol_page, buffer, i_link);
+    double efficiency = eff_scan(tgt, roc, channel, vref, n_events, refvol_page,
+                                 buffer, i_link);
     pflib_log(info) << "tot efficiency is " << efficiency;
     if (efficiency < 0.5) {
       return vref;
@@ -141,14 +143,14 @@ std::array<int, 2> tp50_scan(Target* tgt, ROC& roc, size_t& n_events,
 
     if (vref == -1) {
       pflib_log(info) << "Doing a global scan";
-      vref = global_vref_scan(tgt, roc, channel, n_events,
-                              refvol_page, buffer, i_link);
+      vref = global_vref_scan(tgt, roc, channel, n_events, refvol_page, buffer,
+                              i_link);
       link_vref_list[i_link] = vref;
       pflib_log(info) << "vref = " << vref;
       continue;
     }
-    double channel_eff = eff_scan(
-        tgt, roc, channel, vref, n_events, refvol_page, buffer, i_link);
+    double channel_eff = eff_scan(tgt, roc, channel, vref, n_events,
+                                  refvol_page, buffer, i_link);
 
     if (channel_eff < 0.5) {
       pflib_log(info) << "Channel accounted for by previous vref!";
@@ -156,8 +158,8 @@ std::array<int, 2> tp50_scan(Target* tgt, ROC& roc, size_t& n_events,
     } else {
       pflib_log(info)
           << "Scanning vref's local neighbourhood for a more suitable vref...";
-      int channel_vref = local_vref_scan(
-          tgt, roc, channel, vref, n_events, refvol_page, buffer, i_link);
+      int channel_vref = local_vref_scan(tgt, roc, channel, vref, n_events,
+                                         refvol_page, buffer, i_link);
       pflib_log(info) << "New vref is " << channel_vref;
       link_vref_list[i_link] = channel_vref;
     }

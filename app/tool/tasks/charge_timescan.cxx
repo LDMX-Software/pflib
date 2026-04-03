@@ -63,7 +63,7 @@ void charge_timescan(Target* tgt) {
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
@@ -75,7 +75,8 @@ void charge_timescan(Target* tgt) {
         f << std::boolalpha << "# " << header << '\n'
           << "time," << pflib::packing::Sample::to_csv_header << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << time << ',';
         ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
         f << '\n';

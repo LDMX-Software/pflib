@@ -26,7 +26,7 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
   }
   auto tot_vref_params = tot_vref_handle.apply();
 
-  //TODO 348
+  // TODO 348
   DecodeAndBuffer buffer{n_events, 2};  // working in buffer, not in writer
 
   for (int ch{0}; ch < 72; ch++) {

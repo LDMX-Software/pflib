@@ -26,7 +26,7 @@ void multi_channel_scan(Target* tgt) {
   // TODO 348
   int ch0{0};
   link == 0 ? ch0 = 18 : ch0 = 54;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
 
   if (isLED) {
     auto refvol_page =
@@ -54,7 +54,8 @@ void multi_channel_scan(Target* tgt) {
           f << "channel,";
           f << pflib::packing::Sample::to_csv_header << '\n';
         },
-        [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+        [&](std::ofstream& f,
+            const pflib::packing::MultiSampleECONDEventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
             f << nr_channels + 1 << ',';
             f << time << ',';
@@ -138,7 +139,8 @@ void multi_channel_scan(Target* tgt) {
           f << "channel,";
           f << pflib::packing::Sample::to_csv_header << '\n';
         },
-        [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+        [&](std::ofstream& f,
+            const pflib::packing::MultiSampleECONDEventPacket& ep) {
           for (int ch{0}; ch < 72; ch++) {
             f << nr_channels + 1 << ',';
             f << time << ',';

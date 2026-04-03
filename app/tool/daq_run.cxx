@@ -98,11 +98,11 @@ void DecodeAndWrite::consume(std::vector<uint32_t>& event) {
 DecodeAndWriteToCSV::DecodeAndWriteToCSV(
     const std::string& file_name,
     std::function<void(std::ofstream&)> write_header,
-    std::function<void(std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket&)> write_event,
+    std::function<void(std::ofstream& f,
+                       const pflib::packing::MultiSampleECONDEventPacket&)>
+        write_event,
     int n_links)
-    : DecodeAndWrite(n_links),
-      file_{file_name},
-      write_event_{write_event} {
+    : DecodeAndWrite(n_links), file_{file_name}, write_event_{write_event} {
   if (not file_) {
     PFEXCEPTION_RAISE("FileOpen",
                       "unable to open " + file_name + " for writing");
@@ -110,19 +110,24 @@ DecodeAndWriteToCSV::DecodeAndWriteToCSV(
   write_header(file_);
 }
 
-void DecodeAndWriteToCSV::write_event(const pflib::packing::MultiSampleECONDEventPacket& ep) {
+void DecodeAndWriteToCSV::write_event(
+    const pflib::packing::MultiSampleECONDEventPacket& ep) {
   write_event_(file_, ep);
 }
 
-DecodeAndWriteToCSV all_channels_to_csv(
-    const std::string& file_name, int n_links) {
+DecodeAndWriteToCSV all_channels_to_csv(const std::string& file_name,
+                                        int n_links) {
   return DecodeAndWriteToCSV(
       file_name,
       [](std::ofstream& f) {
         f << std::boolalpha;
         f << pflib::packing::MultiSampleECONDEventPacket::to_csv_header << '\n';
       },
-      [](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) { ep.to_csv(f); }, n_links);
+      [](std::ofstream& f,
+         const pflib::packing::MultiSampleECONDEventPacket& ep) {
+        ep.to_csv(f);
+      },
+      n_links);
 }
 
 DecodeAndBuffer::DecodeAndBuffer(std::size_t nevents, int n_links)
@@ -130,7 +135,8 @@ DecodeAndBuffer::DecodeAndBuffer(std::size_t nevents, int n_links)
   set_buffer_size(nevents);
 }
 
-void DecodeAndBuffer::write_event(const pflib::packing::MultiSampleECONDEventPacket& ep) {
+void DecodeAndBuffer::write_event(
+    const pflib::packing::MultiSampleECONDEventPacket& ep) {
   if (ep_buffer_.size() > ep_buffer_.capacity()) {
     pflib_log(warn) << "Trying to push more elements to buffer than allocated "
                        "capacity. Skipping!";
@@ -139,12 +145,10 @@ void DecodeAndBuffer::write_event(const pflib::packing::MultiSampleECONDEventPac
   ep_buffer_.push_back(ep);
 }
 
-void DecodeAndBuffer::start_run() {
-  ep_buffer_.clear();
-}
+void DecodeAndBuffer::start_run() { ep_buffer_.clear(); }
 
-const std::vector<pflib::packing::MultiSampleECONDEventPacket>& DecodeAndBuffer::get_buffer()
-    const {
+const std::vector<pflib::packing::MultiSampleECONDEventPacket>&
+DecodeAndBuffer::get_buffer() const {
   return ep_buffer_;
 }
 

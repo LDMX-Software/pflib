@@ -34,7 +34,7 @@ void channel_wise_calib_scan(Target* tgt) {
   double clock_cycle{25.0};
   int n_phase_strobe{16};
   int offset{1};
-  int n_links{tgt->nrocs()*2};
+  int n_links{tgt->nrocs() * 2};
   int calib{0};
   int ch{0};
   int link{1};
@@ -45,7 +45,8 @@ void channel_wise_calib_scan(Target* tgt) {
         f << "time,calib,channel," << pflib::packing::Sample::to_csv_header
           << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         // TODO 348
         if (ch < 36) {
           link = 0;

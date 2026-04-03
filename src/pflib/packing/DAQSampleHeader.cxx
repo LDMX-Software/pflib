@@ -13,13 +13,9 @@ void DAQSampleHeader::from(uint32_t word) {
 }
 
 uint32_t DAQSampleHeader::to() const {
-  return (
-    ((version & mask<4>) << 28) |
-    ((econd_id & mask<10>) << 18) |
-    ((i_l1a & mask<5>) << 13) |
-    ((is_soi ? 1 : 0) << 12) |
-    (econd_len & mask<12>)
-  );
+  return (((version & mask<4>) << 28) | ((econd_id & mask<10>) << 18) |
+          ((i_l1a & mask<5>) << 13) | ((is_soi ? 1 : 0) << 12) |
+          (econd_len & mask<12>));
 }
 
 std::ostream& operator<<(std::ostream& o, const DAQSampleHeader& h) {
@@ -42,4 +38,4 @@ bool DAQSampleHeader::is_ending_trailer() const {
   return ((i_l1a == 0x1f) and (econd_id == 0x3ff));
 }
 
-}
+}  // namespace pflib::packing

@@ -11,7 +11,7 @@ void noinv_vref_scan(Target* tgt) {
   std::string output_filepath = pftool::readline_path("inv_vref_scan", ".csv");
   auto roc = tgt->roc(pftool::state.iroc);
   int noinv_vref = 0;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
@@ -26,7 +26,8 @@ void noinv_vref_scan(Target* tgt) {
         }
         f << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << noinv_vref;
         for (int ch{0}; ch < 72; ch++) {
           // TODO 348

@@ -35,12 +35,10 @@ std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
-  calibs = get_calibs(
-      tgt, roc, n_events_calib, target_adc);
-  vref_targets = tp50_scan(
-      tgt, roc, n_events, calibs, vref_targets);
-  trim_targets = trim_tot_scan(
-      tgt, roc, n_events, calibs, vref_targets, trim_targets);
+  calibs = get_calibs(tgt, roc, n_events_calib, target_adc);
+  vref_targets = tp50_scan(tgt, roc, n_events, calibs, vref_targets);
+  trim_targets =
+      trim_tot_scan(tgt, roc, n_events, calibs, vref_targets, trim_targets);
 
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {

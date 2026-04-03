@@ -51,7 +51,7 @@ void vt50_scan(Target* tgt) {
   double tot_eff{0};
   // TODO 348
   int i_ch = channel % 36;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   // Vectors for storing tot_eff and calib for the current param_point
   std::vector<double> tot_eff_list;
   std::vector<int> calib_list = {0, 4095};  // min and max
@@ -74,7 +74,8 @@ void vt50_scan(Target* tgt) {
           << calib_name << ',';
         f << pflib::packing::Sample::to_csv_header << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << time << ',';
         f << vref_value << ',';
         f << calib_value << ',';

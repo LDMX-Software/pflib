@@ -10,7 +10,8 @@ namespace pflib::algorithm {
 /**
  * Retrieve the ADC sample for the input channel from the input event packet
  */
-static int get_adc(const pflib::packing::MultiSampleECONDEventPacket& p, int ch) {
+static int get_adc(const pflib::packing::MultiSampleECONDEventPacket& p,
+                   int ch) {
   // Use link specific channel calculation
   // TODO: 348
   // Use the "Sample Of Interest" inside the EventPacket

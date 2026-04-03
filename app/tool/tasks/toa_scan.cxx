@@ -13,7 +13,7 @@ void toa_scan(Target* tgt) {
 
   auto roc = tgt->roc(pftool::state.iroc);
   int calib = 0;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       output_filepath,
       [&](std::ofstream& f) {
@@ -28,7 +28,8 @@ void toa_scan(Target* tgt) {
         }
         f << "\n";
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << calib;
         // Write the TOA values for each channel
         for (int ch{0}; ch < 72; ch++) {

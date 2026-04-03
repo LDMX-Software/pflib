@@ -21,7 +21,7 @@ std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
 
   std::array<int, 2> target;
   std::array<std::array<double, 256>, 2> final_effs;
-  //TODO 348
+  // TODO 348
   DecodeAndBuffer buffer{n_events, 2};
 
   // loop over runs, from toa_vref = 0 to = 255

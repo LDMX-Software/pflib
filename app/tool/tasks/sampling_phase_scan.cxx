@@ -11,7 +11,7 @@ void sampling_phase_scan(Target* tgt) {
   std::string fname = pftool::readline_path("sampling-phase-scan", ".csv");
   auto roc = tgt->roc(pftool::state.iroc);
   int phase_ck = 0;
-  int n_links = 2*tgt->nrocs();
+  int n_links = 2 * tgt->nrocs();
   DecodeAndWriteToCSV writer{
       fname,  // output file name
       [&](std::ofstream& f) {
@@ -26,7 +26,8 @@ void sampling_phase_scan(Target* tgt) {
         }
         f << "\n";
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << phase_ck;
         for (int ch{0}; ch < 72; ch++) {
           // TODO 348

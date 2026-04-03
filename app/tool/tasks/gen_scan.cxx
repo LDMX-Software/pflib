@@ -12,8 +12,7 @@ ENABLE_LOGGING();
 static void gen_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
                             std::string& output_filepath, int channel,
                             std::string trigger, nlohmann::json& header,
-                            std::filesystem::path& parameter_points_file) {
-}
+                            std::filesystem::path& parameter_points_file) {}
 
 void gen_scan(Target* tgt) {
   static const std::vector<std::string> trigger_types = {
@@ -74,7 +73,7 @@ void gen_scan(Target* tgt) {
   // TODO 348
   int link = (channel / 36);
   int i_ch = channel % 36;
-  int n_links = tgt->nrocs()*2;
+  int n_links = tgt->nrocs() * 2;
   pflib_log(info) << "loading parameter points file...";
   auto [param_names, param_values] =
       load_parameter_points(parameter_points_file);
@@ -89,7 +88,8 @@ void gen_scan(Target* tgt) {
         }
         f << pflib::packing::Sample::to_csv_header << '\n';
       },
-      [&](std::ofstream& f, const pflib::packing::MultiSampleECONDEventPacket& ep) {
+      [&](std::ofstream& f,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
         for (const auto& val : param_values[i_param_point]) {
           f << val << ',';
         }
