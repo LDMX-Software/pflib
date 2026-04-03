@@ -38,7 +38,7 @@ void pftool::State::init(Target* tgt, int cfg) {
   std::vector<int> roc_ids{tgt->roc_ids()};
 
   //default iroc to first valid ROC given the boardmask
-  if (not roc_ids.isempty()){
+  if (not roc_ids.empty()){
     iroc = roc_ids.at(0);
   }
   
