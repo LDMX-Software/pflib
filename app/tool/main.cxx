@@ -36,6 +36,12 @@ void pftool::State::init(Target* tgt, int cfg) {
   }
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->roc_ids()};
+
+  // default iroc to first valid ROC given the boardmask
+  if (not roc_ids.empty()) {
+    iroc = roc_ids.at(0);
+  }
+
   for (int id : roc_ids) {
     auto defs = tgt->roc(id).defaults();
     for (const auto& page : defs) {
