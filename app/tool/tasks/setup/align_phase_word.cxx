@@ -213,7 +213,7 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
    * For now, we just start at BX=1 and count up until we find the first
    * match.
    */
-  int start_val{1}, end_val{on_zcu ? 3540 : (64*40 - 1)};
+  int start_val{1}, end_val{on_zcu ? 3540 : (64 * 40 - 1)};
 
   bool aligned{false};
   for (int snapshot_bx{start_val}; snapshot_bx < end_val; snapshot_bx++) {
