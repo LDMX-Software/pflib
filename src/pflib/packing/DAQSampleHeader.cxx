@@ -28,10 +28,12 @@ std::ostream& operator<<(std::ostream& o, const DAQSampleHeader& h) {
 }
 
 uint32_t DAQSampleHeader::ending_trailer() {
-  DAQSampleHeader h;
-  h.i_l1a = 0x1f;
-  h.econd_id = 0x3ff;
-  return h.to();
+  return DAQSampleHeader{.version = 1,
+                         .econd_id = 0x3ff,
+                         .i_l1a = 0x1f,
+                         .is_soi = false,
+                         .econd_len = 0}
+      .to();
 }
 
 bool DAQSampleHeader::is_ending_trailer() const {

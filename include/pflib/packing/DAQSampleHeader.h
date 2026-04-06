@@ -25,11 +25,11 @@ namespace pflib::packing {
  *   header
  */
 struct DAQSampleHeader {
-  uint32_t version;
-  uint32_t econd_id;
-  uint32_t i_l1a;
-  bool is_soi;
-  uint32_t econd_len;
+  uint32_t version{0};
+  uint32_t econd_id{0};
+  uint32_t i_l1a{0};
+  bool is_soi{false};
+  uint32_t econd_len{0};
 
   /// decode a DAQSampleHeader from the input word
   void from(uint32_t word);
