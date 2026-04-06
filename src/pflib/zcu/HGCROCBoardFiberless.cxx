@@ -190,6 +190,9 @@ class HcalFiberless : public Target {
     PFEXCEPTION_RAISE("InvalidECONid",
                       "No ECONs connected for Fiberless targets.");
   }
+  virtual void hardResetECONs() override {
+    PFEXCETPION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
   virtual GPIO& gpio() { return *gpio_; }
   virtual int nrocs() override { return 1; }
   virtual bool have_roc(int i) const override { return (i == 0); }

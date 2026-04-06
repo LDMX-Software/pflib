@@ -26,50 +26,43 @@ class Target {
   virtual ~Target() = default;
 
   /** number of boards */
-  virtual int nrocs() { return -1; }
+  virtual int nrocs() = 0;
 
   /// number of econds
-  virtual int necons() { return -1; }
+  virtual int necons() = 0;
 
   /** do we have a roc with this id? */
-  virtual bool have_roc(int iroc) const { return false; }
+  virtual bool have_roc(int iroc) const = 0;
 
   /** do we have an econ with this id? */
-  virtual bool have_econ(int iecon) const { return false; }
+  virtual bool have_econ(int iecon) const = 0;
 
   /** get a list of the IDs we have set up */
-  virtual std::vector<int> roc_ids() const { return {}; }
+  virtual std::vector<int> roc_ids() const = 0;
 
   /** get a list of the econ IDs we have set up */
-  virtual std::vector<int> econ_ids() const { return {}; }
+  virtual std::vector<int> econ_ids() const = 0;
 
   /** Get a ROC interface for the given HGCROC board */
-  virtual ROC& roc(int which) {
-    PFEXCEPTION_RAISE(
-        "NoImp", "ROC Access has not been implemented for the current target.");
-  }
+  virtual ROC& roc(int which) = 0;
 
   /** get a ECON interface for the given econ board */
-  virtual ECON& econ(int which) {
-    PFEXCEPTION_RAISE(
-        "NoImp",
-        "ECON Access has not been implemented for the current target.");
-  }
+  virtual ECON& econ(int which) = 0;
 
   /** Generate a hard reset to all the HGCROC boards */
-  virtual void hardResetROCs() {}
+  virtual void hardResetROCs() = 0;
 
   /** generate a hard reset to all the ECON boards */
-  virtual void hardResetECONs() {}
+  virtual void hardResetECONs() = 0;
 
   /** Get the firmware version */
   virtual uint32_t getFirmwareVersion() { return -1; }
 
   /** Generate a soft reset to a specific HGCROC board, -1 for all */
-  virtual void softResetROC(int which = -1) {}
+  virtual void softResetROC(int which = -1) = 0;
 
   /** Generate a soft reset to a specific ECON board, -1 for all */
-  virtual void softResetECON(int which = -1) {}
+  virtual void softResetECON(int which = -1) = 0;
 
   /** get the Elinks object */
   virtual Elinks& elinks() = 0;
@@ -147,7 +140,7 @@ class Target {
     ECOND_SW_HEADERS = 2
   };
 
-  virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
+  virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) = 0;
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
 
