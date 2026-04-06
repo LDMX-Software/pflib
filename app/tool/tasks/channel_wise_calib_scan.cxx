@@ -48,13 +48,8 @@ void channel_wise_calib_scan(Target* tgt) {
       [&](std::ofstream& f,
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
         // TODO 348
-        if (ch < 36) {
-          link = 0;
-        } else if (ch >= 36) {
-          link = 1;
-        }
         f << time << ',' << calib << ',' << ch << ',';
-        ep.samples[ep.i_soi].channel(link, ch).to_csv(f);
+        ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
         f << '\n';
       },
       n_links};
