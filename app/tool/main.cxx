@@ -24,16 +24,14 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
 void pftool::State::init(Target* tgt, int cfg) {
   cfg_ = cfg;
   /**
-   * set default format mode depending on readout config
+   * set default format mode to be the ECOND format with
+   * headers that are inserted by SW (on the ZCU) or FW
+   * (on the Bittware).
    *
-   * if fiberless, default to SIMPLEROC, otherwise assume
-   * ECOND readout
+   * if fiberless, we rely on the ECOND format being
+   * reliably mimicked by ECOND_Formatter
    */
-  if (cfg_ == CFG_HCALFMC) {
-    daq_format_mode = Target::DaqFormat::SIMPLEROC;
-  } else {
-    daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
-  }
+  daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->roc_ids()};
 

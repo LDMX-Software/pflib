@@ -98,12 +98,23 @@ class Target {
    * types of daq formats that we can do
    */
   enum class DaqFormat {
-    /// simple format for direct HGCROC connection
+    /**
+     * simple format for direct HGCROC connection
+     *
+     * This format is only supported for fiberless connections
+     * directly between a ZCU and an Hcal HGCROC board. After
+     * initial testing of DAQ is complete in this setup, you
+     * are encouraged to use ECOND_HEADERS so that code you
+     * develop is more transparently shared to other (fiberfull)
+     * test stands.
+     */
     SIMPLEROC = 1,
-    /// ECON-D without applying zero suppression
-    ECOND_NO_ZS = 2,
-    /// ECON-D with headers
-    ECOND_SW_HEADERS = 3
+    /**
+     * ECON-D format with headers inserted by software (on the ZCU)
+     * or firmware (on the Bittware) to mark the beginning of samples
+     * and the end of a multi-sample sequence.
+     */
+    ECOND_SW_HEADERS = 2
   };
 
   virtual void setup_run(int irun, DaqFormat format, int contrib_id = -1) {}
@@ -114,9 +125,6 @@ class Target {
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
-  // private:
-  // Mapping ROC channel → eRx channel
-  std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 Target* makeTargetFiberless();

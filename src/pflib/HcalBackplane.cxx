@@ -16,9 +16,6 @@ static constexpr int ADDR_MUX_BOARD = 0x71;
 HcalBackplane::HcalBackplane() {
   nhgcroc_ = 0;
   necon_ = 0;
-
-  // Default HCAL ROC→ECON mapping
-  roc_to_erx_map_ = {{3, 2}, {6, 7}, {4, 5}, {1, 0}};
 }
 
 void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
@@ -121,7 +118,9 @@ bool HcalBackplane::have_econ(int iecon) const {
 }
 
 const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
-  return roc_to_erx_map_;
+  static const std::vector<std::pair<int, int>> THE_MAP = {
+      {3, 2}, {6, 7}, {4, 5}, {1, 0}};
+  return THE_MAP;
 }
 
 std::vector<int> HcalBackplane::roc_ids() const {

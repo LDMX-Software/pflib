@@ -9,17 +9,17 @@
 
 namespace pflib::algorithm {
 
-template <class EventPacket>
 std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
                                int& target_adc) {
   static auto the_log_{::pflib::logging::get("get_calibs")};
   std::array<int, 72> calibs;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
-  DecodeAndBuffer<EventPacket> buffer{1, 2};
+  DecodeAndBuffer buffer{1, 2};
   for (int ch{0}; ch < 72; ch++) {
     // Set up for highrange charge injection on channel
     pflib_log(info) << "Getting calib for channel " << ch;
+    // TODO 348
     int i_link = ch / 36;
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
@@ -59,19 +59,8 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
       daq_run(tgt, "CHARGE", buffer, n_events, 100);
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
-        if constexpr (std::is_same_v<
-                          EventPacket,
-                          pflib::packing::MultiSampleECONDEventPacket>) {
-          adcs.push_back(
-              data[i].samples[data[i].i_soi].channel(i_link, ch).adc());
-        } else if constexpr (std::is_same_v<
-                                 EventPacket,
-                                 pflib::packing::SingleROCEventPacket>) {
-          adcs.push_back(data[i].channel(ch).adc());
-        } else {
-          PFEXCEPTION_RAISE("BadConf",
-                            "Unable to get adc for the cofigured format");
-        }
+        adcs.push_back(
+            data[i].samples[data[i].i_soi].channel(i_link, ch % 36).adc());
       }
       int max_adc = *std::max_element(adcs.begin(), adcs.end());
       if (std::abs(max_adc - target_adc) <= 2) {
@@ -89,13 +78,5 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
   pflib_log(info) << "Calib retrieved for all channels";
   return calibs;
 }
-
-template std::array<int, 72> get_calibs<pflib::packing::SingleROCEventPacket>(
-    Target* tgt, ROC& roc, size_t& n_events, int& target_adc);
-
-template std::array<int, 72>
-get_calibs<pflib::packing::MultiSampleECONDEventPacket>(Target* tgt, ROC& roc,
-                                                        size_t& n_events,
-                                                        int& target_adc);
 
 }  // namespace pflib::algorithm

@@ -1,5 +1,7 @@
 #include "pflib/DAQ.h"
 
+#include "pflib/packing/DAQSampleHeader.h"
+
 namespace pflib {
 
 std::vector<uint32_t> DAQ::read_event_sw_headers() {
@@ -15,8 +17,13 @@ std::vector<uint32_t> DAQ::read_event_sw_headers() {
   for (int ievt = 0; ievt < samples_per_ror(); ievt++) {
     /// @note only one elink right now
     std::vector<uint32_t> subpacket = getLinkData(0);
-    buf.push_back((0x1 << 28) | ((econid() & 0x3ff) << 18) | (ievt << 13) |
-                  ((ievt == soi()) ? (1 << 12) : (0)) | (subpacket.size()));
+    pflib::packing::DAQSampleHeader header{
+        .version = 1,
+        .econd_id = static_cast<uint32_t>(econid()),
+        .i_l1a = static_cast<uint32_t>(ievt),
+        .is_soi = (ievt == soi()),
+        .econd_len = static_cast<uint32_t>(subpacket.size())};
+    buf.push_back(header.to());
     buf.insert(buf.end(), subpacket.begin(), subpacket.end());
     advanceLinkReadPtr();
   }
@@ -26,7 +33,7 @@ std::vector<uint32_t> DAQ::read_event_sw_headers() {
    * and the event index ievt (aka l1a index) are set to all ones (1023 and 31)
    * respectively.
    */
-  buf.push_back((0x1 << 28) | (0x3ff << 18) | (31 << 13));
+  buf.push_back(pflib::packing::DAQSampleHeader::ending_trailer());
   return buf;
 }
 
