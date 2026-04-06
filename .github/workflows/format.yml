@@ -15,7 +15,7 @@ jobs:
     - name: checkout branch and not merge ref
       run: git switch ${GITHUB_HEAD_REF}
     - name: get just
-      uses: extractions/setup-just@v3
+      uses: extractions/setup-just@v4
     - name: get denv
       run: |
         curl -s https://tomeichlersmith.github.io/denv/install | sh
