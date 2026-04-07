@@ -29,7 +29,7 @@ HR_thresholds = {"CALIB_0":10, "CALIB_32":24, "CALIB_64":42, "CALIB_256":100,
 plot_types = ['CLUSTER', 'SINGULAR']
 
 parser = argparse.ArgumentParser()
-parser.add_argument('dataset', type=Path, help='Parameter timescan of one channel, one CALIB, n samples per time-point')
+parser.add_argument('dataset', type=Path, nargs='+', help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-s', '--samples', type=int, help='Number of samples per phase')
 parser.add_argument('-cs', '--cluster_scan', action='store_true', help='Perform an outliers cluster-scan (default)')
 parser.add_argument('-wh', '--wrong_header', action='store_true', help='Lund board-testing specific - some HR data have the wrong header')
@@ -37,7 +37,7 @@ parser.add_argument('-ts', '--threshold_scan', action='store_true', help='Perfor
 parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform and plot phase analysis of the outliers (include -pd for plot directory path)')
 parser.add_argument('-p', '--plot', choices=plot_types, type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
-parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given path')
+parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given directory path')
 args = parser.parse_args()
 
 if not args.cluster_scan and not args.threshold_scan : 
@@ -348,7 +348,7 @@ def outlier_phase_analysis(dataset : list):
 
 # -------  PLOTTING DATA -------
 
-def plot_outliers(dataset : list, plot_type : str, data_parameters):
+def plot_outliers(dataset : list, plot_type : str):
 
     outs = []
     potouts = []
@@ -369,7 +369,7 @@ def plot_outliers(dataset : list, plot_type : str, data_parameters):
         plt.xlim(np.min(dataset[0].time)-1, np.max(dataset[0].time)+1)
         plt.ylabel('ADC')
         plt.xlabel('time [ns]')
-        plt.title(f"highrange = {data_parameters['highrange']}, preCC = {data_parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}; {data_parameters['samples']} samples")
+        plt.title(f"highrange = {dataset[i].parameters['highrange']}, preCC = {dataset[i].parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}; {dataset[i].parameters['samples']} samples")
         plt.legend()
         if args.plot_directory:
             plt.savefig(os.path.join(args.plot_directory,f'clustered_outliers.png'), dpi=400)
@@ -388,7 +388,7 @@ def plot_outliers(dataset : list, plot_type : str, data_parameters):
             plt.xlim(np.min(dataset[0].time)-1, np.max(dataset[0].time)+1)
             plt.ylabel('ADC')
             plt.xlabel('time [ns]')
-            plt.title(f"highrange = {data_parameters['highrange']}, preCC = {data_parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}")
+            plt.title(f"highrange = {dataset[i].parameters['highrange']}, preCC = {dataset[i].parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}")
             plt.legend()
             if args.plot_directory:
                 plt.savefig(os.path.join(args.plot_directory,f'sample_{i}_outliers.png'), dpi=300)
@@ -399,18 +399,17 @@ def plot_outliers(dataset : list, plot_type : str, data_parameters):
 
 # -------  SAVING DATA -------
 
-def write_to_csv(dataset : list, save_path : Path, data_parameters):
+def write_to_csv(dataset : list, save_path : Path):
 
     header = ["Type", "Channel", "CALIB", "Potential outliers", "Counts", "Outliers", "Counts"]
-
-    if data_parameters["preCC"] : scan_type = "preCC"
-    elif data_parameters["highrange"] : scan_type = "HR"
-    else : scan_type = "LR"
 
     csv = []
 
     for sample in dataset:
-
+        
+        if sample.parameters["preCC"] : scan_type = "preCC"
+        elif sample.parameters["highrange"] : scan_type = "HR"
+        else : scan_type = "LR"
         if sample.potential_outliers_number != 0: potential_count = 1
         else: potential_count = 0
 
@@ -420,16 +419,19 @@ def write_to_csv(dataset : list, save_path : Path, data_parameters):
         csv.append([scan_type, sample.channel, sample.calib, potential_count, sample.potential_outliers_number, count, sample.outliers_number])
 
     df = pd.DataFrame(csv, columns = header)
-    df.to_csv(save_path)
+    df.to_csv(os.path.join(save_path,f'outlier-results-channel-{dataset[0].channel}-calib-{dataset[0].calib}-{scan_type}.csv'))
 
 # ------- EXECUTION BLOCK -------
-
-raw_data, data_parameters = read_data(args.dataset)
-processed_data = sort_data(raw_data, data_parameters)
-working_data = classify_data(processed_data, data_parameters)
+    
+working_data = []
+for file_path in args.dataset:
+    raw_data, data_parameters = read_data(file_path) 
+    processed_data = sort_data(raw_data, data_parameters)
+    working_data.append(classify_data(processed_data, data_parameters))
 
 if args.cluster_scan: 
-    cluster_outlier_search(working_data)
+    for data in working_data:
+        cluster_outlier_search(data)
 
 if args.threshold_scan:
     th_value = int(input("What delta-ADC threshold do you want to choose for the scan?\n" \
@@ -440,9 +442,10 @@ if args.threshold_scan:
 if args.phase_analysis:
     outlier_phase_analysis(working_data)
 
-
 if args.csv:
-    write_to_csv(working_data, args.csv, data_parameters)
+    for data in working_data:
+        write_to_csv(data, args.csv)
 
 if args.plot:
-    plot_outliers(working_data, args.plot, data_parameters)
+    for data in working_data:
+        plot_outliers(data, args.plot)
