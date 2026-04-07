@@ -72,19 +72,21 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "FORMAT") {
     if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW ||
         pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) {
-      printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
+      printf("Only acceptable format is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else if (pftool::state.readout_config() ==
                    pftool::State::CFG_ECALOPTO_BW ||
                pftool::state.readout_config() ==
                    pftool::State::CFG_ECALOPTO_ZCU) {
-      printf("Only acceptable format for now is ECOND_SW_HEADERS\n");
+      printf("Only acceptable format is ECOND_SW_HEADERS\n");
       pftool::state.daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
     } else {
       printf("Format options:\n");
       printf(" (1) ROC with ad-hoc headers as in TB2022\n");
       printf(" (2) ECON with full readout\n");
-      // printf(" (3) ECON with ZS\n");
+      printf(
+          " WARN: Many TASKS will only function with the emulated ECON "
+          "format.\n");
       int i_format = pftool::readline_int(
           " Select one: ", static_cast<int>(pftool::state.daq_format_mode));
       if (i_format < 1 or i_format > 2) {
@@ -383,12 +385,11 @@ static void daq(const std::string& cmd, Target* pft) {
     bool decoding =
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
+    std::unique_ptr<DAQRunConsumer> consumer;
     if (decoding) {
-      std::unique_ptr<DAQRunConsumer> consumer;
       switch (pftool::state.daq_format_mode) {
         case Target::DaqFormat::ECOND_SW_HEADERS:
-          consumer = std::make_unique<
-              DecodeAndWriteToCSV<pflib::packing::MultiSampleECONDEventPacket>>(
+          consumer = std::make_unique<DecodeAndWriteToCSV>(
               fname + ".csv",
               [](std::ofstream& f) {
                 f << std::boolalpha;
@@ -399,33 +400,23 @@ static void daq(const std::string& cmd, Target* pft) {
                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f);
               },
-              pft->econ(pftool::state.iecon).nLinks());
+              pft->nrocs() * 2);
           break;
         case Target::DaqFormat::SIMPLEROC:
-          consumer = std::make_unique<
-              DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>>(
-              fname + ".csv",
-              [](std::ofstream& f) {
-                f << std::boolalpha;
-                f << pflib::packing::SingleROCEventPacket::to_csv_header
-                  << '\n';
-              },
-              [](std::ofstream& f,
-                 const pflib::packing::SingleROCEventPacket& ep) {
-                ep.to_csv(f);
-              },
-              2);
+          PFEXCEPTION_RAISE("BadConf",
+                            "Unable to do live decoding for the currently "
+                            "configured format (SIMPLEROC).");
           break;
         default:
           PFEXCEPTION_RAISE("BadConf",
                             "Unable to do live decoding for the currently "
-                            "configured format.");
+                            "configured format (unrecognized).");
+          break;
       }
-      daq_run(pft, cmd, *consumer, nevents, pftool::state.daq_rate);
     } else {
-      WriteToBinaryFile writer{fname + ".raw"};
-      daq_run(pft, cmd, writer, nevents, pftool::state.daq_rate);
+      consumer = std::make_unique<WriteToBinaryFile>(fname + ".raw");
     }
+    daq_run(pft, cmd, *consumer, nevents, pftool::state.daq_rate);
   }
 }
 
@@ -717,77 +708,54 @@ auto menu_daq_debug =
                })
         ->line("SW_L1A", "send a L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
-        ->line("CHARGE_TIMEIN",
-               "Scan pulse-l1a time offset to see when it should be",
-               [](Target* tgt) {
-                 int nevents = pftool::readline_int(
-                     "How many events per time offset? ", 100);
-                 int calib = pftool::readline_int(
-                     "Setting for calib pulse amplitude? ", 1024);
-                 int min_offset =
-                     pftool::readline_int("Minimum time offset to test? ", 0);
-                 int max_offset =
-                     pftool::readline_int("Maximum time offset to test? ", 128);
-                 std::string fname = pftool::readline_path("charge-timein");
-                 tgt->setup_run(1, Target::DaqFormat::SIMPLEROC,
-                                pftool::state.daq_contrib_id);
+        ->line(
+            "CHARGE_TIMEIN",
+            "Scan pulse-l1a time offset to see when it should be",
+            [](Target* tgt) {
+              if (pftool::state.daq_format_mode !=
+                  Target::DaqFormat::ECOND_SW_HEADERS) {
+                PFEXCEPTION_RAISE(
+                    "BadConf",
+                    "Higher-level tasks that require live-decoding are only "
+                    "supported via the ECON-D DAQ format."
+                    "User lower-level tasks (like manual PEDESTAL and CHARGE "
+                    "runs) to confirm that the ECON-D"
+                    " formatter is functional in a fiberless setup.");
+              }
 
-                 pflib::ROC roc{tgt->roc(pftool::state.iroc)};
-                 auto test_param_handle =
-                     roc.testParameters()
-                         .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                         .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
-                         .add("CH_61", "HIGHRANGE", 0)
-                         .add("CH_61", "LOWRANGE", 0)
-                         .apply();
+              int nevents = pftool::readline_int(
+                  "How many events per time offset? ", 100);
+              int calib = pftool::readline_int(
+                  "Setting for calib pulse amplitude? ", 1024);
+              int min_offset =
+                  pftool::readline_int("Minimum time offset to test? ", 0);
+              int max_offset =
+                  pftool::readline_int("Maximum time offset to test? ", 128);
+              std::string fname = pftool::readline_path("charge-timein");
 
-                 switch (pftool::state.daq_format_mode) {
-                   case Target::DaqFormat::ECOND_SW_HEADERS: {
-                     DecodeAndWriteToCSV<
-                         pflib::packing::MultiSampleECONDEventPacket>
-                         writer{all_channels_to_csv<
-                             pflib::packing::MultiSampleECONDEventPacket>(
-                             fname + ".csv",
-                             tgt->econ(pftool::state.iecon).nLinks())};
+              tgt->setup_run(1, pftool::state.daq_format_mode,
+                             pftool::state.daq_contrib_id);
 
-                     for (int toffset{min_offset}; toffset < max_offset;
-                          toffset++) {
-                       tgt->fc().fc_setup_calib(toffset);
-                       usleep(10);
-                       pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                       << tgt->fc().fc_get_setup_calib();
-                       daq_run(tgt, "CHARGE", writer, nevents,
-                               pftool::state.daq_rate);
-                     }
-                     break;
-                   }
-                   case Target::DaqFormat::SIMPLEROC: {
-                     DecodeAndWriteToCSV<pflib::packing::SingleROCEventPacket>
-                         writer{all_channels_to_csv<
-                             pflib::packing::SingleROCEventPacket>(
-                             fname + ".csv", 2)};
+              pflib::ROC& roc{tgt->roc(pftool::state.iroc)};
+              auto test_param_handle =
+                  roc.testParameters()
+                      .add("REFERENCEVOLTAGE_1", "CALIB", calib)
+                      .add("REFERENCEVOLTAGE_1", "INTCTEST", 1)
+                      .add("CH_61", "HIGHRANGE", 0)
+                      .add("CH_61", "LOWRANGE", 0)
+                      .apply();
 
-                     for (int toffset{min_offset}; toffset < max_offset;
-                          toffset++) {
-                       tgt->fc().fc_setup_calib(toffset);
-                       usleep(10);
-                       pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                       << tgt->fc().fc_get_setup_calib();
-                       daq_run(tgt, "CHARGE", writer, nevents,
-                               pftool::state.daq_rate);
-                     }
-                     break;
-                   }
-                   default:
-                     PFEXCEPTION_RAISE(
-                         "BadConf",
-                         "Unable to do all_channels_to_csv for the currently "
-                         "configured format.");
-                 }
+              DecodeAndWriteToCSV writer{
+                  all_channels_to_csv(fname + ".csv", tgt->nrocs() * 2)};
 
-                 // DecodeAndWriteToCSV writer{all_channels_to_csv(fname +
-                 // ".csv")};
-               })
+              for (int toffset{min_offset}; toffset < max_offset; toffset++) {
+                tgt->fc().fc_setup_calib(toffset);
+                usleep(10);
+                pflib_log(info) << "run with FAST_CONTROL.CALIB = "
+                                << tgt->fc().fc_get_setup_calib();
+                daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
+              }
+            })
         ->line("CHARGE_L1A", "send a charge pulse followed by L1A",
                [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,

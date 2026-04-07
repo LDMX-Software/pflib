@@ -8,7 +8,6 @@
 
 namespace pflib::algorithm {
 
-template <class EventPacket>
 std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
                                   std::array<int, 72>& calibs,
                                   std::array<int, 2>& tot_vrefs,
@@ -27,8 +26,8 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
   }
   auto tot_vref_params = tot_vref_handle.apply();
 
-  DecodeAndBuffer<EventPacket> buffer{n_events,
-                                      2};  // working in buffer, not in writer
+  // TODO 348
+  DecodeAndBuffer buffer{n_events, 2};  // working in buffer, not in writer
 
   for (int ch{0}; ch < 72; ch++) {
     pflib_log(info) << "scanning channel " << ch;
@@ -52,18 +51,7 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
       auto data = buffer.get_buffer();
       std::vector<int> tots(data.size());
       for (std::size_t i{0}; i < tots.size(); i++) {
-        if constexpr (std::is_same_v<
-                          EventPacket,
-                          pflib::packing::MultiSampleECONDEventPacket>) {
-          tots[i] = data[i].samples[data[i].i_soi].channel(i_link, ch).tot();
-        } else if constexpr (std::is_same_v<
-                                 EventPacket,
-                                 pflib::packing::SingleROCEventPacket>) {
-          tots[i] = data[i].channel(ch).tot();
-        } else {
-          PFEXCEPTION_RAISE("BadConf",
-                            "Unable to get tot for the configured format");
-        }
+        tots[i] = data[i].samples[data[i].i_soi].channel(i_link, ch % 36).tot();
       }
       auto efficiency = pflib::utility::efficiency(tots);
       pflib_log(info) << "tot efficiency is " << efficiency;
@@ -80,15 +68,5 @@ std::array<int, 72> trim_tot_scan(Target* tgt, ROC& roc, size_t& n_events,
   pflib_log(info) << "Trim_tot retrieved for all channels";
   return tot_trims;
 }
-
-template std::array<int, 72>
-trim_tot_scan<pflib::packing::SingleROCEventPacket>(
-    Target* tgt, ROC& roc, size_t& n_events, std::array<int, 72>& calibs,
-    std::array<int, 2>& tot_vrefs, std::array<int, 72>& tot_trims);
-
-template std::array<int, 72>
-trim_tot_scan<pflib::packing::MultiSampleECONDEventPacket>(
-    Target* tgt, ROC& roc, size_t& n_events, std::array<int, 72>& calibs,
-    std::array<int, 2>& tot_vrefs, std::array<int, 72>& tot_trims);
 
 }  // namespace pflib::algorithm
