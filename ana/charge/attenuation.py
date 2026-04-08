@@ -21,11 +21,16 @@ from scipy.special import erf
 from scipy.optimize import curve_fit
 from scipy.signal import fftconvolve
 
+import matplotlib.colors
+import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
 plot_parameters = ['voltage', 'time']
 amplitude_defs = ['max_adc', 'max_adc_fit', 'FWHM', 'rel_pedestal', 'rel_dip', 'all']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('time_scan', type=Path, nargs='+', help='time scan data, only one event per time point')
+parser.add_argument('-rc', '--ref_channel', type=int, default=16, help='Your reference channel')
 parser.add_argument('-pp', '--plot_parameter', choices=plot_parameters, default=plot_parameters[0], type=str, help=f'What parameter to plot on the x-axis. Options: {", ".join(plot_parameters)}')
 parser.add_argument('-ppu', '--plot_pulses', type=bool, help='Choose if you want to plot the pulses of all channels on the link')
 parser.add_argument('-ppe', '--plot_pedestals', type=bool, help='Choose if you want to plot the pedestals of all quiet channels on the link')
@@ -64,7 +69,7 @@ if (args.plot_parameter == 'voltage'):
         run_params_collection.append(run_params)
 
     link = 0
-    ref_ch = 16 # REF CHANNEL IS HARDCODED!
+    ref_ch = args.ref_channel
     
     # Plot pulses
     if (args.plot_pulses == True):
@@ -98,6 +103,11 @@ if (args.plot_parameter == 'voltage'):
         A0s = []
     A0 = 0
     err = 0
+
+    dip_adcs = [[] for i in range(len(xl))]
+    dip_times = [[] for i in range(len(xl))]
+    dip_chs = [[] for i in range(len(xl))]
+
     for x, samples, run_params in zip(xl, samples_collection, run_params_collection):
         samples = samples[samples['nr channels'] == 1] # Remove data we don't need
 
@@ -110,8 +120,6 @@ if (args.plot_parameter == 'voltage'):
 
         x_mean = ch_df[ch_df['adc'] == ch_df['adc'].max()]['time'].iloc[0]
 
-        # Limit data range
-        #ch_lim = ch_df[(ch_df['adc'] > ch_df['adc'].median()) & (ch_df['time'] >= (x_mean - 30)) & (ch_df['time'] <= (x_mean + 30))]
         ch_lim = ch_df[(ch_df['time'] >= (x_mean-50)) & (ch_df['time'] <= (x_mean+50))]
 
         p0 = ([ch_lim['adc'].median(),
@@ -129,20 +137,8 @@ if (args.plot_parameter == 'voltage'):
         uncert = np.diag(pcov)
         xl_fit = np.linspace(min(ch_lim['time']), max(ch_lim['time']), 1000)
         fit_y = gauss(xl_fit, H, A, x0, sigma)
-        #fit_y = skew_norm(xl_fit, H, A, x0, sigma, -5e-3)
         FWHM = 2*np.sqrt(2*np.log(2))*sigma
         FWHM_err = 2*np.sqrt(2*np.log(2))*uncert[3]
-
-        #params = stats.crystalball.fit(ch_lim['adc'].to_numpy())
-        #fit_y = stats.crystalball.pdf(xl_fit, *params)
-
-        #plt.plot(xl_fit, fit_y, label='Fit')
-        #plt.errorbar(ch_lim['time'], ch_lim['adc'], 
-        #             yerr=ch_lim['std'], fmt='o', label='Data'
-        #)
-        #plt.legend()
-        #plt.show()
-        #plt.clf()
         
         # Need to find the pulsed channels. Look for noisy channels
         ch_maxs = [ch['adc'].max() for _, ch in sorted_df.groupby('channel')]
@@ -161,34 +157,66 @@ if (args.plot_parameter == 'voltage'):
         dips = sel['adc'].tolist()
         dips_errs = sel['std'].tolist()
         
-        # Pedestal Analysis
+        """
+            Pedestal analysis:
+                the main part of the dip analysis.
+                Provides plots of ADC of the quiet channels in time,
+                ADC over all channels, position of the dip in time and ADC.
+        """
         if (args.plot_pedestals == True):
             chs = sorted_df.groupby('channel')
             fig, ax = plt.subplots(1,1)
             fig2, ax2 = plt.subplots(1,1)
+            cmap = plt.get_cmap('viridis')
+
+            dip_time = []
+            dip_adc = []
+            dip_ch = []
+
             for ch_id, ch in chs:
                 if (ch_id >= 36):
                     break
                 if (ch['adc'].max() < np.median(ch_maxs) + 50):
                     #ax.errorbar(ch['time'], ch['adc'], yerr=ch['std'], label=f"ch {ch_id})")
-                    ax.plot(ch['time'], ch['adc'], label=f"ch {ch_id}")
+                    color = cmap(ch_id/36)
+                    ax.plot(ch['time'], ch['adc'], color=color)
                     minima = ch[ch['adc'] == ch['adc'].min()]
-                    ax2.scatter(ch_id, minima['adc'].median(), label=f'ch {ch_id}')
-            ax.legend(fontsize=6, ncols=3)
+                    ax2.scatter(ch_id, minima['adc'].median(), color='blue')
+                    ch_min = ch[ch['adc'] == ch['adc'].min()]
+                    dip_time.append(ch_min['time'].iloc[0])
+                    dip_adc.append(ch_min['adc'].iloc[0])
+                    dip_ch.append(ch_id)
+
+            dip_times.append(dip_time)
+            dip_adcs.append(dip_adc)
+            dip_chs.append(dip_ch)
+
             ax.set_xlabel('Time [ns]')
             ax.set_ylabel('Median ADC [a.u.]')
             ax.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', y=1.003)
+            norm = matplotlib.colors.Normalize(vmin=0, vmax=35)
+            sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array([])
+            axins0 = inset_axes(ax, width='20%', height='4%', 
+                        loc='upper right', borderpad=1.4)
+            cbar0 = fig.colorbar(sm, cax=axins0, orientation='horizontal', 
+                        ticks=[0, 35])
+            cbar0.ax.set_xticklabels(['0', '35'])
+            axins0.xaxis.set_ticks_position('bottom')
+            axins0.set_title('channels', fontsize=10)
+
             ax2.set_xlabel('Channel')
-            ax2.set_ylabel('Time [ns]')
+            ax2.set_ylabel('Median ADC [a.u.]')
             ax2.set_title(f'$V_{{ref}} = {V0} mV, V_{{oc}} = {x} mV$', y=1.003)
-            ax2.axvline(x = 16, color = 'b', linestyle='--', label = 'ref channel')
+            ax2.axvline(x = 16, color = 'g', linestyle='--', label = 'ref channel')
             ax2.axvline(x = 4, color = 'r', linestyle='--', label = 'oc channel')
             ax2.axvline(x = 5, color = 'r', linestyle='--')
             ax2.axvline(x = 6, color = 'r', linestyle='--')
             ax2.axvline(x = 7, color = 'r', linestyle='--')
-            ax2.legend(fontsize=6, ncols=3)
-            #fig.savefig(f'Pedestal_quiet_{x}.png')
+            ax2.legend()
+            fig.savefig(f'Pedestal_quiet_{x}.png')
             fig2.savefig(f'non_injected_ch_{x}.png')
+
             plt.close()
 
         mean_dip = np.median(dips)
@@ -240,33 +268,50 @@ if (args.plot_parameter == 'voltage'):
     
     xl_fit = np.linspace(min(xl), max(xl), 1000)
 
+    if (args.plot_pedestals):
+        fig, ax = plt.subplots(1,1)
+        cmap = plt.get_cmap('viridis')
+        # Neglecting V = 0 because it's just noise
+        for i in range(1,len(dip_chs)):
+            color = cmap(i/len(dip_chs))
+            ax.scatter(dip_chs[i], dip_times[i], color=color)
+        fig.savefig('dip_analysis.png')
+        plt.close()
+
+
     if (args.amplitude == 'all'):
         fig, ax = plt.subplots(2, 2, 
                                sharex=True, gridspec_kw={"hspace": 0.1})
-        ax[1][0].set_xlabel('Voltage [mV]')
-        ax[1][1].set_xlabel('Voltage [mV]')
-        ax[0][0].set_ylabel('Absolute peak ADC of fit [a.u.]')
-        ax[0][1].set_ylabel('Pedestal-subtracted peak ADC [a.u.]')
-        ax[1][0].set_ylabel('Peak-to-dip ADC [a.u.]')
-        ax[1][1].set_ylabel('FWHM [ns]')
+        fontsize = 7
+        ax[1][0].set_xlabel('Voltage [mV]', fontsize=fontsize)
+
+        ax[1][1].set_xlabel('Voltage [mV]', fontsize=fontsize)
+        ax[0][0].set_ylabel('Absolute peak ADC of fit [a.u.]', 
+                            fontsize=fontsize)
+        ax[0][1].set_ylabel('Pedestal-subtracted peak ADC [a.u.]', 
+                            fontsize=fontsize)
+        ax[1][0].set_ylabel('Peak-to-dip ADC [a.u.]', fontsize=fontsize)
+        ax[1][1].set_ylabel('FWHM [ns]', fontsize=fontsize)
 
         fits = []
         xls = []
         for i in range(2):
             for j in range(2):
                 ax[i][j].errorbar(xl, Aprimes[2*i+j], yerr=stdevs[2*i+j], 
-                                  fmt='o', label='Data', zorder=0)
+                                  fmt='o', label='Data', zorder=0,
+                                  markersize=4)
                 ax[i][j].scatter(0, A0s[2*i+j], color='orange', 
-                                 label=f'$A_0 = {A0s[2*i+j]:.2f}$', zorder=5)
+                                 label=f'$A_0 = {A0s[2*i+j]:.2f}$', 
+                                 zorder=5, s=4)
                 popt, _ = curve_fit(linear, xl, Aprimes[2*i+j])
                 ax[i][j].plot(xl_fit, linear(xl_fit, *popt), lw=1, 
                               label=f'Fit: {popt[0]:.5f}x + {popt[1]:.2f}', 
                               zorder=10)
-                #ax[i][j].legend(fontsize=12)
                 handles, labels = ax[i][j].get_legend_handles_labels()
                 # sort both labels and handles by labels
                 labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-                ax[i][j].legend(handles, labels)
+                ax[i][j].legend(handles, labels, fontsize=6)
+                ax[i][j].tick_params(which='both', labelsize=5)
 
         fig.savefig('attenuation_of_signal_all_amplitudes.png')
 
@@ -291,7 +336,7 @@ if (args.plot_parameter == 'voltage'):
 
         ax.errorbar(xl, Aprimes, fmt='o', yerr=stdevs, label='Data', zorder=0)
         ax.plot(xl_fit, linear(xl_fit, slope, intercept), lw=1, label=f'Fit: {slope:.5f}x + {intercept:.2f}', zorder=10)
-        ax.scatter(0, A0, color='orange', label=f'$A_0 = {A0}$', zorder=5)
+        ax.scatter(0, A0, color='orange', label=f'$A_0 = {A0:.2f}$', zorder=5)
 
         handles, labels = ax.get_legend_handles_labels()
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
