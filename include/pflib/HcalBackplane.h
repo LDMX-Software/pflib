@@ -69,6 +69,9 @@ class HcalBackplane : public Target {
   /** Get the ROC to eRx mapping */
   const std::vector<std::pair<int, int>>& getRocErxMapping() override;
 
+  /// the ROC to eRx mapping for this hardware
+  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING;
+
  protected:
   /** Number of HGCROC boards in this system */
   int nhgcroc_;

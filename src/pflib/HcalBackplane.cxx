@@ -117,10 +117,12 @@ bool HcalBackplane::have_econ(int iecon) const {
   return bool(econs_[iecon]);
 }
 
+const std::vector<std::pair<int, int>> HcalBackplane::ROC_ERX_MAPPING = {
+    {3, 2}, {6, 7}, {4, 5}, {1, 0}};
+
+
 const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
-  static const std::vector<std::pair<int, int>> THE_MAP = {
-      {3, 2}, {6, 7}, {4, 5}, {1, 0}};
-  return THE_MAP;
+  return ROC_ERX_MAPPING;
 }
 
 std::vector<int> HcalBackplane::roc_ids() const {

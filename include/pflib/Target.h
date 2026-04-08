@@ -87,35 +87,6 @@ class Target {
 
   virtual const std::vector<std::pair<int, int>>& getRocErxMapping() = 0;
 
-  /**
-   * Convert the input (i_erx, channel) index to the (i_roc, channel) index
-   * using the RocErxMapping defined for the Target and which ROCs are active.
-   *
-   * @note This logic only works for single-ECON-D setups where all the ROCs are
-   * going into a single ECON-D.
-   *
-   * @param[in] i_erx index for the eRx link that the ECON-D as output after decoding
-   * @param[in] channel channel index within that eRx (0-36)
-   * @return [i_roc, channel] where i_roc is the ROC index (retrieve with roc(i_roc))
-   * and channel is the channel within that ROC (0-72)
-   */
-  std::pair<int, int> toROCChannel(int i_erx, int channel);
-
-  /**
-   * Convert the input (i_rox, channel) index to the (i_erx, channel) index
-   * using the mapping defined for the Target and which ROCs are active
-   *
-   *
-   * @note This logic only works for single-ECON-D setups where all the ROCs are
-   * going into a single ECON-D.
-   *
-   * @param[in] i_roc index for an active ROC (no checking is done)
-   * @param[in] channel channel index within that ROC (0-72)
-   * @return [i_erx, channel] where i_erx is the index of the eRx input into
-   * the ECON-D as output after decoding and channel is the channel within
-   * that eRx (0-36)
-   */
-  std::pair<int, int> toErxChannel(int i_roc, int channel);
 
   /**
    * types of daq formats that we can do
@@ -148,34 +119,6 @@ class Target {
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
- private:
-  void invertRocErxMapping();
-  /**
-   * map from i_erx index in decoding to eRx ID input to ECON
-   *
-   * This depends on which ROCs are active and so is only
-   * deduced after a Target is constructed when requested.
-   */
-  std::vector<int> i_erx_to_erx_;
-
-  /**
-   * Map from eRx ID input to ECON to i_erx index in decoding
-   *
-   * This depends on which ROCs are active and so is only
-   * deduced after a Target is constructed when requested.
-   */
-  std::vector<int> erx_to_i_erx_;
-
-  /**
-   * map from eRx ID input to ECON to ROC-half
-   *
-   * This does not depend on which ROCs are active, but it
-   * does depend on how the hardware is wired.
-   * It is just an inversion of getRocErxMapping that is
-   * implemented by derived classes for different hardware
-   * situations.
-   */
-  std::vector<std::pair<int, int>> erx_to_roc_half_;
 };
 
 Target* makeTargetFiberless();
