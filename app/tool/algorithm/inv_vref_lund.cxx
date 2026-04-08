@@ -37,8 +37,8 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                 (inv_vrefs[i] - inv_vrefs[i + 1]);
 
     // Threshold check. CMS uses 0.05. This value fits with my analysis as well.
-    if (std::abs(LH) < flat_threshold ||
-        std::abs(RH) < flat_threshold) {  // flat regime
+    if (std::abs(LH) <= flat_threshold ||
+        std::abs(RH) <= flat_threshold) {  // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
     } else {  // we're in a linear regime or there's outliers
       double LH_err =
