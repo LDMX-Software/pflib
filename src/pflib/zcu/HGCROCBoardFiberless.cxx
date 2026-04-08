@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "pflib/Bias.h"
+#include "pflib/Exception.h"
 #include "pflib/GPIO.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/Target.h"
@@ -191,7 +192,10 @@ class HcalFiberless : public Target {
                       "No ECONs connected for Fiberless targets.");
   }
   virtual void hardResetECONs() override {
-    PFEXCETPION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
+  virtual void softResetECON(int which = -1) override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
   }
   virtual GPIO& gpio() { return *gpio_; }
   virtual int nrocs() override { return 1; }
