@@ -114,7 +114,7 @@ int DataFitter::fit(int target) {
 std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
-  int nevents = pftool::readline_int("Number of events per point: ", 1);
+  int nevents = pftool::readline_int("Number of events per point: ", 100);
   // TODO 348
   std::array<int, 2> channels = {17, 51};
 
