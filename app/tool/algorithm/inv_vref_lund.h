@@ -36,9 +36,9 @@ class DataFitter {
   };
   std::vector<Point> linear_;
   std::vector<Point> nonlinear_;
-  int LH_median_;
+  double LH_median_;
   double LH_std_median_;
-  int RH_median_;
+  double RH_median_;
 };
 
 /**
