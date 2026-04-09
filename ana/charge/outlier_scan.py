@@ -10,20 +10,6 @@ import argparse
 
 # ------- PARSER -------
 
-'''
-This block contains all the commands that will be available in-terminal. 
-I'm not exactly sure how many functions there will be, so it's WIP.
-'''
-
-'''
-Should have:
-
-- nr of samples
-- only one channel allowed (at least per file?)
-- only one calib allowed (also per file?)
-- custom threshold if threshold-based search -> also show the default thresholds
-'''
-
 HR_thresholds = {"CALIB_0":10, "CALIB_32":24, "CALIB_64":42, "CALIB_256":100, 
                      "CALIB_512":200, "CALIB_1024":200, "CALIB_2048":200, "CALIB_4096":200}
 plot_types = ['CLUSTER', 'SINGULAR']
@@ -107,14 +93,15 @@ def sort_data(raw_data, raw_data_parameters):
     raw_time = raw_data["time"].to_numpy()
     raw_channels = raw_data["channel"].to_numpy()
     link = round(raw_channels[0]/72)
-    
-    if raw_data_parameters["preCC"]: raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB_2V5"]
+
+    if raw_data_parameters["preCC"]: raw_calibs = raw_data[f"REFERENCEVOLTAGE_0.CALIB_2V5"] # temporary change from {link} to 0, I think I accidentally made all preCC have link 0 
     else: 
-        if args.wrong_header: raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB_2V5"]
+        if args.wrong_header: raw_calibs = raw_data[f"REFERENCEVOLTAGE_0.CALIB_2V5"]
         else: raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB"]
         
 
     scan_length = len(np.unique(raw_time))
+
     for s in range(0, raw_data_parameters["samples"]):
         sample_time_data = []
         sample_adc_data = []
@@ -401,7 +388,7 @@ def plot_outliers(dataset : list, plot_type : str):
 
 def write_to_csv(dataset : list, save_path : Path):
 
-    header = ["Type", "Channel", "CALIB", "Potential outliers", "Counts", "Outliers", "Counts"]
+    header = ["Type", "Channel", "CALIB", "Potential_outliers", "PO_counts", "Outliers", "O_counts"]
 
     csv = []
 
@@ -434,13 +421,15 @@ if args.cluster_scan:
         cluster_outlier_search(data)
 
 if args.threshold_scan:
-    th_value = int(input("What delta-ADC threshold do you want to choose for the scan?\n" \
-                        f"Default options for HR data: {HR_thresholds}\n" \
-                        "Threshold: "))
-    threshold_outlier_search(working_data, th_value)
+    for data in working_data:
+        th_value = int(input("What delta-ADC threshold do you want to choose for the scan?\n" \
+                            f"Default options for HR data: {HR_thresholds}\n" \
+                            "Threshold: "))
+        threshold_outlier_search(data, th_value)
 
 if args.phase_analysis:
-    outlier_phase_analysis(working_data)
+    for data in working_data:
+        outlier_phase_analysis(data)
 
 if args.csv:
     for data in working_data:
