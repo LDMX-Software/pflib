@@ -12,15 +12,15 @@ import argparse
 
 HR_thresholds = {"CALIB_0":10, "CALIB_32":24, "CALIB_64":42, "CALIB_256":100, 
                      "CALIB_512":200, "CALIB_1024":200, "CALIB_2048":200, "CALIB_4096":200}
-plot_types = ['CLUSTER', 'SINGULAR']
+plot_types = ['CLUSTER', 'SINGULAR', 'EVALUATION']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset', type=Path, nargs='+', help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-s', '--samples', type=int, help='Number of samples per phase')
 parser.add_argument('-cs', '--cluster_scan', action='store_true', help='Perform an outliers cluster-scan (default)')
-parser.add_argument('-wh', '--wrong_header', action='store_true', help='Lund board-testing specific - some HR data have the wrong header')
 parser.add_argument('-ts', '--threshold_scan', action='store_true', help='Perform a threshold outliers-scan with default thresholds (only HR works)')
 parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform and plot phase analysis of the outliers (include -pd for plot directory path)')
+parser.add_argument('-be', '--bulk_evaluation', action='store_true', help='Perform analysis to evaluate multiple channels and CALIBs in terms of outliers found')
 parser.add_argument('-p', '--plot', choices=plot_types, type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given directory path')
@@ -49,6 +49,9 @@ class measurements():
         self.channel = int(ch)
         self.sample = sample
         self.parameters = parameters
+
+        if parameters["preCC"]: self.scan_type = "preCC"
+        else: self.scan_type = "highrange"
 
         self.outliers_time = []
         self.outliers_adc = []
@@ -82,7 +85,11 @@ def read_data(path: Path):
     if has_pflib_header:
         data = pd.read_csv(path, skiprows=1, dtype=np.float64) # will probably add **kwargs later
 
-    run_params["samples"] = args.samples
+    if args.samples: run_params["samples"] = args.samples
+    else:
+        time = data["time"].to_list()
+        time_unique = list(np.unique(data["time"].to_numpy()))
+        run_params["samples"] = time.count(time_unique[0])
 
     return data, run_params
 
@@ -92,12 +99,11 @@ def sort_data(raw_data, raw_data_parameters):
     raw_adc = raw_data["adc"].to_numpy()
     raw_time = raw_data["time"].to_numpy()
     raw_channels = raw_data["channel"].to_numpy()
-    link = round(raw_channels[0]/72)
+    link = round(raw_channels[0]/71)
 
-    if raw_data_parameters["preCC"]: raw_calibs = raw_data[f"REFERENCEVOLTAGE_0.CALIB_2V5"] # temporary change from {link} to 0, I think I accidentally made all preCC have link 0 
+    if raw_data_parameters["preCC"]: raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB_2V5"]
     else: 
-        if args.wrong_header: raw_calibs = raw_data[f"REFERENCEVOLTAGE_0.CALIB_2V5"]
-        else: raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB"]
+        raw_calibs = raw_data[f"REFERENCEVOLTAGE_{link}.CALIB"]
         
 
     scan_length = len(np.unique(raw_time))
@@ -145,7 +151,12 @@ def threshold_outlier_search(dataset : list, threshold : int):
     
 def cluster_outlier_search(dataset : list):
 
-    if args.samples < 10: 
+    if not args.samples : 
+        if dataset[0].parameters['samples'] < 10: 
+            print("Please ensure at least 10 samples of the pulse are available. test")
+            return
+
+    elif args.samples < 10: 
         print("Please ensure at least 10 samples of the pulse are available.")
         return
     
@@ -333,6 +344,31 @@ def outlier_phase_analysis(dataset : list):
     else:
         plt.show()
 
+def outlier_bulk_evaluation(full_dataset):
+    
+    outlier_data = []
+
+    for dataset in full_dataset:
+        samples = len(dataset)
+        calib = dataset[0].calib
+        channel = dataset[0].channel
+        scan_type = dataset[0].scan_type
+        outlier_count = 0
+        outlier_sum = 0
+        potential_outlier_sum = 0
+        for sample in dataset:
+            if sample.outliers_number != 0: outlier_count += 1
+            outlier_sum += sample.outliers_number
+            potential_outlier_sum += sample.potential_outliers_number
+        outlier_fraction = outlier_count/samples
+        outlier_data.append(np.array((outlier_fraction, outlier_sum, potential_outlier_sum, calib, channel, samples, scan_type)))
+    outlier_data = np.array(outlier_data)
+    outlier_dict = {"outlier_fraction" : outlier_data[:,0], "outlier_sum" : outlier_data[:,1], "pot_outlier_sum" : outlier_data[:,2], "calib" : outlier_data[:,3], 
+                    "channel" : outlier_data[:,4], "samples" : outlier_data[:,5], "scan_type" : outlier_data[:,6]}
+    outlier_df = pd.DataFrame(outlier_dict)
+
+    return outlier_df
+
 # -------  PLOTTING DATA -------
 
 def plot_outliers(dataset : list, plot_type : str):
@@ -358,6 +394,7 @@ def plot_outliers(dataset : list, plot_type : str):
         plt.xlabel('time [ns]')
         plt.title(f"highrange = {dataset[i].parameters['highrange']}, preCC = {dataset[i].parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}; {dataset[i].parameters['samples']} samples")
         plt.legend()
+        plt.grid()
         if args.plot_directory:
             plt.savefig(os.path.join(args.plot_directory,f'clustered_outliers.png'), dpi=400)
             plt.close()
@@ -377,12 +414,101 @@ def plot_outliers(dataset : list, plot_type : str):
             plt.xlabel('time [ns]')
             plt.title(f"highrange = {dataset[i].parameters['highrange']}, preCC = {dataset[i].parameters['preCC']}, channel {dataset[i].channel}, CALIB {dataset[i].calib}")
             plt.legend()
+            plt.grid()
             if args.plot_directory:
                 plt.savefig(os.path.join(args.plot_directory,f'sample_{i}_outliers.png'), dpi=300)
                 plt.close()
             else:
                 plt.show()
                 plt.close()
+
+def plot_evaluation(dataframe):
+
+    multi_type = False
+    types = np.unique(dataframe.scan_type.to_numpy())
+    if len(types) > 1: multi_type = True
+
+    calibs = np.unique(dataframe.calib.to_numpy(dtype=np.int64))
+
+    if not multi_type:
+        for calib in calibs:
+            plt.scatter(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+        plt.xticks(np.arange(72))
+        plt.xlabel("Channels")
+        plt.ylabel("Outlier sum")
+        plt.grid()
+        plt.legend()
+        plt.title(f"Total number of outliers per channel, {dataframe.scan_type.to_numpy()[0]}")
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_sum.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+
+        for calib in calibs:
+            plt.bar(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+        plt.xticks(np.arange(72))
+        plt.xlabel("Channels")
+        plt.ylabel("Outlier-sample frequency")
+        plt.grid()
+        plt.legend()
+        plt.title(f"Fraction of samples with outliers per channel, {dataframe.scan_type.to_numpy()[0]}")
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_freq.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+    else:
+        fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,8))
+        for calib in calibs:
+            ax1.scatter(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
+            ax2.scatter(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
+        ax1.set_xticks(np.arange(72))
+        ax2.set_xticks(np.arange(72))
+        ax1.set_xlabel("Channels")
+        ax2.set_xlabel("Channels")
+        ax1.set_ylabel("Outlier sum")
+        ax2.set_ylabel("Outlier sum")
+        ax1.grid()
+        ax2.grid()
+        ax1.legend()
+        ax2.legend()
+        
+        ax1.set_title(f"{types[0]}")
+        ax2.set_title(f"{types[1]}")
+        fig.suptitle(f"Total number of outliers per channel, {types[0]} and {types[1]}")
+        
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_sum.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+
+        fig2, (ax3,ax4) = plt.subplots(2,1,figsize=(12,8))
+        for calib in calibs:
+            ax3.bar(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
+            ax4.bar(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
+        ax3.set_xticks(np.arange(72))
+        ax4.set_xticks(np.arange(72))
+        ax3.set_xlabel("Channels")
+        ax4.set_xlabel("Channels")
+        ax3.set_ylabel("Outlier sum")
+        ax4.set_ylabel("Outlier sum")
+        ax3.grid()
+        ax4.grid()
+        ax3.legend()
+        ax4.legend()
+        
+        ax3.set_title(f"{types[0]}")
+        ax4.set_title(f"{types[1]}")
+        fig.suptitle(f"Fraction of samples with outliers per channel, {types[0]} and {types[1]}")
+        
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_sum.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+        
 
 # -------  SAVING DATA -------
 
@@ -431,10 +557,17 @@ if args.phase_analysis:
     for data in working_data:
         outlier_phase_analysis(data)
 
+if args.bulk_evaluation:
+    outlier_dataframe = outlier_bulk_evaluation(working_data)
+
 if args.csv:
     for data in working_data:
         write_to_csv(data, args.csv)
 
 if args.plot:
-    for data in working_data:
-        plot_outliers(data, args.plot)
+    if args.plot == "EVALUATION":
+        plot_evaluation(outlier_dataframe)
+    else:
+        for data in working_data:
+            plot_outliers(data, args.plot)
+    
