@@ -70,8 +70,8 @@ def plot_averages():
     ymax = np.array(ymax)
     ax1.set_ylim([min(ymin[:,0]-10), max(ymax[:,0])+10])
 
-    ax1.set(ylabel='ADC [a.u.]', xlabel='Channels')
-    ax2.set(ylabel='ADC [a.u.]', xlabel='Channels')
+    ax1.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
+    ax2.set(ylabel='Std Dev ADC [a.u.]', xlabel='Channels')
 
     ax1.grid()
     ax2.grid(axis='y')
@@ -79,7 +79,7 @@ def plot_averages():
     ax1.legend()
     ax2.legend()
 
-    fig.suptitle("Pedestals and their errors in link 0")
+    fig.suptitle("Mean pedestals and their Std Dev in link 0")
 
     if args.plot_directory:
         plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link0.png'), dpi=400)
@@ -95,8 +95,8 @@ def plot_averages():
 
     ax1.set_ylim([min(ymin[:,1]-10), max(ymax[:,1])+10])
 
-    ax3.set(ylabel='ADC [a.u.]', xlabel='Channels')
-    ax4.set(ylabel='ADC [a.u.]', xlabel='Channels')
+    ax3.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
+    ax4.set(ylabel='Std Dev ADC [a.u.]', xlabel='Channels')
 
     ax3.grid()
     ax4.grid(axis='y')
@@ -104,7 +104,7 @@ def plot_averages():
     ax3.legend()
     ax4.legend()
 
-    fig2.suptitle("Pedestals and their errors in link 1")
+    fig2.suptitle("Mean pedestals and their Std Dev in link 1")
 
     if args.plot_directory:
         plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link1.png'), dpi=400)
