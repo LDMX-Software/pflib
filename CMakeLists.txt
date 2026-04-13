@@ -136,7 +136,8 @@ set(pflib_src
   src/pflib/zcu/HcalBackplane.cxx
   src/pflib/zcu/EcalSMM.cxx
   src/pflib/zcu/HGCROCBoardFiberless.cxx
-  src/pflib/Ecal.cxx
+  src/pflib/EcalModule.cxx
+  src/pflib/EcalSingleModuleMotherboard.cxx
   src/pflib/Bias.cxx
 )
 

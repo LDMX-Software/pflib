@@ -89,16 +89,4 @@ class EcalModule {
   static const std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
-class EcalMotherboard {
- public:
-  EcalMotherboard() {}
-  /// create a module
-  void createModule(int imodule, lpGBT& lpGBT, int i2cbus);
-  /// get a module
-  EcalModule& module(int imodule);
-
- private:
-  std::vector<std::shared_ptr<EcalModule>> modules_;
-};
-
 }  // namespace pflib
