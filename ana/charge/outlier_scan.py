@@ -108,6 +108,10 @@ def sort_data(raw_data, raw_data_parameters):
 
     scan_length = len(np.unique(raw_time))
 
+    if np.size(raw_time) % 10 != 0:
+        print(f"\nChannel {raw_channels[0]}, CALIB {raw_calibs[0]}, is likely missing an ADC code (size {np.size(raw_time)})! It is recommended to skip it, or insert dummy data for the scan to work properly.\n")
+        return
+    
     for s in range(0, raw_data_parameters["samples"]):
         sample_time_data = []
         sample_adc_data = []
