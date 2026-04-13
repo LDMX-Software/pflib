@@ -8,6 +8,8 @@ ENABLE_LOGGING();
 
 void channel_wise_calib_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 10);
+  int min_calib = pftool::readline_int("Minimum calib value?", 0);
+  int max_calib = pftool::readline_int("Maximum calib value?", 550);
   int stepsize = pftool::readline_int("How many steps between calibs? ", 50);
   int start_bx = pftool::readline_int("Starting BX? ", 0);
   int n_bx = pftool::readline_int("Number of BX? ", 2);
@@ -61,7 +63,7 @@ void channel_wise_calib_scan(Target* tgt) {
   for (ch = min_ch; ch < max_ch + 1; ch++) {
     pflib_log(info) << "Scanning channel " << ch;
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
-    for (calib = 0; calib < 550; calib += stepsize) {
+    for (calib = min_calib; calib < max_calib; calib += stepsize) {
       pflib_log(info) << "CALIB = " << calib;
       auto calib_handle_builder = roc.testParameters();
       if (ch < 36) {
