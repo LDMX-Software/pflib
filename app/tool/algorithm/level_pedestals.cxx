@@ -41,14 +41,18 @@ static int get_adc(const pflib::packing::MultiSampleECONDEventPacket& p,
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
 static std::array<int, 72> get_adc_medians(
-    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data) {
+    int i_roc,
+    const pflib::packing::SingleECONDRocErxMapping& mapping,
+    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data
+  ) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
   for (int ch{0}; ch < 72; ch++) {
     for (std::size_t i{0}; i < adcs.size(); i++) {
-      adcs[i] = get_adc(data[i], ch);
+      auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+      adcs[i] = data[i].soi().channel(i_erx, i_ch).adc();
     }
     medians[ch] = pflib::utility::median(adcs);
   }
