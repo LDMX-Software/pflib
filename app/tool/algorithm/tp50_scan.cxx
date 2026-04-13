@@ -2,11 +2,10 @@
 
 #include <vector>
 
-#include "tp50_scan.h"
-
 #include "../daq_run.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
+#include "tp50_scan.h"
 
 namespace pflib::algorithm {
 
