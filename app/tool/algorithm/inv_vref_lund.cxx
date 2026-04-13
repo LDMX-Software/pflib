@@ -111,12 +111,14 @@ int DataFitter::fit(int target) {
   return inv_vref;
 }
 
-void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
+void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, 
+               int& nevents, int& step,
                std::vector<int>& pedestals_l0, std::vector<double>& stds_l0,
                std::vector<int>& pedestals_l1, std::vector<double>& stds_l1,
                std::vector<int>& inv_vrefs, int& noinv_vref) {
 
-  int step = 20;
+  static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
+  std::array<int, 2> channels = {17, 51};
 
   for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref <<
@@ -155,7 +157,6 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   int nevents = pftool::readline_int("Number of events per point: ", 1);
   // TODO 348
-  std::array<int, 2> channels = {17, 51};
 
   std::array<int, 2> inv_vref_tgt;
   std::array<int, 2> noinv_vref_tgt;
@@ -173,8 +174,11 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
   std::vector<double> stds_l1;
   std::vector<int> inv_vrefs;
 
+  int step = 20;
+
   while (true) {
-    get_param(tgt, roc, buffer, pedestals_l0, stds_l0, pedestals_l1,
+    get_param(tgt, roc, buffer, nevents, step,
+              pedestals_l0, stds_l0, pedestals_l1,
               stds_l1, inv_vrefs, noinv_vref);
 
     // sort data and fit
@@ -186,11 +190,17 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
       inv_vref_tgt[0] = fitter_l0.fit(target_adc);
       inv_vref_tgt[1] = fitter_l1.fit(target_adc);
       break;
-    } catch {
+    } catch (...) {
       // The noinv_vref parameter is likely not in the correct working
       // window. Re-run with different noinv_vref
       pflib_log(info) << "Error in fit. Finding correct working window for NOINV_VREF";
       // Changing both links' parameters to get similar results
+      noinv_vref -= 20;
+      continue;
+    }
+    // Did we get good values?
+    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] || 1023) || 
+        (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)){
       noinv_vref -= 20;
       continue;
     }

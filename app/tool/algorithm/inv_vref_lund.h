@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pflib/Target.h"
+#include "../daq_run.h"
 
 /**
  * @namespace pflib::algorithm
@@ -36,9 +37,9 @@ class DataFitter {
   };
   std::vector<Point> linear_;
   std::vector<Point> nonlinear_;
-  double LH_median_;
+  int LH_median_;
   double LH_std_median_;
-  double RH_median_;
+  int RH_median_;
 };
 
 /**
@@ -46,6 +47,7 @@ class DataFitter {
  * Loops over the whole inv_vref range.
  */
 void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
+               int& nevents, int& step,
                std::vector<int>& pedestals_l0, std::vector<double>& stds_l0,
                std::vector<int>& pedestals_l1, std::vector<double>& stds_l1,
                std::vector<int>& inv_vrefs, int& noinv_vref);
