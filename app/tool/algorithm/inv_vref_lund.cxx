@@ -37,8 +37,8 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                 (inv_vrefs[i] - inv_vrefs[i + 1]);
 
     // Threshold check. CMS uses 0.05. This value fits with my analysis as well.
-    if (std::abs(LH) < flat_threshold ||
-        std::abs(RH) < flat_threshold) {  // flat regime
+    if (std::abs(LH) <= flat_threshold ||
+        std::abs(RH) <= flat_threshold) {  // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
     } else {  // we're in a linear regime or there's outliers
       double LH_err =
@@ -152,10 +152,10 @@ void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
   }
 }
 
-std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
+ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
-  int nevents = pftool::readline_int("Number of events per point: ", 1);
+  int nevents = pftool::readline_int("Number of events per point: ", 100);
   // TODO 348
 
   std::array<int, 2> inv_vref_tgt;
