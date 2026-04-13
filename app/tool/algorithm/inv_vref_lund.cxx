@@ -111,18 +111,17 @@ int DataFitter::fit(int target) {
   return inv_vref;
 }
 
-void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, 
-               int& nevents, int& step,
-               std::vector<int>& pedestals_l0, std::vector<double>& stds_l0,
-               std::vector<int>& pedestals_l1, std::vector<double>& stds_l1,
-               std::vector<int>& inv_vrefs, int& noinv_vref) {
-
+void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
+               int& step, std::vector<int>& pedestals_l0,
+               std::vector<double>& stds_l0, std::vector<int>& pedestals_l1,
+               std::vector<double>& stds_l1, std::vector<int>& inv_vrefs,
+               int& noinv_vref) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
   std::array<int, 2> channels = {17, 51};
 
   for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
-    pflib_log(info) << "Running INV_VREF = " << inv_vref <<
-                       ", NOINV_VREF = " << noinv_vref;
+    pflib_log(info) << "Running INV_VREF = " << inv_vref
+                    << ", NOINV_VREF = " << noinv_vref;
     // set inv_vref simultaneously for both links
     auto test_param = roc.testParameters()
                           .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
@@ -152,7 +151,7 @@ void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
   }
 }
 
- std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
+std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   int nevents = pftool::readline_int("Number of events per point: ", 100);
@@ -177,9 +176,8 @@ void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
   int step = 20;
 
   while (true) {
-    get_param(tgt, roc, buffer, nevents, step,
-              pedestals_l0, stds_l0, pedestals_l1,
-              stds_l1, inv_vrefs, noinv_vref);
+    get_param(tgt, roc, buffer, nevents, step, pedestals_l0, stds_l0,
+              pedestals_l1, stds_l1, inv_vrefs, noinv_vref);
 
     // sort data and fit
     DataFitter fitter_l0;
@@ -193,14 +191,15 @@ void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
     } catch (...) {
       // The noinv_vref parameter is likely not in the correct working
       // window. Re-run with different noinv_vref
-      pflib_log(info) << "Error in fit. Finding correct working window for NOINV_VREF";
+      pflib_log(info)
+          << "Error in fit. Finding correct working window for NOINV_VREF";
       // Changing both links' parameters to get similar results
       noinv_vref -= 20;
       continue;
     }
     // Did we get good values?
-    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] || 1023) || 
-        (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)){
+    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] || 1023) ||
+        (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
       noinv_vref -= 20;
       continue;
     }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pflib/Target.h"
 #include "../daq_run.h"
+#include "pflib/Target.h"
 
 /**
  * @namespace pflib::algorithm
@@ -46,12 +46,11 @@ class DataFitter {
  * Collect inv_vref data for the constant input noinv_vref parameter.
  * Loops over the whole inv_vref range.
  */
-void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer,
-               int& nevents, int& step,
-               std::vector<int>& pedestals_l0, std::vector<double>& stds_l0,
-               std::vector<int>& pedestals_l1, std::vector<double>& stds_l1,
-               std::vector<int>& inv_vrefs, int& noinv_vref);
-
+void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
+               int& step, std::vector<int>& pedestals_l0,
+               std::vector<double>& stds_l0, std::vector<int>& pedestals_l1,
+               std::vector<double>& stds_l1, std::vector<int>& inv_vrefs,
+               int& noinv_vref);
 
 /**
  * Find the inv_vref and noinv_vref parameters.
