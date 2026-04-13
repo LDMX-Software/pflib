@@ -29,8 +29,8 @@ class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
 
     init(*daq_lpgbt_, *trig_lpgbt_, I2C_BUS_M0, roc_mask);
 
-    elinks_ = std::make_unique<OptoElinksZCU>(daq_lpgbt_.get(), trig_lpgbt_.get(),
-                                              itarget);
+    elinks_ = std::make_unique<OptoElinksZCU>(daq_lpgbt_.get(),
+                                              trig_lpgbt_.get(), itarget);
     daq_ = std::make_unique<ZCU_Capture>();
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());

@@ -26,8 +26,9 @@ class EcalSingleModuleMotherboard : public Target {
    * This should be called after the optical links are
    * properly setup and used to create access to the lpGBTs.
    */
-  void init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt, int module_i2c_bus, int roc_mask);
-  virtual const std::vector<std::pair<int,int>>& getRocErxMapping() override;
+  void init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt, int module_i2c_bus,
+            int roc_mask);
+  virtual const std::vector<std::pair<int, int>>& getRocErxMapping() override;
   virtual int nrocs() override;
   virtual int necons() override;
   virtual bool have_roc(int iroc) const override;
@@ -40,7 +41,9 @@ class EcalSingleModuleMotherboard : public Target {
   virtual void softResetECON(int which = -1) override;
   virtual void hardResetROCs() override;
   virtual void hardResetECONs() override;
-  virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) override;
+  virtual void setup_run(int irun, Target::DaqFormat format,
+                         int contrib_id) override;
+
  protected:
   /// handle to the hexa-module that we are connected to
   std::shared_ptr<EcalModule> the_module_;
@@ -50,6 +53,6 @@ class EcalSingleModuleMotherboard : public Target {
   int contrib_id_;
 };
 
-}
+}  // namespace pflib
 
 #endif

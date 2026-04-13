@@ -4,9 +4,8 @@
 
 namespace pflib {
 
-void EcalSingleModuleMotherboard::init(
-    lpGBT& daq_lpgbt, lpGBT& trg_lpgbt, int module_i2c_bus, int roc_mask
-  ) {
+void EcalSingleModuleMotherboard::init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt,
+                                       int module_i2c_bus, int roc_mask) {
   // Setup DAQ lpGBT
   try {
     int daq_pusm = daq_lpgbt.status();
@@ -15,12 +14,11 @@ void EcalSingleModuleMotherboard::init(
     if (daq_pusm == 19) {
       pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
     } else {
-      pflib_log(debug)
-          << "DAQ lpGBT is not ready, attempting standard config";
+      pflib_log(debug) << "DAQ lpGBT is not ready, attempting standard config";
       try {
         pflib::lpgbt::standard_config::setup_ecal(
             daq_lpgbt, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                            DAQ_SingleModuleMotherboard);
+                           DAQ_SingleModuleMotherboard);
       } catch (const pflib::Exception& e) {
         pflib_log(warn) << "Failure to apply standard config [" << e.name()
                         << "]: " << e.message();
@@ -41,13 +39,12 @@ void EcalSingleModuleMotherboard::init(
     if (trg_pusm == 19) {
       pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
     } else {
-      pflib_log(debug)
-          << "TRG lpGBT is not ready, attempting standard config";
+      pflib_log(debug) << "TRG lpGBT is not ready, attempting standard config";
       try {
         // was the DAQ_SMM setup config on the ZCU
         pflib::lpgbt::standard_config::setup_ecal(
             trg_lpgbt, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                              TRIG_SingleModuleMotherboard);
+                           TRIG_SingleModuleMotherboard);
       } catch (const pflib::Exception& e) {
         pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
         pflib_log(info) << "Failure to apply standard config [" << e.name()
@@ -59,20 +56,18 @@ void EcalSingleModuleMotherboard::init(
                     << e.name() << "]: " << e.message();
   }
 
-  the_module_ = std::make_shared<EcalModule>(daq_lpgbt, module_i2c_bus, 0, roc_mask);
+  the_module_ =
+      std::make_shared<EcalModule>(daq_lpgbt, module_i2c_bus, 0, roc_mask);
 }
 
-const std::vector<std::pair<int,int>>& EcalSingleModuleMotherboard::getRocErxMapping() {
+const std::vector<std::pair<int, int>>&
+EcalSingleModuleMotherboard::getRocErxMapping() {
   return EcalModule::getRocErxMapping();
 }
 
-int EcalSingleModuleMotherboard::nrocs() {
-  return the_module_->nrocs();
-}
+int EcalSingleModuleMotherboard::nrocs() { return the_module_->nrocs(); }
 
-int EcalSingleModuleMotherboard::necons() {
-  return the_module_->necons();
-}
+int EcalSingleModuleMotherboard::necons() { return the_module_->necons(); }
 
 bool EcalSingleModuleMotherboard::have_roc(int iroc) const {
   return the_module_->have_roc(iroc);
@@ -116,7 +111,8 @@ void EcalSingleModuleMotherboard::hardResetECONs() {
   return the_module_->hardResetECONs();
 }
 
-void EcalSingleModuleMotherboard::setup_run(int irun, Target::DaqFormat format, int contrib_id) {
+void EcalSingleModuleMotherboard::setup_run(int irun, Target::DaqFormat format,
+                                            int contrib_id) {
   format_ = format;
   contrib_id_ = contrib_id;
 
@@ -125,4 +121,4 @@ void EcalSingleModuleMotherboard::setup_run(int irun, Target::DaqFormat format, 
   fc().clear_run();
 }
 
-}
+}  // namespace pflib
