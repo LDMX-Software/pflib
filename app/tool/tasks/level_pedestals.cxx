@@ -7,15 +7,19 @@
 #include "../algorithm/level_pedestals.h"
 
 void level_pedestals(Target* tgt) {
-  auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::level_pedestals(tgt, roc);
+  auto settings = pflib::algorithm::level_pedestals(tgt);
   YAML::Emitter out;
   out << YAML::BeginMap;
-  for (const auto& page : settings) {
-    out << YAML::Key << page.first;
+  for (const auto& roc : settings) {
+    out << YAML::Key << roc.first;
     out << YAML::Value << YAML::BeginMap;
-    for (const auto& param : page.second) {
-      out << YAML::Key << param.first << YAML::Value << param.second;
+    for (const auto& page : roc.second) {
+      out << YAML::Key << page.first;
+      out << YAML::Value << YAML::BeginMap;
+      for (const auto& param : page.second) {
+        out << YAML::Key << param.first << YAML::Value << param.second;
+      }
+      out << YAML::EndMap;
     }
     out << YAML::EndMap;
   }
@@ -26,7 +30,9 @@ void level_pedestals(Target* tgt) {
   }
 
   if (pftool::readline_bool("Apply settings to the chip? ", false)) {
-    roc.applyParameters(settings);
+    for (int i_roc : tgt->roc_ids()) {
+      tgt->roc(i_roc).applyParameters(settings.at(i_roc));
+    }
   }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {

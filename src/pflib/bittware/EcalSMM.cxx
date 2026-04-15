@@ -36,6 +36,29 @@ class EcalSMMTargetBW : public EcalSingleModuleMotherboard {
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() override;
+  virtual int nrocs() { return ecalModule_->nrocs(); }
+  virtual int necons() { return ecalModule_->necons(); }
+  virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
+  virtual bool have_econ(int iecon) const {
+    return ecalModule_->have_econ(iecon);
+  }
+  virtual std::vector<int> roc_ids() const { return ecalModule_->roc_ids(); }
+  virtual std::vector<int> econ_ids() const { return ecalModule_->econ_ids(); }
+
+  virtual ROC& roc(int which) { return ecalModule_->roc(which); }
+  virtual ECON& econ(int which) { return ecalModule_->econ(which); }
+
+  virtual void softResetROC(int which) override { ecalModule_->softResetROC(); }
+
+  virtual void softResetECON(int which = -1) override {
+    ecalModule_->softResetECON();
+  }
+
+  virtual void hardResetROCs() override { ecalModule_->hardResetROCs(); }
+
+  virtual void hardResetECONs() override { ecalModule_->hardResetECONs(); }
+
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override { return *daq_; }
@@ -63,6 +86,10 @@ class EcalSMMTargetBW : public EcalSingleModuleMotherboard {
 Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask,
                                   const char* dev) {
   return new EcalSMMTargetBW(ilink, roc_mask, dev);
+}
+
+const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getHardwareRocErxMapping() {
+  return EcalModule::getHardwareRocErxMapping();
 }
 
 }  // namespace pflib
