@@ -435,6 +435,7 @@ def plot_evaluation(dataframe):
     calibs = np.unique(dataframe.calib.to_numpy(dtype=np.int64))
 
     if not multi_type:
+        plt.figure(figsize=(18,7))
         for calib in calibs:
             plt.scatter(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
         plt.xticks(np.arange(72))
@@ -448,6 +449,7 @@ def plot_evaluation(dataframe):
             plt.close()
         else: plt.show()
 
+        plt.figure(figsize=(18,7))
         for calib in calibs:
             plt.bar(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
         plt.xticks(np.arange(72))
@@ -461,7 +463,7 @@ def plot_evaluation(dataframe):
             plt.close()
         else: plt.show()
     else:
-        fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,8))
+        fig, (ax1,ax2) = plt.subplots(2,1,figsize=(18,7))
         for calib in calibs:
             ax1.scatter(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].channel.to_numpy(dtype=np.int64), 
                         dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
