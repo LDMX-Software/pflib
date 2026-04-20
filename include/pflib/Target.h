@@ -9,6 +9,8 @@
 #include "pflib/ROC.h"
 #include "pflib/lpGBT.h"
 
+#include "pflib/packing/SingleECONDRocErxMapping.h"
+
 namespace pflib {
 
 class OptoLink;
@@ -85,8 +87,20 @@ class Target {
   /// get an OptoLink by name
   OptoLink& get_opto_link(const std::string& name) const;
 
-  virtual const std::vector<std::pair<int, int>>& getRocErxMapping() = 0;
+  /**
+   * Define the ROC-half -> eRx input into the ECON-D for the hardware
+   *
+   * This does *not* include which ROCs are active (i.e. assume all the ROCs are active).
+   * This is used when constructing the SingleECONDRocErxMapping object that is used
+   * to to the index conversions for us.
+   */
+  virtual const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() = 0;
 
+  /**
+   * get the mapping that can be used to convert between (i_erx, link_chan)
+   * and (i_roc, chan) indices
+   */
+  const packing::SingleECONDRocErxMapping& getRocErxMapping();
 
   /**
    * types of daq formats that we can do
@@ -119,6 +133,8 @@ class Target {
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;
   mutable logging::logger the_log_{logging::get("Target")};
+ private:
+  std::unique_ptr<packing::SingleECONDRocErxMapping> mapping_;
 };
 
 Target* makeTargetFiberless();

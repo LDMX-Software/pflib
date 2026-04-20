@@ -174,7 +174,7 @@ class HcalFiberless : public Target {
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override {
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() override {
     static const std::vector<std::pair<int, int>> THE_MAP = {{0, 1}};
     return THE_MAP;
   }

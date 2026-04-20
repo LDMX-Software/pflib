@@ -68,7 +68,7 @@ class EcalModule {
   void softResetECON();
 
   /** Get the mapping of ROC channels to ERX channels */
-  static const std::vector<std::pair<int, int>>& getRocErxMapping();
+  static const std::vector<std::pair<int, int>>& getHardwareRocErxMapping();
 
   /// mapping of ROC halves to ECON-D eRx channels
   static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING;

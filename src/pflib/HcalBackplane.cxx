@@ -121,7 +121,7 @@ const std::vector<std::pair<int, int>> HcalBackplane::ROC_ERX_MAPPING = {
     {3, 2}, {6, 7}, {4, 5}, {1, 0}};
 
 
-const std::vector<std::pair<int, int>>& HcalBackplane::getRocErxMapping() {
+const std::vector<std::pair<int, int>>& HcalBackplane::getHardwareRocErxMapping() {
   return ROC_ERX_MAPPING;
 }
 
