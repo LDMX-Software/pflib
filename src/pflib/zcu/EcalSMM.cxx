@@ -36,30 +36,6 @@ class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
 
-  const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() override;
-
-  virtual int nrocs() { return ecalModule_->nrocs(); }
-  virtual int necons() { return ecalModule_->necons(); }
-  virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
-  virtual bool have_econ(int iecon) const {
-    return ecalModule_->have_econ(iecon);
-  }
-  virtual std::vector<int> roc_ids() const { return ecalModule_->roc_ids(); }
-  virtual std::vector<int> econ_ids() const { return ecalModule_->econ_ids(); }
-
-  virtual ROC& roc(int which) { return ecalModule_->roc(which); }
-  virtual ECON& econ(int which) { return ecalModule_->econ(which); }
-
-  virtual void softResetROC(int which) override { ecalModule_->softResetROC(); }
-
-  virtual void softResetECON(int which = -1) override {
-    ecalModule_->softResetECON();
-  }
-
-  virtual void hardResetROCs() override { ecalModule_->hardResetROCs(); }
-
-  virtual void hardResetECONs() override { ecalModule_->hardResetECONs(); }
-
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override { return *daq_; }
@@ -83,10 +59,6 @@ class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
   std::unique_ptr<pflib::zcu::ZCU_Capture> daq_;
   std::shared_ptr<pflib::FastControl> fc_;
 };
-
-const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getHardwareRocErxMapping() {
-  return EcalModule::getHardwareRocErxMapping();
-}
 
 Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) {
   return new EcalSMMTargetZCU(ilink, roc_mask);
