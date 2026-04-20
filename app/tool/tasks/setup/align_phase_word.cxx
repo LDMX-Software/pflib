@@ -321,7 +321,9 @@ void align_phase_word(Target* tgt) {
    */
   auto roc_ids = tgt->roc_ids();
   // Get channels dynamically from ROC to eRx object channel mapping
-  auto& mapping = tgt->getRocErxMapping();
+  // we need to use the lower-level hardware mapping since we want the
+  // eRx ID number and not just the index it would produce after decoding
+  auto& mapping = tgt->getHardwareRocErxMapping();
   // Dynamic channels. 2 eRx per ROC
   std::vector<int> channels;
   for (int i_roc : roc_ids) {

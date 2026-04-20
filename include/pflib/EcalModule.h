@@ -68,7 +68,10 @@ class EcalModule {
   void softResetECON();
 
   /** Get the mapping of ROC channels to ERX channels */
-  static const std::vector<std::pair<int, int>>& getRocErxMapping();
+  static const std::vector<std::pair<int, int>>& getHardwareRocErxMapping();
+
+  /// mapping of ROC halves to ECON-D eRx channels
+  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING;
 
  protected:
   lpGBT& lpGBT_;
@@ -83,10 +86,6 @@ class EcalModule {
   int n_econs_;
   /// two ECONs
   std::array<std::unique_ptr<ECON>, 2> econs_;
-
- private:
-  /// mapping of ROC halves to ECON-D eRx channels
-  static const std::vector<std::pair<int, int>> roc_to_erx_map_;
 };
 
 }  // namespace pflib
