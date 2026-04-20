@@ -22,10 +22,8 @@ namespace pflib::algorithm {
  * TOT/TOA and the sample Tp/Tc flags are ignored.
  */
 static std::array<int, 72> get_adc_medians(
-    int i_roc,
-    const pflib::packing::SingleECONDRocErxMapping& mapping,
-    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data
-  ) {
+    int i_roc, const pflib::packing::SingleECONDRocErxMapping& mapping,
+    const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data) {
   std::array<int, 72> medians;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
@@ -56,13 +54,13 @@ level_pedestals(Target* tgt) {
   // each channel has measurements at different parameter points
   std::map<int, std::array<int, 72>> baseline, highend, lowend;
 
-  DecodeAndBuffer buffer{n_events, tgt->nrocs()*2};
+  DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
-      std::string ch_str{"CH_"+std::to_string(ch)};
+      std::string ch_str{"CH_" + std::to_string(ch)};
       parameters[ch_str]["SIGN_DAC"] = 0;
       parameters[ch_str]["DACB"] = 0;
       parameters[ch_str]["TRIM_INV"] = 0;
@@ -77,7 +75,8 @@ level_pedestals(Target* tgt) {
     pflib_log(trace) << "baseline run done, getting channel medians";
     std::map<int, std::array<int, 72>> medians;
     for (int i_roc : tgt->roc_ids()) {
-      medians[i_roc] = get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
+      medians[i_roc] =
+          get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
@@ -101,7 +100,7 @@ level_pedestals(Target* tgt) {
     pflib_log(info) << "100 event highend run";
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
-      std::string ch_str{"CH_"+std::to_string(ch)};
+      std::string ch_str{"CH_" + std::to_string(ch)};
       parameters[ch_str]["SIGN_DAC"] = 0;
       parameters[ch_str]["DACB"] = 0;
       parameters[ch_str]["TRIM_INV"] = 63;
@@ -115,7 +114,8 @@ level_pedestals(Target* tgt) {
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
 
     for (int i_roc : tgt->roc_ids()) {
-      highend[i_roc] = get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
+      highend[i_roc] =
+          get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
 
     for (int i_roc : tgt->roc_ids()) {
@@ -127,7 +127,7 @@ level_pedestals(Target* tgt) {
     pflib_log(info) << "100 event lowend run";
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
-      std::string ch_str{"CH_"+std::to_string(ch)};
+      std::string ch_str{"CH_" + std::to_string(ch)};
       parameters[ch_str]["SIGN_DAC"] = 1;
       parameters[ch_str]["DACB"] = 31;
       parameters[ch_str]["TRIM_INV"] = 0;
@@ -141,12 +141,14 @@ level_pedestals(Target* tgt) {
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
 
     for (int i_roc : tgt->roc_ids()) {
-      lowend[i_roc] = get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
+      lowend[i_roc] =
+          get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
   }
 
   pflib_log(info) << "sample collections done, deducing settings";
-  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> settings;
+  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+      settings;
   for (int i_roc : tgt->roc_ids()) {
     for (int ch{0}; ch < 72; ch++) {
       std::string page{pflib::utility::string_format("CH_%d", ch)};
@@ -154,7 +156,8 @@ level_pedestals(Target* tgt) {
       if (baseline[i_roc].at(ch) < target[i_roc].at(i_half)) {
         pflib_log(debug) << "Channel " << ch
                          << " is below target, setting TRIM_INV";
-        double scale = static_cast<double>(target[i_roc].at(i_half) - baseline[i_roc].at(ch)) /
+        double scale = static_cast<double>(target[i_roc].at(i_half) -
+                                           baseline[i_roc].at(ch)) /
                        (highend[i_roc].at(ch) - baseline[i_roc].at(ch));
         if (scale < 0) {
           pflib_log(warn) << "Channel " << ch
@@ -177,7 +180,8 @@ level_pedestals(Target* tgt) {
                          << optim << " which rounds to " << val;
         settings[i_roc][page]["TRIM_INV"] = val;
       } else {
-        double scale = static_cast<double>(baseline[i_roc].at(ch) - target[i_roc].at(i_half)) /
+        double scale = static_cast<double>(baseline[i_roc].at(ch) -
+                                           target[i_roc].at(i_half)) /
                        (baseline[i_roc].at(ch) - lowend[i_roc].at(ch));
         if (scale < 0) {
           pflib_log(warn) << "Channel " << ch
@@ -199,9 +203,9 @@ level_pedestals(Target* tgt) {
         pflib_log(trace) << "Scale " << scale << " giving optimal value of "
                          << optim << " which rounds to " << val;
         if (val == 0) {
-          pflib_log(debug)
-              << "Channel " << ch
-              << " is above target but too close to use DACB to lower, skipping";
+          pflib_log(debug) << "Channel " << ch
+                           << " is above target but too close to use DACB to "
+                              "lower, skipping";
         } else {
           pflib_log(debug) << "Channel " << ch
                            << " is above target, setting SIGN_DAC=1 and DACB";
