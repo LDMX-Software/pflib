@@ -34,7 +34,7 @@ namespace pflib::packing {
  */
 class SingleECONDRocErxMapping {
   /// mapping from ROC-half to eRx input to ECON-D
-  std::vector<std::pair<int,int>> roc_half_to_erx_;
+  std::vector<std::pair<int, int>> roc_half_to_erx_;
   /**
    * map from i_erx index in decoding to eRx ID input to ECON
    *
@@ -58,6 +58,7 @@ class SingleECONDRocErxMapping {
    * given to us in the constructor.
    */
   std::vector<std::pair<int, int>> erx_to_roc_half_;
+
  public:
   /**
    * Construct the mapping
@@ -69,15 +70,14 @@ class SingleECONDRocErxMapping {
    * @param[in] roc_half_to_erx mapping of ROC halfs to the eRx input to ECON-D
    * @param[in] active_rocs the ROC indices that are active
    *
-   * The main work of this constructor is inverting the input mapping and constructing
-   * the i_erx<->eRx mappings from the list of active_rocs.
-   * This "inversion" is done once to make the later conversion of these indices
+   * The main work of this constructor is inverting the input mapping and
+   * constructing the i_erx<->eRx mappings from the list of active_rocs. This
+   * "inversion" is done once to make the later conversion of these indices
    * faster.
    */
   SingleECONDRocErxMapping(
-      const std::vector<std::pair<int,int>>& roc_half_to_erx,
-      const std::vector<int>& active_rocs
-  );
+      const std::vector<std::pair<int, int>>& roc_half_to_erx,
+      const std::vector<int>& active_rocs);
 
   /**
    * Get which ROC-half the input i_erx corresponds to
@@ -92,10 +92,11 @@ class SingleECONDRocErxMapping {
    * Convert the input (i_erx, channel) index to the (i_roc, channel) index
    * using the RocErxMapping defined for the Target and which ROCs are active.
    *
-   * @param[in] i_erx index for the eRx link that the ECON-D as output after decoding
+   * @param[in] i_erx index for the eRx link that the ECON-D as output after
+   * decoding
    * @param[in] channel channel index within that eRx (0-36)
-   * @return [i_roc, channel] where i_roc is the ROC index (retrieve with roc(i_roc))
-   * and channel is the channel within that ROC (0-72)
+   * @return [i_roc, channel] where i_roc is the ROC index (retrieve with
+   * roc(i_roc)) and channel is the channel within that ROC (0-72)
    */
   std::pair<int, int> toROCChannel(int i_erx, int channel) const;
 
@@ -120,6 +121,6 @@ class SingleECONDRocErxMapping {
   std::pair<int, int> toErxChannel(int i_roc, int channel) const;
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

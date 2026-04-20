@@ -2,16 +2,16 @@
 #include <boost/test/unit_test.hpp>
 
 #include "pflib/Exception.h"
-#include "pflib/packing/SingleECONDRocErxMapping.h"
 #include "pflib/HcalBackplane.h"
+#include "pflib/packing/SingleECONDRocErxMapping.h"
 
 BOOST_AUTO_TEST_SUITE(mapping)
 
 BOOST_AUTO_TEST_CASE(null_shuffle) {
-  pflib::packing::SingleECONDRocErxMapping mapping({{0,1}}, {0});
+  pflib::packing::SingleECONDRocErxMapping mapping({{0, 1}}, {0});
 
-  BOOST_CHECK_EQUAL(mapping.toErx(0,0), 0);
-  BOOST_CHECK_EQUAL(mapping.toErx(0,1), 1);
+  BOOST_CHECK_EQUAL(mapping.toErx(0, 0), 0);
+  BOOST_CHECK_EQUAL(mapping.toErx(0, 1), 1);
 
   {
     auto [i_roc, half] = mapping.toROCHalf(0);
@@ -53,10 +53,11 @@ BOOST_AUTO_TEST_CASE(null_shuffle) {
 BOOST_AUTO_TEST_SUITE(hcal_backplane)
 
 BOOST_AUTO_TEST_CASE(single_hgcroc0) {
-  pflib::packing::SingleECONDRocErxMapping mapping(pflib::HcalBackplane::ROC_ERX_MAPPING, {0});
+  pflib::packing::SingleECONDRocErxMapping mapping(
+      pflib::HcalBackplane::ROC_ERX_MAPPING, {0});
 
-  BOOST_CHECK_EQUAL(mapping.toErx(0,0), 1);
-  BOOST_CHECK_EQUAL(mapping.toErx(0,1), 0);
+  BOOST_CHECK_EQUAL(mapping.toErx(0, 0), 1);
+  BOOST_CHECK_EQUAL(mapping.toErx(0, 1), 0);
 
   {
     auto [i_roc, half] = mapping.toROCHalf(0);
@@ -97,10 +98,11 @@ BOOST_AUTO_TEST_CASE(single_hgcroc0) {
 
 BOOST_AUTO_TEST_CASE(single_hgcroc1) {
   // HGCROC1 is lined up in half-order like the no-shuffle
-  pflib::packing::SingleECONDRocErxMapping mapping(pflib::HcalBackplane::ROC_ERX_MAPPING, {1});
+  pflib::packing::SingleECONDRocErxMapping mapping(
+      pflib::HcalBackplane::ROC_ERX_MAPPING, {1});
 
-  BOOST_CHECK_EQUAL(mapping.toErx(1,0), 0);
-  BOOST_CHECK_EQUAL(mapping.toErx(1,1), 1);
+  BOOST_CHECK_EQUAL(mapping.toErx(1, 0), 0);
+  BOOST_CHECK_EQUAL(mapping.toErx(1, 1), 1);
 
   {
     auto [i_roc, half] = mapping.toROCHalf(0);
@@ -143,12 +145,13 @@ BOOST_AUTO_TEST_CASE(two_hgcroc12) {
   // HGCROC1 has eRx after HGCROC2
   // I'm not testing the to*Channel functions here since
   // I trust the above faithfully checks that for me
-  pflib::packing::SingleECONDRocErxMapping mapping(pflib::HcalBackplane::ROC_ERX_MAPPING, {1,2});
+  pflib::packing::SingleECONDRocErxMapping mapping(
+      pflib::HcalBackplane::ROC_ERX_MAPPING, {1, 2});
 
-  BOOST_CHECK_EQUAL(mapping.toErx(1,0), 2);
-  BOOST_CHECK_EQUAL(mapping.toErx(1,1), 3);
-  BOOST_CHECK_EQUAL(mapping.toErx(2,0), 0);
-  BOOST_CHECK_EQUAL(mapping.toErx(2,1), 1);
+  BOOST_CHECK_EQUAL(mapping.toErx(1, 0), 2);
+  BOOST_CHECK_EQUAL(mapping.toErx(1, 1), 3);
+  BOOST_CHECK_EQUAL(mapping.toErx(2, 0), 0);
+  BOOST_CHECK_EQUAL(mapping.toErx(2, 1), 1);
 
   {
     auto [i_roc, half] = mapping.toROCHalf(0);
