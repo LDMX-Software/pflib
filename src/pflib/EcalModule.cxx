@@ -1,4 +1,4 @@
-#include "pflib/Ecal.h"
+#include "pflib/EcalModule.h"
 
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/utility/string_format.h"

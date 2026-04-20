@@ -205,19 +205,15 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
 
-  // TODO: Read BX value of link reset rocd
-
-  // ------- Scan when the ECON takes snapshot -----
-  int start_val{1}, end_val{51};
-  /*
-  if (on_zcu) {
-    start_val = 1;  // 3490;  // near your orbit region of interest
-    end_val = 51;   // 3540;    // up to orbit rollover
-  } else {
-    start_val = 64 * 40 - 60;  // near your orbit region of interest
-    end_val = 64 * 40 - 1;     // up to orbit rollover
-  }
-  */
+  /**
+   * @note We have no idea which BX value the link reset rocd
+   * fast command is being sent on. If we could read this value
+   * from the firmware, that should allow us to guess at a smaller
+   * region in time to scan.
+   * For now, we just start at BX=1 and count up until we find the first
+   * match.
+   */
+  int start_val{1}, end_val{on_zcu ? 3540 : (64 * 40 - 1)};
 
   bool aligned{false};
   for (int snapshot_bx{start_val}; snapshot_bx < end_val; snapshot_bx++) {

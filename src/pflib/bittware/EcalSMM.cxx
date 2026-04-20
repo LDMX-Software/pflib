@@ -1,11 +1,8 @@
-#include "pflib/Ecal.h"
-#include "pflib/Target.h"
+#include "pflib/EcalSingleModuleMotherboard.h"
 #include "pflib/bittware/bittware_FastControl.h"
 #include "pflib/bittware/bittware_daq.h"
 #include "pflib/bittware/bittware_elinks.h"
 #include "pflib/bittware/bittware_optolink.h"
-#include "pflib/lpgbt/I2C.h"
-#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -14,7 +11,7 @@ static constexpr int ADDR_ECAL_SMM_DAQ = 0x78 | 0x04;
 static constexpr int ADDR_ECAL_SMM_TRIG = 0x78;
 static constexpr int I2C_BUS_M0 = 1;
 
-class EcalSMMTargetBW : public Target {
+class EcalSMMTargetBW : public EcalSingleModuleMotherboard {
   mutable logging::logger the_log_{logging::get("EcalSMMBW")};
 
  public:
@@ -31,99 +28,19 @@ class EcalSMMTargetBW : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
-                                                      0, roc_mask);
+    init(*daq_lpgbt_, *trig_lpgbt_, I2C_BUS_M0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
 
-    // Setup DAQ lpGBT
-    try {
-      int daq_pusm = daq_lpgbt_->status();
-      pflib::lpgbt::standard_config::setup_ecal_daq_gpio(*daq_lpgbt_);
-
-      if (daq_pusm == 19) {
-        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "DAQ lpGBT is not ready, attempting standard config";
-        try {
-          pflib::lpgbt::standard_config::setup_ecal(
-              *daq_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                               DAQ_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      }
-    } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
-                          "check Optical links";
-      pflib_log(warn) << "Failure to check DAQ lpGBT status [" << e.name()
-                      << "]: " << e.message();
-      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
-                      << " and then re-open pftool.";
-    }
-
-    // Setup TRG lpGBT
-    try {
-      int trg_pusm = trig_lpgbt_->status();
-      if (trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "TRG lpGBT is not ready, attempting standard config";
-        try {
-          pflib::lpgbt::standard_config::setup_ecal(
-              *trig_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                                TRIG_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
-          pflib_log(info) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      }
-    } catch (const pflib::Exception& e) {
-      pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
-                      << e.name() << "]: " << e.message();
-    }
-
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
-
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
-  virtual int nrocs() { return ecalModule_->nrocs(); }
-  virtual int necons() { return ecalModule_->necons(); }
-  virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
-  virtual bool have_econ(int iecon) const {
-    return ecalModule_->have_econ(iecon);
-  }
-  virtual std::vector<int> roc_ids() const { return ecalModule_->roc_ids(); }
-  virtual std::vector<int> econ_ids() const { return ecalModule_->econ_ids(); }
-
-  virtual ROC& roc(int which) { return ecalModule_->roc(which); }
-  virtual ECON& econ(int which) { return ecalModule_->econ(which); }
-
-  virtual void softResetROC(int which) override { ecalModule_->softResetROC(); }
-
-  virtual void softResetECON(int which = -1) override {
-    ecalModule_->softResetECON();
-  }
-
-  virtual void hardResetROCs() override { ecalModule_->hardResetROCs(); }
-
-  virtual void hardResetECONs() override { ecalModule_->hardResetECONs(); }
 
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override { return *daq_; }
 
   virtual FastControl& fc() override { return *fc_; }
-
-  virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
-    format_ = format;
-    contrib_id_ = contrib_id;
-  }
 
   virtual std::vector<uint32_t> read_event() override {
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
@@ -137,22 +54,15 @@ class EcalSMMTargetBW : public Target {
   }
 
  private:
-  std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::bittware::OptoElinksBW> elinks_;
   std::unique_ptr<bittware::HcalBackplaneBW_Capture> daq_;
   std::shared_ptr<pflib::bittware::BWFastControl> fc_;
-  Target::DaqFormat format_;
-  int contrib_id_;
 };
 
 Target* makeTargetEcalSMMBittware(int ilink, uint8_t roc_mask,
                                   const char* dev) {
   return new EcalSMMTargetBW(ilink, roc_mask, dev);
-}
-
-const std::vector<std::pair<int, int>>& EcalSMMTargetBW::getRocErxMapping() {
-  return EcalModule::getRocErxMapping();
 }
 
 }  // namespace pflib
