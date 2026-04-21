@@ -132,7 +132,7 @@ def gradient_evaluation(data):
             gradient0, intercept0, r_value0, p_value0, std_err0 = stats.linregress(np.arange(36), link0_peaks)
             gradient1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(np.arange(36,72), link1_peaks)
             
-            goodness_of_fit = np.array(([[gradient0, p_value0], [gradient1, p_value1]]))
+            goodness_of_fit = np.array(([[gradient0, r_value0], [gradient1, r_value1]]))
             results.append([goodness_of_fit, calib, Type])
     
     return results
