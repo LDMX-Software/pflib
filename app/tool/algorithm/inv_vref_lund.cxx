@@ -161,6 +161,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     Target* tgt, ROC& roc) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
   int nevents = pftool::readline_int("Number of events per point: ", 100);
+  int noinv_vref_step = pftool::readline_int("Stepsize for noinv_vref: ", 20);
   // TODO 348
 
   std::array<int, 2> inv_vref_tgt;
@@ -195,7 +196,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     inv_vref_tgt[1] = fitter_l1.fit(target_adc);
 
     if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1)) {
-      noinv_vref -= 20;
+      noinv_vref -= noinv_vref_step;
       pflib_log(info) << "Bad slope and/or intercept. "
                       << "Setting noinv_vref to " << noinv_vref;
       continue;
@@ -204,7 +205,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     // Is the target within our boundaries? Very general check
     if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
         (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
-      noinv_vref -= 20;
+      noinv_vref -= noinv_vref_step;
       pflib_log(info) << "Target inv_vref outside of parameter range. "
                       << "Setting noinv_vref to " << noinv_vref;
       continue;
