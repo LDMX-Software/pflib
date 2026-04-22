@@ -29,7 +29,7 @@ def read_data(path: Path):
         json.loads(header.strip('#'))
         if has_pflib_header else
         {}
-    ) # gives me info on data type (HR/LR/preCC)!
+    )
     if has_pflib_header:
         data = pd.read_csv(path, skiprows=1, dtype=np.float64)
 
@@ -74,14 +74,14 @@ def scatter_plot_evaluation(data, multi_type):
         ax1.set_xlabel("Channels")
         ax1.set_ylabel("Average peak ADC [a.u.]")
         ax1.grid()
-        ax1.legend()
+        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
         ax2.set_xticks(np.arange(36,72))
         ax2.set_title("Link 1")
         ax2.set_xlabel("Channels")
         ax2.set_ylabel("Average peak ADC [a.u.]")
         ax2.grid()
-        ax2.legend()
+        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
         plt.show()
     
     else:
