@@ -77,7 +77,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     pflib_log(info) << "100 event baseline run";
     auto test_handle_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
-      std::string page{"CH_"+std::to_string(ch)};
+      std::string page{"CH_" + std::to_string(ch)};
       test_handle_builder.add(page, "SIGN_DAC", 0);
       test_handle_builder.add(page, "DACB", 0);
       test_handle_builder.add(page, "TRIM_INV", 0);
@@ -102,7 +102,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     pflib_log(info) << "100 event highend run";
     auto test_handle_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
-      std::string page{"CH_"+std::to_string(ch)};
+      std::string page{"CH_" + std::to_string(ch)};
       test_handle_builder.add(page, "SIGN_DAC", 0);
       test_handle_builder.add(page, "DACB", 0);
       test_handle_builder.add(page, "TRIM_INV", 63);
@@ -116,7 +116,7 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
     pflib_log(info) << "100 event lowend run";
     auto test_handle_builder = roc.testParameters();
     for (int ch{0}; ch < 72; ch++) {
-      std::string page{"CH_"+std::to_string(ch)};
+      std::string page{"CH_" + std::to_string(ch)};
       test_handle_builder.add(page, "SIGN_DAC", 1);
       test_handle_builder.add(page, "DACB", 31);
       test_handle_builder.add(page, "TRIM_INV", 0);

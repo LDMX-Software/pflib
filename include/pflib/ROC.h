@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "pflib/Compile.h"
-#include "pflib/TempParameters.h"
 #include "pflib/I2C.h"
+#include "pflib/TempParameters.h"
 #include "pflib/logging/Logging.h"
 
 namespace pflib {
