@@ -67,7 +67,7 @@ void gen_scan(Target* tgt) {
       header["scan_wide_params"][page][name] = val;
     }
   }
-  auto scan_wide_param_hold = pflib::ROC::TestParameters(roc, scan_wide_params);
+  auto scan_wide_param_hold = pflib::TempParameters(roc, scan_wide_params);
 
   std::size_t i_param_point{0};
   // TODO 348

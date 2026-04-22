@@ -75,11 +75,14 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   {  // baseline run scope
     pflib_log(info) << "100 event baseline run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 0)
-                           .add_all_channels("DACB", 0)
-                           .add_all_channels("TRIM_INV", 0)
-                           .apply();
+    auto test_handle_builder = roc.testParameters();
+    for (int ch{0}; ch < 72; ch++) {
+      std::string page{"CH_"+std::to_string(ch)};
+      test_handle_builder.add(page, "SIGN_DAC", 0);
+      test_handle_builder.add(page, "DACB", 0);
+      test_handle_builder.add(page, "TRIM_INV", 0);
+    }
+    auto test_handle = test_handle_builder.apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
     auto medians = get_adc_medians(buffer.get_buffer());
@@ -97,22 +100,28 @@ std::map<std::string, std::map<std::string, uint64_t>> level_pedestals(
 
   {  // highend run scope
     pflib_log(info) << "100 event highend run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 0)
-                           .add_all_channels("DACB", 0)
-                           .add_all_channels("TRIM_INV", 63)
-                           .apply();
+    auto test_handle_builder = roc.testParameters();
+    for (int ch{0}; ch < 72; ch++) {
+      std::string page{"CH_"+std::to_string(ch)};
+      test_handle_builder.add(page, "SIGN_DAC", 0);
+      test_handle_builder.add(page, "DACB", 0);
+      test_handle_builder.add(page, "TRIM_INV", 63);
+    }
+    auto test_handle = test_handle_builder.apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     highend = get_adc_medians(buffer.get_buffer());
   }
 
   {  // lowend run
     pflib_log(info) << "100 event lowend run";
-    auto test_handle = roc.testParameters()
-                           .add_all_channels("SIGN_DAC", 1)
-                           .add_all_channels("DACB", 31)
-                           .add_all_channels("TRIM_INV", 0)
-                           .apply();
+    auto test_handle_builder = roc.testParameters();
+    for (int ch{0}; ch < 72; ch++) {
+      std::string page{"CH_"+std::to_string(ch)};
+      test_handle_builder.add(page, "SIGN_DAC", 1);
+      test_handle_builder.add(page, "DACB", 31);
+      test_handle_builder.add(page, "TRIM_INV", 0);
+    }
+    auto test_handle = test_handle_builder.apply();
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     lowend = get_adc_medians(buffer.get_buffer());
   }
