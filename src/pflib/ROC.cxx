@@ -347,38 +347,8 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
   f.flush();
 }
 
-ROC::TestParameters::TestParameters(
-    ROC& roc, std::map<std::string, std::map<std::string, uint64_t>> new_params)
-    : roc_{roc} {
-  previous_registers_ = roc_.applyParameters(new_params);
-}
-
-ROC::TestParameters::~TestParameters() {
-  roc_.setRegisters(previous_registers_);
-}
-
-ROC::TestParameters::Builder::Builder(ROC& roc) : parameters_{}, roc_{roc} {}
-
-ROC::TestParameters::Builder& ROC::TestParameters::Builder::add(
-    const std::string& page, const std::string& param, const uint64_t& val) {
-  parameters_[page][param] = val;
-  return *this;
-}
-
-ROC::TestParameters::Builder& ROC::TestParameters::Builder::add_all_channels(
-    const std::string& param, const uint64_t& val) {
-  for (int ch{0}; ch < 72; ch++) {
-    add("CH_" + std::to_string(ch), param, val);
-  }
-  return *this;
-}
-
-ROC::TestParameters ROC::TestParameters::Builder::apply() {
-  return TestParameters(roc_, parameters_);
-}
-
-ROC::TestParameters::Builder ROC::testParameters() {
-  return ROC::TestParameters::Builder(*this);
+TempParameters<ROC>::Builder ROC::testParameters() {
+  return TempParameters<ROC>::Builder(*this);
 }
 
 }  // namespace pflib
