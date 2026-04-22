@@ -195,20 +195,20 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     inv_vref_tgt[0] = fitter_l0.fit(target_adc);
     inv_vref_tgt[1] = fitter_l1.fit(target_adc);
 
+    // Checking if the fit is reasonable and within boundaries
     if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1)) {
       noinv_vref -= noinv_vref_step;
       pflib_log(info) << "Bad slope and/or intercept. "
                       << "Setting noinv_vref to " << noinv_vref;
       continue;
-    }
-
-    // Is the target within our boundaries? Very general check
-    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
+    } else if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
         (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
       noinv_vref -= noinv_vref_step;
       pflib_log(info) << "Target inv_vref outside of parameter range. "
                       << "Setting noinv_vref to " << noinv_vref;
       continue;
+    } else {
+      break;
     }
   }
   noinv_vref_tgt[0] = noinv_vref;
