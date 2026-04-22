@@ -95,6 +95,7 @@ add_library(packing SHARED
   src/pflib/packing/DAQSampleHeader.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
+  src/pflib/packing/SingleECONDRocErxMapping.cxx
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/ECONDFormatter.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
@@ -136,7 +137,8 @@ set(pflib_src
   src/pflib/zcu/HcalBackplane.cxx
   src/pflib/zcu/EcalSMM.cxx
   src/pflib/zcu/HGCROCBoardFiberless.cxx
-  src/pflib/Ecal.cxx
+  src/pflib/EcalModule.cxx
+  src/pflib/EcalSingleModuleMotherboard.cxx
   src/pflib/Bias.cxx
 )
 
@@ -181,6 +183,7 @@ target_include_directories(menu PUBLIC
 add_executable(
   test-pflib
   test/main.cxx
+  test/mapping.cxx
   test/compile.cxx
   test/decoding.cxx
   test/utility.cxx

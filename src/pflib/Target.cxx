@@ -32,4 +32,12 @@ OptoLink& Target::get_opto_link(const std::string& name) const {
   return *(it->second);
 }
 
+const packing::SingleECONDRocErxMapping& Target::getRocErxMapping() {
+  if (not mapping_) {
+    mapping_ = std::make_unique<packing::SingleECONDRocErxMapping>(
+        getHardwareRocErxMapping(), roc_ids());
+  }
+  return *mapping_;
+}
+
 }  // namespace pflib

@@ -1,5 +1,4 @@
-#include "pflib/Ecal.h"
-#include "pflib/Target.h"
+#include "pflib/EcalSingleModuleMotherboard.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
 #include "pflib/zcu/zcu_daq.h"
@@ -10,7 +9,7 @@ namespace pflib {
 
 static constexpr int I2C_BUS_M0 = 1;
 
-class EcalSMMTargetZCU : public Target {
+class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
  public:
   EcalSMMTargetZCU(int itarget, uint8_t roc_mask) {
     using namespace pflib::zcu;
@@ -28,104 +27,20 @@ class EcalSMMTargetZCU : public Target {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    // Setup DAQ lpGBT
-    try {
-      int daq_pusm = daq_lpgbt_->status();
-      pflib::lpgbt::standard_config::setup_ecal_daq_gpio(*daq_lpgbt_);
+    init(*daq_lpgbt_, *trig_lpgbt_, I2C_BUS_M0, roc_mask);
 
-      if (daq_pusm == 19) {
-        pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "DAQ lpGBT is not ready, attempting standard config";
-        try {
-          pflib::lpgbt::standard_config::setup_ecal(
-              *daq_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                               DAQ_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(warn) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      }
-    } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "unable to I2C transact with lpGBT, advising user to "
-                          "check Optical links";
-      pflib_log(warn) << "Failure to check DAQ lpGBT status [" << e.name()
-                      << "]: " << e.message();
-      pflib_log(warn) << "Go into OPTO and make sure the link is READY"
-                      << " and then re-open pftool.";
-    }
-
-    // Setup TRG lpGBT
-    try {
-      int trg_pusm = trig_lpgbt_->status();
-      if (trg_pusm == 19) {
-        pflib_log(debug) << "TRG lpGBT is PUSM READY (19)";
-      } else {
-        pflib_log(debug)
-            << "TRG lpGBT is not ready, attempting standard config";
-        try {
-          pflib::lpgbt::standard_config::setup_ecal(
-              *trig_lpgbt_, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                                DAQ_SingleModuleMotherboard);
-        } catch (const pflib::Exception& e) {
-          pflib_log(info) << "Not Critical Problem setting up TRIGGER lpGBT.";
-          pflib_log(info) << "Failure to apply standard config [" << e.name()
-                          << "]: " << e.message();
-        }
-      }
-    } catch (const pflib::Exception& e) {
-      pflib_log(info) << "(Not Critical) Failure to check TRG lpGBT status ["
-                      << e.name() << "]: " << e.message();
-    }
-
-    ecalModule_ = std::make_shared<pflib::EcalModule>(*daq_lpgbt_, I2C_BUS_M0,
-                                                      0, roc_mask);
-
-    elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
-                                              itarget);
+    elinks_ = std::make_unique<OptoElinksZCU>(daq_lpgbt_.get(),
+                                              trig_lpgbt_.get(), itarget);
     daq_ = std::make_unique<ZCU_Capture>();
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
   }
-
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
-
-  virtual int nrocs() { return ecalModule_->nrocs(); }
-  virtual int necons() { return ecalModule_->necons(); }
-  virtual bool have_roc(int iroc) const { return ecalModule_->have_roc(iroc); }
-  virtual bool have_econ(int iecon) const {
-    return ecalModule_->have_econ(iecon);
-  }
-  virtual std::vector<int> roc_ids() const { return ecalModule_->roc_ids(); }
-  virtual std::vector<int> econ_ids() const { return ecalModule_->econ_ids(); }
-
-  virtual ROC& roc(int which) { return ecalModule_->roc(which); }
-  virtual ECON& econ(int which) { return ecalModule_->econ(which); }
-
-  virtual void softResetROC(int which) override { ecalModule_->softResetROC(); }
-
-  virtual void softResetECON(int which = -1) override {
-    ecalModule_->softResetECON();
-  }
-
-  virtual void hardResetROCs() override { ecalModule_->hardResetROCs(); }
-
-  virtual void hardResetECONs() override { ecalModule_->hardResetECONs(); }
 
   virtual Elinks& elinks() override { return *elinks_; }
 
   virtual DAQ& daq() override { return *daq_; }
 
   virtual FastControl& fc() override { return *fc_; }
-
-  virtual void setup_run(int irun, Target::DaqFormat format, int contrib_id) {
-    format_ = format;
-    contrib_id_ = contrib_id;
-
-    daq().reset();
-    fc().clear_run();
-  }
 
   virtual std::vector<uint32_t> read_event() override {
     if (format_ == Target::DaqFormat::ECOND_SW_HEADERS) {
@@ -139,18 +54,11 @@ class EcalSMMTargetZCU : public Target {
   }
 
  private:
-  std::shared_ptr<EcalModule> ecalModule_;
   std::unique_ptr<lpGBT> daq_lpgbt_, trig_lpgbt_;
   std::unique_ptr<pflib::zcu::OptoElinksZCU> elinks_;
   std::unique_ptr<pflib::zcu::ZCU_Capture> daq_;
   std::shared_ptr<pflib::FastControl> fc_;
-  Target::DaqFormat format_;
-  int contrib_id_;
 };
-
-const std::vector<std::pair<int, int>>& EcalSMMTargetZCU::getRocErxMapping() {
-  return EcalModule::getRocErxMapping();
-}
 
 Target* makeTargetEcalSMMZCU(int ilink, uint8_t roc_mask) {
   return new EcalSMMTargetZCU(ilink, roc_mask);

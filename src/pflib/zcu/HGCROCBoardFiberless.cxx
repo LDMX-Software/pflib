@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "pflib/Bias.h"
+#include "pflib/Exception.h"
 #include "pflib/GPIO.h"
 #include "pflib/I2C_Linux.h"
 #include "pflib/Target.h"
@@ -173,7 +174,7 @@ class HcalFiberless : public Target {
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override {
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() override {
     static const std::vector<std::pair<int, int>> THE_MAP = {{0, 1}};
     return THE_MAP;
   }
@@ -189,6 +190,12 @@ class HcalFiberless : public Target {
   virtual ECON& econ(int which) override {
     PFEXCEPTION_RAISE("InvalidECONid",
                       "No ECONs connected for Fiberless targets.");
+  }
+  virtual void hardResetECONs() override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
+  virtual void softResetECON(int which = -1) override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
   }
   virtual GPIO& gpio() { return *gpio_; }
   virtual int nrocs() override { return 1; }
