@@ -190,16 +190,14 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     DataFitter fitter_l1;
     fitter_l0.sort_and_append(inv_vrefs, pedestals_l0, stds_l0, step);
     fitter_l1.sort_and_append(inv_vrefs, pedestals_l1, stds_l1, step);
-    
+
     inv_vref_tgt[0] = fitter_l0.fit(target_adc);
     inv_vref_tgt[1] = fitter_l1.fit(target_adc);
 
     if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1) {
       noinv_vref -= 20;
-      pflib_log(info) 
-          << "Bad slope and/or intercept. "
-          << "Setting noinv_vref to "
-          << noinv_vref;
+      pflib_log(info) << "Bad slope and/or intercept. "
+                      << "Setting noinv_vref to " << noinv_vref;
       continue;
     }
 
@@ -207,13 +205,10 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
         (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
       noinv_vref -= 20;
-      pflib_log(info) 
-          << "Target inv_vref outside of parameter range. "
-          << "Setting noinv_vref to "
-          << noinv_vref;
+      pflib_log(info) << "Target inv_vref outside of parameter range. "
+                      << "Setting noinv_vref to " << noinv_vref;
       continue;
     }
-
   }
   noinv_vref_tgt[0] = noinv_vref;
   noinv_vref_tgt[1] = noinv_vref;
