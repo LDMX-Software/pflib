@@ -194,7 +194,7 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     inv_vref_tgt[0] = fitter_l0.fit(target_adc);
     inv_vref_tgt[1] = fitter_l1.fit(target_adc);
 
-    if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1) {
+    if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1)) {
       noinv_vref -= 20;
       pflib_log(info) << "Bad slope and/or intercept. "
                       << "Setting noinv_vref to " << noinv_vref;
