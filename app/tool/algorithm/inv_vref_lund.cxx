@@ -92,7 +92,13 @@ int DataFitter::fit(int target) {
   double median_intercept = pflib::utility::median(intercepts);
   double median_slope = pflib::utility::median(slopes);
   pflib_log(info) << "The median intercept is = " << median_intercept
-                  << " and the median deriv is = " << median_slope;
+                  << " and the median slope is = " << median_slope;
+
+  // Are the intercept and slope reasonable?
+  // TODO: Add condition for intercept!
+  if ((median_slope >= 0) || (median_slope <= -1e3)) {
+    return -1;
+  }
 
   // Find intersect with target. Start at the beginning of the linear regime
   int inv_vref = 0;
@@ -184,25 +190,30 @@ std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
     DataFitter fitter_l1;
     fitter_l0.sort_and_append(inv_vrefs, pedestals_l0, stds_l0, step);
     fitter_l1.sort_and_append(inv_vrefs, pedestals_l1, stds_l1, step);
-    try {
-      inv_vref_tgt[0] = fitter_l0.fit(target_adc);
-      inv_vref_tgt[1] = fitter_l1.fit(target_adc);
-      break;
-    } catch (...) {
-      // The noinv_vref parameter is likely not in the correct working
-      // window. Re-run with different noinv_vref
-      pflib_log(info)
-          << "Error in fit. Finding correct working window for NOINV_VREF";
-      // Changing both links' parameters to get similar results
+    
+    inv_vref_tgt[0] = fitter_l0.fit(target_adc);
+    inv_vref_tgt[1] = fitter_l1.fit(target_adc);
+
+    if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1) {
       noinv_vref -= 20;
+      pflib_log(info) 
+          << "Bad slope and/or intercept. "
+          << "Setting noinv_vref to "
+          << noinv_vref;
       continue;
     }
-    // Did we get good values?
-    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] || 1023) ||
+
+    // Is the target within our boundaries? Very general check
+    if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
         (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
       noinv_vref -= 20;
+      pflib_log(info) 
+          << "Target inv_vref outside of parameter range. "
+          << "Setting noinv_vref to "
+          << noinv_vref;
       continue;
     }
+
   }
   noinv_vref_tgt[0] = noinv_vref;
   noinv_vref_tgt[1] = noinv_vref;
