@@ -13,6 +13,12 @@ void channel_wise_calib_scan(Target* tgt) {
   int n_bx = pftool::readline_int("Number of BX? ", 2);
   int min_ch = pftool::readline_int("Channel to start scan on? ", 0);
   int max_ch = pftool::readline_int("Channel to end scan on? ", 71);
+  int min_calib = pftool::readline_int("Minimum calib value = ", 0);
+  int max_calib = pftool::readline_int("Maximum calib value = ", 550);
+  if ((min_calib < 0) || (min_calib > 4095) || 
+      (max_calib < 0) || (max_calib > 4095) {
+      throw std::invalid_argument("Min and Max calib values have to be within the range: 0 <= calib <= 4095");
+  }
   pflib::ROC roc{tgt->roc(pftool::state.iroc)};
   std::string fname;
 
