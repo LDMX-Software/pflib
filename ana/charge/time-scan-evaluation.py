@@ -22,6 +22,8 @@ args = parser.parse_args()
 
 def read_data(path: Path):
     
+    '''To allow for sorting later in the script, the scan modes (or datatypes), that is preCC, lowrange and highrange, are initially assigned integers 0, 1, 2, respectively.'''
+
     with open(path) as file:
         header = file.readline().strip('\n')
     has_pflib_header = header[0] == '#'
@@ -40,11 +42,11 @@ def read_data(path: Path):
     
     if run_params["preCC"] : 
         run_params["calib"] = int(data[f"REFERENCEVOLTAGE_{link}.CALIB_2V5"][0])
-        datatype = "preCC"
+        datatype = 0
     else: 
         run_params["calib"] = int(data[f"REFERENCEVOLTAGE_{link}.CALIB"][0])
-        if run_params["highrange"] : datatype = "highrange"
-        else: datatype = "lowrange"
+        if run_params["highrange"] : datatype = 2
+        else: datatype = 1
 
     time_points = np.unique(data["time"].to_numpy())
     avg_adc = []
@@ -57,83 +59,48 @@ def read_data(path: Path):
     return np.array((avg_peak, run_params["calib"], run_params["channel"], link, datatype))
 
 
-def scatter_plot_evaluation(data, multi_type):
+def scatter_plot_evaluation(data, data_type):
     
     calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
-    if not multi_type:
-        fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,8))
 
-        for calib in calibs:
-
-            link0_peaks = data[(data.calib==str(calib)) & (data.link == str(0))].peak.to_numpy(dtype=np.float64)
-            link1_peaks = data[(data.calib==str(calib)) & (data.link == str(1))].peak.to_numpy(dtype=np.float64)
-            ax1.scatter(np.arange(36), link0_peaks, alpha = 0.5, label=f"calib{calib}, {data[data.calib==str(calib)].scan_type.to_numpy()[0]}")
-            ax2.scatter(np.arange(36,72), link1_peaks, alpha = 0.5, label=f"calib{calib}, {data[data.calib==str(calib)].scan_type.to_numpy()[0]}")
-        ax1.set_xticks(np.arange(36))
-        ax1.set_title("Link 0")
-        ax1.set_xlabel("Channels")
-        ax1.set_ylabel("Average peak ADC [a.u.]")
-        ax1.grid()
-        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
-
-        ax2.set_xticks(np.arange(36,72))
-        ax2.set_title("Link 1")
-        ax2.set_xlabel("Channels")
-        ax2.set_ylabel("Average peak ADC [a.u.]")
-        ax2.grid()
-        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
-        plt.show()
     
-    else:
-        types = np.unique(data.scan_type.to_numpy())
-        
-        if len(types) == 2:
+    fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,8))
 
-            fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,8))
+    for calib in calibs:
 
-            for calib in calibs:
-                ax1.scatter(data[(data.calib==str(calib)) & (data.scan_type==types[0])].channel.to_numpy(dtype=np.int64), data[(data.calib==str(calib)) & (data.scan_type==types[0])].peak.to_numpy(dtype=np.float64), label=f"calib{calib}, {types[0]}")
-                ax2.scatter(data[(data.calib==str(calib)) & (data.scan_type==types[1])].channel.to_numpy(dtype=np.int64), data[(data.calib==str(calib)) & (data.scan_type==types[1])].peak.to_numpy(dtype=np.float64), label=f"calib{calib}, {types[1]}")
-            
-            ax1.grid()
-            ax2.grid()
-            ax1.legend()
-            ax2.legend()
-            plt.show()
+        link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
+        link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
+        ax1.scatter(np.arange(36), link0_peaks, alpha = 0.5, label=f"calib{calib}, {data_type}")
+        ax2.scatter(np.arange(36,72), link1_peaks, alpha = 0.5, label=f"calib{calib}, {data_type}")
+    ax1.set_xticks(np.arange(36))
+    ax1.set_title("Link 0")
+    ax1.set_xlabel("Channels")
+    ax1.set_ylabel("Average peak ADC [a.u.]")
+    ax1.grid()
+    ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
-        if len(types) == 3:
-
-            fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(12,8))
-
-            for calib in calibs:
-                ax1.scatter(data[(data.calib==str(calib)) & (data.scan_type==types[0])].channel.to_numpy(dtype=np.int64), data[(data.calib==str(calib)) & (data.scan_type==types[0])].peak.to_numpy(dtype=np.float64), label=f"calib{calib}, {types[0]}")
-                ax2.scatter(data[(data.calib==str(calib)) & (data.scan_type==types[1])].channel.to_numpy(dtype=np.int64), data[(data.calib==str(calib)) & (data.scan_type==types[1])].peak.to_numpy(dtype=np.float64), label=f"calib{calib}, {types[1]}")
-                ax3.scatter(data[(data.calib==str(calib)) & (data.scan_type==types[2])].channel.to_numpy(dtype=np.int64), data[(data.calib==str(calib)) & (data.scan_type==types[2])].peak.to_numpy(dtype=np.float64), label=f"calib{calib}, {types[2]}")
-
-            ax1.grid()
-            ax2.grid()
-            ax1.legend()
-            ax2.legend()
-            plt.show()
-
-        else: print("Too many scan types! Maximum: 3")
+    ax2.set_xticks(np.arange(36,72))
+    ax2.set_title("Link 1")
+    ax2.set_xlabel("Channels")
+    ax2.set_ylabel("Average peak ADC [a.u.]")
+    ax2.grid()
+    ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+    plt.show()
 
 def gradient_evaluation(data):
     
     results = []
     calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
-    types = np.unique(data.scan_type.to_numpy())
 
-    for Type in types:
-        for calib in calibs:
-            link0_peaks = data[(data.calib==str(calib)) & (data.link == str(0)) & (data.scan_type == Type)].peak.to_numpy(dtype=np.float64)
-            link1_peaks = data[(data.calib==str(calib)) & (data.link == str(1)) & (data.scan_type == Type)].peak.to_numpy(dtype=np.float64)
-            
-            gradient0, intercept0, r_value0, p_value0, std_err0 = stats.linregress(np.arange(36), link0_peaks)
-            gradient1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(np.arange(36,72), link1_peaks)
-            
-            goodness_of_fit = np.array(([[gradient0, r_value0], [gradient1, r_value1]]))
-            results.append([goodness_of_fit, calib, Type])
+    for calib in calibs:
+        link0_peaks = data[(data.calib==calib) & (data.link == str(0))].peak.to_numpy(dtype=np.float64)
+        link1_peaks = data[(data.calib==calib) & (data.link == str(1))].peak.to_numpy(dtype=np.float64)
+        
+        gradient0, intercept0, r_value0, p_value0, std_err0 = stats.linregress(np.arange(36), link0_peaks)
+        gradient1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(np.arange(36,72), link1_peaks)
+        
+        goodness_of_fit = np.array(([[gradient0, r_value0], [gradient1, r_value1]]))
+        results.append([goodness_of_fit, calib])
     
     return results
 
@@ -141,13 +108,17 @@ data = []
 for dataset in args.datasets:
     data.append(read_data(dataset))
 data = np.array(data)
+data = data[data[:,2].argsort()]
 
-data_sorted = {"peak" : data[:,0], "calib" : data[:,1], "channel" : data[:,2], "link" : data[:,3], "scan_type" : data[:,4]}
-if len(np.unique(data_sorted["scan_type"])) > 1: multi_type = True
-else: multi_type = False
+data_sorted = {"peak" : data[:,0], "calib" : data[:,1], "channel" : data[:,2], "link" : data[:,3]}
+
+if data[0,4] == 0 : scan_type = "preCC"
+if data[0,4] == 1 : scan_type = "lowrange"
+else : scan_type = "highrange"
+
 df = pd.DataFrame(data_sorted)
 
-if args.plot : scatter_plot_evaluation(df, multi_type)
+if args.plot : scatter_plot_evaluation(df, scan_type)
 if args.goodness_of_fit : 
     fit = gradient_evaluation(df)
     if args.csv : print("Save to csv - WIP")
