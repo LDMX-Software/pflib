@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../daq_run.h"
 #include "pflib/Target.h"
 
 /**
@@ -36,14 +37,23 @@ class DataFitter {
   };
   std::vector<Point> linear_;
   std::vector<Point> nonlinear_;
-  int LH_median_;
+  double LH_median_;
   double LH_std_median_;
-  int RH_median_;
+  double RH_median_;
 };
 
 /**
- * Find the inv_vref parameters. The noinv_vref parameters are
- * hardcoded to 612 for each link.
+ * Collect inv_vref data for the constant input noinv_vref parameter.
+ * Loops over the whole inv_vref range.
+ */
+void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
+               int& step, std::vector<int>& pedestals_l0,
+               std::vector<double>& stds_l0, std::vector<int>& pedestals_l1,
+               std::vector<double>& stds_l1, std::vector<int>& inv_vrefs,
+               int& noinv_vref);
+
+/**
+ * Find the inv_vref and noinv_vref parameters.
  *
  * @param[in] tgt pointer to Target to interact with
  *

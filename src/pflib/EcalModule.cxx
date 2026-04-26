@@ -1,4 +1,4 @@
-#include "pflib/Ecal.h"
+#include "pflib/EcalModule.h"
 
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/utility/string_format.h"
@@ -111,11 +111,11 @@ void EcalModule::softResetECON() {
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
 }
 
-const std::vector<std::pair<int, int>> EcalModule::roc_to_erx_map_ = {
+const std::vector<std::pair<int, int>> EcalModule::ROC_ERX_MAPPING = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
-const std::vector<std::pair<int, int>>& EcalModule::getRocErxMapping() {
-  return roc_to_erx_map_;
+const std::vector<std::pair<int, int>>& EcalModule::getHardwareRocErxMapping() {
+  return ROC_ERX_MAPPING;
 }
 
 }  // namespace pflib

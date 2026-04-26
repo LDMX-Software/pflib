@@ -26,8 +26,8 @@ static void usage() {
          "  --def-exlcude : Exclude all pages by default\n"
          "                  (without this parameter, include all pages by "
          "default)\n"
-         "  -r,--roc      : Define the ROC type_version whose defaults should "
-         "be retrieved\n"
+         "  -c,--chip      : Define the CHIP type_version that should be "
+         "used for compilation\n"
          "                  By default, we use the sipm_rocv3b register "
          "mapping.\n"
          "  -e,--exclude  : Page name (or substring of page name) to exclude "
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
   std::vector<std::pair<std::string, bool>> eirules;
   std::string output_filename;
   std::stringstream cmd;
-  std::string roc_type_version{"sipm_rocv3b"};
+  std::string chip_type_version{"sipm_rocv3b"};
   cmd << argv[0];
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
           return 1;
         }
         i_arg++;
-        roc_type_version = argv[i_arg];
+        chip_type_version = argv[i_arg];
       } else if (arg == "--exclude" or arg == "-e" or arg == "--include" or
                  arg == "-i") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
   std::map<std::string, std::map<std::string, uint64_t>> parameters;
   try {
-    parameters = pflib::Compiler::get(roc_type_version).defaults();
+    parameters = pflib::Compiler::get(chip_type_version).defaults();
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;
