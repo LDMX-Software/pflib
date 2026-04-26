@@ -10,6 +10,8 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset', type=Path, nargs='+', help='Pedestal dataset csv path (allows multiple)')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Path to directory for saved figures')
+parser.add_argument('-ac', '--align_comparison', action='store_true', help='Mark the first pedestal file as pre-alignment and second as post-alignment')
+parser.add_argument('-rms', '--rms_csv', type=Path, help='Calculate and save the RMS of the mean pedestals for each link - provide a file path')
 args = parser.parse_args()
 
 if not args.dataset:
@@ -21,6 +23,13 @@ channels = ['calib']+[str(i) for i in range(36)]
 
 sample_avg_adc = []
 sample_error_adc = []
+
+def root_mean_square(adc):
+    mean_adc = np.mean(adc)
+    sum = 0
+    for sample in adc:
+        sum += (sample-mean_adc)**2
+    return np.sqrt(sum/len(adc))
 
 for set in args.dataset:
     pedestal = pd.read_csv(set)
@@ -36,7 +45,7 @@ for set in args.dataset:
 
         for channel in channels:
             avg_adc_channel.append(np.mean(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
-            error_adc_channel.append(np.std(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
+            error_adc_channel.append(root_mean_square(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
 
         if link == 0:
             link0_avg_adc.append(np.array(avg_adc_channel))
@@ -57,29 +66,34 @@ def plot_averages():
     ymin = []
     ymax = []
 
+    if args.align_comparison:
+        labels = ['pre-alignment', 'post-alignment']
+    else:
+        labels = np.arange(len(args.dataset))
+
     fig, (ax1, ax2) = plt.subplots(2,1,figsize=(12,8), height_ratios=[2,1])
 
     for n in range(0,len(args.dataset)):
 
         ymin.append([min(sample_avg_adc[n][0].ravel()),min(sample_avg_adc[n][1].ravel())])
         ymax.append([max(sample_avg_adc[n][0].ravel()),max(sample_avg_adc[n][1].ravel())])
-        ax1.errorbar(channels, sample_avg_adc[n][0].ravel(), yerr=sample_error_adc[n][0].ravel(), label = f'Pedestals {n}, link 0', fmt='o')
-        ax2.plot(channels, sample_error_adc[n][0].ravel(), label = f'Pedestals {n} stdev, link 0')
+        ax1.errorbar(channels, sample_avg_adc[n][0].ravel(), yerr=sample_error_adc[n][0].ravel(), label = f'Pedestals {labels[n]}', fmt='o')
+        ax2.plot(channels, sample_error_adc[n][0].ravel(), label = f'Pedestals {labels[n]} RMS')
 
     ymin = np.array(ymin)
     ymax = np.array(ymax)
     ax1.set_ylim([min(ymin[:,0]-10), max(ymax[:,0])+10])
 
     ax1.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
-    ax2.set(ylabel='Std Dev ADC [a.u.]', xlabel='Channels')
+    ax2.set(ylabel='RMS ADC [a.u.]', xlabel='Channels')
 
     ax1.grid()
     ax2.grid(axis='y')
 
-    ax1.legend()
-    ax2.legend()
+    ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+    ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
-    fig.suptitle("Mean pedestals and their Std Dev in link 0")
+    fig.suptitle("Mean pedestals and their RMS on link 0", fontsize=14)
 
     if args.plot_directory:
         plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link0.png'), dpi=400)
@@ -90,27 +104,43 @@ def plot_averages():
 
     for n in range(0,len(args.dataset)):
 
-        ax3.errorbar(channels, sample_avg_adc[n][1].ravel(), yerr=sample_error_adc[n][1].ravel(), label = f'Pedestals {n}, link 1', fmt='o')
-        ax4.plot(channels, sample_error_adc[n][1].ravel(), label = f'Pedestals {n} stdev, link 1')
+        ax3.errorbar(channels, sample_avg_adc[n][1].ravel(), yerr=sample_error_adc[n][1].ravel(), label = f'Pedestals {labels[n]}', fmt='o')
+        ax4.plot(channels, sample_error_adc[n][1].ravel(), label = f'Pedestals {labels[n]} RMS')
 
     ax1.set_ylim([min(ymin[:,1]-10), max(ymax[:,1])+10])
 
     ax3.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
-    ax4.set(ylabel='Std Dev ADC [a.u.]', xlabel='Channels')
+    ax4.set(ylabel='RMS ADC [a.u.]', xlabel='Channels')
 
     ax3.grid()
     ax4.grid(axis='y')
 
-    ax3.legend()
-    ax4.legend()
+    ax3.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+    ax4.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
-    fig2.suptitle("Mean pedestals and their Std Dev in link 1")
+    fig2.suptitle("Mean pedestals and their RMS on link 1", fontsize=14)
 
     if args.plot_directory:
         plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link1.png'), dpi=400)
     else:
         plt.show()
 
+def save_rms():
+
+    if args.align_comparison:
+        rms_results = {'link_0_pre_alignment' : [root_mean_square(sample_avg_adc[0][0].ravel())], 'link_1_pre_alignment' : [root_mean_square(sample_avg_adc[0][1].ravel())], 
+                       'link_0_post_alignment' : [root_mean_square(sample_avg_adc[1][0].ravel())], 'link_1_post_alignment' : [root_mean_square(sample_avg_adc[1][1].ravel())]}
+    else:
+        rms_results = dict()
+        for i in range(len(args.dataset)):
+            rms_dataset = {f'link_0_pedestals_{i}' : [root_mean_square(sample_avg_adc[i][0].ravel())], f'link_1_pedestals_{i}' : [root_mean_square(sample_avg_adc[i][1].ravel())]}
+            rms_results = rms_results | rms_dataset
+
+    df = pd.DataFrame(rms_results)
+    df.to_csv(args.rms_csv)
+
 # ------ MAIN ------
 
 plot_averages()
+
+if args.rms_csv: save_rms()
