@@ -357,6 +357,10 @@ def outlier_bulk_evaluation(full_dataset):
         calib = dataset[0].calib
         channel = dataset[0].channel
         scan_type = dataset[0].scan_type
+        if scan_type == "preCC" : scan_type = 0
+        elif scan_type == "lowrange" : scan_type = 1
+        else : scan_type = 2
+
         outlier_count = 0
         outlier_sum = 0
         potential_outlier_sum = 0
@@ -428,36 +432,61 @@ def plot_outliers(dataset : list, plot_type : str):
 
 def plot_evaluation(dataframe):
 
+    
     multi_type = False
-    types = np.unique(dataframe.scan_type.to_numpy())
-    if len(types) > 1: multi_type = True
+    encoded_types = np.unique(dataframe.scan_type.to_numpy())
+    types = []
+    for Type in range(len(encoded_types)):
+        if encoded_types[Type] == 0 : types.append('preCC')
+        elif encoded_types[Type] == 1 : types.append('lowrange')
+        else : types.append('highrange')
+
+    if len(types) > 1: multi_type = True 
 
     calibs = np.unique(dataframe.calib.to_numpy(dtype=np.int64))
 
     if not multi_type:
-        plt.figure(figsize=(18,7))
+        fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
+
         for calib in calibs:
-            plt.scatter(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
-        plt.xticks(np.arange(72))
-        plt.xlabel("Channels")
-        plt.ylabel("Outlier sum")
-        plt.grid()
-        plt.legend()
-        plt.title(f"Total number of outliers per channel, {dataframe.scan_type.to_numpy()[0]}")
+            ax1.scatter(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+            ax2.scatter(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+        fig.supxlabel('Channels', fontsize=14)
+        fig.supylabel('Total outlier count', fontsize=14)
+        ax1.set_xticks(np.arange(36, step=2))
+        ax2.set_xticks(np.arange(36,72, step=2))
+        ax1.grid()
+        ax2.grid()
+        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax1.set_title("Link 0")
+        ax2.set_title("Link 1")
+        fig.suptitle(f"Total number of outliers per channel - {types[0]}", fontsize=14)
         if args.plot_directory:
             plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_sum.png'), dpi=400)
             plt.close()
         else: plt.show()
-
-        plt.figure(figsize=(18,7))
+        
+        fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
         for calib in calibs:
-            plt.bar(dataframe[dataframe.calib==str(calib)].channel.to_numpy(dtype=np.int64), dataframe[dataframe.calib==str(calib)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
-        plt.xticks(np.arange(72))
-        plt.xlabel("Channels")
-        plt.ylabel("Outlier-sample frequency")
-        plt.grid()
-        plt.legend()
-        plt.title(f"Fraction of samples with outliers per channel, {dataframe.scan_type.to_numpy()[0]}")
+            ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+            ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+
+        fig.supxlabel('Channels')
+        fig.supylabel('Outlier-sample frequency')
+        ax1.set_xticks(np.arange(36, step=2))
+        ax2.set_xticks(np.arange(36,72, step=2))
+        ax1.grid()
+        ax2.grid()
+        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax1.set_title("Link 0")
+        ax2.set_title("Link 1")
+        fig.suptitle(f"Fraction of samples with outliers per channel - {types[0]}", fontsize=14)
         if args.plot_directory:
             plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_freq.png'), dpi=400)
             plt.close()
