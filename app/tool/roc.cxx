@@ -183,8 +183,10 @@ static void roc(const std::string& cmd, Target* pft) {
         "manual for any values not provided? ",
         false);
     bool apply_to_all = pftool::readline_bool(
-        "Apply this same file to all the ROCs (Y) or just to the selected i_roc = "
-        + std::to_string(pftool::state.iroc)+ "? ", false);
+        "Apply this same file to all the ROCs (Y) or just to the selected "
+        "i_roc = " +
+            std::to_string(pftool::state.iroc) + "? ",
+        false);
     if (apply_to_all) {
       for (int iroc : pft->roc_ids()) {
         // TODO
