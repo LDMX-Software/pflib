@@ -195,8 +195,8 @@ data = data[data[:,2].argsort()]
 
 data_sorted = {"peak" : data[:,0], "calib" : data[:,1], "channel" : data[:,2], "link" : data[:,3], "rms" : data[:,5]}
 
-if data[0,4] == 0 : scan_type = "preCC"
-if data[0,4] == 1 : scan_type = "lowrange"
+if int(data[0,4]) == 0 : scan_type = "preCC"
+elif int(data[0,4]) == 1 : scan_type = "lowrange"
 else : scan_type = "highrange"
 
 df = pd.DataFrame(data_sorted)
