@@ -108,10 +108,28 @@ def sort_data(raw_data, raw_data_parameters):
 
     scan_length = len(np.unique(raw_time))
 
-    if np.size(raw_time) % 10 != 0:
-        print(f"\nChannel {raw_channels[0]}, CALIB {raw_calibs[0]}, is likely missing an ADC code (size {np.size(raw_time)})! It is recommended to skip it, or insert dummy data for the scan to work properly.\n")
-        return
-    
+    raw_time_copy = raw_time
+    n = 1
+    for i in range(1,len(raw_time_copy)):
+        if raw_time_copy[i] == raw_time_copy[i-1]: 
+            n += 1
+        else:
+            if n == raw_data_parameters["samples"]:
+                n = 1
+                continue
+            else:
+                dummy_sample_size = raw_data_parameters["samples"] - n
+                print(f"Timepoint {raw_time_copy[i]}, missing {dummy_sample_size} samples!")
+                dummy_time = raw_time_copy[i-1]
+                dummy_calib = raw_calibs[i-1]
+                dummy_channel = raw_channels[i-1]
+                for j in range(dummy_sample_size):
+                    raw_adc = np.insert(raw_adc, i, -1)
+                    raw_time = np.insert(raw_time, i, dummy_time)
+                    raw_calibs = np.insert(raw_calibs, i, dummy_calib)
+                    raw_channels = np.insert(raw_channels, i, dummy_channel)
+                n = 1
+
     for s in range(0, raw_data_parameters["samples"]):
         sample_time_data = []
         sample_adc_data = []
@@ -122,7 +140,6 @@ def sort_data(raw_data, raw_data_parameters):
             sample_adc_data.append((raw_adc[n*raw_data_parameters["samples"]+s]))
             sample_calib_data.append((raw_calibs[n*raw_data_parameters["samples"]+s]))
             sample_channel_data.append((raw_channels[n*raw_data_parameters["samples"]+s]))
-
         sorted_data.append(([sample_time_data, sample_adc_data, sample_calib_data, sample_channel_data]))
 
     return np.array(sorted_data)
