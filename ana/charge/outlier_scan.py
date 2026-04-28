@@ -56,6 +56,7 @@ class measurements():
         self.outliers_time = []
         self.outliers_adc = []
         self.outliers_number = 0
+        self.missing_adc = len(self.adc[self.adc == -1])
 
         self.potential_outliers_time = []
         self.potential_outliers_adc = []
@@ -63,7 +64,6 @@ class measurements():
 
     def delta_adc(self):
         adc = self.adc
-
         adc_shiftup = np.insert(adc, 0, 0)
         adc_shiftdown = np.insert(adc, len(adc), 0)
 
@@ -174,12 +174,8 @@ def cluster_outlier_search(dataset : list):
 
     if not args.samples : 
         if dataset[0].parameters['samples'] < 10: 
-            print("Please ensure at least 10 samples of the pulse are available. test")
+            print("Please ensure at least 10 samples of the pulse are available.")
             return
-
-    elif args.samples < 10: 
-        print("Please ensure at least 10 samples of the pulse are available.")
-        return
     
     adc_distributions = []
     counts_distributions = []
@@ -225,7 +221,7 @@ def cluster_outlier_search(dataset : list):
                 if gap != 0: 
                     if gap == 1:
                         print("Gap is too small - ignoring")
-                    elif gap == 2:
+                    elif 2 <= gap < 5:
                         if cluster == 2: # if the previous cluster was marked as an outlier, a disjointed cluster after it is also an outlier
                             for sample in dataset:
                                 if adc_above == sample.adc[i]: 
@@ -240,7 +236,7 @@ def cluster_outlier_search(dataset : list):
                                     sample.potential_outliers_time.append(time)
                                     sample.potential_outliers_number += 1
                             cluster = 1
-                    elif gap >= 3:
+                    elif gap >= 5:
                         for sample in dataset:
                             if adc_above == sample.adc[i]: 
                                 sample.outliers_adc.append(adc_above)
@@ -359,6 +355,8 @@ def outlier_phase_analysis(dataset : list):
     ax1.set(xlabel='Time [ns]', ylabel = 'Proportion of outliers')
     ax2.set(xlabel='Phase', ylabel = 'Proportion of outliers')
     ax1.legend()
+    ax1.grid()
+    ax2.grid()
     if args.plot_directory:
         plt.savefig(os.path.join(args.plot_directory,f'outlier_phase_analysis.png'), dpi=400)
         plt.close()
@@ -448,7 +446,6 @@ def plot_outliers(dataset : list, plot_type : str):
                 plt.close()
 
 def plot_evaluation(dataframe):
-
     
     multi_type = False
     encoded_types = np.unique(dataframe.scan_type.to_numpy())
@@ -466,12 +463,12 @@ def plot_evaluation(dataframe):
         fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
 
         for calib in calibs:
-            ax1.scatter(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
+            ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
                         dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
-            ax2.scatter(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
+            ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
                         dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
-        fig.supxlabel('Channels', fontsize=14)
-        fig.supylabel('Total outlier count', fontsize=14)
+        fig.supxlabel('Channels', fontsize=15)
+        fig.supylabel('Total outlier count', fontsize=15)
         ax1.set_xticks(np.arange(36, step=2))
         ax2.set_xticks(np.arange(36,72, step=2))
         ax1.grid()
@@ -508,13 +505,62 @@ def plot_evaluation(dataframe):
             plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_freq.png'), dpi=400)
             plt.close()
         else: plt.show()
+
+        # potential outliers ------------------------------------------------
+
+        fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
+
+        for calib in calibs:
+            ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+            ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+        fig.supxlabel('Channels', fontsize=15)
+        fig.supylabel('Total potential-outlier count', fontsize=15)
+        ax1.set_xticks(np.arange(36, step=2))
+        ax2.set_xticks(np.arange(36,72, step=2))
+        ax1.grid()
+        ax2.grid()
+        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax1.set_title("Link 0")
+        ax2.set_title("Link 1")
+        fig.suptitle(f"Total number of potential outliers per channel - {types[0]}", fontsize=14)
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'pot_outlier_evaluation_sum.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+        
+        fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
+        for calib in calibs:
+            ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+            ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+
+        fig.supxlabel('Channels')
+        fig.supylabel('Potential-outlier-sample frequency')
+        ax1.set_xticks(np.arange(36, step=2))
+        ax2.set_xticks(np.arange(36,72, step=2))
+        ax1.grid()
+        ax2.grid()
+        ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+        ax1.set_title("Link 0")
+        ax2.set_title("Link 1")
+        fig.suptitle(f"Fraction of samples with potential-outliers per channel - {types[0]}", fontsize=14)
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'pot_outlier_evaluation_freq.png'), dpi=400)
+            plt.close()
+        else: plt.show()
+
     else:
         fig, (ax1,ax2) = plt.subplots(2,1,figsize=(18,7))
         for calib in calibs:
-            ax1.scatter(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
-            ax2.scatter(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
+            ax1.scatter(dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[0])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[0])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
+            ax2.scatter(dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[1])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[1])].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
         ax1.set_xticks(np.arange(72))
         ax2.set_xticks(np.arange(72))
         ax1.set_xlabel("Channels")
@@ -537,10 +583,10 @@ def plot_evaluation(dataframe):
 
         fig2, (ax3,ax4) = plt.subplots(2,1,figsize=(12,8))
         for calib in calibs:
-            ax3.bar(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[0])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
-            ax4.bar(dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==str(calib)) & (dataframe.scan_type==types[1])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
+            ax3.bar(dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[0])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[0])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[0]}")
+            ax4.bar(dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[1])].channel.to_numpy(dtype=np.int64), 
+                        dataframe[(dataframe.calib==calib) & (dataframe.scan_type==encoded_types[1])].outlier_fraction.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}, {types[1]}")
         ax3.set_xticks(np.arange(72))
         ax4.set_xticks(np.arange(72))
         ax3.set_xlabel("Channels")
@@ -560,13 +606,12 @@ def plot_evaluation(dataframe):
             plt.savefig(os.path.join(args.plot_directory,f'outlier_evaluation_sum.png'), dpi=400)
             plt.close()
         else: plt.show()
-        
 
 # -------  SAVING DATA -------
 
 def write_to_csv(dataset : list, save_path : Path):
 
-    header = ["Type", "Channel", "CALIB", "Potential_outliers", "PO_counts", "Outliers", "O_counts"]
+    header = ["Type", "Channel", "CALIB", "Potential_outliers", "PO_counts", "Outliers", "O_counts", "Missing_ADC_codes"]
 
     csv = []
 
@@ -581,7 +626,7 @@ def write_to_csv(dataset : list, save_path : Path):
         if sample.outliers_number != 0 : count = 1
         else : count = 0
 
-        csv.append([scan_type, sample.channel, sample.calib, potential_count, sample.potential_outliers_number, count, sample.outliers_number])
+        csv.append([scan_type, sample.channel, sample.calib, potential_count, sample.potential_outliers_number, count, sample.outliers_number, sample.missing_adc])
 
     df = pd.DataFrame(csv, columns = header)
     df.to_csv(os.path.join(save_path,f'outlier-results-channel-{dataset[0].channel}-calib-{dataset[0].calib}-{scan_type}.csv'))
