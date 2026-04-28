@@ -6,11 +6,14 @@
  * Only usable for HcalBackplane type targets.
  */
 #include "pflib/HcalBackplane.h"
+#include "pflib/zcu/HGCROCBoardFiberless.h"
 #include "pftool.h"
 
 ENABLE_LOGGING();
 
-static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
+//static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
+template <typename T>
+static void bias(const std::string& cmd, T pft) {
   static int iboard = 0;
   if (cmd == "STATUS") {
     iboard = pftool::readline_int("Which board? ", iboard);
@@ -90,21 +93,27 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
 }
 
 static void render(Target* tgt) {
-  auto hcal = dynamic_cast<pflib::HcalBackplane*>(tgt);
-  if (not hcal) {
+  auto hcalbp = dynamic_cast<pflib::HcalBackplane*>(tgt);
+  auto hcalfl = dynamic_cast<pflib::HcalFiberless*>(tgt);
+  if (not hcalbp or not hcalfl) {
     pflib_log(error)
-        << "BIAS menu of commands only availabe for HcalBackplane targets.";
+        << "BIAS menu of commands only availabe for HcalBackplane or HcalFiberless targets.";
   }
 }
 
 static void bias_wrapper(const std::string& cmd, Target* tgt) {
-  auto hcal = dynamic_cast<pflib::HcalBackplane*>(tgt);
-  if (hcal) {
-    bias(cmd, hcal);
+  auto hcalbp = dynamic_cast<pflib::HcalBackplane*>(tgt);
+  if (hcalbp) {
+    bias(cmd, hcalbp);
   } else {
+    auto hcalfl = dynamic_cast<pflib::HcalFiberless*>(tgt);
+    if (hcalfl) {
+      bias(cmd, hcalfl);
+    } else {
     PFEXCEPTION_RAISE("NotImpl",
                       "The BIAS menu of commands is only available for "
-                      "HcalBackplane targets.");
+                      "HcalBackplane or HcalFiberless targets.");
+    }
   }
 }
 
