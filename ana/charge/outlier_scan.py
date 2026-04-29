@@ -419,7 +419,9 @@ def plot_outliers(dataset : list, plot_type : str):
         plt.legend()
         plt.grid()
         if args.plot_directory:
-            plt.savefig(os.path.join(args.plot_directory,f'clustered_outliers.png'), dpi=400)
+            if dataset[i].parameters['highrange'] == True: label = 'HR'
+            elif dataset[i].parameters['preCC'] == True: label = 'preCC'
+            plt.savefig(os.path.join(args.plot_directory,f'clustered_outliers_ch{dataset[i].channel}_C{dataset[i].calib}_{label}.png'), dpi=400)
             plt.close()
         else:
             plt.show()
