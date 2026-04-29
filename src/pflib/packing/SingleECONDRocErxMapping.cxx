@@ -1,7 +1,8 @@
 #include "pflib/packing/SingleECONDRocErxMapping.h"
 
-#include "pflib/Exception.h"
 #include <algorithm>
+
+#include "pflib/Exception.h"
 
 namespace pflib::packing {
 
