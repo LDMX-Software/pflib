@@ -72,6 +72,9 @@ def scatter_plot_evaluation(data, data_type):
     
     calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
 
+    for calib in calibs:
+        index = np.where(calibs==calib)
+        if (calib >= 512) and (max(data[data.calib==calib].rms.to_numpy(dtype=np.float64)) == 0.0) : calibs = np.delete(calibs, index) 
     
     fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,10))
 
@@ -79,21 +82,20 @@ def scatter_plot_evaluation(data, data_type):
 
         link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
         link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
-        ax1.scatter(np.arange(36), link0_peaks, alpha = 0.5, label=f"CALIB{calib}")
-        ax2.scatter(np.arange(36,72), link1_peaks, alpha = 0.5, label=f"CALIB{calib}")
+        ax1.scatter(np.arange(36), link0_peaks, alpha = 0.6, label=f"CALIB{calib}")
+        ax2.scatter(np.arange(36,72), link1_peaks, alpha = 0.6, label=f"CALIB{calib}")
     ax1.set_xticks(np.arange(36))
     ax1.set_title("Link 0")
-    ax1.set_xlabel("Channels")
-    ax1.set_ylabel("Average peak ADC [a.u.]")
     ax1.grid()
     ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
     ax2.set_xticks(np.arange(36,72))
     ax2.set_title("Link 1")
-    ax2.set_xlabel("Channels")
-    ax2.set_ylabel("Average peak ADC [a.u.]")
     ax2.grid()
     ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
+
+    fig.supylabel("Average peak ADC [a.u.]", fontsize=14)
+    fig.supxlabel("Channels", fontsize=14)
     fig.suptitle(f"Mean-ADC-peak over channels - {data_type}", fontsize=14)
 
     if args.plot_directory:
@@ -109,22 +111,20 @@ def scatter_plot_evaluation(data, data_type):
 
         link0_rms = data[(data.calib==calib) & (data.link == 0)].rms.to_numpy(dtype=np.float64)
         link1_rms = data[(data.calib==calib) & (data.link == 1)].rms.to_numpy(dtype=np.float64)
-        ax1.plot(np.arange(36), link0_rms, alpha = 0.5, label=f"CALIB{calib}")
-        ax2.plot(np.arange(36,72), link1_rms, alpha = 0.5, label=f"CALIB{calib}")
+        ax1.plot(np.arange(36), link0_rms, alpha = 0.6, label=f"CALIB{calib}")
+        ax2.plot(np.arange(36,72), link1_rms, alpha = 0.6, label=f"CALIB{calib}")
     ax1.set_xticks(np.arange(36))
     ax1.set_title("Link 0")
-    ax1.set_xlabel("Channels")
-    ax1.set_ylabel("RMS of average peak ADC [a.u.]")
     ax1.grid()
     ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
     ax2.set_xticks(np.arange(36,72))
     ax2.set_title("Link 1")
-    ax2.set_xlabel("Channels")
-    ax2.set_ylabel("RMS of average peak ADC [a.u.]")
     ax2.grid()
     ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
+    fig.supylabel("RMS of average peak ADC [a.u.]", fontsize=14)
+    fig.supxlabel("Channels", fontsize=14)
     fig.suptitle(f"Mean-ADC-peak-RMS over channels - {data_type}", fontsize=14)
 
     if args.plot_directory:
