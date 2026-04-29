@@ -17,8 +17,59 @@ ECON::ECON(std::shared_ptr<I2C> i2c, uint8_t econ_base_addr,
       compiler_{Compiler::get(type_version)},
       type_{type_version} {
   econ_reg_nbytes_lut_ = compiler_.build_register_byte_lut();
-
   pflib_log(debug) << "ECON base addr " << packing::hex(econ_base_);
+  // read fast command counters
+  static const int fctrl_base = 0x3ab;
+  static const std::vector<std::pair<std::string, int>> counters = {
+      {"LOCK_COUNT", 0x1},
+      {"BCR", 0x2},
+      {"OCR", 0x3},
+      {"L1A", 0x4},
+      {"NZS", 0x5},
+      {"CAL_PULSE_INT", 0x6},
+      {"CAL_PULSE_EXT", 0x7},
+      {"EBR", 0x8},
+      {"ECR", 0x9},
+      {"LINK_RESET_ROC_T", 0xa},
+      {"LINK_RESET_ROC_D", 0xb},
+      {"LINK_RESET_ECON_T", 0xc},
+      {"LINK_RESET_ECON_D", 0xd},
+      // skipping spare fcmd_count slots
+      {"UNASSIGNED", 0x16},
+      {"FC_ERROR", 0x17}};
+  static const int locked = 1;
+  static const int cmd_rx_inverted = 0;
+  printf(" %18s: %d\n", "LOCKED",
+         ((getValues(fctrl_base, 1).at(0) >> locked) & 0b1));
+  printf(" %18s: %d\n", "CMD RX Inverted",
+         ((getValues(fctrl_base, 1).at(0) >> cmd_rx_inverted) & 0b1));
+  for (const auto& [counter, offset] : counters) {
+    printf(" %18s: %d\n", counter.c_str(),
+           getValues(fctrl_base + offset, 1).at(0));
+  }
+
+  /**
+   * The PUSM state names are copied from the online ECON-D/T manual
+   * https://econ-user-manual.docs.cern.ch/CommonBlocks/pusm/
+   *
+   * The numbering there is offset by one compared to the indices that
+   * we are reading out from the chip, but I think that makes sense.
+   */
+  static const std::array<const char*, 9> pusm_state_names = {
+      "RESET",         "IDLE",
+      "RESET_PLL",     "WAIT_PLL_LOCK",
+      "RESET_DLLS",    "WAIT_DLL_RESET_DONE",
+      "WAIT_DLL_LOCK", "RESET_LOGIC_USING_DLL",
+      "READY"};
+  int pusm_state = getPUSMStateValue();
+  const char* pusm_state_name =
+      ((pusm_state >= 0 and pusm_state < pusm_state_names.size())
+           ? pusm_state_names[pusm_state]
+           : "???");
+
+  printf(" %18s: %d\n", "PUSM Run Val", getPUSMRunValue());
+  printf(" %18s: %d %s\n", "PUSM State Val", pusm_state, pusm_state_name);
+  printf(" %18s: %d\n", "Run Mode", isRunMode());
 }
 
 uint32_t getParam(const std::vector<uint8_t>& data, size_t shift,
