@@ -144,6 +144,10 @@ level_pedestals(Target* tgt) {
       lowend[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
+
+    for (int i_roc : tgt->roc_ids()) {
+      tgt->roc(i_roc).setRegisters(prior_registers.at(i_roc));
+    }
   }
 
   pflib_log(info) << "sample collections done, deducing settings";
