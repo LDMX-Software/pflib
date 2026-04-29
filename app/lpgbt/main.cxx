@@ -885,6 +885,7 @@ int main(int argc, char* argv[]) {
       printf("%s\n", target_name.c_str());
     }
     if (arg == "--bw") {
+#ifdef USE_ROGUE
       wired = false;
       nomezz = true;
       bittware = true;
@@ -902,6 +903,10 @@ int main(int argc, char* argv[]) {
       } else {
         target_name = argv[i + 1];
       }
+#else
+      std::cerr << "Unable to connect to BW without compiling with Rogue" << std::endl;
+      return 3;
+#endif
     }
 
     if (arg == "-s") {
