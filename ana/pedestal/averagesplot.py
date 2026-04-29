@@ -78,17 +78,20 @@ def plot_averages():
         ymin.append([min(sample_avg_adc[n][0].ravel()),min(sample_avg_adc[n][1].ravel())])
         ymax.append([max(sample_avg_adc[n][0].ravel()),max(sample_avg_adc[n][1].ravel())])
         ax1.errorbar(channels, sample_avg_adc[n][0].ravel(), yerr=sample_error_adc[n][0].ravel(), label = f'Pedestals {labels[n]}', fmt='o')
-        ax2.plot(channels, sample_error_adc[n][0].ravel(), label = f'Pedestals {labels[n]} RMS')
+        ax2.scatter(channels, sample_error_adc[n][0].ravel(),  label = f'Pedestals {labels[n]} RMS', marker='^')
+        ax2.plot(channels, sample_error_adc[n][0].ravel(), linestyle='-', alpha=0.2)
 
     ymin = np.array(ymin)
     ymax = np.array(ymax)
     ax1.set_ylim([min(ymin[:,0]-10), max(ymax[:,0])+10])
 
-    ax1.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
-    ax2.set(ylabel='RMS ADC [a.u.]', xlabel='Channels')
+    ax1.set_ylabel('Mean ADC [a.u.]', fontsize = 12)
+    ax2.set_ylabel('RMS ADC [a.u.]', fontsize = 12)
+    fig.supxlabel('Channels', fontsize=15)
+
 
     ax1.grid()
-    ax2.grid(axis='y')
+    ax2.grid(axis='x')
 
     ax1.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
     ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
@@ -105,15 +108,17 @@ def plot_averages():
     for n in range(0,len(args.dataset)):
 
         ax3.errorbar(channels, sample_avg_adc[n][1].ravel(), yerr=sample_error_adc[n][1].ravel(), label = f'Pedestals {labels[n]}', fmt='o')
-        ax4.plot(channels, sample_error_adc[n][1].ravel(), label = f'Pedestals {labels[n]} RMS')
+        ax4.scatter(channels, sample_error_adc[n][1].ravel(),  label = f'Pedestals {labels[n]} RMS', marker='^')
+        ax4.plot(channels, sample_error_adc[n][1].ravel(), linestyle='-', alpha=0.2)
 
     ax1.set_ylim([min(ymin[:,1]-10), max(ymax[:,1])+10])
 
-    ax3.set(ylabel='Mean ADC [a.u.]', xlabel='Channels')
-    ax4.set(ylabel='RMS ADC [a.u.]', xlabel='Channels')
+    ax3.set_ylabel('Mean ADC [a.u.]', fontsize = 12)
+    ax4.set_ylabel('RMS ADC [a.u.]', fontsize = 12)
+    fig.supxlabel('Channels', fontsize=15)
 
     ax3.grid()
-    ax4.grid(axis='y')
+    ax4.grid(axis='x')
 
     ax3.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
     ax4.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
