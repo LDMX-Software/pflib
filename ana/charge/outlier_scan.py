@@ -377,17 +377,22 @@ def outlier_bulk_evaluation(full_dataset):
         else : scan_type = 2
 
         outlier_count = 0
+        pot_outlier_count = 0
         outlier_sum = 0
         potential_outlier_sum = 0
         for sample in dataset:
             if sample.outliers_number != 0: outlier_count += 1
+            if sample.potential_outliers_number != 0: pot_outlier_count += 1
             outlier_sum += sample.outliers_number
             potential_outlier_sum += sample.potential_outliers_number
         outlier_fraction = outlier_count/samples
-        outlier_data.append(np.array((outlier_fraction, outlier_sum, potential_outlier_sum, calib, channel, samples, scan_type)))
+        pot_outlier_fraction = pot_outlier_count/samples
+
+        outlier_data.append(np.array((outlier_fraction, pot_outlier_fraction, outlier_sum, potential_outlier_sum, calib, channel, samples, scan_type)))
     outlier_data = np.array(outlier_data)
-    outlier_dict = {"outlier_fraction" : outlier_data[:,0], "outlier_sum" : outlier_data[:,1], "pot_outlier_sum" : outlier_data[:,2], "calib" : outlier_data[:,3], 
-                    "channel" : outlier_data[:,4], "samples" : outlier_data[:,5], "scan_type" : outlier_data[:,6]}
+    outlier_dict = {"outlier_fraction" : outlier_data[:,0], "pot_outlier_fraction" : outlier_data[:,1], "outlier_sum" : outlier_data[:,2], 
+                    "pot_outlier_sum" : outlier_data[:,3], "calib" : outlier_data[:,4], 
+                    "channel" : outlier_data[:,5], "samples" : outlier_data[:,6], "scan_type" : outlier_data[:,7]}
     outlier_df = pd.DataFrame(outlier_dict)
 
     return outlier_df
@@ -464,11 +469,16 @@ def plot_evaluation(dataframe):
     if not multi_type:
         fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
 
+        bottom_bar_link0 = np.zeros(36)
+        bottom_bar_link1 = np.zeros(36)
+
         for calib in calibs:
             ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_sum.to_numpy(dtype=np.int64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link0)
             ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_sum.to_numpy(dtype=np.int64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link1)
+            bottom_bar_link0 += dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_sum.to_numpy(dtype=np.int64)
+            bottom_bar_link1 += dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_sum.to_numpy(dtype=np.int64)
         fig.supxlabel('Channels', fontsize=15)
         fig.supylabel('Total outlier count', fontsize=15)
         ax1.set_xticks(np.arange(36, step=2))
@@ -485,12 +495,17 @@ def plot_evaluation(dataframe):
             plt.close()
         else: plt.show()
         
+        bottom_bar_link0 = np.zeros(36)
+        bottom_bar_link1 = np.zeros(36)
+
         fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
         for calib in calibs:
             ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
-                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link0)
             ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
-                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link1)
+            bottom_bar_link0 += dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64)
+            bottom_bar_link1 += dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64)
 
         fig.supxlabel('Channels')
         fig.supylabel('Outlier-sample frequency')
@@ -510,13 +525,16 @@ def plot_evaluation(dataframe):
 
         # potential outliers ------------------------------------------------
 
+        bottom_bar_link0 = np.zeros(36)
+        bottom_bar_link1 = np.zeros(36)
+
         fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
 
         for calib in calibs:
             ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link0)
             ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
-                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=0.7, label=f"CALIB{calib}")
+                        dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].pot_outlier_sum.to_numpy(dtype=np.int64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link1)
         fig.supxlabel('Channels', fontsize=15)
         fig.supylabel('Total potential-outlier count', fontsize=15)
         ax1.set_xticks(np.arange(36, step=2))
@@ -533,12 +551,17 @@ def plot_evaluation(dataframe):
             plt.close()
         else: plt.show()
         
+        bottom_bar_link0 = np.zeros(36)
+        bottom_bar_link1 = np.zeros(36)
+
         fig, (ax1,ax2) = plt.subplots(2,1, figsize=(10,8))
         for calib in calibs:
             ax1.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].channel.to_numpy(dtype=np.int64), 
-                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].pot_outlier_fraction.to_numpy(dtype=np.float64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link0)
             ax2.bar(dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].channel.to_numpy(dtype=np.int64), 
-                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].outlier_fraction.to_numpy(dtype=np.float64), alpha=0.7, label=f"CALIB{calib}")
+                    dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].pot_outlier_fraction.to_numpy(dtype=np.float64), alpha=1, label=f"CALIB{calib}", bottom = bottom_bar_link1)
+        bottom_bar_link0 += dataframe[(dataframe.calib==calib) & (dataframe.channel < 36)].pot_outlier_fraction.to_numpy(dtype=np.float64)
+        bottom_bar_link1 += dataframe[(dataframe.calib==calib) & (dataframe.channel > 35)].pot_outlier_fraction.to_numpy(dtype=np.float64)
 
         fig.supxlabel('Channels')
         fig.supylabel('Potential-outlier-sample frequency')
