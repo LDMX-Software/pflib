@@ -6,8 +6,9 @@ namespace pflib {
 
 void EcalSingleModuleMotherboard::init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt,
                                        int module_i2c_bus, int roc_mask) {
+  // Setup DAQ lpGBT GPIO naming
   pflib::lpgbt::standard_config::setup_ecal_daq_gpio(daq_lpgbt);
-  // Setup DAQ lpGBT
+
   try {
     int daq_pusm = daq_lpgbt.status();
 
