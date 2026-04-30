@@ -65,11 +65,7 @@ level_pedestals(Target* tgt) {
       parameters[ch_str]["DACB"] = 0;
       parameters[ch_str]["TRIM_INV"] = 0;
     }
-
-    std::map<int, std::map<int, std::map<int, uint8_t>>> prior_registers;
-    for (int i_roc : tgt->roc_ids()) {
-      prior_registers[i_roc] = tgt->roc(i_roc).applyParameters(parameters);
-    }
+    auto test_params = tgt->tempApplyAllROCs(parameters);
 
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
@@ -90,10 +86,6 @@ level_pedestals(Target* tgt) {
       }
     }
     pflib_log(trace) << "got medians per half";
-
-    for (int i_roc : tgt->roc_ids()) {
-      tgt->roc(i_roc).setRegisters(prior_registers.at(i_roc));
-    }
   }
 
   {  // highend run scope
@@ -105,21 +97,13 @@ level_pedestals(Target* tgt) {
       parameters[ch_str]["DACB"] = 0;
       parameters[ch_str]["TRIM_INV"] = 63;
     }
-
-    std::map<int, std::map<int, std::map<int, uint8_t>>> prior_registers;
-    for (int i_roc : tgt->roc_ids()) {
-      prior_registers[i_roc] = tgt->roc(i_roc).applyParameters(parameters);
-    }
+    auto test_params = tgt->tempApplyAllROCs(parameters);
 
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
 
     for (int i_roc : tgt->roc_ids()) {
       highend[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-    }
-
-    for (int i_roc : tgt->roc_ids()) {
-      tgt->roc(i_roc).setRegisters(prior_registers.at(i_roc));
     }
   }
 
@@ -132,21 +116,13 @@ level_pedestals(Target* tgt) {
       parameters[ch_str]["DACB"] = 31;
       parameters[ch_str]["TRIM_INV"] = 0;
     }
-
-    std::map<int, std::map<int, std::map<int, uint8_t>>> prior_registers;
-    for (int i_roc : tgt->roc_ids()) {
-      prior_registers[i_roc] = tgt->roc(i_roc).applyParameters(parameters);
-    }
+    auto test_params = tgt->tempApplyAllROCs(parameters);
 
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
 
     for (int i_roc : tgt->roc_ids()) {
       lowend[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-    }
-
-    for (int i_roc : tgt->roc_ids()) {
-      tgt->roc(i_roc).setRegisters(prior_registers.at(i_roc));
     }
   }
 
