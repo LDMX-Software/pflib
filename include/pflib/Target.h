@@ -138,18 +138,23 @@ class Target {
    */
   class TempParametersAllROCs {
    public:
-    /// applies the same parameters to all the ROCs and holds the previous registers
+    /// applies the same parameters to all the ROCs and holds the previous
+    /// registers
     TempParametersAllROCs(
         Target* tgt,
-        const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+        const std::map<std::string, std::map<std::string, uint64_t>>&
+            parameters);
     /// different parameter sets depending on ROC index
     TempParametersAllROCs(
         Target* tgt,
-        const std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>& parameters);
+        const std::map<int,
+                       std::map<std::string, std::map<std::string, uint64_t>>>&
+            parameters);
     /// cannot copy or assign this lock
     TempParametersAllROCs(const TempParametersAllROCs&) = delete;
     TempParametersAllROCs& operator=(const TempParametersAllROCs&) = delete;
     ~TempParametersAllROCs();
+
    private:
     /// handle to target holding ROCs
     Target* tgt_;
@@ -160,12 +165,14 @@ class Target {
   /// *temporarily* apply the same parameters to all the ROCs
   /// these parameters are unset when the returned object goes out of scope
   TempParametersAllROCs tempApplyAllROCs(
-        const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+      const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
 
   /// *temporarily* apply some parameters (varying depending on ROC)
   /// these parameters are unset when the returned object goes out of scope
   TempParametersAllROCs tempApplyAllROCs(
-        const std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>& parameters);
+      const std::map<int,
+                     std::map<std::string, std::map<std::string, uint64_t>>>&
+          parameters);
 
  protected:
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
