@@ -62,7 +62,7 @@ void ZCUOptoLink::reset_link() {
    *
    * Unsure if this should depend on ilink. Currently, it does not.
    */
-  coder_.write(0, 1<<(ilink_%2));  // reset the DECODER
+  coder_.write(0, 1 << (ilink_ % 2));  // reset the DECODER
   if (isdaq_) {
     usleep(1000);
     coder_.write(65, 0x40000000);  // reset IC
@@ -124,9 +124,9 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval["CDR_LOCK"] = transright_.read(7) & 0xFFF;
 
   val = coder_.read(2);
-  retval["READY"] = (val >> (0*2+(ilink_%2))) & 0x1;
-  retval["NOT_IN_RESET"] = (val >> (1*2+(ilink_%2))) & 0x1;
-  retval["LINK_ERRORS"] = coder_.read(4+(ilink_%2)) & 0xFFFFFF;
+  retval["READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
+  retval["NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
+  retval["LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
 
   return retval;
 }
