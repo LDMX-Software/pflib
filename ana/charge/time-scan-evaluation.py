@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import json
 import os
-from scipy import stats
-
 from pathlib import Path
 import argparse
 
@@ -13,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('datasets', type=Path, nargs="+", help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-p', '--plot', action='store_true', help=f'Plot results')
-parser.add_argument('-g', '--goodness_of_fit', action='store_true', help='Perform a goodness-of-fit evaluation for a linear fit')
+parser.add_argument('-rms', '--rms_calculation', action='store_true', help='Calculate the RMS of the mean-ADC-peak distribution across each link')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the fit results to a csv with the given path')
 args = parser.parse_args()
@@ -134,58 +132,29 @@ def scatter_plot_evaluation(data, data_type):
         plt.show()
         plt.close()
 
-def gradient_evaluation(data):
-    
-    gradient = False # I think the gradient/R2 evaluation doesn't really make much sense, it's probably better to take the RMS of the mean-peak distribution instead
+def rms_calculation(data):
 
-    if gradient:
+    results = []
+    calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
 
-        results = []
-        calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
+    results = {"CALIB" : [], "link_0_RMS" : [], "link_1_RMS" : []}
 
-        results = {"CALIB" : [], "link_0_gradient" : [], "link_0_R2" : [], "link_1_gradient" : [], "link_1_R2" : []}
+    for calib in calibs:
+        link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
+        link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
 
-        for calib in calibs:
-            link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
-            link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
-            
-            gradient0, intercept0, r_value0, p_value0, std_err0 = stats.linregress(np.arange(36), link0_peaks)
-            gradient1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(np.arange(36,72), link1_peaks)
-            
-            results["CALIB"].append(calib)
-            results["link_0_gradient"].append(gradient0)
-            results["link_1_gradient"].append(gradient1)
-            results["link_0_R2"].append(r_value0**2)
-            results["link_1_R2"].append(r_value1**2)
-        
-        if args.csv : 
-            df = pd.DataFrame(results)
-            df.to_csv(args.csv)
-        else:
-            print(results)
+        link0_rms = root_mean_square(link0_peaks)
+        link1_rms = root_mean_square(link1_peaks)
 
+        results["CALIB"].append(calib)
+        results["link_0_RMS"].append(link0_rms)
+        results["link_1_RMS"].append(link1_rms)
+
+    if args.csv : 
+        df = pd.DataFrame(results)
+        df.to_csv(args.csv)
     else:
-        results = []
-        calibs = np.unique(data.calib.to_numpy(dtype=np.int64))
-
-        results = {"CALIB" : [], "link_0_RMS" : [], "link_1_RMS" : []}
-
-        for calib in calibs:
-            link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
-            link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
-
-            link0_rms = root_mean_square(link0_peaks)
-            link1_rms = root_mean_square(link1_peaks)
-
-            results["CALIB"].append(calib)
-            results["link_0_RMS"].append(link0_rms)
-            results["link_1_RMS"].append(link1_rms)
-
-        if args.csv : 
-            df = pd.DataFrame(results)
-            df.to_csv(args.csv)
-        else:
-            print(results)
+        print(results)
 
 data = []
 for dataset in args.datasets:
@@ -202,5 +171,4 @@ else : scan_type = "highrange"
 df = pd.DataFrame(data_sorted)
 
 if args.plot : scatter_plot_evaluation(df, scan_type)
-if args.goodness_of_fit : 
-    gradient_evaluation(df)
+if args.goodness_of_fit : rms_calculation(df)
