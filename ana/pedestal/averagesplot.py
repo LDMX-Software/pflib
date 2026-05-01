@@ -24,13 +24,6 @@ channels = ['calib']+[str(i) for i in range(36)]
 sample_avg_adc = []
 sample_error_adc = []
 
-def root_mean_square(adc):
-    mean_adc = np.mean(adc)
-    sum = 0
-    for sample in adc:
-        sum += (sample-mean_adc)**2
-    return np.sqrt(sum/len(adc))
-
 for set in args.dataset:
     pedestal = pd.read_csv(set)
 
@@ -45,7 +38,7 @@ for set in args.dataset:
 
         for channel in channels:
             avg_adc_channel.append(np.mean(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
-            error_adc_channel.append(root_mean_square(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
+            error_adc_channel.append(np.std(pedestal[(pedestal.i_link==link)&(pedestal.channel==channel)].adc.to_numpy()))
 
         if link == 0:
             link0_avg_adc.append(np.array(avg_adc_channel))
@@ -133,12 +126,12 @@ def plot_averages():
 def save_rms():
 
     if args.align_comparison:
-        rms_results = {'link_0_pre_alignment' : [root_mean_square(sample_avg_adc[0][0].ravel())], 'link_1_pre_alignment' : [root_mean_square(sample_avg_adc[0][1].ravel())], 
-                       'link_0_post_alignment' : [root_mean_square(sample_avg_adc[1][0].ravel())], 'link_1_post_alignment' : [root_mean_square(sample_avg_adc[1][1].ravel())]}
+        rms_results = {'link_0_pre_alignment' : [np.std(sample_avg_adc[0][0].ravel())], 'link_1_pre_alignment' : [np.std(sample_avg_adc[0][1].ravel())], 
+                       'link_0_post_alignment' : [np.std(sample_avg_adc[1][0].ravel())], 'link_1_post_alignment' : [np.std(sample_avg_adc[1][1].ravel())]}
     else:
         rms_results = dict()
         for i in range(len(args.dataset)):
-            rms_dataset = {f'link_0_pedestals_{i}' : [root_mean_square(sample_avg_adc[i][0].ravel())], f'link_1_pedestals_{i}' : [root_mean_square(sample_avg_adc[i][1].ravel())]}
+            rms_dataset = {f'link_0_pedestals_{i}' : [np.std(sample_avg_adc[i][0].ravel())], f'link_1_pedestals_{i}' : [np.std(sample_avg_adc[i][1].ravel())]}
             rms_results = rms_results | rms_dataset
 
     df = pd.DataFrame(rms_results)
