@@ -108,6 +108,7 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * - HARDRESET : pflib::Target::hardResetROCs
  * - SOFTRESET : pflib::Target::softResetROC
  * - RUNMODE : enable run mode on the ROC
+ * - RUNMODE_ALL : enable run mode on all ROCs
  * - IROC : Change which ROC to focus on
  * - PAGE : pflib::ROC::readPage
  * - PARAM_NAMES : Use pflib::parameters to get list ROC parameter names
@@ -130,6 +131,11 @@ static void roc(const std::string& cmd, Target* pft) {
         pftool::readline_int("Which ROC to manage: ", pftool::state.iroc);
   }
   pflib::ROC roc = pft->roc(pftool::state.iroc);
+  if (cmd == "RUNMODE_ALL") {
+    for (int iroc : pft->roc_ids()) {
+      pft->roc(iroc).setRunMode(true);
+    }
+  }
   if (cmd == "RUNMODE") {
     bool isRunMode = roc.isRunMode();
     isRunMode = pftool::readline_bool("Set ROC runmode: ", isRunMode);
@@ -176,7 +182,22 @@ static void roc(const std::string& cmd, Target* pft) {
         "Update all parameter values on the chip using the defaults in the "
         "manual for any values not provided? ",
         false);
-    roc.loadParameters(fname, prepend_defaults);
+    bool apply_to_all = pftool::readline_bool(
+        "Apply this same file to all the ROCs (Y) or just to the selected "
+        "i_roc = " +
+            std::to_string(pftool::state.iroc) + "? ",
+        false);
+    if (apply_to_all) {
+      for (int iroc : pft->roc_ids()) {
+        // TODO
+        // if we are reasonably confident that all ROCs in a target will have
+        // the same type_version, we could speed this up by compiling the file
+        // to registers _once_ and then using ROC::setRegisters
+        pft->roc(iroc).loadParameters(fname, prepend_defaults);
+      }
+    } else {
+      roc.loadParameters(fname, prepend_defaults);
+    }
   }
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
@@ -193,6 +214,7 @@ auto menu_roc =
         ->line("SOFTRESET", "Soft reset to all rocs", roc)
         ->line("IROC", "Change the active ROC number", roc)
         ->line("RUNMODE", "set/clear the run mode", roc)
+        ->line("RUNMODE_ALL", "put all the ROCs into run mode", roc)
         ->line("PAGE", "a page of the parameters on the chip", roc)
         ->line("PARAM_NAMES", "Print a list of parameters on a page", roc)
         ->line("POKE", "change a single parameter value", roc)
