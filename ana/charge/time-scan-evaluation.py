@@ -11,19 +11,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('datasets', type=Path, nargs="+", help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-p', '--plot', action='store_true', help=f'Plot results')
+parser.add_argument('-tp', '--track_pedestals', action='store_true', help='Track pedestal values (minima) instead of peaks')
 parser.add_argument('-rms', '--rms_calculation', action='store_true', help='Calculate the RMS of the mean-ADC-peak distribution across each link')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the fit results to a csv with the given path')
 args = parser.parse_args()
 
 # ------- LOADING & SORTING DATA -------
-
-def root_mean_square(adc):
-        mean_adc = np.mean(adc)
-        sum = 0
-        for sample in adc:
-            sum += (sample-mean_adc)**2
-        return np.sqrt(sum/len(adc))
 
 def read_data(path: Path):
     
@@ -59,8 +53,11 @@ def read_data(path: Path):
 
     for time_point in time_points:
         avg_adc.append(np.mean(data[data.time == time_point].adc))
-        rms.append(root_mean_square(data[data.time == time_point].adc.to_numpy()))
-    avg_peak = (max(avg_adc))
+        rms.append(np.std(data[data.time == time_point].adc.to_numpy()))
+    if not args.track_pedestals:
+        avg_peak = max(avg_adc)
+    else:
+        avg_peak = min(avg_adc)
     avg_peak_index = avg_adc.index(avg_peak)
     rms_peak = rms[avg_peak_index]
 
@@ -94,16 +91,28 @@ def scatter_plot_evaluation(data, data_type):
     ax2.grid()
     ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
-    fig.supylabel("Average peak ADC [a.u.]", fontsize=14)
-    fig.supxlabel("Channels", fontsize=14)
-    fig.suptitle(f"Mean-ADC-peak over channels - {data_type}", fontsize=14)
+    if not args.track_pedestals:
+        fig.supylabel("Average peak ADC [a.u.]", fontsize=14)
+        fig.supxlabel("Channels", fontsize=14)
+        fig.suptitle(f"Mean-ADC-peak over channels - {data_type}", fontsize=14)
 
-    if args.plot_directory:
-        plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-{data_type}.png'), dpi=400)
-        plt.close()
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-{data_type}.png'), dpi=400)
+            plt.close()
+        else:
+            plt.show()
+            plt.close()
     else:
-        plt.show()
-        plt.close()
+        fig.supylabel("Average pedestal ADC [a.u.]", fontsize=14)
+        fig.supxlabel("Channels", fontsize=14)
+        fig.suptitle(f"Mean-ADC-pedestal over channels - {data_type}", fontsize=14)
+
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-{data_type}-pedestals.png'), dpi=400)
+            plt.close()
+        else:
+            plt.show()
+            plt.close()
 
     fig, (ax1,ax2) = plt.subplots(2,1,figsize=(12,10))
 
@@ -123,16 +132,28 @@ def scatter_plot_evaluation(data, data_type):
     ax2.grid()
     ax2.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right')
 
-    fig.supylabel("RMS of average peak ADC [a.u.]", fontsize=14)
-    fig.supxlabel("Channels", fontsize=14)
-    fig.suptitle(f"Mean-ADC-peak-RMS over channels - {data_type}", fontsize=14)
+    if not args.track_pedestals:
+        fig.supylabel("RMS of average peak ADC [a.u.]", fontsize=14)
+        fig.supxlabel("Channels", fontsize=14)
+        fig.suptitle(f"Mean-ADC-peak-RMS over channels - {data_type}", fontsize=14)
 
-    if args.plot_directory:
-        plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-rms-{data_type}.png'), dpi=400)
-        plt.close()
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-rms-{data_type}.png'), dpi=400)
+            plt.close()
+        else:
+            plt.show()
+            plt.close()
     else:
-        plt.show()
-        plt.close()
+        fig.supylabel("RMS of average pedestal ADC [a.u.]", fontsize=14)
+        fig.supxlabel("Channels", fontsize=14)
+        fig.suptitle(f"Mean-ADC-pedestal-RMS over channels - {data_type}", fontsize=14)
+
+        if args.plot_directory:
+            plt.savefig(os.path.join(args.plot_directory,f'time-scan-evaluation-rms-{data_type}-pedestals.png'), dpi=400)
+            plt.close()
+        else:
+            plt.show()
+            plt.close()
 
 def rms_calculation(data):
 
@@ -145,8 +166,8 @@ def rms_calculation(data):
         link0_peaks = data[(data.calib==calib) & (data.link == 0)].peak.to_numpy(dtype=np.float64)
         link1_peaks = data[(data.calib==calib) & (data.link == 1)].peak.to_numpy(dtype=np.float64)
 
-        link0_rms = root_mean_square(link0_peaks)
-        link1_rms = root_mean_square(link1_peaks)
+        link0_rms = np.std(link0_peaks)
+        link1_rms = np.std(link1_peaks)
 
         results["CALIB"].append(calib)
         results["link_0_RMS"].append(link0_rms)
