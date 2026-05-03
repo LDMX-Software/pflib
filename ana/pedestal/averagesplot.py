@@ -127,7 +127,6 @@ def save_rms():
 
     if args.align_comparison:
 
-        print(sample_avg_adc[0][0][0])
         rms_results = {'link_0_pre_alignment' : [np.std(sample_avg_adc[0][0][0][1:])], 'link_1_pre_alignment' : [np.std(sample_avg_adc[0][1][0][1:])], # The last [0][1:] are unravelling a nested list and excluding the calib channel
                        'link_0_post_alignment' : [np.std(sample_avg_adc[1][0][0][1:])], 'link_1_post_alignment' : [np.std(sample_avg_adc[1][1][0][1:])]}
     else:
