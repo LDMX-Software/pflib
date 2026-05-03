@@ -126,12 +126,14 @@ def plot_averages():
 def save_rms():
 
     if args.align_comparison:
-        rms_results = {'link_0_pre_alignment' : [np.std(sample_avg_adc[0][0].ravel())], 'link_1_pre_alignment' : [np.std(sample_avg_adc[0][1].ravel())], 
-                       'link_0_post_alignment' : [np.std(sample_avg_adc[1][0].ravel())], 'link_1_post_alignment' : [np.std(sample_avg_adc[1][1].ravel())]}
+
+        print(sample_avg_adc[0][0][0])
+        rms_results = {'link_0_pre_alignment' : [np.std(sample_avg_adc[0][0][0][1:])], 'link_1_pre_alignment' : [np.std(sample_avg_adc[0][1][0][1:])], # The last [0][1:] are unravelling a nested list and excluding the calib channel
+                       'link_0_post_alignment' : [np.std(sample_avg_adc[1][0][0][1:])], 'link_1_post_alignment' : [np.std(sample_avg_adc[1][1][0][1:])]}
     else:
         rms_results = dict()
         for i in range(len(args.dataset)):
-            rms_dataset = {f'link_0_pedestals_{i}' : [np.std(sample_avg_adc[i][0].ravel())], f'link_1_pedestals_{i}' : [np.std(sample_avg_adc[i][1].ravel())]}
+            rms_dataset = {f'link_0_pedestals_{i}' : [np.std(sample_avg_adc[i][0][0][1:])], f'link_1_pedestals_{i}' : [np.std(sample_avg_adc[i][1][0][1:])]}
             rms_results = rms_results | rms_dataset
 
     df = pd.DataFrame(rms_results)
