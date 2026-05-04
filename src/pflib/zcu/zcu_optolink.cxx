@@ -58,9 +58,9 @@ void ZCUOptoLink::reset_link() {
   }
 
   /**
-   * After BUFFBYPASS_DONE, then we reset the decoder, IC, and EC.
-   *
-   * Unsure if this should depend on ilink. Currently, it does not.
+   * After BUFFBYPASS_DONE, then we reset the decoder
+   * (which depends on the link), IC, and EC (which are
+   * for a daq/trg link pair.
    */
   coder_.write(0, 1 << (ilink_ % 2));  // reset the DECODER
   if (isdaq_) {
@@ -124,9 +124,10 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval["CDR_LOCK"] = transright_.read(7) & 0xFFF;
 
   val = coder_.read(2);
-  retval["READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
-  retval["NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
-  retval["LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+  prefix = "LINK"+std::to_string(ilink_);
+  retval[prefix+" READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
+  retval[prefix+" NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
+  retval[prefix " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
 
   return retval;
 }
