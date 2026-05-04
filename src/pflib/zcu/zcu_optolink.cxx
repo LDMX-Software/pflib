@@ -127,7 +127,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::string prefix = "LINK" + std::to_string(ilink_);
   retval[prefix + " READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
   retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
-  retval[prefix " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+  retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
 
   return retval;
 }
