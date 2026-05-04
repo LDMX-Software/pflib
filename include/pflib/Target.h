@@ -129,6 +129,51 @@ class Target {
   virtual std::vector<uint32_t> read_event() = 0;
   virtual bool has_event() { return daq().getEventOccupancy() > 0; }
 
+  /**
+   * temporarily apply parameters to all of the ROCs connected to a target
+   * and then unset them
+   *
+   * This is specifically for ROCs and not templated to support ECONs because
+   * I could not think of a situation where this would be helpful for the ECONs.
+   */
+  class TempParametersAllROCs {
+   public:
+    /// applies the same parameters to all the ROCs and holds the previous
+    /// registers
+    TempParametersAllROCs(
+        Target* tgt,
+        const std::map<std::string, std::map<std::string, uint64_t>>&
+            parameters);
+    /// different parameter sets depending on ROC index
+    TempParametersAllROCs(
+        Target* tgt,
+        const std::map<int,
+                       std::map<std::string, std::map<std::string, uint64_t>>>&
+            parameters);
+    /// cannot copy or assign this lock
+    TempParametersAllROCs(const TempParametersAllROCs&) = delete;
+    TempParametersAllROCs& operator=(const TempParametersAllROCs&) = delete;
+    ~TempParametersAllROCs();
+
+   private:
+    /// handle to target holding ROCs
+    Target* tgt_;
+    /// set of prior registers separated by ROC
+    std::map<int, std::map<int, std::map<int, uint8_t>>> prior_registers_;
+  };
+
+  /// *temporarily* apply the same parameters to all the ROCs
+  /// these parameters are unset when the returned object goes out of scope
+  TempParametersAllROCs tempApplyAllROCs(
+      const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
+
+  /// *temporarily* apply some parameters (varying depending on ROC)
+  /// these parameters are unset when the returned object goes out of scope
+  TempParametersAllROCs tempApplyAllROCs(
+      const std::map<int,
+                     std::map<std::string, std::map<std::string, uint64_t>>>&
+          parameters);
+
  protected:
   std::map<std::string, std::shared_ptr<I2C>> i2c_;
   std::map<std::string, std::shared_ptr<OptoLink>> opto_;

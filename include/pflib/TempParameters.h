@@ -4,6 +4,24 @@
 
 namespace pflib {
 
+/**
+ * temporarily apply parameters to a chip and then unset them
+ *
+ * We apply the parameters to the chip in the constructor and then unset
+ * them in the destructor.
+ * For example
+ * ```cpp
+ * // before, PAGE.PARAM = 1
+ * {
+ *   TempParameters<ROC> temp_param_lock{roc, {"PAGE", {"PARAM", 3}}};
+ *   // here, PAGE.PARAM = 3
+ * }
+ * // after temp_param_lock is destructed, PAGE.PARAM = 1 again
+ * ```
+ *
+ * This class also has a `Builder` sub-class which can be helpful
+ * for constructing a set of parameters.
+ */
 template <class Chip>
 class TempParameters {
  public:

@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('pedestals', type=Path, nargs='+', help='decoded pedestal CSV file to summarize')
 parser.add_argument('-o','--output', type=Path, help='file to which to print, default is pedestal file with "-violinplot" suffix and extension changed to ".png"')
 parser.add_argument('--ylim', nargs=2, type=int, default=[100,300], help='limits of y-axis to use')
+parser.add_argument('--n-links', type=int, default=2, help='number of readout streams (2 per ROC)')
 args = parser.parse_args()
 
 if args.output is None:
@@ -20,8 +21,8 @@ if args.output is None:
         args.output = 'violinplot.png'
 
 fig, axes = plt.subplots(
-    nrows=2,
-    figsize=(12,10),
+    nrows=args.n_links,
+    figsize=(12,args.n_links*5),
     sharex=True,
     gridspec_kw = dict(
         hspace = 0.1

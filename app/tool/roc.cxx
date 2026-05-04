@@ -182,20 +182,26 @@ static void roc(const std::string& cmd, Target* pft) {
         "Update all parameter values on the chip using the defaults in the "
         "manual for any values not provided? ",
         false);
-    bool apply_to_all = pftool::readline_bool(
-        "Apply this same file to all the ROCs (Y) or just to the selected "
-        "i_roc = " +
-            std::to_string(pftool::state.iroc) + "? ",
-        false);
-    if (apply_to_all) {
-      for (int iroc : pft->roc_ids()) {
-        // TODO
-        // if we are reasonably confident that all ROCs in a target will have
-        // the same type_version, we could speed this up by compiling the file
-        // to registers _once_ and then using ROC::setRegisters
-        pft->roc(iroc).loadParameters(fname, prepend_defaults);
+    if (pft->nrocs() > 1) {
+      bool apply_to_all = pftool::readline_bool(
+          "Apply this same file to all the ROCs (Y) or just to the selected "
+          "i_roc = " +
+              std::to_string(pftool::state.iroc) + "? ",
+          false);
+      if (apply_to_all) {
+        for (int iroc : pft->roc_ids()) {
+          // TODO
+          // if we are reasonably confident that all ROCs in a target will have
+          // the same type_version, we could speed this up by compiling the file
+          // to registers _once_ and then using ROC::setRegisters
+          pft->roc(iroc).loadParameters(fname, prepend_defaults);
+        }
+      } else {
+        roc.loadParameters(fname, prepend_defaults);
       }
     } else {
+      // don't bother asking if apply-to-all or only selected
+      // since they are the same when there is only one ROC
       roc.loadParameters(fname, prepend_defaults);
     }
   }

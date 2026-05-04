@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
       if (arg == "--help" or arg == "-h") {
         usage();
         return 0;
-      } else if (arg == "--roc" or arg == "-r") {
+      } else if (arg == "--chip" or arg == "-c") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires are argument after it.";
