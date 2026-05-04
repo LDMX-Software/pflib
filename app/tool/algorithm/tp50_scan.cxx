@@ -103,7 +103,7 @@ int local_vref_scan(Target* tgt, ROC& roc, int& channel, int& vref_value,
                     int& i_link) {
   // Increase vref value until eff < 0.5
   static auto the_log_{::pflib::logging::get("tp50_scan:local_vref_scan")};
-  for (int vref = vref_value; vref <= 600; vref++) {
+  for (int vref = vref_value; vref <= 1023; vref++) {
     pflib_log(info) << "Testing vref = " << vref;
     double efficiency = eff_scan(tgt, roc, channel, vref, n_events, refvol_page,
                                  buffer, i_link);
