@@ -40,4 +40,41 @@ const packing::SingleECONDRocErxMapping& Target::getRocErxMapping() {
   return *mapping_;
 }
 
+Target::TempParametersAllROCs::TempParametersAllROCs(
+    Target* tgt,
+    const std::map<std::string, std::map<std::string, uint64_t>>& parameters)
+    : tgt_{tgt} {
+  for (int i_roc : tgt_->roc_ids()) {
+    prior_registers_[i_roc] = tgt_->roc(i_roc).applyParameters(parameters);
+  }
+}
+
+Target::TempParametersAllROCs::TempParametersAllROCs(
+    Target* tgt,
+    const std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>&
+        parameters)
+    : tgt_{tgt} {
+  for (int i_roc : tgt_->roc_ids()) {
+    prior_registers_[i_roc] =
+        tgt_->roc(i_roc).applyParameters(parameters.at(i_roc));
+  }
+}
+
+Target::TempParametersAllROCs::~TempParametersAllROCs() {
+  for (int i_roc : tgt_->roc_ids()) {
+    tgt_->roc(i_roc).setRegisters(prior_registers_.at(i_roc));
+  }
+}
+
+Target::TempParametersAllROCs Target::tempApplyAllROCs(
+    const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
+  return Target::TempParametersAllROCs(this, parameters);
+}
+
+Target::TempParametersAllROCs Target::tempApplyAllROCs(
+    const std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>&
+        parameters) {
+  return Target::TempParametersAllROCs(this, parameters);
+}
+
 }  // namespace pflib
