@@ -35,7 +35,6 @@ ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1
   GLOBAL_MATCH_THRESHOLD: 0
   GLOBAL_ACTIVE_ERXS: 0xFFF # must bit-match the channels enabled in the ERX block above
-  GLOBAL_HGCROC_HDR_MARKER: 0x5 # for HGCROCv3a, HGCROCv3b and newer have the default marker of 0xf
 ALIGNER:
   GLOBAL_FREEZE_OUTPUT_ENABLE: 0 # use this since channels might not be locked
   GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED: 0
