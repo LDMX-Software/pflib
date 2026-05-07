@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('datasets', type=Path, nargs="+", help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-p', '--plot', action='store_true', help=f'Plot results')
 parser.add_argument('-tp', '--track_pedestals', action='store_true', help='Track pedestal values (minima) instead of peaks')
+parser.add_argument('-sp', '--subtract_pedestals', type=Path, help='Subtract mean-pedestals on each channel using data with the given path')
 parser.add_argument('-rms', '--rms_calculation', action='store_true', help='Calculate the RMS of the mean-ADC-peak distribution across each link')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the fit results to a csv with the given path')
@@ -51,8 +52,18 @@ def read_data(path: Path):
     avg_adc = []
     rms = []
 
+    if args.subtract_pedestals:
+        df = pd.read_csv(args.subtract_pedestals)
+        if link == 0:
+            mean_pedestal = np.mean(df[(df.i_link == link) & (df.channel == str(run_params["channel"]))].adc.to_numpy(dtype=np.int64))
+        else:
+            mean_pedestal = np.mean(df[(df.i_link == link) & (df.channel == str((run_params["channel"]-36)))].adc.to_numpy(dtype=np.int64))
+
     for time_point in time_points:
-        avg_adc.append(np.mean(data[data.time == time_point].adc))
+        if args.subtract_pedestals:
+            avg_adc.append(np.mean(data[data.time == time_point].adc)-mean_pedestal)
+        else:
+            avg_adc.append(np.mean(data[data.time == time_point].adc))
         rms.append(np.std(data[data.time == time_point].adc.to_numpy()))
     if not args.track_pedestals:
         avg_peak = max(avg_adc)
