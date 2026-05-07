@@ -82,7 +82,10 @@ static void econ_status(const std::string& cmd, Target* tgt) {
   // readable registers avoiding compiler overhead for these parameters since
   // the compiler is very slow
   if (econ.type() == "econd") {
+    econ.setValue(0x40f, (0 << 2), 1);
+    usleep(100);
     econ.setValue(0x40f, (1 << 2), 1);
+    usleep(100);
   } else {
     econ.setValue(0xce0, (1 << 1), 1);
   }
@@ -138,7 +141,71 @@ static void econ_status(const std::string& cmd, Target* tgt) {
   printf(" %18s: %d\n", "PUSM Run Val", econ.getPUSMRunValue());
   printf(" %18s: %d %s\n", "PUSM State Val", pusm_state, pusm_state_name);
   printf(" %18s: %d\n", "Run Mode", econ.isRunMode());
+
+  /**
+   * The RO counters and statuses providing extra detail
+   */
+  static const std::array<const char*, 13> sm_state_names = {
+    "Reset", "Init", "CapSearchStart", "CapSearchClearCounters0",
+    "CapSearchClearCounters1", "CapSearchEnableCounter", "CapSearchWaitFreqDecision",
+    "CapSearchVCOFaster", "CapSearchRefClkFaster", "PLLInit", "CDRInit",
+    "PLLEnd", "CDREnd"
+  };
+  static const std::array<const char*, 4> lock_and_filter_state_names = {
+    "Unlocked", "ConfirmLock", "Locked", "ConfirmUnlock"
+  };
+  static const std::array<const char*, 6> clocks_counters = {
+    "timeout_pll", "timeout_dll", "watchdog_pll", "watchdog_dll", "left_ready", "state_upset"
+  };
+  auto clocks_and_resets_status = econ.getValues(0x39b, 0xb);
+  int lock_and_filter_state = ((clocks_and_resets_status.at(0x6) >> 4) & 0x3);
+  const char* lock_and_filter_name = ((lock_and_filter_state >= 0 and lock_and_filter_state < lock_and_filter_state_names.size())
+      ? lock_and_filter_state_names[lock_and_filter_state]
+      : "???");
+  for (int i{0}; i < clocks_counters.size(); i++) {
+    printf(" %10s counter: %d\n", clocks_counters.at(i), clocks_and_resets_status.at(i));
+  }
+  printf(" %18s: %d\n", "PUSM State", clocks_and_resets_status.at(0x6) & 0xf); // should be repeat
+  printf(" %18s: %d %s\n", "LockFilter State", lock_and_filter_state, lock_and_filter_name);
+  printf(" %18s: %d\n", "lock_filter_locked", ((clocks_and_resets_status.at(0x6) >> 6) & 0x1));
+  int loss_of_lock_count = ((clocks_and_resets_status.at(0x6) >> 7) & 0x1);
+  loss_of_lock_count |= ((clocks_and_resets_status.at(0x7) & 0x7f) << 1);
+  printf(" %18s: %d\n", "loss_of_lock_count", loss_of_lock_count);
+  int sm_state = ((clocks_and_resets_status.at(0x7) >> 7) & 0x1);
+  sm_state |= ((clocks_and_resets_status.at(0x8) & 0x7) << 1);
+  const char* sm_state_name = (
+      (sm_state >= 0 and sm_state < sm_state_names.size())
+      ? sm_state_names[sm_state]
+      : "???"
+  );
+  printf(" %18s: %d %s\n", "PLL Init State", sm_state, sm_state_name);
+  printf(" %18s: %d\n", "PLL Locked", (clocks_and_resets_status.at(0x8) >> 3) & 0x1);
+
+  std::map<std::string, std::map<std::string, uint64_t>> clock_state = {
+    { "CLOCKSANDRESETS", 
+      {
+        {"global_pusm_timeout_pll_action_counter", 0},
+        {"global_pusm_timeout_dll_action_counter", 0},
+        {"global_pusm_watchdog_pll_action_counter", 0},
+        {"global_pusm_watchdog_dll_action_counter", 0},
+        {"global_pusm_left_ready_action_counter", 0},
+        {"global_pusm_state_upset_action_counter", 0},
+        {"global_pusm_state", 0},
+        {"global_lock_filter_state", 0},
+        {"global_lock_filter_locked", 0},
+        {"global_lock_filter_loss_of_lock_count", 0},
+        {"global_sm_state", 0},
+        {"global_sm_locked", 0}
+      }
+    }
+  };
+  clock_state = econ.readParameters(clock_state, false);
+  for (const auto& [name, value]: clock_state.at("CLOCKSANDRESETS")) {
+    printf(" %s: %d\n", name.c_str(), value);
+  }
+
 }
+
 
 /**
  * ECON menu commands
