@@ -24,6 +24,9 @@ class TRIG {
   /** Set up the alignment capture function */
   virtual void setup_alignment_capture(int delay) = 0;
 
+  /** Get the alignment capture function */
+  virtual int get_alignment_capture() = 0;
+
   /** Read the capture block for the given elink */
   virtual std::vector<uint32_t> read_capture_buffer(int ilink) = 0;
 

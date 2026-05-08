@@ -15,6 +15,7 @@ class ZCUtrig : public TRIG {
   virtual int n_elinks() const { return nelinks_; }
   
   virtual void setup_alignment_capture(int delay);
+  virtual int get_alignment_capture();
 
   virtual std::vector<uint32_t> read_capture_buffer(int ilink);
 

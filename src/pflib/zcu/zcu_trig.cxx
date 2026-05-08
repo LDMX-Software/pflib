@@ -56,6 +56,9 @@ void ZCUtrig::reset() {
 void ZCUtrig::setup_alignment_capture(int delay) {
   uio_.writeMasked(ADDR_LINK_CAPTURE_DELAY,MASK_LINK_CAPTURE_DELAY,delay&0xFF);
 }
+int ZCUtrig::get_alignment_capture() {
+  return uio_.readMasked(ADDR_LINK_CAPTURE_DELAY,MASK_LINK_CAPTURE_DELAY);
+}
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
   static const int N_SAMPLES = 8;
