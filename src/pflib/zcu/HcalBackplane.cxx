@@ -35,6 +35,13 @@ class HcalBackplaneZCU : public HcalBackplane {
     daq_ = std::make_unique<ZCU_Capture>();
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
+    /// try to make a trig object, but ok to fail
+    try {
+      trig_=std::make_unique<ZCUtrig>();
+    } catch (pflib::Exception& e) {
+    }
+
   }
 
   virtual void softResetROC(int which) override {

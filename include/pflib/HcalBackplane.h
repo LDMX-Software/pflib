@@ -6,6 +6,7 @@
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
 #include "pflib/Target.h"
+#include "pflib/zcu/zcu_trig.h"
 
 namespace pflib {
 
@@ -66,6 +67,9 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
+  /** get the trig object, if valid */
+  virtual TRIG* trig() { return trig_.get(); }
+
   /** Get the ROC to eRx mapping for the DAQ path */
   const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
       override;
@@ -104,6 +108,10 @@ class HcalBackplane : public Target {
 
   /// the ECONs on the ECON Mezzanine on this backplane
   std::array<std::unique_ptr<ECON>, 3> econs_;
+
+  /// pointer to the TRIG object if available
+  std::unique_ptr<pflib::zcu::ZCUtrig> trig_;
+  
 };
 
 }  // namespace pflib
