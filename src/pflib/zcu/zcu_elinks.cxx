@@ -23,8 +23,8 @@ std::vector<uint32_t> OptoElinksZCU::spy(int ilink) {
   static constexpr int REG_CAPTURE_ELINK = 18;
   static constexpr int REG_CAPTURE_PTR = 19;
   static constexpr int REG_CAPTURE_WINDOW = 20;
-  uiodecoder_.write(REG_CAPTURE_OLINK, ilink % 6);
-  uiodecoder_.write(REG_CAPTURE_ELINK, (ilink / 6 + 1) & 0x7);
+  uiodecoder_.write(REG_CAPTURE_OLINK, ilink / 6);
+  uiodecoder_.write(REG_CAPTURE_ELINK, ((ilink % 6) + 1) & 0x7);
   uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
   uiodecoder_.write(REG_CAPTURE_ENABLE, 1);
   usleep(1000);
