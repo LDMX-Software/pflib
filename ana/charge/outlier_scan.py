@@ -13,21 +13,20 @@ import argparse
 HR_thresholds = {"CALIB_0":10, "CALIB_32":24, "CALIB_64":42, "CALIB_256":100, 
                      "CALIB_512":200, "CALIB_1024":200, "CALIB_2048":200, "CALIB_4096":200}
 plot_types = ['CLUSTER', 'SINGULAR', 'EVALUATION']
+scan_types = ['CLUSTER', 'STDEV', 'DELTA-ADC']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset', type=Path, nargs='+', help='Parameter timescan of one channel, one CALIB, n samples per time-point')
 parser.add_argument('-s', '--samples', type=int, help='Number of samples per phase')
-parser.add_argument('-cs', '--cluster_scan', action='store_true', help='Perform an outliers cluster-scan (default)')
-parser.add_argument('-ts', '--threshold_scan', action='store_true', help='Perform a threshold outliers-scan with default thresholds (only HR works)')
+parser.add_argument('-st', '--scan_type', choices=scan_types, type=str, default='CLUSTER', help=f'Choose a method for outlier identification (default: CLUSTER): {", ".join(scan_types)}')
+parser.add_argument('-t', '--threshold', type=int, help='Set the threshold ADC-value for a STDEV identification-scan ')
+parser.add_argument('-ds', '--dist_scan', action='store_true', help='Temporary feature')
 parser.add_argument('-ph', '--phase_analysis', action='store_true', help='Perform and plot phase analysis of the outliers (include -pd for plot directory path)')
 parser.add_argument('-be', '--bulk_evaluation', action='store_true', help='Perform analysis to evaluate multiple channels and CALIBs in terms of outliers found')
 parser.add_argument('-p', '--plot', choices=plot_types, type=str, help=f'Plot results. Available types: {", ".join(plot_types)}')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Figures directory path. If not provided, figures are not saved automatically')
 parser.add_argument('-csv', '--csv', type=Path, help='Save the scan results to a csv with the given directory path')
 args = parser.parse_args()
-
-if not args.cluster_scan and not args.threshold_scan : 
-    print("Please select the outlier-scan type. For more information, use '-h' or '--help'.")
 
 # ------- MEASUREMENTS CLASS -------
 
@@ -170,6 +169,29 @@ def threshold_outlier_search(dataset : list, threshold : int):
                 sample.outliers_adc.append(sample.adc[i])
                 sample.outliers_number += 1
     
+def distribution_outlier_search(dataset : list):
+    
+    std_range = 3
+    adc_distributions = [] # holds the mean and stdev of ADC values around each time-point
+
+    for n in range(0,len(dataset[0].time)):
+        time_point = []
+        for sample in dataset:
+            time_point.append(sample.adc[n])
+        mean_time_point = np.mean(time_point)
+        adc_distributions.append([mean_time_point, np.std(time_point)]) #, mean = mean_time_point in std
+    
+    for m in range(0,len(dataset[0].time)):
+        mean = adc_distributions[m][0]
+        stdev = adc_distributions[m][1]
+        for sample in dataset:
+            if not (mean-std_range*stdev <= sample.adc[m] <= mean+std_range*stdev):
+                sample.outliers_time.append(sample.time[m])
+                sample.outliers_adc.append(sample.adc[m])
+                sample.outliers_number += 1
+            else:
+                continue
+
 def cluster_outlier_search(dataset : list):
 
     if not args.samples : 
@@ -358,7 +380,7 @@ def outlier_phase_analysis(dataset : list):
     ax1.grid()
     ax2.grid()
     if args.plot_directory:
-        plt.savefig(os.path.join(args.plot_directory,f'outlier_phase_analysis.png'), dpi=400)
+        plt.savefig(os.path.join(args.plot_directory,f'phase_analysis_ch{dataset[0].channel}_calib{dataset[0].calib}.png'), dpi=400)
         plt.close()
     else:
         plt.show()
@@ -409,7 +431,7 @@ def plot_outliers(dataset : list, plot_type : str):
         potouts.append((sample.potential_outliers_time, sample.potential_outliers_adc))
 
     if plot_type == 'CLUSTER':
-        plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(8, 6))
         for i in range(0,len(dataset)):
             plt.scatter(dataset[i].time, dataset[i].adc, c='b', alpha=0.5)
             plt.scatter(potouts[i][0], potouts[i][1], c='c')
@@ -664,18 +686,25 @@ for file_path in args.dataset:
     processed_data = sort_data(raw_data, data_parameters)
     working_data.append(classify_data(processed_data, data_parameters))
 
-if args.cluster_scan: 
+if args.scan_type == 'CLUSTER': 
     for data in working_data:
         cluster_outlier_search(data)
 
-if args.threshold_scan:
-    for data in working_data:
+if args.scan_type == 'DELTA-ADC':
+    if not args.threshold:
         th_value = int(input("What delta-ADC threshold do you want to choose for the scan?\n" \
                             f"Default options for HR data: {HR_thresholds}\n" \
                             "Threshold: "))
+    else:
+        th_value = args.threshold
+    for data in working_data:
         threshold_outlier_search(data, th_value)
+    
+if args.scan_type == 'STDEV':
+    for data in working_data:
+        distribution_outlier_search(data)
 
-if args.phase_analysis:
+if args.phase_analysis == :
     for data in working_data:
         outlier_phase_analysis(data)
 
