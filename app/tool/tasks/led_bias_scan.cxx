@@ -6,7 +6,6 @@
 #include "pflib/utility/string_format.h"
 #include "pflib/HcalBackplane.h"
 #include "pflib/zcu/HGCROCBoardFiberless.h"
-#include "pftool.h"
 
 ENABLE_LOGGING();
 
