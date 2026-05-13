@@ -51,7 +51,7 @@ void trig(const std::string& cmd, Target* target) {
 }
 
 namespace {
-auto trigm =
+auto menu_trig =
     pftool::menu("TRIG", "TRIGGER functionalities")
                  ->line("RESET",
                         "Reset trigger firmware blocks", trig)

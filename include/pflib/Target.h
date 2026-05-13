@@ -76,7 +76,7 @@ class Target {
   virtual DAQ& daq() = 0;
 
   /** get the TRIG object, if it exists (may return NULL) */
-  virtual TRIG* trig() { return 0; }
+  virtual TRIG* trig(int itrig=0) { return 0; }
 
   /// names of different I2C busses we could talk to
   std::vector<std::string> i2c_bus_names();

@@ -11,7 +11,7 @@ static constexpr uint32_t ADDR_ADV_BUFFER = 0x080/4;
 static constexpr uint32_t MASK_ADV_BUFFER = 0x2;
 
 static constexpr uint32_t ADDR_LINK_CAPTURE_DELAY = 0x600/4;
-static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FF00;
+static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
 
 static constexpr uint32_t ADDR_LINK_BX_DELAY = 0x600/4;
 static constexpr uint32_t MASK_LINK_BX_DELAY = 0x0FFF0000;
@@ -29,7 +29,7 @@ static constexpr uint32_t MASK_PRESAMPLES = 0x000FC000;
 static constexpr uint32_t ADDR_ECON_ID = 0x400/4;
 static constexpr uint32_t MASK_ECON_ID = 0x3FF00000;
 
-static constexpr uint32_t ADDR_ALIGNER_SPY_BASE = (0xC00 | (0x40<<2)) / 4;
+static constexpr uint32_t ADDR_ALIGNER_SPY_BASE = (0xC00 | 0x100) / 4;
 
 static constexpr uint32_t ADDR_N_ELINKS = 0x800/4;
 static constexpr uint32_t MASK_N_ELINKS = 0x0000F000;
@@ -47,14 +47,16 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0") {
   //    %08x\n",uio_.read(0),uio_.read(ADDR_IDLE_PATTERN),uio_.read(ADDR_HEADER_MARKER));
   // setting up with expected capture parameters
   if ((fw & 0xFFFF)==0x1) nelinks_=3;
-  else nelinks_=uio_.readMasked(ADDR_N_ELINKS, MASK_N_ELINKS);
+  else {
+    nelinks_=uio_.readMasked(ADDR_N_ELINKS, MASK_N_ELINKS);
+  }
 }
 void ZCUtrig::reset() {
   uio_.write(ADDR_SW_RESET, ADDR_SW_RESET);
 }
 
 void ZCUtrig::setup_alignment_capture(int delay) {
-  uio_.writeMasked(ADDR_LINK_CAPTURE_DELAY,MASK_LINK_CAPTURE_DELAY,delay&0xFF);
+  uio_.writeMasked(ADDR_LINK_CAPTURE_DELAY,MASK_LINK_CAPTURE_DELAY,delay&0xFFF);
 }
 int ZCUtrig::get_alignment_capture() {
   return uio_.readMasked(ADDR_LINK_CAPTURE_DELAY,MASK_LINK_CAPTURE_DELAY);
@@ -63,9 +65,11 @@ int ZCUtrig::get_alignment_capture() {
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
   static const int N_SAMPLES = 8;
   std::vector<uint32_t> retval(N_SAMPLES,0);
-  for (int i=0; i<N_SAMPLES; i++) 
-    retval[i]=uio_.read(ADDR_ALIGNER_SPY_BASE+i+ilink*N_SAMPLES);
-  return retval;
+  for (int i=0; i<N_SAMPLES; i++) {
+    retval[i]=uio_.read(ADDR_ALIGNER_SPY_BASE+(i+ilink*N_SAMPLES));
+    //    printf("%04x %08x\n",ADDR_ALIGNER_SPY_BASE+(i+ilink*N_SAMPLES),retval[i]);
+  }
+ return retval;
 }
 
 static const int BITS_OF_DELAY = 2;
@@ -117,3 +121,4 @@ std::vector<uint32_t> ZCUtrig::read_event() {
 
 }  // namespace zcu
 }  // namespace pflib
+    
