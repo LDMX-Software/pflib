@@ -288,10 +288,9 @@ void align_phase_word(Target* tgt) {
 
   auto& econ = tgt->econ(iecon);
   bool is_daq = (econ.type() == "econd");
-  bool is_hcal = (
-    pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
-    pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW
-  );
+  bool is_hcal =
+      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
+       pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW);
   int edgesel = 0;
   int invertfcmd = (is_hcal) ? (1) : (0);
   // Ensure ECON is in Run mode
@@ -333,12 +332,11 @@ void align_phase_word(Target* tgt) {
       channels.push_back(mapping[i_roc].second);
     }
   } else if (is_hcal) {
-    static const std::vector<std::pair<int, std::vector<int>>> roc_trg_to_econt_erx = {
-      {1, {6, 7, 4, 5}},
-      {1, {3, 2, 1, 0}},
-      {2, {1, 0, 3, 2}},
-      {2, {4, 5, 6, 7}}
-    };
+    static const std::vector<std::pair<int, std::vector<int>>>
+        roc_trg_to_econt_erx = {{1, {6, 7, 4, 5}},
+                                {1, {3, 2, 1, 0}},
+                                {2, {1, 0, 3, 2}},
+                                {2, {4, 5, 6, 7}}};
     for (int i_roc : roc_ids) {
       const auto& [i_econ, econt_erx] = roc_trg_to_econt_erx.at(i_roc);
       if (i_econ == iecon) {
