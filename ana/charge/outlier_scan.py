@@ -704,7 +704,7 @@ if args.scan_type == 'STDEV':
     for data in working_data:
         distribution_outlier_search(data)
 
-if args.phase_analysis == :
+if args.phase_analysis:
     for data in working_data:
         outlier_phase_analysis(data)
 
