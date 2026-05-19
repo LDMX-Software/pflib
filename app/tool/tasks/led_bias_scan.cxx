@@ -10,6 +10,13 @@
 ENABLE_LOGGING();
 
 void led_bias_scan(Target* tgt){
+  //mapping of CMB ports to HGCROC channels, because some channels are skipped
+  // first entry is CMB port 0, then CMB port 1, etc. and the individual numbers are the HGCROC channels
+  int cmb_to_ch[16][4] = {
+    {0,1,2,3}, {4,5,6,7}, {9,10,11,12}, {13,14,15,16}, {18,19,20,21}, {22,23,24,25}, {27,28,29,30}, {31,32,33,34},
+    {36,37,38,39}, {40,41,42,43}, {45,46,47,48}, {49,50,51,52}, {54,55,56,57}, {58,59,60,61}, {63,64,65,66}, {67,68,69,70}
+  };
+
   //basically taken straight from the current version of bias.cxx render function
   auto hcalbp = dynamic_cast<pflib::HcalBackplane*>(tgt);
   auto hcalfl = dynamic_cast<pflib::HcalFiberless*>(tgt);
@@ -20,15 +27,15 @@ void led_bias_scan(Target* tgt){
   iboard = pftool::readline_int("Which board? ", iboard);
   pflib::Bias bias = hcalbp ? hcalbp->bias(iboard) : hcalfl->bias(iboard); //this one gets the bias method
 
-  uint16_t LEDstart = pftool::readline_int("Which LED DAC start value (set equal to end for constant)? ", 0);
-  uint16_t LEDend = pftool::readline_int("Which LED DAC end value? ", 0);
+  uint16_t LEDstart = pftool::readline_int("Which LED DAC start value (set equal to end for constant)? ", 2000);
+  uint16_t LEDend = pftool::readline_int("Which LED DAC end value? ", 2500);
   int LEDstep = pftool::readline_int("What stepsize (choose random for constant)? ", 20);
   if ((LEDend - LEDstart) % LEDstep != 0){
     PFEXCEPTION_RAISE("ValueError", "Chosen LED DAC range needs to be divisible by stepsize without remainder.");
   }
 
-  uint16_t SiPMstart = pftool::readline_int("Which SiPM DAC start value (set equal to end for constant)? ", 0);
-  uint16_t SiPMend = pftool::readline_int("Which SiPM DAC end value? ", 0);
+  uint16_t SiPMstart = pftool::readline_int("Which SiPM DAC start value (set equal to end for constant)? ", 3600);
+  uint16_t SiPMend = pftool::readline_int("Which SiPM DAC end value? ", 3600);
   int SiPMstep = pftool::readline_int("What stepsize (choose random for constant)? ", 20);
   if ((SiPMend - SiPMstart) % SiPMstep != 0){
     PFEXCEPTION_RAISE("ValueError", "Chosen SiPM DAC range needs to be divisible by stepsize without remainder.");
@@ -36,11 +43,11 @@ void led_bias_scan(Target* tgt){
 
   // TODO: raise exception if values are either very high (too high voltage kills stuff :D), or outside of doable range
 
-  int min_cmb_ch = pftool::readline_int("Channel to start scan on? ", 0);
-  int max_cmb_ch = pftool::readline_int("Channel to end scan on (if only one channel, enter same as above)? ", 15);
+  int min_cmb_port = pftool::readline_int("Channel to start scan on? ", 0);
+  int max_cmb_port = pftool::readline_int("Channel to end scan on (if only one channel, enter same as above)? ", 0);
   int nevents = pftool::readline_int("How many events per time point? ", 1);
-  int start_bx = pftool::readline_int("Starting BX? ", -1);
-  int n_bx = pftool::readline_int("Number of BX? ", 3);
+  int start_bx = pftool::readline_int("Starting BX? ", 0);
+  int n_bx = pftool::readline_int("Number of BX? ", 6);
 
   pflib::ROC roc{tgt->roc(pftool::state.iroc)};
   std::string fname;
@@ -62,7 +69,8 @@ void led_bias_scan(Target* tgt){
 
   auto test_param_handle = test_param_builder.apply();
 
-  int i_cmb_ch{0};
+  int i_cmb_port{0};
+  int ch{0};
   uint16_t dacSiPM{0};
   uint16_t dacLED{0};
   int central_charge_to_l1a;
@@ -76,21 +84,24 @@ void led_bias_scan(Target* tgt){
   DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["Min channel"] = min_cmb_ch;
-        header["Max channel"] = max_cmb_ch;
+        nlohmann::ordered_json header;
+        header["Min CMB port"] = min_cmb_port;
+        header["Max CMB port"] = max_cmb_port;
         header["LED DAC start"] = LEDstart;
         header["LED DAC end"] = LEDend;
         header["SiPM DAC start"] = SiPMstart;
         header["SiPM DAC end"] = SiPMend;
         f << std::boolalpha << "# " << header << '\n'
-          << "time, i_cmb_ch, dacSiPM, dacLED," << pflib::packing::Sample::to_csv_header << '\n';
+          << "time,i_cmb_port,ch,dacSiPM,dacLED," << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f,
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
-        f << time << ',' << i_cmb_ch << ',' << dacSiPM << ',' << dacLED << ',';
-        ep.samples[ep.i_soi].channel(i_cmb_ch / 36, i_cmb_ch % 36).to_csv(f);
-        f << '\n';
+        for (int j = 0; j < 4; j++) {
+          ch = cmb_to_ch[i_cmb_port][j];
+          f << time << ',' << i_cmb_port << ',' << ch << ',' << dacSiPM << ',' << dacLED << ',';
+          ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
+          f << '\n';
+        }
       },
       n_links};
 
@@ -100,10 +111,10 @@ void led_bias_scan(Target* tgt){
 
   for (dacSiPM = SiPMstart; dacSiPM <= SiPMend; dacSiPM += SiPMstep) {
     for (dacLED = LEDstart; dacLED <= LEDend; dacLED += LEDstep) {
-      for (i_cmb_ch = min_cmb_ch; i_cmb_ch <= max_cmb_ch; i_cmb_ch++) {
+      for (i_cmb_port = min_cmb_port; i_cmb_port <= max_cmb_port; i_cmb_port++) {
 
-        bias.setSiPM(i_cmb_ch, dacSiPM);
-        bias.setLED(i_cmb_ch, dacLED);
+        bias.setSiPM(i_cmb_port, dacSiPM);
+        bias.setLED(i_cmb_port, dacLED);
 
         for (charge_to_l1a = central_charge_to_l1a + start_bx;
             charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
@@ -127,4 +138,11 @@ void led_bias_scan(Target* tgt){
       tgt->fc().fc_setup_led(central_charge_to_l1a);
     }
   }
+  //reset the biases to zero for all channels
+  for (int i = min_cmb_port; i <= max_cmb_port; i++) {
+    bias.setSiPM(i, 0);
+    bias.setLED(i, 0);
+  }
 }
+
+
