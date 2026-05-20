@@ -68,8 +68,8 @@ class HcalBackplane : public Target {
   virtual DAQ& daq() = 0;
 
   /** get the trig object, if valid */
-  virtual TRIG* trig(int itrig) { return (itrig==0)?(trig_.get()):(0); }
-  
+  virtual TRIG* trig(int itrig) { return (itrig == 0) ? (trig_.get()) : (0); }
+
   /** Get the ROC to eRx mapping for the DAQ path */
   const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
       override;
@@ -111,7 +111,6 @@ class HcalBackplane : public Target {
 
   /// pointer to the TRIG object if available
   std::unique_ptr<pflib::zcu::ZCUtrig> trig_;
-  
 };
 
 }  // namespace pflib

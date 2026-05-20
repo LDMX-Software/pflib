@@ -2,7 +2,6 @@
 #define PFLIB_ZCU_TRIG_H_INCLUDED
 
 #include "pflib/TRIG.h"
-
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -13,7 +12,7 @@ class ZCUtrig : public TRIG {
   ZCUtrig();
   virtual void reset();
   virtual int n_elinks() const { return nelinks_; }
-  
+
   virtual void setup_alignment_capture(int delay);
   virtual int get_alignment_capture();
 
@@ -23,10 +22,12 @@ class ZCUtrig : public TRIG {
 
   virtual int get_bx_delay(int ilink);
 
-  virtual void setup_daq(int pipeline, int econ_id, int samples_per_l1a, int presamples);
+  virtual void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
+                         int presamples);
 
-  virtual void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a, int& presamples);
- 
+  virtual void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
+                             int& presamples);
+
   virtual bool is_event_available();
 
   virtual std::vector<uint32_t> read_event();
@@ -34,11 +35,9 @@ class ZCUtrig : public TRIG {
  private:
   UIO uio_;
   int nelinks_;
-  
-  
 };
-  
-}
-}
 
-#endif // PFLIB_ZCU_TRIG_H_INCLUDED
+}  // namespace zcu
+}  // namespace pflib
+
+#endif  // PFLIB_ZCU_TRIG_H_INCLUDED

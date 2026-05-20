@@ -38,10 +38,9 @@ class HcalBackplaneZCU : public HcalBackplane {
 
     /// try to make a trig object, but ok to fail
     try {
-      trig_=std::make_unique<ZCUtrig>();
+      trig_ = std::make_unique<ZCUtrig>();
     } catch (pflib::Exception& e) {
     }
-
   }
 
   virtual void softResetROC(int which) override {

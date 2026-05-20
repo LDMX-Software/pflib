@@ -1,4 +1,5 @@
 #include "align_econ_lpgbt.h"
+
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
@@ -49,11 +50,13 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
-  bool is_econd = (econ.type()=="econd");
+  bool is_econd = (econ.type() == "econd");
 
-  pflib::lpGBT lpgbt{(is_econd)?(tgt->get_opto_link("DAQ").lpgbt_transport()):(tgt->get_opto_link("TRG").lpgbt_transport())};
+  pflib::lpGBT lpgbt{(is_econd)
+                         ? (tgt->get_opto_link("DAQ").lpgbt_transport())
+                         : (tgt->get_opto_link("TRG").lpgbt_transport())};
   uint32_t prbs_state;
-  
+
   if (is_econd) {
     printf(" NOTE: Only checking Group 0, Channel 0\n");
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
@@ -64,7 +67,8 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
 
     bool default_invert = (pftool::state.readout_config_is_hcal());
 
-    bool do_invert = pftool::readline_bool("Invert elink data?", default_invert);
+    bool do_invert =
+        pftool::readline_bool("Invert elink data?", default_invert);
     uint8_t invert = (do_invert) ? (1) : (0);
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
@@ -76,18 +80,15 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
     parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 1;
     econ.applyParameters(parameters);
     usleep(10000);
-    
 
     auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
     printf(" ECOND data invert state: %lu\n", invert_state);
   }
   if (is_econd)
-    econ.applyParameter("FORMATTERBUFFER","GLOBAL_PRBS_ON",1);
+    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
   else
-    econ.applyParameter("FORMATTERBUFFER","GLOBAL_ETX_PATTERN",1);
+    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 1);
 
-
-  
   // Only checking group 0 and channel 0 right now
   printf(" Checking ECOND PRBS on group 0, channel 0...\n");
 
@@ -95,7 +96,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
   else
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN");
-  
+
   printf(" ECON PRBS State: %lu\n", prbs_state);
 
   lpgbt.check_prbs_errors_erx(0, 0,
@@ -106,9 +107,9 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
   print_locked_status(lpgbt);
 
   if (is_econd)
-    econ.applyParameter("FORMATTERBUFFER","GLOBAL_PRBS_ON",0);
+    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
   else
-    econ.applyParameter("FORMATTERBUFFER","GLOBAL_ETX_PATTERN",0);
+    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
 static uint16_t majority_vote_econt(const std::vector<uint16_t>& data) {
@@ -120,13 +121,13 @@ static uint16_t majority_vote_econt(const std::vector<uint16_t>& data) {
   for (int i = 0; i < 16; ++i) {
     size_t setBitCount = 0;
     uint16_t mask = (1 << i);
-    
+
     for (uint16_t value : data) {
       if (value & mask) {
         setBitCount++;
       }
     }
-    
+
     // If more than half have the bit set, set it in the result
     if (setBitCount > threshold) {
       result |= mask;
@@ -137,8 +138,7 @@ static uint16_t majority_vote_econt(const std::vector<uint16_t>& data) {
 }
 
 static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
-
-  if (econ.type()=="econd") {
+  if (econ.type() == "econd") {
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
 
@@ -146,7 +146,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
 
     std::vector<uint32_t> got;
     for (int phase = 0; phase < 32; phase++) {
-      econ.applyParameter("FormatterBuffer", "Global_align_serializer_0", phase);
+      econ.applyParameter("FormatterBuffer", "Global_align_serializer_0",
+                          phase);
       usleep(1000);
       std::vector<uint32_t> spy = tgt->elinks().spy(0);
       got.push_back(spy[0]);
@@ -164,33 +165,33 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
       printf(" WARNING: Did not find alignment\n");
     }
   }
-  if (econ.type()=="econt") {    
+  if (econ.type() == "econt") {
     using pflib::utility::string_format;
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x526, true);
-    static uint32_t ALIGN_MASK=0x7FF;
-    pflib::TRIG* trig=tgt->trig(0);
+    static uint32_t ALIGN_MASK = 0x7FF;
+    pflib::TRIG* trig = tgt->trig(0);
 
-    static const int ICAPTURE_DELAY=28;
+    static const int ICAPTURE_DELAY = 28;
     trig->setup_alignment_capture(ICAPTURE_DELAY);
 
-    for (int ilink=0; ilink<trig->n_elinks(); ilink++) {
-      std::string reg_name=string_format("GLOBAL_ALIGN_SERIALIZER_%d",ilink);
+    for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
+      std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
       for (int phase = 0; phase < 16; phase++) {
         std::vector<uint16_t> readings;
-        econ.applyParameter("FORMATTERBUFFER",reg_name,phase);
+        econ.applyParameter("FORMATTERBUFFER", reg_name, phase);
         usleep(2000);
         tgt->fc().linkreset_econs();
         usleep(2000);
-        std::vector<uint32_t> samples=trig->read_capture_buffer(ilink);
-        for (size_t i=4; i<8; i++) {
-          readings.push_back((samples[i]>>16)&ALIGN_MASK);
-          readings.push_back(samples[i]&ALIGN_MASK);
+        std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
+        for (size_t i = 4; i < 8; i++) {
+          readings.push_back((samples[i] >> 16) & ALIGN_MASK);
+          readings.push_back(samples[i] & ALIGN_MASK);
         }
-        uint16_t got=majority_vote_econt(readings);
+        uint16_t got = majority_vote_econt(readings);
         if (got == idle) break;
-        if (phase==15) {
-          printf(" Unable to find alignment for ilink %d\n",ilink);
+        if (phase == 15) {
+          printf(" Unable to find alignment for ilink %d\n", ilink);
         }
       }
     }
