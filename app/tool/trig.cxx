@@ -60,4 +60,4 @@ auto menu_trig =
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
         ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
         ->line("DAQ_DEBUG", "DAQ debugging function", trig);
-}
+}  // namespace
