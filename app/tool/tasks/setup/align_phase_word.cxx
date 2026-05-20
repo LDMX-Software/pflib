@@ -222,7 +222,11 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
 
-    pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    if (snapshot_bx % 100 == 0) {
+      pflib_log(info) << "checking snapshot on bx " << snapshot_bx;
+    } else {
+      pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    }
 
     bool should_continue = false;
     for (int channel : channels) {
