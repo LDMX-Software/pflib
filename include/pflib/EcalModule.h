@@ -67,11 +67,16 @@ class EcalModule {
   /** Generate a soft reset */
   void softResetECON();
 
-  /** Get the mapping of ROC channels to ERX channels */
-  static const std::vector<std::pair<int, int>>& getHardwareRocErxMapping();
+  /** Get the mapping of ROC channels to ERX channels in the DAQ path */
+  static const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ();
 
-  /// mapping of ROC halves to ECON-D eRx channels
-  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING;
+  /// Get the mapping of the ROC to ERX channels in the TRG path
+  static const std::vector<std::pair<int, std::vector<int>>>& getHardwareRocErxMappingTRG();
+
+  /// mapping of ROC halves to ECON-D eRx channels in the DAQ path
+  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING_DAQ;
+  /// mapping of ROC halves to ECON-T eRx channels in the TRG path
+  static const std::vector<std::pair<int, std::vector<int>>> ROC_ERX_MAPPING_TRG;
 
  protected:
   lpGBT& lpGBT_;
