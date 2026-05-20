@@ -169,16 +169,17 @@ class lpGBT {
                  bool invert = false, bool term = true, int equalization = 0,
                  bool acbias = false);
 
-  /** Check for PRBS errors on given eRx group and channel
-      \param group ERx index (0-6)
-      \param channel ERx index (0-3)
-      \param lpgbt_only Should we find errors with internal BERT (true) or
-     external (false) like econ
-      \param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
-     manual. Currently set to 3 for 1280 Mbps
-      \param bert_time_code BERT measurement time from table 14.5 in v1 manual
-  */
-  void check_prbs_errors_erx(int group, int channel, bool lpgbt_only = false,
+  /**
+   * Check for PRBS errors on given eRx
+   *
+   * @param ierx eRx index input to the lpGBT mezzanine
+   * @param lpgbt_only Should we find errors with internal BERT (true) or
+   * external (false) like econ
+   * @param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
+   * manual. Currently set to 3 for 1280 Mbps
+   * @param bert_time_code BERT measurement time from table 14.5 in v1 manual
+   */
+  void check_prbs_errors_erx(int ierx, bool lpgbt_only = false,
                              int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 

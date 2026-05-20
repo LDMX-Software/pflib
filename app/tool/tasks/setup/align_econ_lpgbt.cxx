@@ -7,46 +7,43 @@
 static void print_locked_status(pflib::lpGBT& lpgbt) {
   constexpr uint16_t REG_EPRX0LOCKED = 0x152;
 
-  auto read_result = lpgbt.read({REG_EPRX0LOCKED});
+  for (int ierx{0}; ierx < 6; ierx++) {
+    int grp = ierx;
+    if (grp > 2) grp++;
+    // get EPRXnLocked and EPRXnCurrentPhase10 where n is grp
+    auto read_result = lpgbt.read(REG_EPRX0LOCKED + 3*grp, 2);
+    uint8_t ch_locked = (read_result[0] >> 4) & 0xF;
+  
+    bool locked = (ch_locked >> 0) & 0x1;
+  
+    uint8_t state = read_result[0] & 0x3;
+    const char* state_name;
+    switch (state) {
+      case 0:
+        state_name = "Reset";
+        break;
+      case 1:
+        state_name = "Force Down";
+        break;
+      case 2:
+        state_name = "Confirm early state";
+        break;
+      case 3:
+        state_name = "Free running state";
+        break;
+      default:
+        state_name = "Unknown";
+        break;
+    }
 
-  uint8_t ch_locked = (read_result >> 4) & 0xF;
-
-  bool locked = (ch_locked >> 0) & 0x1;
-  printf(" Channel %d: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
-
-  uint8_t state = read_result & 0x3;
-  const char* state_name;
-  switch (state) {
-    case 0:
-      state_name = "Reset";
-      break;
-    case 1:
-      state_name = "Force Down";
-      break;
-    case 2:
-      state_name = "Confirm early state";
-      break;
-    case 3:
-      state_name = "Free running state";
-      break;
-    default:
-      state_name = "Unknown";
-      break;
+    printf(" Group %d\n", grp);
+    printf("  state: %s (%d)\n", grp, state_name, state);
+    printf("  ch 0: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
+    printf("  ch 0 phase: %u\n", grp, (read_result[1] & 0xf));
   }
-  printf(" Group 0 state: %s (%d)\n\n", state_name, state);
 }
 
-static void print_phase_status(pflib::lpGBT& lpgbt) {
-  constexpr uint16_t REG_EPRX0CURRENTPHASE10 = 0x153;
-
-  auto read_result = lpgbt.read({REG_EPRX0CURRENTPHASE10});
-
-  uint16_t ch_0 = (read_result >> 0) & 0xF;
-
-  printf(" Channel 0 phase: %u\n", ch_0);
-}
-
-static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
+static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
@@ -62,7 +59,6 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
     printf(" ECON PRBS State: %lu\n", prbs_state);
     printf("\n --- PRE-PRBS STATUS ---\n");
-    print_phase_status(lpgbt);
     print_locked_status(lpgbt);
 
     bool default_invert = (pftool::state.readout_config_is_hcal());
@@ -89,9 +85,6 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
   else
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 1);
 
-  // Only checking group 0 and channel 0 right now
-  printf(" Checking ECOND PRBS on group 0, channel 0...\n");
-
   if (is_econd)
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
   else
@@ -99,11 +92,25 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ) {
 
   printf(" ECON PRBS State: %lu\n", prbs_state);
 
-  lpgbt.check_prbs_errors_erx(0, 0,
-                              false);  // group 0, ch 0, false for ECON
+  if (is_econd) {
+    // ECON-D only has one output link through lpGBT
+    printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
+    lpgbt.check_prbs_errors_erx(0, 0, false);
+  } else {
+    // ECON-T has multiple output links through lpGBT
+    // connected to channel 0 of a series of groups
+    std::vector<std::vector<int>> i_econ_to_group = {
+      {0}, // ECON-D
+      {0, 1, 2}, // ECON-T1
+      {3, 4, 5} // ECON-T2
+    };
+    for (int ierx : i_econ_to_group.at(iecon)) {
+      printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
+      lpgbt.check_prbs_errors_erx(ierx, 0, false);
+    }
+  }
 
   printf("\n --- POST-PRBS STATUS ---\n");
-  print_phase_status(lpgbt);
   print_locked_status(lpgbt);
 
   if (is_econd)
@@ -202,14 +209,10 @@ void align_econ_lpgbt(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
-  if (pftool::state.iecon != 0) {
-    printf(" I only know how to align ECON-D to link 0\n");
-    return;
-  }
-
   pflib::ECON& econ = tgt->econ(iecon);
 
-  if (pftool::readline_bool("Do bit alignment?", true))
-    align_econ_lpgbt_bit(tgt, econ);
+  if (pftool::readline_bool("Do bit alignment?", true)) {
+    align_econ_lpgbt_bit(tgt, econ, iecon);
+  }
   align_econ_lpgbt_word(tgt, econ);
 }

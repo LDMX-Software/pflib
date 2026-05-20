@@ -443,7 +443,10 @@ void lpGBT::read_internal_temp_precise(YAML::Node cal_data) {
 
 void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                       bool invert, bool term, int equalization, bool acbias) {
-  if (irx < 0 || irx > 5) return;
+  if (irx < 0 || irx > 5) {
+    printf(" ERROR: Invalid lpGBT eRx index %d (< 0 or > 5).\n", irx);
+    return;
+  }
   if (irx >= 3) irx++;  // irx=3 is EDIN4, 4->5, 5->6
 
   // enable first channel, set speed and alignment strategy
@@ -455,13 +458,23 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                        ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
 }
 
-void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
+void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only,
                                   int data_rate_code, uint8_t bert_time_code) {
+  // the lpGBT mezzanine we are using puts all of our link data
+  // through channel zero within a eRx group
+  int channel = 0;
+  int group = ierx;
+  if (ierx < 0 || ierx > 5) {
+    printf(" ERROR: Invalid lpGBT eRx index %d (< 0 or > 5).\n", ierx);
+    return ;
+  }
+  // the lpGBT Mezzanine shifts the index by one
+  if (group >= 3) group++;
+
   static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
   static uint16_t REG_EPRXPRBSBASE = 0x135;
   static uint16_t REG_EPRXTRAINBASE = 0x115;
   static uint16_t REG_EPRXLOCKEDBASE = 0x152;
-  static uint16_t REG_EPRXPRBS0 = 0x135;
   static uint16_t REG_BERTSOURCE = 0x136;
   static uint16_t REG_BERTCONFIG = 0x137;
   static uint16_t REG_BERTSTATUS = 0x1d1;
@@ -469,32 +482,39 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
   static uint16_t REG_ULDATASOURCE1 = 0x129;
 
   // Enable channel in specified group
-  uint8_t ctrl_reg = REG_EPRXCONTROLBASE + group;
+  uint16_t ctrl_reg = REG_EPRXCONTROLBASE + group;
   uint8_t ctrl_byte = 0;
   ctrl_byte |= (1 << (4 + channel));           // Enable given channel
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
   ctrl_byte |= (1 & 0x3);                      // Hard code for Initial Training
   tport_.write_reg(ctrl_reg, ctrl_byte);
-  printf(" EPRX0CONTROL: %d\n", tport_.read_reg(ctrl_reg));
+  printf(" EPRX%dCONTROL: %d\n", group, tport_.read_reg(ctrl_reg));
 
   // Optional: Enable internal PRBS signal (only for group 0 right now)
+  uint16_t prbs_enable_reg = REG_EPRXPRBSBASE - (group / 2);
+  uint16_t prbs_enable_bit = 4*(group % 2) + channel;
   if (lpgbt_only) {
-    tport_.write_reg(REG_EPRXPRBS0, (1 << channel));
+    tport_.write_reg(prbs_enable_reg, (1 << prbs_enable_bit));
   }
 
   // Train channel
-  tport_.write_reg(REG_EPRXTRAINBASE, (1 << channel));
+  uint16_t train_reg = REG_EPRXTRAINBASE + (group / 2);
+  uint16_t train_bit = (4*(group % 2) + channel);
+  printf("  training reg: 0x%03x bit: %d\n", train_reg, train_bit);
+  tport_.write_reg(train_reg, (1 << train_bit));
   usleep(100000);
-  tport_.write_reg(REG_EPRXTRAINBASE, 0x00);
+  tport_.write_reg(train_reg, 0x00);
 
   // Wait for channel lock? Maybe not needed?
   struct timeval start, now;
   uint8_t state = 0;
   gettimeofday(&start, nullptr);
+  uint16_t locked_base = REG_EPRXLOCKEDBASE + 3*group;
+  printf("  watching for lock at reg 0x%03x\n", locked_base);
   while (true) {
-    uint8_t reg = tport_.read_reg(REG_EPRXLOCKEDBASE + group);
+    usleep(1000);
+    uint8_t reg = tport_.read_reg(locked_base);
     state = reg & 0x3;
-
     gettimeofday(&now, nullptr);
     long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
@@ -503,19 +523,18 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
       printf(" INFO: Current lock state = %d %d\n", group, state);
       break;
     }
-    usleep(1000);
   }
 
   // Configure data source for prbs7
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
-  printf(" ULDATASOURCE1: %d\n", tport_.read_reg(REG_ULDATASOURCE1));
+  printf(" ULDATASOURCE1: 0x%02x\n", tport_.read_reg(REG_ULDATASOURCE1));
 
   // Have BERT monitor channel
   uint8_t group_code = 1 + group;  // 0 disables checker
   uint8_t prbs_code = 6;  // Hard code UL_PRBS7_DR3_CHN0 from Table 14.6 in v1
   uint8_t bert_source_byte = ((group_code & 0xF) << 4) | (prbs_code & 0xF);
   tport_.write_reg(REG_BERTSOURCE, bert_source_byte);
-  printf(" BERTSOURCE: %d\n", tport_.read_reg(REG_BERTSOURCE));
+  printf(" BERTSOURCE: 0x%02x\n", tport_.read_reg(REG_BERTSOURCE));
 
   // Reset BERT
   tport_.write_reg(REG_BERTCONFIG, 0x00);
@@ -537,21 +556,12 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
     printf("\n BERT error flag set");
   }
 
-  uint8_t b0 = tport_.read_reg(0x1d6);  // BERTRESULT0 (7:0)
-  uint8_t b1 = tport_.read_reg(0x1d5);  // BERTRESULT1 (15:8)
-  uint8_t b2 = tport_.read_reg(0x1d4);  // BERTRESULT2 (23:16)
-  uint8_t b3 = tport_.read_reg(0x1d3);  // BERTRESULT3 (31:24)
-  uint8_t b4 = tport_.read_reg(0x1d2);  // BERTRESULT4 (39:32)
-
-  printf(" BERTRESULT0: %u (%02X)\n", b0, b0);
-  printf(" BERTRESULT1: %u (%02X)\n", b1, b1);
-  printf(" BERTRESULT2: %u (%02X)\n", b2, b2);
-  printf(" BERTRESULT3: %u (%02X)\n", b3, b3);
-  printf(" BERTRESULT4: %u (%02X)\n", b4, b4);
-
-  uint64_t errors = ((uint64_t)b0) | ((uint64_t)b1 << 8) |
-                    ((uint64_t)b2 << 16) | ((uint64_t)b3 << 24) |
-                    ((uint64_t)b4 << 32);
+  // collect multi-byte error count
+  uint64_t errors{0};
+  for (int i_byte{0}; i_byte < 5; i_byte++) {
+    // BERTRESULT{0..4}
+    errors |= (tport_.read_reg(0x1d2 + (4 - i_byte)) << 8*i_byte);
+  }
 
   // Stop BERT
   tport_.write_reg(REG_BERTCONFIG, 0x00);
@@ -574,7 +584,9 @@ void lpGBT::check_prbs_errors_erx(int group, int channel, bool lpgbt_only,
          (unsigned long long)bits_checked);
 
   // Turn off lpgbt prbs if left on
-  tport_.write_reg(REG_EPRXPRBS0, 0x00);
+  if (lpgbt_only) {
+    tport_.write_reg(prbs_enable_reg, 0x00);
+  }
   // Ensure normal data source before leaving
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
 }
