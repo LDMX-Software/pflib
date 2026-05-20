@@ -114,20 +114,19 @@ void EcalModule::softResetECON() {
 const std::vector<std::pair<int, int>> EcalModule::ROC_ERX_MAPPING_DAQ = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
-const std::vector<std::pair<int, std::vector<int>>> EcalModule::ROC_ERX_MAPPING_TRG = {
-    {1, {6,4}},
-    {1, {5,7}},
-    {1, {2,0}},
-    {1, {1,3}},
-    {1, {11,9}},
-    {1, {8,10}},
+const std::vector<std::pair<int, std::vector<int>>>
+    EcalModule::ROC_ERX_MAPPING_TRG = {
+        {1, {6, 4}}, {1, {5, 7}},  {1, {2, 0}},
+        {1, {1, 3}}, {1, {11, 9}}, {1, {8, 10}},
 };
 
-const std::vector<std::pair<int, int>>& EcalModule::getHardwareRocErxMappingDAQ() {
+const std::vector<std::pair<int, int>>&
+EcalModule::getHardwareRocErxMappingDAQ() {
   return ROC_ERX_MAPPING_DAQ;
 }
 
-const std::vector<std::pair<int, std::vector<int>>>& EcalModule::getHardwareRocErxMappingTRG() {
+const std::vector<std::pair<int, std::vector<int>>>&
+EcalModule::getHardwareRocErxMappingTRG() {
   return ROC_ERX_MAPPING_TRG;
 }
 

@@ -93,8 +93,9 @@ class Target {
    * active). This is used when constructing the SingleECONDRocErxMapping object
    * that is used to to the index conversions for us.
    *
-   * @return vector whose index is i_roc and value is the pair of eRx for that ROC
-   * in ROC-half order (so the lower ROC half is the "first" eRx in the pair).
+   * @return vector whose index is i_roc and value is the pair of eRx for that
+   * ROC in ROC-half order (so the lower ROC half is the "first" eRx in the
+   * pair).
    */
   virtual const std::vector<std::pair<int, int>>&
   getHardwareRocErxMappingDAQ() = 0;

@@ -30,8 +30,8 @@ class EcalSingleModuleMotherboard : public Target {
             int roc_mask);
   virtual const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
       override;
-  virtual const std::vector<std::pair<int, std::vector<int>>>& getHardwareRocErxMappingTRG()
-      override;
+  virtual const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override;
   virtual int nrocs() override;
   virtual int necons() override;
   virtual bool have_roc(int iroc) const override;

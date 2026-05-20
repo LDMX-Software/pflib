@@ -174,7 +174,8 @@ class HcalFiberless : public Target {
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
-  const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ() override {
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
+      override {
     // implementing a "null" mapping for the fiberless connection even
     // though it doesn't have ECONs so that all DAQ logic can flow through
     // the SingleECONDMapping
@@ -182,7 +183,8 @@ class HcalFiberless : public Target {
     return THE_MAP;
   }
 
-  const std::vector<std::pair<int, std::vector<int>>>& getHardwareRocErxMappingTRG() override {
+  const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override {
     PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
   }
 
