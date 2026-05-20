@@ -14,6 +14,17 @@ namespace pflib {
 /**
  * Class holding a set of ROCs and ECONs representing a HexaModule
  *
+ * The ROC are indexed in the following way where `*` is placeholder
+ * for `TRIG` or `DAQ` in the schematic.
+ * - S1_*L -> ROC 0
+ * - S1_*R -> ROC 1
+ * - S2_*L -> ROC 2
+ * - S2_*R -> ROC 3
+ * - S3_*L -> ROC 4
+ * - S3_*R -> ROC 5
+ *
+ * which (I believe) aligns with the order of the I2C addresses
+ * for these ROCs as well.
  */
 class EcalModule {
  public:
