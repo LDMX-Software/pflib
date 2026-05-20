@@ -66,11 +66,18 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
-  /** Get the ROC to eRx mapping */
-  const std::vector<std::pair<int, int>>& getHardwareRocErxMapping() override;
+  /** Get the ROC to eRx mapping for the DAQ path */
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
+      override;
+  /** Get the ROC to eRx mapping for the TRG path*/
+  const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override;
 
-  /// the ROC to eRx mapping for this hardware
-  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING;
+  /// the ROC to eRx mapping along the DAQ path for this hardware
+  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING_DAQ;
+  /// the ROC to eRx mapping along the TRG path for this hardware
+  static const std::vector<std::pair<int, std::vector<int>>>
+      ROC_ERX_MAPPING_TRG;
 
  protected:
   /** Number of HGCROC boards in this system */

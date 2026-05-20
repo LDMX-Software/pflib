@@ -61,8 +61,13 @@ void EcalSingleModuleMotherboard::init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt,
 }
 
 const std::vector<std::pair<int, int>>&
-EcalSingleModuleMotherboard::getHardwareRocErxMapping() {
-  return EcalModule::getHardwareRocErxMapping();
+EcalSingleModuleMotherboard::getHardwareRocErxMappingDAQ() {
+  return EcalModule::getHardwareRocErxMappingDAQ();
+}
+
+const std::vector<std::pair<int, std::vector<int>>>&
+EcalSingleModuleMotherboard::getHardwareRocErxMappingTRG() {
+  return EcalModule::getHardwareRocErxMappingTRG();
 }
 
 int EcalSingleModuleMotherboard::nrocs() { return the_module_->nrocs(); }

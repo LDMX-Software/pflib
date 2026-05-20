@@ -92,9 +92,27 @@ class Target {
    * This does *not* include which ROCs are active (i.e. assume all the ROCs are
    * active). This is used when constructing the SingleECONDRocErxMapping object
    * that is used to to the index conversions for us.
+   *
+   * @return vector whose index is i_roc and value is the pair of eRx for that
+   * ROC in ROC-half order (so the lower ROC half is the "first" eRx in the
+   * pair).
    */
   virtual const std::vector<std::pair<int, int>>&
-  getHardwareRocErxMapping() = 0;
+  getHardwareRocErxMappingDAQ() = 0;
+
+  /**
+   * Define the ROC-TRG -> eRx input into the ECON-T for the hardware
+   *
+   * This does *not* include which ROCs are active.
+   * This is used in link alignment which is responsible for checking
+   * which ROCs are active.
+   *
+   * @return vetor whose index is i_roc and value is the pair of ECON index
+   * and a vector of eRx in ROC-TRG order (so ROC-TRG0 is the zero'th entry
+   * in the pair's vector).
+   */
+  virtual const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() = 0;
 
   /**
    * get the mapping that can be used to convert between (i_erx, link_chan)
