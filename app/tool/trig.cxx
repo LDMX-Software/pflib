@@ -51,8 +51,10 @@ void trig(const std::string& cmd, Target* target) {
 }
 
 namespace {
+// accessing the TRIGGER path only works on the ZCU
+// where we have hardware and firmware access to the TRIGGER stream
 auto menu_trig =
-    pftool::menu("TRIG", "TRIGGER functionalities")
+    pftool::menu("TRIG", "TRIGGER functionalities", 0, ONLY_ZCU)
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
