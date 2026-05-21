@@ -11,7 +11,7 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
     int grp = ierx;
     if (grp > 2) grp++;
     // get EPRXnLocked and EPRXnCurrentPhase10 where n is grp
-    std::vector<uint8_t> read_result = lpgbt.read(REG_EPRX0LOCKED + 3*grp, 2);
+    std::vector<uint8_t> read_result = lpgbt.read(REG_EPRX0LOCKED + 3 * grp, 2);
     uint8_t locked_status = read_result.at(0);
     uint8_t current_phase10 = read_result.at(1);
 
@@ -103,9 +103,9 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
     // ECON-T has multiple output links through lpGBT
     // connected to channel 0 of a series of groups
     std::vector<std::vector<int>> i_econ_to_group = {
-      {0}, // ECON-D
-      {0, 1, 2}, // ECON-T1
-      {3, 4, 5} // ECON-T2
+        {0},        // ECON-D
+        {0, 1, 2},  // ECON-T1
+        {3, 4, 5}   // ECON-T2
     };
     for (int ierx : i_econ_to_group.at(iecon)) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
