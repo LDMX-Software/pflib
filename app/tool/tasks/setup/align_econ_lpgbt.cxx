@@ -11,13 +11,15 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
     int grp = ierx;
     if (grp > 2) grp++;
     // get EPRXnLocked and EPRXnCurrentPhase10 where n is grp
-    auto read_result = lpgbt.read(REG_EPRX0LOCKED + 3*grp, 2);
-    uint8_t ch_locked = (read_result[0] >> 4) & 0xF;
-  
-    bool locked = (ch_locked >> 0) & 0x1;
-  
-    uint8_t state = read_result[0] & 0x3;
-    const char* state_name;
+    std::vector<uint8_t> read_result = lpgbt.read(REG_EPRX0LOCKED + 3*grp, 2);
+    uint8_t locked_status = read_result.at(0);
+    uint8_t current_phase10 = read_result.at(1);
+
+    // lpGBT mezzanine directs inputs into channel 0 of their group
+    bool ch0_locked = ((locked_status >> 4) & 0x1);
+    uint8_t ch0_phase = (current_phase10 & 0xf);
+    uint8_t state = (read_result[0] & 0x3);
+    const char* state_name{"???"};
     switch (state) {
       case 0:
         state_name = "Reset";
@@ -37,9 +39,9 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
     }
 
     printf(" Group %d\n", grp);
-    printf("  state: %s (%d)\n", grp, state_name, state);
-    printf("  ch 0: %s\n", 0, locked ? "LOCKED" : "UNLOCKED");
-    printf("  ch 0 phase: %u\n", grp, (read_result[1] & 0xf));
+    printf("  state: %s (%d)\n", state_name, state);
+    printf("  ch 0: %s\n", (ch0_locked ? "LOCKED" : "UNLOCKED"));
+    printf("  ch 0 phase: %u\n", ch0_phase);
   }
 }
 
@@ -52,14 +54,15 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   pflib::lpGBT lpgbt{(is_econd)
                          ? (tgt->get_opto_link("DAQ").lpgbt_transport())
                          : (tgt->get_opto_link("TRG").lpgbt_transport())};
+
+  printf("\n --- PRE-PRBS STATUS ---\n");
+  print_locked_status(lpgbt);
   uint32_t prbs_state;
 
   if (is_econd) {
     printf(" NOTE: Only checking Group 0, Channel 0\n");
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
     printf(" ECON PRBS State: %lu\n", prbs_state);
-    printf("\n --- PRE-PRBS STATUS ---\n");
-    print_locked_status(lpgbt);
 
     bool default_invert = (pftool::state.readout_config_is_hcal());
 
