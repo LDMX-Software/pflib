@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/lpgbt/GPIO.h"
 
 namespace pflib {
@@ -267,6 +268,7 @@ class lpGBT {
     uint8_t read_len;
   } i2c_[3];
   ::pflib::lpgbt::GPIO gpio_;
+  mutable logging::logger the_log_{logging::get("lpGBT")};
 };
 
 }  // namespace pflib
