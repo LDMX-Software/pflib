@@ -97,8 +97,8 @@ void EcalModule::hardResetROCs() {
 }
 void EcalModule::hardResetECONs() {
   GPIO& gpio = lpGBT_.gpio_interface();
-  gpio.setGPO(string_format("M%d_ECON_RE_Hb", imodule_), true);
   gpio.setGPO(string_format("M%d_ECON_RE_Hb", imodule_), false);
+  gpio.setGPO(string_format("M%d_ECON_RE_Hb", imodule_), true);
 }
 void EcalModule::softResetROC() {
   GPIO& gpio = lpGBT_.gpio_interface();
@@ -107,8 +107,8 @@ void EcalModule::softResetROC() {
 }
 void EcalModule::softResetECON() {
   GPIO& gpio = lpGBT_.gpio_interface();
-  gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), false);
+  gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
 }
 
 const std::vector<std::pair<int, int>> EcalModule::ROC_ERX_MAPPING_DAQ = {
