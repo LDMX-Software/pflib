@@ -447,7 +447,7 @@ void lpGBT::read_internal_temp_precise(YAML::Node cal_data) {
 void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                       bool invert, bool term, int equalization, bool acbias) {
   if (irx < 0 || irx > 5) {
-    pflib_log(error) << "Invalid lpGBT eRx index " << ierx << " (< 0 or > 5).";
+    pflib_log(error) << "Invalid lpGBT eRx index " << irx << " (< 0 or > 5).";
     return;
   }
   if (irx >= 3) irx++;  // irx=3 is EDIN4, 4->5, 5->6
