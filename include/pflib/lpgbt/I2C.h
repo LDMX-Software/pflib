@@ -10,8 +10,7 @@ namespace lpgbt {
 /** Synchronous I2C implementation */
 class I2C : public ::pflib::I2C {
  public:
-  I2C(lpGBT& lpGBT, int ibus) : lpgbt_{lpGBT}, ibus_{ibus} {}
-
+  I2C(lpGBT& lpGBT, int ibus);
   virtual void set_bus_speed(int speed = 100);
   virtual int get_bus_speed();
   virtual void write_byte(uint8_t i2c_dev_addr, uint8_t data);
