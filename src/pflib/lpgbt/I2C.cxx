@@ -3,6 +3,11 @@
 namespace pflib {
 namespace lpgbt {
 
+I2C::I2C(lpGBT& lpGBT, int ibus) : lpgbt_{lpGBT}, ibus_{ibus} {
+  // default speed to 100kHz
+  lpgbt_.setup_i2c(ibus_, 100);
+}
+
 void I2C::set_bus_speed(int speed) { lpgbt_.setup_i2c_speed(ibus_, speed); }
 
 int I2C::get_bus_speed() { return lpgbt_.get_i2c_speed(ibus_); }
