@@ -288,17 +288,10 @@ BWlpGBT_Transport::BWlpGBT_Transport(AxiLite& coder, int ilink, int chipaddr,
   stsmask_ = (isic_) ? (0xFFFF) : (0xFFFF0000u);
   pulsereg_ = (0x104) + (ilink / 2) * 4;
   pulseshift_ = (ilink % 2) * 16 + (isic_ ? 0 : 8);
-  printf("Link %d at 0x%02x isic=%d\n", ilink, chipaddr, isic);
-  printf("  ctloffset = 0x%x\n", ctloffset_);
-  printf("  stsreg = 0x%x\n", stsreg_);
-  printf("  stsmask = 0x%x\n", stsmask_);
-  printf("  pulsereg = 0x%x\n", pulsereg_);
-  printf("  pulseshift = 0x%x\n", pulseshift_);
   // choose internal operation, disable spies, etc
   transport_.write(ctloffset_ + REG_CTL_N_READ, 0);
   transport_.write(pulsereg_, 1 << (BIT_RESET_TX + pulseshift_));
   transport_.write(pulsereg_, 1 << (BIT_RESET_RX + pulseshift_));
-  
 }
 
 uint8_t BWlpGBT_Transport::read_reg(uint16_t reg) {

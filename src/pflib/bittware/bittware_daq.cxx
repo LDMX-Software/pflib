@@ -196,7 +196,6 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
     capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY, 0);
     dbg[string_format("ECON%d.NEXT_EVENT_SIZE", ilink)] =
         capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
-    dbg[string_format("ECON%d.ADDR_INFO", ilink)] = capture_.read(ADDR_INFO);
   }
   return dbg;
 }
