@@ -904,7 +904,8 @@ int main(int argc, char* argv[]) {
         target_name = argv[i + 1];
       }
 #else
-      std::cerr << "Unable to connect to BW without compiling with Rogue" << std::endl;
+      std::cerr << "Unable to connect to BW without compiling with Rogue"
+                << std::endl;
       return 3;
 #endif
     }

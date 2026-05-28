@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "pflib/Exception.h"
-#include <algorithm>
 
 namespace pflib::packing {
 
