@@ -222,7 +222,11 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
 
-    pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    if (snapshot_bx % 100 == 0) {
+      pflib_log(info) << "checking snapshot on bx " << snapshot_bx;
+    } else {
+      pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    }
 
     bool should_continue = false;
     for (int channel : channels) {
@@ -287,12 +291,12 @@ void align_phase_word(Target* tgt) {
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto& econ = tgt->econ(iecon);
+  bool is_daq = (econ.type() == "econd");
+  bool is_hcal =
+      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
+       pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW);
   int edgesel = 0;
-  int invertfcmd = 0;
-  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
-      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
-    invertfcmd = 1;
-  }
+  int invertfcmd = (is_hcal) ? (1) : (0);
   // Ensure ECON is in Run mode
   econ.setRunMode(true, edgesel, invertfcmd);
 
@@ -323,12 +327,23 @@ void align_phase_word(Target* tgt) {
   // Get channels dynamically from ROC to eRx object channel mapping
   // we need to use the lower-level hardware mapping since we want the
   // eRx ID number and not just the index it would produce after decoding
-  auto& mapping = tgt->getHardwareRocErxMapping();
-  // Dynamic channels. 2 eRx per ROC
   std::vector<int> channels;
-  for (int i_roc : roc_ids) {
-    channels.push_back(mapping[i_roc].first);
-    channels.push_back(mapping[i_roc].second);
+  if (is_daq) {
+    auto& mapping = tgt->getHardwareRocErxMappingDAQ();
+    for (int i_roc : roc_ids) {
+      channels.push_back(mapping[i_roc].first);
+      channels.push_back(mapping[i_roc].second);
+    }
+  } else {
+    auto& mapping = tgt->getHardwareRocErxMappingTRG();
+    for (int i_roc : roc_ids) {
+      const auto& [i_econ, econt_erx] = mapping.at(i_roc);
+      if (i_econ == iecon) {
+        for (int erx : econt_erx) {
+          channels.push_back(erx);
+        }
+      }
+    }
   }
 
   // inform the user of the ECON channels that we are going to attempt to align

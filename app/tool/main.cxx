@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
       tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask,
                                                        dev.c_str()));
       readout_cfg = pftool::State::CFG_HCALOPTO_BW;
-      pftool::root()->hide(ONLY_FIBERLESS);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_ZCU);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
       auto rocmask = target.get<int>("rocmask", 0x3f);
       tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, rocmask, dev.c_str()));
       readout_cfg = pftool::State::CFG_ECALOPTO_BW;
-      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL | ONLY_ZCU);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;

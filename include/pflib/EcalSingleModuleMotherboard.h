@@ -28,8 +28,10 @@ class EcalSingleModuleMotherboard : public Target {
    */
   void init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt, int module_i2c_bus,
             int roc_mask);
-  virtual const std::vector<std::pair<int, int>>& getHardwareRocErxMapping()
+  virtual const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
       override;
+  virtual const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override;
   virtual int nrocs() override;
   virtual int necons() override;
   virtual bool have_roc(int iroc) const override;

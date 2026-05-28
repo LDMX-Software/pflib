@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_SUITE(hcal_backplane)
 
 BOOST_AUTO_TEST_CASE(single_hgcroc0) {
   pflib::packing::SingleECONDRocErxMapping mapping(
-      pflib::HcalBackplane::ROC_ERX_MAPPING, {0});
+      pflib::HcalBackplane::ROC_ERX_MAPPING_DAQ, {0});
 
   BOOST_CHECK_EQUAL(mapping.toErx(0, 0), 1);
   BOOST_CHECK_EQUAL(mapping.toErx(0, 1), 0);
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(single_hgcroc0) {
 BOOST_AUTO_TEST_CASE(single_hgcroc1) {
   // HGCROC1 is lined up in half-order like the no-shuffle
   pflib::packing::SingleECONDRocErxMapping mapping(
-      pflib::HcalBackplane::ROC_ERX_MAPPING, {1});
+      pflib::HcalBackplane::ROC_ERX_MAPPING_DAQ, {1});
 
   BOOST_CHECK_EQUAL(mapping.toErx(1, 0), 0);
   BOOST_CHECK_EQUAL(mapping.toErx(1, 1), 1);
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(two_hgcroc12) {
   // I'm not testing the to*Channel functions here since
   // I trust the above faithfully checks that for me
   pflib::packing::SingleECONDRocErxMapping mapping(
-      pflib::HcalBackplane::ROC_ERX_MAPPING, {1, 2});
+      pflib::HcalBackplane::ROC_ERX_MAPPING_DAQ, {1, 2});
 
   BOOST_CHECK_EQUAL(mapping.toErx(1, 0), 2);
   BOOST_CHECK_EQUAL(mapping.toErx(1, 1), 3);
