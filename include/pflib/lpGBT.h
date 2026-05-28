@@ -208,26 +208,36 @@ class lpGBT {
 
   uint32_t read_efuse(uint16_t addr);
 
-  /** Setup an I2C bus
-      \param ibus Which I2C bus (0-2)
-      \param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
-      \param scl_drive Enable CMOS driver on SCL
-      \param strong_scl Enable higher-strength driver on SCL
-      \param strong_sda Enable higher-strength driver on SDA
-      \param pull_up_scl Enable internal pullup on SCL
-      \param pull_up_sda Enable internal pullup on SDA
+  /**
+   * Setup an I2C bus
+   * @param ibus Which I2C bus (0-2)
+   * @param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
+   * @param scl_drive Enable CMOS driver on SCL
+   * @param strong_scl Enable higher-strength driver on SCL
+   * @param strong_sda Enable higher-strength driver on SDA
+   * @param pull_up_scl Enable internal pullup on SCL
+   * @param pull_up_sda Enable internal pullup on SDA
+   *
+   * @note This just stores information in memory and does *not* configure the
+   * lpGBT, so it needs to be done on every launch of an executable.
    */
   void setup_i2c(int ibus, int speed_khz, bool scl_drive = false,
                  bool strong_scl = true, bool strong_sda = true,
                  bool pull_up_scl = false, bool pull_up_sda = false);
 
-  /** Setup i2c bus speed
-      \param ibus Which I2C bus (0-2)
-      \param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
-      Note that this really just stores the information on what speed to use in
-     a temporary variable
+  /**
+   * Setup i2c bus speed
+   * @param ibus Which I2C bus (0-2)
+   * @param speed_khz I2C speed (appropriate values are 100, 200, 400, 1000)
    */
   void setup_i2c_speed(int ibus, int speed_khz);
+
+  /**
+   * Get the i2c bus speed
+   * @param ibus which I2C bus (0-2)
+   * @return speed in kHz of the I2C bus (100, 200, 400, or 1000)
+   */
+  int get_i2c_speed(int ibus);
 
   /** Start an I2C read */
   void start_i2c_read(int ibus, uint8_t i2c_addr, int len = 1);

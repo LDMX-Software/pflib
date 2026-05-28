@@ -680,18 +680,34 @@ void lpGBT::setup_i2c(int ibus, int speed_khz, bool scl_drive, bool strong_scl,
 
   i2c_[ibus].ctl_reg = 0;
   if (scl_drive) i2c_[ibus].ctl_reg |= 0x80;
-  if (speed_khz > 125 && speed_khz < 300) i2c_[ibus].ctl_reg |= 0x01;
-  if (speed_khz > 300 && speed_khz < 500) i2c_[ibus].ctl_reg |= 0x02;
-  if (speed_khz > 500 && speed_khz < 2000) i2c_[ibus].ctl_reg |= 0x03;
+  setup_i2c_speed(ibus, speed_khz);
 }
 
 void lpGBT::setup_i2c_speed(int ibus, int speed_khz) {
   if (ibus < 0 || ibus > 2) return;
 
-  i2c_[ibus].ctl_reg &= 0x80;  // keep the scl_drive
+  // keep scl_drive while clearing any previous speed setting
+  i2c_[ibus].ctl_reg &= 0x80;
   if (speed_khz > 125 && speed_khz < 300) i2c_[ibus].ctl_reg |= 0x01;
   if (speed_khz > 300 && speed_khz < 500) i2c_[ibus].ctl_reg |= 0x02;
   if (speed_khz > 500 && speed_khz < 2000) i2c_[ibus].ctl_reg |= 0x03;
+}
+
+int lpGBT::get_i2c_speed(int ibus) {
+  int speed_code = (i2c_[ibus].ctl_reg & 0x3);
+  switch (speed_code) {
+    case 0b00:
+      return 100;
+    case 0b01:
+      return 200;
+    case 0b10:
+      return 400;
+    case 0b11:
+      return 1000;
+    default:
+      throw std::logic_error("i thought i covered all possible 2-bit values");
+  }
+  return 0;
 }
 
 static constexpr uint8_t CMD_I2C_WRITE_CR = 0;

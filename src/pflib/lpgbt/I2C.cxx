@@ -4,11 +4,12 @@ namespace pflib {
 namespace lpgbt {
 
 void I2C::set_bus_speed(int speed) {
-  ispeed_ = speed;
   lpgbt_.setup_i2c_speed(ibus_, speed);
 }
 
-int I2C::get_bus_speed() { return ispeed_; }
+int I2C::get_bus_speed() {
+  return lpgbt_.get_i2c_speed(ibus_);
+}
 
 void I2C::write_byte(uint8_t i2c_dev_addr, uint8_t data) {
   lpgbt_.i2c_write(ibus_, i2c_dev_addr, data);
