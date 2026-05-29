@@ -504,7 +504,8 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   // Train channel
   uint16_t train_reg = REG_EPRXTRAINBASE + (group / 2);
   uint16_t train_bit = (4 * (group % 2) + channel);
-  pflib_log(debug) << "training reg: " << hex(train_reg) << " bit: " << train_bit;
+  pflib_log(debug) << "training reg: " << hex(train_reg)
+                   << " bit: " << train_bit;
   tport_.write_reg(train_reg, (1 << train_bit));
   usleep(100000);
   tport_.write_reg(train_reg, 0x00);
@@ -560,7 +561,8 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   // Check PRBS error flag
   if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
     tport_.write_reg(REG_BERTCONFIG, 0x00);
-    pflib_log(error) << "BERT PRBS Error: Input was always zero during the test.";
+    pflib_log(error)
+        << "BERT PRBS Error: Input was always zero during the test.";
     return;
   }
 
@@ -584,9 +586,11 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   // PRBS check overestimates errors according to v1 manual
   double ber = (double)errors / (double)bits_checked;
 
-  pflib_log(info) << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT manual)";
-  pflib_log(info) << "Group " << group << ", Channel " << channel << " BER = " << ber
-                  << "(" << errors << " errors in " << bits_checked << " bits)";
+  pflib_log(info)
+      << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT manual)";
+  pflib_log(info) << "Group " << group << ", Channel " << channel
+                  << " BER = " << ber << "(" << errors << " errors in "
+                  << bits_checked << " bits)";
 
   // Turn off lpgbt prbs if left on
   if (lpgbt_only) {
