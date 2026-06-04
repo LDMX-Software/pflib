@@ -212,6 +212,12 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().sendL1A();
     printf("Sent SW L1A\n");
   }
+  if (cmd == "LINK_RESET_BX") {
+    int bx{0};
+    pft->fc().fc_get_setup_link_reset(bx);
+    bx = pftool::readline_int("Which BX to send link reset on?", bx);
+    pft->fc().fc_setup_link_reset(bx);
+  }
   if (cmd == "LINK_RESET") {
     pft->fc().linkreset_rocs();
     printf("Sent LINK RESET\n");
@@ -284,6 +290,7 @@ auto menu_fc =
         ->submenu("FAST_CONTROL", "configuration and testing of fast control")
         ->line("STATUS", "Check status and counters", fc)
         ->line("SW_L1A", "Send a software L1A", fc)
+        ->line("LINK_RESET_BX", "change BX of link reset", fc)
         ->line("LINK_RESET", "Send a link reset", fc)
         ->line("BUFFER_CLEAR", "Send a buffer clear", fc)
         ->line("RUN_CLEAR", "Send a run clear", fc)

@@ -6,10 +6,11 @@ namespace pflib {
 
 void EcalSingleModuleMotherboard::init(lpGBT& daq_lpgbt, lpGBT& trg_lpgbt,
                                        int module_i2c_bus, int roc_mask) {
-  // Setup DAQ lpGBT
+  // Setup DAQ lpGBT GPIO naming
+  pflib::lpgbt::standard_config::setup_ecal_daq_gpio(daq_lpgbt);
+
   try {
     int daq_pusm = daq_lpgbt.status();
-    pflib::lpgbt::standard_config::setup_ecal_daq_gpio(daq_lpgbt);
 
     if (daq_pusm == 19) {
       pflib_log(debug) << "DAQ lpGBT is PUSM READY (19)";

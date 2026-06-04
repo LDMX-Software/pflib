@@ -1,16 +1,18 @@
+# this is a configuration for a EcalSMM connected to a partially-broken
+# hexamodule at UMN
 ERX:
   0_ENABLE: 1 # ROC2
   1_ENABLE: 1 # ROC2
-  2_ENABLE: 1 # ROC5
-  3_ENABLE: 1 # ROC5
-  4_ENABLE: 1 # ROC4
-  5_ENABLE: 1 # ROC1
-  6_ENABLE: 1 # ROC1
-  7_ENABLE: 1 # ROC3
+  2_ENABLE: 0 # ROC5
+  3_ENABLE: 0 # ROC5
+  4_ENABLE: 0 # ROC4
+  5_ENABLE: 0 # ROC1
+  6_ENABLE: 0 # ROC1
+  7_ENABLE: 0 # ROC4
   8_ENABLE: 1 # ROC3
   9_ENABLE: 1 # ROC0
   10_ENABLE: 1 # ROC0
-  11_ENABLE: 1 # ROC4
+  11_ENABLE: 1 # ROC3
   0_INVERT_DATA: 0 
   1_INVERT_DATA: 0
   2_INVERT_DATA: 0
@@ -34,8 +36,7 @@ FORMATTERBUFFER:
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1
   GLOBAL_MATCH_THRESHOLD: 0
-  GLOBAL_ACTIVE_ERXS: 0xFFF # must bit-match the channels enabled in the ERX block above
-  #GLOBAL_HGCROC_HDR_MARKER: 0x5 # for HGCROCv3a, HGCROCv3b and newer have the default marker of 0xf
+  GLOBAL_ACTIVE_ERXS: 0xf03 # must bit-match the channels enabled in the ERX block above
 ALIGNER:
   GLOBAL_FREEZE_OUTPUT_ENABLE: 0 # use this since channels might not be locked
   GLOBAL_FREEZE_OUTPUT_ENABLE_ALL_CHANNELS_LOCKED: 0

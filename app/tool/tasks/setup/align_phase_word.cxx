@@ -120,7 +120,7 @@ std::pair<bool, std::map<int, int>> check_channel_phase_lock(
   return std::make_pair(all_locked, phases);
 }
 
-void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
+bool align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
   /**
    * phase alignment between ECON and HGCROC's 1.28GHz data channels
    */
@@ -134,6 +134,7 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
     parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
   }
   econ.applyParameters(parameters);
+  usleep(100);
 
   // Toggle Phase Training
   // this 1->0 transition is what triggers the phase training request
@@ -142,6 +143,7 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
     parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
   }
   econ.applyParameters(parameters);
+  usleep(100);
 
   auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
 
@@ -161,9 +163,11 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
                 [std::to_string(ch) + "_PHASE_SELECT_CHANNELINPUT"] = phase;
     }
     econ.applyParameters(parameters);
+    return true;
   } else {
     pflib_log(warn) << "Not all channels are locked so not fixing the phase "
                        "(leaving in track_mode = 1)";
+    return false;
   }
 }
 
@@ -362,7 +366,15 @@ void align_phase_word(Target* tgt) {
   }
 
   // ----- PHASE ALIGNMENT ----- //
-  align_phase(tgt, econ, channels);
+  if (not align_phase(tgt, econ, channels)) {
+    bool cont = pftool::readline_bool("Continue? ", false);
+    if (not cont) {
+      for (int i_roc : roc_ids) {
+        tgt->roc(i_roc).setRegisters(resets[i_roc]);
+      }
+      return;
+    }
+  }
 
   // do something funkier for word alignment
   // to ensure that word alignment is functioning properly
