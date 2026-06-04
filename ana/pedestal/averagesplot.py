@@ -10,7 +10,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset', type=Path, nargs='+', help='Pedestal dataset csv path (allows multiple)')
 parser.add_argument('-pd', '--plot_directory', type=Path, help='Path to directory for saved figures')
-parser.add_argument('-ac', '--align_comparison', action='store_true', help='Mark the first pedestal file as pre-alignment and second as post-alignment')
+parser.add_argument('-ac', '--align_comparison', action='store_true', help='Mark the first pedestal file as pre-lowering and second as post-lowering')
 parser.add_argument('-rms', '--rms_csv', type=Path, help='Calculate and save the RMS of the mean pedestals for each link - provide a file path')
 args = parser.parse_args()
 
@@ -60,7 +60,7 @@ def plot_averages():
     ymax = []
 
     if args.align_comparison:
-        labels = ['pre-alignment', 'post-alignment']
+        labels = ['pre-lowering', 'post-lowering']
     else:
         labels = np.arange(len(args.dataset))
 
@@ -78,8 +78,8 @@ def plot_averages():
     ymax = np.array(ymax)
     ax1.set_ylim([min(ymin[:,0]-10), max(ymax[:,0])+10])
 
-    ax1.set_ylabel('Mean ADC [a.u.]', fontsize = 12)
-    ax2.set_ylabel('RMS ADC [a.u.]', fontsize = 12)
+    ax1.set_ylabel('Mean ADC [ADC units]', fontsize = 12)
+    ax2.set_ylabel('RMS ADC [ADC units]', fontsize = 12)
     fig.supxlabel('Channels', fontsize=15)
 
 
@@ -92,7 +92,7 @@ def plot_averages():
     fig.suptitle("Mean pedestals and their RMS on link 0", fontsize=14)
 
     if args.plot_directory:
-        plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link0.png'), dpi=400)
+        plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link0.png'), dpi=200)
     else:
         plt.show()
 
@@ -106,8 +106,8 @@ def plot_averages():
 
     ax1.set_ylim([min(ymin[:,1]-10), max(ymax[:,1])+10])
 
-    ax3.set_ylabel('Mean ADC [a.u.]', fontsize = 12)
-    ax4.set_ylabel('RMS ADC [a.u.]', fontsize = 12)
+    ax3.set_ylabel('Mean ADC [ADC units]', fontsize = 12)
+    ax4.set_ylabel('RMS ADC [ADC units]', fontsize = 12)
     fig.supxlabel('Channels', fontsize=15)
 
     ax3.grid()
@@ -119,7 +119,7 @@ def plot_averages():
     fig2.suptitle("Mean pedestals and their RMS on link 1", fontsize=14)
 
     if args.plot_directory:
-        plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link1.png'), dpi=400)
+        plt.savefig(os.path.join(args.plot_directory,'pedestal_avg_link1.png'), dpi=200)
     else:
         plt.show()
 
@@ -127,8 +127,8 @@ def save_rms():
 
     if args.align_comparison:
 
-        rms_results = {'link_0_pre_alignment' : [np.std(sample_avg_adc[0][0][0][1:])], 'link_1_pre_alignment' : [np.std(sample_avg_adc[0][1][0][1:])], # The last [0][1:] are unravelling a nested list and excluding the calib channel
-                       'link_0_post_alignment' : [np.std(sample_avg_adc[1][0][0][1:])], 'link_1_post_alignment' : [np.std(sample_avg_adc[1][1][0][1:])]}
+        rms_results = {'link_0_pre_lowering' : [np.std(sample_avg_adc[0][0][0][1:])], 'link_1_pre_lowering' : [np.std(sample_avg_adc[0][1][0][1:])], # The last [0][1:] are unravelling a nested list and excluding the calib channel
+                       'link_0_post_lowering' : [np.std(sample_avg_adc[1][0][0][1:])], 'link_1_post_lowering' : [np.std(sample_avg_adc[1][1][0][1:])]}
     else:
         rms_results = dict()
         for i in range(len(args.dataset)):
