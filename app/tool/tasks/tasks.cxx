@@ -28,6 +28,7 @@
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
+#include "lund_diagnostics.h"
 
 namespace {
 auto menu_tasks =
@@ -35,6 +36,7 @@ auto menu_tasks =
                  "tasks for studying the chip and tuning its parameters")
         ->line("CHARGE_TIMESCAN", "scan charge/calib pulse over time",
                charge_timescan)
+	->lind("LUND_DIAGNOSTICS", "test", lund_diagnostics)
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
                get_lpgbt_temps)
