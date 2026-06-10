@@ -25,6 +25,8 @@ sub:
   one: 1.0
   two: ["one", "two"]
 redirect: !file "rel-path.yaml"
+hex: 0xf
+binary: 0b101
 )YAML");
   TempFile t2("rel-path.yaml", R"YAML(hello: "world")YAML");
   pflib::Parameters p;
@@ -32,6 +34,8 @@ redirect: !file "rel-path.yaml"
   BOOST_CHECK_EQUAL(p.get<int>("one"), 1);
   BOOST_CHECK_EQUAL(p.get<double>("two"), 2.0);
   BOOST_CHECK_EQUAL(p.get<std::string>("three"), "three");
+  BOOST_CHECK_EQUAL(p.get<int>("hex"), 0xf);
+  BOOST_CHECK_EQUAL(p.get<int>("binary"), 0b101);
   std::vector<int> four = {1, 2, 3, 4};
   auto read_four{p.get<std::vector<int>>("four")};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_four.begin(), read_four.end(),
