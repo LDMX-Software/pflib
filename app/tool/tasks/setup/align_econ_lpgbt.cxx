@@ -98,7 +98,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   if (is_econd) {
     // ECON-D only has one output link through lpGBT
     printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
-    lpgbt.check_prbs_errors_erx(0, 0, false);
+    lpgbt.check_prbs_errors_erx(0);
   } else {
     // ECON-T has multiple output links through lpGBT
     // connected to channel 0 of a series of groups
@@ -109,7 +109,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
     };
     for (int ierx : i_econ_to_group.at(iecon)) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
-      lpgbt.check_prbs_errors_erx(ierx, 0, false);
+      lpgbt.check_prbs_errors_erx(ierx);
     }
   }
 
