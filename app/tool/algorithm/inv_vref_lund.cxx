@@ -117,109 +117,127 @@ int DataFitter::fit(int target) {
   return inv_vref;
 }
 
-void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
-               int& step, std::vector<int>& pedestals_l0,
-               std::vector<double>& stds_l0, std::vector<int>& pedestals_l1,
-               std::vector<double>& stds_l1, std::vector<int>& inv_vrefs,
-               int& noinv_vref) {
+void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents, int& step,
+		std::map<int, std::vector<int>>& pedestals_l0,
+		std::map<int, std::vector<double>>& stds_l0,
+		std::map<int, std::vector<int>>& pedestals_l1,
+		std::map<int, std::vector<double>>& stds_l1,
+		std::map<int, std::vector<int>>& inv_vrefs,
+		int& noinv_vref) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
   std::array<int, 2> channels = {17, 51};
 
-  for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
+  //clear variables
+  pedestals_l0.clear();
+  stds_l0.clear();
+  pedestals_l1.clear();
+  stds_l1.clear();
+  inv_vrefs.clear();
+
+  for (int inv_vref = 100; inv_vref < 1024; inv_vref += step) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref
                     << ", NOINV_VREF = " << noinv_vref;
     // set inv_vref simultaneously for both links
-    auto test_param = roc.testParameters()
-                          .add("REFERENCEVOLTAGE_0", "INV_VREF", inv_vref)
-                          .add("REFERENCEVOLTAGE_1", "INV_VREF", inv_vref)
-                          .add("REFERENCEVOLTAGE_0", "NOINV_VREF", noinv_vref)
-                          .add("REFERENCEVOLTAGE_1", "NOINV_VREF", noinv_vref)
-                          .apply();
+    std::map<std::string, std::map<std::string, uint64_t>> parameters;
+    parameters["REFERENCEVOLTAGE_0"]["INV_VREF"] = inv_vref;
+    parameters["REFERENCEVOLTAGE_1"]["INV_VREF"] = inv_vref;
+    parameters["REFERENCEVOLTAGE_0"]["NOINV_VREF"] = noinv_vref;
+    parameters["REFERENCEVOLTAGE_1"]["NOINV_VREF"] = noinv_vref;
+    auto test_params = tgt->tempApplyAllROCs(parameters);
+
     // store current scan state in header for writer access
     daq_run(tgt, "PEDESTAL", buffer, nevents, pftool::state.daq_rate);
 
     auto data = buffer.get_buffer();
 
-    std::vector<int> adcs_l0;
-    std::vector<int> adcs_l1;
-
-    for (std::size_t i{0}; i < data.size(); i++) {
-      adcs_l0.push_back(
-          data[i].samples[data[i].i_soi].channel(0, channels[0]).adc());
-      adcs_l1.push_back(
-          data[i].samples[data[i].i_soi].channel(1, channels[1] % 36).adc());
+    std::map<int, std::vector<int>> adcs_l0;
+    std::map<int, std::vector<int>> adcs_l1;
+    for (int i_roc : tgt->roc_ids()) {
+    const pflib::packing::SingleECONDRocErxMapping& mapping = tgt->getRocErxMapping();
+    auto [i_erx_0, i_ch_0] = mapping.toErxChannel(i_roc, channels[0]);
+    auto [i_erx_1, i_ch_1] = mapping.toErxChannel(i_roc, channels[1]);
+	for (std::size_t i{0}; i < data.size(); i++) {
+      	adcs_l0[i_roc].push_back(
+		data[i].soi().channel(i_erx_0, i_ch_0).adc());
+      	adcs_l1[i_roc].push_back(
+		data[i].soi().channel(i_erx_1, i_ch_1).adc());
+    	}
+    pedestals_l0[i_roc].push_back(pflib::utility::median(adcs_l0[i_roc]));
+    stds_l0[i_roc].push_back(pflib::utility::stdev(adcs_l0[i_roc]));
+    pedestals_l1[i_roc].push_back(pflib::utility::median(adcs_l1[i_roc]));
+    stds_l1[i_roc].push_back(pflib::utility::stdev(adcs_l1[i_roc]));
+    inv_vrefs[i_roc].push_back(inv_vref);
     }
-    pedestals_l0.push_back(pflib::utility::median(adcs_l0));
-    stds_l0.push_back(pflib::utility::stdev(adcs_l0));
-    pedestals_l1.push_back(pflib::utility::median(adcs_l1));
-    stds_l1.push_back(pflib::utility::stdev(adcs_l1));
-    inv_vrefs.push_back(inv_vref);
   }
 }
 
-std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
-    Target* tgt, ROC& roc) {
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> inv_vref_lund(
+    Target* tgt) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
-  int nevents = pftool::readline_int("Number of events per point: ", 100);
+  static const std::size_t nevents = pftool::readline_int("Number of events per point: ", 100);
   int noinv_vref_step = pftool::readline_int("Stepsize for noinv_vref: ", 20);
   // TODO 348
 
-  std::array<int, 2> inv_vref_tgt;
-  std::array<int, 2> noinv_vref_tgt;
+  std::map<int, std::array<int, 2>> inv_vref_tgt;
+  std::map<int, std::array<int, 2>> noinv_vref_tgt;
 
   int noinv_vref = 612;
   int target_adc = 200;
 
-  DecodeAndBuffer buffer{1, 2};
+  DecodeAndBuffer buffer{nevents, tgt->nrocs()*2};
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
-  std::vector<int> pedestals_l0;
-  std::vector<double> stds_l0;
-  std::vector<int> pedestals_l1;
-  std::vector<double> stds_l1;
-  std::vector<int> inv_vrefs;
+  std::map<int, std::vector<int>> pedestals_l0;
+  std::map<int, std::vector<double>> stds_l0;
+  std::map<int, std::vector<int>> pedestals_l1;
+  std::map<int, std::vector<double>> stds_l1;
+  std::map<int, std::vector<int>> inv_vrefs;
 
   int step = 20;
-
-  while (true) {
-    get_param(tgt, roc, buffer, nevents, step, pedestals_l0, stds_l0,
+  bool keep_running = true;
+  while (keep_running) {
+    keep_running = false;
+    get_param(tgt, buffer, nevents, step, pedestals_l0, stds_l0,
               pedestals_l1, stds_l1, inv_vrefs, noinv_vref);
 
     // sort data and fit
-    DataFitter fitter_l0;
-    DataFitter fitter_l1;
-    fitter_l0.sort_and_append(inv_vrefs, pedestals_l0, stds_l0, step);
-    fitter_l1.sort_and_append(inv_vrefs, pedestals_l1, stds_l1, step);
+    for (int i_roc : tgt->roc_ids()) {
+    	DataFitter fitter_l0;
+    	DataFitter fitter_l1;
+    	fitter_l0.sort_and_append(inv_vrefs[i_roc], pedestals_l0[i_roc], stds_l0[i_roc], step);
+    	fitter_l1.sort_and_append(inv_vrefs[i_roc], pedestals_l1[i_roc], stds_l1[i_roc], step);
+    	inv_vref_tgt[i_roc][0] = fitter_l0.fit(target_adc);
+    	inv_vref_tgt[i_roc][1] = fitter_l1.fit(target_adc);
 
-    inv_vref_tgt[0] = fitter_l0.fit(target_adc);
-    inv_vref_tgt[1] = fitter_l1.fit(target_adc);
-
-    // Checking if the fit is reasonable and within boundaries
-    if ((inv_vref_tgt[0] == -1) || (inv_vref_tgt[1] == -1)) {
-      noinv_vref -= noinv_vref_step;
-      pflib_log(info) << "Bad slope and/or intercept. "
-                      << "Setting noinv_vref to " << noinv_vref;
-      continue;
-    } else if ((inv_vref_tgt[0] <= 0) || (inv_vref_tgt[0] >= 1023) ||
-               (inv_vref_tgt[1] <= 0) || (inv_vref_tgt[1] >= 1023)) {
-      noinv_vref -= noinv_vref_step;
-      pflib_log(info) << "Target inv_vref outside of parameter range. "
-                      << "Setting noinv_vref to " << noinv_vref;
-      continue;
-    } else {
-      break;
+    	// Checking if the fit is reasonable and within boundaries
+    	if ((inv_vref_tgt[i_roc][0] == -1) || (inv_vref_tgt[i_roc][1] == -1)) {
+      	noinv_vref -= noinv_vref_step;
+      	pflib_log(info) << "Bad slope and/or intercept. "
+         	             << "Setting noinv_vref to " << noinv_vref;
+	keep_running = true;
+    	} else if ((inv_vref_tgt[i_roc][0] <= 0) || (inv_vref_tgt[i_roc][0] >= 1023) ||
+        	       (inv_vref_tgt[i_roc][1] <= 0) || (inv_vref_tgt[i_roc][1] >= 1023)) {
+      	noinv_vref -= noinv_vref_step;
+      	pflib_log(info) << "Target inv_vref outside of parameter range. "
+        	              << "Setting noinv_vref to " << noinv_vref;
+	keep_running = true;
+    	}
     }
-  }
-  noinv_vref_tgt[0] = noinv_vref;
-  noinv_vref_tgt[1] = noinv_vref;
+ }
 
-  std::map<std::string, std::map<std::string, uint64_t>> settings;
+  for (int i_roc : tgt->roc_ids()) {
+  	noinv_vref_tgt[i_roc][0] = noinv_vref;
+  	noinv_vref_tgt[i_roc][1] = noinv_vref;
+	}
+  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> settings;
   for (int i_link{0}; i_link < 2; i_link++) {
-    auto refvol_page =
-        pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-    settings[refvol_page]["INV_VREF"] = inv_vref_tgt[i_link];
-    settings[refvol_page]["NOINV_VREF"] = noinv_vref_tgt[i_link];
+	for(int i_roc : tgt->roc_ids()) {
+    		auto refvol_page =
+       		pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
+    		settings[i_roc][refvol_page]["INV_VREF"] = inv_vref_tgt[i_roc][i_link];
+    		settings[i_roc][refvol_page]["NOINV_VREF"] = noinv_vref_tgt[i_roc][i_link];
+   	}
   }
   return settings;
 }
