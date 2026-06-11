@@ -134,7 +134,7 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
   stds_l1.clear();
   inv_vrefs.clear();
 
-  for (int inv_vref = 100; inv_vref < 1024; inv_vref += step) {
+  for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref
                     << ", NOINV_VREF = " << noinv_vref;
     // set inv_vref simultaneously for both links
