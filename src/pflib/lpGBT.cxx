@@ -513,22 +513,24 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   // Wait for channel lock? Maybe not needed?
   struct timeval start, now;
   uint8_t state = 0;
+  uint8_t ch0_locked = 0;
   gettimeofday(&start, nullptr);
   uint16_t locked_base = REG_EPRXLOCKEDBASE + 3 * group;
   pflib_log(info) << "watching for lock at reg " << hex(locked_base);
-  while (true) {
+  while (state == 0 or ch0_locked == 0) {
     usleep(1000);
     uint8_t reg = tport_.read_reg(locked_base);
-    state = reg & 0x3;
+    state = (reg & 0x3);
+    ch0_locked = ((reg >> 4) & 0x1);
     gettimeofday(&now, nullptr);
     long elapsed_us =
         (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     // Wait two seconds
     if (elapsed_us > 2000000) {
-      printf(" INFO: Current lock state = %d %d\n", group, state);
       break;
     }
   }
+  printf(" INFO: Current lock state = %d %d %d\n", group, state, ch0_locked);
 
   // Configure data source for prbs7
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);

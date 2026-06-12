@@ -18,7 +18,7 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
     // lpGBT mezzanine directs inputs into channel 0 of their group
     bool ch0_locked = ((locked_status >> 4) & 0x1);
     uint8_t ch0_phase = (current_phase10 & 0xf);
-    uint8_t state = (read_result[0] & 0x3);
+    uint8_t state = (locked_status & 0x3);
     const char* state_name{"???"};
     switch (state) {
       case 0:
