@@ -492,9 +492,9 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   ctrl_byte |= (1 << (4 + channel));           // Enable given channel
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
   if (check_all) {
-    ctrl_byte |= (0 & 0x3); // Hard code for Fixed Phase (0)
+    ctrl_byte |= (0 & 0x3);  // Hard code for Fixed Phase (0)
   } else {
-    ctrl_byte |= (1 & 0x3); // Hard code for Initial Training (1)
+    ctrl_byte |= (1 & 0x3);  // Hard code for Initial Training (1)
   }
   tport_.write_reg(ctrl_reg, ctrl_byte);
   uint8_t eprxcontrol = tport_.read_reg(ctrl_reg);
@@ -516,7 +516,7 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
     tport_.write_reg(train_reg, (1 << train_bit));
     usleep(100000);
     tport_.write_reg(train_reg, 0x00);
-  
+
     // Wait for channel lock? Maybe not needed?
     struct timeval start, now;
     uint8_t state = 0;
@@ -530,8 +530,8 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
       state = (reg & 0x3);
       ch0_locked = ((reg >> 4) & 0x1);
       gettimeofday(&now, nullptr);
-      long elapsed_us =
-          (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
+      long elapsed_us = (now.tv_sec - start.tv_sec) * 1000000L +
+                        (now.tv_usec - start.tv_usec);
       // Wait two seconds
       if (elapsed_us > 2000000) {
         break;
@@ -569,12 +569,12 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
       pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
       uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
       pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
-    
+
       // Wait for BERT to finish
       do {
         usleep(1000);
         bert_status = tport_.read_reg(REG_BERTSTATUS);
-      } while(!(bert_status & 0b1));
+      } while (!(bert_status & 0b1));
 
       bert_status = tport_.read_reg(REG_BERTSTATUS);
       pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
@@ -611,25 +611,25 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
       if (ber < 1e-3) ber /= 3;
 
       pflib_log(info) << "Group " << group << ", Channel " << channel
-                      << "Phase " << static_cast<int>(phase)
-                      << " BER = " << ber << "(" << errors << " errors in "
-                      << bits_checked << " bits)";
+                      << "Phase " << static_cast<int>(phase) << " BER = " << ber
+                      << "(" << errors << " errors in " << bits_checked
+                      << " bits)";
     }
   } else {
     // Reset BERT
     tport_.write_reg(REG_BERTCONFIG, 0x00);
     usleep(1000);
-  
+
     // Start BERT
     tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
     uint8_t bert_config = tport_.read_reg(REG_BERTCONFIG);
     pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
-  
+
     // Wait for BERT to finish
     while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
       usleep(1000);
     }
-  
+
     uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
     pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
     // Check PRBS error flag
@@ -639,29 +639,29 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
           << "BERT PRBS Error: Input was always zero during the test.";
       return;
     }
-  
+
     // collect multi-byte error count
     uint64_t errors{0};
     for (int i_byte{0}; i_byte < 5; i_byte++) {
       // BERTRESULT{0..4}
       errors |= (tport_.read_reg(0x1d2 + (4 - i_byte)) << (8 * i_byte));
     }
-  
+
     // Stop BERT
     tport_.write_reg(REG_BERTCONFIG, 0x00);
-  
+
     // Calculate BER
     uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
-  
+
     // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
     uint64_t bits_per_cycle = 32;
     uint64_t bits_checked = clocks * bits_per_cycle;
-  
+
     // PRBS check overestimates errors according to v1 manual
     double ber = (double)errors / (double)bits_checked;
-  
-    pflib_log(info)
-        << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT manual)";
+
+    pflib_log(info) << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 "
+                       "lpGBT manual)";
     pflib_log(info) << "Group " << group << ", Channel " << channel
                     << " BER = " << ber << "(" << errors << " errors in "
                     << bits_checked << " bits)";
