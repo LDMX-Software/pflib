@@ -38,10 +38,9 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                 (inv_vrefs[i] - inv_vrefs[i + 1]);
 
     // Threshold check. CMS uses 0.05. This value fits with my analysis as well.
-    if (std::abs(LH) <= flat_threshold ||
-        std::abs(RH) <= flat_threshold ||
-	std::abs(LH) >= linear_threshold ||
-	std::abs(RH) >= linear_threshold) {  // flat regime
+    if (std::abs(LH) <= flat_threshold || std::abs(RH) <= flat_threshold ||
+        std::abs(LH) >= linear_threshold ||
+        std::abs(RH) >= linear_threshold) {  // flat regime
       nonlinear_.push_back({inv_vrefs[i], pedestals[i], LH, RH});
     } else {  // we're in a linear regime or there's outliers
       double LH_err =
@@ -176,7 +175,6 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
                std::map<int, std::vector<double>>& stds_l1,
                std::map<int, std::vector<int>>& inv_vrefs,
                std::map<int, std::array<int, 2>>& noinv_vref) {
-
   static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
   std::array<int, 2> channels = {17, 51};
 
