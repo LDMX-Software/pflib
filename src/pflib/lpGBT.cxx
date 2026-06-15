@@ -474,22 +474,28 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   // the lpGBT Mezzanine shifts the index by one
   if (group >= 3) group++;
 
-  static uint16_t REG_EPRXCONTROLBASE = 0x0c8;
-  static uint16_t REG_EPRXPRBSBASE = 0x135;
-  static uint16_t REG_EPRXTRAINBASE = 0x115;
-  static uint16_t REG_EPRXLOCKEDBASE = 0x152;
-  static uint16_t REG_BERTSOURCE = 0x136;
-  static uint16_t REG_BERTCONFIG = 0x137;
-  static uint16_t REG_BERTSTATUS = 0x1d1;
-  static uint16_t REG_BERTRESULT[5] = {0x1d6, 0x1d5, 0x1d4, 0x1d3, 0x1d2};
-  static uint16_t REG_ULDATASOURCE1 = 0x129;
+  static const uint16_t REG_EPRXCONTROLBASE = 0x0c8;
+  static const uint16_t REG_EPRXPRBSBASE = 0x135;
+  static const uint16_t REG_EPRXTRAINBASE = 0x115;
+  static const uint16_t REG_EPRXLOCKEDBASE = 0x152;
+  static const uint16_t REG_BERTSOURCE = 0x136;
+  static const uint16_t REG_BERTCONFIG = 0x137;
+  static const uint16_t REG_BERTSTATUS = 0x1d1;
+  static const uint16_t REG_BERTRESULT[5] = {0x1d6, 0x1d5, 0x1d4, 0x1d3, 0x1d2};
+  static const uint16_t REG_ULDATASOURCE1 = 0x129;
+  static const uint16_t REG_EPRX00CHNCNTR = 0x0d0;
+  bool check_all = false;
 
   // Enable channel in specified group
   uint16_t ctrl_reg = REG_EPRXCONTROLBASE + group;
   uint8_t ctrl_byte = 0;
   ctrl_byte |= (1 << (4 + channel));           // Enable given channel
   ctrl_byte |= ((data_rate_code & 0x3) << 2);  // Set data rate
-  ctrl_byte |= (1 & 0x3);                      // Hard code for Initial Training
+  if (check_all) {
+    ctrl_byte |= (0 & 0x3); // Hard code for Fixed Phase (0)
+  } else {
+    ctrl_byte |= (1 & 0x3); // Hard code for Initial Training (1)
+  }
   tport_.write_reg(ctrl_reg, ctrl_byte);
   uint8_t eprxcontrol = tport_.read_reg(ctrl_reg);
   pflib_log(info) << "EPRX" << group << "CONTROL: " << hex(eprxcontrol);
@@ -501,36 +507,38 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
     tport_.write_reg(prbs_enable_reg, (1 << prbs_enable_bit));
   }
 
-  // Train channel
-  uint16_t train_reg = REG_EPRXTRAINBASE + (group / 2);
-  uint16_t train_bit = (4 * (group % 2) + channel);
-  pflib_log(debug) << "training reg: " << hex(train_reg)
-                   << " bit: " << train_bit;
-  tport_.write_reg(train_reg, (1 << train_bit));
-  usleep(100000);
-  tport_.write_reg(train_reg, 0x00);
-
-  // Wait for channel lock? Maybe not needed?
-  struct timeval start, now;
-  uint8_t state = 0;
-  uint8_t ch0_locked = 0;
-  gettimeofday(&start, nullptr);
-  uint16_t locked_base = REG_EPRXLOCKEDBASE + 3 * group;
-  pflib_log(info) << "watching for lock at reg " << hex(locked_base);
-  while (state == 0 or ch0_locked == 0) {
-    usleep(1000);
-    uint8_t reg = tport_.read_reg(locked_base);
-    state = (reg & 0x3);
-    ch0_locked = ((reg >> 4) & 0x1);
-    gettimeofday(&now, nullptr);
-    long elapsed_us =
-        (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
-    // Wait two seconds
-    if (elapsed_us > 2000000) {
-      break;
+  if (not check_all) {
+    // Train channel
+    uint16_t train_reg = REG_EPRXTRAINBASE + (group / 2);
+    uint16_t train_bit = (4 * (group % 2) + channel);
+    pflib_log(debug) << "training reg: " << hex(train_reg)
+                     << " bit: " << train_bit;
+    tport_.write_reg(train_reg, (1 << train_bit));
+    usleep(100000);
+    tport_.write_reg(train_reg, 0x00);
+  
+    // Wait for channel lock? Maybe not needed?
+    struct timeval start, now;
+    uint8_t state = 0;
+    uint8_t ch0_locked = 0;
+    gettimeofday(&start, nullptr);
+    uint16_t locked_base = REG_EPRXLOCKEDBASE + 3 * group;
+    pflib_log(info) << "watching for lock at reg " << hex(locked_base);
+    while (state == 0 or ch0_locked == 0) {
+      usleep(1000);
+      uint8_t reg = tport_.read_reg(locked_base);
+      state = (reg & 0x3);
+      ch0_locked = ((reg >> 4) & 0x1);
+      gettimeofday(&now, nullptr);
+      long elapsed_us =
+          (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
+      // Wait two seconds
+      if (elapsed_us > 2000000) {
+        break;
+      }
     }
+    printf(" INFO: Current lock state = %d %d %d\n", group, state, ch0_locked);
   }
-  printf(" INFO: Current lock state = %d %d %d\n", group, state, ch0_locked);
 
   // Configure data source for prbs7
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
@@ -544,55 +552,120 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   uint8_t bert_source = tport_.read_reg(REG_BERTSOURCE);
   pflib_log(debug) << "BERTSOURCE: " << hex(bert_source);
 
-  // Reset BERT
-  tport_.write_reg(REG_BERTCONFIG, 0x00);
-  usleep(1000);
+  if (check_all) {
+    uint16_t chncntr_addr = REG_EPRX00CHNCNTR + 4 * group;
+    uint8_t chncntr = tport_.read_reg(chncntr_addr);
+    pflib_log(debug) << "CHNCONF: " << hex(chncntr);
+    for (uint8_t phase{0}; phase < 16; phase++) {
+      tport_.write_reg(chncntr_addr, (phase << 4));
 
-  // Start BERT
-  tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
-  uint8_t bert_config = tport_.read_reg(REG_BERTCONFIG);
-  pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
+      // Reset BERT
+      tport_.write_reg(REG_BERTCONFIG, 0x00);
+      usleep(1000);
 
-  // Wait for BERT to finish
-  while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
-    usleep(1000);
-  }
+      // Start BERT
+      tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
+      uint8_t bert_config = tport_.read_reg(REG_BERTCONFIG);
+      pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
+      uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
+      pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
+    
+      // Wait for BERT to finish
+      do {
+        usleep(1000);
+        bert_status = tport_.read_reg(REG_BERTSTATUS);
+      } while(!(bert_status & 0b1));
 
-  uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
-  pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
-  // Check PRBS error flag
-  if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
+      bert_status = tport_.read_reg(REG_BERTSTATUS);
+      pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
+      // Check PRBS error flag
+      if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
+        tport_.write_reg(REG_BERTCONFIG, 0x00);
+        pflib_log(error)
+            << "BERT PRBS Error: Input was always zero during the test.";
+        return;
+      }
+
+      // collect multi-byte error count
+      uint64_t errors{0};
+      for (int i_byte{0}; i_byte < 5; i_byte++) {
+        // BERTRESULT{0..4}
+        errors |= (tport_.read_reg(0x1d2 + (4 - i_byte)) << (8 * i_byte));
+      }
+
+      // Stop BERT
+      tport_.write_reg(REG_BERTCONFIG, 0x00);
+
+      // Calculate BER
+      uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
+
+      // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
+      uint64_t bits_per_cycle = 32;
+      uint64_t bits_checked = clocks * bits_per_cycle;
+
+      // PRBS check overestimates errors according to v1 manual
+      double ber = (double)errors / (double)bits_checked;
+
+      // Section 14.2.1 v1 lpGBT manual
+      // if BER < 1e-3, then divide by 3
+      if (ber < 1e-3) ber /= 3;
+
+      pflib_log(info) << "Group " << group << ", Channel " << channel
+                      << "Phase " << static_cast<int>(phase)
+                      << " BER = " << ber << "(" << errors << " errors in "
+                      << bits_checked << " bits)";
+    }
+  } else {
+    // Reset BERT
     tport_.write_reg(REG_BERTCONFIG, 0x00);
-    pflib_log(error)
-        << "BERT PRBS Error: Input was always zero during the test.";
-    return;
+    usleep(1000);
+  
+    // Start BERT
+    tport_.write_reg(REG_BERTCONFIG, (bert_time_code << 4) | 0x1);
+    uint8_t bert_config = tport_.read_reg(REG_BERTCONFIG);
+    pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
+  
+    // Wait for BERT to finish
+    while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
+      usleep(1000);
+    }
+  
+    uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
+    pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
+    // Check PRBS error flag
+    if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
+      tport_.write_reg(REG_BERTCONFIG, 0x00);
+      pflib_log(error)
+          << "BERT PRBS Error: Input was always zero during the test.";
+      return;
+    }
+  
+    // collect multi-byte error count
+    uint64_t errors{0};
+    for (int i_byte{0}; i_byte < 5; i_byte++) {
+      // BERTRESULT{0..4}
+      errors |= (tport_.read_reg(0x1d2 + (4 - i_byte)) << (8 * i_byte));
+    }
+  
+    // Stop BERT
+    tport_.write_reg(REG_BERTCONFIG, 0x00);
+  
+    // Calculate BER
+    uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
+  
+    // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
+    uint64_t bits_per_cycle = 32;
+    uint64_t bits_checked = clocks * bits_per_cycle;
+  
+    // PRBS check overestimates errors according to v1 manual
+    double ber = (double)errors / (double)bits_checked;
+  
+    pflib_log(info)
+        << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT manual)";
+    pflib_log(info) << "Group " << group << ", Channel " << channel
+                    << " BER = " << ber << "(" << errors << " errors in "
+                    << bits_checked << " bits)";
   }
-
-  // collect multi-byte error count
-  uint64_t errors{0};
-  for (int i_byte{0}; i_byte < 5; i_byte++) {
-    // BERTRESULT{0..4}
-    errors |= (tport_.read_reg(0x1d2 + (4 - i_byte)) << (8 * i_byte));
-  }
-
-  // Stop BERT
-  tport_.write_reg(REG_BERTCONFIG, 0x00);
-
-  // Calculate BER
-  uint64_t clocks = 1ULL << (bert_time_code * 2 + 5);
-
-  // channel working at 1280 Mbps produces 32 bits per 40 MHz clock cycle
-  uint64_t bits_per_cycle = 32;
-  uint64_t bits_checked = clocks * bits_per_cycle;
-
-  // PRBS check overestimates errors according to v1 manual
-  double ber = (double)errors / (double)bits_checked;
-
-  pflib_log(info)
-      << "If BER < 10^-3 then divide BER by 3 (Section 14.2.1 v1 lpGBT manual)";
-  pflib_log(info) << "Group " << group << ", Channel " << channel
-                  << " BER = " << ber << "(" << errors << " errors in "
-                  << bits_checked << " bits)";
 
   // Turn off lpgbt prbs if left on
   if (lpgbt_only) {

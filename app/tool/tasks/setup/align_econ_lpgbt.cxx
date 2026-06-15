@@ -217,5 +217,7 @@ void align_econ_lpgbt(Target* tgt) {
   if (pftool::readline_bool("Do bit alignment?", true)) {
     align_econ_lpgbt_bit(tgt, econ, iecon);
   }
-  align_econ_lpgbt_word(tgt, econ);
+  if (pftool::readline_bool("Continue to word alignment?", true)) {
+    align_econ_lpgbt_word(tgt, econ);
+  }
 }
