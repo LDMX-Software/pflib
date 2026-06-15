@@ -27,6 +27,8 @@ class DataFitter {
                        std::vector<double>& stds, int& step);
   int fit(int target);
 
+  int linear_fit(int& target);
+
   // Member variables
 
   struct Point {
@@ -52,7 +54,7 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
 		std::map<int, std::vector<int>>& pedestals_l1,
 		std::map<int, std::vector<double>>& stds_l1,
 		std::map<int, std::vector<int>>& inv_vrefs,
-		int& noinv_vref);
+		std::map<int, std::array<int, 2>>& noinv_vref);
 
 /**
  * Find the inv_vref and noinv_vref parameters.
