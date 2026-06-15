@@ -120,68 +120,67 @@ int DataFitter::fit(int target) {
   return inv_vref;
 }
 
-
 int DataFitter::linear_fit(int& target) {
+  static auto the_log_{::pflib::logging::get("inv_vref_scan:linear_fit")};
+  pflib_log(info) << "Fitting Data";
 
-	static auto the_log_{::pflib::logging::get("inv_vref_scan:linear_fit")};
-	pflib_log(info) << "Fitting Data";
+  // preform a linear fit
+  int x_sum = 0;
+  int y_sum = 0;
 
-	//preform a linear fit
-	int x_sum = 0;
-	int y_sum = 0;
+  for (const auto& p : linear_) {
+    x_sum += p.x_;
+    y_sum += p.y_;
+  }
 
-	for (const auto& p : linear_) {
-		x_sum += p.x_;
-		y_sum += p.y_;
-	}
+  double x_mean = x_sum / linear_.size();
+  double y_mean = y_sum / linear_.size();
+  double s_x = 0.0;
+  double s_y = 0.0;
+  double s_xy = 0.0;
 
-	double x_mean = x_sum / linear_.size();
-	double y_mean = y_sum / linear_.size();
-	double s_x = 0.0;
-	double s_y = 0.0;
-	double s_xy = 0.0;
+  for (const auto& p : linear_) {
+    s_x += (p.x_ - x_mean) * (p.x_ - x_mean);
+    s_y += (p.y_ - y_mean) * (p.y_ - y_mean);
+    s_xy += (p.x_ - x_mean) * (p.y_ - y_mean);
+    pflib_log(info) << "Included inv_vref: " << p.x_;
+  }
 
-	for (const auto& p : linear_) {
-		s_x += (p.x_ - x_mean) * (p.x_ - x_mean);
-		s_y += (p.y_ - y_mean) * (p.y_ - y_mean);
-		s_xy += (p.x_ - x_mean) * (p.y_ - y_mean);
-		pflib_log(info) << "Included inv_vref: " << p.x_;
-	}
+  double slope = s_xy / s_x;
+  double intercept = y_mean - slope * x_mean;
 
-	double slope = s_xy / s_x;
-	double intercept = y_mean - slope * x_mean;
+  // determine if slope is reasonable
+  if ((slope >= 0) || (slope <= -1e3)) {
+    return -1;
+  }
 
-	//determine if slope is reasonable
-	if ((slope >= 0) || (slope <= -1e3)) {
-    		return -1;
-  	}
+  // find target inv_vref
+  int inv_vref = 0;
+  int adc = 0;
+  while (inv_vref < 1024) {
+    adc = slope * inv_vref + intercept;
+    if (adc <= target) {
+      break;
+    }
+    inv_vref++;
+  }
 
-	//find target inv_vref
-	int inv_vref = 0;
-  	int adc = 0;
-  	while (inv_vref < 1024) {
-    		adc = slope * inv_vref + intercept;
-    		if (adc <= target) {
-      			break;
-    		}
-    	inv_vref++;
-  	}
-
-  	pflib_log(info) << "Final inv_vref is " << inv_vref;
-  	return inv_vref;
+  pflib_log(info) << "Final inv_vref is " << inv_vref;
+  return inv_vref;
 }
 
-void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents, int& step,
-		std::map<int, std::vector<int>>& pedestals_l0,
-		std::map<int, std::vector<double>>& stds_l0,
-		std::map<int, std::vector<int>>& pedestals_l1,
-		std::map<int, std::vector<double>>& stds_l1,
-		std::map<int, std::vector<int>>& inv_vrefs,
-		std::map<int, std::array<int, 2>>& noinv_vref) {
+void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
+               int& step, std::map<int, std::vector<int>>& pedestals_l0,
+               std::map<int, std::vector<double>>& stds_l0,
+               std::map<int, std::vector<int>>& pedestals_l1,
+               std::map<int, std::vector<double>>& stds_l1,
+               std::map<int, std::vector<int>>& inv_vrefs,
+               std::map<int, std::array<int, 2>>& noinv_vref) {
+
   static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
   std::array<int, 2> channels = {17, 51};
 
-  //clear variables
+  // clear variables
   pedestals_l0.clear();
   stds_l0.clear();
   pedestals_l1.clear();
@@ -191,12 +190,15 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
   for (int inv_vref = 0; inv_vref < 1024; inv_vref += step) {
     pflib_log(info) << "Running INV_VREF = " << inv_vref;
     // set inv_vref simultaneously for both links
-    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> parameters;
-    for (int i_roc : tgt->roc_ids()){
-    	parameters[i_roc]["REFERENCEVOLTAGE_0"]["INV_VREF"] = inv_vref;
-    	parameters[i_roc]["REFERENCEVOLTAGE_1"]["INV_VREF"] = inv_vref;
-    	parameters[i_roc]["REFERENCEVOLTAGE_0"]["NOINV_VREF"] = noinv_vref[i_roc][0];
-    	parameters[i_roc]["REFERENCEVOLTAGE_1"]["NOINV_VREF"] = noinv_vref[i_roc][1];
+    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+        parameters;
+    for (int i_roc : tgt->roc_ids()) {
+      parameters[i_roc]["REFERENCEVOLTAGE_0"]["INV_VREF"] = inv_vref;
+      parameters[i_roc]["REFERENCEVOLTAGE_1"]["INV_VREF"] = inv_vref;
+      parameters[i_roc]["REFERENCEVOLTAGE_0"]["NOINV_VREF"] =
+          noinv_vref[i_roc][0];
+      parameters[i_roc]["REFERENCEVOLTAGE_1"]["NOINV_VREF"] =
+          noinv_vref[i_roc][1];
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
@@ -208,28 +210,28 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
     std::map<int, std::vector<int>> adcs_l0;
     std::map<int, std::vector<int>> adcs_l1;
     for (int i_roc : tgt->roc_ids()) {
-    const pflib::packing::SingleECONDRocErxMapping& mapping = tgt->getRocErxMapping();
-    auto [i_erx_0, i_ch_0] = mapping.toErxChannel(i_roc, channels[0]);
-    auto [i_erx_1, i_ch_1] = mapping.toErxChannel(i_roc, channels[1]);
-	for (std::size_t i{0}; i < data.size(); i++) {
-      	adcs_l0[i_roc].push_back(
-		data[i].soi().channel(i_erx_0, i_ch_0).adc());
-      	adcs_l1[i_roc].push_back(
-		data[i].soi().channel(i_erx_1, i_ch_1).adc());
-    	}
-    pedestals_l0[i_roc].push_back(pflib::utility::median(adcs_l0[i_roc]));
-    stds_l0[i_roc].push_back(pflib::utility::stdev(adcs_l0[i_roc]));
-    pedestals_l1[i_roc].push_back(pflib::utility::median(adcs_l1[i_roc]));
-    stds_l1[i_roc].push_back(pflib::utility::stdev(adcs_l1[i_roc]));
-    inv_vrefs[i_roc].push_back(inv_vref);
+      const pflib::packing::SingleECONDRocErxMapping& mapping =
+          tgt->getRocErxMapping();
+      auto [i_erx_0, i_ch_0] = mapping.toErxChannel(i_roc, channels[0]);
+      auto [i_erx_1, i_ch_1] = mapping.toErxChannel(i_roc, channels[1]);
+      for (std::size_t i{0}; i < data.size(); i++) {
+        adcs_l0[i_roc].push_back(data[i].soi().channel(i_erx_0, i_ch_0).adc());
+        adcs_l1[i_roc].push_back(data[i].soi().channel(i_erx_1, i_ch_1).adc());
+      }
+      pedestals_l0[i_roc].push_back(pflib::utility::median(adcs_l0[i_roc]));
+      stds_l0[i_roc].push_back(pflib::utility::stdev(adcs_l0[i_roc]));
+      pedestals_l1[i_roc].push_back(pflib::utility::median(adcs_l1[i_roc]));
+      stds_l1[i_roc].push_back(pflib::utility::stdev(adcs_l1[i_roc]));
+      inv_vrefs[i_roc].push_back(inv_vref);
     }
   }
 }
 
-std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> inv_vref_lund(
-    Target* tgt) {
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+inv_vref_lund(Target* tgt) {
   static auto the_log_{::pflib::logging::get("inv_vref_scan")};
-  static const std::size_t nevents = pftool::readline_int("Number of events per point: ", 100);
+  static const std::size_t nevents =
+      pftool::readline_int("Number of events per point: ", 100);
   int noinv_vref_step = pftool::readline_int("Stepsize for noinv_vref: ", 20);
   // TODO 348
 
@@ -238,15 +240,15 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> inv_vref_l
   std::map<int, std::array<bool, 2>> found_parameters;
 
   for (int i_roc : tgt->roc_ids()) {
-	for (int i_link = 0; i_link < 2; i_link++){
-		noinv_vref_tgt[i_roc][i_link] = 612;
-		found_parameters[i_roc][i_link] = false;
-	}
+    for (int i_link = 0; i_link < 2; i_link++) {
+      noinv_vref_tgt[i_roc][i_link] = 612;
+      found_parameters[i_roc][i_link] = false;
+    }
   }
 
   int target_adc = 200;
 
-  DecodeAndBuffer buffer{nevents, tgt->nrocs()*2};
+  DecodeAndBuffer buffer{nevents, tgt->nrocs() * 2};
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -259,70 +261,79 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> inv_vref_l
   bool keep_running = true;
   while (keep_running) {
     keep_running = false;
-    get_param(tgt, buffer, nevents, step, pedestals_l0, stds_l0,
-              pedestals_l1, stds_l1, inv_vrefs, noinv_vref_tgt);
+    get_param(tgt, buffer, nevents, step, pedestals_l0, stds_l0, pedestals_l1,
+              stds_l1, inv_vrefs, noinv_vref_tgt);
 
     // sort data and fit
     for (int i_roc : tgt->roc_ids()) {
-    	DataFitter fitter_l0;
-    	DataFitter fitter_l1;
-    	fitter_l0.sort_and_append(inv_vrefs[i_roc], pedestals_l0[i_roc], stds_l0[i_roc], step);
-    	fitter_l1.sort_and_append(inv_vrefs[i_roc], pedestals_l1[i_roc], stds_l1[i_roc], step);
+      DataFitter fitter_l0;
+      DataFitter fitter_l1;
+      fitter_l0.sort_and_append(inv_vrefs[i_roc], pedestals_l0[i_roc],
+                                stds_l0[i_roc], step);
+      fitter_l1.sort_and_append(inv_vrefs[i_roc], pedestals_l1[i_roc],
+                                stds_l1[i_roc], step);
 
-	if (found_parameters[i_roc][0] == false) {
-		inv_vref_tgt[i_roc][0] = fitter_l0.linear_fit(target_adc);
-	}
-	if (found_parameters[i_roc][1] == false) {
-		inv_vref_tgt[i_roc][1] = fitter_l1.linear_fit(target_adc);
-	}
+      if (found_parameters[i_roc][0] == false) {
+        inv_vref_tgt[i_roc][0] = fitter_l0.linear_fit(target_adc);
+      }
+      if (found_parameters[i_roc][1] == false) {
+        inv_vref_tgt[i_roc][1] = fitter_l1.linear_fit(target_adc);
+      }
     }
 
     for (int i_roc : tgt->roc_ids()) {
-		found_parameters[i_roc][0] = true;
-		found_parameters[i_roc][1] = true;
+      found_parameters[i_roc][0] = true;
+      found_parameters[i_roc][1] = true;
     }
 
     for (int i_roc : tgt->roc_ids()) {
-    	// Checking if the fit is reasonable and within boundaries
-    	if (inv_vref_tgt[i_roc][0] == -1) {
-		noinv_vref_tgt[i_roc][0] -= noinv_vref_step;
-		found_parameters[i_roc][0] = false;
-		keep_running = true;
-		pflib_log(info) << "Bad slope and/or intercept. "
-         	                << "Setting noinv_vref of roc " << i_roc << " link 0 to " << noinv_vref_tgt[i_roc][0];
-	}
-	if (inv_vref_tgt[i_roc][1] == -1) {
-		noinv_vref_tgt[i_roc][0] -= noinv_vref_step;
-		found_parameters[i_roc][1] = false;
-		keep_running = true;
-      		pflib_log(info) << "Bad slope and/or intercept. "
-         	                << "Setting noinv_vref of roc " << i_roc << " link 1 to " << noinv_vref_tgt[i_roc][1];
-    	}
-	if ((inv_vref_tgt[i_roc][0] <= 0) || (inv_vref_tgt[i_roc][0] >= 1023)) {
-		noinv_vref_tgt[i_roc][0] -= noinv_vref_step;
-		found_parameters[i_roc][0] = false;
-		keep_running = true;
-      		pflib_log(info) << "Target inv_vref outside of parameter range. "
-        	                << "Setting noinv_vref of roc " << i_roc << " link 0 to " << noinv_vref_tgt[i_roc][0];
-	}
-	if ((inv_vref_tgt[i_roc][1] <= 0) || (inv_vref_tgt[i_roc][1] >= 1023)) {
-      		noinv_vref_tgt[i_roc][1] -= noinv_vref_step;
-		found_parameters[i_roc][1] = false;
-		keep_running = true;
-      		pflib_log(info) << "Target inv_vref outside of parameter range. "
-        	                << "Setting noinv_vref of roc " << i_roc << " link 1 to " << noinv_vref_tgt[i_roc][1];
-    	}
+      // Checking if the fit is reasonable and within boundaries
+      if (inv_vref_tgt[i_roc][0] == -1) {
+        noinv_vref_tgt[i_roc][0] -= noinv_vref_step;
+        found_parameters[i_roc][0] = false;
+        keep_running = true;
+        pflib_log(info) << "Bad slope and/or intercept. "
+                        << "Setting noinv_vref of roc " << i_roc
+                        << " link 0 to " << noinv_vref_tgt[i_roc][0];
+      }
+      if (inv_vref_tgt[i_roc][1] == -1) {
+        noinv_vref_tgt[i_roc][1] -= noinv_vref_step;
+        found_parameters[i_roc][1] = false;
+        keep_running = true;
+        pflib_log(info) << "Bad slope and/or intercept. "
+                        << "Setting noinv_vref of roc " << i_roc
+                        << " link 1 to " << noinv_vref_tgt[i_roc][1];
+      }
+      if ((inv_vref_tgt[i_roc][0] <= 0) || (inv_vref_tgt[i_roc][0] >= 1023)) {
+        noinv_vref_tgt[i_roc][0] -= noinv_vref_step;
+        found_parameters[i_roc][0] = false;
+        keep_running = true;
+        pflib_log(info) << "Target inv_vref outside of parameter range. "
+                        << "Setting noinv_vref of roc " << i_roc
+                        << " link 0 to " << noinv_vref_tgt[i_roc][0];
+      }
+      if ((inv_vref_tgt[i_roc][1] <= 0) || (inv_vref_tgt[i_roc][1] >= 1023)) {
+        noinv_vref_tgt[i_roc][1] -= noinv_vref_step;
+        found_parameters[i_roc][1] = false;
+        keep_running = true;
+        pflib_log(info) << "Target inv_vref outside of parameter range. "
+                        << "Setting noinv_vref of roc " << i_roc
+                        << " link 1 to " << noinv_vref_tgt[i_roc][1];
+      }
     }
- }
+  }
 
-  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> settings;
+  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+      settings;
+
   for (int i_link{0}; i_link < 2; i_link++) {
-	for(int i_roc : tgt->roc_ids()) {
-    		auto refvol_page =
-       		pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-    		settings[i_roc][refvol_page]["INV_VREF"] = inv_vref_tgt[i_roc][i_link];
-    		settings[i_roc][refvol_page]["NOINV_VREF"] = noinv_vref_tgt[i_roc][i_link];
-   	}
+    for (int i_roc : tgt->roc_ids()) {
+      auto refvol_page =
+          pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
+      settings[i_roc][refvol_page]["INV_VREF"] = inv_vref_tgt[i_roc][i_link];
+      settings[i_roc][refvol_page]["NOINV_VREF"] =
+          noinv_vref_tgt[i_roc][i_link];
+    }
   }
   return settings;
 }
