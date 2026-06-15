@@ -571,9 +571,9 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
       if (ber < 1e-3) ber /= 3;
 
       pflib_log(info) << "Group " << group << ", Channel " << channel
-                      << " Phase " << static_cast<int>(phase) << " BER = " << ber
-                      << " (" << errors << " errors in " << bits_checked
-                      << " bits)";
+                      << " Phase " << static_cast<int>(phase)
+                      << " BER = " << ber << " (" << errors << " errors in "
+                      << bits_checked << " bits)";
     }
   }
 
@@ -610,8 +610,8 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
     state = (reg & 0x3);
     ch0_locked = ((reg >> 4) & 0x1);
     gettimeofday(&now, nullptr);
-    long elapsed_us = (now.tv_sec - start.tv_sec) * 1000000L +
-                      (now.tv_usec - start.tv_usec);
+    long elapsed_us =
+        (now.tv_sec - start.tv_sec) * 1000000L + (now.tv_usec - start.tv_usec);
     // Wait two seconds
     if (elapsed_us > 2000000) {
       break;
@@ -668,7 +668,6 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   pflib_log(info) << "Group " << group << ", Channel " << channel
                   << " BER = " << ber << "(" << errors << " errors in "
                   << bits_checked << " bits)";
-  
 
   // Turn off lpgbt prbs if left on
   if (lpgbt_only) {
