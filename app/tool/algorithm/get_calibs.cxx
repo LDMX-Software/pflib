@@ -35,27 +35,30 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
                                  .apply();
     // Here we're starting at a value well above the saturation of the adc
     // Would prefer to set this in reference to the pedestal for extra safety.
-    int calib = 1000;
+    int calib = 100;
     int nr_bx = 3;
     while (true) {
       pflib_log(info) << "Testing calib = " << calib;
       auto calib_handle =
           roc.testParameters().add(refvol_page, "CALIB", calib).apply();
+      pflib_log(info) << "CALIB: " << roc.getParameters(refvol_page)["CALIB"];
       usleep(10);
       std::vector<int> adcs;
       auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
       // We need to scan different BXs because the max adc is not neccessarilly
       // in the first one. Need to add phase scan here as well. Currently the bx
       // scan is not working for some reason. Needs a fix.
-      // for (int bx = 0; bx < nr_bx; bx++) {
-      //  tgt->fc().fc_setup_calib(central_charge_to_l1a + bx);
-      //  usleep(10);
-      //  tgt->daq_run("CHARGE", buffer, 1, 100);
-      //  auto data = buffer.get_buffer();
-      //  for (std::size_t i{0}; i < data.size(); i++) {
-      //    adcs.push_back(data[i].channel(ch).adc());
-      //  }
-      //}
+
+     /*for (int bx = 0; bx < nr_bx; bx++) {
+         tgt->fc().fc_setup_calib(central_charge_to_l1a + bx);
+         usleep(10);
+         daq_run(tgt, "CHARGE", buffer, 1, 100);
+         auto data = buffer.get_buffer();
+         for (std::size_t i{0}; i < data.size(); i++) {
+           adcs.push_back(data[i].channel(ch).adc());
+         }
+       }
+*/
       daq_run(tgt, "CHARGE", buffer, n_events, 100);
       auto data = buffer.get_buffer();
       for (std::size_t i{0}; i < data.size(); i++) {
@@ -63,6 +66,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
             data[i].samples[data[i].i_soi].channel(i_link, ch % 36).adc());
       }
       int max_adc = *std::max_element(adcs.begin(), adcs.end());
+      pflib_log(info) << "max adc is: " << max_adc;
       if (std::abs(max_adc - target_adc) <= 2) {
         calibs[ch] = calib;
         pflib_log(info) << "Final calib = " << calib;
@@ -71,7 +75,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
         calib -= 50;
         continue;
       } else if (max_adc < target_adc) {
-        calib += 1;
+        calib += 100;
       }
     }
   }

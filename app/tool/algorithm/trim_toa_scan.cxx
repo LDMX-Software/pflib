@@ -28,6 +28,9 @@ std::tuple<double, double> siegel_regression(
   if (x_vals.empty()) {
     throw std::invalid_argument("Input vectors must not be empty.");
   }
+  if (x_vals.size() == 1) {
+    throw std::invalid_argument("Can not calculate derivatives with one data point.");
+  }
 
   size_t n = x_vals.size();
 
@@ -78,12 +81,13 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
    * @note Reduce the sample size (ex: 100 to 10) to decrease the scan time.
    */
 
-  static const std::size_t n_events = 100;
+  static const std::size_t n_events = 5;
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   // trim_toa is a channel-wise parameter (1 value per channel)
   std::array<uint64_t, 72> target;
+  int target_calib = 150;
 
   // TODO 348
   // 72 channels, 200 calib values, 8 trim_toa values. Only store toa_efficiency
@@ -164,6 +168,8 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
   pflib_log(info) << "got threshold points, getting fit parameters";
 
+  std::map<std::string, std::map<std::string, uint64_t>> settings;
+
   // get vector of data points for each channel.
   for (int ch{0}; ch < 72; ch++) {
     std::vector<double> calib;
@@ -186,17 +192,12 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
               << ", y_vals size: " << trim_toa.size() << std::endl;
     auto [slope, intercept] = siegel_regression(calib, trim_toa);
     std::cout << "did regression" << std::endl;
+    int target_trim_toa = (target_calib - intercept) / slope;
+    std::string page{pflib::utility::string_format("CH_%d", ch)};
+    settings[page]["TRIM_TOA"] = target_trim_toa;
   }
 
-  // now, write the settings, but this is just placeholder for now!
-
-  std::map<std::string, std::map<std::string, uint64_t>> settings;
-
-  std::array<int, 2> targetss = {0, 0};
-  for (int i_link{0}; i_link < 2; i_link++) {
-    std::string page{pflib::utility::string_format("CH_%d", i_link)};
-    settings[page]["CALIB"] = targetss[i_link];
-  }
+  // now, write the settings, but this is just placeholder for now
 
   return settings;
 }
