@@ -517,7 +517,7 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
     uint8_t chncntr = tport_.read_reg(chncntr_addr);
     pflib_log(debug) << "CHNCONF: " << hex(chncntr);
     for (uint8_t phase{0}; phase < 16; phase++) {
-      tport_.write_reg(chncntr_addr, (phase << 4));
+      tport_.write_reg(chncntr_addr, (phase << 4) | (chncntr & 0x0f));
 
       // Reset BERT
       tport_.write_reg(REG_BERTCONFIG, 0x00);
