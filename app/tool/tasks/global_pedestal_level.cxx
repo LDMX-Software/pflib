@@ -32,7 +32,8 @@ void global_pedestal_level(Target* tgt) {
 
     if (pftool::readline_bool("Save settings to a file? ", false)) {
       std::string fname = pftool::readline_path(
-          "global_pedestal_level-roc-" + std::to_string(i_roc) + "-settings", ".yaml");
+          "global_pedestal_level-roc-" + std::to_string(i_roc) + "-settings",
+          ".yaml");
 
       std::ofstream f{fname};
       if (not f.is_open()) {

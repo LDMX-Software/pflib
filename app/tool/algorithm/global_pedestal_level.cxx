@@ -120,7 +120,8 @@ int DataFitter::fit(int target) {
 }
 
 int DataFitter::linear_fit(int& target) {
-  static auto the_log_{::pflib::logging::get("global_pedestal_level:linear_fit")};
+  static auto the_log_{
+      ::pflib::logging::get("global_pedestal_level:linear_fit")};
   pflib_log(info) << "Fitting Data";
 
   // preform a linear fit
@@ -175,7 +176,8 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
                std::map<int, std::vector<double>>& stds_l1,
                std::map<int, std::vector<int>>& inv_vrefs,
                std::map<int, std::array<int, 2>>& noinv_vref) {
-  static auto the_log_{::pflib::logging::get("global_pedestal_level:get_param")};
+  static auto the_log_{
+      ::pflib::logging::get("global_pedestal_level:get_param")};
   std::array<int, 2> channels = {17, 51};
 
   // clear variables
