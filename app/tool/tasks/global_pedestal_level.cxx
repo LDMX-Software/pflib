@@ -1,13 +1,13 @@
-#include "inv_vref_scan_lund.h"
+#include "global_pedestal_level.h"
 
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
 
-#include "../algorithm/inv_vref_lund.h"
+#include "../algorithm/global_pedestal_level.h"
 
-void inv_vref_scan_lund(Target* tgt) {
-  auto settings = pflib::algorithm::inv_vref_lund(tgt);
+void global_pedestal_level(Target* tgt) {
+  auto settings = pflib::algorithm::global_pedestal_level(tgt);
   for (const auto& [i_roc, parameters] : settings) {
     auto roc{tgt->roc(i_roc)};
     YAML::Emitter out;
@@ -32,7 +32,7 @@ void inv_vref_scan_lund(Target* tgt) {
 
     if (pftool::readline_bool("Save settings to a file? ", false)) {
       std::string fname = pftool::readline_path(
-          "inv_vref_scan_lund-" + std::to_string(i_roc) + "-settings", ".yaml");
+          "global_pedestal_level-roc-" + std::to_string(i_roc) + "-settings", ".yaml");
 
       std::ofstream f{fname};
       if (not f.is_open()) {

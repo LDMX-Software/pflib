@@ -1,7 +1,7 @@
-#include "inv_vref_lund.h"
+#include "global_pedestal_level.h"
 
 #include "../daq_run.h"
-#include "../tasks/inv_vref_scan_lund.h"
+#include "../tasks/global_pedestal_level.h"
 #include "pflib/utility/mean.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/stdev.h"
@@ -14,7 +14,7 @@ DataFitter::DataFitter() {};
 void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                                  std::vector<int>& pedestals,
                                  std::vector<double>& stdevs, int& step) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan:sort")};
+  static auto the_log_{::pflib::logging::get("global_pedestal_level:sort")};
   pflib_log(info) << "Sorting Data";
   // We ignore first and last elements since they miss derivs
   struct DerivPoint {
@@ -77,7 +77,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
 }
 
 int DataFitter::fit(int target) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan:fit")};
+  static auto the_log_{::pflib::logging::get("global_pedestal_level:fit")};
   pflib_log(info) << "Fitting Data";
   // Calculate the median intercept and slope
   pflib_log(info) << linear_.size();
@@ -120,7 +120,7 @@ int DataFitter::fit(int target) {
 }
 
 int DataFitter::linear_fit(int& target) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan:linear_fit")};
+  static auto the_log_{::pflib::logging::get("global_pedestal_level:linear_fit")};
   pflib_log(info) << "Fitting Data";
 
   // preform a linear fit
@@ -175,7 +175,7 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
                std::map<int, std::vector<double>>& stds_l1,
                std::map<int, std::vector<int>>& inv_vrefs,
                std::map<int, std::array<int, 2>>& noinv_vref) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan:get_param")};
+  static auto the_log_{::pflib::logging::get("global_pedestal_level:get_param")};
   std::array<int, 2> channels = {17, 51};
 
   // clear variables
@@ -226,8 +226,8 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
 }
 
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-inv_vref_lund(Target* tgt) {
-  static auto the_log_{::pflib::logging::get("inv_vref_scan")};
+global_pedestal_level(Target* tgt) {
+  static auto the_log_{::pflib::logging::get("global_pedestal_level")};
   static const std::size_t nevents =
       pftool::readline_int("Number of events per point: ", 100);
   int noinv_vref_step = pftool::readline_int("Stepsize for noinv_vref: ", 20);

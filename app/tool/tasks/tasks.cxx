@@ -11,8 +11,8 @@
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
 #include "inv_vref_scan.h"
-#include "inv_vref_scan_lund.h"
-#include "level_pedestals.h"
+#include "global_pedestal_level.h"
+#include "local_pedestal_level.h"
 #include "load_parameter_points.h"
 #include "multi_channel_scan.h"
 #include "noinv_vref_scan.h"
@@ -47,8 +47,8 @@ auto menu_tasks =
         ->line("TRIM_INV_DACB_SCAN", "scan trim_inv parameter",
                trim_inv_dacb_scan)
         ->line("INV_VREF_SCAN", "scan over INV_VREF parameter", inv_vref_scan)
-        ->line("INV_VREF_SCAN_LUND", "Scan over INV_VREF for calibration",
-               inv_vref_scan_lund)
+        ->line("GLOBAL_PEDESTAL_LEVEL", "Scan over INV_VREF for calibration",
+               global_pedestal_level)
         ->line("VREF_2D_SCAN", "scan over INV_VREF and NOINV_VREF",
                vref_2d_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
@@ -62,10 +62,10 @@ auto menu_tasks =
         ->line("VT50_SCAN",
                "Hones in on the vt50 with a binary or bisectional scan",
                vt50_scan)
-        ->line("LEVEL_PEDESTALS",
+        ->line("LOCAL_PEDESTAL_LEVEL",
                "tune trim_inv and dacb to level pedestals with their link "
                "median",
-               level_pedestals)
+               local_pedestal_level)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
                toa_vref_scan)
         ->line("TOA_SCAN",
