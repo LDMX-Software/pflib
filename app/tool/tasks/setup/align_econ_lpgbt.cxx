@@ -187,6 +187,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
 
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
+      int got_idle_phase = -1;
       for (int phase = 0; phase < 16; phase++) {
         std::vector<uint16_t> readings;
         econ.applyParameter("FORMATTERBUFFER", reg_name, phase);
@@ -194,15 +195,23 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
         tgt->fc().linkreset_econs();
         usleep(2000);
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
+        printf("Link %d Phase %2d:", ilink, phase);
         for (size_t i = 4; i < 8; i++) {
+          printf(" %08x %04x %04x", samples[i], (samples[i] >> 16) & ALIGN_MASK, samples[i] & ALIGN_MASK);
           readings.push_back((samples[i] >> 16) & ALIGN_MASK);
           readings.push_back(samples[i] & ALIGN_MASK);
         }
+        printf("\n");
         uint16_t got = majority_vote_econt(readings);
-        if (got == idle) break;
-        if (phase == 15) {
-          printf(" Unable to find alignment for ilink %d\n", ilink);
+        if (got == idle) {
+          printf(" Majority voted in favor of an idle!\n");
+          got_idle_phase = phase;
         }
+      }
+      if (got_idle_phase < 0) {
+        printf(" Unable to find alignment for ilink %d\n", ilink);
+      } else {
+        econ.applyParameter("FORMATTERBUFFER", reg_name, got_idle_phase);
       }
     }
   }

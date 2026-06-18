@@ -28,6 +28,28 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "RESET") {
     trig->reset();
   }
+  if (cmd == "STATUS") {
+    int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
+    trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
+    std::cout
+      << "pipeline: " << pipeline << "\n"
+      << "econ_id : " << econ_id << "\n"
+      << "samples_per_l1a: " << samples_per_l1a << "\n"
+      << "presamples: " << presamples << "\n"
+      << "capture delay: " << trig->get_alignment_capture() << "\n"
+      << std::flush;
+    for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
+      std::cout << "link " << ilink << " bx delay: "
+                << trig->get_bx_delay(ilink) << "\n";
+    }
+    std::cout << std::flush;
+  }
+  if (cmd == "PIPELINE") {
+    int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
+    trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
+    pipeline = pftool::readline_int("pipeline depth: ", pipeline);
+    trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
+  }
   if (cmd == "ALIGN_SETUP") {
     int value = pftool::readline_int("Alignment capture delay: ",
                                      trig->get_alignment_capture());
@@ -36,6 +58,7 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "ALIGN_READ") {
     bool do_fc = pftool::readline_bool("Generate LINKRESET_ECONT?", true);
     if (do_fc) target->fc().linkreset_econs();
+    usleep(2000);
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
       printf("%02d : ", ilink);
@@ -55,6 +78,8 @@ namespace {
 // where we have hardware and firmware access to the TRIGGER stream
 auto menu_trig =
     pftool::menu("TRIG", "TRIGGER functionalities", trig_render, ONLY_ZCU)
+        ->line("STATUS", "printout trigger settings", trig)
+        ->line("PIPELINE", "set the pipeline depth for trigger capture", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
