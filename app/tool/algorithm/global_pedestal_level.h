@@ -27,6 +27,8 @@ class DataFitter {
                        std::vector<double>& stds, int& step);
   int fit(int target);
 
+  int linear_fit(int& target);
+
   // Member variables
 
   struct Point {
@@ -46,11 +48,13 @@ class DataFitter {
  * Collect inv_vref data for the constant input noinv_vref parameter.
  * Loops over the whole inv_vref range.
  */
-void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
-               int& step, std::vector<int>& pedestals_l0,
-               std::vector<double>& stds_l0, std::vector<int>& pedestals_l1,
-               std::vector<double>& stds_l1, std::vector<int>& inv_vrefs,
-               int& noinv_vref);
+void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
+               int& step, std::map<int, std::vector<int>>& pedestals_l0,
+               std::map<int, std::vector<double>>& stds_l0,
+               std::map<int, std::vector<int>>& pedestals_l1,
+               std::map<int, std::vector<double>>& stds_l1,
+               std::map<int, std::vector<int>>& inv_vrefs,
+               std::map<int, std::array<int, 2>>& noinv_vref);
 
 /**
  * Find the inv_vref and noinv_vref parameters.
@@ -59,7 +63,7 @@ void get_param(Target* tgt, ROC& roc, DecodeAndBuffer& buffer, int& nevents,
  *
  * @note Only functional for single-ROC targets
  */
-std::map<std::string, std::map<std::string, uint64_t>> inv_vref_lund(
-    Target* tgt, ROC& roc);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+global_pedestal_level(Target* tgt);
 
 }  // namespace pflib::algorithm
