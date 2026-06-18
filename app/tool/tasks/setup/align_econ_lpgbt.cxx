@@ -197,7 +197,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
         printf("Link %d Phase %2d:", ilink, phase);
         for (size_t i = 4; i < 8; i++) {
-          printf(" %08x %04x %04x", samples[i], (samples[i] >> 16) & ALIGN_MASK, samples[i] & ALIGN_MASK);
+          printf(" %08x %04x %04x", samples[i], (samples[i] >> 16) & ALIGN_MASK,
+                 samples[i] & ALIGN_MASK);
           readings.push_back((samples[i] >> 16) & ALIGN_MASK);
           readings.push_back(samples[i] & ALIGN_MASK);
         }

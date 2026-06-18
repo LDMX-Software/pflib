@@ -31,16 +31,15 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "STATUS") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
-    std::cout
-      << "pipeline: " << pipeline << "\n"
-      << "econ_id : " << econ_id << "\n"
-      << "samples_per_l1a: " << samples_per_l1a << "\n"
-      << "presamples: " << presamples << "\n"
-      << "capture delay: " << trig->get_alignment_capture() << "\n"
-      << std::flush;
+    std::cout << "pipeline: " << pipeline << "\n"
+              << "econ_id : " << econ_id << "\n"
+              << "samples_per_l1a: " << samples_per_l1a << "\n"
+              << "presamples: " << presamples << "\n"
+              << "capture delay: " << trig->get_alignment_capture() << "\n"
+              << std::flush;
     for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
-      std::cout << "link " << ilink << " bx delay: "
-                << trig->get_bx_delay(ilink) << "\n";
+      std::cout << "link " << ilink
+                << " bx delay: " << trig->get_bx_delay(ilink) << "\n";
     }
     std::cout << std::flush;
   }
