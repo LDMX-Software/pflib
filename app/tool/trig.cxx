@@ -72,28 +72,42 @@ void trig(const std::string& cmd, Target* target) {
       for (int i_byte{0}; i_byte < 4; i_byte++) {
         lpgbt.write(DPDATAPATTERN[i_byte], ((known_pattern >> (i_byte*8)) & 0xff));
       }
-      int link = pftool::readline_int("which link? ", 0);
-      if (link < 0 or link > 6) {
+      int link = pftool::readline_int("which link (-1 for all)? ", 0);
+      auto output_const_pattern = [&](int ilink) {
+        int grp = ilink;
+        // on lpGBT mezzanine, links 3, 4, 5 are connected to eTx groups 4, 5, 6
+        if (grp > 2) grp++;
+        uint16_t datasource_config_reg = ULDATASOURCE1 + (grp/2);
+        uint8_t datasource = lpgbt.read(datasource_config_reg);
+        datasource |= (4 << ((grp % 2)*3)); // 4 == use const pattern
+        lpgbt.write(datasource_config_reg, datasource);
+        printf("apply data source config 0x%02x on reg 0x%03x\n", datasource, datasource_config_reg);
+      };
+      if (link < 0) {
+        for (int ilink{0}; ilink < 6; ilink++) {
+          output_const_pattern(ilink);
+        }
+      } else if (link > 5) {
         pflib_log(error) << "invalid link index";
         return;
+      } else {
+        output_const_pattern(link);
       }
-      uint16_t datasource_config_reg = ULDATASOURCE1 + (link / 2);
-      uint8_t datasource = lpgbt.read(datasource_config_reg);
-      datasource |= (4 << ((link % 2)*3)); // 4 == use const pattern
-      printf("apply data source config 0x%02x\n on reg 0x%03x\n", datasource, datasource_config_reg);
-      lpgbt.write(datasource_config_reg, datasource);
     }
 
     if (pftool::readline_bool("do elink spy rather than align capture?", true)) {
       pflib::Elinks& elinks = target->elinks();
-      std::vector<std::vector<uint32_t>> spy(trig->n_elinks());
-      for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
+      std::vector<std::vector<uint32_t>> spy(6);
+      printf("word :");
+      for (int ilink{0}; ilink < 6; ilink++) {
+        // trial and error revealed, 6-11 as the elink indices
         spy[ilink] = elinks.spy(6+ilink); 
+        printf("   Link %d", ilink);
       }
-      printf("word : %8s %8s %8s\n", "Link 0", "Link 1", "Link 2");
+      printf("\n");
       for (int iword{0}; iword < 64; iword++) {
         printf("%4d :", iword);
-        for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
+        for (int ilink{0}; ilink < 6; ilink++) {
           printf(" %08x", spy[ilink][iword]);
         }
         printf("\n");
