@@ -10,7 +10,7 @@ namespace zcu {
 class ZCU_Capture : public DAQ {
  public:
   virtual ~ZCU_Capture() = default;
-  ZCU_Capture();
+  ZCU_Capture(int itarget);
   virtual void reset() final;
   virtual int getEventOccupancy() final;
   virtual void setupLink(int ilink, int l1a_delay,

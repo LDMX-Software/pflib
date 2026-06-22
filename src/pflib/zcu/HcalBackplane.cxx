@@ -32,7 +32,7 @@ class HcalBackplaneZCU : public HcalBackplane {
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
-    daq_ = std::make_unique<ZCU_Capture>();
+    daq_ = std::make_unique<ZCU_Capture>(itarget);
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
 
