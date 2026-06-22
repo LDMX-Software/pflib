@@ -51,8 +51,17 @@ class ConfigureUpLinkDataSource {
         std::bitset<64 * 32> check = data;
         check = ((check >> 6) ^ (check >> 5));
         check <<= 12;
-        printf("%u / %u bit errors\n", ((check >> 12) ^ (data >> 12)).count(),
-               64 * 32);
+        auto diff = ((check >> 12) ^ (data >> 12));
+        int correct_runlen{0};
+        for (int ibit{0}; ibit < diff.size(); ibit++) {
+          if (diff.test(ibit)) {
+            //printf("%d bits before error\n");
+            correct_runlen = 0;
+          } else {
+            correct_runlen++;
+          }
+        }
+        printf("%u / %u bit errors\n", diff.count(), diff.size()-12);
       } break;
       case UpLinkDataSourceCode::CONST_PATTERN: {
         uint32_t const_pattern{0};
