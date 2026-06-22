@@ -1,7 +1,7 @@
 #include "lpgbt_backend_check.h"
 
-#include "pflib/lpGBT.h"
 #include "pflib/OptoLink.h"
+#include "pflib/lpGBT.h"
 
 ENABLE_LOGGING();
 
@@ -21,28 +21,30 @@ enum UpLinkDataSourceCode : int {
 class ConfigureUpLinkDataSource {
   pflib::lpGBT& lpgbt_;
   UpLinkDataSourceCode choice_{0};
+
  public:
-  ConfigureUpLinkDataSource(pflib::lpGBT& l): lpgbt_{l} {}
-  void choose(UpLinkDataSourceCode choice) {
-    choice_ = choice;
-  }
+  ConfigureUpLinkDataSource(pflib::lpGBT& l) : lpgbt_{l} {}
+  void choose(UpLinkDataSourceCode choice) { choice_ = choice; }
   void configure(int ilink) {
     int grp = ilink;
     // on lpGBT mezzanine, links 3, 4, 5 are connected to eTx groups 4, 5, 6
     if (grp > 2) grp++;
-    uint16_t datasource_config_reg = ULDATASOURCE1 + (grp/2);
+    uint16_t datasource_config_reg = ULDATASOURCE1 + (grp / 2);
     uint8_t datasource = lpgbt_.read(datasource_config_reg);
-    datasource |= (static_cast<int>(choice_) << ((grp % 2)*3));
+    datasource |= (static_cast<int>(choice_) << ((grp % 2) * 3));
     lpgbt_.write(datasource_config_reg, datasource);
-    printf("apply data source config 0x%02x on reg 0x%03x\n", datasource, datasource_config_reg);
+    printf("apply data source config 0x%02x on reg 0x%03x\n", datasource,
+           datasource_config_reg);
   }
 };
 
 void lpgbt_backend_check(Target* target) {
   bool daq = pftool::readline_bool("Check DAQ (Y) or TRG (N) lpGBT? ", true);
-  pflib::lpGBT lpgbt{target->get_opto_link(daq ? "DAQ" : "TRG").lpgbt_transport()};
+  pflib::lpGBT lpgbt{
+      target->get_opto_link(daq ? "DAQ" : "TRG").lpgbt_transport()};
 
-  int output_choice = pftool::readline_int("Test Choice:\n  1. PRBS7\n  2. Binary Counter\n  3. Const Pattern\n", 3);
+  int output_choice = pftool::readline_int(
+      "Test Choice:\n  1. PRBS7\n  2. Binary Counter\n  3. Const Pattern\n", 3);
   if (output_choice < 1 or output_choice > 3) {
     pflib_log(error) << "unrecognized output choice " << output_choice;
     return;
@@ -60,11 +62,13 @@ void lpgbt_backend_check(Target* target) {
     }
   } else if (output_choice == 3) {
     uint32_t known_pattern = 0x12345678;
-    known_pattern = pftool::readline_int("32b const pattern to use: ", known_pattern, true);
+    known_pattern =
+        pftool::readline_int("32b const pattern to use: ", known_pattern, true);
     printf("const pattern: 0x%08x\n", known_pattern);
     static const uint16_t DPDATAPATTERN[4] = {0x131, 0x130, 0x12f, 0x12e};
     for (int i_byte{0}; i_byte < 4; i_byte++) {
-      lpgbt.write(DPDATAPATTERN[i_byte], ((known_pattern >> (i_byte*8)) & 0xff));
+      lpgbt.write(DPDATAPATTERN[i_byte],
+                  ((known_pattern >> (i_byte * 8)) & 0xff));
     }
     bool invert = pftool::readline_bool("Invert the constant pattern? ", false);
     if (invert) {
@@ -91,7 +95,7 @@ void lpgbt_backend_check(Target* target) {
   int ilink_offset{daq ? 0 : 6};
   printf("word :");
   for (int ilink{0}; ilink < 6; ilink++) {
-    spy[ilink] = elinks.spy(ilink_offset+ilink); 
+    spy[ilink] = elinks.spy(ilink_offset + ilink);
     printf("   Link %d", ilink);
   }
   printf("\n");
@@ -105,6 +109,6 @@ void lpgbt_backend_check(Target* target) {
 
   // reset data source to all zeros for all groups (normal operation)
   for (int i{0}; i < 4; i++) {
-    lpgbt.write(ULDATASOURCE1+i, 0x00);
+    lpgbt.write(ULDATASOURCE1 + i, 0x00);
   }
 }

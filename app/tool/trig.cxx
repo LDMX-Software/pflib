@@ -56,7 +56,8 @@ void trig(const std::string& cmd, Target* target) {
   }
   if (cmd == "ALIGN_READ") {
     bool do_fc = pftool::readline_bool("Generate LINKRESET_ECONT?", true);
-    bool show_raw = pftool::readline_bool("Show raw data [Y] or idle word interpretation [N]? ", false);
+    bool show_raw = pftool::readline_bool(
+        "Show raw data [Y] or idle word interpretation [N]? ", false);
     if (do_fc) target->fc().linkreset_econs();
     usleep(2000);
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
@@ -73,12 +74,8 @@ void trig(const std::string& cmd, Target* target) {
         if (show_raw) {
           printf(" %08x", x);
         } else {
-          printf(" | %02d %03x %02d %03x",
-                  (x >> (16+11)) & 0x1f,
-                  (x >> 16) & 0x7ff,
-                  (x >> 11) & 0x1f,
-                  (x & 0x7ff)
-                );
+          printf(" | %02d %03x %02d %03x", (x >> (16 + 11)) & 0x1f,
+                 (x >> 16) & 0x7ff, (x >> 11) & 0x1f, (x & 0x7ff));
         }
       }
       printf("\n");
