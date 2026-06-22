@@ -1,8 +1,9 @@
 #include "lpgbt_backend_check.h"
 
+#include <bitset>
+
 #include "pflib/OptoLink.h"
 #include "pflib/lpGBT.h"
-#include <bitset>
 
 ENABLE_LOGGING();
 
@@ -23,6 +24,7 @@ enum UpLinkDataSourceCode : int {
 class ConfigureUpLinkDataSource {
   pflib::lpGBT& lpgbt_;
   UpLinkDataSourceCode choice_{0};
+
  public:
   ConfigureUpLinkDataSource(pflib::lpGBT& l) : lpgbt_{l} {}
   void choose(UpLinkDataSourceCode choice) { choice_ = choice; }
@@ -40,28 +42,27 @@ class ConfigureUpLinkDataSource {
   void check(const std::vector<uint32_t> spy) {
     switch (choice_) {
       case UpLinkDataSourceCode::PRBS7: {
-          std::bitset<64*32> data;
-          for (int iword{0}; iword < 64; iword++) {
-            for (int ibit{0}; ibit < 32; ibit++) {
-              data[32*iword+ibit] = ((spy[iword] >> (31 - ibit)) & 0x1);
-            }
+        std::bitset<64 * 32> data;
+        for (int iword{0}; iword < 64; iword++) {
+          for (int ibit{0}; ibit < 32; ibit++) {
+            data[32 * iword + ibit] = ((spy[iword] >> (31 - ibit)) & 0x1);
           }
-          std::bitset<64*32> check = data;
-          check = ((check >> 6) ^ (check >> 5));
-          check <<= 12;
-          printf("%u / %u bit errors\n", ((check >> 12) ^ (data >> 12)).count(), 64*32);
         }
-        break;
+        std::bitset<64 * 32> check = data;
+        check = ((check >> 6) ^ (check >> 5));
+        check <<= 12;
+        printf("%u / %u bit errors\n", ((check >> 12) ^ (data >> 12)).count(),
+               64 * 32);
+      } break;
       case UpLinkDataSourceCode::CONST_PATTERN: {
-          uint32_t const_pattern{0};
-          for (int i_byte{0}; i_byte < 4; i_byte++) {
-            const_pattern |= (lpgbt_.read(DPDATAPATTERN[i_byte]) << (i_byte * 8));
-          }
-          printf("%u / %u words matched the const pattern 0x%08x\n",
-                 std::count(spy.begin(), spy.end(), const_pattern),
-                 spy.size(), const_pattern);
+        uint32_t const_pattern{0};
+        for (int i_byte{0}; i_byte < 4; i_byte++) {
+          const_pattern |= (lpgbt_.read(DPDATAPATTERN[i_byte]) << (i_byte * 8));
         }
-        break;
+        printf("%u / %u words matched the const pattern 0x%08x\n",
+               std::count(spy.begin(), spy.end(), const_pattern), spy.size(),
+               const_pattern);
+      } break;
       default:
         break;
     }
