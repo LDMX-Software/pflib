@@ -124,12 +124,6 @@ std::map<std::string, uint32_t> ZCU_Capture::get_debug(uint32_t ask) {
   std::map<std::string, uint32_t> dbg;
   capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);
   static const int stepsize = 1;
-  FILE* f = fopen("dump.txt", "w");
-
-  for (int i = 0; i < 0xFFF / 4; i++)
-    fprintf(f, "%03x %03x %08x\n", i * 4, i, capture_.read(i));
-  fclose(f);
-
   dbg["COUNT_IDLES"] = capture_.read(ADDR_BASE_COUNTER);
   dbg["COUNT_NONIDLES"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
   dbg["COUNT_STARTS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);
