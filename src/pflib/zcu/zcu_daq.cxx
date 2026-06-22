@@ -1,4 +1,5 @@
 #include "pflib/zcu/zcu_daq.h"
+
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -35,7 +36,9 @@ static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
-ZCU_Capture::ZCU_Capture(int itarget) : DAQ(1), capture_(pflib::utility::string_format("econd-buffer-%d",itarget)) {
+ZCU_Capture::ZCU_Capture(int itarget)
+    : DAQ(1),
+      capture_(pflib::utility::string_format("econd-buffer-%d", itarget)) {
   //    printf("Firmware type and version: %08x %08x
   //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
   // setting up with expected capture parameters
