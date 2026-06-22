@@ -20,7 +20,7 @@ int str_to_int(std::string str) {
     str = str.substr(1);
   }
 
-  return std::stoi(str, nullptr, base);
+  return std::stol(str, nullptr, base);
 }
 
 }  // namespace pflib::utility
