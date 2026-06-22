@@ -64,6 +64,6 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
  * @note Only functional for single-ROC targets
  */
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-inv_vref_lund(Target* tgt);
+global_pedestal_level(Target* tgt);
 
 }  // namespace pflib::algorithm

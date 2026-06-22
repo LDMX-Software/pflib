@@ -1,13 +1,13 @@
-#include "level_pedestals.h"
+#include "local_pedestal_level.h"
 
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
 
-#include "../algorithm/level_pedestals.h"
+#include "../algorithm/local_pedestal_level.h"
 
-void level_pedestals(Target* tgt) {
-  auto settings = pflib::algorithm::level_pedestals(tgt);
+void local_pedestal_level(Target* tgt) {
+  auto settings = pflib::algorithm::local_pedestal_level(tgt);
   for (const auto& [iroc, parameters] : settings) {
     YAML::Emitter out;
     out << YAML::BeginMap;
@@ -35,7 +35,8 @@ void level_pedestals(Target* tgt) {
 
     if (pftool::readline_bool("Save settings to a file? ", false)) {
       std::string fname = pftool::readline_path(
-          "level-pedestals-roc-" + std::to_string(iroc) + "-settings", ".yaml");
+          "local_pedestal_level-roc-" + std::to_string(iroc) + "-settings",
+          ".yaml");
 
       std::ofstream f{fname};
       if (not f.is_open()) {

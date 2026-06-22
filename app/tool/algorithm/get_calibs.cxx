@@ -75,8 +75,9 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
   else if (central_charge_to_l1a == 3) {
     tgt->fc().fc_setup_calib(central_charge_to_l1a - 1);
   }
-  pflib_log(info) << "Settings bx to " << tgt->fc().fc_get_setup_calib();
+  pflib_log(info) << "Setting bx to " << tgt->fc().fc_get_setup_calib();
   pflib::DAQ& daq = tgt->daq();
+  int initial_nr_bx = daq.samples_per_ror();
   daq.setup(daq.econid(), nr_bx, daq.soi());
   tgt->fc().setL1AperROR(nr_bx);
 
@@ -106,10 +107,10 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
           roc.testParameters().add(refvol_page, "CALIB", calib).apply();
       usleep(10);
       std::vector<int> adcs;
-      auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
       // We need to scan different BXs because the max adc is not neccessarilly
       // in the first one. Need to add phase scan here as well. Currently the bx
       // scan is not working for some reason. Needs a fix.
+      //auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
       // for (int bx = 0; bx < nr_bx; bx++) {
       //  tgt->fc().fc_setup_calib(central_charge_to_l1a + bx);
       //  usleep(10);
@@ -123,6 +124,7 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
       auto data = buffer.get_buffer();
       auto mapping = tgt->getRocErxMapping();
       auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+
       for (std::size_t i{0}; i < data.size(); i++) {
         for (int j = 0; j < nr_bx; j++) {
           adcs.push_back(
@@ -130,11 +132,6 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
         }
       }
 
-
-      for (std::size_t i{0}; i < data.size(); i++) {
-        adcs.push_back(
-            data[i].samples[data[i].i_soi].channel(i_link, ch % 36).adc());
-      }
       int max_adc = *std::max_element(adcs.begin(), adcs.end());
       if (std::abs(max_adc - target_adc) <= 2) {
         calibs[ch] = calib;
@@ -149,6 +146,10 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
     }
   }
   pflib_log(info) << "Calib retrieved for all channels";
+  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  pflib_log(info) << "Setting bx to " << tgt->fc().fc_get_setup_calib();
+  daq.setup(daq.econid(), initial_nr_bx, daq.soi());
+  tgt->fc().setL1AperROR(nr_bx);
   return calibs;
 }
 
