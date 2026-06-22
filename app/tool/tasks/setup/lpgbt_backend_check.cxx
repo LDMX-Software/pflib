@@ -2,11 +2,13 @@
 
 #include "pflib/OptoLink.h"
 #include "pflib/lpGBT.h"
+#include <bitset>
 
 ENABLE_LOGGING();
 
 // each output group {0..3} has 2 bits shifted by group*2
 static const uint16_t ULDATASOURCE1 = 0x129;
+static const uint16_t DPDATAPATTERN[4] = {0x131, 0x130, 0x12f, 0x12e};
 
 enum UpLinkDataSourceCode : int {
   NORMAL_DATA = 0,
@@ -21,7 +23,6 @@ enum UpLinkDataSourceCode : int {
 class ConfigureUpLinkDataSource {
   pflib::lpGBT& lpgbt_;
   UpLinkDataSourceCode choice_{0};
-
  public:
   ConfigureUpLinkDataSource(pflib::lpGBT& l) : lpgbt_{l} {}
   void choose(UpLinkDataSourceCode choice) { choice_ = choice; }
@@ -35,6 +36,35 @@ class ConfigureUpLinkDataSource {
     lpgbt_.write(datasource_config_reg, datasource);
     printf("apply data source config 0x%02x on reg 0x%03x\n", datasource,
            datasource_config_reg);
+  }
+  void check(const std::vector<uint32_t> spy) {
+    switch (choice_) {
+      case UpLinkDataSourceCode::PRBS7: {
+          std::bitset<64*32> data;
+          for (int iword{0}; iword < 64; iword++) {
+            for (int ibit{0}; ibit < 32; ibit++) {
+              data[32*iword+ibit] = ((spy[iword] >> (31 - ibit)) & 0x1);
+            }
+          }
+          std::bitset<64*32> check = data;
+          check = ((check >> 6) ^ (check >> 5));
+          check <<= 12;
+          printf("%u / %u bit errors\n", ((check >> 12) ^ (data >> 12)).count(), 64*32);
+        }
+        break;
+      case UpLinkDataSourceCode::CONST_PATTERN: {
+          uint32_t const_pattern{0};
+          for (int i_byte{0}; i_byte < 4; i_byte++) {
+            const_pattern |= (lpgbt_.read(DPDATAPATTERN[i_byte]) << (i_byte * 8));
+          }
+          printf("%u / %u words matched the const pattern 0x%08x\n",
+                 std::count(spy.begin(), spy.end(), const_pattern),
+                 spy.size(), const_pattern);
+        }
+        break;
+      default:
+        break;
+    }
   }
 };
 
@@ -65,7 +95,6 @@ void lpgbt_backend_check(Target* target) {
     known_pattern =
         pftool::readline_int("32b const pattern to use: ", known_pattern, true);
     printf("const pattern: 0x%08x\n", known_pattern);
-    static const uint16_t DPDATAPATTERN[4] = {0x131, 0x130, 0x12f, 0x12e};
     for (int i_byte{0}; i_byte < 4; i_byte++) {
       lpgbt.write(DPDATAPATTERN[i_byte],
                   ((known_pattern >> (i_byte * 8)) & 0xff));
@@ -105,6 +134,15 @@ void lpgbt_backend_check(Target* target) {
       printf(" %08x", spy[ilink][iword]);
     }
     printf("\n");
+  }
+
+  if (link < 0) {
+    for (int ilink{0}; ilink < 6; ilink++) {
+      printf("Link %d:\n", ilink);
+      conf.check(spy[ilink]);
+    }
+  } else {
+    conf.check(spy[link]);
   }
 
   // reset data source to all zeros for all groups (normal operation)
