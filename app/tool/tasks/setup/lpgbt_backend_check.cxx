@@ -55,13 +55,13 @@ class ConfigureUpLinkDataSource {
         int correct_runlen{0};
         for (int ibit{0}; ibit < diff.size(); ibit++) {
           if (diff.test(ibit)) {
-            //printf("%d bits before error\n");
+            // printf("%d bits before error\n");
             correct_runlen = 0;
           } else {
             correct_runlen++;
           }
         }
-        printf("%u / %u bit errors\n", diff.count(), diff.size()-12);
+        printf("%u / %u bit errors\n", diff.count(), diff.size() - 12);
       } break;
       case UpLinkDataSourceCode::CONST_PATTERN: {
         uint32_t const_pattern{0};
