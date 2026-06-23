@@ -23,6 +23,11 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
 
 static const uint32_t REG_STATUS = 3;
 
+void ZCUOptoLink::soft_reset_link() {
+  /// reset the decoder for the current link
+  coder_.write(0, 1 << (ilink_ % 2));
+}
+
 void ZCUOptoLink::reset_link() {
   /**
    * This reset actually affects all links (SFPs) in a block (quad)
@@ -62,7 +67,7 @@ void ZCUOptoLink::reset_link() {
    * (which depends on the link), IC, and EC (which are
    * for a daq/trg link pair.
    */
-  coder_.write(0, 1 << (ilink_ % 2));  // reset the DECODER
+  soft_reset_link();
   if (isdaq_) {
     usleep(1000);
     coder_.write(65, 0x40000000);  // reset IC
@@ -128,6 +133,10 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval[prefix + " READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
   retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
   retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+
+  for (int i{0}; i < 80; i++) {
+    printf("CODER @ %02d: %04x\n", i, coder_.read(i));
+  }
 
   return retval;
 }
