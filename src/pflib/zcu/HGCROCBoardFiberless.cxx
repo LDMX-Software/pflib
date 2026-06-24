@@ -39,7 +39,8 @@ class FiberlessCapture : public Elinks, public DAQ {
   virtual void reset() final;
   virtual int getEventOccupancy() final;
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) final;
-  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) final;
+  virtual void getLinkSetup(int ilink, int& l1a_delay,
+                            int& l1a_capture_width) final;
   virtual void bufferStatus(int ilink, bool& empty, bool& full) final;
   virtual std::vector<uint32_t> getLinkData(int ilink) final;
   virtual void advanceLinkReadPtr() final;

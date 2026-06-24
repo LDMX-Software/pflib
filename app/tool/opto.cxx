@@ -3,9 +3,8 @@
  * OPTO menu commands
  */
 #include "pflib/OptoLink.h"
-#include "pftool.h"
-
 #include "pflib/zcu/zcu_elinks.h"
+#include "pftool.h"
 
 ENABLE_LOGGING();
 
@@ -40,15 +39,15 @@ void opto(const std::string& cmd, Target* target) {
 
   if (cmd == "FULLSTATUS") {
     static const uint16_t ULDATASOURCE0 = 0x128;
-    bool prbs_ser_source = pftool::readline_bool("change serializer source to prbs7?", false);
+    bool prbs_ser_source =
+        pftool::readline_bool("change serializer source to prbs7?", false);
     bool inject_err = false;
     if (not prbs_ser_source) {
       inject_err = pftool::readline_bool("inject one error into link?", false);
     }
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
-    pflib::lpGBT lpgbt{
-        target->get_opto_link(olink_name).lpgbt_transport()};
+    pflib::lpGBT lpgbt{target->get_opto_link(olink_name).lpgbt_transport()};
     // top 2 bits are EC data source
     // bottom 4 bits are serializer data source
     // 0 - data
@@ -58,7 +57,8 @@ void opto(const std::string& cmd, Target* target) {
       lpgbt.write(ULDATASOURCE0, 0x1);
       usleep(10000);
     } else if (inject_err) {
-      auto& zcuoelinks{static_cast<pflib::zcu::OptoElinksZCU&>(target->elinks())};
+      auto& zcuoelinks{
+          static_cast<pflib::zcu::OptoElinksZCU&>(target->elinks())};
       for (int i{0}; i < 1000; i++) {
         zcuoelinks.injectError();
       }
@@ -76,7 +76,7 @@ void opto(const std::string& cmd, Target* target) {
       printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
              i.second);
     }
-    
+
     lpgbt.write(ULDATASOURCE0, 0x00);
   }
   if (cmd == "SOFTRESET") {

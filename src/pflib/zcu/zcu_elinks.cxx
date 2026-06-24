@@ -16,9 +16,7 @@ OptoElinksZCU::OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
   for (int i = 1; i < 6 * 2; i++) markActive(i, false);
 }
 
-void OptoElinksZCU::injectError() {
-  uiodecoder_.write(6, 0x1);
-}
+void OptoElinksZCU::injectError() { uiodecoder_.write(6, 0x1); }
 
 std::vector<uint32_t> OptoElinksZCU::spy(int ilink, bool new_capture) {
   static constexpr int REG_CAPTURE_ENABLE = 16;
