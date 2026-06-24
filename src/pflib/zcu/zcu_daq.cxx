@@ -1,6 +1,7 @@
 #include "pflib/zcu/zcu_daq.h"
 
 #include "pflib/utility/string_format.h"
+#include "pflib/packing/Hex.h"
 
 namespace pflib {
 namespace zcu {
@@ -36,15 +37,21 @@ static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
+using pflib::packing::hex;
+
 ZCU_Capture::ZCU_Capture(int itarget)
     : DAQ(1),
-      capture_(pflib::utility::string_format("econd-buffer-%d", itarget)) {
-  //    printf("Firmware type and version: %08x %08x
-  //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
+      capture_(pflib::utility::string_format("econd-buffer-%d", itarget)),
+      the_log_{logging::get("zcu_capture")} {
+  uint32_t version_reg = capture_.read(0);
+  uint16_t hw_type = ((version_reg >> 16) & 0xffff);
+  uint16_t fw_vers = (version_reg & 0xffff);
+  pflib_log(info) << "HW Type: " << hex(hw_type)
+                  << " FW version: " << hex(fw_vers);
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                       0x1E6);  // 0xAA followed by one bit...
+  // 0x1E6 == 0xAA followed by one bit
+  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
   per_econ_ = true;  // reading from the per-econ buffer, not the AXIS buffer
 }
 void ZCU_Capture::reset() {
