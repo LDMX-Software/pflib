@@ -134,7 +134,7 @@ void lpgbt_backend_check(Target* target) {
   int ilink_offset{daq ? 0 : 6};
   printf("word :");
   for (int ilink{0}; ilink < 6; ilink++) {
-    spy[ilink] = elinks.spy(ilink_offset + ilink);
+    spy[ilink] = elinks.spy(ilink_offset + ilink, ilink==0);
     printf("   Link %d", ilink);
   }
   printf("\n");
