@@ -26,23 +26,23 @@ class FiberlessCapture : public Elinks, public DAQ {
         uio_("ldmx_buffer", 16 * 4096) {  // currently covers all elinks
   }
 
-  virtual int getBitslip(int ilink);
-  virtual uint32_t getStatusRaw(int ilink) { return 0; }
-  virtual void setBitslip(int ilink, int bitslip);
-  virtual std::vector<uint32_t> spy(int ilink);
-  virtual void clearErrorCounters(int ilink) {}
-  virtual void resetHard() {}
-  virtual void setAlignPhase(int ilink, int phase);
-  virtual int getAlignPhase(int ilink);
+  virtual int getBitslip(int ilink) final;
+  virtual uint32_t getStatusRaw(int ilink) final { return 0; }
+  virtual void setBitslip(int ilink, int bitslip) final;
+  virtual std::vector<uint32_t> spy(int ilink, bool new_capture) final;
+  virtual void clearErrorCounters(int ilink) final {}
+  virtual void resetHard() final {}
+  virtual void setAlignPhase(int ilink, int phase) final;
+  virtual int getAlignPhase(int ilink) final;
 
   // DAQ-related
-  virtual void reset();
-  virtual int getEventOccupancy();
-  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width);
-  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width);
-  virtual void bufferStatus(int ilink, bool& empty, bool& full);
-  virtual std::vector<uint32_t> getLinkData(int ilink);
-  virtual void advanceLinkReadPtr();
+  virtual void reset() final;
+  virtual int getEventOccupancy() final;
+  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) final;
+  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width) final;
+  virtual void bufferStatus(int ilink, bool& empty, bool& full) final;
+  virtual std::vector<uint32_t> getLinkData(int ilink) final;
+  virtual void advanceLinkReadPtr() final;
 
  private:
   int ctl_for(int ilink) {
@@ -92,12 +92,12 @@ int FiberlessCapture::getAlignPhase(int ilink) {
   return uio_.readMasked(ictl, MASK_PHASE);
 }
 
-std::vector<uint32_t> FiberlessCapture::spy(int ilink) {
+std::vector<uint32_t> FiberlessCapture::spy(int ilink, bool _new_capture) {
+  /// new_capture is ignored in this hardware setup
   std::vector<uint32_t> rv;
   int spy_addr = ADDR_LINK_STATUS_BASE + 2 * ilink;
   rv.push_back(uio_.read(spy_addr));
   return rv;
-  ;
 }
 
 void FiberlessCapture::reset() {
