@@ -40,6 +40,8 @@ void scan_orbit(Target* tgt) {
     file_output.open(output_filepath);
   }
 
+  bool ignore_disabled_links = pftool::readline_bool(
+      "Ignore links that are disabled? ", true);
   bool show_raw_snapshot = pftool::readline_bool(
       "Show raw snapshot (Y) or shift by align select (N)?", false);
   bool skip_normal_idles =
@@ -60,8 +62,14 @@ void scan_orbit(Target* tgt) {
   manual_snaps["ALIGNER"]["GLOBAL_I2C_SNAPSHOT_EN"] = 1;
   manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_ARM"] = 0;
   manual_snaps["ALIGNER"]["GLOBAL_SNAPSHOT_EN"] = 1;
+  std::array<bool, 12> link_enabled;
   for (int i_econ_ch{0}; i_econ_ch < 12; i_econ_ch++) {
     auto prefix{std::to_string(i_econ_ch)};
+    if (econ.readParameter("ERX", prefix+"_ENABLE") == 0 and ignore_disabled_links) {
+      link_enabled[i_econ_ch] = false;
+      continue;
+    }
+    link_enabled[i_econ_ch] = true;
     manual_snaps["CHALIGNER"][prefix + "_PER_CH_ALIGN_EN"] = 0;
     manual_snaps["ERX"][prefix + "_ENABLE"] = 1;
   }
@@ -74,6 +82,7 @@ void scan_orbit(Target* tgt) {
   std::map<int, int> select;
   std::cout << "select shifts: { ";
   for (int ch{0}; ch < 12; ch++) {
+    if (not link_enabled[ch]) continue;
     select[ch] = econ.getValues(CHALIGNER_RO[ch] + 0x1, 1)[0];
     if (ch > 0) {
       std::cout << ", ";
@@ -101,12 +110,19 @@ void scan_orbit(Target* tgt) {
   std::cout << "daq event occupancy: " << tgt->daq().getEventOccupancy()
             << std::endl;
 
-  static const char* header{
-      "t_snapshot,daq_event_occupancy,00,01,02,03,04,05,06,07,08,09,10,11\n"};
+  std::stringstream header;
+  header << "t_snapshot,daq_event_occupancy";
+  for (int erx{0}; erx < link_enabled.size(); erx++) {
+    if (link_enabled[erx]) {
+      header << "," << erx;
+    }
+  }
+  header << "\n";
+
   if (to_screen) {
-    std::cout << header;
+    std::cout << header.str();
   } else {
-    file_output << header;
+    file_output << header.str();
   }
 
   std::vector<uint8_t> aligner_flags(1);
@@ -130,6 +146,7 @@ void scan_orbit(Target* tgt) {
     row << std::setw(4) << t_snapshot << ',' << tgt->daq().getEventOccupancy();
     bool should_print{not skip_normal_idles};
     for (int ch{0}; ch < 12; ch++) {
+      if (not link_enabled[ch]) continue;
       boost::multiprecision::uint256_t snapshot{0};
       // have to read in 8byte chunks
       for (int i_snp{0}; i_snp < 3; i_snp++) {
