@@ -1,7 +1,7 @@
 #pragma once
 #include "pflib/DAQ.h"
-#include "pflib/zcu/UIO.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/zcu/UIO.h"
 
 namespace pflib {
 namespace zcu {

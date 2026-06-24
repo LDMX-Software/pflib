@@ -1,7 +1,7 @@
 #include "pflib/zcu/zcu_daq.h"
 
-#include "pflib/utility/string_format.h"
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/string_format.h"
 
 namespace pflib {
 namespace zcu {
