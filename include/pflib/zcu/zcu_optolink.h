@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "pflib/OptoLink.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/zcu/UIO.h"
 #include "pflib/zcu/lpGBT_ICEC_ZCU_Simple.h"
 
@@ -49,6 +50,7 @@ class ZCUOptoLink : public pflib::OptoLink {
   std::string coder_name_;
   int ilink_;
   bool isdaq_;
+  mutable logging::logger the_log_;
 };
 
 }  // namespace zcu

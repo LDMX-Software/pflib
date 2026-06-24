@@ -19,6 +19,8 @@ class OptoElinksZCU : public Elinks {
     // not meaningful here
   }
 
+  void injectError();
+
  private:
   lpGBT *lp_daq_, *lp_trig_;
   UIO uiodecoder_;

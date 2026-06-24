@@ -15,6 +15,11 @@ OptoElinksZCU::OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
   // deactivate all the links except DAQ link 0 for now
   for (int i = 1; i < 6 * 2; i++) markActive(i, false);
 }
+
+void OptoElinksZCU::injectError() {
+  uiodecoder_.write(6, 0x1);
+}
+
 std::vector<uint32_t> OptoElinksZCU::spy(int ilink, bool new_capture) {
   static constexpr int REG_CAPTURE_ENABLE = 16;
   static constexpr int REG_CAPTURE_OLINK = 17;
