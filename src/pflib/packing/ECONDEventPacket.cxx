@@ -10,6 +10,34 @@
 
 namespace pflib::packing {
 
+class PrintLinkStatBits {
+  const uint32_t& stat_;
+  static const std::array<const char*, 3> BIT_NAMES;
+ public:
+  PrintLinkStatBits(const uint32_t& stat)
+    : stat_{stat} {}
+  friend inline std::ostream& operator<<(std::ostream& o,
+                                         const PrintLinkStatBits& self) {
+    std::bitset<3> bits = self.stat_;
+    o << "bits 0b" << bits << " -> [";
+    for (std::size_t i{0}; i < 3; i++) {
+      if (!bits.test(i)) {
+        o << " " << BIT_NAMES[i];
+      }
+    }
+    o << " ] mismatched";
+    return o;
+  }
+};
+
+/**
+ * ECON-D Manual: MSB is HT match status, then EBO, then CRC
+ * index 0 is LSB, so we invert this order here.
+ */
+const std::array<const char*, 3> PrintLinkStatBits::BIT_NAMES = {
+  "CRC", "EBO", "HT"
+};
+
 std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
                                                     DAQLinkFrame& link,
                                                     bool passthrough) {
@@ -18,7 +46,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
   uint32_t stat = ((data[0] >> 29) & mask<3>);
   link.corruption[0] = (stat != 0b111);  // all ones is GOOD
   if (link.corruption[0]) {
-    pflib_log(warn) << "bad subpacket checks " << std::bitset<3>(stat);
+    pflib_log(warn) << "bad link Stat " << PrintLinkStatBits(stat);
   }
   uint32_t ham = ((data[0] >> 26) & mask<3>);
   bool is_empty = ((data[0] >> 25) & mask<1>) == 1;
@@ -36,7 +64,8 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
     // E=0 (false) means none of the 37 channels passed zero suppression
     // E=1 (true) means the unmasked Stat error bits caused the sub-packet to be
     // suppressed
-    pflib_log(trace) << "is empty, E=" << error_caused_empty;
+    pflib_log(trace) << "is empty, did unmasked Stat error bits cause empty? = "
+                     << error_caused_empty;
     return length;
   }
 
