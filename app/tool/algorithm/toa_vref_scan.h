@@ -15,7 +15,6 @@ namespace pflib::algorithm {
  *
  * @note Only functional for single-ROC targets
  */
-std::map<std::string, std::map<std::string, uint64_t>> toa_vref_scan(
-    Target* tgt, ROC roc);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_vref_scan(Target* tgt);
 
 }  // namespace pflib::algorithm

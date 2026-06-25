@@ -7,15 +7,21 @@
 #include "../algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
-  auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::toa_vref_scan(tgt, roc);
+  auto settings = pflib::algorithm::toa_vref_scan(tgt);
+
   YAML::Emitter out;
   out << YAML::BeginMap;
-  for (const auto& page : settings) {
-    out << YAML::Key << page.first;
+
+  for (const auto& [i_roc, page_map] : settings) {
+    out << YAML::Key << i_roc;
     out << YAML::Value << YAML::BeginMap;
-    for (const auto& param : page.second) {
-      out << YAML::Key << param.first << YAML::Value << param.second;
+    for (const auto& page: page_map) {
+      out << YAML::Key << page.first;
+      out << YAML::Value << YAML::BeginMap;
+      for (const auto& param : page.second) {
+        out << YAML::Key << param.first << YAML::Value << param.second;
+      }
+      out << YAML::EndMap;
     }
     out << YAML::EndMap;
   }
@@ -25,13 +31,15 @@ void toa_vref_scan(Target* tgt) {
     std::cout << out.c_str() << std::endl;
   }
 
-  if (pftool::readline_bool("Apply settings to the chip? ", true)) {
-    roc.applyParameters(settings);
+  if (pftool::readline_bool("Apply settings to the chips? ", true)) {
+    for (const auto& [i_roc, page_map] : settings) {
+      tgt->roc(i_roc).applyParameters(page_map);
+    }
   }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
     std::string fname = pftool::readline_path(
-        "toa-vref-scan-" + std::to_string(pftool::state.iroc) + "-settings",
+        "toa-vref-scan-settings",
         ".yaml");
 
     std::ofstream f{fname};
