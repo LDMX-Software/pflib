@@ -15,7 +15,7 @@ void toa_vref_scan(Target* tgt) {
   for (const auto& [i_roc, page_map] : settings) {
     out << YAML::Key << i_roc;
     out << YAML::Value << YAML::BeginMap;
-    for (const auto& page: page_map) {
+    for (const auto& page : page_map) {
       out << YAML::Key << page.first;
       out << YAML::Value << YAML::BeginMap;
       for (const auto& param : page.second) {
@@ -38,9 +38,8 @@ void toa_vref_scan(Target* tgt) {
   }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
-    std::string fname = pftool::readline_path(
-        "toa-vref-scan-settings",
-        ".yaml");
+    std::string fname =
+        pftool::readline_path("toa-vref-scan-settings", ".yaml");
 
     std::ofstream f{fname};
     if (not f.is_open()) {
