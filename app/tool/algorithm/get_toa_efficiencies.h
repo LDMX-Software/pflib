@@ -15,6 +15,8 @@ namespace pflib::algorithm {
 
 // templated to match any event packet type
 std::array<double, 72> get_toa_efficiencies(
+    int i_roc,
+    const pflib::packing::SingleECONDRocErxMapping& mapping,
     const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data);
 
 }  // namespace pflib::algorithm

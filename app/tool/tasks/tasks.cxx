@@ -7,6 +7,7 @@
 #include "../pftool.h"
 #include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
+#include "examine_phase.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
@@ -27,6 +28,7 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
+#include "bx_toa_scan.h"
 #include "vt50_scan.h"
 
 namespace {
@@ -68,6 +70,7 @@ auto menu_tasks =
                local_pedestal_level)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
                toa_vref_scan)
+        //->line("EXAMINE_PHASE", "scan over phase parameters", examine_phase)
         ->line("TOA_SCAN",
                "just does that bro (changes CALIB while saving only TOA)",
                toa_scan)
@@ -75,7 +78,11 @@ auto menu_tasks =
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+               "calibrate TRIM_TOA parameters for each channel",
+               trim_toa_scan)
+        ->line("BX_TOA_SCAN",
+               "finds optimal bx value for each link",
+               bx_toa_scan);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")

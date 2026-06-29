@@ -1,17 +1,15 @@
 #include "trim_toa_scan.h"
-
 #include <yaml-cpp/yaml.h>
-
 #include <fstream>
-
 #include "../algorithm/trim_toa_scan.h"
 
 void trim_toa_scan(Target* tgt) {
-  auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::trim_toa_scan(tgt, roc);
+  auto settings = pflib::algorithm::trim_toa_scan(tgt);
+  for (const auto& [i_roc, parameters] : settings) {
+  auto roc{tgt->roc(i_roc)};
   YAML::Emitter out;
   out << YAML::BeginMap;
-  for (const auto& page : settings) {
+  for (const auto& page : parameters) {
     out << YAML::Key << page.first;
     out << YAML::Value << YAML::BeginMap;
     for (const auto& param : page.second) {
@@ -26,7 +24,7 @@ void trim_toa_scan(Target* tgt) {
   }
 
   if (pftool::readline_bool("Apply settings to the chip? ", true)) {
-    roc.applyParameters(settings);
+    roc.applyParameters(parameters);
   }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
@@ -40,4 +38,5 @@ void trim_toa_scan(Target* tgt) {
     }
     f << out.c_str() << std::endl;
   }
+}
 }
