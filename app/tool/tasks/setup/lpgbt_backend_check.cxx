@@ -48,6 +48,9 @@ class ConfigureUpLinkDataSource {
             data[32 * iword + ibit] = ((spy[iword] >> (31 - ibit)) & 0x1);
           }
         }
+        if (data.none()) {
+          printf("ERROR: all collected bits are zero\n");
+        }
         std::bitset<64 * 32> check = data;
         check = ((check >> 6) ^ (check >> 5));
         check <<= 12;
