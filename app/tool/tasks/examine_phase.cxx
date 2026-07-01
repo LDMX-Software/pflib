@@ -10,7 +10,7 @@
 
 void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer, int nevents) {
   static auto the_log_{::pflib::logging::get("scan_phase_strobe")};
-  //scan entire peak
+  //scans and prints the effect of phase_strobe
   int nr_bx = 5;
   int central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
   if (central_charge_to_l1a > 3) {
@@ -64,7 +64,7 @@ void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer&
 
 void scan_phase_ck(Target* tgt, DecodeAndBuffer& buffer, int nevents) {
   static auto the_log_{::pflib::logging::get("scan_phase_ck")};
-  // Loop over phases and do pedestals
+  //Scans and prints the effect of phase_ck
 
   for (int phase_ck = 0; phase_ck < 16; phase_ck++) {
 
@@ -99,7 +99,7 @@ void scan_phase_ck(Target* tgt, DecodeAndBuffer& buffer, int nevents) {
 
 int peak_bx(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer, int nevents) {
   static auto the_log_{::pflib::logging::get("peak_bx")};
-  //find bx of peak
+  //finds bx of charge injection peak
   bool keep_going = true;
   int bx_calib = 1000;
   while (keep_going) {

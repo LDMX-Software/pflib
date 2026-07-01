@@ -14,7 +14,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
   size_t n_events = pftool::readline_int(
     "How many events per time point?", 100);
   int target_calib = pftool::readline_int(
-    "At which calib should tot activate?", 430);
+    "At which calib should tot activate?", 440);
 
   std::map<int, std::array<int, 2>>
       vref_targets;
@@ -30,6 +30,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
   std::map<std::string, std::map<std::string, uint64_t>>
          parameters;
 
+  //applies test parameters
   for (int i_link{0}; i_link < 2; i_link++) {
     std::string refvol_page{pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
     parameters[refvol_page]["TOT_VREF"] = tot_vref_initial;
@@ -42,6 +43,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
     parameters[ch_page]["TRIM_TOT"] = trim_tot_initial;
   }
   auto test_params = tgt->tempApplyAllROCs(parameters);
+  //loops through calib, finding calib just before tot activation
   for (int i_roc : tgt->roc_ids()) {
     pflib_log(info) << "Getting calibs for roc: " << i_roc;
     calibs[i_roc].resize(72);
@@ -89,6 +91,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
     }
   }
 
+  //finds and stores median calib for each link
   std::map<int, int> target_calibs_l0;
   std::map<int, int> target_calibs_l1;
   for (int i_roc : tgt->roc_ids()) {
@@ -102,7 +105,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
     pflib_log(info) << "L1 median calib: " << target_calibs_l1[i_roc];
   }
 
-  //find trim_tot
+  //sets calib to median of each link
+  //finds trim_tot right before tot activates for each channel
   for (int i_roc : tgt->roc_ids()) {
     pflib_log(info) << "Getting trim_tot for roc: " << i_roc;
     for (int ch{0}; ch < 72; ch++) {
@@ -149,7 +153,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
     }
   }
 
-  //find tot_vref
+  //finds tot_vref per link which causes tot activation on target calib
   std::array<int, 2> channels = {17, 51};
   for (int i_roc : tgt->roc_ids()) {
     pflib_log(info) << "Getting tot_vref for roc: " << i_roc;
