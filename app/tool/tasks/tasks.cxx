@@ -28,6 +28,7 @@
 #include "tot_scan_uva.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
+#include "trim_toa_uva.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
 
@@ -82,7 +83,9 @@ auto menu_tasks =
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_scan_uva)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+        ->line("TRIM_TOA_UVA",
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_uva);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
