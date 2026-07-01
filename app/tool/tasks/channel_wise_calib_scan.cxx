@@ -3,6 +3,7 @@
 #include "../daq_run.h"
 #include "charge_timescan.h"
 #include "pflib/utility/string_format.h"
+#include <tuple>
 
 ENABLE_LOGGING();
 
@@ -23,6 +24,7 @@ void channel_wise_calib_scan(Target* tgt) {
         "4095");
   }
   pflib::ROC roc{tgt->roc(pftool::state.iroc)};
+  int i_roc = pftool::state.iroc;
   std::string fname;
 
   auto test_param_builder = roc.testParameters();
@@ -47,6 +49,8 @@ void channel_wise_calib_scan(Target* tgt) {
   int calib{0};
   int ch{0};
   int link{1};
+  int i_erx;
+  int i_ch;
   DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
@@ -58,7 +62,7 @@ void channel_wise_calib_scan(Target* tgt) {
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
         // TODO 348
         f << time << ',' << calib << ',' << ch << ',';
-        ep.samples[ep.i_soi].channel(ch / 36, ch % 36).to_csv(f);
+        ep.soi().channel(i_erx, i_ch).to_csv(f);
         f << '\n';
       },
       n_links};
@@ -66,6 +70,7 @@ void channel_wise_calib_scan(Target* tgt) {
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  auto mapping = tgt->getRocErxMapping();
 
   for (ch = min_ch; ch < max_ch + 1; ch++) {
     pflib_log(info) << "Scanning channel " << ch;
@@ -96,6 +101,7 @@ void channel_wise_calib_scan(Target* tgt) {
           time =
               (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
               phase_strobe * clock_cycle / n_phase_strobe;
+          std::tie(i_erx, i_ch) = mapping.toErxChannel(i_roc, ch);
           daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
         }
       }

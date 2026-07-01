@@ -43,6 +43,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
   }
   auto test_params = tgt->tempApplyAllROCs(parameters);
   for (int i_roc : tgt->roc_ids()) {
+    pflib_log(info) << "Getting calibs for roc: " << i_roc;
     calibs[i_roc].resize(72);
     for(int ch{0}; ch < 72; ch++) {
       pflib_log(info) << "Getting calib for channel: " << ch;
@@ -96,12 +97,14 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
     target_calibs_l0[i_roc] = pflib::utility::median(l0);
     target_calibs_l1[i_roc] = pflib::utility::median(l1);
 
+    pflib_log(info) << "Roc: " << i_roc;
     pflib_log(info) << "L0 median calib: " << target_calibs_l0[i_roc];
     pflib_log(info) << "L1 median calib: " << target_calibs_l1[i_roc];
   }
 
   //find trim_tot
   for (int i_roc : tgt->roc_ids()) {
+    pflib_log(info) << "Getting trim_tot for roc: " << i_roc;
     for (int ch{0}; ch < 72; ch++) {
       auto ch_page = pflib::utility::string_format("CH_%d", ch);
       bool complete = false;
@@ -149,8 +152,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_u
   //find tot_vref
   std::array<int, 2> channels = {17, 51};
   for (int i_roc : tgt->roc_ids()) {
+    pflib_log(info) << "Getting tot_vref for roc: " << i_roc;
     for(int i_link = 0; i_link < 2; i_link++) {
-      pflib_log(info) << "Getting tot_vref for link: " << i_link;
+      pflib_log(info) << "link: " << i_link;
       std::map<std::string, std::map<std::string, uint64_t>>
            vref_parameters;
       bool complete = false;

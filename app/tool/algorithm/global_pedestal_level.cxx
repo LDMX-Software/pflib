@@ -27,7 +27,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   std::vector<DerivPoint> slope_points;
 
   double flat_threshold = 0.1;
-  double linear_threshold = 10;
+  double linear_threshold = 5;
   std::vector<double> LH_derivs;
   std::vector<double> LH_stdevs;
   std::vector<double> RH_derivs;
@@ -125,8 +125,8 @@ int DataFitter::linear_fit(int& target) {
   pflib_log(info) << "Fitting Data";
 
   // preform a linear fit
-  int x_sum = 0;
-  int y_sum = 0;
+  double x_sum = 0;
+  double y_sum = 0;
 
   for (const auto& p : linear_) {
     x_sum += p.x_;

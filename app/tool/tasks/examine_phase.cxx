@@ -49,15 +49,16 @@ void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer&
                data[i].samples.at(j).channel(i_erx, i_ch).adc());
         }
       }
+      pflib_log(info) << "phase_strobe: " << phase_strobe;
       for (int j = 0; j < nr_bx; j++) {
         int mean_adc = pflib::utility::mean(adcs[j]);
-        pflib_log(info) << "phase_strobe: " << phase_strobe << " adc: " << mean_adc;
+        pflib_log(info) << "bx:  " << tgt->fc().fc_get_setup_calib() + j << " adc: " << mean_adc;
       }
 
 
   }
   tgt->fc().fc_setup_calib(central_charge_to_l1a);
-  daq.setup(daq.econid(), nr_bx, daq.soi());
+  daq.setup(daq.econid(), initial_nr_bx, daq.soi());
   tgt->fc().setL1AperROR(initial_nr_bx);
 }
 
@@ -82,6 +83,7 @@ void scan_phase_ck(Target* tgt, DecodeAndBuffer& buffer, int nevents) {
 
 
     for (int i_roc : tgt->roc_ids()) {
+      pflib_log(info) << "Roc: " << i_roc;
       const pflib::packing::SingleECONDRocErxMapping& mapping =
           tgt->getRocErxMapping();
       for (int ch = 0; ch < 72; ch++) {
