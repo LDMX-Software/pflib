@@ -42,5 +42,4 @@ void tot_scan_uva(Target* tgt) {
       f << out.c_str() << std::endl;
     }
   }
-
 }

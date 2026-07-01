@@ -14,7 +14,7 @@ namespace pflib::algorithm {
  * @param[in] tgt pointer to Target to interact with
  *
  */
-std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan_uva(
-    Target* tgt);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+tot_scan_uva(Target* tgt);
 
 }  // namespace pflib::algorithm

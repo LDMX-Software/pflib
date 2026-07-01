@@ -7,6 +7,7 @@
 #include "../pftool.h"
 #include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
+#include "examine_phase.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
@@ -18,14 +19,13 @@
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
-#include "examine_phase.h"
 #include "set_toa.h"
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
-#include "tot_vref_scan.h"
 #include "tot_scan_uva.h"
+#include "tot_vref_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
@@ -55,8 +55,7 @@ auto menu_tasks =
                vref_2d_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
                noinv_vref_scan)
-        ->line("EXAMINE_PHASE", "scan over phase parameters",
-               examine_phase)
+        ->line("EXAMINE_PHASE", "scan over phase parameters", examine_phase)
         ->line("SAMPLING_PHASE_SCAN",
                "scan phase_ck, pedestal for clock phase alignment",
                sampling_phase_scan)
