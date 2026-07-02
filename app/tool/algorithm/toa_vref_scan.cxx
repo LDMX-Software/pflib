@@ -15,29 +15,29 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
 toa_vref_scan(Target* tgt) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
+// Reading out the trim_toa values for the first 5 channels to test, Cristina's suggestion
   if (!tgt->roc_ids().empty()) {
-      int first_roc = *(tgt->roc_ids().begin());
-      pflib::ROC& my_roc = tgt->roc(first_roc);
+    int first_roc = *(tgt->roc_ids().begin());
+    pflib::ROC& my_roc = tgt->roc(first_roc);
 
-      // Run the scan and program the trim values
-      trim_toa_scan(tgt, my_roc, first_roc);
+    // Run the scan and program the trim values
+    trim_toa_scan(tgt, my_roc, first_roc);
 
-      // Log the first 5 channels
-      for (int i = 0; i < 5; i++) {
-          std::string ch_str = "CH_" + std::to_string(i);
-          auto channel_params = my_roc.getParameters(ch_str);
+    // Log the first 5 channels
+    for (int i = 0; i < 5; i++) {
+        std::string ch_str = "CH_" + std::to_string(i);
+        auto channel_params = my_roc.getParameters(ch_str);
 
-          auto it = channel_params.find("TRIM_TOA");
-          if (it != channel_params.end()) {
-              pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
-          } else {
-              pflib_log(info) << "TRIM_TOA not set for channel " << i;
-          }
-      }
+        auto it = channel_params.find("TRIM_TOA");
+        if (it != channel_params.end()) {
+            pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
+        } else {
+            pflib_log(info) << "TRIM_TOA not set for channel " << i;
+        }
+    }
   } else {
-      pflib_log(error) << "No ROC IDs found.";
+    pflib_log(error) << "No ROC IDs found.";
   }
-
   /// do a run of 100 samples per toa_vref to measure the TOA
   /// efficiency when looking at pedestal data
 
