@@ -1,13 +1,13 @@
 #include "toa_vref_scan.h"
 
-#include "trim_toa_scan.h"
+#include <fstream>
+
 #include "../daq_run.h"
 #include "../tasks/toa_vref_scan.h"
 #include "get_toa_efficiencies.h"
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
-#include <fstream>
-
+#include "trim_toa_scan.h"
 
 namespace pflib::algorithm {
 
@@ -15,7 +15,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
 toa_vref_scan(Target* tgt) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
-// Reading out the trim_toa values for the first 5 channels to test, Cristina's suggestion
+  // Reading out the trim_toa values for the first 5 channels to test,
+  // Cristina's suggestion
   if (!tgt->roc_ids().empty()) {
     int first_roc = *(tgt->roc_ids().begin());
     pflib::ROC& my_roc = tgt->roc(first_roc);
@@ -28,14 +29,14 @@ toa_vref_scan(Target* tgt) {
 
       auto it = channel_params.find("TRIM_TOA");
       if (it != channel_params.end()) {
-          pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
+        pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
       } else {
-          pflib_log(info) << "TRIM_TOA not set for channel " << i;
+        pflib_log(info) << "TRIM_TOA not set for channel " << i;
       }
     }
   } else {
-      pflib_log(error) << "No ROC IDs found.";
-  } 
+    pflib_log(error) << "No ROC IDs found.";
+  }
 
   /// do a run of 100 samples per toa_vref to measure the TOA
   /// efficiency when looking at pedestal data
@@ -58,7 +59,7 @@ toa_vref_scan(Target* tgt) {
   for (int chan = 0; chan < 72; ++chan) {
     csv_file << "," << chan;
   }
-  csv_file<< "\n";
+  csv_file << "\n";
 
   // loop over runs, from toa_vref = 0 to = 255
   for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
@@ -76,10 +77,10 @@ toa_vref_scan(Target* tgt) {
                      << ", getting efficiencies";
 
     for (int i_roc : tgt->roc_ids()) {
-
       const auto& mapping = tgt->getRocErxMapping();
 
-      auto efficiencies = get_toa_efficiencies(i_roc, mapping, buffer.get_buffer());
+      auto efficiencies =
+          get_toa_efficiencies(i_roc, mapping, buffer.get_buffer());
       pflib_log(trace) << "got channel efficiencies for ROC " << i_roc
                        << ", getting max efficiency per link";
 
@@ -90,7 +91,7 @@ toa_vref_scan(Target* tgt) {
       }
       csv_file << "\n";
 
-      for (int i_link{0}; i_link < 2; i_link++){
+      for (int i_link{0}; i_link < 2; i_link++) {
         auto start = efficiencies.begin() + 36 * i_link;
         auto end = start + 36;
 
