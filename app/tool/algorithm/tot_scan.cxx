@@ -8,7 +8,7 @@
 namespace pflib::algorithm {
 
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
-  Target* tgt) {
+    Target* tgt) {
   static auto the_log_{::pflib::logging::get("tot_scan")};
 
   size_t n_events =
