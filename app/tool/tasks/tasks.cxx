@@ -79,10 +79,10 @@ auto menu_tasks =
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
 
-            auto menu_expert_tasks =
-        menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
-            ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
-                   scan_orbit);
+auto menu_expert_tasks =
+    menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
+        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
+               scan_orbit);
 
 auto menu_setup_tasks =
     menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")
