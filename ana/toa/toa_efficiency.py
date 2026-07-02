@@ -50,19 +50,11 @@ for that link. That way, we ensure only incoming signals trigger TOA, and we max
 the signal-to-noise ratio. Select the point 'o' on the graph.
 """
 
+vref_axis = data['TOA_VREF'].values
+
 channel_lists = []
 for chan in range(72):
-    channel_lists.append([])
-
-unique_toa_vrefs = data['TOA_VREF'].unique()
-
-for toa_vref in unique_toa_vrefs:
-    filtered_data = data[data['TOA_VREF'] == toa_vref]
-    for chan in range(72):
-        non_zero = filtered_data[filtered_data[str(chan)] != 0]
-        chan_triggers = len(non_zero)
-        chan_toa_efficiency = chan_triggers / len(filtered_data)
-        channel_lists[chan].append(chan_toa_efficiency)
+    channel_lists.append(data[str(chan)].values)
 
 # Plotting the results
 plt.figure(figsize=(10, 6))
