@@ -26,6 +26,7 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   };
   std::vector<DerivPoint> slope_points;
 
+  //derivs should be around -1.4 in the linear region. These upper and lower bounds sort outliers.
   double flat_threshold = 0.1;
   double linear_threshold = 5;
   std::vector<double> LH_derivs;

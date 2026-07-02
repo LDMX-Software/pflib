@@ -1,15 +1,15 @@
-#include "tot_scan_uva.h"
+#include "tot_scan.h"
 
 #include "../daq_run.h"
-#include "../tasks/tot_scan_uva.h"
+#include "../tasks/tot_scan.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib::algorithm {
 
-std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-tot_scan_uva(Target* tgt) {
-  static auto the_log_{::pflib::logging::get("tot_scan_uva")};
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
+  Target* tgt) {
+  static auto the_log_{::pflib::logging::get("tot_scan")};
 
   size_t n_events =
       pftool::readline_int("How many events per time point?", 100);
@@ -21,6 +21,7 @@ tot_scan_uva(Target* tgt) {
   const pflib::packing::SingleECONDRocErxMapping& mapping =
       tgt->getRocErxMapping();
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   // find target calibs
   int tot_vref_initial = 300;
@@ -50,7 +51,7 @@ tot_scan_uva(Target* tgt) {
       pflib_log(info) << "Getting calib for channel: " << ch;
       std::map<std::string, std::map<std::string, uint64_t>> calib_parameters;
       bool complete = false;
-      int calib = 1000;
+      int calib = 500;
       auto ch_page = pflib::utility::string_format("CH_%d", ch);
       int calib_decrease = 50;
       while (!complete) {

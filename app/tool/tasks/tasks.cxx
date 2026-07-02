@@ -24,8 +24,7 @@
 #include "setup/align_phase_word.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
-#include "tot_scan_uva.h"
-#include "tot_vref_scan.h"
+#include "tot_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
@@ -76,12 +75,9 @@ auto menu_tasks =
                toa_scan)
         ->line("TOT_SCAN",
                "scan over VREF and TRIM parameters for TOT calibration",
-               tot_vref_scan)
-        ->line("TOT_SCAN_UVA",
-               "scan over VREF and TRIM parameters for TOT calibration",
-               tot_scan_uva)
+               tot_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")

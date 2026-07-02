@@ -1,13 +1,13 @@
-#include "tot_scan_uva.h"
+#include "tot_scan.h"
 
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
 
-#include "../algorithm/tot_scan_uva.h"
+#include "../algorithm/tot_scan.h"
 
-void tot_scan_uva(Target* tgt) {
-  auto settings = pflib::algorithm::tot_scan_uva(tgt);
+void tot_scan(Target* tgt) {
+  auto settings = pflib::algorithm::tot_scan(tgt);
   for (const auto& [i_roc, parameters] : settings) {
     auto roc{tgt->roc(i_roc)};
     YAML::Emitter out;
