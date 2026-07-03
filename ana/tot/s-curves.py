@@ -45,7 +45,7 @@ if (args.plot_time_walk):
             ax[1].plot(ch_df['calib'], toa_conv(ch_df))
     plt.show()
 
-quit()
+#quit()
 
 if (args.plot_adc):
     fig, ax = plt.subplots(1,1)

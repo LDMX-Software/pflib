@@ -9,13 +9,12 @@
 namespace pflib::algorithm {
 
 /**
- * Find calib value where the max adc corresponds to a target value
+ * Find tot_vref per link and trim_tot per channel
  *
  * @param[in] tgt pointer to Target to interact with
- *            roc for setting params
- *            target calib value
+ *
  */
-std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
-                               int& target_adc);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
+    Target* tgt);
 
 }  // namespace pflib::algorithm

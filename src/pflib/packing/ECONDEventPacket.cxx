@@ -11,7 +11,7 @@
 namespace pflib::packing {
 
 std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
-                                                    DAQLinkFrame &link,
+                                                    DAQLinkFrame& link,
                                                     bool passthrough) {
   pflib_log(trace) << "link header " << hex(data[0]);
   // sub-packet start
@@ -56,7 +56,7 @@ std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
                      << " i_ch=" << i_chan;
 
     // deduce a reference to the channel that we are unpacking
-    Sample *ch = &(link.calib);
+    Sample* ch = &(link.calib);
     if (i_chan < 18) {
       ch = &(link.channels[i_chan]);
     } else if (i_chan > 18) {
@@ -327,7 +327,7 @@ void ECONDEventPacket::from(std::span<uint32_t> data) {
   }
 
   std::size_t offset{2};
-  for (auto &link : links) {
+  for (auto& link : links) {
     offset += unpack_link_subpacket(data.subspan(offset), link, passthrough);
     link.bx = bx;
     link.event = l1a;

@@ -1,9 +1,9 @@
 #include <nlohmann/json.hpp>
+#include <tuple>
 
 #include "../daq_run.h"
 #include "charge_timescan.h"
 #include "pflib/utility/string_format.h"
-#include <tuple>
 
 ENABLE_LOGGING();
 
