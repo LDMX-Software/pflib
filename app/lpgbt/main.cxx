@@ -185,6 +185,12 @@ void general(const std::string& cmd, ToolBox* target) {
         *target->lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
                                DAQ_SingleModuleMotherboard);
     printf("Applied standard ECAL DAQ configuration\n");
+    printf("pause to be accepted...\n");
+    sleep(2);
+    pflib::lpgbt::standard_config::setup_ecal(
+        *target->lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               TRIG_SingleModuleMotherboard);
+    printf("Applied standard ECAL TRIG configuration\n");
   }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->coder_name);
