@@ -1,7 +1,7 @@
-#include "level_pedestals.h"
+#include "local_pedestal_level.h"
 
 #include "../daq_run.h"
-#include "../tasks/level_pedestals.h"
+#include "../tasks/local_pedestal_level.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/string_format.h"
 
@@ -39,8 +39,8 @@ static std::array<int, 72> get_adc_medians(
 }
 
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-level_pedestals(Target* tgt) {
-  static auto the_log_{::pflib::logging::get("level_pedestals")};
+local_pedestal_level(Target* tgt) {
+  static auto the_log_{::pflib::logging::get("local_pedestal_level")};
 
   /// do three runs of 100 samples each to have well defined pedestals
   static const std::size_t n_events = 100;
