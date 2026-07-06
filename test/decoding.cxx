@@ -142,11 +142,11 @@ BOOST_AUTO_TEST_CASE(tot_output) {
 
 BOOST_AUTO_TEST_CASE(high_tot) {
   pflib::packing::Sample s;
-  s.word = 0b11000000000110000000100000000011;
+  s.word = 0b11000000000111000000100000000011;
   BOOST_CHECK(s.Tc() == true);
   BOOST_CHECK(s.Tp() == true);
   BOOST_CHECK(s.adc() == -1);
-  BOOST_CHECK(s.tot() == 16);
+  BOOST_CHECK(s.tot() == 2064);
   BOOST_CHECK(s.adc_tm1() == 1);
   BOOST_CHECK(s.toa() == 3);
 }
