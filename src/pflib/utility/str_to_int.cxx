@@ -36,8 +36,6 @@ unsigned long long int str_to_ullint(std::string str) {
   return std::stoull(str, nullptr, base);
 }
 
-int str_to_int(std::string str) {
-  return static_cast<int>(str_to_ullint(str));
-}
+int str_to_int(std::string str) { return static_cast<int>(str_to_ullint(str)); }
 
 }  // namespace pflib::utility
