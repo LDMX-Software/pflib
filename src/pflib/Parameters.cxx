@@ -28,7 +28,7 @@ std::any extract_scalar(const YAML::Node& node) {
 
 std::any extract_sequence(const YAML::Node& node) {
   auto val = node.as<std::vector<std::string>>();
-  if (std::all_of(val.begin(), begin.end(), utility::is_integer)) {
+  if (std::all_of(val.begin(), val.end(), utility::is_integer)) {
     std::vector<int> ival(val.size());
     for (std::size_t i{0}; i < val.size(); i++) {
       ival[i] = utility::str_to_int(val[i]);
