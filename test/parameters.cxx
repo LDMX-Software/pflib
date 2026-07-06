@@ -17,11 +17,11 @@ one: 1
 three: "three"
 four: [1, 2, 3, 4]
 five:
-- 1
-- 2
-- 3
+- 0b01
+- 0b10
+- 0b11
 sub:
-  one: 2
+  one: 0x2
   two: ["one", "two"]
 redirect: !file "rel-path.yaml"
 hex: 0xf
