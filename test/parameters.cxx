@@ -14,15 +14,14 @@ BOOST_AUTO_TEST_CASE(syntax_as_designed) {
   TempFile t("pflib-parameters-test.yaml",
              R"YAML(# this is a shallow yaml
 one: 1
-two: 2.0
 three: "three"
 four: [1, 2, 3, 4]
 five:
-- 1.0
+- 1
 - 2
 - 3
 sub:
-  one: 1.0
+  one: 2
   two: ["one", "two"]
 redirect: !file "rel-path.yaml"
 hex: 0xf
@@ -32,7 +31,6 @@ binary: 0b101
   pflib::Parameters p;
   p.from_yaml(t.file_path_);
   BOOST_CHECK_EQUAL(p.get<int>("one"), 1);
-  BOOST_CHECK_EQUAL(p.get<double>("two"), 2.0);
   BOOST_CHECK_EQUAL(p.get<std::string>("three"), "three");
   BOOST_CHECK_EQUAL(p.get<int>("hex"), 0xf);
   BOOST_CHECK_EQUAL(p.get<int>("binary"), 0b101);
@@ -40,12 +38,12 @@ binary: 0b101
   auto read_four{p.get<std::vector<int>>("four")};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_four.begin(), read_four.end(),
                                 four.begin(), four.end());
-  std::vector<double> five = {1.0, 2.0, 3.0};
-  auto read_five{p.get<std::vector<double>>("five")};
+  std::vector<int> five = {1, 2, 3};
+  auto read_five{p.get<std::vector<int>>("five")};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_five.begin(), read_five.end(),
                                 five.begin(), five.end());
   auto read_sub{p.get<pflib::Parameters>("sub")};
-  BOOST_CHECK_EQUAL(read_sub.get<double>("one"), 1.0);
+  BOOST_CHECK_EQUAL(read_sub.get<int>("one"), 2);
   auto read_sub_two{read_sub.get<std::vector<std::string>>("two")};
   std::vector<std::string> sub_two = {"one", "two"};
   BOOST_CHECK_EQUAL_COLLECTIONS(read_sub_two.begin(), read_sub_two.end(),

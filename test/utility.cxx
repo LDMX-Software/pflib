@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "pflib/utility/crc.h"
 #include "pflib/utility/load_integer_csv.h"
+#include "pflib/utility/str_to_int.h"
 
 BOOST_AUTO_TEST_SUITE(utility)
 
@@ -121,5 +122,20 @@ BOOST_AUTO_TEST_CASE(econd_example_header_crc) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_CASE(str_to_int) {
+  using pflib::utility::is_integer;
+  using pflib::utility::str_to_int;
+  BOOST_CHECK(not is_integer("foo"));
+  BOOST_CHECK(is_integer(" 0xaf"));
+  BOOST_CHECK(is_integer("0b011"));
+  BOOST_CHECK(not is_integer("0b0123"));
+  BOOST_CHECK(not is_integer("12cd"));
+  BOOST_CHECK(is_integer("0X9Ce"));
+  BOOST_CHECK_EQUAL(str_to_int("0xaf"), 0xaf);
+  BOOST_CHECK_EQUAL(str_to_int("0b011"), 0b011);
+  BOOST_CHECK_EQUAL(str_to_int("0X9Ce"), 0x9ce);
+  BOOST_CHECK_EQUAL(str_to_int("1234"), 1234);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
