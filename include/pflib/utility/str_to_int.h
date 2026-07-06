@@ -18,7 +18,7 @@ namespace pflib::utility {
 bool is_integer(const std::string& str);
 
 /**
- * Get an integer from the input string
+ * Get an unsigned long long integer from the input string
  *
  * The normal stoi (and similar) tools don't support binary inputs
  * which are helpful in our case where sometimes the value is set
@@ -37,6 +37,16 @@ bool is_integer(const std::string& str);
  */
 unsigned long long int str_to_ullint(std::string str);
 
+/**
+ * Get an integer from the input string
+ *
+ * We just use str_to_ullint and cast the returned value
+ * down to an int. This drops most of the available range
+ * but we've only needed that range for a few larger
+ * parameters on the ECON-D.
+ *
+ * @see str_to_ullint
+ */
 int str_to_int(std::string str);
 
 }  // namespace pflib::utility
