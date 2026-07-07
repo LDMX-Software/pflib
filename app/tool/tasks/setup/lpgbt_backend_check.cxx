@@ -159,9 +159,27 @@ class InjectUpLinkDataSource : public InjectTestPattern {
         printf("%u / %u bit errors\n", diff.count(), diff.size() - 12);
       } break;
       case Source::CONST_PATTERN: {
-        printf("%u / %u words matched the const pattern 0x%08x\n",
-               std::count(spy.begin(), spy.end(), known_pattern_.value()), spy.size(),
-               known_pattern_.value());
+        int bad_count{0};
+        for (uint32_t word : spy) {
+          if (word != known_pattern_.value()) {
+            bad_count++;
+            std::bitset<32> w{word}, k{known_pattern_.value()};
+            for (std::size_t i_bit{0}; i_bit < w.size(); i_bit++) {
+              if (w[i_bit] == 0 and k[i_bit] == 0) {
+                std::cout << "0";
+              } else if (w[i_bit] == 1 and k[i_bit] == 1) {
+                std::cout << "1";
+              } else if (w[i_bit] == 0 and k[i_bit] == 1) {
+                std::cout << "-";
+              } else if (w[i_bit] == 1 and k[i_bit] == 0) {
+                std::cout << "+";
+              }
+            }
+            std::cout << std::endl;
+          }
+        }
+        printf("%u / %u words did NOT match the const pattern 0x%08x\n",
+               bad_count, spy.size(), known_pattern_.value());
       } break;
       default:
         break;
