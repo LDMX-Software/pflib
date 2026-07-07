@@ -154,17 +154,20 @@ class lpGBT {
    */
   void setup_eclk(int ieclk, int rate, bool polarity = true, int strength = 4);
 
-  /** Setup the given elink-rx
-      \param ierx ERx index (0-5)
-      \param align Alignment mode (0-3)
-      \param alignphase Alignment phase particularly for fixed mode (0-15)
-      \param speed link speed as given in lpgbt manual (usually 3)
-      \param invert Invert the incoming signal
-      \param term Enable the internal 100 Ohm termination
-      \param equalization Value of the equalization field
-      \oaram acbias Apply a bias appropriate for AC-coupled elinks
-      On the LDMX lpGBT mezzanine, each elink-rx is configured with a single
-     active pair.
+  /**
+   * Setup the given elink-rx
+   *
+   * @param ierx ERx index (0-5)
+   * @param align Alignment mode (0-3) 
+   * @param alignphase Alignment phase particularly for fixed mode (0-15)
+   * @param speed link speed as given in lpgbt manual (usually 3) 
+   * @param invert Invert the incoming signal
+   * @param term Enable the internal 100 Ohm termination
+   * @param equalization Value of the equalization field
+   * @param acbias Apply a bias appropriate for AC-coupled elinks
+   *
+   * On the LDMX lpGBT mezzanine, each elink-rx is configured
+   * with a single active pair.
    */
   void setup_erx(int ierx, int align, int alignphase = 0, int speed = 3,
                  bool invert = false, bool term = true, int equalization = 0,
