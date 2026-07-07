@@ -8,35 +8,50 @@
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 #include "trim_toa_scan.h"
+#include <fstream>
+#include <algorithm>
 
 namespace pflib::algorithm {
 
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-toa_vref_scan(Target* tgt) {
+toa_vref_scan(Target* tgt, bool scan_all) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
-  // Reading out the trim_toa values for the first 5 channels to test,
-  // Cristina's suggestion
-  if (!tgt->roc_ids().empty()) {
-    int first_roc = *(tgt->roc_ids().begin());
-    pflib::ROC& my_roc = tgt->roc(first_roc);
+// Reading out the trim_toa values for the first 5 channels to test, Cristina's suggestion, bug fix this later
+//  if (!tgt->roc_ids().empty()) {
+//    int first_roc = *(tgt->roc_ids().begin());
+//    pflib::ROC& my_roc = tgt->roc(first_roc);
 
-    trim_toa_scan(tgt, my_roc, first_roc);
+//    bool needs_trim_scan = false;
+//    for (int i = 0; i < 5; i++) {
+//      std::string ch_str = "CH_" + std::to_string(i);
+//      auto channel_params = my_roc.getParameters(ch_str);
 
-    for (int i = 0; i < 5; i++) {
-      std::string ch_str = "CH_" + std::to_string(i);
-      auto channel_params = my_roc.getParameters(ch_str);
+//      if (channel_params.find("TRIM_TOA") == channel_params.end()) {
+//        needs_trim_scan = true;
+//       break;
+//      }
+//    }
 
-      auto it = channel_params.find("TRIM_TOA");
-      if (it != channel_params.end()) {
-        pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
-      } else {
-        pflib_log(info) << "TRIM_TOA not set for channel " << i;
-      }
-    }
-  } else {
-    pflib_log(error) << "No ROC IDs found.";
-  }
+//    if (needs_trim_scan) {
+//      pflib_log(info) << "TRIM_TOA values missing. Running trim_toa_scan...";
+//    trim_toa_scan(tgt, my_roc, first_roc);
+
+//    for (int i = 0; i < 5; i++) {
+//      std::string ch_str = "CH_" + std::to_string(i);
+//      auto channel_params = my_roc.getParameters(ch_str);
+
+//      auto it = channel_params.find("TRIM_TOA");
+//      if (it != channel_params.end()) {
+//          pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
+//      } else {
+//          pflib_log(info) << "TRIM_TOA not set for channel " << i;
+//      }
+//    }
+//  } else {
+//      pflib_log(error) << "No ROC IDs found.";
+//  } 
+
 
   /// do a run of 100 samples per toa_vref to measure the TOA
   /// efficiency when looking at pedestal data
@@ -50,7 +65,14 @@ toa_vref_scan(Target* tgt) {
   std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
       settings;
 
-  // TODO 348
+  for (int i_roc : tgt->roc_ids()) {
+    target[i_roc][0] = -1;
+    target[i_roc][1] = -1;
+  }
+
+  size_t total_links_to_find = tgt->roc_ids().size() * 2;
+  size_t links_found_count = 0;
+
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
   // create a .csv file to save efficiency and vref data for analysis
@@ -61,8 +83,8 @@ toa_vref_scan(Target* tgt) {
   }
   csv_file << "\n";
 
-  // loop over runs, from toa_vref = 0 to = 255
-  for (int toa_vref{0}; toa_vref < 256; toa_vref++) {
+  // loop down from 255 to 0 
+  for (int toa_vref = 255; toa_vref >= 0; toa_vref--) {
     pflib_log(info) << "testing toa_vref = " << toa_vref;
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     parameters["REFERENCEVOLTAGE_0"]["TOA_VREF"] = toa_vref;
@@ -104,61 +126,84 @@ toa_vref_scan(Target* tgt) {
                            << i_roc << " Link " << i_link
                            << " | Max Efficiency: " << max_eff;
         }
+
+        if (!scan_all) {
+          if (target[i_roc][i_link] == -1 && max_eff > 0.0) {
+            int calculated_vref = toa_vref + 10;
+            target[i_roc][i_link] = (calculated_vref > 255) ? 255 : calculated_vref;
+            links_found_count++;
+            pflib_log(info)
+                  << "[DEBUG SEARCH] Success. Found threshold edge at VREF "
+                  << toa_vref << " (Setting target to " << target[i_roc][i_link]
+                  << ")";
+          }
+        }
       }
-      pflib_log(trace) << "got link efficiencies";
+    }
+
+    if (!scan_all && links_found_count == total_links_to_find) {
+      pflib_log(info) << "All links found their threshold early. Breaking VREF loop at " << toa_vref;
+      break;
     }
   }
+
   pflib_log(info) << "sample collections done, deducing settings";
+
   // get the max toa_vref with non-zero efficiency? Iterate through the array
   // from bottom up.
-  for (int i_roc : tgt->roc_ids()) {
-    for (int i_link{0}; i_link < 2; i_link++) {
-      int highest_non_zero_eff =
-          -1;  // just a placeholder in case it's not found
-      for (int toa_vref = final_effs[i_roc][i_link].size() - 1; toa_vref >= 0;
-           toa_vref--) {
-        if (toa_vref == (int)final_effs[i_roc][i_link].size() - 1) {
-          pflib_log(trace)
-              << "[DEBUG SEARCH] Starting backwards search for ROC " << i_roc
-              << " Link " << i_link << ". Initial val at max VREF: "
-              << final_effs[i_roc][i_link][toa_vref];
+
+  if (scan_all) {
+    for (int i_roc : tgt->roc_ids()) {
+      for (int i_link{0}; i_link < 2; i_link++) {
+        int highest_non_zero_eff = -1;  // just a placeholder in case it's not found
+        for (int toa_vref = final_effs[i_roc][i_link].size() - 1; toa_vref >= 0;
+             toa_vref--) {
+          if (toa_vref == (int)final_effs[i_roc][i_link].size() - 1) {
+            pflib_log(trace)
+                << "[DEBUG SEARCH] Starting backwards search for ROC " << i_roc
+                << " Link " << i_link << ". Initial val at max VREF: "
+                << final_effs[i_roc][i_link][toa_vref];
+          }
+
+          if (final_effs[i_roc][i_link][toa_vref] > 0.0) {
+            highest_non_zero_eff =
+                toa_vref + 10;  // need to add 10 since we don't want to overlap
+                                // with highest pedestals!
+            pflib_log(info)
+                << "[DEBUG SEARCH] Success. Found threshold edge at VREF "
+                << toa_vref << " (Setting target to " << highest_non_zero_eff
+                << ")";
+            break;  // should break from link 0 into link 1
+          }
         }
 
-        if (final_effs[i_roc][i_link][toa_vref] > 0.0) {
-          highest_non_zero_eff =
-              toa_vref + 10;  // need to add 10 since we don't want to overlap
-                              // with highest pedestals!
-          pflib_log(info)
-              << "[DEBUG SEARCH] Success. Found threshold edge at VREF "
-              << toa_vref << " (Setting target to " << highest_non_zero_eff
-              << ")";
-          break;  // should break from link 0 into link 1
+        if (highest_non_zero_eff < 0) {
+          pflib_log(warn) << "ROC " << i_roc << " link " << i_link
+                          << ": no non-zero TOA efficiency found, skipping";
+          continue;
         }
-      }
 
-      if (highest_non_zero_eff < 0) {
-        pflib_log(warn) << "ROC " << i_roc << " link " << i_link
-                        << ": no non-zero TOA efficiency found, skipping";
-        continue;
-      }
+        if (highest_non_zero_eff > 255) {
+          pflib_log(warn) << "ROC " << i_roc << " link " << i_link
+                          << ": deduced TOA_VREF " << highest_non_zero_eff
+                          << " out of range, clamping to 255";
+          highest_non_zero_eff = 255;
+        }
 
-      if (highest_non_zero_eff > 255) {
-        pflib_log(warn) << "ROC " << i_roc << " link " << i_link
-                        << ": deduced TOA_VREF " << highest_non_zero_eff
-                        << " out of range, clamping to 255";
-        highest_non_zero_eff = 255;
+        target[i_roc][i_link] = highest_non_zero_eff;  // store value
       }
-
-      target[i_roc][i_link] = highest_non_zero_eff;  // store value
+      // toa_vref is a global parameter (1 value per link)
     }
-    // toa_vref is a global parameter (1 value per link)
+  }
 
+  for (int i_roc : tgt->roc_ids()) {
     for (int i_link{0}; i_link < 2; i_link++) {
       std::string page{
           pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
       settings[i_roc][page]["TOA_VREF"] = target[i_roc][i_link];
     }
   }
+
   return settings;
 }
 

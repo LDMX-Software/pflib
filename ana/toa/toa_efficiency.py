@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(
     description='takes a csv from tasks.toa_vref_scan and outputs a plot of TOA efficiency per channel against TOA VREF values'
 )
 parser.add_argument('-f', required = True, help='csv file containing scan from tasks.toa_vref_scan')
+parser.add_argument('-r', '--roc', type = int, choices = [0, 1, 2, 3], required = True, help = 'ROC index to filter data (e.g., 0, 1, 2, 3)')
 args = parser.parse_args()
 
 if not os.path.isfile(args.f):
@@ -29,6 +30,11 @@ if not args.f.lower().endswith('csv'):
     print(args.f + ' is not a csv file')
     sys.exit()
 data, head = read_pflib_csv(args.f)
+
+data = data.iloc[args.roc::4].copy()
+
+data = data.sort_values(by='TOA_VREF').reset_index(drop = True)
+print(f"Extracted {len(data)} voltage points for ROC {args.roc}")
 
 """
 Example plot of how TOA_VREF plot should look. I credit the toa_vref_analysis.py
@@ -67,9 +73,9 @@ plt.title('TOA Efficiency vs TOA VREF per channel')
 plt.xlabel('TOA VREF')
 plt.ylabel('TOA Efficiency')
 plt.tight_layout()
-plt.savefig('toa_efficiency_plot.png')
+plt.savefig(f"toa_efficiency_plot_roc{args.roc}.png")
 plt.show()
-print("Plot saved as 'toa_efficiency_plot.png'")
+print(f"Plot saved as 'toa_efficiency_plot_roc{args.roc}.png'")
 
 # Printing the values of highest non-zero TOA_VREF per link
 link0 = np.array(channel_lists[:36]).T
@@ -83,16 +89,24 @@ for i in range(len(link0)):
     if not all(x == 0 for x in link1[i]):
         link1_count.append(i)
 
-print("for link 0, the highest non-zero toa_vref is " + str(link0_count[-1]) + ", " \
-"so set TOA_VREF to ", link0_count[-1] + 10)
-print("for link 1, the highest non-zero toa_vref is " + str(link1_count[-1]) + ", " \
-"so set TOA_VREF to ", link1_count[-1] + 10)
+if not link0_count or not link1_count:
+    print("Error: Efficiency data contains only zeros for one or both links.")
+    sys.exit()
+
+max_vref_l0 = vref_axis[link0_count[-1]]
+max_vref_l1 = vref_axis[link1_count[-1]]
+
+optimal_vref_l0 = max_vref_l0 + 10
+optimal_vref_l1 = max_vref_l1 + 10
+
+print(f"for link 0, the highest non-zero toa_vref is {max_vref_l0} so set TOA_VREF to {optimal_vref_l0}")
+print(f"for link 1, the highest non-zero toa_vref is {max_vref_l1} so set TOA_VREF to {optimal_vref_l1}")
 
 #Outputting the values to a yaml file
 
 df_max = pd.DataFrame({
     'link': [0, 1],
-    'max_toa': [link0_count[-1] + 10, link1_count[-1] + 10]
+    'max_toa': [optimal_vref_l0, optimal_vref_l1]
 }
 )
 
@@ -104,7 +118,8 @@ for _, row in df_max.iterrows():
         'TOA_VREF': int(row['max_toa'])
     }
 
-with open("output.yaml", "w") as f:
+yaml_filename = f"output_roc{args.roc}.yaml"
+with open(yaml_filename, "w") as f:
     yaml.dump(yaml_data, f, sort_keys=False)
 
-print("Output saved to 'output.yaml'")
+print(f"Output saved to '{yaml_filename}'")
