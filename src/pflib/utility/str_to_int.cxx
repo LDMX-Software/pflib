@@ -1,7 +1,7 @@
 #include "pflib/utility/str_to_int.h"
 
-#include <regex>
 #include <limits>
+#include <regex>
 
 namespace pflib::utility {
 
@@ -40,8 +40,9 @@ unsigned long long int str_to_ullint(std::string str) {
 int str_to_int(std::string str) {
   unsigned long long raw_val = str_to_ullint(str);
   if (raw_val > std::numeric_limits<int>::max()) {
-    throw std::range_error(
-        "the string '"+str+"' results in a value '" + std::to_string(raw_val) + "' unable to fit within an 'int'.");
+    throw std::range_error("the string '" + str + "' results in a value '" +
+                           std::to_string(raw_val) +
+                           "' unable to fit within an 'int'.");
   }
   return static_cast<int>(raw_val);
 }
