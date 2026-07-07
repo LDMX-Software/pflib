@@ -7,7 +7,6 @@
 #include "../algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {
-
   bool scan_all = pftool::readline_bool("Scan all VREF values?", false);
   auto settings = pflib::algorithm::toa_vref_scan(tgt, scan_all);
 

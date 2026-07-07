@@ -1,5 +1,6 @@
 #include "toa_vref_scan.h"
 
+#include <algorithm>
 #include <fstream>
 
 #include "../daq_run.h"
@@ -8,8 +9,6 @@
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 #include "trim_toa_scan.h"
-#include <fstream>
-#include <algorithm>
 
 namespace pflib::algorithm {
 
@@ -17,41 +16,43 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
 toa_vref_scan(Target* tgt, bool scan_all) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
-// Reading out the trim_toa values for the first 5 channels to test, Cristina's suggestion, bug fix this later
-//  if (!tgt->roc_ids().empty()) {
-//    int first_roc = *(tgt->roc_ids().begin());
-//    pflib::ROC& my_roc = tgt->roc(first_roc);
+  // Reading out the trim_toa values for the first 5 channels to test,
+  // Cristina's suggestion, bug fix this later
+  //  if (!tgt->roc_ids().empty()) {
+  //    int first_roc = *(tgt->roc_ids().begin());
+  //    pflib::ROC& my_roc = tgt->roc(first_roc);
 
-//    bool needs_trim_scan = false;
-//    for (int i = 0; i < 5; i++) {
-//      std::string ch_str = "CH_" + std::to_string(i);
-//      auto channel_params = my_roc.getParameters(ch_str);
+  //    bool needs_trim_scan = false;
+  //    for (int i = 0; i < 5; i++) {
+  //      std::string ch_str = "CH_" + std::to_string(i);
+  //      auto channel_params = my_roc.getParameters(ch_str);
 
-//      if (channel_params.find("TRIM_TOA") == channel_params.end()) {
-//        needs_trim_scan = true;
-//       break;
-//      }
-//    }
+  //      if (channel_params.find("TRIM_TOA") == channel_params.end()) {
+  //        needs_trim_scan = true;
+  //       break;
+  //      }
+  //    }
 
-//    if (needs_trim_scan) {
-//      pflib_log(info) << "TRIM_TOA values missing. Running trim_toa_scan...";
-//    trim_toa_scan(tgt, my_roc, first_roc);
+  //    if (needs_trim_scan) {
+  //      pflib_log(info) << "TRIM_TOA values missing. Running
+  //      trim_toa_scan...";
+  //    trim_toa_scan(tgt, my_roc, first_roc);
 
-//    for (int i = 0; i < 5; i++) {
-//      std::string ch_str = "CH_" + std::to_string(i);
-//      auto channel_params = my_roc.getParameters(ch_str);
+  //    for (int i = 0; i < 5; i++) {
+  //      std::string ch_str = "CH_" + std::to_string(i);
+  //      auto channel_params = my_roc.getParameters(ch_str);
 
-//      auto it = channel_params.find("TRIM_TOA");
-//      if (it != channel_params.end()) {
-//          pflib_log(info) << "TRIM_TOA for channel " << i << ": " << it->second;
-//      } else {
-//          pflib_log(info) << "TRIM_TOA not set for channel " << i;
-//      }
-//    }
-//  } else {
-//      pflib_log(error) << "No ROC IDs found.";
-//  } 
-
+  //      auto it = channel_params.find("TRIM_TOA");
+  //      if (it != channel_params.end()) {
+  //          pflib_log(info) << "TRIM_TOA for channel " << i << ": " <<
+  //          it->second;
+  //      } else {
+  //          pflib_log(info) << "TRIM_TOA not set for channel " << i;
+  //      }
+  //    }
+  //  } else {
+  //      pflib_log(error) << "No ROC IDs found.";
+  //  }
 
   /// do a run of 100 samples per toa_vref to measure the TOA
   /// efficiency when looking at pedestal data
@@ -83,7 +84,7 @@ toa_vref_scan(Target* tgt, bool scan_all) {
   }
   csv_file << "\n";
 
-  // loop down from 255 to 0 
+  // loop down from 255 to 0
   for (int toa_vref = 255; toa_vref >= 0; toa_vref--) {
     pflib_log(info) << "testing toa_vref = " << toa_vref;
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
@@ -130,19 +131,22 @@ toa_vref_scan(Target* tgt, bool scan_all) {
         if (!scan_all) {
           if (target[i_roc][i_link] == -1 && max_eff > 0.0) {
             int calculated_vref = toa_vref + 10;
-            target[i_roc][i_link] = (calculated_vref > 255) ? 255 : calculated_vref;
+            target[i_roc][i_link] =
+                (calculated_vref > 255) ? 255 : calculated_vref;
             links_found_count++;
             pflib_log(info)
-                  << "[DEBUG SEARCH] Success. Found threshold edge at VREF "
-                  << toa_vref << " (Setting target to " << target[i_roc][i_link]
-                  << ")";
+                << "[DEBUG SEARCH] Success. Found threshold edge at VREF "
+                << toa_vref << " (Setting target to " << target[i_roc][i_link]
+                << ")";
           }
         }
       }
     }
 
     if (!scan_all && links_found_count == total_links_to_find) {
-      pflib_log(info) << "All links found their threshold early. Breaking VREF loop at " << toa_vref;
+      pflib_log(info)
+          << "All links found their threshold early. Breaking VREF loop at "
+          << toa_vref;
       break;
     }
   }
@@ -155,7 +159,8 @@ toa_vref_scan(Target* tgt, bool scan_all) {
   if (scan_all) {
     for (int i_roc : tgt->roc_ids()) {
       for (int i_link{0}; i_link < 2; i_link++) {
-        int highest_non_zero_eff = -1;  // just a placeholder in case it's not found
+        int highest_non_zero_eff =
+            -1;  // just a placeholder in case it's not found
         for (int toa_vref = final_effs[i_roc][i_link].size() - 1; toa_vref >= 0;
              toa_vref--) {
           if (toa_vref == (int)final_effs[i_roc][i_link].size() - 1) {
