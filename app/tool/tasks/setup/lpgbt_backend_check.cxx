@@ -160,29 +160,34 @@ class InjectUpLinkDataSource : public InjectTestPattern {
       } break;
       case Source::CONST_PATTERN: {
         int bad_count{0};
+        int zero_to_one{0}, one_to_zero{0};
         std::bitset<32> k{known_pattern_.value()};
         for (uint32_t word : spy) {
           if (word != known_pattern_.value()) {
             bad_count++;
-            std::bitset<32> w{word};
-            for (std::size_t i_bit{0}; i_bit < w.size(); i_bit++) {
-              if (w[i_bit] == 0 and k[i_bit] == 0) {
-                std::cout << "0";
-              } else if (w[i_bit] == 1 and k[i_bit] == 1) {
-                std::cout << "1";
-              } else if (w[i_bit] == 0 and k[i_bit] == 1) {
-                std::cout << "-";
-              } else if (w[i_bit] == 1 and k[i_bit] == 0) {
-                std::cout << "+";
-              }
-            }
-            std::cout << std::endl;
-          } else {
-            std::cout << k << std::endl;
           }
+          std::bitset<32> w{word};
+          for (std::size_t i_bit{0}; i_bit < w.size(); i_bit++) {
+            // print same order as pattern that was typed in (MSB -> LSB)
+            std::size_t i = w.size() - i_bit - 1;
+            if (w[i] == 0 and k[i] == 0) {
+              std::cout << "0";
+            } else if (w[i] == 1 and k[i] == 1) {
+              std::cout << "1";
+            } else if (w[i] == 0 and k[i] == 1) {
+              std::cout << "-";
+              one_to_zero++;
+            } else if (w[i] == 1 and k[i] == 0) {
+              std::cout << "+";
+              zero_to_one++;
+            }
+          }
+          std::cout << std::endl;
         }
         printf("%u / %u words did NOT match the const pattern 0x%08x\n",
                bad_count, spy.size(), known_pattern_.value());
+        printf("%u 0->1 errors and %u 1->0 errors out of %u bits\n",
+                zero_to_one, one_to_zero, 32*spy.size());
       } break;
       default:
         break;
