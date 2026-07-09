@@ -160,10 +160,11 @@ class InjectUpLinkDataSource : public InjectTestPattern {
       } break;
       case Source::CONST_PATTERN: {
         int bad_count{0};
+        std::bitset<32> k{known_pattern_.value()};
         for (uint32_t word : spy) {
           if (word != known_pattern_.value()) {
             bad_count++;
-            std::bitset<32> w{word}, k{known_pattern_.value()};
+            std::bitset<32> w{word};
             for (std::size_t i_bit{0}; i_bit < w.size(); i_bit++) {
               if (w[i_bit] == 0 and k[i_bit] == 0) {
                 std::cout << "0";
@@ -176,6 +177,8 @@ class InjectUpLinkDataSource : public InjectTestPattern {
               }
             }
             std::cout << std::endl;
+          } else {
+            std::cout << k << std::endl;
           }
         }
         printf("%u / %u words did NOT match the const pattern 0x%08x\n",
@@ -295,24 +298,6 @@ void lpgbt_backend_check(Target* target) {
     }
   }
 
-
-  /*
-  static const uint16_t DATAPATH_REG = 0x142;
-  uint8_t orig_datapath = lpgbt.read(DATAPATH_REG);
-  pflib_log(info) << "original datapath: " << hex(orig_datapath);
-  uint8_t datapath = orig_datapath;
-  if (pftool::readline_bool("Bypass FEC coder? ", true)) {
-    datapath |= (1 << 0);
-  }
-  if (pftool::readline_bool("Bypass scrambler? ", true)) {
-    datapath |= (1 << 1);
-  }
-  if (pftool::readline_bool("Bypass interleaver? ", true)) {
-    datapath |= (1 << 2);
-  }
-  lpgbt.write(DATAPATH_REG, datapath);
-  */
-
   pflib::Elinks& elinks = target->elinks();
   std::vector<std::vector<uint32_t>> spy(6);
   int ilink_offset{daq ? 0 : 6};
@@ -338,8 +323,4 @@ void lpgbt_backend_check(Target* target) {
   } else {
     injector->check(spy[link]);
   }
-
-  /*
-  lpgbt.write(DATAPATH_REG, orig_datapath);
-  */
 }
