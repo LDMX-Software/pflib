@@ -158,9 +158,9 @@ class lpGBT {
    * Setup the given elink-rx
    *
    * @param ierx ERx index (0-5)
-   * @param align Alignment mode (0-3) 
+   * @param align Alignment mode (0-3)
    * @param alignphase Alignment phase particularly for fixed mode (0-15)
-   * @param speed link speed as given in lpgbt manual (usually 3) 
+   * @param speed link speed as given in lpgbt manual (usually 3)
    * @param invert Invert the incoming signal
    * @param term Enable the internal 100 Ohm termination
    * @param equalization Value of the equalization field

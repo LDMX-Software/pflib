@@ -23,10 +23,10 @@ class ZCUtrig : public TRIG {
   int get_bx_delay(int ilink) override;
 
   void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
-                         int presamples) override;
+                 int presamples) override;
 
   void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
-                             int& presamples) override;
+                     int& presamples) override;
 
   bool is_event_available() override;
 

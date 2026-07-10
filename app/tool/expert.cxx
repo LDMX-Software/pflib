@@ -275,10 +275,12 @@ auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
                     ->line("MULTIWRITE", "Write to an address", i2c);
 auto menu_elinks =
     menu_expert->submenu("ELINKS", "manage the elinks")
-        ->line("RELINK", "Follow standard procedure to establish links", elinks, ONLY_FIBERLESS)
+        ->line("RELINK", "Follow standard procedure to establish links", elinks,
+               ONLY_FIBERLESS)
         ->line("HARD_RESET", "Hard reset of the PLL", elinks)
         ->line("SPY", "Spy on an elink", elinks)
-        ->line("AUTO", "Attempt to re-align automatically", elinks, ONLY_FIBERLESS)
+        ->line("AUTO", "Attempt to re-align automatically", elinks,
+               ONLY_FIBERLESS)
         ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
         ->line("SCAN", "Scan on an elink", elinks)
         ->line("DELAY", "Set the delay on an elink", elinks);

@@ -42,7 +42,8 @@ class HcalBackplaneZCU : public HcalBackplane {
       trig_ = std::make_unique<ZCUtrig>();
     } catch (pflib::Exception& e) {
       pflib_log(info) << "failed to create TRIG connection with " << e.what();
-      pflib_log(info) << "(only necessary if you are trying to capture the trigger path)";
+      pflib_log(info)
+          << "(only necessary if you are trying to capture the trigger path)";
     }
   }
 

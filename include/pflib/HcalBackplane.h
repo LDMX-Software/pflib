@@ -5,8 +5,8 @@
 
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
-#include "pflib/Target.h"
 #include "pflib/TRIG.h"
+#include "pflib/Target.h"
 
 namespace pflib {
 

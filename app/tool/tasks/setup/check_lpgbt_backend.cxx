@@ -17,10 +17,10 @@ class InjectTestPattern {
   pflib::lpGBT& lpgbt_;
   void write_DPDataPattern(uint32_t val) {
     for (int i_byte{0}; i_byte < 4; i_byte++) {
-      lpgbt_.write(DPDATAPATTERN[i_byte],
-                  ((val >> (i_byte * 8)) & 0xff));
+      lpgbt_.write(DPDATAPATTERN[i_byte], ((val >> (i_byte * 8)) & 0xff));
     }
   }
+
  public:
   InjectTestPattern(pflib::lpGBT& lpgbt) : lpgbt_{lpgbt} {}
   virtual ~InjectTestPattern() = default;
@@ -50,12 +50,13 @@ class InjectIntoSerializer : public InjectTestPattern {
     DL_FRAME_2G56 = 11,
     CONST_PATTERN = 12
   };
-  
+
   // ULSerTextPattern is lowset 4 bits of register 0x128
   static const uint16_t ULSERTESTPATTERN_REG = 0x128;
 
-  InjectIntoSerializer(pflib::lpGBT& lpgbt, Source s, std::optional<uint32_t> known_pattern = {})
-  : InjectTestPattern{lpgbt}, choice_{s}, known_pattern_{known_pattern} {
+  InjectIntoSerializer(pflib::lpGBT& lpgbt, Source s,
+                       std::optional<uint32_t> known_pattern = {})
+      : InjectTestPattern{lpgbt}, choice_{s}, known_pattern_{known_pattern} {
     // technically, sets ULECDataSource to 0 (EPORTRX_DATA)
     // and ULSerTestPattern to our choice
     lpgbt_.write(ULSERTESTPATTERN_REG, static_cast<int>(choice_));
@@ -65,7 +66,7 @@ class InjectIntoSerializer : public InjectTestPattern {
   }
 
   void check(const std::vector<uint32_t>& spy) final {
-    switch(choice_) {
+    switch (choice_) {
       default:
         break;
     }
@@ -105,18 +106,19 @@ class InjectUpLinkDataSource : public InjectTestPattern {
     DL_DATA_LOOPBACK = 6,
   };
 
-  InjectUpLinkDataSource(
-    pflib::lpGBT& l,
-    Source s,
-    int ilink,
-    std::optional<uint32_t> known_pattern = {}
-  ) : InjectTestPattern{l}, choice_{s}, ilink_{ilink}, known_pattern_{known_pattern} {
+  InjectUpLinkDataSource(pflib::lpGBT& l, Source s, int ilink,
+                         std::optional<uint32_t> known_pattern = {})
+      : InjectTestPattern{l},
+        choice_{s},
+        ilink_{ilink},
+        known_pattern_{known_pattern} {
     if (ilink < 0) {
       for (int i{0}; i < 6; i++) configure(i);
     } else if (ilink < 6) {
       configure(ilink);
     } else {
-      PFEXCEPTION_RAISE("BadILink", "ilink is greater than 6 which is not allowed");
+      PFEXCEPTION_RAISE("BadILink",
+                        "ilink is greater than 6 which is not allowed");
     }
     if (known_pattern_.has_value()) {
       write_DPDataPattern(known_pattern_.value());
@@ -187,12 +189,13 @@ class InjectUpLinkDataSource : public InjectTestPattern {
         printf("%d / %lu words did NOT match the const pattern 0x%08x\n",
                bad_count, spy.size(), known_pattern_.value());
         printf("%d 0->1 errors and %d 1->0 errors out of %lu bits\n",
-                zero_to_one, one_to_zero, 32*spy.size());
+               zero_to_one, one_to_zero, 32 * spy.size());
       } break;
       default:
         break;
     }
   }
+
  private:
   int ilink_;
   Source choice_{Source::NORMAL_DATA};
@@ -217,33 +220,27 @@ void check_lpgbt_backend(Target* target) {
 
   int link = -1;
   std::unique_ptr<InjectTestPattern> injector;
-  if (pftool::readline_bool("Inject test pattern into serializer (y) or eRx groups (n)? ", true)) {
+  if (pftool::readline_bool(
+          "Inject test pattern into serializer (y) or eRx groups (n)? ",
+          true)) {
     int output_choice = pftool::readline_int(
-      "Test Choice:\n  1. PRBS7\n  2. CLK40M\n  3. Const Pattern\n", 3
-    );
+        "Test Choice:\n  1. PRBS7\n  2. CLK40M\n  3. Const Pattern\n", 3);
     if (output_choice < 1 or output_choice > 3) {
       pflib_log(error) << "unrecognized output choice" << output_choice;
       return;
     }
     if (output_choice == 1) {
       injector = std::make_unique<InjectIntoSerializer>(
-        lpgbt,
-        InjectIntoSerializer::Source::PRBS7
-      );
+          lpgbt, InjectIntoSerializer::Source::PRBS7);
     } else if (output_choice == 2) {
       injector = std::make_unique<InjectIntoSerializer>(
-        lpgbt,
-        InjectIntoSerializer::Source::CLK40M
-      );
+          lpgbt, InjectIntoSerializer::Source::CLK40M);
     } else if (output_choice == 3) {
       uint32_t known_pattern = 0x12345678;
-      known_pattern =
-        pftool::readline_int("32b const pattern to use: ", known_pattern, true);
+      known_pattern = pftool::readline_int(
+          "32b const pattern to use: ", known_pattern, true);
       injector = std::make_unique<InjectIntoSerializer>(
-        lpgbt,
-        InjectIntoSerializer::Source::CONST_PATTERN,
-        known_pattern
-      );
+          lpgbt, InjectIntoSerializer::Source::CONST_PATTERN, known_pattern);
     }
   } else {
     link = pftool::readline_int("which link (-1 for all)? ", -1);
@@ -253,52 +250,39 @@ void check_lpgbt_backend(Target* target) {
     }
 
     int output_choice = pftool::readline_int(
-       "Test Choice:\n  1. PRBS7\n  2. Binary Counter\n  3. Const Pattern\n", 3);
+        "Test Choice:\n  1. PRBS7\n  2. Binary Counter\n  3. Const Pattern\n",
+        3);
     if (output_choice < 1 or output_choice > 3) {
       pflib_log(error) << "unrecognized output choice " << output_choice;
       return;
     }
     if (output_choice == 1) {
       injector = std::make_unique<InjectUpLinkDataSource>(
-        lpgbt,
-        InjectUpLinkDataSource::Source::PRBS7,
-        link
-      );
+          lpgbt, InjectUpLinkDataSource::Source::PRBS7, link);
     } else if (output_choice == 2) {
       bool up = pftool::readline_bool("Count up (y) or down (n)? ", true);
       if (up) {
         injector = std::make_unique<InjectUpLinkDataSource>(
-          lpgbt,
-          InjectUpLinkDataSource::Source::BIN_CNTR_UP,
-          link
-        );
+            lpgbt, InjectUpLinkDataSource::Source::BIN_CNTR_UP, link);
       } else {
         injector = std::make_unique<InjectUpLinkDataSource>(
-          lpgbt,
-          InjectUpLinkDataSource::Source::BIN_CNTR_DOWN,
-          link
-        );
+            lpgbt, InjectUpLinkDataSource::Source::BIN_CNTR_DOWN, link);
       }
     } else if (output_choice == 3) {
       uint32_t known_pattern = 0x12345678;
-      known_pattern =
-        pftool::readline_int("32b const pattern to use: ", known_pattern, true);
+      known_pattern = pftool::readline_int(
+          "32b const pattern to use: ", known_pattern, true);
       printf("const pattern: 0x%08x\n", known_pattern);
-      bool invert = pftool::readline_bool("Invert the constant pattern? ", false);
+      bool invert =
+          pftool::readline_bool("Invert the constant pattern? ", false);
       if (invert) {
         injector = std::make_unique<InjectUpLinkDataSource>(
-          lpgbt,
-          InjectUpLinkDataSource::Source::CONST_PATTERN_INV,
-          link,
-          known_pattern
-        );
+            lpgbt, InjectUpLinkDataSource::Source::CONST_PATTERN_INV, link,
+            known_pattern);
       } else {
         injector = std::make_unique<InjectUpLinkDataSource>(
-          lpgbt,
-          InjectUpLinkDataSource::Source::CONST_PATTERN,
-          link,
-          known_pattern
-        );
+            lpgbt, InjectUpLinkDataSource::Source::CONST_PATTERN, link,
+            known_pattern);
       }
     }
   }
