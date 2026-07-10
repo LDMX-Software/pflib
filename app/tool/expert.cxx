@@ -103,7 +103,6 @@ static void i2c(const std::string& cmd, Target* target) {
  * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
- * - STATUS : pflib::Target::elinkStatus with std::cout input
  *
  * @param[in] cmd ELINKS command
  * @param[in] pft active target
@@ -276,11 +275,10 @@ auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
                     ->line("MULTIWRITE", "Write to an address", i2c);
 auto menu_elinks =
     menu_expert->submenu("ELINKS", "manage the elinks")
-        ->line("RELINK", "Follow standard procedure to establish links", elinks)
+        ->line("RELINK", "Follow standard procedure to establish links", elinks, ONLY_FIBERLESS)
         ->line("HARD_RESET", "Hard reset of the PLL", elinks)
-        ->line("STATUS", "Elink status summary", elinks)
         ->line("SPY", "Spy on an elink", elinks)
-        ->line("AUTO", "Attempt to re-align automatically", elinks)
+        ->line("AUTO", "Attempt to re-align automatically", elinks, ONLY_FIBERLESS)
         ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
         ->line("SCAN", "Scan on an elink", elinks)
         ->line("DELAY", "Set the delay on an elink", elinks);
