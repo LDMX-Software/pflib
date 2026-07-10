@@ -41,6 +41,7 @@ void opto(const std::string& cmd, Target* target) {
     static const uint16_t ULDATASOURCE0 = 0x128;
     bool inject_err = false;
     if (pftool::state.readout_config_is_zcu()) {
+      // the inject error mechanic is only implemented in the ZCU firmware
       inject_err = pftool::readline_bool("inject one error into link?", false);
     }
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
@@ -67,8 +68,6 @@ void opto(const std::string& cmd, Target* target) {
       printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
              i.second);
     }
-
-    lpgbt.write(ULDATASOURCE0, 0x00);
   }
   if (cmd == "SOFTRESET") {
     olink.soft_reset_link();
