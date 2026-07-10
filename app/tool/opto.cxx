@@ -39,26 +39,17 @@ void opto(const std::string& cmd, Target* target) {
 
   if (cmd == "FULLSTATUS") {
     static const uint16_t ULDATASOURCE0 = 0x128;
-    bool prbs_ser_source =
-        pftool::readline_bool("change serializer source to prbs7?", false);
     bool inject_err = false;
-    if (not prbs_ser_source) {
+    if (pftool::state.readout_config_is_zcu()) {
       inject_err = pftool::readline_bool("inject one error into link?", false);
     }
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
     pflib::lpGBT lpgbt{target->get_opto_link(olink_name).lpgbt_transport()};
-    // top 2 bits are EC data source
-    // bottom 4 bits are serializer data source
-    // 0 - data
-    // 1 - prbs7
-    // 12 - const pattern
-    if (prbs_ser_source) {
-      lpgbt.write(ULDATASOURCE0, 0x1);
-      usleep(10000);
-    } else if (inject_err) {
+    if (inject_err) {
       auto& zcuoelinks{
           static_cast<pflib::zcu::OptoElinksZCU&>(target->elinks())};
+      // spamming because it isn't working...
       for (int i{0}; i < 1000; i++) {
         zcuoelinks.injectError();
       }

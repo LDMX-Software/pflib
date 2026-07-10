@@ -10,27 +10,27 @@ namespace zcu {
 class ZCUtrig : public TRIG {
  public:
   ZCUtrig();
-  virtual void reset();
-  virtual int n_elinks() const { return nelinks_; }
+  void reset();
+  int n_elinks() const override { return nelinks_; }
 
-  virtual void setup_alignment_capture(int delay);
-  virtual int get_alignment_capture();
+  void setup_alignment_capture(int delay) override;
+  int get_alignment_capture() override;
 
-  virtual std::vector<uint32_t> read_capture_buffer(int ilink);
+  std::vector<uint32_t> read_capture_buffer(int ilink) override;
 
-  virtual void set_bx_delay(int ilink, int delay);
+  void set_bx_delay(int ilink, int delay) override;
 
-  virtual int get_bx_delay(int ilink);
+  int get_bx_delay(int ilink) override;
 
-  virtual void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
-                         int presamples);
+  void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
+                         int presamples) override;
 
-  virtual void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
-                             int& presamples);
+  void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
+                             int& presamples) override;
 
-  virtual bool is_event_available();
+  bool is_event_available() override;
 
-  virtual std::vector<uint32_t> read_event();
+  std::vector<uint32_t> read_event() override;
 
  private:
   UIO uio_;

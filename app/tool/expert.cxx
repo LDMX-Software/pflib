@@ -113,7 +113,7 @@ static void elinks(const std::string& cmd, Target* pft) {
   if (cmd == "SPY") {
     pftool::state.ilink =
         pftool::readline_int("Which elink? ", pftool::state.ilink);
-    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink);
+    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink, true);
     for (size_t i = 0; i < spy.size(); i++)
       printf("%02d %08x\n", int(i), spy[i]);
   }
@@ -172,7 +172,7 @@ static void elinks(const std::string& cmd, Target* pft) {
       elinks.setAlignPhase(alink, apt);
       int bpt = elinks.scanBitslip(alink);
       if (bpt >= 0) elinks.setBitslip(alink, bpt);
-      std::vector<uint32_t> spy = elinks.spy(alink);
+      std::vector<uint32_t> spy = elinks.spy(alink, true);
       printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
              bpt, spy[0]);
     }

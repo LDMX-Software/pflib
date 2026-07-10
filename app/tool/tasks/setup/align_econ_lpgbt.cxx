@@ -4,6 +4,8 @@
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
 
+ENABLE_LOGGING();
+
 static void print_locked_status(pflib::lpGBT& lpgbt) {
   constexpr uint16_t REG_EPRX0LOCKED = 0x152;
 
@@ -62,7 +64,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   if (is_econd) {
     printf(" NOTE: Only checking Group 0, Channel 0\n");
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-    printf(" ECON PRBS State: %lu\n", prbs_state);
+    printf(" ECON PRBS State: %u\n", prbs_state);
 
     bool default_invert = (pftool::state.readout_config_is_hcal());
 
@@ -93,13 +95,13 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   else
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN");
 
-  printf(" ECON PRBS State: %lu\n", prbs_state);
+  printf(" ECON PRBS State: %u\n", prbs_state);
 
   if (is_econd) {
     // ECON-D only has one output link through lpGBT
     printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
     lpgbt.check_prbs_errors_erx(0);
-  } else {
+  } else if (pftool::state.readout_config_is_hcal()) {
     // ECON-T has multiple output links through lpGBT
     // connected to channel 0 of a series of groups
     std::vector<std::vector<int>> i_econ_to_group = {
@@ -108,6 +110,13 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
         {3, 4, 5}   // ECON-T2
     };
     for (int ierx : i_econ_to_group.at(iecon)) {
+      printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
+      lpgbt.check_prbs_errors_erx(ierx);
+    }
+  } else {
+    // ECON-T with Ecal system
+    pflib_log(warn) << "unsure on which links to check for EcalSMM";
+    for (int ierx{0}; ierx < 6; ierx++) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
       lpgbt.check_prbs_errors_erx(ierx);
     }
@@ -159,7 +168,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
       econ.applyParameter("FormatterBuffer", "Global_align_serializer_0",
                           phase);
       usleep(1000);
-      std::vector<uint32_t> spy = tgt->elinks().spy(0);
+      std::vector<uint32_t> spy = tgt->elinks().spy(0, true);
       got.push_back(spy[0]);
       uint32_t obs = spy[0] >> 8;
       if (obs == idle) {

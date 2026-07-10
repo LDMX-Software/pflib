@@ -6,7 +6,7 @@
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
 #include "pflib/Target.h"
-#include "pflib/zcu/zcu_trig.h"
+#include "pflib/TRIG.h"
 
 namespace pflib {
 
@@ -110,7 +110,7 @@ class HcalBackplane : public Target {
   std::array<std::unique_ptr<ECON>, 3> econs_;
 
   /// pointer to the TRIG object if available
-  std::unique_ptr<pflib::zcu::ZCUtrig> trig_;
+  std::unique_ptr<pflib::TRIG> trig_;
 };
 
 }  // namespace pflib

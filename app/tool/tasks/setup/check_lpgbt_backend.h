@@ -2,4 +2,4 @@
 
 #include "../../pftool.h"
 
-void lpgbt_backend_check(Target* tgt);
+void check_lpgbt_backend(Target* tgt);

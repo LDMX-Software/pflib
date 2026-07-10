@@ -1,4 +1,4 @@
-#include "lpgbt_backend_check.h"
+#include "check_lpgbt_backend.h"
 
 #include <bitset>
 #include <optional>
@@ -156,7 +156,7 @@ class InjectUpLinkDataSource : public InjectTestPattern {
             correct_runlen++;
           }
         }
-        printf("%u / %u bit errors\n", diff.count(), diff.size() - 12);
+        printf("%lu / %lu bit errors\n", diff.count(), diff.size() - 12);
       } break;
       case Source::CONST_PATTERN: {
         int bad_count{0};
@@ -184,9 +184,9 @@ class InjectUpLinkDataSource : public InjectTestPattern {
           }
           std::cout << std::endl;
         }
-        printf("%u / %u words did NOT match the const pattern 0x%08x\n",
+        printf("%d / %lu words did NOT match the const pattern 0x%08x\n",
                bad_count, spy.size(), known_pattern_.value());
-        printf("%u 0->1 errors and %u 1->0 errors out of %u bits\n",
+        printf("%d 0->1 errors and %d 1->0 errors out of %lu bits\n",
                 zero_to_one, one_to_zero, 32*spy.size());
       } break;
       default:
@@ -210,7 +210,7 @@ class InjectUpLinkDataSource : public InjectTestPattern {
   }
 };
 
-void lpgbt_backend_check(Target* target) {
+void check_lpgbt_backend(Target* target) {
   bool daq = pftool::readline_bool("Check DAQ (Y) or TRG (N) lpGBT? ", true);
   pflib::lpGBT lpgbt{
       target->get_opto_link(daq ? "DAQ" : "TRG").lpgbt_transport()};

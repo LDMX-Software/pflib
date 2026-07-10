@@ -53,7 +53,7 @@ class Elinks {
    * just read a different link from the last capture (false)
    * @return the bytes retreived from the spy
    */
-  virtual std::vector<uint32_t> spy(int ilink, bool new_capture = true) = 0;
+  virtual std::vector<uint32_t> spy(int ilink, bool new_capture) = 0;
 
   /**
    * set the bitslip value (word-level adjustment)

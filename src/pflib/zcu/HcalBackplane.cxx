@@ -7,6 +7,7 @@
 #include "pflib/zcu/zcu_daq.h"
 #include "pflib/zcu/zcu_elinks.h"
 #include "pflib/zcu/zcu_optolink.h"
+#include "pflib/zcu/zcu_trig.h"
 
 namespace pflib {
 
@@ -40,6 +41,8 @@ class HcalBackplaneZCU : public HcalBackplane {
     try {
       trig_ = std::make_unique<ZCUtrig>();
     } catch (pflib::Exception& e) {
+      pflib_log(info) << "failed to create TRIG connection with " << e.what();
+      pflib_log(info) << "(only necessary if you are trying to capture the trigger path)";
     }
   }
 
