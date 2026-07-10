@@ -187,10 +187,15 @@ void general(const std::string& cmd, ToolBox* target) {
     printf("Applied standard ECAL DAQ configuration\n");
     printf("pause to be accepted...\n");
     sleep(2);
-    pflib::lpgbt::standard_config::setup_ecal(
-        *target->lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                               TRIG_SingleModuleMotherboard);
-    printf("Applied standard ECAL TRIG configuration\n");
+    try {
+      pflib::lpgbt::standard_config::setup_ecal(
+          *target->lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                                TRIG_SingleModuleMotherboard);
+      printf("Applied standard ECAL TRIG configuration\n");
+    } catch (const pflib::Exception& e) {
+      printf("Failed to configure ECAL TRIG lpGBT (probably not connected?)\n");
+      printf("  Err Message: %s\n", e.what());
+    }
   }
   if (cmd == "MODE") {
     LPGBT_Mezz_Tester tester(target->coder_name);
