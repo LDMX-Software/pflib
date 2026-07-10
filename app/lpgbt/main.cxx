@@ -190,7 +190,7 @@ void general(const std::string& cmd, ToolBox* target) {
     try {
       pflib::lpgbt::standard_config::setup_ecal(
           *target->lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                                TRIG_SingleModuleMotherboard);
+                                 TRIG_SingleModuleMotherboard);
       printf("Applied standard ECAL TRIG configuration\n");
     } catch (const pflib::Exception& e) {
       printf("Failed to configure ECAL TRIG lpGBT (probably not connected?)\n");
