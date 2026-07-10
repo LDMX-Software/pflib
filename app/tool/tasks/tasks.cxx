@@ -5,6 +5,7 @@
  */
 
 #include "../pftool.h"
+#include "bx_toa_scan.h"
 #include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
 #include "examine_phase.h"
@@ -28,7 +29,6 @@
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
-#include "bx_toa_scan.h"
 #include "vt50_scan.h"
 
 namespace {
@@ -78,10 +78,8 @@ auto menu_tasks =
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_vref_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel",
-               trim_toa_scan)
-        ->line("BX_TOA_SCAN",
-               "finds optimal bx value for each link",
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+        ->line("BX_TOA_SCAN", "finds optimal bx value for each link",
                bx_toa_scan);
 
 auto menu_expert_tasks =
