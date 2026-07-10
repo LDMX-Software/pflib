@@ -16,6 +16,6 @@ namespace pflib::algorithm {
  * @note Only functional for single-ROC targets
  */
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-level_pedestals(Target* tgt);
+local_pedestal_level(Target* tgt);
 
 }  // namespace pflib::algorithm

@@ -140,6 +140,17 @@ BOOST_AUTO_TEST_CASE(tot_output) {
   BOOST_CHECK(s.toa() == 3);
 }
 
+BOOST_AUTO_TEST_CASE(high_tot) {
+  pflib::packing::Sample s;
+  s.word = 0b11000000000111000000100000000011;
+  BOOST_CHECK(s.Tc() == true);
+  BOOST_CHECK(s.Tp() == true);
+  BOOST_CHECK(s.adc() == -1);
+  BOOST_CHECK(s.tot() == 2064);
+  BOOST_CHECK(s.adc_tm1() == 1);
+  BOOST_CHECK(s.toa() == 3);
+}
+
 BOOST_AUTO_TEST_CASE(tot_busy) {
   pflib::packing::Sample s;
   s.word = 0b01000000000100000000100000000011;
@@ -484,13 +495,15 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   BOOST_CHECK_EQUAL(-1, ep.links[0].channels[26].adc_tm1());
   BOOST_CHECK_EQUAL(ch4_adc, ep.links[0].channels[26].adc());
   BOOST_CHECK_EQUAL(ch4_toa, ep.links[0].channels[26].toa());
-  BOOST_CHECK_EQUAL(ch4_tot, ep.links[0].channels[26].tot());
+  // HGCROC does 12bit compression that we need to decompress
+  BOOST_CHECK_EQUAL(((ch4_tot & mask<9>) << 3), ep.links[0].channels[26].tot());
 
   BOOST_TEST_INFO("Checking transmitted channel 5 (should be CH 29)");
   BOOST_CHECK_EQUAL(ch5_adctm1, ep.links[0].channels[29].adc_tm1());
   BOOST_CHECK_EQUAL(-1, ep.links[0].channels[29].adc());
   BOOST_CHECK_EQUAL(ch5_toa, ep.links[0].channels[29].toa());
-  BOOST_CHECK_EQUAL(ch5_tot, ep.links[0].channels[29].tot());
+  // HGCROC does 12bit compression that we need to decompress
+  BOOST_CHECK_EQUAL(((ch5_tot & mask<9>) << 3), ep.links[0].channels[29].tot());
 
   BOOST_TEST_INFO("Checking transmitted channel 6 (should be CH 31)");
   BOOST_CHECK_EQUAL(ch6_adctm1, ep.links[0].channels[31].adc_tm1());
