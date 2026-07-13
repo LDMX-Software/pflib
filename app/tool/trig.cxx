@@ -98,6 +98,5 @@ auto menu_trig =
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
-        ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
-        ->line("DAQ_DEBUG", "DAQ debugging function", trig);
+        ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig);
 }  // namespace
