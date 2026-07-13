@@ -248,7 +248,7 @@ global_pedestal_level(Target* tgt) {
     }
   }
 
-  int target_adc = 200;
+  int target_adc = 150;
 
   DecodeAndBuffer buffer{nevents, tgt->nrocs() * 2};
 

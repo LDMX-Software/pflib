@@ -73,6 +73,7 @@ if (args.plot_adc):
 fig_toa, ax_toa = plt.subplots(1, 2, sharey=True)
 fig_tot, ax_tot = plt.subplots(1, 2, sharey=True)
 fig_adc, ax_adc = plt.subplots(1, 1)
+fig_ch, ax_ch = plt.subplots(8,9, sharex=True)
 
 # Efficiency calculation
 def efficiency(vals):
@@ -110,7 +111,7 @@ ch_group = samples.groupby('channel')
 max_non_saturated = 0
 for ch_id, ch_df in ch_group:
     if ch_id == 0:
-        ax_toa[0].plot(ch_df['calib'], ch_df['toa_eff'], label=f'channels')
+        ax_toa[0].plot(ch_df['calib'], ch_df['toa_eff'], label=f'channels', linewidth = 0.2)
         ax_tot[0].plot(ch_df['calib'], ch_df['tot_eff'], label=f'channels')
         ax_toa[1].plot(ch_df['max_adc'], ch_df['toa_eff'], label=f'channels')
         ax_tot[1].plot(ch_df['max_adc'], ch_df['tot_eff'], label=f'channels')
@@ -125,6 +126,7 @@ for ch_id, ch_df in ch_group:
     max_val = temp_df['max_adc'].max()
     if (max_val > max_non_saturated):
         max_non_saturated = max_val
+    ax_ch[ch_id // 9, ch_id % 9].plot(ch_df['calib'], ch_df['toa_eff'], label=ch_id)
 
 ax_adc.axhline(y = max_non_saturated, linestyle='--', color='b', label=f'max non-saturated at {max_non_saturated}')
 
@@ -144,6 +146,7 @@ ax_adc.set_ylabel('Max ADC [a.u.]')
 fig_toa.savefig("toa_s_curve.png", dpi=400)
 fig_tot.savefig("tot_s_curve.png", dpi=400)
 fig_adc.savefig("adc_linearity.png", dpi=400)
+#fig_ch.savefig("toa_s_curve_channel.png", dpi=400)
 plt.show()
 #fig_toa.savefig('toa_efficiency.png', dpi=400, bbox_inches='tight')
 #fig_tot.savefig('tot_efficiency.png', dpi=400, bbox_inches='tight')
