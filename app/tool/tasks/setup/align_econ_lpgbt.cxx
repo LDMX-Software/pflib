@@ -4,6 +4,8 @@
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
 
+#include <algorithm>
+
 ENABLE_LOGGING();
 
 static void print_locked_status(pflib::lpGBT& lpgbt) {
@@ -47,7 +49,7 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
   }
 }
 
-static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
+static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon, bool check_all_phases) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
@@ -100,7 +102,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
   if (is_econd) {
     // ECON-D only has one output link through lpGBT
     printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
-    lpgbt.check_prbs_errors_erx(0);
+    lpgbt.check_prbs_errors_erx(0, check_all_phases);
   } else if (pftool::state.readout_config_is_hcal()) {
     // ECON-T has multiple output links through lpGBT
     // connected to channel 0 of a series of groups
@@ -111,14 +113,14 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
     };
     for (int ierx : i_econ_to_group.at(iecon)) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
-      lpgbt.check_prbs_errors_erx(ierx);
+      lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
     }
   } else {
     // ECON-T with Ecal system
     pflib_log(warn) << "unsure on which links to check for EcalSMM";
     for (int ierx{0}; ierx < 6; ierx++) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
-      lpgbt.check_prbs_errors_erx(ierx);
+      lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
     }
   }
 
@@ -131,32 +133,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon) {
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
-static uint16_t majority_vote_econt(const std::vector<uint16_t>& data) {
-  uint16_t result = 0;
-  size_t n = data.size();
-  size_t threshold = n / 2;
-
-  // Iterate through each bit position (0 to 15)
-  for (int i = 0; i < 16; ++i) {
-    size_t setBitCount = 0;
-    uint16_t mask = (1 << i);
-
-    for (uint16_t value : data) {
-      if (value & mask) {
-        setBitCount++;
-      }
-    }
-
-    // If more than half have the bit set, set it in the result
-    if (setBitCount > threshold) {
-      result |= mask;
-    }
-  }
-
-  return result;
-}
-
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, bool check_all_phases) {
   if (econ.type() == "econd") {
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
@@ -174,7 +151,9 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
       if (obs == idle) {
         printf(" Found alignment at %d\n", phase);
         found_alignment = true;
-        break;
+        if (not check_all_phases) {
+          break;
+        }
       }
     }
     if (!found_alignment) {
@@ -204,22 +183,20 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ) {
         tgt->fc().linkreset_econs();
         usleep(2000);
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
-        printf("Link %d Phase %2d:", ilink, phase);
         for (size_t i = 4; i < 8; i++) {
-          printf(" %08x %04x %04x", samples[i], (samples[i] >> 16) & ALIGN_MASK,
-                 samples[i] & ALIGN_MASK);
           readings.push_back((samples[i] >> 16) & ALIGN_MASK);
           readings.push_back(samples[i] & ALIGN_MASK);
         }
-        printf("\n");
-        uint16_t got = majority_vote_econt(readings);
-        if (got == idle) {
-          printf(" Majority voted in favor of an idle!\n");
+        if (std::count(readings.begin(), readings.end(), idle) == readings.size()) {
+          // all of the readings match the configured idle, success!
           got_idle_phase = phase;
+          if (not check_all_phases) {
+            break;
+          }
         }
       }
       if (got_idle_phase < 0) {
-        printf(" Unable to find alignment for ilink %d\n", ilink);
+        printf(" Unable to find word alignment for ilink %d\n", ilink);
       } else {
         econ.applyParameter("FORMATTERBUFFER", reg_name, got_idle_phase);
       }
@@ -231,12 +208,14 @@ void align_econ_lpgbt(Target* tgt) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
+  bool check_all_phases = pftool::readline_bool("Check all phases? ", false);
+
   pflib::ECON& econ = tgt->econ(iecon);
 
   if (pftool::readline_bool("Do bit alignment?", true)) {
-    align_econ_lpgbt_bit(tgt, econ, iecon);
+    align_econ_lpgbt_bit(tgt, econ, iecon, check_all_phases);
   }
   if (pftool::readline_bool("Continue to word alignment?", true)) {
-    align_econ_lpgbt_word(tgt, econ);
+    align_econ_lpgbt_word(tgt, econ, check_all_phases);
   }
 }

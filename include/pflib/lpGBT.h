@@ -192,13 +192,18 @@ class lpGBT {
    * Check for PRBS errors on given eRx
    *
    * @param ierx eRx index input to the lpGBT mezzanine
+   * @param[in] check_all_phases do a BERT on each of all 16 possible phases
+   * before training the channel, default: false
    * @param lpgbt_only Should we find errors with internal BERT (true) or
-   * external (false) like econ
+   * external (false) like econ, default: false
    * @param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
-   * manual. Currently set to 3 for 1280 Mbps
+   * manual. default is 3 for 1280 Mbps
    * @param bert_time_code BERT measurement time from table 14.5 in v1 manual
+   * default is 4
    */
-  void check_prbs_errors_erx(int ierx, bool lpgbt_only = false,
+  void check_prbs_errors_erx(int ierx,
+                             bool check_all_phases = false,
+                             bool lpgbt_only = false,
                              int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 

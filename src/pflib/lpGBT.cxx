@@ -461,8 +461,8 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                        ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
 }
 
-void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
-                                  uint8_t bert_time_code) {
+void lpGBT::check_prbs_errors_erx(int ierx, bool check_all_phases, bool lpgbt_only,
+                                  int data_rate_code, uint8_t bert_time_code) {
   // the lpGBT mezzanine we are using puts all of our link data
   // through channel zero within a eRx group
   int channel = 0;
@@ -483,7 +483,6 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   static const uint16_t REG_BERTSTATUS = 0x1d1;
   static const uint16_t REG_ULDATASOURCE1 = 0x129;
   static const uint16_t REG_EPRX00CHNCNTR = 0x0d0;
-  bool check_all = true;
 
   // Optional: Enable internal PRBS signal (only for group 0 right now)
   uint16_t prbs_enable_reg = REG_EPRXPRBSBASE - (group / 2);
@@ -504,7 +503,7 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   uint8_t bert_source = tport_.read_reg(REG_BERTSOURCE);
   pflib_log(debug) << "BERTSOURCE: " << hex(bert_source);
 
-  if (check_all) {
+  if (check_all_phases) {
     uint16_t ctrl_reg = REG_EPRXCONTROLBASE + group;
     uint8_t ctrl_byte = 0;
     ctrl_byte |= (1 << (4 + channel));           // Enable given channel
@@ -631,14 +630,14 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool lpgbt_only, int data_rate_code,
   pflib_log(debug) << "BERTCONFIG: " << hex(bert_config);
 
   // Wait for BERT to finish
-  while (!(tport_.read_reg(REG_BERTSTATUS) & (1 << 0))) {
-    usleep(1000);
-  }
-
-  uint8_t bert_status = tport_.read_reg(REG_BERTSTATUS);
+  uint8_t bert_status{0x00};
+  do {
+   usleep(1000);
+   bert_status = tport_.read_reg(REG_BERTSTATUS);
+  } while (!(bert_status & 0b1));
   pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
   // Check PRBS error flag
-  if (tport_.read_reg(REG_BERTSTATUS) & (1 << 2)) {
+  if (bert_status & (1 << 2)) {
     tport_.write_reg(REG_BERTCONFIG, 0x00);
     pflib_log(error)
         << "BERT PRBS Error: Input was always zero during the test.";
