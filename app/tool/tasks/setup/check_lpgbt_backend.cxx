@@ -221,69 +221,49 @@ class InjectUpLinkDataSource : public InjectTestPattern {
  * LDCONFIG_REG+1
  *  7     -> LDEmphasisShort
  *  [6:0] -> LDEmphasisAmp
- */  
+ */
 class LineDriverConfig {
   static const uint16_t LDCONFIG_REG = 0x039;
   pflib::lpGBT& lpgbt_;
   std::vector<uint8_t> orig_vals_;
   std::vector<uint8_t> vals_;
+
  public:
-  LineDriverConfig(pflib::lpGBT& lpgbt)
-    : lpgbt_{lpgbt} {
-      orig_vals_ = lpgbt_.read(LDCONFIG_REG, 2);
-      vals_ = orig_vals_;
+  LineDriverConfig(pflib::lpGBT& lpgbt) : lpgbt_{lpgbt} {
+    orig_vals_ = lpgbt_.read(LDCONFIG_REG, 2);
+    vals_ = orig_vals_;
   }
-  ~LineDriverConfig() {
-    reset();
-  }
-  int emphasis_enabled() const {
-    return ((vals_[0] >> 7) & 0x1);
-  }
-  int modulation_current() const {
-    return (vals_[0] & 0x7f);
-  }
+  ~LineDriverConfig() { reset(); }
+  int emphasis_enabled() const { return ((vals_[0] >> 7) & 0x1); }
+  int modulation_current() const { return (vals_[0] & 0x7f); }
   void set_modulation_current(int val) {
-    vals_[0] = (
-      (emphasis_enabled() << 7)
-      | (val & 0x7f)
-    );
+    vals_[0] = ((emphasis_enabled() << 7) | (val & 0x7f));
   }
-  int emphasis_short() const {
-    return ((vals_[1] >> 7) & 0x1);
-  }
-  int emphasis_amp() const {
-    return (vals_[1] & 0x7f);
-  }
+  int emphasis_short() const { return ((vals_[1] >> 7) & 0x1); }
+  int emphasis_amp() const { return (vals_[1] & 0x7f); }
   friend inline std::ostream& operator<<(std::ostream& o,
                                          const LineDriverConfig& self) {
     return o << "LineDriverConfig {"
              << " emphasis_enabled: " << self.emphasis_enabled()
              << ", modulation_current: " << self.modulation_current()
              << ", emphasis_short: " << self.emphasis_short()
-             << ", emphasis_amp: " << self.emphasis_amp()
-             << "}";
+             << ", emphasis_amp: " << self.emphasis_amp() << "}";
   }
-  void pre_emphasis(
-    bool is_short,
-    uint8_t pre_emphasis_amplitude,
-    bool enable = true
-  ) {
+  void pre_emphasis(bool is_short, uint8_t pre_emphasis_amplitude,
+                    bool enable = true) {
     if (enable) {
       vals_[0] |= (1 << 7);
     }
-    vals_[1] = (
-      ((is_short ? 1 : 0) << 7)
-      | (pre_emphasis_amplitude & 0x7f)
-    );
+    vals_[1] = (((is_short ? 1 : 0) << 7) | (pre_emphasis_amplitude & 0x7f));
   }
   void apply() {
     for (int i{0}; i < 2; i++) {
-      lpgbt_.write(LDCONFIG_REG+i, vals_[i]);
+      lpgbt_.write(LDCONFIG_REG + i, vals_[i]);
     }
   }
   void reset() {
     for (int i{0}; i < 2; i++) {
-      lpgbt_.write(LDCONFIG_REG+i, orig_vals_[i]);
+      lpgbt_.write(LDCONFIG_REG + i, orig_vals_[i]);
     }
   }
 };
@@ -296,14 +276,16 @@ void check_lpgbt_backend(Target* target) {
   LineDriverConfig ldconfig{lpgbt};
   pflib_log(info) << ldconfig;
   if (pftool::readline_bool("update line driver? ", false)) {
-    ldconfig.set_modulation_current(
-      pftool::readline_int("modulation current (7 bits): ", ldconfig.modulation_current())
-    );
-    bool enable_emphasis = pftool::readline_bool("enable pre-emphasis? ", (ldconfig.emphasis_enabled() == 1));
+    ldconfig.set_modulation_current(pftool::readline_int(
+        "modulation current (7 bits): ", ldconfig.modulation_current()));
+    bool enable_emphasis = pftool::readline_bool(
+        "enable pre-emphasis? ", (ldconfig.emphasis_enabled() == 1));
     if (enable_emphasis) {
-      bool short_emphasis = pftool::readline_bool("short pre-emphasis? ", (ldconfig.emphasis_short() == 1));
-      int emphasis_amp = pftool::readline_int("pre-emphasis amplitude (7 bits): ", ldconfig.emphasis_amp());
-      ldconfig.pre_emphasis(short_emphasis, emphasis_amp); 
+      bool short_emphasis = pftool::readline_bool(
+          "short pre-emphasis? ", (ldconfig.emphasis_short() == 1));
+      int emphasis_amp = pftool::readline_int(
+          "pre-emphasis amplitude (7 bits): ", ldconfig.emphasis_amp());
+      ldconfig.pre_emphasis(short_emphasis, emphasis_amp);
     }
     ldconfig.apply();
     pflib_log(info) << ldconfig;

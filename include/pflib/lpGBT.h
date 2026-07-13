@@ -166,7 +166,8 @@ class lpGBT {
    * @param[in] pre_emphasis_amplitude value of pre-emphasis current in
    * multiples of 137 uA, up to 7 bits
    */
-  void setup_line_driver(int modulation_current, bool enable_pre_emphasis, bool short_pre_emphasis, int pre_emphasis_amplitude);
+  void setup_line_driver(int modulation_current, bool enable_pre_emphasis,
+                         bool short_pre_emphasis, int pre_emphasis_amplitude);
 
   /**
    * Setup the given elink-rx
