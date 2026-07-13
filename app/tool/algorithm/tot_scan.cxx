@@ -45,74 +45,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
     parameters[ch_page]["HIGHRANGE"] = 0;
   }
   auto test_params = tgt->tempApplyAllROCs(parameters);
-  /*
-  // loops through calib, finding calib just before tot activation
-  for (int i_roc : tgt->roc_ids()) {
-    calibs[i_roc].resize(72);
-  }
-  for (int ch{0}; ch < 72; ch++) {
-    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> calib_parameters;
-    bool complete = false;
-    auto ch_page = pflib::utility::string_format("CH_%d", ch);
-    std::map<int, int> calib_decrease;
-    std::map<int, bool> roc_complete;
-    std::map<int, int> calib;
-    for (int i_roc : tgt->roc_ids()) {
-      roc_complete[i_roc] = false;
-      calib_decrease[i_roc] = 50;
-      calib[i_roc] = 500;
-      calibs[i_roc][ch] = -1;
-    }
-    while (!complete) {
-      for (int i_roc : tgt->roc_ids()) {
-        if (ch / 36 == 0) {
-          calib_parameters[i_roc]["REFERENCEVOLTAGE_0"]["CALIB"] = calib[i_roc];
-          calib_parameters[i_roc][ch_page]["HIGHRANGE"] = 1;
-        } else {
-          calib_parameters[i_roc]["REFERENCEVOLTAGE_1"]["CALIB"] = calib[i_roc];
-          calib_parameters[i_roc][ch_page]["HIGHRANGE"] = 1;
-        }
-      }
-      auto calib_test_params = tgt->tempApplyAllROCs(calib_parameters);
-      usleep(10);
-      daq_run(tgt, "CHARGE", buffer, n_events, 100);
-      auto data = buffer.get_buffer();
 
-      for (int i_roc : tgt->roc_ids()) {
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
-        double sum = 0;
-        for (std::size_t i{0}; i < data.size(); i++) {
-          double tot = data[i].soi().channel(i_erx, i_ch).tot();
-          if (tot >= 0) {
-            sum += 1;
-          }
-        }
-        double eff = sum / data.size();
-        if (eff <= 0.5) {
-          roc_complete[i_roc] = true;
-        }
-        if ((roc_complete[i_roc] == true) && (calib_decrease[i_roc] != 1)) {
-          calib[i_roc] += 50;
-          calib_decrease[i_roc] = 1;
-          roc_complete[i_roc] = false;
-        } else if ((((roc_complete[i_roc] == true) && (calib_decrease[i_roc] == 1)) ||
-                   (calib[i_roc] == 0)) && calibs[i_roc][ch] == -1) {
-            calibs[i_roc][ch] = calib[i_roc];
-        }
-        calib[i_roc] -= calib_decrease[i_roc];
-      }
-      complete = true;
-      for (int i_roc : tgt->roc_ids()) {
-        if (calibs[i_roc][ch] == -1) {
-          complete = false;
-        }
-      }
-    }
-    for (int i_roc : tgt->roc_ids()) {
-      pflib_log(info) << "Calib for ch " << ch << ": " << calibs[i_roc][ch];
-    }
-  }
-  */
 // binary search through calib, finding calib just before tot activation
   for (int i_roc : tgt->roc_ids()) {
     calibs[i_roc].resize(72);
@@ -183,21 +116,13 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
     }
   }
   // finds and stores middle calib for each link
-  //std::map<int, int> target_calibs_l0;
-  //std::map<int, int> target_calibs_l1;
   std::map<int, std::array<int, 2>> channels;
   for (int i_roc : tgt->roc_ids()) {
     std::vector<int> l0(calibs[i_roc].begin(), calibs[i_roc].begin() + 36);
     std::vector<int> l1(calibs[i_roc].begin() + 36, calibs[i_roc].end());
-    //std::vector<int> l0_sorted = l0;
-    //std::vector<int> l1_sorted = l1;
-    //std::sort(l0_sorted.begin(), l0_sorted.end());
-   //std::sort(l1_sorted.begin(), l1_sorted.end());
 
     int median_calib_l0 = pflib::utility::median(l0);
     int median_calib_l1 = pflib::utility::median(l1);
-    //channels[i_roc][0] = std::distance(l0.begin(), std::find(l0.begin(), l0.end(), target_calibs_l0[i_roc]));
-    //channels[i_roc][1] = std::distance(l1.begin(), std::find(l1.begin(), l1.end(), target_calibs_l1[i_roc])) + 36;
 
     pflib_log(info) << "Roc: " << i_roc;
     pflib_log(info) << "L0 median calib: " << median_calib_l0;

@@ -183,49 +183,6 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_scan(
   }
   auto link_test_params = tgt->tempApplyAllROCs(link_parameters);
 
-/*
-  //finds trim_toa right before toa reaches 0.5 eff at target calib
-  for (int i_roc : tgt->roc_ids()) {
-    pflib_log(info) << "Getting trim_toa for roc: " << i_roc;
-    for (int ch{0}; ch < 72; ch++) {
-      auto ch_page = pflib::utility::string_format("CH_%d", ch);
-      bool complete = false;
-      int trim_toa = 63;
-      while(!complete) {
-        std::map<std::string, std::map<std::string, uint64_t>>
-                      toa_parameters;
-        toa_parameters[ch_page]["TRIM_TOA"] = trim_toa;
-        auto toa_test_params = tgt->tempApplyAllROCs(toa_parameters);
-        usleep(10);
-
-        daq_run(tgt, "CHARGE", buffer, n_events, pftool::state.daq_rate);
-        auto data = buffer.get_buffer();
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
-        double sum = 0;
-        for (std::size_t i{0}; i < data.size(); i++) {
-          double toa = data[i].soi().channel(i_erx, i_ch).toa();
-          if (toa > 0) {
-            sum += 1;
-          }
-        }
-        double eff = sum / data.size();
-        if (eff <= 0.5) {
-          complete = true;
-        }
-
-        if (!complete) {
-          trim_toa -= 1;
-        }
-
-        if (trim_toa == 0) {
-          complete = true;
-        }
-      }
-      pflib_log(info) << "trim_toa for ch " << ch << ": "  << trim_toa;
-      trim_targets[i_roc][ch] = trim_toa;
-    }
-  }
-*/
   //finds eff by trim_toa
   std::map<int, std::array<std::array<double, 64>, 72>> effs;
   for (int trim_toa{0}; trim_toa < 64; trim_toa++) {
