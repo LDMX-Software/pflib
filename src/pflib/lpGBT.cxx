@@ -764,6 +764,25 @@ void lpGBT::setup_eclk(int ieclk, int rate, bool polarity, int strength) {
   // currently no ability to mess with pre-emphasis
 }
 
+void lpGBT::setup_line_driver(int modulation_current, bool enable_pre_emphasis, bool short_pre_emphasis, int pre_emphasis_amplitude) {
+  static const uint16_t LDCONFIG_REG = 0x039;
+  uint8_t LDConfigH = (modulation_current & 0x7f);
+  if (enable_pre_emphasis) {
+    LDConfigH |= (1 << 7);
+  }
+  /**
+   * @note The pre_emphasis_amplitude and short_pre_emphasis
+   * are ignored by the chip if pre-emphasis is not enabled
+   * with enable_pre_emphasis.
+   */
+  uint8_t LDConfigL = (pre_emphasis_amplitude & 0x7f);
+  if (short_pre_emphasis) {
+    LDConfigL |= (1 << 7);
+  }
+  write(LDCONFIG_REG, LDConfigH);
+  write(LDCONFIG_REG+1, LDConfigL);
+}
+
 void lpGBT::setup_i2c(int ibus, int speed_khz, bool scl_drive, bool strong_scl,
                       bool strong_sda, bool pull_up_scl, bool pull_up_sda) {
   if (ibus < 0 || ibus > 2) return;

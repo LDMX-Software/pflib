@@ -155,6 +155,20 @@ class lpGBT {
   void setup_eclk(int ieclk, int rate, bool polarity = true, int strength = 4);
 
   /**
+   * setup the line driver
+   *
+   * @param[in] modulation_current 7-bit (0-127) value setting the modulation
+   * current in multiples of 137 uA
+   * @param[in] enable_pre_emphasis if pre-emphasis should be enabled (true)
+   * or not (false)
+   * @param[in] short_pre_emphasis if pre-emphasis should be short (true)
+   * or long (false)
+   * @param[in] pre_emphasis_amplitude value of pre-emphasis current in
+   * multiples of 137 uA, up to 7 bits
+   */
+  void setup_line_driver(int modulation_current, bool enable_pre_emphasis, bool short_pre_emphasis, int pre_emphasis_amplitude);
+
+  /**
    * Setup the given elink-rx
    *
    * @param ierx ERx index (0-5)
