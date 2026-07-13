@@ -11,8 +11,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
     Target* tgt) {
   static auto the_log_{::pflib::logging::get("tot_scan")};
 
-  size_t n_events =
-      pftool::readline_int("How many events per time point?", 10);
+  size_t n_events = pftool::readline_int("How many events per time point?", 10);
   int target_calib =
       pftool::readline_int("At which calib should tot activate?", 455);
 
@@ -46,12 +45,13 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
   }
   auto test_params = tgt->tempApplyAllROCs(parameters);
 
-// binary search through calib, finding calib just before tot activation
+  // binary search through calib, finding calib just before tot activation
   for (int i_roc : tgt->roc_ids()) {
     calibs[i_roc].resize(72);
   }
   for (int ch{0}; ch < 72; ch++) {
-    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> calib_parameters;
+    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+        calib_parameters;
     bool complete = false;
     auto ch_page = pflib::utility::string_format("CH_%d", ch);
     std::map<int, int> low;
@@ -96,9 +96,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
         double eff = sum / data.size();
         if (eff <= 0.5) {
           low[i_roc] = mid[i_roc];
-        }
-        else {
-          high[i_roc] = mid[i_roc] -1;
+        } else {
+          high[i_roc] = mid[i_roc] - 1;
         }
         if (low[i_roc] == high[i_roc]) {
           calibs[i_roc][ch] = low[i_roc];
@@ -130,30 +129,36 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
 
     std::vector<int> filtered_l0;
     for (int val : l0) {
-        if (std::abs(val - median_calib_l0) <= 100) {
-            filtered_l0.push_back(val);
-        }
+      if (std::abs(val - median_calib_l0) <= 100) {
+        filtered_l0.push_back(val);
+      }
     }
     std::vector<int> filtered_l1;
     for (int val : l1) {
-        if (std::abs(val - median_calib_l1) <= 100) {
-            filtered_l1.push_back(val);
-        }
+      if (std::abs(val - median_calib_l1) <= 100) {
+        filtered_l1.push_back(val);
+      }
     }
-    int target_l0 = (*std::min_element(filtered_l0.begin(), filtered_l0.end())
-                    + *std::max_element(filtered_l0.begin(), filtered_l0.end())) / 2;
+    int target_l0 =
+        (*std::min_element(filtered_l0.begin(), filtered_l0.end()) +
+         *std::max_element(filtered_l0.begin(), filtered_l0.end())) /
+        2;
 
-    int target_l1 = (*std::min_element(filtered_l1.begin(), filtered_l1.end())
-                    + *std::max_element(filtered_l1.begin(), filtered_l1.end())) / 2;
+    int target_l1 =
+        (*std::min_element(filtered_l1.begin(), filtered_l1.end()) +
+         *std::max_element(filtered_l1.begin(), filtered_l1.end())) /
+        2;
 
-    auto it_l0 = std::min_element(l0.begin(), l0.end(),
-        [target_l0](int a, int b) {
-            return std::abs(a - target_l0) < std::abs(b - target_l0);});
+    auto it_l0 =
+        std::min_element(l0.begin(), l0.end(), [target_l0](int a, int b) {
+          return std::abs(a - target_l0) < std::abs(b - target_l0);
+        });
     channels[i_roc][0] = std::distance(l0.begin(), it_l0);
 
-    auto it_l1 = std::min_element(l1.begin(),l1.end(),
-        [target_l1](int a, int b) {
-            return std::abs(a - target_l1) < std::abs(b - target_l1);});
+    auto it_l1 =
+        std::min_element(l1.begin(), l1.end(), [target_l1](int a, int b) {
+          return std::abs(a - target_l1) < std::abs(b - target_l1);
+        });
     channels[i_roc][1] = std::distance(l1.begin(), it_l1) + 36;
 
     pflib_log(info) << "Using channel: " << channels[i_roc][0];
@@ -169,7 +174,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
       std::map<std::string, std::map<std::string, uint64_t>> vref_parameters;
       bool complete = false;
       int tot_vref = 1000;
-      auto ch_page = pflib::utility::string_format("CH_%d", channels[i_roc][i_link]);
+      auto ch_page =
+          pflib::utility::string_format("CH_%d", channels[i_roc][i_link]);
       auto refvol_page =
           pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
       int tot_decrease = 50;
@@ -184,7 +190,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
 
         daq_run(tgt, "CHARGE", buffer, n_events, pftool::state.daq_rate);
         auto data = buffer.get_buffer();
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, channels[i_roc][i_link]);
+        auto [i_erx, i_ch] =
+            mapping.toErxChannel(i_roc, channels[i_roc][i_link]);
         double sum = 0;
         for (std::size_t i{0}; i < data.size(); i++) {
           double tot = data[i].soi().channel(i_erx, i_ch).tot();
@@ -194,7 +201,8 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
         }
         double eff = sum / data.size();
         if (eff >= 0.5) {
-          complete = true;;
+          complete = true;
+          ;
         }
         if ((complete == true) && (tot_decrease != 1)) {
           tot_vref += 50;
@@ -211,13 +219,13 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
     }
   }
   // finds trim_tot right before tot reaches 0.5 eff for each channel
-  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> pre_tot_parameters;
+  std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+      pre_tot_parameters;
   for (int i_roc : tgt->roc_ids()) {
-    for (int i_link{0}; i_link < 2; i_link++ ) {
+    for (int i_link{0}; i_link < 2; i_link++) {
       auto refvol_page =
-              pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
-      pre_tot_parameters[i_roc][refvol_page]["CALIB"] =
-          target_calib;
+          pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
+      pre_tot_parameters[i_roc][refvol_page]["CALIB"] = target_calib;
       pre_tot_parameters[i_roc][refvol_page]["TOT_VREF"] =
           vref_targets[i_roc][i_link];
     }
@@ -232,10 +240,13 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
     pflib_log(info) << "Getting trim values for channel " << ch;
     auto ch_page = pflib::utility::string_format("CH_%d", ch);
     bool complete = false;
-    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_parameters;
+    std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+        tot_parameters;
     for (int trim_tot = 63; trim_tot >= 0; trim_tot--) {
       for (int i_roc : tgt->roc_ids()) {
-        if (trim_targets[i_roc][ch] != -1) {continue;}
+        if (trim_targets[i_roc][ch] != -1) {
+          continue;
+        }
         if (ch / 36 == 0) {
           tot_parameters[i_roc][ch_page]["HIGHRANGE"] = 1;
           tot_parameters[i_roc][ch_page]["TRIM_TOT"] = trim_tot;
@@ -250,7 +261,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
       daq_run(tgt, "CHARGE", buffer, n_events, pftool::state.daq_rate);
       auto data = buffer.get_buffer();
       for (int i_roc : tgt->roc_ids()) {
-        if (trim_targets[i_roc][ch] != -1) {continue;}
+        if (trim_targets[i_roc][ch] != -1) {
+          continue;
+        }
         auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
         double sum = 0;
         for (std::size_t i{0}; i < data.size(); i++) {
@@ -271,7 +284,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
           break;
         }
       }
-      if (complete == true) {break;}
+      if (complete == true) {
+        break;
+      }
     }
   }
 

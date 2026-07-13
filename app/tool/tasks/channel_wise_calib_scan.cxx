@@ -23,8 +23,7 @@ void channel_wise_calib_scan(Target* tgt) {
         "Min and Max calib values have to be within the range: 0 <= calib <= "
         "4095");
   }
-  std::map<std::string, std::map<std::string, uint64_t>>
-        setup_parameters;
+  std::map<std::string, std::map<std::string, uint64_t>> setup_parameters;
   auto mapping = tgt->getRocErxMapping();
   for (int i_link = 0; i_link < 2; i_link++) {
     auto refvol_page =
@@ -33,8 +32,7 @@ void channel_wise_calib_scan(Target* tgt) {
     setup_parameters[refvol_page]["CHOICE_CINJ"] = 1;
   }
   for (int ch = 0; ch < 72; ch++) {
-    auto ch_page =
-        pflib::utility::string_format("CH_%d", ch);
+    auto ch_page = pflib::utility::string_format("CH_%d", ch);
     setup_parameters[ch_page]["LOWRANGE"] = 0;
     setup_parameters[ch_page]["HIGHRANGE"] = 0;
   }
@@ -54,31 +52,27 @@ void channel_wise_calib_scan(Target* tgt) {
   std::map<int, std::string> fnames;
   std::map<int, std::ofstream> outputs;
   for (int i_roc : tgt->roc_ids()) {
-    fnames[i_roc] =
-      pftool::readline_path("channel-wise-calib-scan-roc-" + std::to_string(i_roc), ".csv");
+    fnames[i_roc] = pftool::readline_path(
+        "channel-wise-calib-scan-roc-" + std::to_string(i_roc), ".csv");
     outputs[i_roc].open(fnames[i_roc]);
-    outputs[i_roc]
-        << "time,calib,channel,"
-        << pflib::packing::Sample::to_csv_header
-        << '\n';
+    outputs[i_roc] << "time,calib,channel,"
+                   << pflib::packing::Sample::to_csv_header << '\n';
   }
 
   DecodeAndWriteToCSV writer{
-    "channel-wise-calib-scan",
-    [&](std::ofstream&) {},
-    [&](std::ofstream&,
-      const pflib::packing::MultiSampleECONDEventPacket& ep) {
-      // TODO 348
-      for (int i_roc : tgt->roc_ids()) {
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
-        auto& output = outputs[i_roc];
-        output << time << ',' << calib << ',' << ch << ',';
-        ep.soi().channel(i_erx, i_ch).to_csv(output);
-        output << '\n';
-      }
-    },
-    n_links
-  };
+      "channel-wise-calib-scan", [&](std::ofstream&) {},
+      [&](std::ofstream&,
+          const pflib::packing::MultiSampleECONDEventPacket& ep) {
+        // TODO 348
+        for (int i_roc : tgt->roc_ids()) {
+          auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+          auto& output = outputs[i_roc];
+          output << time << ',' << calib << ',' << ch << ',';
+          ep.soi().channel(i_erx, i_ch).to_csv(output);
+          output << '\n';
+        }
+      },
+      n_links};
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -88,8 +82,7 @@ void channel_wise_calib_scan(Target* tgt) {
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
     for (calib = min_calib; calib < max_calib; calib += stepsize) {
       pflib_log(info) << "CALIB = " << calib;
-      std::map<std::string, std::map<std::string, uint64_t>>
-          parameters;
+      std::map<std::string, std::map<std::string, uint64_t>> parameters;
       if (ch < 36) {
         parameters["REFERENCEVOLTAGE_0"]["CALIB"] = calib;
         parameters[channel_page]["HIGHRANGE"] = 1;

@@ -23,11 +23,11 @@
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "toa_csv_scan.h"
+#include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
-#include "toa_scan.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
 
@@ -79,13 +79,13 @@ auto menu_tasks =
                tot_scan)
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
-        ->line("TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", toa_scan);
+        ->line("TOA_SCAN", "calibrate TRIM_TOA parameters for each channel",
+               toa_scan);
 
-            auto menu_expert_tasks =
-        menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
-            ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
-                   scan_orbit);
+auto menu_expert_tasks =
+    menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
+        ->line("SCAN_ORBIT", "scan snapshots in ECON to try to find data",
+               scan_orbit);
 
 auto menu_setup_tasks =
     menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")

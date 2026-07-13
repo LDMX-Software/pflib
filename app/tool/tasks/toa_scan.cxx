@@ -32,8 +32,7 @@ void toa_scan(Target* tgt) {
 
     if (pftool::readline_bool("Save settings to a file? ", false)) {
       std::string fname = pftool::readline_path(
-          "toa_scan-roc-" + std::to_string(i_roc) + "-settings",
-          ".yaml");
+          "toa_scan-roc-" + std::to_string(i_roc) + "-settings", ".yaml");
 
       std::ofstream f{fname};
       if (not f.is_open()) {
@@ -42,5 +41,4 @@ void toa_scan(Target* tgt) {
       f << out.c_str() << std::endl;
     }
   }
-
 }
