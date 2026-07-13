@@ -1,10 +1,10 @@
 #include "align_econ_lpgbt.h"
 
+#include <algorithm>
+
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
-
-#include <algorithm>
 
 ENABLE_LOGGING();
 
@@ -49,7 +49,8 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
   }
 }
 
-static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon, bool check_all_phases) {
+static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
+                                 bool check_all_phases) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
@@ -133,7 +134,8 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon, bool
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, bool check_all_phases) {
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
+                                  bool check_all_phases) {
   if (econ.type() == "econd") {
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
@@ -187,7 +189,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, bool check_all
           readings.push_back((samples[i] >> 16) & ALIGN_MASK);
           readings.push_back(samples[i] & ALIGN_MASK);
         }
-        if (std::count(readings.begin(), readings.end(), idle) == readings.size()) {
+        if (std::count(readings.begin(), readings.end(), idle) ==
+            readings.size()) {
           // all of the readings match the configured idle, success!
           got_idle_phase = phase;
           if (not check_all_phases) {

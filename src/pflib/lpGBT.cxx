@@ -461,8 +461,9 @@ void lpGBT::setup_erx(int irx, int align, int alignphase, int speed,
                        ((acbias) ? (0x4) : (0)) | ((term) ? (0x2) : (0)));
 }
 
-void lpGBT::check_prbs_errors_erx(int ierx, bool check_all_phases, bool lpgbt_only,
-                                  int data_rate_code, uint8_t bert_time_code) {
+void lpGBT::check_prbs_errors_erx(int ierx, bool check_all_phases,
+                                  bool lpgbt_only, int data_rate_code,
+                                  uint8_t bert_time_code) {
   // the lpGBT mezzanine we are using puts all of our link data
   // through channel zero within a eRx group
   int channel = 0;
@@ -632,8 +633,8 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool check_all_phases, bool lpgbt_on
   // Wait for BERT to finish
   uint8_t bert_status{0x00};
   do {
-   usleep(1000);
-   bert_status = tport_.read_reg(REG_BERTSTATUS);
+    usleep(1000);
+    bert_status = tport_.read_reg(REG_BERTSTATUS);
   } while (!(bert_status & 0b1));
   pflib_log(debug) << "BERTSTATUS: " << hex(bert_status);
   // Check PRBS error flag

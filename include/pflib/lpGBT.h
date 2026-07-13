@@ -201,10 +201,8 @@ class lpGBT {
    * @param bert_time_code BERT measurement time from table 14.5 in v1 manual
    * default is 4
    */
-  void check_prbs_errors_erx(int ierx,
-                             bool check_all_phases = false,
-                             bool lpgbt_only = false,
-                             int data_rate_code = 3,
+  void check_prbs_errors_erx(int ierx, bool check_all_phases = false,
+                             bool lpgbt_only = false, int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate
