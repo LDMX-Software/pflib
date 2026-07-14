@@ -1,17 +1,24 @@
 help_message := "shared recipes for pflib development
 
 We use 'denv' if there is a denv workspace in the pflib
-directory.
+directory and 'conda run' if there is a '.conda' file
+specifying the name of the environment to use.
 
-  # without pflib/.denv
+  # without pflib/.denv or pflib/.conda
   just -n configure
   cmake -B build -S .
+
+  # with pflib/.conda
+  just -n configure
+  conda run --name `cat .conda` -- cmake -B build -S .
 
   # with pflib/.denv
   just -n configure
   denv cmake -B build -S .
 
-Use 'just init <host>' to start using denv if desired.
+Use 'just init <host>' to start using denv if desired
+and 'just use-conda [name]' to use a conda environment
+if desired.
 
 RECIPES:
 "
@@ -20,7 +27,14 @@ _default:
     @just --list --unsorted --justfile {{justfile()}} --list-heading "{{ help_message }}"
 
 denv_exists := path_exists(justfile_directory() / ".denv")
-env_cmd_prefix := if denv_exists == "true" { "denv " } else { "" }
+conda_env_name := `cat .conda 2> /dev/null || echo "MISSING"`
+env_cmd_prefix := if path_exists(justfile_directory() / ".conda") == "true" {
+  f"conda run --name {{conda_env_name}} -- "
+  } else if denv_exists == "true" {
+    "denv "
+  } else {
+    ""
+  }
 
 _cmake *CONFIG:
     {{env_cmd_prefix}}cmake -B build -S . {{ CONFIG }}
@@ -38,6 +52,10 @@ init host:
     echo 'export PATH=${PATH}:${HOME}/install/bin' >> .profile
     echo 'export PYTHONPATH=${PYTHONPATH}:${HOME}/install/lib' >> .profile
     echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/install/lib' >> .profile
+
+# tell us which conda environment to use
+use-conda name="ldmx-env-base":
+    echo {{name}} > .conda
 
 # configure pflib build
 configure: _cmake
