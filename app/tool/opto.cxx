@@ -89,7 +89,6 @@ void opto(const std::string& cmd, Target* target) {
     printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
            i.second);
   }
-  
 }
 
 namespace {
