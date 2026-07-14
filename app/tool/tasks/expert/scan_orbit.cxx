@@ -40,8 +40,8 @@ void scan_orbit(Target* tgt) {
     file_output.open(output_filepath);
   }
 
-  bool ignore_disabled_links = pftool::readline_bool(
-      "Ignore links that are disabled? ", true);
+  bool ignore_disabled_links =
+      pftool::readline_bool("Ignore links that are disabled? ", true);
   bool show_raw_snapshot = pftool::readline_bool(
       "Show raw snapshot (Y) or shift by align select (N)?", false);
   bool skip_normal_idles =
@@ -65,7 +65,8 @@ void scan_orbit(Target* tgt) {
   std::array<bool, 12> link_enabled;
   for (int i_econ_ch{0}; i_econ_ch < 12; i_econ_ch++) {
     auto prefix{std::to_string(i_econ_ch)};
-    if (econ.readParameter("ERX", prefix+"_ENABLE") == 0 and ignore_disabled_links) {
+    if (econ.readParameter("ERX", prefix + "_ENABLE") == 0 and
+        ignore_disabled_links) {
       link_enabled[i_econ_ch] = false;
       continue;
     }

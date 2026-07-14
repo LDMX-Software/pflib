@@ -13,9 +13,9 @@ namespace pflib::packing {
 class PrintLinkStatBits {
   const uint32_t& stat_;
   static const std::array<const char*, 3> BIT_NAMES;
+
  public:
-  PrintLinkStatBits(const uint32_t& stat)
-    : stat_{stat} {}
+  PrintLinkStatBits(const uint32_t& stat) : stat_{stat} {}
   friend inline std::ostream& operator<<(std::ostream& o,
                                          const PrintLinkStatBits& self) {
     std::bitset<3> bits = self.stat_;
@@ -34,9 +34,8 @@ class PrintLinkStatBits {
  * ECON-D Manual: MSB is HT match status, then EBO, then CRC
  * index 0 is LSB, so we invert this order here.
  */
-const std::array<const char*, 3> PrintLinkStatBits::BIT_NAMES = {
-  "CRC", "EBO", "HT"
-};
+const std::array<const char*, 3> PrintLinkStatBits::BIT_NAMES = {"CRC", "EBO",
+                                                                 "HT"};
 
 std::size_t ECONDEventPacket::unpack_link_subpacket(std::span<uint32_t> data,
                                                     DAQLinkFrame& link,
