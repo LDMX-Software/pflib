@@ -29,6 +29,13 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_vref_s
 
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
+      std::map<std::string, std::map<std::string, uint64_t>> trim;
+
+for (int ch{0}; ch < 72; ch++) {
+      std::string ch_str{"CH_" + std::to_string(ch)};
+      trim[ch_str]["TRIM_TOA"] = 63;
+}
+      auto trim_apply = tgt->tempApplyAllROCs(trim);
 
 
   // loop over runs, from toa_vref = 0 to = 255
@@ -111,7 +118,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_vref_s
 
         if (final_effs[i_roc][i_link][toa_vref] > 0.0) {
           highest_non_zero_eff =
-              toa_vref + 10;  // need to add 10 since we don't want to overlap
+              toa_vref + 20;  // need to add 20 since we don't want to overlap
                               // with highest pedestals!
           pflib_log(info) << "[DEBUG SEARCH] Success. Found threshold edge at VREF " << toa_vref
                           << " (Setting target to " << highest_non_zero_eff << ")";

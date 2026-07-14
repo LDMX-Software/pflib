@@ -10,6 +10,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('data', type=Path, help='decoded CSV file to analyze')
+parser.add_argument('ROC', type=int, help='ROC to analyze')
 parser.add_argument('ch', type=int, help='channel to analyze')
 #only takes data from roc = 1
 args = parser.parse_args()
@@ -17,6 +18,7 @@ args = parser.parse_args()
 data_raw = pd.read_csv(args.data, header = None)
 
 ch = args.ch
+ROC = args.ROC
 
 trim_toa = []
 calib = []
@@ -25,7 +27,7 @@ efficiency = []
 
 print(data_raw.head())
 for _, row in data_raw.iterrows():
-  #if row[0] == 0:
+  if row[0] == ROC:
     if (row[1] == ch):
       trim_toa.append(row[2])
       calib.append(row[3])
@@ -44,7 +46,7 @@ scatter = ax.scatter(calib, trim_toa, efficiency, c=efficiency, cmap='viridis', 
 ax.set_xlabel('Calib')
 ax.set_ylabel('Trim_toa')
 ax.set_zlabel('Efficiency')
-ax.set_title(f'Plot of Efficiency {ch}' )
+ax.set_title(f'Plot of Efficiency For Channel = {ch}, on ROC = {ROC}' )
 fig.colorbar(scatter, ax=ax, label='Z Depth')
 
 # 5. Display the window
