@@ -170,10 +170,10 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
     }
   } else {
-    static const std::array<const char*, 7> cnames = {
+    static const std::array<const char*, 10> cnames = {
         "DAQ_LINK_WORD",   "TRIG_LINK_WORD", "DAQ_LINK_ERROR",
         "TRIG_LINK_ERROR", "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
-        "CLOCK_40"};
+        "CLOCK_40", "AXI_CLK", "DAQ_LINK_FECERR", "TRIG_LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
