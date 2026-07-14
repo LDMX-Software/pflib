@@ -172,7 +172,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
 
-    static const int ICAPTURE_DELAY = 28;
+    static const int ICAPTURE_DELAY = 29;
     trig->setup_alignment_capture(ICAPTURE_DELAY);
 
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
