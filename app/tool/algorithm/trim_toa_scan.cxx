@@ -76,7 +76,7 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>trim_toa_sc
   int trim_toa_step = 2;
   int trim_toa_max = 20;
   int calib_max = 300;
-  int calib_min = 50; //may want to change this but at least on our setup this does not cover any turn on points, so this makes the scan a great deal quicker
+  int calib_min = 58; //may want to change this but at least on our setup this does not cover any turn on points, so this makes the scan a great deal quicker
 
   //Has been changed based on the size of the scan I am running, edit in the above variables
   auto final_data = std::vector<std::vector<std::vector<std::vector<double>>>>(tgt -> nrocs(), std::vector<std::vector<std::vector<double>>>(((calib_max-calib_min)/calib_step) , std::vector<std::vector<double>>((trim_toa_max/trim_toa_step), std::vector<double>(72, 0))));
