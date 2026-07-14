@@ -19,7 +19,11 @@ void opto_render(Target* tgt) {
  *
  * ## Commands
  * - FULLSTATUS : printout status of the optical links
- * - RESET : call reset_link on the optical links
+ *   this status printout is run after all of the other commands as well
+ * - CHOOSE : pick DAQ or TRG optical fiber to focus on
+ * - INJECT_ERROR : zcu only, attempt to inject an error to test decoding error
+ * - SOFTRESET : call OptoLink::soft_reset_link
+ * - RESET : call OptoLink::reset_link on the optical links
  * - POLARITY : change the polarity of the optical links
  * - LINKTRICK : try a simple trick to re-align the optical links
  */
@@ -41,12 +45,11 @@ void opto(const std::string& cmd, Target* target) {
     if (pftool::state.readout_config_is_zcu()) {
       auto& zcuoelinks{
           static_cast<pflib::zcu::OptoElinksZCU&>(target->elinks())};
-      // spamming because it isn't working...
-      for (int i{0}; i < 1000; i++) {
-        zcuoelinks.injectError();
-      }
+      zcuoelinks.injectError();
+      // wait for errors to be included in integration
+      usleep(1000);
     } else {
-      pflib_log(error) << "injecting an error is possible on the ZCU";
+      pflib_log(error) << "injecting an error is only possible on the ZCU";
     }
   }
 
