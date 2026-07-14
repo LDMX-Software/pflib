@@ -53,24 +53,6 @@ void opto(const std::string& cmd, Target* target) {
     }
   }
 
-  if (cmd == "FULLSTATUS") {
-    static const uint16_t ULDATASOURCE0 = 0x128;
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
-           olink.get_rx_polarity());
-    pflib::lpGBT lpgbt{target->get_opto_link(olink_name).lpgbt_transport()};
-    std::map<std::string, uint32_t> info;
-    info = olink.opto_status();
-    printf("Optical status:\n");
-    for (auto i : info) {
-      printf("  %-20s : 0x%04x\n", i.first.c_str(), i.second);
-    }
-    info = olink.opto_rates();
-    printf("Optical rates:\n");
-    for (auto i : info) {
-      printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
-             i.second);
-    }
-  }
   if (cmd == "SOFTRESET") {
     olink.soft_reset_link();
   }
@@ -86,9 +68,28 @@ void opto(const std::string& cmd, Target* target) {
     change = pftool::readline_bool("Change RX polarity? ", false);
     if (change) olink.set_rx_polarity(!olink.get_tx_polarity());
   }
+
   if (cmd == "LINKTRICK") {
     olink.run_linktrick();
   }
+
+  printf("Olink: %s\n", olink_name.c_str());
+  printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
+         olink.get_rx_polarity());
+  pflib::lpGBT lpgbt{target->get_opto_link(olink_name).lpgbt_transport()};
+  std::map<std::string, uint32_t> info;
+  info = olink.opto_status();
+  printf("Optical status:\n");
+  for (auto i : info) {
+    printf("  %-20s : 0x%04x\n", i.first.c_str(), i.second);
+  }
+  info = olink.opto_rates();
+  printf("Optical rates:\n");
+  for (auto i : info) {
+    printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
+           i.second);
+  }
+  
 }
 
 namespace {
