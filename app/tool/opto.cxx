@@ -92,7 +92,9 @@ namespace {
 auto optom =
     pftool::menu("OPTO", "Optical Link Functions", opto_render, NEED_FIBER)
         ->line("CHOOSE", "Choose optical link to connect to", opto)
-        ->line("INJECT_ERROR", "Attempt to inject an error into the link for testing", opto, ONLY_ZCU)
+        ->line("INJECT_ERROR",
+               "Attempt to inject an error into the link for testing", opto,
+               ONLY_ZCU)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset optical link", opto)
         ->line("RESET",
