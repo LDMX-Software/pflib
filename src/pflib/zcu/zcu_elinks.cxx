@@ -16,7 +16,16 @@ OptoElinksZCU::OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
   for (int i = 1; i < 6 * 2; i++) markActive(i, false);
 }
 
-void OptoElinksZCU::injectError() { uiodecoder_.write(6, 0x1); }
+void OptoElinksZCU::injectError() {
+  /**
+   * @note We at UMN have not bee able to observe this functioning.
+   * It could be an issue with the link error counting firmware
+   * or a bug in the firmware that is supposed to be injecting the error
+   * or a software bug in that we are not poking the correct register
+   * or not waiting long enough after poking.
+   */
+  uiodecoder_.write(6, 0x3);
+}
 
 std::vector<uint32_t> OptoElinksZCU::spy(int ilink, bool new_capture) {
   static constexpr int REG_CAPTURE_ENABLE = 16;
