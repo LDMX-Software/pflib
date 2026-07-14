@@ -176,7 +176,15 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
         "CLOCK_40", "AXI_CLK", "DAQ_LINK_FECERR", "TRIG_LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
-      retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
+      uint32_t val = coder_.read(CRATES_OFFSET + i);
+      if (i == 8 or i == 9) {
+        // the FECERR rates have a longer integration time
+        // and count each error ~8 times
+        // a future FW version will likely remove this 8x counting
+        // so we only divide by the longer integration time here
+        val /= 1000;
+      }
+      retval[cnames[i]] = val;
     }
     /*
     for (int i{CRATES_OFFSET+cnames.size()}; i < 100; i++) {
