@@ -138,7 +138,11 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   std::string prefix = "LINK" + std::to_string(ilink_);
   retval[prefix + " READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
   retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
+  /**
+   * The LINK_ERRORS are not being incremented when a known error is injected,
+   * so without a future firmware patch, we are electing to ignore them.
   retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+   */
 
   /*
   for (int i{0}; i < 80; i++) {
@@ -176,6 +180,12 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
         "CLOCK_40", "AXI_CLK", "DAQ_LINK_FECERR", "TRIG_LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
+      if (i == 2 or i == 3) {
+        // the LINK_ERROR rates (which are just LINK_NOT_READY counters
+        // integrated over a period of time) don't appear to be deviating
+        // from zero in a useful way so we are NOT including them for now
+        continue;
+      }
       uint32_t val = coder_.read(CRATES_OFFSET + i);
       if (i == 8 or i == 9) {
         // the FECERR rates have a longer integration time
