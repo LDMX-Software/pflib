@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "pflib/Exception.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/lpgbt/GPIO.h"
 
 namespace pflib {
@@ -153,33 +154,55 @@ class lpGBT {
    */
   void setup_eclk(int ieclk, int rate, bool polarity = true, int strength = 4);
 
-  /** Setup the given elink-rx
-      \param ierx ERx index (0-5)
-      \param align Alignment mode (0-3)
-      \param alignphase Alignment phase particularly for fixed mode (0-15)
-      \param speed link speed as given in lpgbt manual (usually 3)
-      \param invert Invert the incoming signal
-      \param term Enable the internal 100 Ohm termination
-      \param equalization Value of the equalization field
-      \oaram acbias Apply a bias appropriate for AC-coupled elinks
-      On the LDMX lpGBT mezzanine, each elink-rx is configured with a single
-     active pair.
+  /**
+   * setup the line driver
+   *
+   * @param[in] modulation_current 7-bit (0-127) value setting the modulation
+   * current in multiples of 137 uA
+   * @param[in] enable_pre_emphasis if pre-emphasis should be enabled (true)
+   * or not (false)
+   * @param[in] short_pre_emphasis if pre-emphasis should be short (true)
+   * or long (false)
+   * @param[in] pre_emphasis_amplitude value of pre-emphasis current in
+   * multiples of 137 uA, up to 7 bits
+   */
+  void setup_line_driver(int modulation_current, bool enable_pre_emphasis,
+                         bool short_pre_emphasis, int pre_emphasis_amplitude);
+
+  /**
+   * Setup the given elink-rx
+   *
+   * @param ierx ERx index (0-5)
+   * @param align Alignment mode (0-3)
+   * @param alignphase Alignment phase particularly for fixed mode (0-15)
+   * @param speed link speed as given in lpgbt manual (usually 3)
+   * @param invert Invert the incoming signal
+   * @param term Enable the internal 100 Ohm termination
+   * @param equalization Value of the equalization field
+   * @param acbias Apply a bias appropriate for AC-coupled elinks
+   *
+   * On the LDMX lpGBT mezzanine, each elink-rx is configured
+   * with a single active pair.
    */
   void setup_erx(int ierx, int align, int alignphase = 0, int speed = 3,
                  bool invert = false, bool term = true, int equalization = 0,
                  bool acbias = false);
 
-  /** Check for PRBS errors on given eRx group and channel
-      \param group ERx index (0-6)
-      \param channel ERx index (0-3)
-      \param lpgbt_only Should we find errors with internal BERT (true) or
-     external (false) like econ
-      \param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
-     manual. Currently set to 3 for 1280 Mbps
-      \param bert_time_code BERT measurement time from table 14.5 in v1 manual
-  */
-  void check_prbs_errors_erx(int group, int channel, bool lpgbt_only = false,
-                             int data_rate_code = 3,
+  /**
+   * Check for PRBS errors on given eRx
+   *
+   * @param ierx eRx index input to the lpGBT mezzanine
+   * @param[in] check_all_phases do a BERT on each of all 16 possible phases
+   * before training the channel, default: false
+   * @param lpgbt_only Should we find errors with internal BERT (true) or
+   * external (false) like econ, default: false
+   * @param data_rate_code Data equal to 1, 2, or 3, from table 14.6 in v1
+   * manual. default is 3 for 1280 Mbps
+   * @param bert_time_code BERT measurement time from table 14.5 in v1 manual
+   * default is 4
+   */
+  void check_prbs_errors_erx(int ierx, bool check_all_phases = false,
+                             bool lpgbt_only = false, int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate
@@ -266,6 +289,7 @@ class lpGBT {
     uint8_t read_len;
   } i2c_[3];
   ::pflib::lpgbt::GPIO gpio_;
+  mutable logging::logger the_log_{logging::get("lpGBT")};
 };
 
 }  // namespace pflib

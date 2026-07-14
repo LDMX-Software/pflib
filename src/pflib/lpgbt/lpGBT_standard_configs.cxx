@@ -112,6 +112,11 @@ void setup_hcal_trig(pflib::lpGBT& lpgbt) {
   for (int i = 0; i < 6; i++) {
     lpgbt.setup_erx(i, 0);
   }
+
+  // make sure line driver's modulation current is high
+  // and disable pre-emphasis
+  lpgbt.setup_line_driver(127 /* modulation current */, false, false, 0);
+
   // finalize the setup
   lpgbt.finalize_setup();
 }
@@ -177,6 +182,9 @@ void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
     for (int i = 0; i < 6; i++) {
       lpgbt.setup_erx(i, 0);
     }
+    // make sure line driver's modulation current is high
+    // and disable pre-emphasis
+    lpgbt.setup_line_driver(127 /* modulation current */, false, false, 0);
     // finalize the setup
     lpgbt.finalize_setup();
   }  // end condition on TRIG_SingleModuleMotherboard

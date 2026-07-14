@@ -103,7 +103,6 @@ static void i2c(const std::string& cmd, Target* target) {
  * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
- * - STATUS : pflib::Target::elinkStatus with std::cout input
  *
  * @param[in] cmd ELINKS command
  * @param[in] pft active target
@@ -113,7 +112,7 @@ static void elinks(const std::string& cmd, Target* pft) {
   if (cmd == "SPY") {
     pftool::state.ilink =
         pftool::readline_int("Which elink? ", pftool::state.ilink);
-    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink);
+    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink, true);
     for (size_t i = 0; i < spy.size(); i++)
       printf("%02d %08x\n", int(i), spy[i]);
   }
@@ -172,7 +171,7 @@ static void elinks(const std::string& cmd, Target* pft) {
       elinks.setAlignPhase(alink, apt);
       int bpt = elinks.scanBitslip(alink);
       if (bpt >= 0) elinks.setBitslip(alink, bpt);
-      std::vector<uint32_t> spy = elinks.spy(alink);
+      std::vector<uint32_t> spy = elinks.spy(alink, true);
       printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
              bpt, spy[0]);
     }
@@ -276,11 +275,12 @@ auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
                     ->line("MULTIWRITE", "Write to an address", i2c);
 auto menu_elinks =
     menu_expert->submenu("ELINKS", "manage the elinks")
-        ->line("RELINK", "Follow standard procedure to establish links", elinks)
+        ->line("RELINK", "Follow standard procedure to establish links", elinks,
+               ONLY_FIBERLESS)
         ->line("HARD_RESET", "Hard reset of the PLL", elinks)
-        ->line("STATUS", "Elink status summary", elinks)
         ->line("SPY", "Spy on an elink", elinks)
-        ->line("AUTO", "Attempt to re-align automatically", elinks)
+        ->line("AUTO", "Attempt to re-align automatically", elinks,
+               ONLY_FIBERLESS)
         ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
         ->line("SCAN", "Scan on an elink", elinks)
         ->line("DELAY", "Set the delay on an elink", elinks);

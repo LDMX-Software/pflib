@@ -3,6 +3,7 @@
  * OPTO menu commands
  */
 #include "pflib/OptoLink.h"
+#include "pflib/zcu/zcu_elinks.h"
 #include "pftool.h"
 
 ENABLE_LOGGING();
@@ -36,9 +37,24 @@ void opto(const std::string& cmd, Target* target) {
 
   auto& olink{target->get_opto_link(olink_name)};
 
+  if (cmd == "INJECT_ERROR") {
+    if (pftool::state.readout_config_is_zcu()) {
+      auto& zcuoelinks{
+          static_cast<pflib::zcu::OptoElinksZCU&>(target->elinks())};
+      // spamming because it isn't working...
+      for (int i{0}; i < 1000; i++) {
+        zcuoelinks.injectError();
+      }
+    } else {
+      pflib_log(error) << "injecting an error is possible on the ZCU";
+    }
+  }
+
   if (cmd == "FULLSTATUS") {
+    static const uint16_t ULDATASOURCE0 = 0x128;
     printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
            olink.get_rx_polarity());
+    pflib::lpGBT lpgbt{target->get_opto_link(olink_name).lpgbt_transport()};
     std::map<std::string, uint32_t> info;
     info = olink.opto_status();
     printf("Optical status:\n");
@@ -76,6 +92,9 @@ namespace {
 auto optom =
     pftool::menu("OPTO", "Optical Link Functions", opto_render, NEED_FIBER)
         ->line("CHOOSE", "Choose optical link to connect to", opto)
+        ->line("INJECT_ERROR",
+               "Attempt to inject an error into the link for testing", opto,
+               ONLY_ZCU)
         ->line("FULLSTATUS", "Get full status", opto)
         ->line("SOFTRESET", "soft reset optical link", opto)
         ->line("RESET",

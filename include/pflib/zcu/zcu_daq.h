@@ -1,4 +1,6 @@
+#pragma once
 #include "pflib/DAQ.h"
+#include "pflib/logging/Logging.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -10,13 +12,13 @@ namespace zcu {
 class ZCU_Capture : public DAQ {
  public:
   virtual ~ZCU_Capture() = default;
-  ZCU_Capture();
+  ZCU_Capture(int itarget);
   virtual void reset() final;
   virtual int getEventOccupancy() final;
   virtual void setupLink(int ilink, int l1a_delay,
                          int l1a_capture_width) final {
-    // none of these parameters are relevant for the econd capture, which is
-    // data-pattern based
+    // none of these parameters are relevant for the econd capture,
+    // which is data-pattern based
   }
   virtual void getLinkSetup(int ilink, int& l1a_delay,
                             int& l1a_capture_width) final {
@@ -34,6 +36,7 @@ class ZCU_Capture : public DAQ {
  private:
   UIO capture_;
   bool per_econ_;
+  mutable logging::logger the_log_;
 };
 
 }  // namespace zcu

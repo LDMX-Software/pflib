@@ -3,6 +3,9 @@
 #include "pflib/utility/string_format.h"
 using pflib::utility::string_format;
 
+#include "pflib/packing/Hex.h"
+using pflib::packing::hex;
+
 namespace pflib {
 namespace zcu {
 
@@ -11,7 +14,10 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
       coder_(coder_name),
       coder_name_(coder_name),
       ilink_(ilink),
-      isdaq_(isdaq) {
+      isdaq_(isdaq),
+      the_log_{logging::get("zcu_optolink")} {
+  uint32_t olink_block_vers = coder_.read(256);
+  pflib_log(info) << "OLink FW Vers: " << hex(olink_block_vers);
   // enable all SFPs, use internal clock
   transright_.write(0x2, 0xF0000);
   int chipaddr = 0x78;          // EC
@@ -22,6 +28,11 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
 }
 
 static const uint32_t REG_STATUS = 3;
+
+void ZCUOptoLink::soft_reset_link() {
+  /// reset the decoder for the current link
+  coder_.write(0, 1 << (ilink_ % 2));
+}
 
 void ZCUOptoLink::reset_link() {
   /**
@@ -39,7 +50,7 @@ void ZCUOptoLink::reset_link() {
   usleep(1000);
   int done = transright_.readMasked(REG_STATUS, 0x8);
   int attempts = 1;
-  while (!done and attempts < 100) {
+  while (!done and attempts < 1000) {
     if (attempts % 10 == 0) {
       transright_.write(0x0, GTH_RESET);
       usleep(1000);
@@ -62,7 +73,7 @@ void ZCUOptoLink::reset_link() {
    * (which depends on the link), IC, and EC (which are
    * for a daq/trg link pair.
    */
-  coder_.write(0, 1 << (ilink_ % 2));  // reset the DECODER
+  soft_reset_link();
   if (isdaq_) {
     usleep(1000);
     coder_.write(65, 0x40000000);  // reset IC
@@ -129,6 +140,12 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
   retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
 
+  /*
+  for (int i{0}; i < 80; i++) {
+    printf("CODER @ %02d: %04x\n", i, coder_.read(i));
+  }
+  */
+
   return retval;
 }
 
@@ -161,6 +178,11 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
     for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
     }
+    /*
+    for (int i{CRATES_OFFSET+cnames.size()}; i < 100; i++) {
+      printf("CODER @ %02d: %08x\n", i, coder_.read(i));
+    }
+    */
   }
 
   return retval;

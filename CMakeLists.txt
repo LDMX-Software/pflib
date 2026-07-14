@@ -133,6 +133,7 @@ set(pflib_src
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/zcu/zcu_elinks.cxx
   src/pflib/zcu/zcu_daq.cxx
+  src/pflib/zcu/zcu_trig.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplane.cxx
   src/pflib/zcu/EcalSMM.cxx

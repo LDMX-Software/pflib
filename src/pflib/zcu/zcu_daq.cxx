@@ -1,5 +1,8 @@
 #include "pflib/zcu/zcu_daq.h"
 
+#include "pflib/packing/Hex.h"
+#include "pflib/utility/string_format.h"
+
 namespace pflib {
 namespace zcu {
 
@@ -34,13 +37,21 @@ static constexpr uint32_t MASK_TREADY_DAQ = 0x40000000;
 static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
-ZCU_Capture::ZCU_Capture() : DAQ(1), capture_("econd-buffer-0") {
-  //    printf("Firmware type and version: %08x %08x
-  //    %08x\n",capture_.read(0),capture_.read(ADDR_IDLE_PATTERN),capture_.read(ADDR_HEADER_MARKER));
+using pflib::packing::hex;
+
+ZCU_Capture::ZCU_Capture(int itarget)
+    : DAQ(1),
+      capture_(pflib::utility::string_format("econd-buffer-%d", itarget)),
+      the_log_{logging::get("zcu_capture")} {
+  uint32_t version_reg = capture_.read(0);
+  uint16_t hw_type = ((version_reg >> 16) & 0xffff);
+  uint16_t fw_vers = (version_reg & 0xffff);
+  pflib_log(info) << "HW Type: " << hex(hw_type)
+                  << " FW version: " << hex(fw_vers);
   // setting up with expected capture parameters
   capture_.write(ADDR_IDLE_PATTERN, 0x1277cc);
-  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER,
-                       0x1E6);  // 0xAA followed by one bit...
+  // 0x1E6 == 0xAA followed by one bit
+  capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
   per_econ_ = true;  // reading from the per-econ buffer, not the AXIS buffer
 }
 void ZCU_Capture::reset() {
@@ -120,12 +131,6 @@ std::map<std::string, uint32_t> ZCU_Capture::get_debug(uint32_t ask) {
   std::map<std::string, uint32_t> dbg;
   capture_.writeMasked(ADDR_UPPER_ADDR, MASK_UPPER_ADDR, 0);
   static const int stepsize = 1;
-  FILE* f = fopen("dump.txt", "w");
-
-  for (int i = 0; i < 0xFFF / 4; i++)
-    fprintf(f, "%03x %03x %08x\n", i * 4, i, capture_.read(i));
-  fclose(f);
-
   dbg["COUNT_IDLES"] = capture_.read(ADDR_BASE_COUNTER);
   dbg["COUNT_NONIDLES"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 1);
   dbg["COUNT_STARTS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 2);

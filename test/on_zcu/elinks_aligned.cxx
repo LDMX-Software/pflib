@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(check_daq_idleframe) {
                 .apply();
   auto& elinks{hgcroc_connection::tgt->elinks()};
   for (std::size_t i_link{0}; i_link < 2; i_link++) {
-    auto spy{elinks.spy(i_link)};
+    auto spy{elinks.spy(i_link, true)};
     for (auto word : spy) {
       BOOST_CHECK_EQUAL(word, 0xa1234567);
     }
