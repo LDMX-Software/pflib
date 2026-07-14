@@ -137,7 +137,7 @@ class InjectUpLinkDataSource : public InjectTestPattern {
     switch (choice_) {
       case Source::PRBS7: {
         std::bitset<64 * 32> data;
-        for (int iword{0}; iword < 64; iword++) {
+        for (int iword{0}; iword < spy.size(); iword++) {
           for (int ibit{0}; ibit < 32; ibit++) {
             data[32 * iword + ibit] = ((spy[iword] >> (31 - ibit)) & 0x1);
           }
@@ -295,7 +295,7 @@ void check_lpgbt_backend(Target* target) {
   std::unique_ptr<InjectTestPattern> injector;
   if (pftool::readline_bool(
           "Inject test pattern into serializer (y) or eRx groups (n)? ",
-          true)) {
+          false)) {
     int output_choice = pftool::readline_int(
         "Test Choice:\n  1. PRBS7\n  2. CLK40M\n  3. Const Pattern\n", 3);
     if (output_choice < 1 or output_choice > 3) {
@@ -364,14 +364,14 @@ void check_lpgbt_backend(Target* target) {
   std::vector<std::vector<uint32_t>> spy(6);
   int ilink_offset{daq ? 0 : 6};
   printf("word :");
-  for (int ilink{0}; ilink < 6; ilink++) {
+  for (int ilink{0}; ilink < spy.size(); ilink++) {
     spy[ilink] = elinks.spy(ilink_offset + ilink, ilink == 0);
-    printf("   Link %d", ilink);
+    printf("  Link %2d", ilink);
   }
   printf("\n");
-  for (int iword{0}; iword < 64; iword++) {
+  for (int iword{0}; iword < spy[0].size(); iword++) {
     printf("%4d :", iword);
-    for (int ilink{0}; ilink < 6; ilink++) {
+    for (int ilink{0}; ilink < spy.size(); ilink++) {
       printf(" %08x", spy[ilink][iword]);
     }
     printf("\n");
