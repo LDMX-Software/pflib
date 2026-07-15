@@ -28,8 +28,12 @@ ERX:
 ETX:
   0_INVERT_DATA: 0
 ELINKPROCESSORS:
-  GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same 
-  GLOBAL_VETO_PASS_FAIL: 0xFFFF # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
+  # number of erxs that should have the same EBO to build event
+  GLOBAL_V_RECONSTRUCT_THRESH: 0 
+  # select all of the possible combinations of event status bits (E, HT, EBO, and M) as ok
+  GLOBAL_VETO_PASS_FAIL: 0xFFFF
+  # ignore all EBO mismatch errors since that is regularly failing right now
+  GLOBAL_ERX_MASK_EBO: 0xFFF
 FORMATTERBUFFER:
   GLOBAL_ACTIVE_ETXS: 1 # only 1 active etx
   GLOBAL_IDLE_PATTERN: 0x1277cc # must match what's in ECON-lpGBT align code

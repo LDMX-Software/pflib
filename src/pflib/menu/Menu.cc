@@ -209,11 +209,13 @@ double BaseMenu::readline_float(const std::string& prompt) {
 
 int BaseMenu::readline_int(const std::string& prompt, int aval, bool ashex) {
   char buffer[50];
-  if (ashex)
+  if (ashex) {
     sprintf(buffer, "0x%x", aval);
-  else
+    return pflib::utility::str_to_int(BaseMenu::readline(prompt, buffer));
+  } else {
     sprintf(buffer, "%d", aval);
-  return pflib::utility::str_to_int(BaseMenu::readline(prompt, buffer));
+    return std::stol(BaseMenu::readline(prompt, buffer), 0, 0);
+  }
 }
 
 bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {

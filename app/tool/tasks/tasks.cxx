@@ -22,6 +22,7 @@
 #include "set_toa.h"
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
+#include "setup/check_lpgbt_backend.h"
 #include "toa_csv_scan.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
@@ -91,6 +92,8 @@ auto menu_setup_tasks =
     menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
-               align_econ_lpgbt);
+               align_econ_lpgbt)
+        ->line("CHECK_LPGBT_BACKEND", "check lpGBT-Backend data pipeline",
+               check_lpgbt_backend);
 
 }  // namespace

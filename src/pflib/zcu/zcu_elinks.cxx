@@ -15,20 +15,29 @@ OptoElinksZCU::OptoElinksZCU(lpGBT* lpdaq, lpGBT* lptrig, int itarget)
   // deactivate all the links except DAQ link 0 for now
   for (int i = 1; i < 6 * 2; i++) markActive(i, false);
 }
-std::vector<uint32_t> OptoElinksZCU::spy(int ilink) {
-  std::vector<uint32_t> retval;
-  // spy now...
+
+void OptoElinksZCU::injectError() {
+  uiodecoder_.write(6, 0xc);
+  usleep(1000);
+  uiodecoder_.write(6, 0x0);
+}
+
+std::vector<uint32_t> OptoElinksZCU::spy(int ilink, bool new_capture) {
   static constexpr int REG_CAPTURE_ENABLE = 16;
   static constexpr int REG_CAPTURE_OLINK = 17;
   static constexpr int REG_CAPTURE_ELINK = 18;
   static constexpr int REG_CAPTURE_PTR = 19;
   static constexpr int REG_CAPTURE_WINDOW = 20;
+
+  std::vector<uint32_t> retval;
   uiodecoder_.write(REG_CAPTURE_OLINK, ilink / 6);
   uiodecoder_.write(REG_CAPTURE_ELINK, ((ilink % 6) + 1) & 0x7);
-  uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
-  uiodecoder_.write(REG_CAPTURE_ENABLE, 1);
-  usleep(1000);
-  uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
+  if (new_capture) {
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 1);
+    usleep(1000);
+    uiodecoder_.write(REG_CAPTURE_ENABLE, 0);
+  }
   for (int i = 0; i < 64; i++) {
     uiodecoder_.write(REG_CAPTURE_PTR, i);
     usleep(1);
