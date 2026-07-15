@@ -158,6 +158,10 @@ CH
         auto data = buffer.get_buffer(); //take the data from this run 
         int length = data.size();
         for (int i_roc : tgt->roc_ids()) {
+        // skip ROCs that already have good trim values
+          if (good_trim_val[i_roc]){
+            continue;
+          }
         int toa_count = 0;
         auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
 
