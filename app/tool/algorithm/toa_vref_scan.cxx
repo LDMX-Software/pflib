@@ -54,24 +54,6 @@ toa_vref_scan(Target* tgt) {
     for (int i_roc : tgt->roc_ids()) {
       // Debug callout for mapping
       const auto& mapping = tgt->getRocErxMapping();
-      try {
-        auto [first_erx, first_ch] = mapping.toErxChannel(i_roc, 0);
-        auto [last_erx, last_ch] = mapping.toErxChannel(i_roc, 71);
-
-        if (toa_vref == 0) {
-          pflib_log(info) << "[DEBUG MAP] Mapping Check for ROC " << i_roc
-                          << ":"
-                          << " Ch 0  -> eRx " << (int)first_erx << ", eCh "
-                          << (int)first_ch << " | Ch 71  -> eRx "
-                          << (int)last_erx << ", eCh " << (int)last_ch;
-        }
-      }
-
-      catch (const std::exception& e) {
-        pflib_log(error) << "[DEBUG MAP] Critical: Mapping lookup threw an "
-                            "exception for ROC "
-                         << i_roc << ". Message: " << e.what();
-      }
 
       auto efficiencies =
           get_toa_efficiencies(i_roc, mapping, buffer.get_buffer());
