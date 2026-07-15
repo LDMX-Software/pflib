@@ -18,7 +18,7 @@ void trig_render(Target* tgt) {}
  * - ALIGN_SETUP : setup the alignment capture time
  * - ALIGN_READ : read the alignment capture buffer
  * - ALIGN_DELAY : set the delay for one elink
- * - DAQ_DEBUG : debug the DAQ functionality of the block
+ * - ELINK_SPY : spy on six TRIG elinks
  */
 void trig(const std::string& cmd, Target* target) {
   static std::string olink_name;
@@ -48,6 +48,23 @@ void trig(const std::string& cmd, Target* target) {
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
     pipeline = pftool::readline_int("pipeline depth: ", pipeline);
     trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
+  }
+  if (cmd == "ELINK_SPY") {
+    pflib::Elinks& elinks = target->elinks();
+    std::vector<std::vector<uint32_t>> spy(6);
+    printf("word :");
+    for (int ilink{0}; ilink < spy.size(); ilink++) {
+      spy[ilink] = elinks.spy(6 + ilink, ilink == 0);
+      printf("  Link %2d", ilink);
+    }
+    printf("\n");
+    for (int iword{0}; iword < spy[0].size(); iword++) {
+      printf("%4d :", iword);
+      for (int ilink{0}; ilink < spy.size(); ilink++) {
+        printf(" %08x", spy[ilink][iword]);
+      }
+      printf("\n");
+    }
   }
   if (cmd == "ALIGN_SETUP") {
     int value = pftool::readline_int("Alignment capture delay: ",
@@ -98,5 +115,6 @@ auto menu_trig =
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
-        ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig);
+        ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
+        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig);
 }  // namespace
