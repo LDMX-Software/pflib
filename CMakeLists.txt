@@ -40,6 +40,12 @@ if (NOT TARGET yaml-cpp::yaml-cpp)
 endif()
 
 # Boost for CRC calculator, Test, Logging, and Python bindings
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+  cmake_policy(SET CMP0167 NEW)
+endif()
 find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
