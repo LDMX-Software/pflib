@@ -57,6 +57,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>trim_toa_sc
     Target* tgt)
 {static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
+std::string save_name = pftool::readline("Name of file that you would like to save TRIM_TOA efficiency data (empty if you do not want the file):");
+
+
   /**
    * Charge injection scan (100 samples) while varying TRIM_TOA.
    * Purpose is to align TRIM_TOA for each channel.
@@ -184,6 +187,11 @@ CH
 pflib_log(info) << "sample collections done, deducing settings";
 
 //saving the efficiencies to a csv file to have visualization using the toa_graph.py command
+
+if (save_name.empty()){
+//nothing
+}
+else{
 std::ofstream csv_file("toa_efficiencies.csv");
 for (int i_roc : tgt->roc_ids()) {
   for (int trim_toa{0}; trim_toa < trim_toa_max ; trim_toa += trim_toa_step) {
@@ -192,11 +200,11 @@ for (int i_roc : tgt->roc_ids()) {
         // divide by the proper stepsize for indexing
         double efficiency = final_data[roc_index[i_roc]][(calib - calib_min) / calib_step][trim_toa / trim_toa_step][ch];
         csv_file << i_roc << "," << ch << "," << trim_toa << "," << calib << "," << efficiency << "\n";
-      }
     }
+   }
   }
+ }
 }
-
 pflib_log(info) << "Saved data file successfully";
 
   /**
