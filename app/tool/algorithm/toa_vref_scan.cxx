@@ -9,6 +9,13 @@
 #include "pflib/utility/efficiency.h"
 #include "pflib/utility/string_format.h"
 #include "trim_toa_scan.h"
+<<<<<<< Updated upstream
+=======
+#include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+>>>>>>> Stashed changes
 
 namespace pflib::algorithm {
 
@@ -77,8 +84,21 @@ toa_vref_scan(Target* tgt, bool scan_all) {
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
   // create a .csv file to save efficiency and vref data for analysis
+<<<<<<< Updated upstream
   std::ofstream csv_file("toa_vref_scan_data.csv");
   csv_file << "TOA_VREF";
+=======
+  auto now = std::chrono::system_clock::now();
+  auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+  std::stringstream ss;
+  ss << "toa_vref_scan_data_" << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S") << ".csv";
+  std::string filename = ss.str();
+
+  std::ofstream csv_file(filename);
+  pflib_log(info) << "Saving scan data to file: " << filename;
+  csv_file << "TOA_VREF,ROC";
+>>>>>>> Stashed changes
   for (int chan = 0; chan < 72; ++chan) {
     csv_file << "," << chan;
   }

@@ -63,9 +63,10 @@ for chan in range(72):
     channel_lists.append(data[str(chan)].values)
 
 # Plotting the results
+input_stem = Path(args.f).stem
 plt.figure(figsize=(10, 6))
 for chan in range(72):
-    plt.plot(channel_lists[chan], 
+    plt.plot(vref_axis, channel_lists[chan], 
              marker = 'o', 
              label=f'Ch. {chan}', 
              linestyle='none')
@@ -73,9 +74,10 @@ plt.title('TOA Efficiency vs TOA VREF per channel')
 plt.xlabel('TOA VREF')
 plt.ylabel('TOA Efficiency')
 plt.tight_layout()
-plt.savefig(f"toa_efficiency_plot_roc{args.roc}.png")
-plt.show()
-print(f"Plot saved as 'toa_efficiency_plot_roc{args.roc}.png'")
+plot_filename = f"toa_efficiency_plot_{input_stem}_roc{args.roc}.png"
+plt.savefig(plot_filename)
+plt.close()
+print(f"Plot saved as '{plot_filename}'")
 
 # Printing the values of highest non-zero TOA_VREF per link
 link0 = np.array(channel_lists[:36]).T
@@ -93,8 +95,8 @@ if not link0_count or not link1_count:
     print("Error: Efficiency data contains only zeros for one or both links.")
     sys.exit()
 
-max_vref_l0 = vref_axis[link0_count[-1]]
-max_vref_l1 = vref_axis[link1_count[-1]]
+max_vref_l0 = data.loc[link0_count[-1], "TOA_VREF"]
+max_vref_l1 = data.loc[link1_count[-1], "TOA_VREF"]
 
 optimal_vref_l0 = max_vref_l0 + 10
 optimal_vref_l1 = max_vref_l1 + 10
@@ -118,7 +120,7 @@ for _, row in df_max.iterrows():
         'TOA_VREF': int(row['max_toa'])
     }
 
-yaml_filename = f"output_roc{args.roc}.yaml"
+yaml_filename = f"output_{input_stem}_roc{args.roc}.yaml"
 with open(yaml_filename, "w") as f:
     yaml.dump(yaml_data, f, sort_keys=False)
 
