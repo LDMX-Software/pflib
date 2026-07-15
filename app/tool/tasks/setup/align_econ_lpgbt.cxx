@@ -175,6 +175,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     static const int ICAPTURE_DELAY = 29;
     trig->setup_alignment_capture(ICAPTURE_DELAY);
 
+    bool all_succeed = true;
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
       int got_idle_phase = -1;
@@ -199,10 +200,47 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
         }
       }
       if (got_idle_phase < 0) {
-        printf(" Unable to find word alignment for ilink %d\n", ilink);
+        all_succeed = false;
+        pflib_log(warn) << "unable to find word alignment for link "
+                        << ilink << " from ECON-T";
       } else {
         econ.applyParameter("FORMATTERBUFFER", reg_name, got_idle_phase);
       }
+    }
+
+    if (all_succeed) {
+      pflib_log(info) << "checking if aligned links are in time";
+      bool different_first_bx = false;
+      int first_bx = -1;
+      for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
+        tgt->fc().linkreset_econs();
+        usleep(2000);
+        std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
+        int last_bx = -1;
+        for (int i_sample{0}; i_sample < samples.size(); i_sample++) {
+          int bx = ((samples[i_sample] >> (16 + 11)) & 0x1f);
+          // should be two equal bx
+          if (bx != ((samples[i_sample] >> 11) & 0x1f)) {
+            pflib_log(warn) << "unequal BX in same sample for link " << ilink;
+          }
+          if (i_sample == 0) {
+            if (ilink == 0) {
+              first_bx = bx;
+            } else if (bx != first_bx) {
+              different_first_bx = true;
+              pflib_log(warn) << "different BX between link " << ilink << " and link 0";
+            }
+          } else if (bx != ((last_bx + 1) % 16) and bx != 31) {
+            pflib_log(warn) << "BX not incrementing by one within link " << ilink; 
+          }
+          last_bx = bx % 16;
+        }
+      }
+      if (not different_first_bx) {
+        pflib_log(info) << "separate links are in time";
+      }
+    } else {
+      pflib_log(warn) << "unable to check if the separate links are in time";
     }
   }
 }
