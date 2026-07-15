@@ -36,9 +36,9 @@ static constexpr uint32_t ADDR_N_ELINKS = 0x800 / 4;
 static constexpr uint32_t MASK_N_ELINKS = 0x0000F000;
 
 static constexpr uint32_t ADDR_DAQ_TVALID = 0x800 / 4;
-static constexpr uint32_t MASK_DAQ_TVALID = 0x00000010;
+static constexpr uint32_t MASK_DAQ_TVALID = 0x00000100;
 static constexpr uint32_t ADDR_DAQ_TLAST = 0x800 / 4;
-static constexpr uint32_t MASK_DAQ_TLAST = 0x00000020;
+static constexpr uint32_t MASK_DAQ_TLAST = 0x00000200;
 
 static constexpr uint32_t ADDR_DAQ_DATA = 0x804 / 4;
 

@@ -18,7 +18,11 @@ void trig_render(Target* tgt) {}
  * - ALIGN_SETUP : setup the alignment capture time
  * - ALIGN_READ : read the alignment capture buffer
  * - ALIGN_DELAY : set the delay for one elink
- * - ELINK_SPY : spy on six TRIG elinks
+ * - ELINK_SPY : spy on six TRIG elinks (Elinks::spy)
+ * - EVENT_SPY : readout the last captured event (TRIG::read_event)
+ * - PIPELINE : change depth of capture buffer for readout
+ * - SAMPLES_PER_L1A : number of samples to readout per l1a
+ * - PRESAMPLES : number of "pre-samples" to include in readout
  */
 void trig(const std::string& cmd, Target* target) {
   static std::string olink_name;
@@ -43,10 +47,16 @@ void trig(const std::string& cmd, Target* target) {
     }
     std::cout << std::flush;
   }
-  if (cmd == "PIPELINE") {
+  if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
-    pipeline = pftool::readline_int("pipeline depth: ", pipeline);
+    if (cmd == "PIPELINE") {
+      pipeline = pftool::readline_int("pipeline depth: ", pipeline);
+    } else if (cmd == "SAMPLES_PER_L1A") {
+      samples_per_l1a = pftool::readline_int("number of samples per L1A: ", samples_per_l1a);
+    } else if (cmd == "PRESAMPLES") {
+      presamples = pftool::readline_int("number of pre-samples: ", presamples);
+    }
     trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
   }
   if (cmd == "ELINK_SPY") {
@@ -64,6 +74,15 @@ void trig(const std::string& cmd, Target* target) {
         printf(" %08x", spy[ilink][iword]);
       }
       printf("\n");
+    }
+  }
+  if (cmd == "EVENT_SPY") {
+    std::vector<uint32_t> event = trig->read_event();
+    if (event.empty()) {
+      pflib_log(info) << "no event available";
+    }
+    for (uint32_t word : event) {
+      printf("%08x\n", word);
     }
   }
   if (cmd == "ALIGN_SETUP") {
@@ -112,9 +131,16 @@ auto menu_trig =
     pftool::menu("TRIG", "TRIGGER functionalities", trig_render, ONLY_ZCU)
         ->line("STATUS", "printout trigger settings", trig)
         ->line("PIPELINE", "set the pipeline depth for trigger capture", trig)
+        ->line("SAMPLES_PER_L1A", "set number of samples to readout in an L1A", trig)
+        ->line("PRESAMPLES", "set number of pre-samples in an L1A", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
         ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
-        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig);
+        ->line("SW_L1A", "send a L1A from software",
+               [](Target* tgt) { tgt->fc().sendL1A(); })
+        ->line("ADV", "advance the readout pointers",
+               [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
+        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
+        ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 }  // namespace
