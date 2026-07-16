@@ -2,6 +2,9 @@
 
 #include "pflib/Exception.h"
 
+#include "pflib/packing/Hex.h"
+using pflib::packing::hex;
+
 namespace pflib {
 namespace zcu {
 
@@ -42,16 +45,16 @@ static constexpr uint32_t MASK_DAQ_TLAST = 0x00000200;
 
 static constexpr uint32_t ADDR_DAQ_DATA = 0x804 / 4;
 
-ZCUtrig::ZCUtrig() : uio_("trigpath-0") {
-  uint32_t fw = uio_.read(0);
-  //    printf("Firmware type and version: %08x %08x
-  //    %08x\n",uio_.read(0),uio_.read(ADDR_IDLE_PATTERN),uio_.read(ADDR_HEADER_MARKER));
+ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
+  uint16_t fw = (uio_.read(0) & 0xffff);
   // setting up with expected capture parameters
-  if ((fw & 0xFFFF) == 0x1)
+  pflib_log(debug) << "trigpath firwmare block version " << hex(fw);
+  if (fw == 0x1) {
     nelinks_ = 3;
-  else {
+  } else {
     nelinks_ = uio_.readMasked(ADDR_N_ELINKS, MASK_N_ELINKS);
   }
+  pflib_log(debug) << "n_elinks = " << nelinks_;
 }
 void ZCUtrig::reset() { uio_.write(ADDR_SW_RESET, ADDR_SW_RESET); }
 
@@ -68,8 +71,6 @@ std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
   std::vector<uint32_t> retval(N_SAMPLES, 0);
   for (int i = 0; i < N_SAMPLES; i++) {
     retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (i + ilink * N_SAMPLES));
-    //    printf("%04x
-    //    %08x\n",ADDR_ALIGNER_SPY_BASE+(i+ilink*N_SAMPLES),retval[i]);
   }
   return retval;
 }

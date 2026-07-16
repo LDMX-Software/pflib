@@ -3,6 +3,7 @@
 
 #include "pflib/TRIG.h"
 #include "pflib/zcu/UIO.h"
+#include "pflib/logging/Logging.h"
 
 namespace pflib {
 namespace zcu {
@@ -35,6 +36,7 @@ class ZCUtrig : public TRIG {
  private:
   UIO uio_;
   int nelinks_;
+  mutable logging::logger the_log_;
 };
 
 }  // namespace zcu
