@@ -226,6 +226,9 @@ target_link_libraries(pfdecoder PRIVATE pflib)
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
 
+add_executable(econt-decoder app/econt_decoder.cxx)
+target_link_libraries(econt-decoder PRIVATE pflib)
+
 if (${Rogue_FOUND})
   add_executable(rogue-decoder app/rogue_decoder.cxx)
   target_link_libraries(rogue-decoder PUBLIC pflib Rogue::Rogue)
