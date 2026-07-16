@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser(
     description='takes a csv from tasks.toa_vref_scan and outputs a plot of TOA efficiency per channel against TOA VREF values'
 )
 parser.add_argument('-f', required = True, help='csv file containing scan from tasks.toa_vref_scan')
-parser.add_argument('-r', '--roc', type = int, choices = [0, 1, 2, 3], required = True, help = 'ROC index to filter data (e.g., 0, 1, 2, 3)')
+parser.add_argument('-r', '--roc', type = int, choices = [0, 1, 2, 3, 4, 5], required = True, help = 'ROC index to filter data (e.g., 0, 1, 2, 3, 4, 5)')
 args = parser.parse_args()
 
 if not os.path.isfile(args.f):
@@ -29,9 +29,20 @@ if not os.path.isfile(args.f):
 if not args.f.lower().endswith('csv'):
     print(args.f + ' is not a csv file')
     sys.exit()
+
 data, head = read_pflib_csv(args.f)
 
-data = data.iloc[args.roc::4].copy()
+data.columns = data.columns.str.strip()
+
+if 'ROC' not in data.columns:
+  print("Error: 'ROC' column missing from CSV header. Please make sure you are using the updated C++ code.")
+  sys.exit()
+
+data = data[data['ROC'] == args.roc].copy()
+
+if data.empty:
+  print(f"Error: No scan data found for ROC {args.roc} in '{args.f}'. Was this ROC active during the run?")
+  sys.exit()
 
 data = data.sort_values(by='TOA_VREF').reset_index(drop = True)
 print(f"Extracted {len(data)} voltage points for ROC {args.roc}")
@@ -70,7 +81,7 @@ for chan in range(72):
              marker = 'o', 
              label=f'Ch. {chan}', 
              linestyle='none')
-plt.title('TOA Efficiency vs TOA VREF per channel')
+plt.title(f'TOA Efficiency vs TOA VREF per channel for ROC: {args.roc}')
 plt.xlabel('TOA VREF')
 plt.ylabel('TOA Efficiency')
 plt.tight_layout()

@@ -8,7 +8,14 @@
 
 void toa_vref_scan(Target* tgt) {
   bool scan_all = pftool::readline_bool("Scan all VREF values?", false);
-  auto settings = pflib::algorithm::toa_vref_scan(tgt, scan_all);
+
+  bool write_csv = pftool::readline_bool("Save raw scan data to a CSV file?", true);
+  std::string csv_path = "";
+  if (write_csv) {
+    csv_path = pftool::readline_path("toa-vref-scan-data", ".csv");
+  }
+
+  auto settings = pflib::algorithm::toa_vref_scan(tgt, scan_all, write_csv, csv_path);
 
   YAML::Emitter out;
   out << YAML::BeginMap;

@@ -16,7 +16,7 @@
 namespace pflib::algorithm {
 
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
-toa_vref_scan(Target* tgt, bool scan_all) {
+toa_vref_scan(Target * tgt, bool scan_all, bool write_csv, const std::string& csv_filepath) {
   static auto the_log_{::pflib::logging::get("toa_vref_scan")};
 
   static const std::size_t n_events = 100;
@@ -39,21 +39,32 @@ toa_vref_scan(Target* tgt, bool scan_all) {
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
   // create a .csv file to save efficiency and vref data for analysis
-  auto now = std::chrono::system_clock::now();
-  auto in_time_t = std::chrono::system_clock::to_time_t(now);
+  std::ofstream csv_file;
 
-  std::stringstream ss;
-  ss << "toa_vref_scan_data_"
-     << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S") << ".csv";
-  std::string filename = ss.str();
+  if (write_csv) {
+    std::string final_path = csv_filepath;
 
-  std::ofstream csv_file(filename);
-  pflib_log(info) << "Saving scan data to file: " << filename;
-  csv_file << "TOA_VREF,ROC";
-  for (int chan = 0; chan < 72; ++chan) {
-    csv_file << "," << chan;
+    if (final_path.empty()) {
+      auto now = std::chrono::system_clock::now();
+      auto in_time_t = std::chrono::system_clock::to_time_t(now);
+      std::stringstream ss;
+      ss << "toa_vref_scan_data_" << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S") << ".csv";
+      final_path = ss.str();
+    }
+
+    csv_file.open(final_path);
+    if (!csv_file) {
+      pflib_log(error) << "Failed to open CSV file for writing: " << final_path;
+      write_csv = false;
+    } else {
+      pflib_log(info) << "Saving scan data to file: " << final_path;
+      csv_file << "TOA_VREF, ROC";
+      for (int chan = 0; chan < 72; ++chan) {
+        csv_file << "," << chan;
+      }
+      csv_file << "\n";
+    }
   }
-  csv_file << "\n";
 
   // loop down from 255 to 0
   for (int toa_vref = 255; toa_vref >= 0; toa_vref--) {
@@ -79,11 +90,13 @@ toa_vref_scan(Target* tgt, bool scan_all) {
                        << ", getting max efficiency per link";
 
       // Save raw channel efficiencies to .csv file
-      csv_file << toa_vref;
-      for (double eff : efficiencies) {
-        csv_file << "," << eff;
+      if (write_csv) {
+        csv_file << toa_vref << "," << i_roc;
+        for (double eff : efficiencies) {
+          csv_file << "," << eff;
+        }
+        csv_file << "\n";
       }
-      csv_file << "\n";
 
       for (int i_link{0}; i_link < 2; i_link++) {
         auto start = efficiencies.begin() + 36 * i_link;
@@ -94,11 +107,12 @@ toa_vref_scan(Target* tgt, bool scan_all) {
         final_effs[i_roc][i_link][toa_vref] = max_eff;
 
         if (toa_vref % 32 == 0 || max_eff > 0.0) {
-          pflib_log(trace) << "[DEBUG SCAN] VREF " << toa_vref << " | ROC "
-                           << i_roc << " Link " << i_link
-                           << " | Max Efficiency: " << max_eff;
+          pflib_log(trace)
+              << "[DEBUG SCAN] VREF " << toa_vref << " | ROC " << i_roc
+              << " Link " << i_link << " | Max Efficiency: " << max_eff;
         }
 
+        // iterating from 255 down, find the first non-zero efficiency for each link in each roc
         if (!scan_all) {
           if (target[i_roc][i_link] == -1 && max_eff > 0.0) {
             int calculated_vref = toa_vref + 10;
@@ -124,20 +138,20 @@ toa_vref_scan(Target* tgt, bool scan_all) {
 
   pflib_log(info) << "sample collections done, deducing settings";
 
-  // get the max toa_vref with non-zero efficiency? Iterate through the array
-  // from bottom up.
+  // get the max toa_vref with non-zero efficiency? Iterate through the array from top down.
 
   if (scan_all) {
     for (int i_roc : tgt->roc_ids()) {
       for (int i_link{0}; i_link < 2; i_link++) {
         int highest_non_zero_eff =
             -1;  // just a placeholder in case it's not found
-        for (int toa_vref = final_effs[i_roc][i_link].size() - 1; toa_vref >= 0;
-             toa_vref--) {
+        for (int toa_vref = final_effs[i_roc][i_link].size() - 1;
+             toa_vref >= 0; toa_vref--) {
           if (toa_vref == (int)final_effs[i_roc][i_link].size() - 1) {
             pflib_log(trace)
-                << "[DEBUG SEARCH] Starting backwards search for ROC " << i_roc
-                << " Link " << i_link << ". Initial val at max VREF: "
+                << "[DEBUG SEARCH] Starting backwards search for ROC "
+                << i_roc << " Link " << i_link
+                << ". Initial val at max VREF: "
                 << final_effs[i_roc][i_link][toa_vref];
           }
 
