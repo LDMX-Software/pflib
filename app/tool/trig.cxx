@@ -47,7 +47,7 @@ void trig(const std::string& cmd, Target* target) {
     }
     std::cout << std::flush;
   }
-  if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES") {
+  if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or cmd == "ECONID") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
     if (cmd == "PIPELINE") {
@@ -56,6 +56,8 @@ void trig(const std::string& cmd, Target* target) {
       samples_per_l1a = pftool::readline_int("number of samples per L1A: ", samples_per_l1a);
     } else if (cmd == "PRESAMPLES") {
       presamples = pftool::readline_int("number of pre-samples: ", presamples);
+    } else if (cmd == "ECONID") {
+      econ_id = pftool::readline_int("set econ id: ", econ_id);
     }
     trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
   }
@@ -81,8 +83,20 @@ void trig(const std::string& cmd, Target* target) {
     if (event.empty()) {
       pflib_log(info) << "no event available";
     }
-    for (uint32_t word : event) {
-      printf("%08x\n", word);
+    for (int iword{0}; iword < event.size(); iword++) {
+      uint32_t word{event[iword]};
+      printf("%08x", word);
+      if (iword == 0) {
+        printf(" -> econ_id = %d, datasize = %d",
+               ((word >> 18) & 0x3ff),
+               (word & 0xff));
+      } else if (iword == 1) {
+        printf(" -> n_links = %d, presamples = %d, samples = %d",
+               ((word >> 24) & 0xf),
+               ((word >> 18) & 0x1f),
+               ((word >> 12) & 0x3f));
+      }
+      printf("\n");
     }
   }
   if (cmd == "ALIGN_SETUP") {
@@ -133,6 +147,7 @@ auto menu_trig =
         ->line("PIPELINE", "set the pipeline depth for trigger capture", trig)
         ->line("SAMPLES_PER_L1A", "set number of samples to readout in an L1A", trig)
         ->line("PRESAMPLES", "set number of pre-samples in an L1A", trig)
+        ->line("ECONID", "set econ id", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
