@@ -65,7 +65,8 @@ std::tuple<double, double> siegel_regression(
 namespace pflib::algorithm {
 
 std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
-    Target* tgt, ROC roc) {
+    Target* tgt, ROC roc,
+    int i_roc) {  // added int i_roc index for efficiencies
   static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
   /**
@@ -95,6 +96,8 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
   // loop over trim_toa, from trim_toa = 0 to 32 by skipping 4
   // loop over calib, from calib = 0 to 800 by skipping over 4
 
+  auto mapping = tgt->getRocErxMapping();
+
   for (int trim_toa{0}; trim_toa < 32; trim_toa += 4) {
     pflib_log(info) << "testing trim_toa = " << trim_toa;
     auto trim_toa_test_builder = roc.testParameters();
@@ -117,7 +120,9 @@ std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
 
       pflib_log(trace) << "finished trim_toa = " << trim_toa
                        << ", and calib = " << calib << ", getting efficiencies";
-      auto efficiencies = get_toa_efficiencies(buffer.get_buffer());
+      auto efficiencies = get_toa_efficiencies(
+          i_roc, mapping,
+          buffer.get_buffer());  // added i_roc index for efficiencies
       pflib_log(trace) << "got channel efficiencies, storing now";
       for (int ch{0}; ch < 72; ch++) {
         // need to divide by 4 because index is value/4 from final_data

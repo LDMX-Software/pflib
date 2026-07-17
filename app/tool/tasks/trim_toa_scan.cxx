@@ -8,7 +8,7 @@
 
 void trim_toa_scan(Target* tgt) {
   auto roc{tgt->roc(pftool::state.iroc)};
-  auto settings = pflib::algorithm::trim_toa_scan(tgt, roc);
+  auto settings = pflib::algorithm::trim_toa_scan(tgt, roc, pftool::state.iroc);
   YAML::Emitter out;
   out << YAML::BeginMap;
   for (const auto& page : settings) {

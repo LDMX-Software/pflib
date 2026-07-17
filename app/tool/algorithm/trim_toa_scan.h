@@ -16,6 +16,6 @@ namespace pflib::algorithm {
  * @note Only functional for single-ROC targets
  */
 std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
-    Target* tgt, ROC roc);
+    Target* tgt, ROC roc, int i_roc);
 
 }  // namespace pflib::algorithm
