@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "toa_scan.h"
 
 #include <nlohmann/json.hpp>
@@ -63,3 +70,7 @@ void toa_scan(Target* tgt) {
     daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
   }
 }
+/**
+ * @}
+ * @}
+ */

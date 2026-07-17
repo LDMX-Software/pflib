@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "load_parameter_points.h"
 
 #include "pflib/Exception.h"
@@ -53,3 +60,7 @@ load_parameter_points(const std::string& filepath) {
       });
   return std::make_tuple(param_names, param_values);
 }
+/**
+ * @}
+ * @}
+ */

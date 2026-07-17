@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "get_lpgbt_temps.h"
 
 #include "pflib/OptoLink.h"
@@ -178,3 +185,7 @@ void get_lpgbt_temps(Target* tgt) {
     return;
   }
 }
+/**
+ * @}
+ * @}
+ */

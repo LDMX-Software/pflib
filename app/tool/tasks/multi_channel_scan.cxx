@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "multi_channel_scan.h"
 
 #include <filesystem>
@@ -220,3 +227,7 @@ void multi_channel_scan(Target* tgt) {
     }
   }
 }
+/**
+ * @}
+ * @}
+ */

@@ -1,3 +1,12 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ * \addtogroup expert
+ * @{
+ */
 #include "scan_orbit.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
@@ -189,3 +198,8 @@ void scan_orbit(Target* tgt) {
   aligner_flags[0] &= 0xf6;
   econ.setValues(ALIGNER_BASE, aligner_flags);
 }
+/**
+ * @}
+ * @}
+ * @}
+ */

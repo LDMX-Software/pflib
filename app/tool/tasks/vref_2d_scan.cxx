@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
@@ -55,3 +62,7 @@ void vref_2d_scan(Target* tgt) {
     }
   }
 }
+/**
+ * @}
+ * @}
+ */

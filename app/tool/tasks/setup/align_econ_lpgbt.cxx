@@ -1,3 +1,12 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ * \addtogroup setup
+ * @{
+ */
 #include "align_econ_lpgbt.h"
 
 #include <algorithm>
@@ -222,3 +231,8 @@ void align_econ_lpgbt(Target* tgt) {
     align_econ_lpgbt_word(tgt, econ, check_all_phases);
   }
 }
+/**
+ * @}
+ * @}
+ * @}
+ */

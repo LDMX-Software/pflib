@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "trim_inv_dacb_scan.h"
 
 #include <nlohmann/json.hpp>
@@ -80,3 +87,7 @@ void trim_inv_dacb_scan(Target* tgt) {
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
+/**
+ * @}
+ * @}
+ */

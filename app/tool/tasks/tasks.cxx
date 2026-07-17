@@ -2,6 +2,19 @@
  * @file tasks.cxx
  *
  * Definition of TASKS menu commands
+ * \addtogroup pftool
+ * @{
+ *
+ * \defgroup tasks tasks
+ * higher chip tuning and data collection tasks
+ * @{
+ *
+ * \defgroup setup setup
+ * tasks to setup data collection
+ *
+ * \defgroup expert expert
+ * expert-level tasks that do high-level things but
+ * require a lot of knowledge
  */
 
 #include "../pftool.h"
@@ -92,3 +105,7 @@ auto menu_setup_tasks =
                check_lpgbt_backend);
 
 }  // namespace
+/**
+ * @}
+ * @}
+ */

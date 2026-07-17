@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "trim_toa_scan.h"
 
 #include <yaml-cpp/yaml.h>
@@ -41,3 +48,7 @@ void trim_toa_scan(Target* tgt) {
     f << out.c_str() << std::endl;
   }
 }
+/**
+ * @}
+ * @}
+ */

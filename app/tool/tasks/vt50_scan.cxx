@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "vt50_scan.h"
 
 #include <nlohmann/json.hpp>
@@ -186,3 +193,7 @@ void vt50_scan(Target* tgt) {
     }
   }
 }
+/**
+ * @}
+ * @}
+ */

@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "global_pedestal_level.h"
 
 #include <yaml-cpp/yaml.h>
@@ -43,3 +50,7 @@ void global_pedestal_level(Target* tgt) {
     }
   }
 }
+/**
+ * @}
+ * @}
+ */

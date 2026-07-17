@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "charge_timescan.h"
 
 #include <nlohmann/json.hpp>
@@ -121,3 +128,7 @@ void charge_timescan(Target* tgt) {
     tgt->fc().fc_setup_calib(central_charge_to_l1a);
   }
 }
+/**
+ * @}
+ * @}
+ */

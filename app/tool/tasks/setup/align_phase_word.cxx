@@ -1,3 +1,12 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ * \addtogroup setup
+ * @{
+ */
 #include "align_phase_word.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
@@ -393,3 +402,8 @@ void align_phase_word(Target* tgt) {
     tgt->roc(i_roc).setRegisters(resets[i_roc]);
   }
 }
+/**
+ * @}
+ * @}
+ * @}
+ */

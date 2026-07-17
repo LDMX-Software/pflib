@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include <nlohmann/json.hpp>
 
 #include "../daq_run.h"
@@ -104,3 +111,7 @@ void channel_wise_calib_scan(Target* tgt) {
     }
   }
 }
+/**
+ * @}
+ * @}
+ */

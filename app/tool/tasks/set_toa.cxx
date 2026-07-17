@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "set_toa.h"
 
 #include "../daq_run.h"
@@ -53,3 +60,7 @@ void set_toa(Target* tgt, pflib::ROC& roc, int channel) {
   PFEXCEPTION_RAISE("NOTOA", "No TOA threshold was found for channel " +
                                  std::to_string(channel) + "!");
 }
+/**
+ * @}
+ * @}
+ */

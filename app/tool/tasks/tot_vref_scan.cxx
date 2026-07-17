@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "tot_vref_scan.h"
 
 #include <yaml-cpp/yaml.h>
@@ -43,3 +50,7 @@ void tot_vref_scan(Target* tgt) {
     f << out.c_str() << std::endl;
   }
 }
+/**
+ * @}
+ * @}
+ */

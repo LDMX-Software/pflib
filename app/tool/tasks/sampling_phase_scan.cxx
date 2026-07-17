@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "sampling_phase_scan.h"
 
 #include <nlohmann/json.hpp>
@@ -49,3 +56,7 @@ void sampling_phase_scan(Target* tgt) {
     daq_run(tgt, "PEDESTAL", writer, nevents, pftool::state.daq_rate);
   }
 }
+/**
+ * @}
+ * @}
+ */

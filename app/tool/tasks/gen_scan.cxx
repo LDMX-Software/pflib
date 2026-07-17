@@ -1,3 +1,10 @@
+/**
+ * @file
+ * \addtogroup pftool
+ * @{
+ * \addtogroup tasks
+ * @{
+ */
 #include "gen_scan.h"
 
 #include <filesystem>
@@ -112,3 +119,7 @@ void gen_scan(Target* tgt) {
     daq_run(tgt, trigger, writer, nevents, pftool::state.daq_rate);
   }
 }
+/**
+ * @}
+ * @}
+ */
