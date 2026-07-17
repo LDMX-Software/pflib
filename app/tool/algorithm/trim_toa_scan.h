@@ -15,9 +15,9 @@ namespace pflib::algorithm {
  *
  * @note Only functional for single-ROC targets
  */
-//int i_roc, const pflib::packing::SingleECONDRocErxMapping& mapping,
+// int i_roc, const pflib::packing::SingleECONDRocErxMapping& mapping,
 
-std::map<int , std::map<std::string, std::map<std::string, uint64_t>>> trim_toa_scan(
-    Target* tgt);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
+trim_toa_scan(Target* tgt);
 
 }  // namespace pflib::algorithm
