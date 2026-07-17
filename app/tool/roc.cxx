@@ -1,6 +1,8 @@
 /**
  * @file roc.cxx
  * ROC menu commands and support functions
+ * \addtogroup pftool
+ * @{
  */
 #include "pftool.h"
 ENABLE_LOGGING();
@@ -244,3 +246,4 @@ auto menu_roc_expert =
         ->line("SET_DIRECT_ACCESS", "set direct access parameter bits",
                roc_expert);
 }  // namespace
+/** @} */

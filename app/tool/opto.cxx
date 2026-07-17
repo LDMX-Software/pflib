@@ -1,6 +1,9 @@
 /**
  * @file opto.cxx
  * OPTO menu commands
+ *
+ * \addtogroup pftool
+ * @{
  */
 #include "pflib/OptoLink.h"
 #include "pflib/zcu/zcu_elinks.h"
@@ -106,3 +109,4 @@ auto optom =
         ->line("LINKTRICK", "Cycle into/out of fixed speed to get SFP to lock",
                opto);
 }
+/** @} */

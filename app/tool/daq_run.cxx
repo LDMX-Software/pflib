@@ -1,3 +1,14 @@
+/**
+ * @file daq_run.cxx
+ * \addtogroup pftool
+ * @{
+ *
+ * \defgroup daq_run daq_run
+ * infrastructure to ease data collection, decoding, and analysis
+ * \addtogroup daq_run
+ * @{
+ */
+
 #include "daq_run.h"
 
 #include <sys/time.h>
@@ -155,3 +166,6 @@ DecodeAndBuffer::get_buffer() const {
 void DecodeAndBuffer::set_buffer_size(std::size_t nevents) {
   ep_buffer_.reserve(nevents);
 }
+
+/** @} */
+/** @} */

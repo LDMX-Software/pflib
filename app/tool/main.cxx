@@ -2,6 +2,9 @@
  * @file main.cxx File defining the pftool entrypoint
  *
  * The commands are written into files corresponding to the menu's name.
+ *
+ * \addtogroup pftool
+ * @{
  */
 
 #include <filesystem>
@@ -410,3 +413,4 @@ int main(int argc, char* argv[]) {
   }
   return 0;
 }
+/** @} */

@@ -4,6 +4,9 @@
  * Definition of BIAS menu commands
  *
  * Only usable for HcalBackplane type targets.
+ *
+ * \addtogroup pftool
+ * @{
  */
 #include "pflib/HcalBackplane.h"
 #include "pftool.h"
@@ -119,3 +122,5 @@ auto menu_bias =
         ->line("SET_LED", "Set LED DAC values", bias_wrapper)
         ->line("READ_TEMP", "Read temperature", bias_wrapper);
 }
+
+/** @} */

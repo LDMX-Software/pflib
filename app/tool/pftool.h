@@ -1,6 +1,11 @@
 /**
  * @file pftool.h
  * Shared declarations for all pftool menu commands
+ *
+ * \defgroup pftool pftool
+ * interactive menu program with pflib
+ * \addtogroup pftool
+ * @{
  */
 
 #pragma once
@@ -110,3 +115,5 @@ class pftool : public pflib::menu::Menu<Target*> {
   /// actual instance of the state
   static State state;
 };
+
+/** @} */

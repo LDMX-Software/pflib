@@ -1,6 +1,8 @@
 /**
  * @file expert.cxx
  * EXPERT menu commands
+ * \addtogroup pftool
+ * @{
  */
 #include "pftool.h"
 
@@ -300,3 +302,4 @@ auto menu_fc =
         ->line("ORBIT_BLINKER",
                "send L1A once every orbit for alignment testing (10kHz)", fc);
 }  // namespace
+/** @} */

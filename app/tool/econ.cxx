@@ -1,7 +1,10 @@
 /**
  * @file econ.cxx
  * ECON menu commands and support functions
+ * \addtogroup pftool
+ * @{
  */
+
 #include "./econ_snapshot.h"
 #include "pftool.h"
 
@@ -301,3 +304,5 @@ auto menu_econ_expert =
         ->line("READ", "read a single register's value", econ_expert)
         ->line("WRITE", "read a single register's value", econ_expert);
 }  // namespace
+
+/** @} */

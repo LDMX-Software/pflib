@@ -1,6 +1,8 @@
 /**
  * @file daq.cxx
  * DAQ menu (and submenus) command definitions
+ * \addtogroup pftool
+ * @{
  */
 #include "daq_run.h"
 #include "pflib/packing/Hex.h"
@@ -774,3 +776,5 @@ auto menu_daq_setup =
         ->line("CONFIG", "Setup ECON id, contrib id, samples", daq_setup);
 
 }  // namespace
+
+/** @} */
