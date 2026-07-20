@@ -333,6 +333,135 @@ void algo(const std::string& cmd, Target* target) {
   }
 }
 
+/**
+ * TRIG.SETUP.TIMEIN
+ */
+static void trigger_timein(Target* tgt) {
+  pflib::TRIG* trig = tgt->trig();
+  if (trig == 0) return;
+
+  /**
+   * This command attempts to deduce the capture delay for the trigger
+   * links by taking two runs after setting some parameters on the chip.
+   *
+   * Assuming the pedestal values on the chip are all ~200 (as is the case
+   * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
+   * their maxima (255 and 31 respectively) forces the trigger sums to be
+   * zero for pedestals. 
+   */
+  static const uint32_t ZERO = 0xa0000000;
+
+  static const uint32_t DAQ_HEADER_PATTERN = 0xf0000005;
+
+  auto& daq{tgt->daq()};
+
+  pflib_log(info) << "setting up parameters for trigger link testing";
+
+  std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
+  for (int half{0}; half < 2; half++) {
+    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]["ADC_PEDESTAL"] = 255;
+    roc_setup[
+        pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] = 31;
+    auto refvol_page{
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
+    roc_setup[refvol_page]["CALIB"] = 3000;
+    roc_setup[refvol_page]["INTCTEST"] = 1;
+  }
+  auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
+
+  /**
+   * We then enable charge injection with a specific channel.
+   * Just putting it in channel 0 of whichever iroc is selected.
+   */
+  auto roc_inject = tgt->roc(pftool::state.iroc).testParameters()
+        .add("CH_0", "LOWRANGE", 1)
+        .apply();
+
+  do {
+    int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    int charge_to_l1a =
+        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+    tgt->fc().fc_setup_calib(charge_to_l1a);
+
+    /*
+    int default_l1offset = 16;
+    int l1offset =
+        pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
+    auto test_l1offset_handle = roc.testParameters()
+                                    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
+                                    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
+                                    .apply();
+
+    int default_global_latency_time = 10;
+    int global_latency_time = pftool::readline_int(
+        "Global latency time on the HGCROC?", default_global_latency_time);
+    auto test_latency_time =
+        roc.testParameters()
+            .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .apply();
+    */
+
+    pflib_log(info) << "storing link settings and expanding capture window";
+
+    /**
+     * TODO check this claim
+     * The window size in the firmware is stored in 6 bits,
+     * so the maximum capture window (and therefore maximum delay)
+     * is 63 (2^6 - 1).
+     *
+     * @note Capture windows larger than 63 seem to be naively trimmed
+     * without warning or notice.
+     */
+    int max_delay = 63;
+    int pipeline, samples_per_l1a, presamples, econid;
+    trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
+    trig->setup_daq(max_delay, econid, max_delay, presamples);
+
+    pflib_log(info)
+        << "pedestal runs to confirm alignment and trigger-sum suppression";
+    tgt->fc().sendL1A();
+    usleep(10000);  // one 100Hz cycle later
+
+    std::vector<uint32_t> pedestal_event = trig->read_event();
+
+    SingleECONTCaptureFrame pedestals;
+    pedestals.from(pedestal_event);
+
+    tgt->daq().advanceLinkReadPtr();
+
+    pflib_log(info) << "charge injection run to see non-zero trigger sums in "
+                       "specific places";
+    tgt->fc().chargepulse();
+    usleep(10000);  // one 100Hz cycle later
+    std::vector<uint32_t> charge_event = trig->read_event();
+
+    SingleECONTCaptureFrame charge;
+    charge.from(charge_event);
+
+    tgt->daq().advanceLinkReadPtr();
+
+    pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
+    trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
+
+    pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
+    tgt->fc().fc_setup_calib(og_charge_to_l1a);
+
+    pflib_log(info) << "analyze words readout from links";
+    pflib_log(debug) << "delay : pedestal -> charge";
+    std::array<int, 6> delays{-1, -1, -1, -1, -1, -1};
+    std::array<std::pair<int, int>, 4> daq_pedestal_charge_adc;
+    std::array<std::pair<int, int>, 2> daq_ev;
+    for (int i_sample{0}; i_sample < pedestals.n_samples(); i_sample++) {
+      printf("%2d -> ", i_sample);
+      for (int i_stc{0}; i_stc < 8; i_stc++) {
+        printf(" %4d", charge.stc_sum(i_stc, i_sample) - pedestals.stc_sum(i_stc, i_sample));
+      }
+      printf("\n");
+    }
+  } while (pftool::readline_bool(
+      "Want to try another set of timing parameters?", false));
+}
 
 namespace {
 // accessing the TRIGGER path only works on the ZCU
@@ -352,6 +481,7 @@ auto menu_trig =
                [](Target* tgt) { tgt->fc().sendL1A(); })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
+        ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
