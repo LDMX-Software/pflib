@@ -33,6 +33,11 @@ class ZCUtrig : public TRIG {
 
   std::vector<uint32_t> read_event() override;
 
+  void setup_algo(const std::vector<uint32_t>& parameters) override;
+  std::vector<uint32_t> get_algo_setup() override;
+  bool is_algo_output_available() override;
+  std::vector<uint32_t> read_algo_output() override;
+
  private:
   UIO uio_;
   int nelinks_;

@@ -138,6 +138,42 @@ void trig(const std::string& cmd, Target* target) {
   }
 }
 
+void algo(const std::string& cmd, Target* target) {
+  pflib::TRIG* trig = target->trig();
+  if (trig == 0) return;
+  if (cmd == "SPY") {
+    std::vector<uint32_t> algo = trig->read_algo_output();
+    if (algo.empty()) {
+      pflib_log(info) << "no algo output available";
+    }
+    for (int iword{0}; iword < algo.size(); iword++) {
+      uint32_t word{algo[iword]};
+      printf("%08x", word);
+      // decoding
+      printf("\n");
+    }
+  }
+  if (cmd == "CONFIG") {
+    auto params = trig->get_algo_setup();
+    params[0] = pftool::readline_int("veto mask for recent history: ", params[0], true);
+    for (int i{0}; i < 8; i++) {
+      std::stringstream prompt;
+      prompt << "threshold for channel " << i;
+      params[i+1] = pftool::readline_int(prompt.str(), params[i+1], true);
+    }
+    trig->setup_algo(params);
+  }
+  if (cmd == "STATUS") {
+    auto params = trig->get_algo_setup();
+    printf("veto mask for recent history: 0x%02x\n", params[0]);
+    printf("thresholds (0 -> disable channel)\n");
+    for (int i{0}; i < 8; i++) {
+      printf("  %d : 0x%02x\n", i, params[i+1]);
+    }
+  }
+}
+
+
 namespace {
 // accessing the TRIGGER path only works on the ZCU
 // where we have hardware and firmware access to the TRIGGER stream
@@ -158,4 +194,10 @@ auto menu_trig =
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
+
+auto menu_algo =
+    menu_trig->submenu("ALGO", "configure and view trigger algorithm")
+        ->line("CONFIG", "configure trigger algorithm parameters", algo)
+        ->line("SPY", "view output of trigger algorithm", algo)
+        ->line("STATUS", "printout algorithm settings and output capture status", algo);
 }  // namespace

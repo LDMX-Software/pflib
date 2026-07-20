@@ -13,6 +13,7 @@ static constexpr uint32_t MASK_SW_RESET = 0x1;
 
 static constexpr uint32_t ADDR_ADV_BUFFER = 0x080 / 4;
 static constexpr uint32_t MASK_ADV_BUFFER = 0x2;
+static constexpr uint32_t MASK_ADV_ALGO_BUFFER = 0x4;
 
 static constexpr uint32_t ADDR_LINK_CAPTURE_DELAY = 0x600 / 4;
 static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
@@ -32,18 +33,22 @@ static constexpr uint32_t MASK_PRESAMPLES = 0x000FC000;
 
 static constexpr uint32_t ADDR_ECON_ID = 0x400 / 4;
 static constexpr uint32_t MASK_ECON_ID = 0x3FF00000;
+static constexpr uint32_t ADDR_ECON_ID_2 = 0x404 / 4;
+static constexpr uint32_t MASK_ECON_ID_2 = 0x000003FF;
 
 static constexpr uint32_t ADDR_ALIGNER_SPY_BASE = (0xC00 | 0x100) / 4;
 
 static constexpr uint32_t ADDR_N_ELINKS = 0x800 / 4;
 static constexpr uint32_t MASK_N_ELINKS = 0x0000F000;
 
-static constexpr uint32_t ADDR_DAQ_TVALID = 0x800 / 4;
+static constexpr uint32_t ADDR_DAQ_STATUS = 0x800 / 4;
 static constexpr uint32_t MASK_DAQ_TVALID = 0x00000100;
-static constexpr uint32_t ADDR_DAQ_TLAST = 0x800 / 4;
+static constexpr uint32_t MASK_ALGO_TVALID = 0x00000400;
 static constexpr uint32_t MASK_DAQ_TLAST = 0x00000200;
+static constexpr uint32_t MASK_ALGO_TLAST = 0x00000800;
 
 static constexpr uint32_t ADDR_DAQ_DATA = 0x804 / 4;
+static constexpr uint32_t ADDR_ALGO_DATA = 0x808 / 4;
 
 ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
   uint16_t fw = (uio_.read(0) & 0xffff);
@@ -107,7 +112,7 @@ void ZCUtrig::get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
 }
 
 bool ZCUtrig::is_event_available() {
-  return uio_.readMasked(ADDR_DAQ_TVALID, MASK_DAQ_TVALID) != 0;
+  return uio_.readMasked(ADDR_DAQ_STATUS, MASK_DAQ_TVALID) != 0;
 }
 
 std::vector<uint32_t> ZCUtrig::read_event() {
@@ -115,7 +120,7 @@ std::vector<uint32_t> ZCUtrig::read_event() {
   if (!is_event_available()) return retval;
   uint32_t val;
   do {
-    val = uio_.read(ADDR_DAQ_TVALID);
+    val = uio_.read(ADDR_DAQ_STATUS);
     if (!(val & MASK_DAQ_TVALID)) {
       PFEXCEPTION_RAISE("ReadoutException",
                         "ZCU_TRIG got low TVALID before TLAST");
@@ -125,6 +130,72 @@ std::vector<uint32_t> ZCUtrig::read_event() {
     // advance the pointer (always)
     uio_.write(ADDR_ADV_BUFFER, MASK_ADV_BUFFER);
   } while (!(val & MASK_DAQ_TLAST));
+  return retval;
+}
+
+static constexpr uint32_t ADDR_HISTORY_VETO_MASK = 0x608 / 4;
+static constexpr uint32_t ADDR_THRESHOLDS = 0x60C / 4;
+
+void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
+  /**
+   * the current simple trigger has the following parameters
+   * 0 -> history veto mask (1 byte)
+   * 1 -> threshold for STC0 (1 byte)
+   * 2 -> threshold for STC1
+   * ... and so on up to index 8 (STC7)
+   */
+  if (parameters.size() != 9) {
+    PFEXCEPTION_RAISE(
+      "BadConfig",
+      "Wrong number of parameters for simple trigger algorithm"
+    );
+  }
+  uio_.writeMasked(ADDR_HISTORY_VETO_MASK, 0xff, parameters[0]);
+  std::array<uint32_t, 2> thresholds_registers;
+  for (std::size_t i{0}; i < 8; i++) {
+    int i_reg = i / 4;
+    int shift = (i % 4)*8;
+    thresholds_registers[i_reg] |= ((parameters[i+1] & 0xff) << shift);
+  }
+  for (int i{0}; i < thresholds_registers.size(); i++) {
+    uio_.write(ADDR_THRESHOLDS + i, thresholds_registers[i]);
+  }
+}
+
+std::vector<uint32_t> ZCUtrig::get_algo_setup() {
+  std::vector<uint32_t> parameters(9);
+  parameters[0] = uio_.readMasked(ADDR_HISTORY_VETO_MASK, 0xff);
+  std::array<uint32_t, 2> thresholds_registers;
+  for (int i{0}; i < thresholds_registers.size(); i++) {
+    thresholds_registers[i] = uio_.read(ADDR_THRESHOLDS + i);
+  }
+  for (std::size_t i{0}; i < 8; i++) {
+    parameters[i+1] = (
+      (thresholds_registers[i/4] >> (8*(i%4))) & 0xff
+    );
+  }
+  return parameters;
+}
+
+bool ZCUtrig::is_algo_output_available() {
+  return uio_.readMasked(ADDR_DAQ_STATUS, MASK_ALGO_TVALID) != 0;
+}
+
+std::vector<uint32_t> ZCUtrig::read_algo_output() {
+  std::vector<uint32_t> retval;
+  if (!is_algo_output_available()) return retval;
+  uint32_t val;
+  do {
+    val = uio_.read(ADDR_DAQ_STATUS);
+    if (!(val & MASK_ALGO_TVALID)) {
+      PFEXCEPTION_RAISE("ReadoutException",
+                        "ZCUtrig (ALGO DATA) got low TVALID before TLAST");
+    }
+    // get the next word
+    retval.push_back(uio_.read(ADDR_ALGO_DATA));
+    // advance the pointer (always)
+    uio_.write(ADDR_ADV_BUFFER, MASK_ADV_ALGO_BUFFER);
+  } while (!(val & MASK_ALGO_TLAST));
   return retval;
 }
 
