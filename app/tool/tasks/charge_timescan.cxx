@@ -11,15 +11,16 @@ void charge_timescan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 1);
   bool isLED = pftool::readline_bool(
       "Flash LED instead of the internal calibration pulse?", true);
+  int iroc = pftool::readline_int("ROC to pulse into? ", pftool::state.iroc);
   int channel = pftool::readline_int("Channel to pulse into? ", 61);
-  // TODO 348
-  int link = (channel / 36);
-  int i_ch = channel % 36;  // 0–35
+  auto& mapping{tgt->getRocErxMapping()};
+  auto [i_erx, i_ch] = mapping.toErxChannel(iroc, channel);
+  int half = (channel / 36);
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
-  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+  auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", half);
   int start_bx = pftool::readline_int("Starting BX? ", -1);
   int n_bx = pftool::readline_int("Number of BX? ", 3);
-  pflib::ROC roc{tgt->roc(pftool::state.iroc)};
+  pflib::ROC roc{tgt->roc(iroc)};
   std::string fname;
   bool preCC = false;
   bool highrange = false;
@@ -68,6 +69,7 @@ void charge_timescan(Target* tgt) {
       fname,
       [&](std::ofstream& f) {
         nlohmann::json header;
+        header["iroc"] = iroc;
         header["channel"] = channel;
         header["calib"] = calib;
         header["highrange"] = highrange;
@@ -78,7 +80,7 @@ void charge_timescan(Target* tgt) {
       [&](std::ofstream& f,
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
         f << time << ',';
-        ep.samples[ep.i_soi].channel(link, i_ch).to_csv(f);
+        ep.samples[ep.i_soi].channel(i_erx, i_ch).to_csv(f);
         f << '\n';
       },
       n_links};
