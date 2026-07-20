@@ -6,9 +6,167 @@
 
 #include "pftool.h"
 
+#include <optional>
+
+#include "pflib/packing/Hex.h"
+#include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/utility/string_format.h"
+
 ENABLE_LOGGING();
 
 void trig_render(Target* tgt) {}
+
+/**
+ * A capture frame has one or more SingleECONTSamples
+ * along with two headers written by the firmware that
+ * encode how many samples there are and which are important
+ */
+class SingleECONTCaptureFrame {
+ public:
+  /**
+   * Each ECON-T sample has the following struture,
+   * assuming
+   * - using STC4 algorithm
+   * - with the 5M+4E encoding
+   * - and three eTx enabled
+   *
+   * This means there are up to 8 STCs.
+   * Each sample is spread across the three eTx.
+   *
+   * eTx 0
+   * - [31:28] = header
+   * - [27:26] = Max1 (index of highest STC)
+   * - [25:24] = Max2 (index of second-highest STC)
+   * - ... continue down
+   * - [12:11] = Max8 (index of eight-highest STC - aka the lowest)
+   * - [10:2] = STC1
+   * - [1:0] = 2 MSBs of STC2
+   * eTx 1
+   * - [31:25] = 7 LSBs of STC2
+   * - [25:16] = STC3
+   * - [15:7] = STC4
+   * - [6:0] = 7 MSB of STC5
+   * eTx 2
+   * - [31:30] = 2 LSB of STC5
+   * - [29:21] = STC6
+   * - [20:12] = STC7
+   * - [11:3] = STC8
+   * - [2:0] = zero padding
+   */
+  class SingleECONTSample {
+    static constexpr std::size_t N_STC = 8;
+    std::array<int, N_STC> max_;
+    std::array<int, N_STC> stc_sums_;
+    int bx_;
+   public:
+    void from(std::span<uint32_t> data) {
+      if (data.size() != 3) {
+        PFEXCEPTION_RAISE("BadForm",
+          "Data received by SingleECONTSample is not length 3.");
+      }
+      bx_ = ((data[0] >> 28) & 0xf);
+      for (int i{0}; i < N_STC; i++) {
+        // max is all within the first 32b word even if there
+        // are more eTx
+        max_[i] = ((data[0] >> (26 - 2*i)) & 0x3);
+      }
+
+      // just hardcoding 3 eTx for now
+      stc_sums_[0] = ((data[0] >> 2) & 0x1ff);
+      stc_sums_[1] = (((data[0] & 0x11) << 7) | ((data[1] >> 25) & 0x7f));
+      stc_sums_[2] = ((data[1] >> 16) & 0x1ff);
+      stc_sums_[3] = ((data[1] >> 7 ) & 0x1ff);
+      stc_sums_[4] = (((data[1] & 0x7f) << 2) | ((data[2] >> 30) & 0x3));
+      stc_sums_[5] = ((data[2] >> 21) & 0x1ff);
+      stc_sums_[6] = ((data[2] >> 12) & 0x1ff);
+      stc_sums_[7] = ((data[2] >>  3) & 0x1ff);
+    }
+
+    int bx() const {
+      return bx_;
+    }
+
+    int stc_sum(int i_stc) const {
+      return stc_sums_.at(i_stc);
+    }
+  };
+
+  void from(std::span<uint32_t> data) {
+    /**
+     * two 32b headers are added by the firmware
+     * 
+     * first word
+     * - [32:28] = version
+     * - [27:18] = econ_id
+     * - [7:0] = size
+     *
+     * second word
+     * - [27:24] = number of links
+     * - [22:18] = number of presamples
+     * - [17:12] = number of samples
+     */
+    version_ = ((data[0] >> 28) & 0xf);
+    econ_id_ = ((data[0] >> 18) & 0x3ff);
+    int length = (data[0] & 0xff);
+    if (length != data.size()) {
+      PFEXCEPTION_RAISE("BadForm",
+        "First header reports a length of '"+std::to_string(length)
+        +"' but data.size() = "+std::to_string(data.size()));
+    }
+    int n_links = ((data[1] >> 24) & 0xf);
+    pre_samples_ = ((data[1] >> 18) & 0x1f);
+    int n_samples = ((data[1] >> 12) & 0x3f);
+    if (length != 2 + n_links*n_samples) {
+      PFEXCEPTION_RAISE("BadForm",
+        "First header reports a length of '"+std::to_string(length)
+        +"' which does not equal the expected value for STC4");
+    }
+
+    /**
+     * and then, with ECON-T configured to be STC4 with
+     * 5M+4E encoding, we then see three 32b words for each
+     * sample (i.e. size should equal 2 + 3 * samples).
+     */
+    samples_.resize(n_samples);
+    for (int i_sample{0}; i_sample < n_samples; i_sample++) {
+      samples_[i_sample].from(data.subspan(2 + 3*i_sample, 3));
+    }
+  }
+
+  const SingleECONTSample& sample(std::optional<int> i_sample = {}) const {
+    return samples_.at(i_sample.value_or(pre_samples_));
+  }
+
+  int bx(std::optional<int> i_sample = {}) const {
+    return sample(i_sample).bx();
+  }
+
+  int stc_sum(int i_stc, std::optional<int> i_sample = {}) const {
+    return sample(i_sample).stc_sum(i_stc);
+  }
+
+  int version() const {
+    return version_;
+  }
+
+  int econ_id() const {
+    return econ_id_;
+  }
+  
+  int pre_samples() const {
+    return pre_samples_;
+  }
+
+  std::size_t n_samples() const {
+    return samples_.size();
+  }
+
+ private:
+  std::vector<SingleECONTSample> samples_;
+  int version_;
+  int econ_id_;
+  int pre_samples_;
+};
 
 /**
  * Interaction with Optical links
@@ -82,19 +240,21 @@ void trig(const std::string& cmd, Target* target) {
     std::vector<uint32_t> event = trig->read_event();
     if (event.empty()) {
       pflib_log(info) << "no event available";
+      return;
     }
     for (int iword{0}; iword < event.size(); iword++) {
       uint32_t word{event[iword]};
-      printf("%08x", word);
-      if (iword == 0) {
-        printf(" -> econ_id = %d, datasize = %d",
-               ((word >> 18) & 0x3ff),
-               (word & 0xff));
-      } else if (iword == 1) {
-        printf(" -> n_links = %d, presamples = %d, samples = %d",
-               ((word >> 24) & 0xf),
-               ((word >> 18) & 0x1f),
-               ((word >> 12) & 0x3f));
+      printf("%08x\n", word);
+    }
+
+    SingleECONTCaptureFrame frame;
+    frame.from(event);
+    printf("econ_id = %d n_samples = %d\n", frame.econ_id(), frame.n_samples());
+    printf("BX STC1 STC2 STC3 STC4 STC5 STC6 STC7 STC8\n");
+    for (int i{0}; i < frame.n_samples(); i++) {
+      printf("%2d", frame.bx(i));
+      for (int j{0}; j < 8; j++) {
+        printf(" %4d", frame.stc_sum(j, i));
       }
       printf("\n");
     }
