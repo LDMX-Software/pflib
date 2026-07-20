@@ -1,6 +1,9 @@
 #include "toa_vref_scan.h"
+
 #include <yaml-cpp/yaml.h>
+
 #include <fstream>
+
 #include "../algorithm/toa_vref_scan.h"
 
 void toa_vref_scan(Target* tgt) {

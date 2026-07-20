@@ -2,7 +2,6 @@
 
 #include "pflib/logging/Logging.h"
 #include "pflib/utility/efficiency.h"
-#include "pflib/logging/Logging.h"
 namespace pflib::algorithm {
 
 std::array<double, 72> get_toa_efficiencies(
@@ -61,7 +60,5 @@ std::array<double, 72> get_toa_efficiencies(
     }
   }
   return efficiencies;
-
 }
 }  // namespace pflib::algorithm
-

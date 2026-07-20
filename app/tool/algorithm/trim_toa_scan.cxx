@@ -63,8 +63,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
 trim_toa_scan(Target* tgt) {
   static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
-std::string save_name = pftool::readline("Name of file that you would like to save TRIM_TOA efficiency data (empty if you do not want the file):");
-
+  std::string save_name = pftool::readline(
+      "Name of file that you would like to save TRIM_TOA efficiency data "
+      "(empty if you do not want the file):");
 
   /**
    * Charge injection scan (100 samples) while varying TRIM_TOA.
@@ -193,12 +194,12 @@ std::string save_name = pftool::readline("Name of file that you would like to sa
         auto data = buffer.get_buffer();  // take the data from this run
         int length = data.size();
         for (int i_roc : tgt->roc_ids()) {
-        // skip ROCs that already have good trim values
-          if (good_trim_val[i_roc]){
+          // skip ROCs that already have good trim values
+          if (good_trim_val[i_roc]) {
             continue;
           }
-        int toa_count = 0;
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+          int toa_count = 0;
+          auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
           for (std::size_t i = 0; i < length;
                i++) {  // find number of times TOA triggered during the run
             double toa = data[i].soi().channel(i_erx, i_ch).toa();
@@ -228,33 +229,39 @@ std::string save_name = pftool::readline("Name of file that you would like to sa
     }
 
     std::map<std::string, std::map<std::string, uint64_t>> parameters2;
-    parameters2[ch_str]["HIGHRANGE"] = 0; //Turn off highrange for the given channel after you are done scanning over it
+    parameters2[ch_str]["HIGHRANGE"] =
+        0;  // Turn off highrange for the given channel after you are done
+            // scanning over it
     auto test_params2 = tgt->tempApplyAllROCs(parameters2);
-   }
-
-pflib_log(info) << "sample collections done, deducing settings";
-
-//saving the efficiencies to a csv file to have visualization using the toa_graph.py command
-
-if (save_name.empty()){
-//nothing
-}
-else{
-std::ofstream csv_file(save_name);
-for (int i_roc : tgt->roc_ids()) {
-  for (int trim_toa{0}; trim_toa < trim_toa_max ; trim_toa += trim_toa_step) {
-    for (int ch{0}; ch < 72; ch++) {
-      for (int calib{calib_min}; calib < calib_max ; calib += calib_step) {
-        // divide by the proper stepsize for indexing
-        double efficiency = final_data[roc_index[i_roc]][(calib - calib_min) / calib_step][trim_toa / trim_toa_step][ch];
-        csv_file << i_roc << "," << ch << "," << trim_toa << "," << calib << "," << efficiency << "\n";
-    }
-   }
   }
- }
-}
 
-pflib_log(info) << "Saved data file successfully";
+  pflib_log(info) << "sample collections done, deducing settings";
+
+  // saving the efficiencies to a csv file to have visualization using the
+  // toa_graph.py command
+
+  if (save_name.empty()) {
+    // nothing
+  } else {
+    std::ofstream csv_file(save_name);
+    for (int i_roc : tgt->roc_ids()) {
+      for (int trim_toa{0}; trim_toa < trim_toa_max;
+           trim_toa += trim_toa_step) {
+        for (int ch{0}; ch < 72; ch++) {
+          for (int calib{calib_min}; calib < calib_max; calib += calib_step) {
+            // divide by the proper stepsize for indexing
+            double efficiency =
+                final_data[roc_index[i_roc]][(calib - calib_min) / calib_step]
+                          [trim_toa / trim_toa_step][ch];
+            csv_file << i_roc << "," << ch << "," << trim_toa << "," << calib
+                     << "," << efficiency << "\n";
+          }
+        }
+      }
+    }
+  }
+
+  pflib_log(info) << "Saved data file successfully";
 
   /**
    * Now that we have the data, we need to analyze it.
