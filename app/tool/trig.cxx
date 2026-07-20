@@ -296,6 +296,12 @@ void trig(const std::string& cmd, Target* target) {
     trig->set_bx_delay(
         ilink, pftool::readline_int("New delay: ", trig->get_bx_delay(ilink)));
   }
+  if (cmd == "BUFFER_CLEAR") {
+    while (trig->is_event_available()) {
+      trig->read_event();
+      usleep(10000);
+    }
+  }
 }
 
 void algo(const std::string& cmd, Target* target) {
@@ -482,6 +488,7 @@ auto menu_trig =
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
+        ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
