@@ -35,10 +35,10 @@ class SingleECONTCaptureFrame {
    *
    * eTx 0
    * - [31:28] = header
-   * - [27:26] = Max1 (index of highest STC)
-   * - [25:24] = Max2 (index of second-highest STC)
+   * - [27:26] = Max1 (index of highest TC in STC1)
+   * - [25:24] = Max2 (index of highest TC in STC2)
    * - ... continue down
-   * - [12:11] = Max8 (index of eight-highest STC - aka the lowest)
+   * - [12:11] = Max8 (index of highest TC in STC8)
    * - [10:2] = STC1
    * - [1:0] = 2 MSBs of STC2
    * eTx 1
@@ -55,7 +55,7 @@ class SingleECONTCaptureFrame {
    */
   class SingleECONTSample {
     static constexpr std::size_t N_STC = 8;
-    std::array<int, N_STC> max_;
+    std::array<int, N_STC> max_tc_;
     std::array<int, N_STC> stc_sums_;
     int bx_;
    public:
@@ -68,7 +68,7 @@ class SingleECONTCaptureFrame {
       for (int i{0}; i < N_STC; i++) {
         // max is all within the first 32b word even if there
         // are more eTx
-        max_[i] = ((data[0] >> (26 - 2*i)) & 0x3);
+        max_tc_[i] = ((data[0] >> (26 - 2*i)) & 0x3);
       }
 
       // just hardcoding 3 eTx for now
@@ -92,6 +92,10 @@ class SingleECONTCaptureFrame {
   };
 
   void from(std::span<uint32_t> data) {
+    if (data.size() < 2) {
+      PFEXCEPTION_RAISE("MalForm",
+        "ECON-T capture packet doesn't have required header words inserted by firmware");
+    }
     /**
      * two 32b headers are added by the firmware
      * 
