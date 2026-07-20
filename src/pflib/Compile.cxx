@@ -520,9 +520,7 @@ void Compiler::extract(
                                              param.first.as<std::string>());
         }
         std::string param_name = upper_cp(param.first.as<std::string>());
-        settings[page][param_name] =
-            std::stoull(sval, nullptr, 0);  // base 0 allows hex
-        // settings[page][param_name] = utility::str_to_int(sval);
+        settings[page][param_name] = utility::str_to_ullint(sval);
       }
     }
   }

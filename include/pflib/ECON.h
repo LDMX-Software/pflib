@@ -24,6 +24,7 @@ class ECON {
   ECON(const ECON&) = delete;
   ECON& operator=(const ECON&) = delete;
 
+  /** valid types are "econd" and "econt" */
   const std::string& type() const { return type_; }
   void setRunMode(bool active = true, int edgesel = -1, int fcmd_invert = -1);
   int getPUSMRunValue();

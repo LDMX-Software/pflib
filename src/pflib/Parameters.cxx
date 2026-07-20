@@ -4,42 +4,38 @@
 
 #include <filesystem>
 
+#include "pflib/utility/str_to_int.h"
+
 namespace pflib {
 
-/**
- * no easy way to do it, so we just try the three that we care about.
- */
 std::any extract_scalar(const YAML::Node& node) {
-  try {
-    return node.as<int>();
-  } catch (const YAML::TypedBadConversion<int>&) {
-    try {
-      return node.as<double>();
-    } catch (const YAML::TypedBadConversion<double>&) {
-      try {
-        return node.as<std::string>();
-      } catch (const YAML::TypedBadConversion<std::string>&) {
-        PFEXCEPTION_RAISE("BadType", "Unrecognized YAML::Scalar type.");
-      }
-    }
+  /**
+   * If a node could be an integer, convert it to
+   * an integer.
+   *
+   * @note This uses the smaller sized `int` rather
+   * than `unsigned long long` because we've only
+   * interaced with those larger sizes for specific
+   * parameters in the ECON-D.
+   */
+  std::string val = node.as<std::string>();
+  if (utility::is_integer(val)) {
+    // entire string val matched is_integer
+    return utility::str_to_int(val);
   }
+  return val;
 }
 
 std::any extract_sequence(const YAML::Node& node) {
-  try {
-    return node.as<std::vector<int>>();
-  } catch (const YAML::TypedBadConversion<int>&) {
-    try {
-      return node.as<std::vector<double>>();
-    } catch (const YAML::TypedBadConversion<double>&) {
-      try {
-        return node.as<std::vector<std::string>>();
-      } catch (const YAML::TypedBadConversion<std::string>&) {
-        PFEXCEPTION_RAISE("BadType",
-                          "Unrecognized content of a YAML Sequence.");
-      }
+  auto val = node.as<std::vector<std::string>>();
+  if (std::all_of(val.begin(), val.end(), utility::is_integer)) {
+    std::vector<int> ival(val.size());
+    for (std::size_t i{0}; i < val.size(); i++) {
+      ival[i] = utility::str_to_int(val[i]);
     }
+    return ival;
   }
+  return val;
 }
 
 // Null, Scalar, Sequence, Map

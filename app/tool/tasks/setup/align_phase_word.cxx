@@ -296,11 +296,8 @@ void align_phase_word(Target* tgt) {
 
   auto& econ = tgt->econ(iecon);
   bool is_daq = (econ.type() == "econd");
-  bool is_hcal =
-      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
-       pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW);
   int edgesel = 0;
-  int invertfcmd = (is_hcal) ? (1) : (0);
+  int invertfcmd = pftool::state.readout_config_is_hcal() ? 1 : 0;
   // Ensure ECON is in Run mode
   econ.setRunMode(true, edgesel, invertfcmd);
 

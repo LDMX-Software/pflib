@@ -1,0 +1,21 @@
+ERX:
+# lower third is for ROC1 on ECON-T1
+  0_ENABLE: 0
+  1_ENABLE: 0
+  2_ENABLE: 0
+  3_ENABLE: 0
+# disable higher third of eRx which
+# are not connected to anything on the HcalBackplane
+  8_ENABLE: 0
+  9_ENABLE: 0
+  10_ENABLE: 0
+  11_ENABLE: 0
+CONFIGALGO:
+  GLOBAL_ALG_TYPE: 1
+FORMATTERBUFFER:
+  GLOBAL_ACTIVE_ETXS: 7
+  GLOBAL_LINK_RESET_PATTERN: 0x526
+ETX:
+  0_INVERT_DATA: 1
+  1_INVERT_DATA: 1
+  2_INVERT_DATA: 1

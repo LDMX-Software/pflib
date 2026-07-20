@@ -13,6 +13,7 @@
 namespace pflib {
 
 class OptoLink;
+class TRIG;
 
 /**
  * @class Target class for encapulating a given setup's access rules
@@ -73,6 +74,9 @@ class Target {
 
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
+
+  /** get the TRIG object, if it exists (may return NULL) */
+  virtual TRIG* trig(int itrig = 0) { return 0; }
 
   /// names of different I2C busses we could talk to
   std::vector<std::string> i2c_bus_names();
