@@ -9,7 +9,7 @@
 #include <optional>
 
 #include "pflib/packing/Hex.h"
-#include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -355,11 +355,6 @@ static void trigger_timein(Target* tgt) {
    * their maxima (255 and 31 respectively) forces the trigger sums to be
    * zero for pedestals. 
    */
-  static const uint32_t ZERO = 0xa0000000;
-
-  static const uint32_t DAQ_HEADER_PATTERN = 0xf0000005;
-
-  auto& daq{tgt->daq()};
 
   pflib_log(info) << "setting up parameters for trigger link testing";
 
@@ -388,6 +383,10 @@ static void trigger_timein(Target* tgt) {
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
     tgt->fc().fc_setup_calib(charge_to_l1a);
+
+    int og_align_setup = trig->get_alignment_capture();
+    int align_setup = pftool::readline_int("TRG Alignment Capture Delay?", og_align_setup);
+    trig->setup_alignment_capture(align_setup);
 
     /*
     int default_l1offset = 16;
@@ -429,42 +428,57 @@ static void trigger_timein(Target* tgt) {
     tgt->fc().sendL1A();
     usleep(10000);  // one 100Hz cycle later
 
-    std::vector<uint32_t> pedestal_event = trig->read_event();
-
-    SingleECONTCaptureFrame pedestals;
-    pedestals.from(pedestal_event);
-
-    tgt->daq().advanceLinkReadPtr();
+    // decode captured data
+    std::vector<uint32_t> trg_pedestal_event = trig->read_event();
+    SingleECONTCaptureFrame trg_pedestals;
+    trg_pedestals.from(trg_pedestal_event);
+    
+    // read_event_sw_headers advances link readout pointer
+    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
+    std::vector<uint32_t> daq_pedestal_event = tgt->daq().read_event_sw_headers();
+    daq_pedestals.from(daq_pedestal_event);
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
                        "specific places";
     tgt->fc().chargepulse();
     usleep(10000);  // one 100Hz cycle later
-    std::vector<uint32_t> charge_event = trig->read_event();
 
-    SingleECONTCaptureFrame charge;
-    charge.from(charge_event);
+    std::vector<uint32_t> trg_charge_event = trig->read_event();
+    SingleECONTCaptureFrame trg_charge;
+    trg_charge.from(trg_charge_event);
 
-    tgt->daq().advanceLinkReadPtr();
+    // read_event_sw_headers advances link readout pointer
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+    std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
+    daq_charge.from(daq_charge_event);
 
     pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
     tgt->fc().fc_setup_calib(og_charge_to_l1a);
+    
+    pflib_log(debug) << "reset align setup back to " << og_align_setup;
+    trig->setup_alignment_capture(og_align_setup);
 
     pflib_log(info) << "analyze words readout from links";
-    pflib_log(debug) << "delay : pedestal -> charge";
-    std::array<int, 6> delays{-1, -1, -1, -1, -1, -1};
-    std::array<std::pair<int, int>, 4> daq_pedestal_charge_adc;
-    std::array<std::pair<int, int>, 2> daq_ev;
-    for (int i_sample{0}; i_sample < pedestals.n_samples(); i_sample++) {
+    printf("DAQ Data\n");
+    auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(pftool::state.iroc, 0);
+    for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
+      printf("%2d -> %4d\n", i_sample,
+            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc() -
+            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc());
+    }
+
+    printf("TRG Data\n");
+    for (int i_sample{0}; i_sample < trg_pedestals.n_samples(); i_sample++) {
       printf("%2d -> ", i_sample);
       for (int i_stc{0}; i_stc < 8; i_stc++) {
-        printf(" %4d", charge.stc_sum(i_stc, i_sample) - pedestals.stc_sum(i_stc, i_sample));
+        printf(" %4d", trg_charge.stc_sum(i_stc, i_sample) - trg_pedestals.stc_sum(i_stc, i_sample));
       }
       printf("\n");
     }
+
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
 }
