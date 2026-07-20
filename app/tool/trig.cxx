@@ -371,46 +371,36 @@ static void trigger_timein(Target* tgt) {
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
   /**
-   * We then enable charge injection with a specific channel.
-   * Just putting it in channel 0 of whichever iroc is selected.
+   * We inject a pulse into Channel 0 of ROC0 on the HcalBackplane
+   * which comes out of ROC0 inside TC0_0 which goes into ECON-T1
+   * DIN6 which then is summed into STC6 (I think)
    */
-  auto roc_inject = tgt->roc(pftool::state.iroc).testParameters()
+  static const int iroc_oi = 0,
+                   ch_oi = 0,
+                   stc_oi = 6;
+  auto roc_inject = tgt->roc(iroc_oi).testParameters()
         .add("CH_0", "LOWRANGE", 1)
         .apply();
 
+  bool just_check = pftool::readline_bool("Just check with a pedestal and charge event? ", false);
+
   do {
     int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-    int charge_to_l1a =
-        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a);
+    if (not just_check) {
+      int charge_to_l1a =
+          pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+      tgt->fc().fc_setup_calib(charge_to_l1a);
+    }
 
     int og_align_setup = trig->get_alignment_capture();
-    int align_setup = pftool::readline_int("TRG Alignment Capture Delay?", og_align_setup);
-    trig->setup_alignment_capture(align_setup);
-
-    /*
-    int default_l1offset = 16;
-    int l1offset =
-        pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
-    auto test_l1offset_handle = roc.testParameters()
-                                    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
-                                    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
-                                    .apply();
-
-    int default_global_latency_time = 10;
-    int global_latency_time = pftool::readline_int(
-        "Global latency time on the HGCROC?", default_global_latency_time);
-    auto test_latency_time =
-        roc.testParameters()
-            .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
-            .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
-            .apply();
-    */
+    if (not just_check) {
+      int align_setup = pftool::readline_int("TRG Alignment Capture Delay?", og_align_setup);
+      trig->setup_alignment_capture(align_setup);
+    }
 
     pflib_log(info) << "storing link settings and expanding capture window";
 
     /**
-     * TODO check this claim
      * The window size in the firmware is stored in 6 bits,
      * so the maximum capture window (and therefore maximum delay)
      * is 63 (2^6 - 1).
@@ -421,7 +411,9 @@ static void trigger_timein(Target* tgt) {
     int max_delay = 63;
     int pipeline, samples_per_l1a, presamples, econid;
     trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
-    trig->setup_daq(max_delay, econid, max_delay, presamples);
+    if (not just_check) {
+      trig->setup_daq(0, econid, max_delay, presamples);
+    }
 
     pflib_log(info)
         << "pedestal runs to confirm alignment and trigger-sum suppression";
@@ -462,21 +454,22 @@ static void trigger_timein(Target* tgt) {
     trig->setup_alignment_capture(og_align_setup);
 
     pflib_log(info) << "analyze words readout from links";
+    if (just_check) {
+      pflib_log(info) << " with pipeline = " << pipeline;
+    }
     printf("DAQ Data\n");
-    auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(pftool::state.iroc, 0);
+    auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
     for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
-      printf("%2d -> %4d\n", i_sample,
-            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc() -
-            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc());
+      printf("%2d: %4d -> %4d\n", i_sample,
+            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
+            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
     }
 
     printf("TRG Data\n");
     for (int i_sample{0}; i_sample < trg_pedestals.n_samples(); i_sample++) {
-      printf("%2d -> ", i_sample);
-      for (int i_stc{0}; i_stc < 8; i_stc++) {
-        printf(" %4d", trg_charge.stc_sum(i_stc, i_sample) - trg_pedestals.stc_sum(i_stc, i_sample));
-      }
-      printf("\n");
+      printf("%2d: %4d -> %4d\n", i_sample,
+             trg_pedestals.stc_sum(stc_oi, i_sample),
+             trg_charge.stc_sum(stc_oi, i_sample));
     }
 
   } while (pftool::readline_bool(
