@@ -260,7 +260,10 @@ static void fc(const std::string& cmd, Target* pft) {
     for (const auto& pair : cnt) {
       printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
-
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    printf("  L1A Enabled          : %d\n", l1aen);
+    printf("  External L1A Enabled : %d\n", extl1a);
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
   }
 }

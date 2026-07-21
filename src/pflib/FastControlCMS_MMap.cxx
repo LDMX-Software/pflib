@@ -20,6 +20,7 @@ static const size_t ADDR_REQUEST = 1;
 static const uint32_t REQ_CLEAR_COUNTERS = 0x2;
 static const uint32_t CTL_ENABLE_ORBITSYNC = 0x0004;
 static const uint32_t CTL_ENABLE_L1AS = 0x0008;
+static const uint32_t CTL_ENABLE_EXT_L1A = 0x0080;
 
 /*
 struct FastControlAXI {
@@ -169,6 +170,18 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, CTL_ENABLE_L1AS);
   }
 
+  void fc_enables_read(bool& overall, bool& external) override {
+    uint32_t ctl_reg{uio_.read(ADDR_CTL_REG)};
+    overall = (ctl_reg & CTL_ENABLE_L1AS);
+    external = ((ctl_reg >> 7) & 0x1);
+    return;
+  }
+  
+  void fc_enables(bool overall, bool external) override {
+    uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, overall ? CTL_ENABLE_L1AS : 0);
+    uio_.writeMasked(ADDR_CTL_REG, CTL_ENABLE_EXT_L1A, external);
+  }
+
   virtual void resetCounters() override {
     uio_.rmw(ADDR_REQUEST, REQ_CLEAR_COUNTERS, REQ_CLEAR_COUNTERS);
   }
@@ -275,14 +288,6 @@ class FastControlCMS_MMap : public FastControl {
       0x40000000;  // Send a SPARE6 command (auto-clear)/>
   static const uint32_t REQ_spare7 =
       0x80000000u;  // Send a SPARE7 command (auto-clear)/>
-
-  void bx_custom(int bx_addr, int bx_mask, int bx_new) {
-    uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
-    uint32_t bxout2 = uio_.read(bx_addr);
-    printf("Read FC BX: %d\n", bxout2);
-    // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
-    // std::cout << "readMasked (after write): " << bx_out << std::endl;
-  }
 
   virtual void linkreset_rocs() override {
     // turn off L1A for the moment
