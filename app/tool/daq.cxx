@@ -491,7 +491,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
     tgt->fc().fc_setup_calib(charge_to_l1a);
 
-    int default_l1offset = 16;
+    int default_l1offset = 8;
     int l1offset =
         pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
     auto test_l1offset_handle = roc.testParameters()
