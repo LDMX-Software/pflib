@@ -23,23 +23,19 @@ static const uint32_t CTL_ENABLE_L1AS = 0x0008;
 static const uint32_t CTL_ENABLE_EXT_L1A = 0x0080;
 
 /*
-struct FastControlAXI {
-uint32_t ctl_reg;
-uint32_t request;
-uint32_t bx_chipsync_orbitsync;
-uint32_t bx_linkreset_rocd_roct;
-uint32_t bx_linkreset_econd_econt;
-uint32_t bx_ecr_ebr;
-uint32_t bx_spares[4];
-uint32_t trigger_filters;
-uint32_t external_trigger_delay; // 11
-uint32_t random_trigger_log2;
-uint32_t zs_per_nzs;
-uint32_t cmdseq_bx_len;
-uint32_t cmdseq_prescale;
-uint32_t command_delay; // don't use me!
-};
-*/
+ * see address map listed in hgcal_fc_manager.v
+ * https://github.com/slaclab/ldmx-firmware/blob/hcal_zcu102/firmware/targets/LpGBTZCU/ip_repo/fast-control/xilinx/encode/src/hdl/manager/hgcal_fc_manager.v
+ *
+ * of note:
+ *
+ * addr | bits  | description
+ *    0 |     0 | enable fast control stream (otherwise constant zero)
+ *    0 |     3 | global enable/disable of L1As
+ *    0 | 10: 7 | enable external L1A sources 0-3
+ *    0 |  5: 4 | pre-L1A offset
+ *   10 | 25:16 | number of consecutive L1As to send for a each external trigger
+ */
+
 
 class Periodic {
  public:
@@ -199,16 +195,18 @@ class FastControlCMS_MMap : public FastControl {
     enable = orbit_blinker.enable;
   }
 
-  virtual int fc_get_setup_calib() override {
+  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) override {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    return l1a_charge.bx - charge_inj.bx;
+    charge_to_l1a = l1a_charge.bx - charge_inj.bx;
+    enable_follow_l1a = l1a_charge.enable;
   }
 
-  virtual void fc_setup_calib(int charge_to_l1a) override {
+  virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) override {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     l1a_charge.bx = charge_inj.bx + charge_to_l1a;
+    l1a_charge.enable = enable_follow_l1a;
     l1a_charge.pack();
   }
 

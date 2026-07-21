@@ -129,11 +129,13 @@ void BWFastControl::fc_get_setup_link_reset(int& bx) {
   bx = axi_.readMasked(REG_CTL, MASK_LINK_RESET_BX);
 }
 
-void BWFastControl::fc_setup_calib(int charge_to_l1a) {
+void BWFastControl::fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) {
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_DELTA, charge_to_l1a);
+  // TODO can we disable following L1A in Bittware firmware?
 }
-int BWFastControl::fc_get_setup_calib() {
-  return axi_.readMasked(REG_CALIB_INT, MASK_CALIB_DELTA);
+void BWFastControl::fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) {
+  charge_to_l1a = axi_.readMasked(REG_CALIB_INT, MASK_CALIB_DELTA);
+  enable_follow_l1a = true;
 }
 void BWFastControl::fc_setup_led(int charge_to_l1a) {
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_DELTA, charge_to_l1a);

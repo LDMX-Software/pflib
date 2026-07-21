@@ -20,17 +20,14 @@ class BWFastControl : public FastControl {
   virtual void setL1AperROR(int n);
   virtual int getL1AperROR();
   virtual void linkreset_rocs();
-
-  virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) {}
-
   virtual void linkreset_econs();
   virtual void bufferclear();
   virtual void orbit_count_reset();
   virtual void chargepulse();
   virtual void ledpulse();
   virtual void clear_run();
-  virtual void fc_setup_calib(int charge_to_l1a);
-  virtual int fc_get_setup_calib();
+  virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) override;
+  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) override;
   virtual void fc_setup_led(int charge_to_l1a);
   virtual int fc_get_setup_led();
   virtual void fc_setup_link_reset(int bx);
