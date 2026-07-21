@@ -65,7 +65,11 @@ trim_toa_scan(Target* tgt) {
 
   std::string save_name = pftool::readline(
       "Name of file that you would like to save TRIM_TOA efficiency data "
-      "(empty if you do not want the file):");
+      "(leave empty if you do not want the file):");
+//std::map<std::string, std::map<std::string, uint64_t>> trim_toa_scan(
+//    Target* tgt, ROC roc,
+//    int i_roc) {  // added int i_roc index for efficiencies
+//  static auto the_log_{::pflib::logging::get("trim_toa_scan")};
 
   /**
    * Charge injection scan (100 samples) while varying TRIM_TOA.
@@ -88,7 +92,7 @@ trim_toa_scan(Target* tgt) {
   int trim_toa_step = 2;
   int trim_toa_max = 20;
   int calib_max = 300;
-  int calib_min = 58;  // may want to change this but at least on our setup this
+  int calib_min = 56;  // may want to change this but at least on our setup this
                        // does not cover any turn on points, so this makes the
                        // scan a great deal quicker
 
@@ -116,7 +120,7 @@ trim_toa_scan(Target* tgt) {
   // loop over trim_toa, over the full range of 0 to 20  with a stepsize of
   // trim_toa_step loop over the ROCs and each of the channels loop over calib,
   // stepsize of calib_step over a range of CALIB = 0 to 200
-  const pflib::packing::SingleECONDRocErxMapping& mapping =
+const pflib::packing::SingleECONDRocErxMapping& mapping =
       tgt->getRocErxMapping();
   std::map<std::string, std::map<std::string, uint64_t>> charge_active;
   for (int i_link{0}; i_link < 2; i_link++) {
@@ -126,7 +130,7 @@ trim_toa_scan(Target* tgt) {
     charge_active[refvol_page]["CHOICE_CINJ"] =
         1;  // needed to properly apply calib vals, but should stay on for the
             // entire scan
-  }
+   }
   auto charge_params = tgt->tempApplyAllROCs(charge_active);
 
   /**
@@ -186,6 +190,7 @@ trim_toa_scan(Target* tgt) {
           std::string refvol_page{
               pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
           parameters[refvol_page]["CALIB"] = calib;  // apply CALIB to each link
+          //std::cout << "CALIB = " << calib << "\n";
         }
         auto test_params = tgt->tempApplyAllROCs(parameters);
         // pflib_log(info) << "Applied CALIB = " << calib << " on both links";
@@ -193,6 +198,10 @@ trim_toa_scan(Target* tgt) {
         daq_run(tgt, "CHARGE", buffer, n_events, pftool::state.daq_rate);
         auto data = buffer.get_buffer();  // take the data from this run
         int length = data.size();
+        if (length == 0){
+          throw std::invalid_argument(
+        "0 length, bad data collection");
+        }
         for (int i_roc : tgt->roc_ids()) {
           // skip ROCs that already have good trim values
           if (good_trim_val[i_roc]) {
@@ -224,6 +233,13 @@ trim_toa_scan(Target* tgt) {
             good_trim_val[i_roc] =
                 true;  // should show if your toa efficiency seems reasonable
           }
+          if (calib == calib_max-calib_step){
+             for (int i_roc : tgt->roc_ids()) {
+               std::cout << "ch = " << ch << " ROC = " << i_roc << " good_trim_val = " << good_trim_val[i_roc] << " at CALIB = " << (calib_max-calib_step) << "\n";
+               good_trim_val[i_roc] = true;
+             }
+          }
+
         }
       }
     }
