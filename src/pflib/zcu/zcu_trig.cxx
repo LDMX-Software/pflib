@@ -151,7 +151,7 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
     );
   }
   uio_.writeMasked(ADDR_HISTORY_VETO_MASK, 0xff, parameters[0]);
-  std::array<uint32_t, 2> thresholds_registers;
+  std::array<uint32_t, 2> thresholds_registers = {0,0};
   for (std::size_t i{0}; i < 8; i++) {
     int i_reg = i / 4;
     int shift = (i % 4)*8;
