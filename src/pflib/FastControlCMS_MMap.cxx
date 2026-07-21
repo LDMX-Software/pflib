@@ -137,7 +137,7 @@ class FastControlCMS_MMap : public FastControl {
     charge_inj.pack();
 
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    // for a DIGITALHALF_{0,1}.L1OFFSET = 16 (the chip default)
+    // for a DIGITALHALF_{0,1}.L1OFFSET = 8 (the chip default)
     // charge injection pulses were observed at a separation of 20
     l1a_charge.bx = charge_inj.bx + 20;
     l1a_charge.flavor = 0;
