@@ -303,7 +303,7 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "BUFFER_CLEAR") {
     while (trig->is_event_available()) {
       trig->read_event();
-      usleep(10000);
+      usleep(100000);
     }
   }
 }
@@ -386,38 +386,36 @@ static void trigger_timein(Target* tgt) {
         .add("CH_0", "LOWRANGE", 1)
         .apply();
 
-  bool just_check = pftool::readline_bool("Just check with a pedestal and charge event? ", false);
-
   do {
     int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-    if (not just_check) {
-      int charge_to_l1a =
-          pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-      tgt->fc().fc_setup_calib(charge_to_l1a);
-    }
+    int charge_to_l1a =
+        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+    tgt->fc().fc_setup_calib(charge_to_l1a);
 
-    int og_align_setup = trig->get_alignment_capture();
-    if (not just_check) {
-      int align_setup = pftool::readline_int("TRG Alignment Capture Delay?", og_align_setup);
-      trig->setup_alignment_capture(align_setup);
-    }
+    int default_l1offset = 16;
+    int l1offset =
+        pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
+    auto test_l1offset_handle = tgt->roc(iroc_oi).testParameters()
+                                    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
+                                    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
+                                    .apply();
 
-    pflib_log(info) << "storing link settings and expanding capture window";
+    int default_global_latency_time = 10;
+    int global_latency_time = pftool::readline_int(
+        "Global latency time on the HGCROC?", default_global_latency_time);
+    auto test_latency_time =
+        tgt->roc(iroc_oi).testParameters()
+            .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
+            .apply();
 
-    /**
-     * The window size in the firmware is stored in 6 bits,
-     * so the maximum capture window (and therefore maximum delay)
-     * is 63 (2^6 - 1).
-     *
-     * @note Capture windows larger than 63 seem to be naively trimmed
-     * without warning or notice.
-     */
-    int max_delay = 63;
-    int pipeline, samples_per_l1a, presamples, econid;
-    trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
-    if (not just_check) {
-      trig->setup_daq(0, econid, max_delay, presamples);
-    }
+    int og_pipeline, og_samples_per_l1a, og_presamples, econid;
+    trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a}, presamples{og_presamples};
+    pipeline = pftool::readline_int("pipeline: ", pipeline);
+    samples_per_l1a = pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
+    presamples = pftool::readline_int("presamples: ", presamples);
+    trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
     pflib_log(info)
         << "pedestal runs to confirm alignment and trigger-sum suppression";
@@ -448,34 +446,42 @@ static void trigger_timein(Target* tgt) {
     std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
     daq_charge.from(daq_charge_event);
 
-    pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
-    trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
-
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
     tgt->fc().fc_setup_calib(og_charge_to_l1a);
-    
-    pflib_log(debug) << "reset align setup back to " << og_align_setup;
-    trig->setup_alignment_capture(og_align_setup);
 
+    pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
+    pflib_log(debug) << "original pipeline = " << og_pipeline
+                    << " samples_per_l1a = " << og_samples_per_l1a
+                    << " presamples = " << og_presamples;
+    trig->setup_daq(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+    
     pflib_log(info) << "analyze words readout from links";
-    if (just_check) {
-      pflib_log(info) << " with pipeline = " << pipeline;
-    }
+    pflib_log(info) << "with charge_to_l1a = " << charge_to_l1a
+                    << " roc.l1offset = " << l1offset;
+    pflib_log(info) << "with pipeline = " << pipeline
+                    << " samples_per_l1a = " << samples_per_l1a
+                    << " presamples = " << presamples;
     printf("DAQ Data\n");
+    printf("     pedestal ->  charge\n");
+    printf(" i:  t-1   t  ->  t-1   t \n");
     auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
     for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
-      printf("%2d: %4d -> %4d\n", i_sample,
+      printf("%2d: %4d %4d -> %4d %4d\n", i_sample,
+            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
             daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
+            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
             daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
     }
 
     printf("TRG Data\n");
+    printf(" i:  ped -> chrg\n");
     for (int i_sample{0}; i_sample < trg_pedestals.n_samples(); i_sample++) {
-      printf("%2d: %4d -> %4d\n", i_sample,
-             trg_pedestals.stc_sum(stc_oi, i_sample),
-             trg_charge.stc_sum(stc_oi, i_sample));
+      int pedestal{trg_pedestals.stc_sum(stc_oi, i_sample)},
+          charge{trg_charge.stc_sum(stc_oi, i_sample)};
+      if (i_sample != presamples and pedestal == charge) continue;
+      printf("%2d: %4d -> %4d%s\n", i_sample, pedestal, charge,
+              (i_sample == presamples) ? " <- sample of interest" : "");
     }
-
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
 }
