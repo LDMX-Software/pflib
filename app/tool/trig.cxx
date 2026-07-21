@@ -17,12 +17,85 @@ ENABLE_LOGGING();
 void trig_render(Target* tgt) {}
 
 /**
+ * The econt_buffer_manager firmware block inserts a pair of headers
+ * with the same format for the data capture along the trigger path
+ * and the capture of the output of the trigger algorithm.
+ */
+class ECONTCaptureHeader {
+  int version_;
+  int econ_id_;
+  int pre_samples_;
+  int n_samples_;
+  int length_;
+  int n_links_;
+ public:
+  void from(std::span<uint32_t> data) {
+    if (data.size() < 2) {
+      PFEXCEPTION_RAISE("MalForm",
+        "ECON-T capture packet header requires 2 words");
+    }
+    /**
+     * two 32b headers are added by the firmware
+     * 
+     * first word
+     * - [32:28] = version
+     * - [27:18] = econ_id
+     * - [7:0] = size
+     *
+     * second word
+     * - [27:24] = number of links
+     * - [22:18] = number of presamples
+     * - [17:12] = number of samples
+     */
+    version_ = ((data[0] >> 28) & 0xf);
+    econ_id_ = ((data[0] >> 18) & 0x3ff);
+    length_ = (data[0] & 0xff);
+    n_links_ = ((data[1] >> 24) & 0xf);
+    pre_samples_ = ((data[1] >> 18) & 0x1f);
+    n_samples_ = ((data[1] >> 12) & 0x3f);
+    if (length_ != 2 + n_links_*n_samples_) {
+      PFEXCEPTION_RAISE("BadForm",
+        "First header reports a length of '"+std::to_string(length_)
+        +"' which does not equal the expected value for STC4");
+    }
+  }
+
+  int version() const {
+    return version_;
+  }
+
+  int econ_id() const {
+    return econ_id_;
+  }
+
+  int length() const {
+    return length_;
+  }
+
+  int n_links() const {
+    return n_links_;
+  }
+
+  int pre_samples() const {
+    return pre_samples_;
+  }
+  
+  int n_samples() const {
+    return n_samples_;
+  }
+};
+
+/**
  * A capture frame has one or more SingleECONTSamples
  * along with two headers written by the firmware that
  * encode how many samples there are and which are important
  */
 class SingleECONTCaptureFrame {
  public:
+  SingleECONTCaptureFrame() = default;
+  SingleECONTCaptureFrame(std::span<uint32_t> data) {
+    from(data);
+  }
   /**
    * Each ECON-T sample has the following struture,
    * assuming
@@ -92,38 +165,12 @@ class SingleECONTCaptureFrame {
   };
 
   void from(std::span<uint32_t> data) {
-    if (data.size() < 2) {
-      PFEXCEPTION_RAISE("MalForm",
-        "ECON-T capture packet doesn't have required header words inserted by firmware");
-    }
-    /**
-     * two 32b headers are added by the firmware
-     * 
-     * first word
-     * - [32:28] = version
-     * - [27:18] = econ_id
-     * - [7:0] = size
-     *
-     * second word
-     * - [27:24] = number of links
-     * - [22:18] = number of presamples
-     * - [17:12] = number of samples
-     */
-    version_ = ((data[0] >> 28) & 0xf);
-    econ_id_ = ((data[0] >> 18) & 0x3ff);
-    int length = (data[0] & 0xff);
-    if (length != data.size()) {
+    header_.from(data);
+
+    if (header_.length() != data.size()) {
       PFEXCEPTION_RAISE("BadForm",
-        "First header reports a length of '"+std::to_string(length)
+        "First header reports a length of '"+std::to_string(header().length())
         +"' but data.size() = "+std::to_string(data.size()));
-    }
-    int n_links = ((data[1] >> 24) & 0xf);
-    pre_samples_ = ((data[1] >> 18) & 0x1f);
-    int n_samples = ((data[1] >> 12) & 0x3f);
-    if (length != 2 + n_links*n_samples) {
-      PFEXCEPTION_RAISE("BadForm",
-        "First header reports a length of '"+std::to_string(length)
-        +"' which does not equal the expected value for STC4");
     }
 
     /**
@@ -131,14 +178,14 @@ class SingleECONTCaptureFrame {
      * 5M+4E encoding, we then see three 32b words for each
      * sample (i.e. size should equal 2 + 3 * samples).
      */
-    samples_.resize(n_samples);
-    for (int i_sample{0}; i_sample < n_samples; i_sample++) {
+    samples_.resize(header_.n_samples());
+    for (int i_sample{0}; i_sample < samples_.size(); i_sample++) {
       samples_[i_sample].from(data.subspan(2 + 3*i_sample, 3));
     }
   }
 
   const SingleECONTSample& sample(std::optional<int> i_sample = {}) const {
-    return samples_.at(i_sample.value_or(pre_samples_));
+    return samples_.at(i_sample.value_or(header().pre_samples()));
   }
 
   int bx(std::optional<int> i_sample = {}) const {
@@ -149,16 +196,20 @@ class SingleECONTCaptureFrame {
     return sample(i_sample).stc_sum(i_stc);
   }
 
+  const ECONTCaptureHeader& header() const {
+    return header_;
+  }
+
   int version() const {
-    return version_;
+    return header().version();
   }
 
   int econ_id() const {
-    return econ_id_;
+    return header().econ_id();
   }
   
   int pre_samples() const {
-    return pre_samples_;
+    return header().pre_samples();
   }
 
   std::size_t n_samples() const {
@@ -166,10 +217,52 @@ class SingleECONTCaptureFrame {
   }
 
  private:
+  ECONTCaptureHeader header_;
   std::vector<SingleECONTSample> samples_;
-  int version_;
-  int econ_id_;
-  int pre_samples_;
+};
+
+class TrigAlgoOutput {
+  struct SingleBXOutput {
+    std::bitset<8> is_high_peak_;
+    bool trigger_;
+  };
+
+  const SingleBXOutput& sample(std::optional<int> i_sample = {}) const {
+    return samples_.at(i_sample.value_or(header_.pre_samples()));
+  }
+
+  std::vector<SingleBXOutput> samples_;
+  ECONTCaptureHeader header_;
+ public:
+  TrigAlgoOutput() = default;
+  TrigAlgoOutput(std::span<uint32_t> data) {
+    from(data);
+  }
+  void from(std::span<uint32_t> data) {
+    header_.from(data);
+    if (header_.length() != data.size()) {
+      PFEXCEPTION_RAISE("BadForm",
+        "Header reports a length of '"+std::to_string(header_.length())
+        +"' but data.size() = "+std::to_string(data.size()));
+    }
+    samples_.resize(header_.n_samples());
+    for (int i_sample{0}; i_sample < samples_.size(); i_sample++) {
+      samples_[i_sample].is_high_peak_ = ((data[i_sample + 2] >> 8) & 0xff);
+      samples_[i_sample].trigger_ = ((data[i_sample + 2] & 0x1) == 1);
+    }
+  }
+
+  std::size_t n_samples() const {
+    return samples_.size();
+  }
+  
+  bool is_high_peak(int i_stc, std::optional<int> i_sample = {}) const {
+    return sample(i_sample).is_high_peak_.test(i_stc);
+  }
+
+  bool trigger(std::optional<int> i_sample = {}) const {
+    return sample(i_sample).trigger_;
+  }
 };
 
 /**
@@ -323,6 +416,12 @@ void algo(const std::string& cmd, Target* target) {
       printf("\n");
     }
   }
+  if (cmd == "BUFFER_CLEAR") {
+    while (trig->is_algo_output_available()) {
+      trig->read_algo_output();
+      usleep(100000);
+    }
+  }
   if (cmd == "CONFIG") {
     auto params = trig->get_algo_setup();
     params[0] = pftool::readline_int("veto mask for recent history: ", params[0], true);
@@ -392,9 +491,10 @@ static void trigger_timein(Target* tgt) {
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
     tgt->fc().fc_setup_calib(charge_to_l1a);
 
-    int default_l1offset = 8;
+    auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
+    int og_l1offset = dh_page.at("L1OFFSET");
     int l1offset =
-        pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
+        pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
     auto test_l1offset_handle = tgt->roc(iroc_oi).testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
@@ -426,6 +526,10 @@ static void trigger_timein(Target* tgt) {
     std::vector<uint32_t> trg_pedestal_event = trig->read_event();
     SingleECONTCaptureFrame trg_pedestals;
     trg_pedestals.from(trg_pedestal_event);
+
+    std::vector<uint32_t> pedestal_algo_output_raw = trig->read_algo_output();
+    TrigAlgoOutput pedestal_algo_output;
+    pedestal_algo_output.from(pedestal_algo_output_raw);
     
     // read_event_sw_headers advances link readout pointer
     pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
@@ -440,6 +544,10 @@ static void trigger_timein(Target* tgt) {
     std::vector<uint32_t> trg_charge_event = trig->read_event();
     SingleECONTCaptureFrame trg_charge;
     trg_charge.from(trg_charge_event);
+
+    std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
+    TrigAlgoOutput charge_algo_output;
+    charge_algo_output.from(charge_algo_output_raw);
 
     // read_event_sw_headers advances link readout pointer
     pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
@@ -478,9 +586,26 @@ static void trigger_timein(Target* tgt) {
     for (int i_sample{0}; i_sample < trg_pedestals.n_samples(); i_sample++) {
       int pedestal{trg_pedestals.stc_sum(stc_oi, i_sample)},
           charge{trg_charge.stc_sum(stc_oi, i_sample)};
-      if (i_sample != presamples and pedestal == charge) continue;
       printf("%2d: %4d -> %4d%s\n", i_sample, pedestal, charge,
               (i_sample == presamples) ? " <- sample of interest" : "");
+    }
+
+    printf("ALGO Output\n");
+    printf("       pedestal  ->    charge   \n");
+    printf(" i: highpeak trg -> highpeak trg\n");
+    for (int i_sample{0}; i_sample < pedestal_algo_output.n_samples(); i_sample++) {
+      printf("%2d: ", i_sample);
+      for (int i_stc{0}; i_stc < 8; i_stc++) {
+        printf("%d", pedestal_algo_output.is_high_peak(i_stc, i_sample));
+      }
+      printf(" %3d", pedestal_algo_output.trigger(i_sample));
+      printf(" -> ");
+      for (int i_stc{0}; i_stc < 8; i_stc++) {
+        printf("%d", charge_algo_output.is_high_peak(i_stc, i_sample));
+      }
+      printf(" %3d", charge_algo_output.trigger(i_sample));
+      if (i_sample == presamples) printf(" <- sample of interest");
+      printf("\n");
     }
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
@@ -513,5 +638,6 @@ auto menu_algo =
     menu_trig->submenu("ALGO", "configure and view trigger algorithm")
         ->line("CONFIG", "configure trigger algorithm parameters", algo)
         ->line("SPY", "view output of trigger algorithm", algo)
-        ->line("STATUS", "printout algorithm settings and output capture status", algo);
+        ->line("STATUS", "printout algorithm settings and output capture status", algo)
+        ->line("BUFFER_CLEAR", "clear out buffer of algo output", algo);
 }  // namespace
