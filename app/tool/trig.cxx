@@ -610,6 +610,127 @@ static void trigger_timein(Target* tgt) {
       "Want to try another set of timing parameters?", false));
 }
 
+void self_trigger(Target* tgt) {
+  pflib::TRIG* trig = tgt->trig();
+  if (trig == 0) return;
+
+  pflib_log(info) << "setting up parameters for self-trigger test";
+
+  std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
+  for (int half{0}; half < 2; half++) {
+    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]["ADC_PEDESTAL"] = 255;
+    roc_setup[
+        pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] = 31;
+    auto refvol_page{
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
+    roc_setup[refvol_page]["CALIB"] = 3000;
+    roc_setup[refvol_page]["INTCTEST"] = 1;
+  }
+  auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
+
+  static const int iroc_oi = 0,
+                   ch_oi = 0,
+                   stc_oi = 6;
+  auto roc_inject = tgt->roc(iroc_oi).testParameters()
+        .add("CH_0", "LOWRANGE", 1)
+        .apply();
+
+  bool enable_l1a_follow;
+  int charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
+  pflib_log(info) << "charge_to_l1a = " << charge_to_l1a
+                  << " enable_l1a_follow = " << enable_l1a_follow;
+  bool l1aen, extl1a;
+  tgt->fc().fc_enables_read(l1aen, extl1a);
+  pflib_log(info) << "l1a_enabled = " << l1aen
+                  << " external_l1a = " << extl1a;
+  pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
+
+  pflib_log(info) << "disabling the L1A following the charge command";
+  tgt->fc().fc_setup_calib(charge_to_l1a, false);
+
+  pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
+
+  pflib_log(info) << "enabling external L1A";
+  tgt->fc().fc_enables(true, true);
+
+  pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
+
+  do {
+    auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
+    int og_l1offset = dh_page.at("L1OFFSET");
+    int l1offset =
+        pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    auto test_l1offset_handle = tgt->roc(iroc_oi).testParameters()
+                                    .add("DIGITALHALF_0", "L1OFFSET", l1offset)
+                                    .add("DIGITALHALF_1", "L1OFFSET", l1offset)
+                                    .apply();
+
+    int og_pipeline, og_samples_per_l1a, og_presamples, econid;
+    trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a}, presamples{og_presamples};
+    pipeline = pftool::readline_int("pipeline: ", pipeline);
+    //samples_per_l1a = pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
+    //presamples = pftool::readline_int("presamples: ", presamples);
+    trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
+
+    pflib_log(info) << "charge injection";
+    tgt->fc().chargepulse();
+    usleep(10000);  // one 100Hz cycle later
+    pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
+  
+    if (tgt->daq().getEventOccupancy() == 1) {
+      // capture data output, using daq last to advance readout pointer
+      std::vector<uint32_t> trg_charge_event = trig->read_event();
+      std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
+      std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
+  
+      // decode after capturing all data so decoding errors don't cause
+      // readout pointer misalignment
+      SingleECONTCaptureFrame trg_charge;
+      trg_charge.from(trg_charge_event);
+  
+      TrigAlgoOutput charge_algo_output;
+      charge_algo_output.from(charge_algo_output_raw);
+  
+      pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+      daq_charge.from(daq_charge_event);
+  
+      printf("DAQ Data\n");
+      printf(" i:  t-1   t \n");
+      auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
+      for (int i_sample{0}; i_sample < daq_charge.samples.size(); i_sample++) {
+        printf("%2d: %4d %4d\n", i_sample,
+              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
+              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
+      }
+  
+      printf("TRG Data\n");
+      printf(" i: stc6\n");
+      for (int i_sample{0}; i_sample < trg_charge.n_samples(); i_sample++) {
+        int charge{trg_charge.stc_sum(stc_oi, i_sample)};
+        printf("%2d: %4d\n", i_sample, charge);
+      }
+  
+      printf("ALGO Output\n");
+      printf(" i: highpeak trg\n");
+      for (int i_sample{0}; i_sample < charge_algo_output.n_samples(); i_sample++) {
+        printf("%2d: ", i_sample);
+        for (int i_stc{0}; i_stc < 8; i_stc++) {
+          printf("%d", charge_algo_output.is_high_peak(i_stc, i_sample));
+        }
+        printf(" %3d", charge_algo_output.trigger(i_sample));
+        printf("\n");
+      }
+    }
+    trig->setup_daq(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+  } while (pftool::readline_bool(
+      "Want to try another set of timing parameters?", false));
+
+  tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+  tgt->fc().fc_enables(l1aen, extl1a);
+}
+
 namespace {
 // accessing the TRIGGER path only works on the ZCU
 // where we have hardware and firmware access to the TRIGGER stream
@@ -629,6 +750,7 @@ auto menu_trig =
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
+        ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trigger)
         ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
