@@ -243,12 +243,6 @@ trim_toa_scan(Target* tgt) {
         }
       }
     }
-
-    std::map<std::string, std::map<std::string, uint64_t>> parameters2;
-    parameters2[ch_str]["HIGHRANGE"] =
-        0;  // Turn off highrange for the given channel after you are done
-            // scanning over it
-    auto test_params2 = tgt->tempApplyAllROCs(parameters2);
   }
 
   pflib_log(info) << "sample collections done, deducing settings";
