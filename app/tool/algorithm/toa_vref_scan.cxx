@@ -196,7 +196,7 @@ toa_vref_scan(Target* tgt, bool scan_all, bool write_csv,
           pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
       settings[i_roc][page]["TOA_VREF"] = target[i_roc][i_link];
     }
- }
+  }
   return settings;
 }
 
