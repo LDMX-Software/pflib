@@ -47,5 +47,4 @@ void trim_toa_scan(Target* tgt) {
     }
     f << out.c_str() << std::endl;
   }
-  
 }
