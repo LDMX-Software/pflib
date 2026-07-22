@@ -24,12 +24,12 @@ void local_pedestal_level(Target* tgt) {
     std::string iroc_str{std::to_string(iroc)};
 
     if (pftool::readline_bool("View deduced settings for ROC" + iroc_str + "? ",
-                              true)) {
+                              false)) {
       std::cout << out.c_str() << std::endl;
     }
 
     if (pftool::readline_bool("Apply settings to ROC" + iroc_str + "? ",
-                              false)) {
+                              true)) {
       tgt->roc(iroc).applyParameters(parameters);
     }
 
