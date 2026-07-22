@@ -45,7 +45,6 @@ void toa_vref_scan(Target* tgt) {
     for (const auto& [i_roc, page_map] : settings) {
       tgt->roc(i_roc).applyParameters(page_map);
     }
-  }
 
   if (pftool::readline_bool("Save settings to a file? ", false)) {
     std::string fname =
@@ -57,5 +56,4 @@ void toa_vref_scan(Target* tgt) {
     }
     f << out.c_str() << std::endl;
   }
-}
-}
+ }
