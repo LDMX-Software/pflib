@@ -375,18 +375,21 @@ class FastControlCMS_MMap : public FastControl {
         "It doesn't make sence to have less than 1 L1A per RoR.");
     }
     auto pedestal(periodic(PEDESTAL));
-    pedestal.burst_length = n - 1;
+    pedestal.burst_length = n;
     pedestal.pack();
     auto charge_ror(periodic(CHARGE_ROR));
-    charge_ror.burst_length = n - 1;
+    charge_ror.burst_length = n;
     charge_ror.pack();
     auto led_ror{periodic(LED_ROR)};
-    led_ror.burst_length = n - 1;
+    led_ror.burst_length = n;
     led_ror.pack();
   }
   int getL1AperROR() override {
-    // assume 
-    return periodic(PEDESTAL).burst_length + 1;
+    // assume the three ROR commands (PEDESTAL, CHARGE_ROR, and LED_ROR)
+    // are all matching
+    int length = periodic(PEDESTAL).burst_length;
+    if (length == 0) return 1;
+    return length;
   }
 
  private:
