@@ -8,10 +8,12 @@
 
 void trim_toa_scan(Target* tgt) {
   auto settings = pflib::algorithm::trim_toa_scan(tgt);
+
+  YAML::Emitter out;
+  out << YAML::BeginMap;
   for (const auto& [i_roc, parameters] : settings) {
-    auto roc{tgt->roc(i_roc)};
-    YAML::Emitter out;
-    out << YAML::BeginMap;
+    out << YAML::Key << i_roc;
+    out << YAML::Value << YAML::BeginMap;
     for (const auto& page : parameters) {
       out << YAML::Key << page.first;
       out << YAML::Value << YAML::BeginMap;
@@ -21,25 +23,29 @@ void trim_toa_scan(Target* tgt) {
       out << YAML::EndMap;
     }
     out << YAML::EndMap;
+  }
+  out << YAML::EndMap;
 
-    if (pftool::readline_bool("View deduced settings? ", true)) {
-      std::cout << out.c_str() << std::endl;
-    }
+  if (pftool::readline_bool("View deduced settings? ", true)) {
+    std::cout << out.c_str() << std::endl;
+  }
 
-    if (pftool::readline_bool("Apply settings to the chip? ", true)) {
-      roc.applyParameters(parameters);
-    }
-
-    if (pftool::readline_bool("Save settings to a file? ", false)) {
-      std::string fname = pftool::readline_path(
-          "trim-toa-scan-" + std::to_string(pftool::state.iroc) + "-settings",
-          ".yaml");
-
-      std::ofstream f{fname};
-      if (not f.is_open()) {
-        PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
-      }
-      f << out.c_str() << std::endl;
+  if (pftool::readline_bool("Apply settings to the chip? ", true)) {
+    for (const auto& [i_roc, parameters] : settings) {
+      tgt->roc(i_roc).applyParameters(parameters);
     }
   }
+
+  if (pftool::readline_bool("Save settings to a file? ", false)) {
+    std::string fname = pftool::readline_path(
+        "trim-toa-scan-" + std::to_string(pftool::state.iroc) + "-settings",
+        ".yaml");
+
+    std::ofstream f{fname};
+    if (not f.is_open()) {
+      PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+    }
+    f << out.c_str() << std::endl;
+  }
+  
 }
