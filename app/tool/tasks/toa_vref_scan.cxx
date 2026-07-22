@@ -46,14 +46,14 @@ void toa_vref_scan(Target* tgt) {
       tgt->roc(i_roc).applyParameters(page_map);
     }
 
-  if (pftool::readline_bool("Save settings to a file? ", false)) {
-    std::string fname =
-        pftool::readline_path("toa-vref-scan-settings", ".yaml");
+    if (pftool::readline_bool("Save settings to a file? ", false)) {
+      std::string fname =
+          pftool::readline_path("toa-vref-scan-settings", ".yaml");
 
-    std::ofstream f{fname};
-    if (not f.is_open()) {
-      PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+      std::ofstream f{fname};
+      if (not f.is_open()) {
+        PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+      }
+      f << out.c_str() << std::endl;
     }
-    f << out.c_str() << std::endl;
   }
- }
