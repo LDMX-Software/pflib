@@ -486,10 +486,13 @@ static void trigger_timein(Target* tgt) {
         .apply();
 
   do {
-    int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    bool enable_l1a_follow;
+    int og_charge_to_l1a;
+    tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
+
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a);
+    tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 
     auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
     int og_l1offset = dh_page.at("L1OFFSET");
@@ -499,15 +502,6 @@ static void trigger_timein(Target* tgt) {
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
                                     .apply();
-
-    int default_global_latency_time = 10;
-    int global_latency_time = pftool::readline_int(
-        "Global latency time on the HGCROC?", default_global_latency_time);
-    auto test_latency_time =
-        tgt->roc(iroc_oi).testParameters()
-            .add("MASTERTDC_0", "GLOBAL_LATENCY_TIME", global_latency_time)
-            .add("MASTERTDC_1", "GLOBAL_LATENCY_TIME", global_latency_time)
-            .apply();
 
     int og_pipeline, og_samples_per_l1a, og_presamples, econid;
     trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
@@ -522,18 +516,20 @@ static void trigger_timein(Target* tgt) {
     tgt->fc().sendL1A();
     usleep(10000);  // one 100Hz cycle later
 
-    // decode captured data
+    // capture data from this event
     std::vector<uint32_t> trg_pedestal_event = trig->read_event();
+    std::vector<uint32_t> pedestal_algo_output_raw = trig->read_algo_output();
+    // read_event_sw_headers advances link readout pointer
+    std::vector<uint32_t> daq_pedestal_event = tgt->daq().read_event_sw_headers();
+
+    // decode captured data
     SingleECONTCaptureFrame trg_pedestals;
     trg_pedestals.from(trg_pedestal_event);
 
-    std::vector<uint32_t> pedestal_algo_output_raw = trig->read_algo_output();
     TrigAlgoOutput pedestal_algo_output;
     pedestal_algo_output.from(pedestal_algo_output_raw);
     
-    // read_event_sw_headers advances link readout pointer
     pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
-    std::vector<uint32_t> daq_pedestal_event = tgt->daq().read_event_sw_headers();
     daq_pedestals.from(daq_pedestal_event);
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
@@ -541,21 +537,24 @@ static void trigger_timein(Target* tgt) {
     tgt->fc().chargepulse();
     usleep(10000);  // one 100Hz cycle later
 
+    // capture data output, using daq last to advance readout pointer
     std::vector<uint32_t> trg_charge_event = trig->read_event();
+    std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
+    std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
+
+    // decode after capturing all data so decoding errors don't cause
+    // readout pointer misalignment
     SingleECONTCaptureFrame trg_charge;
     trg_charge.from(trg_charge_event);
 
-    std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
     TrigAlgoOutput charge_algo_output;
     charge_algo_output.from(charge_algo_output_raw);
 
-    // read_event_sw_headers advances link readout pointer
     pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
-    std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
     daq_charge.from(daq_charge_event);
 
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
-    tgt->fc().fc_setup_calib(og_charge_to_l1a);
+    tgt->fc().fc_setup_calib(og_charge_to_l1a, enable_l1a_follow);
 
     pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
     pflib_log(debug) << "original pipeline = " << og_pipeline

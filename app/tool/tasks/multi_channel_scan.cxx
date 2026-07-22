@@ -193,13 +193,13 @@ void multi_channel_scan(Target* tgt) {
         auto test_param_three = test_param_builder.apply();
         // timescan
         int central_charge_to_l1a;
-        central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+        bool enable_l1a_follow;
+        tgt->fc().fc_get_setup_calib(central_charge_to_l1a, enable_l1a_follow);
         for (charge_to_l1a = central_charge_to_l1a + start_bx;
              charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
              charge_to_l1a++) {
-          tgt->fc().fc_setup_calib(charge_to_l1a);
-          pflib_log(info) << "charge_to_l1a = "
-                          << tgt->fc().fc_get_setup_calib();
+          tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+          pflib_log(info) << "charge_to_l1a = " << charge_to_l1a;
           for (phase_strobe = 0; phase_strobe < n_phase_strobe;
                phase_strobe++) {
             auto phase_strobe_test_handle =
@@ -215,7 +215,7 @@ void multi_channel_scan(Target* tgt) {
           }
         }
         // reset charge_to_l1a to central value
-        tgt->fc().fc_setup_calib(central_charge_to_l1a);
+        tgt->fc().fc_setup_calib(central_charge_to_l1a, enable_l1a_follow);
       }
     }
   }

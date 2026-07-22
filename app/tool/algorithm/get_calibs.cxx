@@ -43,7 +43,10 @@ std::array<int, 72> get_calibs(Target* tgt, ROC& roc, size_t& n_events,
           roc.testParameters().add(refvol_page, "CALIB", calib).apply();
       usleep(10);
       std::vector<int> adcs;
-      auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+      int calib_l1a_offset;
+      bool enable_l1a_follow;
+      tgt->fc().fc_get_setup_calib(
+          calib_l1a_offset, enable_l1a_follow);
       // We need to scan different BXs because the max adc is not neccessarilly
       // in the first one. Need to add phase scan here as well. Currently the bx
       // scan is not working for some reason. Needs a fix.

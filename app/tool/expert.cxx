@@ -244,9 +244,12 @@ static void fc(const std::string& cmd, Target* pft) {
     do_status = true;
   }
   if (cmd == "CALIB") {
-    int offset = pft->fc().fc_get_setup_calib();
+    bool enable_l1a_follow;
+    int offset;
+    pft->fc().fc_get_setup_calib(offset, enable_l1a_follow);
     offset = pftool::readline_int("Calibration L1A offset?", offset);
-    pft->fc().fc_setup_calib(offset);
+    enable_l1a_follow = pftool::readline_bool("Enable following L1A?", enable_l1a_follow);
+    pft->fc().fc_setup_calib(offset, enable_l1a_follow);
   }
 
   if (cmd == "LED") {

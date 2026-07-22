@@ -208,7 +208,10 @@ static void daq_setup_standard(Target* tgt) {
      * in the trigger path, we need to bring the L1A closer
      * in time to the injected charge pulse.
      */
-    tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
+    int offset;
+    bool enable;
+    tgt->fc().fc_get_setup_calib(offset, enable);
+    tgt->fc().fc_setup_calib(offset - 4, enable);
     /// this then requires us to lower the L1OFFSET as well
     std::map<std::string, std::map<std::string, uint64_t>> l1offsets;
     l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
@@ -486,10 +489,12 @@ static void daq_debug_trigger_timein(Target* tgt) {
   auto test_param_handle = test_param_builder.apply();
 
   do {
-    int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    int og_charge_to_l1a;
+    bool enable;
+    tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable);
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a);
+    tgt->fc().fc_setup_calib(charge_to_l1a, enable);
 
     int default_l1offset = 8;
     int l1offset =
@@ -552,7 +557,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
       daq.setupLink(ilink, og_delay[ilink], og_capture[ilink]);
     }
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
-    tgt->fc().fc_setup_calib(og_charge_to_l1a);
+    tgt->fc().fc_setup_calib(og_charge_to_l1a, enable);
 
     pflib_log(info) << "analyze words readout from links";
     pflib_log(debug) << "delay : pedestal -> charge";
@@ -749,10 +754,9 @@ auto menu_daq_debug =
                   all_channels_to_csv(fname + ".csv", tgt->nrocs() * 2)};
 
               for (int toffset{min_offset}; toffset < max_offset; toffset++) {
-                tgt->fc().fc_setup_calib(toffset);
+                tgt->fc().fc_setup_calib(toffset, true);
                 usleep(10);
-                pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                << tgt->fc().fc_get_setup_calib();
+                pflib_log(info) << "run with FAST_CONTROL.CALIB = " << toffset;
                 daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
               }
             })
