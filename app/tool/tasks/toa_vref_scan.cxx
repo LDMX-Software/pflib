@@ -57,4 +57,3 @@ void toa_vref_scan(Target* tgt) {
       f << out.c_str() << std::endl;
     }
   }
-
