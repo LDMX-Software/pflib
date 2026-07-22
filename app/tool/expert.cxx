@@ -302,6 +302,9 @@ auto menu_fc =
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
+        ->line("SEND_CALIB", "send a calib pulse command", [](Target* tgt) {
+          tgt->fc().chargepulse();
+        })
         ->line("LED", "Setup LED calibration pulse", fc)
         ->line("ORBIT_BLINKER",
                "send L1A once every orbit for alignment testing (10kHz)", fc);

@@ -199,13 +199,14 @@ class FastControlCMS_MMap : public FastControl {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     charge_to_l1a = l1a_charge.bx - charge_inj.bx;
-    enable_follow_l1a = l1a_charge.enable;
+    enable_follow_l1a = l1a_charge.enable_follow and l1a_charge.enable;
   }
 
   virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) override {
     Periodic charge_inj(periodic(CHARGE_PERIODIC));
     Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
     l1a_charge.bx = charge_inj.bx + charge_to_l1a;
+    l1a_charge.enable_follow = enable_follow_l1a;
     l1a_charge.enable = enable_follow_l1a;
     l1a_charge.pack();
   }
@@ -357,6 +358,7 @@ class FastControlCMS_MMap : public FastControl {
 
  private:
   UIO uio_;
+  bool enable_charge_follow = true;
   mutable logging::logger the_log_{logging::get("FastControlCMS_MMap")};
 };
 
