@@ -485,6 +485,8 @@ static void trigger_timein(Target* tgt) {
         .add("CH_0", "LOWRANGE", 1)
         .apply();
 
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
+
   do {
     bool enable_l1a_follow;
     int og_charge_to_l1a;
@@ -519,8 +521,7 @@ static void trigger_timein(Target* tgt) {
     // capture data from this event
     std::vector<uint32_t> trg_pedestal_event = trig->read_event();
     std::vector<uint32_t> pedestal_algo_output_raw = trig->read_algo_output();
-    // read_event_sw_headers advances link readout pointer
-    std::vector<uint32_t> daq_pedestal_event = tgt->daq().read_event_sw_headers();
+    std::vector<uint32_t> daq_pedestal_event = tgt->read_event();
 
     // decode captured data
     SingleECONTCaptureFrame trg_pedestals;
@@ -540,7 +541,7 @@ static void trigger_timein(Target* tgt) {
     // capture data output, using daq last to advance readout pointer
     std::vector<uint32_t> trg_charge_event = trig->read_event();
     std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
-    std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
+    std::vector<uint32_t> daq_charge_event = tgt->read_event();
 
     // decode after capturing all data so decoding errors don't cause
     // readout pointer misalignment
@@ -683,7 +684,7 @@ void self_trigger(Target* tgt) {
       // capture data output, using daq last to advance readout pointer
       std::vector<uint32_t> trg_charge_event = trig->read_event();
       std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
-      std::vector<uint32_t> daq_charge_event = tgt->daq().read_event_sw_headers();
+      std::vector<uint32_t> daq_charge_event = tgt->read_event();
   
       // decode after capturing all data so decoding errors don't cause
       // readout pointer misalignment
