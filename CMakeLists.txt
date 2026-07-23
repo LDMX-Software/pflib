@@ -147,6 +147,7 @@ set(pflib_src
   src/pflib/EcalModule.cxx
   src/pflib/EcalSingleModuleMotherboard.cxx
   src/pflib/Bias.cxx
+  src/pflib/TRIG.cxx
 )
 
 if (${Rogue_FOUND})

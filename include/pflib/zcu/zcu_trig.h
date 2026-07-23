@@ -29,14 +29,13 @@ class ZCUtrig : public TRIG {
   void get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
                      int& presamples) override;
 
-  bool is_event_available() override;
-
-  std::vector<uint32_t> read_event() override;
+  bool is_sample_available() override;
+  std::vector<uint32_t> read_sample() override;
 
   void setup_algo(const std::vector<uint32_t>& parameters) override;
   std::vector<uint32_t> get_algo_setup() override;
   bool is_algo_output_available() override;
-  std::vector<uint32_t> read_algo_output() override;
+  std::vector<uint32_t> read_algo_output_sample() override;
 
  private:
   UIO uio_;

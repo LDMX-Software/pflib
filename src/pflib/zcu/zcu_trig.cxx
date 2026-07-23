@@ -111,13 +111,13 @@ void ZCUtrig::get_daq_setup(int& pipeline, int& econ_id, int& samples_per_l1a,
   econ_id = uio_.readMasked(ADDR_ECON_ID, MASK_ECON_ID);
 }
 
-bool ZCUtrig::is_event_available() {
+bool ZCUtrig::is_sample_available() {
   return uio_.readMasked(ADDR_DAQ_STATUS, MASK_DAQ_TVALID) != 0;
 }
 
-std::vector<uint32_t> ZCUtrig::read_event() {
+std::vector<uint32_t> ZCUtrig::read_sample() {
   std::vector<uint32_t> retval;
-  if (!is_event_available()) return retval;
+  if (!is_sample_available()) return retval;
   uint32_t val;
   do {
     val = uio_.read(ADDR_DAQ_STATUS);
@@ -181,7 +181,7 @@ bool ZCUtrig::is_algo_output_available() {
   return uio_.readMasked(ADDR_DAQ_STATUS, MASK_ALGO_TVALID) != 0;
 }
 
-std::vector<uint32_t> ZCUtrig::read_algo_output() {
+std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
   std::vector<uint32_t> retval;
   if (!is_algo_output_available()) return retval;
   uint32_t val;

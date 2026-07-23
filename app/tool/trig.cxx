@@ -167,7 +167,7 @@ class SingleECONTCaptureFrame {
   void from(std::span<uint32_t> data) {
     header_.from(data);
 
-    if (header_.length() != data.size()) {
+    if (header_.length() > data.size()) {
       PFEXCEPTION_RAISE("BadForm",
         "First header reports a length of '"+std::to_string(header().length())
         +"' but data.size() = "+std::to_string(data.size()));
@@ -198,6 +198,10 @@ class SingleECONTCaptureFrame {
 
   const ECONTCaptureHeader& header() const {
     return header_;
+  }
+
+  int length() const {
+    return header().length();
   }
 
   int version() const {
@@ -240,7 +244,7 @@ class TrigAlgoOutput {
   }
   void from(std::span<uint32_t> data) {
     header_.from(data);
-    if (header_.length() != data.size()) {
+    if (header_.length() > data.size()) {
       PFEXCEPTION_RAISE("BadForm",
         "Header reports a length of '"+std::to_string(header_.length())
         +"' but data.size() = "+std::to_string(data.size()));
@@ -255,6 +259,10 @@ class TrigAlgoOutput {
   std::size_t n_samples() const {
     return samples_.size();
   }
+
+  int length() const {
+    return header_.length();
+  }
   
   bool is_high_peak(int i_stc, std::optional<int> i_sample = {}) const {
     return sample(i_sample).is_high_peak_.test(i_stc);
@@ -264,6 +272,20 @@ class TrigAlgoOutput {
     return sample(i_sample).trigger_;
   }
 };
+
+template<class SampleFrame>
+std::vector<SampleFrame> decode_multi_sample(
+  int n_samples,
+  std::vector<uint32_t>& data
+) {
+  std::vector<SampleFrame> frames(n_samples);
+  int offset{0};
+  for (int i{0}; i < frames.size(); i++) {
+    frames[i].from(std::span<uint32_t>(data.begin() + offset, data.end()));
+    offset += frames[i].length();
+  }
+  return frames;
+}
 
 /**
  * Interaction with Optical links
@@ -344,16 +366,18 @@ void trig(const std::string& cmd, Target* target) {
       printf("%08x\n", word);
     }
 
-    SingleECONTCaptureFrame frame;
-    frame.from(event);
-    printf("econ_id = %d n_samples = %d\n", frame.econ_id(), frame.n_samples());
+    std::vector<SingleECONTCaptureFrame> frames = decode_multi_sample<SingleECONTCaptureFrame>(
+      trig->get_l1a_per_ror(), event);
     printf("BX STC1 STC2 STC3 STC4 STC5 STC6 STC7 STC8\n");
-    for (int i{0}; i < frame.n_samples(); i++) {
-      printf("%2d", frame.bx(i));
-      for (int j{0}; j < 8; j++) {
-        printf(" %4d", frame.stc_sum(j, i));
+    for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
+      const auto& frame{frames[i_l1a]};
+      for (int i{0}; i < frame.n_samples(); i++) {
+        printf("%2d", frame.bx(i));
+        for (int j{0}; j < 8; j++) {
+          printf(" %4d", frame.stc_sum(j, i));
+        }
+        printf("\n");
       }
-      printf("\n");
     }
   }
   if (cmd == "ALIGN_SETUP") {
@@ -394,8 +418,8 @@ void trig(const std::string& cmd, Target* target) {
         ilink, pftool::readline_int("New delay: ", trig->get_bx_delay(ilink)));
   }
   if (cmd == "BUFFER_CLEAR") {
-    while (trig->is_event_available()) {
-      trig->read_event();
+    while (trig->is_sample_available()) {
+      trig->read_sample();
       usleep(100000);
     }
   }
@@ -418,7 +442,7 @@ void algo(const std::string& cmd, Target* target) {
   }
   if (cmd == "BUFFER_CLEAR") {
     while (trig->is_algo_output_available()) {
-      trig->read_algo_output();
+      trig->read_algo_output_sample();
       usleep(100000);
     }
   }
@@ -515,7 +539,7 @@ static void trigger_timein(Target* tgt) {
 
     pflib_log(info)
         << "pedestal runs to confirm alignment and trigger-sum suppression";
-    tgt->fc().sendL1A();
+    tgt->fc().sendROR();
     usleep(10000);  // one 100Hz cycle later
 
     // capture data from this event
@@ -524,11 +548,11 @@ static void trigger_timein(Target* tgt) {
     std::vector<uint32_t> daq_pedestal_event = tgt->read_event();
 
     // decode captured data
-    SingleECONTCaptureFrame trg_pedestals;
-    trg_pedestals.from(trg_pedestal_event);
+    std::vector<SingleECONTCaptureFrame> trg_pedestals = decode_multi_sample<SingleECONTCaptureFrame>(
+      trig->get_l1a_per_ror(), trg_pedestal_event);
 
-    TrigAlgoOutput pedestal_algo_output;
-    pedestal_algo_output.from(pedestal_algo_output_raw);
+    std::vector<TrigAlgoOutput> pedestal_algo_output = decode_multi_sample<TrigAlgoOutput>(
+      trig->get_l1a_per_ror(), pedestal_algo_output_raw);
     
     pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
     daq_pedestals.from(daq_pedestal_event);
@@ -545,11 +569,11 @@ static void trigger_timein(Target* tgt) {
 
     // decode after capturing all data so decoding errors don't cause
     // readout pointer misalignment
-    SingleECONTCaptureFrame trg_charge;
-    trg_charge.from(trg_charge_event);
+    std::vector<SingleECONTCaptureFrame> trg_charge = decode_multi_sample<SingleECONTCaptureFrame>(
+      trig->get_l1a_per_ror(), trg_charge_event);
 
-    TrigAlgoOutput charge_algo_output;
-    charge_algo_output.from(charge_algo_output_raw);
+    std::vector<TrigAlgoOutput> charge_algo_output = decode_multi_sample<TrigAlgoOutput>(
+      trig->get_l1a_per_ror(), charge_algo_output_raw);
 
     pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
     daq_charge.from(daq_charge_event);
@@ -583,29 +607,33 @@ static void trigger_timein(Target* tgt) {
 
     printf("TRG Data\n");
     printf(" i:  ped -> chrg\n");
-    for (int i_sample{0}; i_sample < trg_pedestals.n_samples(); i_sample++) {
-      int pedestal{trg_pedestals.stc_sum(stc_oi, i_sample)},
-          charge{trg_charge.stc_sum(stc_oi, i_sample)};
-      printf("%2d: %4d -> %4d%s\n", i_sample, pedestal, charge,
-              (i_sample == presamples) ? " <- sample of interest" : "");
+    for (int i_l1a{0}; i_l1a < trg_pedestals.size(); i_l1a++) {
+      for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].n_samples(); i_sample++) {
+        int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, i_sample)},
+            charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
+        printf("%2d: %4d -> %4d%s\n", i_l1a+i_sample, pedestal, charge,
+                (i_sample == presamples) ? " <- sample of interest" : "");
+      }
     }
 
     printf("ALGO Output\n");
     printf("       pedestal  ->    charge   \n");
     printf(" i: highpeak trg -> highpeak trg\n");
-    for (int i_sample{0}; i_sample < pedestal_algo_output.n_samples(); i_sample++) {
-      printf("%2d: ", i_sample);
-      for (int i_stc{0}; i_stc < 8; i_stc++) {
-        printf("%d", pedestal_algo_output.is_high_peak(i_stc, i_sample));
+    for (int i_l1a{0}; i_l1a < pedestal_algo_output.size(); i_l1a++) {
+      for (int i_sample{0}; i_sample < pedestal_algo_output[i_l1a].n_samples(); i_sample++) {
+        printf("%2d: ", i_l1a+i_sample);
+        for (int i_stc{0}; i_stc < 8; i_stc++) {
+          printf("%d", pedestal_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
+        }
+        printf(" %3d", pedestal_algo_output[i_l1a].trigger(i_sample));
+        printf(" -> ");
+        for (int i_stc{0}; i_stc < 8; i_stc++) {
+          printf("%d", charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
+        }
+        printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
+        if (i_sample == presamples) printf(" <- sample of interest");
+        printf("\n");
       }
-      printf(" %3d", pedestal_algo_output.trigger(i_sample));
-      printf(" -> ");
-      for (int i_stc{0}; i_stc < 8; i_stc++) {
-        printf("%d", charge_algo_output.is_high_peak(i_stc, i_sample));
-      }
-      printf(" %3d", charge_algo_output.trigger(i_sample));
-      if (i_sample == presamples) printf(" <- sample of interest");
-      printf("\n");
     }
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
@@ -688,11 +716,11 @@ void self_trigger(Target* tgt) {
   
       // decode after capturing all data so decoding errors don't cause
       // readout pointer misalignment
-      SingleECONTCaptureFrame trg_charge;
-      trg_charge.from(trg_charge_event);
-  
-      TrigAlgoOutput charge_algo_output;
-      charge_algo_output.from(charge_algo_output_raw);
+      std::vector<SingleECONTCaptureFrame> trg_charge = decode_multi_sample<SingleECONTCaptureFrame>(
+        trig->get_l1a_per_ror(), trg_charge_event);
+
+      std::vector<TrigAlgoOutput> charge_algo_output = decode_multi_sample<TrigAlgoOutput>(
+        trig->get_l1a_per_ror(), charge_algo_output_raw);
   
       pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
       daq_charge.from(daq_charge_event);
@@ -708,20 +736,24 @@ void self_trigger(Target* tgt) {
   
       printf("TRG Data\n");
       printf(" i: stc6\n");
-      for (int i_sample{0}; i_sample < trg_charge.n_samples(); i_sample++) {
-        int charge{trg_charge.stc_sum(stc_oi, i_sample)};
-        printf("%2d: %4d\n", i_sample, charge);
+      for (int i_l1a{0}; i_l1a < trg_charge.size(); i_l1a++) {
+        for (int i_sample{0}; i_sample < trg_charge[i_l1a].n_samples(); i_sample++) {
+          int charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
+          printf("%2d: %4d\n", i_l1a+i_sample, charge);
+        }
       }
   
       printf("ALGO Output\n");
       printf(" i: highpeak trg\n");
-      for (int i_sample{0}; i_sample < charge_algo_output.n_samples(); i_sample++) {
-        printf("%2d: ", i_sample);
-        for (int i_stc{0}; i_stc < 8; i_stc++) {
-          printf("%d", charge_algo_output.is_high_peak(i_stc, i_sample));
+      for (int i_l1a{0}; i_l1a < charge_algo_output.size(); i_l1a++) {
+        for (int i_sample{0}; i_sample < charge_algo_output[i_l1a].n_samples(); i_sample++) {
+          printf("%2d: ", i_l1a+i_sample);
+          for (int i_stc{0}; i_stc < 8; i_stc++) {
+            printf("%d", charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
+          }
+          printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
+          printf("\n");
         }
-        printf(" %3d", charge_algo_output.trigger(i_sample));
-        printf("\n");
       }
     }
     trig->setup_daq(og_pipeline, econid, og_samples_per_l1a, og_presamples);
@@ -746,8 +778,10 @@ auto menu_trig =
         ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
         ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
         ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
-        ->line("SW_L1A", "send a L1A from software",
+        ->line("SW_L1A", "send a single L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
+        ->line("SW_ROR", "send a RoR from software",
+               [](Target* tgt) { tgt->fc().sendROR(); })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)

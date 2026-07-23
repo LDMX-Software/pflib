@@ -34,6 +34,7 @@ class DAQ {
 
   /// setup overall event information for daq channels
   virtual void setup(int econid, int samples_per_ror, int soi = -1) {
+    printf("DAQ::setup(%d, %d, %d)\n", econid, samples_per_ror, soi);
     econid_ = econid;
     samples_ = samples_per_ror;
     soi_ = (soi < 0 || soi > samples_ - 1) ? (0) : soi;
@@ -80,8 +81,12 @@ class DAQ {
   int n_links;
   /// enabled
   bool enabled_;
+  /// id for the econ we are reading
   int econid_;
-  int samples_, soi_;
+  /// number of samples per readout request
+  int samples_;
+  /// index for sample of interest in set of samples
+  int soi_;
 };
 
 }  // namespace pflib

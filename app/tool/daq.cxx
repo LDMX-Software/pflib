@@ -7,6 +7,8 @@
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
 
+#include "pflib/TRIG.h"
+
 ENABLE_LOGGING();
 
 static void print_daq_status(Target* pft) {
@@ -103,6 +105,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     int samples = pftool::readline_int(" Samples/ROR: ", daq.samples_per_ror());
     int soi = pftool::readline_int(" Sample of interest: ", daq.soi());
     daq.setup(econid, samples, soi);
+    if (pft->trig()) pft->trig()->set_l1a_per_ror(samples);
     pft->fc().setL1AperROR(samples);
   }
   /*
@@ -695,18 +698,18 @@ auto menu_daq_debug =
                })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
-        ->line("CLEAR", "advance readout until zero event occupancy and reset",
+        ->line("CLEAR", "advance readout pointer until buffer is empty and reset",
                [](Target* tgt) {
-                 int last{tgt->daq().getEventOccupancy()};
-                 while (tgt->daq().getEventOccupancy() > 0) {
+                 // both ZCU and Bittware have an upper limit of 0x7f = 127
+                 // samples in their daq buffers, so - to prevent infinite looping
+                 // if the firmware is misbehaving - we limit to 127 advancements
+                 static const int max_adv = 0x7f;
+                 bool empty, _full;
+                 for (int n_adv{0}; n_adv < max_adv; n_adv++) {
+                   tgt->daq().bufferStatus(0, empty, _full);
+                   if (empty) break;
                    tgt->daq().advanceLinkReadPtr();
                    usleep(100);
-                   if (last == tgt->daq().getEventOccupancy()) {
-                     PFEXCEPTION_RAISE("InfLoop",
-                                       "Event occupancy is not changing when "
-                                       "we advance the read ptr");
-                   }
-                   last = tgt->daq().getEventOccupancy();
                  }
 
                  tgt->daq().reset();
