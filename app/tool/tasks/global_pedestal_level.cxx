@@ -22,7 +22,7 @@ void global_pedestal_level(Target* tgt) {
     }
     out << YAML::EndMap;
 
-    if (pftool::readline_bool("View deduced settings? ", true)) {
+    if (pftool::readline_bool("View deduced settings? ", false)) {
       std::cout << out.c_str() << std::endl;
     }
 

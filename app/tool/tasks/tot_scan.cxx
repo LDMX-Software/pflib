@@ -1,13 +1,13 @@
-#include "toa_scan.h"
+#include "tot_scan.h"
 
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
 
-#include "../algorithm/toa_scan.h"
+#include "../algorithm/tot_scan.h"
 
-void toa_scan(Target* tgt) {
-  auto settings = pflib::algorithm::toa_scan(tgt);
+void tot_scan(Target* tgt) {
+  auto settings = pflib::algorithm::tot_scan(tgt);
   for (const auto& [i_roc, parameters] : settings) {
     auto roc{tgt->roc(i_roc)};
     YAML::Emitter out;
@@ -32,7 +32,8 @@ void toa_scan(Target* tgt) {
 
     if (pftool::readline_bool("Save settings to a file? ", false)) {
       std::string fname = pftool::readline_path(
-          "toa_scan-roc-" + std::to_string(i_roc) + "-settings", ".yaml");
+          "global_pedestal_level-roc-" + std::to_string(i_roc) + "-settings",
+          ".yaml");
 
       std::ofstream f{fname};
       if (not f.is_open()) {

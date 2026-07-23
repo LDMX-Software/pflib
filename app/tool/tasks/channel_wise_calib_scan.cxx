@@ -33,8 +33,10 @@ void channel_wise_calib_scan(Target* tgt) {
   for (int ch = 0; ch < 72; ch++) {
     auto ch_page = pflib::utility::string_format("CH_%d", ch);
     setup_parameters[ch_page]["LOWRANGE"] = 0;
+    setup_parameters[ch_page]["HIGHRANGE"] = 0;
   }
   auto test_setup_params = tgt->tempApplyAllROCs(setup_parameters);
+
   int central_charge_to_l1a;
   int charge_to_l1a{0};
   int phase_strobe{0};
@@ -45,6 +47,7 @@ void channel_wise_calib_scan(Target* tgt) {
   int n_links{tgt->nrocs() * 2};
   int calib{0};
   int ch{0};
+
   std::map<int, std::string> fnames;
   std::map<int, std::ofstream> outputs;
   for (int i_roc : tgt->roc_ids()) {
@@ -54,6 +57,7 @@ void channel_wise_calib_scan(Target* tgt) {
     outputs[i_roc] << "time,calib,channel,"
                    << pflib::packing::Sample::to_csv_header << '\n';
   }
+
   DecodeAndWriteToCSV writer{
       "channel-wise-calib-scan", [&](std::ofstream&) {},
       [&](std::ofstream&,
@@ -74,7 +78,7 @@ void channel_wise_calib_scan(Target* tgt) {
     pflib_log(info) << "Scanning channel " << ch;
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
     for (calib = min_calib; calib < max_calib; calib += stepsize) {
-      // pflib_log(info) << "CALIB = " << calib;
+      pflib_log(info) << "CALIB = " << calib;
       std::map<std::string, std::map<std::string, uint64_t>> parameters;
       if (ch < 36) {
         parameters["REFERENCEVOLTAGE_0"]["CALIB"] = calib;
@@ -95,7 +99,7 @@ void channel_wise_calib_scan(Target* tgt) {
               phase_parameters;
           phase_parameters["TOP"]["PHASE_STROBE"] = phase_strobe;
           auto test_phase_params = tgt->tempApplyAllROCs(phase_parameters);
-          // pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
+          pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
           usleep(10);  // make sure parameters are applied
           time =
               (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
