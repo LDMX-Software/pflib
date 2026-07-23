@@ -81,7 +81,6 @@ void BWFastControl::resetCounters() {
 void BWFastControl::sendL1A() { axi_.write(REG_PULSE, 1 << BIT_FIRE_L1A); }
 void BWFastControl::sendROR() { axi_.write(REG_PULSE, 1 << BIT_FIRE_L1ACHAIN); }
 void BWFastControl::setL1AperROR(int n) {
-  l1a_per_ror_ = n & 0x1F;
   return axi_.writeMasked(REG_CTL, MASK_L1A_PER_ROR, l1a_per_ror_);
 }
 int BWFastControl::getL1AperROR() {
