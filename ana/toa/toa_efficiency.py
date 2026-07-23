@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(
     description='takes a csv from tasks.toa_vref_scan and outputs a plot of TOA efficiency per channel against TOA VREF values'
 )
 parser.add_argument('-f', required = True, help='csv file containing scan from tasks.toa_vref_scan')
+parser.add_argument('-r', '--roc', type = int, choices = [0, 1, 2, 3, 4, 5], required = True, help = 'ROC index to filter data (e.g., 0, 1, 2, 3, 4, 5)')
 args = parser.parse_args()
 
 if not os.path.isfile(args.f):
@@ -28,7 +29,23 @@ if not os.path.isfile(args.f):
 if not args.f.lower().endswith('csv'):
     print(args.f + ' is not a csv file')
     sys.exit()
+
 data, head = read_pflib_csv(args.f)
+
+data.columns = data.columns.str.strip()
+
+if 'ROC' not in data.columns:
+  print("Error: 'ROC' column missing from CSV header. Please make sure you are using the updated C++ code.")
+  sys.exit()
+
+data = data[data['ROC'] == args.roc].copy()
+
+if data.empty:
+  print(f"Error: No scan data found for ROC {args.roc} in '{args.f}'. Was this ROC active during the run?")
+  sys.exit()
+
+data = data.sort_values(by='TOA_VREF').reset_index(drop = True)
+print(f"Extracted {len(data)} voltage points for ROC {args.roc}")
 
 """
 Example plot of how TOA_VREF plot should look. I credit the toa_vref_analysis.py
@@ -50,34 +67,28 @@ for that link. That way, we ensure only incoming signals trigger TOA, and we max
 the signal-to-noise ratio. Select the point 'o' on the graph.
 """
 
+vref_axis = data['TOA_VREF'].values
+
 channel_lists = []
 for chan in range(72):
-    channel_lists.append([])
-
-unique_toa_vrefs = data['TOA_VREF'].unique()
-
-for toa_vref in unique_toa_vrefs:
-    filtered_data = data[data['TOA_VREF'] == toa_vref]
-    for chan in range(72):
-        non_zero = filtered_data[filtered_data[str(chan)] != 0]
-        chan_triggers = len(non_zero)
-        chan_toa_efficiency = chan_triggers / len(filtered_data)
-        channel_lists[chan].append(chan_toa_efficiency)
+    channel_lists.append(data[str(chan)].values)
 
 # Plotting the results
+input_stem = Path(args.f).stem
 plt.figure(figsize=(10, 6))
 for chan in range(72):
-    plt.plot(channel_lists[chan], 
+    plt.plot(vref_axis, channel_lists[chan], 
              marker = 'o', 
              label=f'Ch. {chan}', 
              linestyle='none')
-plt.title('TOA Efficiency vs TOA VREF per channel')
+plt.title(f'TOA Efficiency vs TOA VREF per channel for ROC: {args.roc}')
 plt.xlabel('TOA VREF')
 plt.ylabel('TOA Efficiency')
 plt.tight_layout()
-plt.savefig('toa_efficiency_plot.png')
-plt.show()
-print("Plot saved as 'toa_efficiency_plot.png'")
+plot_filename = f"toa_efficiency_plot_{input_stem}_roc{args.roc}.png"
+plt.savefig(plot_filename)
+plt.close()
+print(f"Plot saved as '{plot_filename}'")
 
 # Printing the values of highest non-zero TOA_VREF per link
 link0 = np.array(channel_lists[:36]).T
@@ -91,16 +102,24 @@ for i in range(len(link0)):
     if not all(x == 0 for x in link1[i]):
         link1_count.append(i)
 
-print("for link 0, the highest non-zero toa_vref is " + str(link0_count[-1]) + ", " \
-"so set TOA_VREF to ", link0_count[-1] + 10)
-print("for link 1, the highest non-zero toa_vref is " + str(link1_count[-1]) + ", " \
-"so set TOA_VREF to ", link1_count[-1] + 10)
+if not link0_count or not link1_count:
+    print("Error: Efficiency data contains only zeros for one or both links.")
+    sys.exit()
+
+max_vref_l0 = data.loc[link0_count[-1], "TOA_VREF"]
+max_vref_l1 = data.loc[link1_count[-1], "TOA_VREF"]
+
+optimal_vref_l0 = max_vref_l0 + 10
+optimal_vref_l1 = max_vref_l1 + 10
+
+print(f"for link 0, the highest non-zero toa_vref is {max_vref_l0} so set TOA_VREF to {optimal_vref_l0}")
+print(f"for link 1, the highest non-zero toa_vref is {max_vref_l1} so set TOA_VREF to {optimal_vref_l1}")
 
 #Outputting the values to a yaml file
 
 df_max = pd.DataFrame({
     'link': [0, 1],
-    'max_toa': [link0_count[-1] + 10, link1_count[-1] + 10]
+    'max_toa': [optimal_vref_l0, optimal_vref_l1]
 }
 )
 
@@ -112,7 +131,8 @@ for _, row in df_max.iterrows():
         'TOA_VREF': int(row['max_toa'])
     }
 
-with open("output.yaml", "w") as f:
+yaml_filename = f"output_{input_stem}_roc{args.roc}.yaml"
+with open(yaml_filename, "w") as f:
     yaml.dump(yaml_data, f, sort_keys=False)
 
-print("Output saved to 'output.yaml'")
+print(f"Output saved to '{yaml_filename}'")

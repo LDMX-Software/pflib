@@ -6,7 +6,6 @@
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
-
 void channel_wise_calib_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 10);
   int stepsize = pftool::readline_int("How many steps between calibs? ", 10);
@@ -43,7 +42,7 @@ void channel_wise_calib_scan(Target* tgt) {
   int phase_strobe{0};
   double time{0};
   double clock_cycle{25.0};
-  int n_phase_strobe{16};
+  int n_phase_strobe{1};  // 16
   int offset{1};
   int n_links{tgt->nrocs() * 2};
   int calib{0};
@@ -73,9 +72,7 @@ void channel_wise_calib_scan(Target* tgt) {
         }
       },
       n_links};
-
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
-
   central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
   for (ch = min_ch; ch < max_ch + 1; ch++) {
     pflib_log(info) << "Scanning channel " << ch;
@@ -91,12 +88,12 @@ void channel_wise_calib_scan(Target* tgt) {
         parameters[channel_page]["HIGHRANGE"] = 1;
       }
       auto test_params = tgt->tempApplyAllROCs(parameters);
-
       for (charge_to_l1a = central_charge_to_l1a + start_bx;
            charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
            charge_to_l1a++) {
         tgt->fc().fc_setup_calib(charge_to_l1a);
-        pflib_log(info) << "charge_to_l1a = " << tgt->fc().fc_get_setup_calib();
+        // pflib_log(info) << "charge_to_l1a = " <<
+        // tgt->fc().fc_get_setup_calib();
         for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
           std::map<std::string, std::map<std::string, uint64_t>>
               phase_parameters;
