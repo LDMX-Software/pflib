@@ -23,7 +23,6 @@
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "setup/check_lpgbt_backend.h"
-#include "toa_csv_scan.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_scan.h"
@@ -72,9 +71,6 @@ auto menu_tasks =
                local_pedestal_level)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
                toa_vref_scan)
-        ->line("TOA_CSV_SCAN",
-               "just does that bro (changes CALIB while saving only TOA)",
-               toa_csv_scan)
         ->line("TOT_SCAN",
                "scan over VREF and TRIM parameters for TOT calibration",
                tot_scan)
