@@ -99,6 +99,12 @@ class TRIG {
    */
   std::vector<uint32_t> read_algo_output();
 
+  virtual bool get_enable_single_shot() = 0;
+  virtual int get_self_trigger_count() = 0;
+  virtual void enable_single_shot(bool enable = true) = 0;
+  virtual bool single_shot_fired() = 0;
+  virtual void reset_single_shot() = 0;
+
  private:
   int l1a_per_ror_{0};
 };

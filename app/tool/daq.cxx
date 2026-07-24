@@ -56,9 +56,15 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "ENABLE") {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
-    printf("%d %d\n", l1aen, extl1a);
     if (!daq.enabled()) {
       extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      auto trig = pft->trig();
+      if (extl1a and trig) {
+        bool single_shot = pftool::readline_bool(
+          "Gate the external L1A with single-shot mode? ",
+          trig->get_enable_single_shot());
+        trig->enable_single_shot(single_shot);
+      }
       daq.enable(true);
       pft->fc().fc_enables(true, extl1a);
       bool readout_to_AXIS = daq.AXIS_enabled();

@@ -8,19 +8,19 @@ using pflib::packing::hex;
 namespace pflib {
 namespace zcu {
 
-static constexpr uint32_t ADDR_SW_RESET = 0x100 / 4;
-static constexpr uint32_t MASK_SW_RESET = 0x1;
+static constexpr uint32_t ADDR_RESET = 0x100 / 4;
+static constexpr uint32_t MASK_SW_RESET          = 0x00000001;
+static constexpr uint32_t MASK_SINGLE_SHOT_RESET = 0x00000002;
 
 static constexpr uint32_t ADDR_ADV_BUFFER = 0x080 / 4;
 static constexpr uint32_t MASK_ADV_BUFFER = 0x2;
 static constexpr uint32_t MASK_ADV_ALGO_BUFFER = 0x4;
 
-static constexpr uint32_t ADDR_LINK_CAPTURE_DELAY = 0x600 / 4;
+static constexpr uint32_t ADDR_CONFIGURE = 0x600 / 4;
+static constexpr uint32_t MASK_ENABLE_SINGLE_SHOT = 0x00000002;
 static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
-
-static constexpr uint32_t ADDR_LINK_BX_DELAY = 0x600 / 4;
-static constexpr uint32_t MASK_LINK_BX_DELAY = 0x0FFF0000;
 static constexpr uint32_t MASK_LINK_BX_DELAY_ZERO = 0x00030000;
+static constexpr uint32_t MASK_LINK_BX_DELAY      = 0x0FFF0000;
 
 static constexpr uint32_t ADDR_PIPELINE_DEPTH = 0x604 / 4;
 static constexpr uint32_t MASK_PIPELINE_DEPTH = 0x000000FF;
@@ -50,6 +50,10 @@ static constexpr uint32_t MASK_ALGO_TLAST = 0x00000800;
 static constexpr uint32_t ADDR_DAQ_DATA = 0x804 / 4;
 static constexpr uint32_t ADDR_ALGO_DATA = 0x808 / 4;
 
+static constexpr uint32_t ADDR_SINGLE_SHOT_STATUS = 0xC08 / 4;
+static constexpr uint32_t MASK_SINGLE_SHOT_FIRED  = 0x00010000;
+static constexpr uint32_t MASK_SELF_TRIGGER_COUNT = 0x0000ffff;
+
 ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
   uint16_t fw = (uio_.read(0) & 0xffff);
   // setting up with expected capture parameters
@@ -61,14 +65,14 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
   }
   pflib_log(debug) << "n_elinks = " << nelinks_;
 }
-void ZCUtrig::reset() { uio_.write(ADDR_SW_RESET, ADDR_SW_RESET); }
+void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
 void ZCUtrig::setup_alignment_capture(int delay) {
-  uio_.writeMasked(ADDR_LINK_CAPTURE_DELAY, MASK_LINK_CAPTURE_DELAY,
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY,
                    delay & 0xFFF);
 }
 int ZCUtrig::get_alignment_capture() {
-  return uio_.readMasked(ADDR_LINK_CAPTURE_DELAY, MASK_LINK_CAPTURE_DELAY);
+  return uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
@@ -84,14 +88,14 @@ static const int BITS_OF_DELAY = 2;
 static const int MASK_OF_DELAY = 0x3;
 
 void ZCUtrig::set_bx_delay(int ilink, int delay) {
-  return uio_.writeMasked(ADDR_LINK_CAPTURE_DELAY,
+  return uio_.writeMasked(ADDR_CONFIGURE,
                           MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink),
                           delay & MASK_OF_DELAY);
 }
 
 int ZCUtrig::get_bx_delay(int ilink) {
   if (ilink < 0 || ilink >= nelinks_) return -1;
-  return uio_.readMasked(ADDR_LINK_CAPTURE_DELAY,
+  return uio_.readMasked(ADDR_CONFIGURE,
                          MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink));
 }
 
@@ -197,6 +201,26 @@ std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
     uio_.write(ADDR_ADV_BUFFER, MASK_ADV_ALGO_BUFFER);
   } while (!(val & MASK_ALGO_TLAST));
   return retval;
+}
+
+bool ZCUtrig::get_enable_single_shot() {
+  return uio_.readMasked(ADDR_CONFIGURE, MASK_ENABLE_SINGLE_SHOT) == 1;
+}
+
+int ZCUtrig::get_self_trigger_count() {
+  return uio_.readMasked(ADDR_SINGLE_SHOT_STATUS, MASK_SELF_TRIGGER_COUNT);
+}
+
+void ZCUtrig::enable_single_shot(bool enable) {
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_ENABLE_SINGLE_SHOT, enable);
+}
+
+bool ZCUtrig::single_shot_fired() {
+  return uio_.readMasked(ADDR_SINGLE_SHOT_STATUS, MASK_SINGLE_SHOT_FIRED) == 1;
+}
+
+void ZCUtrig::reset_single_shot() {
+  uio_.writeMasked(ADDR_RESET, MASK_SINGLE_SHOT_RESET, 1);
 }
 
 }  // namespace zcu

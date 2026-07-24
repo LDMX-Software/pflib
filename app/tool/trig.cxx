@@ -440,6 +440,8 @@ void self_trigger(Target* tgt) {
         .add("CH_0", "LOWRANGE", 1)
         .apply();
 
+  tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
+
   bool enable_l1a_follow;
   int charge_to_l1a;
   tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
@@ -454,9 +456,9 @@ void self_trigger(Target* tgt) {
   pflib_log(info) << "disabling the L1A following the charge command";
   tgt->fc().fc_setup_calib(charge_to_l1a, false);
 
-  pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
-
-  pflib_log(info) << "enabling external L1A";
+  pflib_log(info) << "enabling single-shot external L1A mode";
+  bool og_single_shot = trig->get_enable_single_shot();
+  trig->enable_single_shot(true);
   tgt->fc().fc_enables(true, true);
 
   pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
@@ -479,9 +481,19 @@ void self_trigger(Target* tgt) {
     //presamples = pftool::readline_int("presamples: ", presamples);
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
-    pflib_log(info) << "charge injection";
+
+    pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
+    pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
+    pflib_log(info) << "reset single shot and then inject a charge pulse";
+    trig->reset_single_shot();
     tgt->fc().chargepulse();
-    usleep(10000);  // one 100Hz cycle later
+    int i100us{0};
+    do {
+      usleep(100);
+      i100us++;
+    } while(not trig->single_shot_fired() and i100us < 10);
+    pflib_log(info) << "single shot fired: " << std::boolalpha << trig->single_shot_fired();
+    pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
     pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
   
     if (tgt->daq().getEventOccupancy() == 1) {
@@ -536,8 +548,11 @@ void self_trigger(Target* tgt) {
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
 
-  tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+  pflib_log(info) << "disabling single-shot external L1A";
   tgt->fc().fc_enables(l1aen, extl1a);
+  trig->enable_single_shot(og_single_shot);
+
+  tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 }
 
 /**

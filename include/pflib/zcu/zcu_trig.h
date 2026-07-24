@@ -37,6 +37,12 @@ class ZCUtrig : public TRIG {
   bool is_algo_output_available() override;
   std::vector<uint32_t> read_algo_output_sample() override;
 
+  bool get_enable_single_shot() override;
+  int get_self_trigger_count() override;
+  void enable_single_shot(bool enable = true) override;
+  bool single_shot_fired() override;
+  void reset_single_shot() override;
+
  private:
   UIO uio_;
   int nelinks_;
