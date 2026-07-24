@@ -541,6 +541,37 @@ void self_trigger(Target* tgt) {
   tgt->fc().fc_enables(l1aen, extl1a);
 }
 
+/**
+ * TRIG.SETUP
+ *
+ * apply the various time offset parameters that were deduced in TIMEIN
+ * and SELF_TRIG
+ */
+void setup(Target* tgt) {
+  pflib::TRIG* trig = tgt->trig();
+  if (trig == 0) return;
+
+  int l1offset = pftool::readline_int("L1Offset on HGCROC?");
+
+  std::map<std::string, std::map<std::string, uint64_t>> roc_settings;
+  roc_settings["DIGITALHALF_0"]["L1OFFSET"] = l1offset;
+  roc_settings["DIGITALHALF_1"]["L1OFFSET"] = l1offset;
+  for (int iroc : tgt->roc_ids()) {
+    tgt->roc(iroc).applyParameters(roc_settings);
+  }
+  
+  int pipeline, samples_per_l1a, presamples, econid;
+  trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
+  pipeline = pftool::readline_int("trig capture pipeline depth?", pipeline);
+  trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
+
+  bool enable_l1a_follow;
+  int charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
+  charge_to_l1a = pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
+  tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+}
+
 namespace {
 // accessing the TRIGGER path only works on the ZCU
 // where we have hardware and firmware access to the TRIGGER stream
@@ -554,6 +585,7 @@ auto menu_trig =
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
         ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trigger)
+        ->line("SETUP", "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG", setup)
         ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
