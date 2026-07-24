@@ -13,8 +13,6 @@ namespace pflib {
  */
 class FastControl {
  public:
-  FastControl() : l1a_per_ror_{1} {}
-
   virtual ~FastControl() = default;
 
   /**
@@ -37,21 +35,16 @@ class FastControl {
   virtual void sendL1A() = 0;
 
   /** send a single ROR */
-  virtual void sendROR() {
-    for (int i = 0; i < l1a_per_ror_; i++) sendL1A();
-  }
+  virtual void sendROR() = 0;
 
   /** set the number of L1A per ROR */
-  virtual void setL1AperROR(int n) { l1a_per_ror_ = n; }
+  virtual void setL1AperROR(int n) = 0;
 
   /** get the number of L1A per ROR */
-  virtual int getL1AperROR() { return l1a_per_ror_; }
+  virtual int getL1AperROR() = 0;
 
   /** send a link reset */
   virtual void linkreset_rocs() = 0;
-
-  /** set custom bunch crossing ???? for what??? */
-  virtual void bx_custom(int bx_addr, int bx_mask, int bx_new) = 0;
 
   /** send a link reset to the ECONs*/
   virtual void linkreset_econs() {};
@@ -93,11 +86,24 @@ class FastControl {
   /** setup the link reset timing */
   virtual void fc_get_setup_link_reset(int& bx) {}
 
-  /** calib pulse setup */
-  virtual void fc_setup_calib(int charge_to_l1a) {}
+  /**
+   * calib pulse setup
+   *
+   * @param[in] charge_to_l1a number of bx separating the charge
+   * command from the following L1A command
+   * @param[in] enable_follow_l1a whether to enable a following
+   * L1A command (true) or not (false)
+   *
+   * You probably want to enable the following L1A command if
+   * you are doing chip-tuning. Disabling it is only helpful
+   * if you are testing the ability for some other infrastructure
+   * to make the trigger descision.
+   */
+  virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) {}
 
   /** calib pulse setup (charge to l1a time) */
-  virtual int fc_get_setup_calib() { return -1; }
+  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) {
+  }
 
   /** led pulse setup */
   virtual void fc_setup_led(int charge_to_l1a) {}
@@ -120,9 +126,6 @@ class FastControl {
 
   /** set the period in us for the timer trigger */
   virtual void fc_timer_setup(int usdelay) {}
-
- protected:
-  int l1a_per_ror_;
 };
 
 // factories

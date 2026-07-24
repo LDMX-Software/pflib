@@ -244,9 +244,13 @@ static void fc(const std::string& cmd, Target* pft) {
     do_status = true;
   }
   if (cmd == "CALIB") {
-    int offset = pft->fc().fc_get_setup_calib();
+    bool enable_l1a_follow;
+    int offset;
+    pft->fc().fc_get_setup_calib(offset, enable_l1a_follow);
     offset = pftool::readline_int("Calibration L1A offset?", offset);
-    pft->fc().fc_setup_calib(offset);
+    enable_l1a_follow =
+        pftool::readline_bool("Enable following L1A?", enable_l1a_follow);
+    pft->fc().fc_setup_calib(offset, enable_l1a_follow);
   }
 
   if (cmd == "LED") {
@@ -260,7 +264,10 @@ static void fc(const std::string& cmd, Target* pft) {
     for (const auto& pair : cnt) {
       printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
-
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    printf("  L1A Enabled          : %d\n", l1aen);
+    printf("  External L1A Enabled : %d\n", extl1a);
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
   }
 }
@@ -296,6 +303,8 @@ auto menu_fc =
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
+        ->line("SEND_CALIB", "send a calib pulse command",
+               [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("LED", "Setup LED calibration pulse", fc)
         ->line("ORBIT_BLINKER",
                "send L1A once every orbit for alignment testing (10kHz)", fc);

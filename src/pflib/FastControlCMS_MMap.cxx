@@ -16,29 +16,28 @@ namespace pflib {
 
 static const size_t ADDR_CTL_REG = 0;
 static const size_t ADDR_REQUEST = 1;
+static const size_t ADDR_EXT_TRIG_BURST_LEN = 0xa;
 
 static const uint32_t REQ_CLEAR_COUNTERS = 0x2;
 static const uint32_t CTL_ENABLE_ORBITSYNC = 0x0004;
 static const uint32_t CTL_ENABLE_L1AS = 0x0008;
+static const uint32_t CTL_ENABLE_EXT_L1A = 0x0080;
+static const uint32_t MASK_EXT_TRIG_BURST_LEN = 0x3ff0000;
 
 /*
-struct FastControlAXI {
-uint32_t ctl_reg;
-uint32_t request;
-uint32_t bx_chipsync_orbitsync;
-uint32_t bx_linkreset_rocd_roct;
-uint32_t bx_linkreset_econd_econt;
-uint32_t bx_ecr_ebr;
-uint32_t bx_spares[4];
-uint32_t trigger_filters;
-uint32_t external_trigger_delay; // 11
-uint32_t random_trigger_log2;
-uint32_t zs_per_nzs;
-uint32_t cmdseq_bx_len;
-uint32_t cmdseq_prescale;
-uint32_t command_delay; // don't use me!
-};
-*/
+ * see address map listed in hgcal_fc_manager.v
+ * and documented in the sw xml
+ * https://github.com/slaclab/ldmx-firmware/blob/hcal_zcu102/firmware/targets/LpGBTZCU/ip_repo/fast-control/sw/xml/fastcontrol_axi.xml
+ *
+ * of note:
+ *
+ * addr | bits  | description
+ *    0 |     0 | enable fast control stream (otherwise constant zero)
+ *    0 |     3 | global enable/disable of L1As
+ *    0 | 10: 7 | enable external L1A sources 0-3
+ *    0 |  5: 4 | pre-L1A offset
+ *    a | 25:16 | number of consecutive L1As to send for a each external trigger
+ */
 
 class Periodic {
  public:
@@ -91,13 +90,14 @@ class Periodic {
 class FastControlCMS_MMap : public FastControl {
  public:
   FastControlCMS_MMap() : FastControl(), uio_("fastcontrol_axi", 4096) {
-    pflib_log(debug) << "pedestal fast command: "
-                     << periodic(PEDESTAL_PERIODIC);
-    pflib_log(debug) << "charge fast command: " << periodic(CHARGE_PERIODIC);
-    pflib_log(debug) << "charge-l1a fast command: "
-                     << periodic(CHARGE_L1A_PERIODIC);
-    pflib_log(debug) << "led fast command: " << periodic(LED_PERIODIC);
-    pflib_log(debug) << "led-l1a fast command: " << periodic(LED_L1A_PERIODIC);
+    pflib_log(debug) << "pedestal fast command: " << periodic(PEDESTAL);
+    pflib_log(debug) << "charge fast command: " << periodic(CHARGE);
+    pflib_log(debug) << "charge-l1a fast command: " << periodic(CHARGE_ROR);
+    pflib_log(debug) << "led fast command: " << periodic(LED);
+    pflib_log(debug) << "led-l1a fast command: " << periodic(LED_ROR);
+    pflib_log(debug) << "orbit blinker fast command: "
+                     << periodic(ORBIT_BLINKER);
+    pflib_log(debug) << "single L1A fast command: " << periodic(SINGLE_L1A);
   }
 
   ~FastControlCMS_MMap() = default;
@@ -105,11 +105,12 @@ class FastControlCMS_MMap : public FastControl {
   Periodic periodic(int i) { return Periodic(uio_, 0x20 + i * 2); }
 
   static const int ORBIT_BLINKER = 1;
-  static const int PEDESTAL_PERIODIC = 2;
-  static const int CHARGE_PERIODIC = 3;
-  static const int CHARGE_L1A_PERIODIC = 4;
-  static const int LED_PERIODIC = 5;
-  static const int LED_L1A_PERIODIC = 6;
+  static const int PEDESTAL = 2;
+  static const int CHARGE = 3;
+  static const int CHARGE_ROR = 4;
+  static const int LED = 5;
+  static const int LED_ROR = 6;
+  static const int SINGLE_L1A = 7;
 
   void standard_setup() override {
     Periodic orbit_blinker(periodic(ORBIT_BLINKER));
@@ -120,7 +121,7 @@ class FastControlCMS_MMap : public FastControl {
     orbit_blinker.enable = false;
     orbit_blinker.pack();
 
-    Periodic std_l1a(periodic(PEDESTAL_PERIODIC));
+    Periodic std_l1a(periodic(SINGLE_L1A));
     std_l1a.bx = 10;
     std_l1a.flavor = 0;
     std_l1a.orbit_prescale = 1000;
@@ -128,7 +129,15 @@ class FastControlCMS_MMap : public FastControl {
     std_l1a.enable = false;
     std_l1a.pack();
 
-    Periodic charge_inj(periodic(CHARGE_PERIODIC));
+    Periodic pedestal(periodic(PEDESTAL));
+    pedestal.bx = 10;
+    pedestal.flavor = 0;
+    pedestal.orbit_prescale = 1000;
+    pedestal.enable_follow = false;
+    pedestal.enable = false;
+    pedestal.pack();
+
+    Periodic charge_inj(periodic(CHARGE));
     charge_inj.bx = 30;     // needs tuning
     charge_inj.flavor = 2;  // internal calibration pulse
     charge_inj.enable_follow = false;
@@ -136,37 +145,49 @@ class FastControlCMS_MMap : public FastControl {
     charge_inj.enable = false;
     charge_inj.pack();
 
-    Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    // for a DIGITALHALF_{0,1}.L1OFFSET = 16 (the chip default)
+    Periodic ror_charge(periodic(CHARGE_ROR));
+    // for a DIGITALHALF_{0,1}.L1OFFSET = 8 (the chip default)
     // charge injection pulses were observed at a separation of 20
-    l1a_charge.bx = charge_inj.bx + 20;
-    l1a_charge.flavor = 0;
-    l1a_charge.enable_follow = true;
-    l1a_charge.follow_which = CHARGE_PERIODIC;
-    l1a_charge.orbit_prescale = 0;
-    l1a_charge.enable = true;
-    l1a_charge.pack();
+    ror_charge.bx = charge_inj.bx + 20;
+    ror_charge.flavor = 0;
+    ror_charge.enable_follow = true;
+    ror_charge.follow_which = CHARGE;
+    ror_charge.orbit_prescale = 0;
+    ror_charge.enable = true;
+    ror_charge.pack();
 
-    Periodic pled(periodic(LED_PERIODIC));
-    pled.bx = 12;     // needs tuning
-    pled.flavor = 3;  // external calibration pulse
-    pled.enable_follow = false;
-    pled.orbit_prescale = 1000;
-    pled.enable = false;
-    pled.pack();
+    Periodic led(periodic(LED));
+    led.bx = 12;     // needs tuning
+    led.flavor = 3;  // external calibration pulse
+    led.enable_follow = false;
+    led.orbit_prescale = 1000;
+    led.enable = false;
+    led.pack();
 
-    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
-    l1a_led.bx = 30;  // needs tuning
-    l1a_led.flavor = 0;
-    l1a_led.enable_follow = true;
-    l1a_led.follow_which = LED_PERIODIC;
-    l1a_led.orbit_prescale = 0;
-    l1a_led.enable = true;
-    l1a_led.pack();
+    Periodic ror_led(periodic(LED_ROR));
+    ror_led.bx = 30;  // needs tuning
+    ror_led.flavor = 0;
+    ror_led.enable_follow = true;
+    ror_led.follow_which = LED;
+    ror_led.orbit_prescale = 0;
+    ror_led.enable = true;
+    ror_led.pack();
 
     // enable the BCR, L1As (in general)
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_ORBITSYNC, CTL_ENABLE_ORBITSYNC);
     uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, CTL_ENABLE_L1AS);
+  }
+
+  void fc_enables_read(bool& overall, bool& external) override {
+    uint32_t ctl_reg{uio_.read(ADDR_CTL_REG)};
+    overall = (ctl_reg & CTL_ENABLE_L1AS);
+    external = ((ctl_reg >> 7) & 0x1);
+    return;
+  }
+
+  void fc_enables(bool overall, bool external) override {
+    uio_.rmw(ADDR_CTL_REG, CTL_ENABLE_L1AS, overall ? CTL_ENABLE_L1AS : 0);
+    uio_.writeMasked(ADDR_CTL_REG, CTL_ENABLE_EXT_L1A, external);
   }
 
   virtual void resetCounters() override {
@@ -186,33 +207,36 @@ class FastControlCMS_MMap : public FastControl {
     enable = orbit_blinker.enable;
   }
 
-  virtual int fc_get_setup_calib() override {
-    Periodic charge_inj(periodic(CHARGE_PERIODIC));
-    Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    return l1a_charge.bx - charge_inj.bx;
+  virtual void fc_get_setup_calib(int& charge_to_l1a,
+                                  bool& enable_follow_l1a) override {
+    Periodic charge_inj(periodic(CHARGE));
+    Periodic ror_charge(periodic(CHARGE_ROR));
+    charge_to_l1a = ror_charge.bx - charge_inj.bx;
+    enable_follow_l1a = ror_charge.enable_follow and ror_charge.enable;
   }
 
-  virtual void fc_setup_calib(int charge_to_l1a) override {
-    Periodic charge_inj(periodic(CHARGE_PERIODIC));
-    Periodic l1a_charge(periodic(CHARGE_L1A_PERIODIC));
-    l1a_charge.bx = charge_inj.bx + charge_to_l1a;
-    l1a_charge.pack();
+  virtual void fc_setup_calib(int charge_to_l1a,
+                              bool enable_follow_l1a) override {
+    Periodic charge_inj(periodic(CHARGE));
+    Periodic ror_charge(periodic(CHARGE_ROR));
+    ror_charge.bx = charge_inj.bx + charge_to_l1a;
+    ror_charge.enable_follow = enable_follow_l1a;
+    ror_charge.enable = enable_follow_l1a;
+    ror_charge.pack();
   }
 
   virtual int fc_get_setup_led() override {
-    Periodic led_flash(periodic(LED_PERIODIC));
-    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
-    return l1a_led.bx - led_flash.bx;
+    Periodic led_flash(periodic(LED));
+    Periodic ror_led(periodic(LED_ROR));
+    return ror_led.bx - led_flash.bx;
   }
 
   virtual void fc_setup_led(int led_to_l1a) override {
-    Periodic led_flash(periodic(LED_PERIODIC));
-    Periodic l1a_led(periodic(LED_L1A_PERIODIC));
-    l1a_led.bx = led_flash.bx + led_to_l1a;
-    l1a_led.pack();
+    Periodic led_flash(periodic(LED));
+    Periodic ror_led(periodic(LED_ROR));
+    ror_led.bx = led_flash.bx + led_to_l1a;
+    ror_led.pack();
   }
-
-  virtual void sendL1A() override { periodic(PEDESTAL_PERIODIC).request(); }
 
   virtual std::map<std::string, uint32_t> getCmdCounters() override {
     static constexpr int COUNTER_START = 68;
@@ -275,14 +299,6 @@ class FastControlCMS_MMap : public FastControl {
       0x40000000;  // Send a SPARE6 command (auto-clear)/>
   static const uint32_t REQ_spare7 =
       0x80000000u;  // Send a SPARE7 command (auto-clear)/>
-
-  void bx_custom(int bx_addr, int bx_mask, int bx_new) {
-    uint32_t bx_out = uio_.readMasked(bx_addr, bx_mask);
-    uint32_t bxout2 = uio_.read(bx_addr);
-    printf("Read FC BX: %d\n", bxout2);
-    // uint32_t bx_out_write = uio_.writeMasked(bx_addr, bx_mask, bx_new);
-    // std::cout << "readMasked (after write): " << bx_out << std::endl;
-  }
 
   virtual void linkreset_rocs() override {
     // turn off L1A for the moment
@@ -348,9 +364,33 @@ class FastControlCMS_MMap : public FastControl {
     uio_.write(ADDR_CTL_REG, preval);
   }
 
-  virtual void chargepulse() override { periodic(CHARGE_PERIODIC).request(); }
-
-  virtual void ledpulse() override { periodic(LED_PERIODIC).request(); }
+  virtual void sendL1A() override { periodic(SINGLE_L1A).request(); }
+  virtual void chargepulse() override { periodic(CHARGE).request(); }
+  virtual void ledpulse() override { periodic(LED).request(); }
+  virtual void sendROR() override { periodic(PEDESTAL).request(); }
+  void setL1AperROR(int n) override {
+    if (n < 1) {
+      PFEXCEPTION_RAISE(
+          "MalForm", "It doesn't make sence to have less than 1 L1A per RoR.");
+    }
+    auto pedestal(periodic(PEDESTAL));
+    pedestal.burst_length = n;
+    pedestal.pack();
+    auto charge_ror(periodic(CHARGE_ROR));
+    charge_ror.burst_length = n;
+    charge_ror.pack();
+    auto led_ror{periodic(LED_ROR)};
+    led_ror.burst_length = n;
+    led_ror.pack();
+    uio_.writeMasked(ADDR_EXT_TRIG_BURST_LEN, MASK_EXT_TRIG_BURST_LEN, n);
+  }
+  int getL1AperROR() override {
+    // assume the three ROR commands (PEDESTAL, CHARGE_ROR, and LED_ROR)
+    // are all matching
+    int length = periodic(PEDESTAL).burst_length;
+    if (length == 0) return 1;
+    return length;
+  }
 
  private:
   UIO uio_;

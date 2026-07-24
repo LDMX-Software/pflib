@@ -38,11 +38,12 @@ static constexpr uint32_t ADDR_PAGED_READ = 0x800 / 4;
 static constexpr uint32_t ADDR_BASE_COUNTER = 0x900 / 4;
 
 using pflib::packing::hex;
+using pflib::utility::string_format;
 
 ZCU_Capture::ZCU_Capture(int itarget)
     : DAQ(1),
-      capture_(pflib::utility::string_format("econd-buffer-%d", itarget)),
-      the_log_{logging::get("zcu_capture")} {
+      capture_(string_format("econd-buffer-%d", itarget)),
+      the_log_{logging::get(string_format("zcu-capture-%d", itarget))} {
   uint32_t version_reg = capture_.read(0);
   uint16_t hw_type = ((version_reg >> 16) & 0xffff);
   uint16_t fw_vers = (version_reg & 0xffff);
@@ -53,6 +54,13 @@ ZCU_Capture::ZCU_Capture(int itarget)
   // 0x1E6 == 0xAA followed by one bit
   capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
   per_econ_ = true;  // reading from the per-econ buffer, not the AXIS buffer
+  // make sure to sync the firmware parameters into the in-memory variables
+  pflib::DAQ::setup(capture_.readMasked(ADDR_PACKET_SETUP, MASK_ECON_ID),
+                    capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET),
+                    capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI));
+  pflib_log(debug) << "econ_id = " << econid()
+                   << " samples_per_ror = " << samples_per_ror()
+                   << " soi = " << soi();
 }
 void ZCU_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
@@ -68,9 +76,9 @@ int ZCU_Capture::getEventOccupancy() {
 }
 
 void ZCU_Capture::bufferStatus(int ilink, bool& empty, bool& full) {
-  int nevt = getEventOccupancy();
-  empty = (nevt == 0);
-  full = (nevt == 0x7f);
+  int n_firmware_samples = capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
+  empty = (n_firmware_samples == 0);
+  full = (n_firmware_samples == 0x7f);
 }
 void ZCU_Capture::setup(int econid, int samples_per_ror, int soi) {
   pflib::DAQ::setup(econid, samples_per_ror, soi);
@@ -138,6 +146,8 @@ std::map<std::string, uint32_t> ZCU_Capture::get_debug(uint32_t ask) {
   dbg["COUNT_WORDS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
   dbg["COUNT_IO_ADV"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
   dbg["COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 6);
+  dbg["COUNT_SAMPLES_IN_BUFFER"] =
+      capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
   dbg["QUICKSPY"] = capture_.read(ADDR_BASE_COUNTER + 0x10);
   dbg["STATE"] = capture_.read(ADDR_BASE_COUNTER + 0x11);
   return dbg;

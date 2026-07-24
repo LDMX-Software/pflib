@@ -4,6 +4,27 @@
 
 namespace pflib {
 
+DAQ::DAQ(int links) : n_links{links}, econid_{0xFFF}, samples_{1}, soi_{0} {}
+
+void DAQ::setup(int econid, int samples_per_ror, int soi) {
+  econid_ = econid;
+  samples_ = samples_per_ror;
+  soi_ = (soi < 0 || soi > samples_ - 1) ? (0) : soi;
+}
+
+int DAQ::econid() const { return econid_; }
+int DAQ::samples_per_ror() const { return samples_; }
+int DAQ::soi() const { return soi_; }
+void DAQ::enable(bool enable) { enabled_ = enable; }
+bool DAQ::enabled() { return enabled_; }
+int DAQ::nlinks() const { return n_links; }
+bool DAQ::AXIS_enabled() { return false; }
+void DAQ::AXIS_enable(bool enable) {}
+
+std::map<std::string, uint32_t> DAQ::get_debug(uint32_t ask) {
+  return std::map<std::string, uint32_t>();
+}
+
 std::vector<uint32_t> DAQ::read_event_sw_headers() {
   /**
    * this is just a helper function so that we can avoid repeating the

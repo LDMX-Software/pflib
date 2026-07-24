@@ -3,6 +3,7 @@
  * DAQ menu (and submenus) command definitions
  */
 #include "daq_run.h"
+#include "pflib/TRIG.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
@@ -54,9 +55,15 @@ static void daq_setup(const std::string& cmd, Target* pft) {
   if (cmd == "ENABLE") {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
-    printf("%d %d\n", l1aen, extl1a);
     if (!daq.enabled()) {
       extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      auto trig = pft->trig();
+      if (extl1a and trig) {
+        bool single_shot = pftool::readline_bool(
+            "Gate the external L1A with single-shot mode? ",
+            trig->get_enable_single_shot());
+        trig->enable_single_shot(single_shot);
+      }
       daq.enable(true);
       pft->fc().fc_enables(true, extl1a);
       bool readout_to_AXIS = daq.AXIS_enabled();
@@ -103,6 +110,7 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     int samples = pftool::readline_int(" Samples/ROR: ", daq.samples_per_ror());
     int soi = pftool::readline_int(" Sample of interest: ", daq.soi());
     daq.setup(econid, samples, soi);
+    if (pft->trig()) pft->trig()->set_l1a_per_ror(samples);
     pft->fc().setL1AperROR(samples);
   }
   /*
@@ -208,7 +216,10 @@ static void daq_setup_standard(Target* tgt) {
      * in the trigger path, we need to bring the L1A closer
      * in time to the injected charge pulse.
      */
-    tgt->fc().fc_setup_calib(tgt->fc().fc_get_setup_calib() - 4);
+    int offset;
+    bool enable;
+    tgt->fc().fc_get_setup_calib(offset, enable);
+    tgt->fc().fc_setup_calib(offset - 4, enable);
     /// this then requires us to lower the L1OFFSET as well
     std::map<std::string, std::map<std::string, uint64_t>> l1offsets;
     l1offsets["DIGITALHALF_0"]["L1OFFSET"] = 8;
@@ -486,12 +497,14 @@ static void daq_debug_trigger_timein(Target* tgt) {
   auto test_param_handle = test_param_builder.apply();
 
   do {
-    int og_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+    int og_charge_to_l1a;
+    bool enable;
+    tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable);
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a);
+    tgt->fc().fc_setup_calib(charge_to_l1a, enable);
 
-    int default_l1offset = 16;
+    int default_l1offset = 8;
     int l1offset =
         pftool::readline_int("L1Offset on HGCROC?", default_l1offset);
     auto test_l1offset_handle = roc.testParameters()
@@ -552,7 +565,7 @@ static void daq_debug_trigger_timein(Target* tgt) {
       daq.setupLink(ilink, og_delay[ilink], og_capture[ilink]);
     }
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
-    tgt->fc().fc_setup_calib(og_charge_to_l1a);
+    tgt->fc().fc_setup_calib(og_charge_to_l1a, enable);
 
     pflib_log(info) << "analyze words readout from links";
     pflib_log(debug) << "delay : pedestal -> charge";
@@ -690,18 +703,20 @@ auto menu_daq_debug =
                })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
-        ->line("CLEAR", "advance readout until zero event occupancy and reset",
+        ->line("CLEAR",
+               "advance readout pointer until buffer is empty and reset",
                [](Target* tgt) {
-                 int last{tgt->daq().getEventOccupancy()};
-                 while (tgt->daq().getEventOccupancy() > 0) {
+                 // both ZCU and Bittware have an upper limit of 0x7f = 127
+                 // samples in their daq buffers, so - to prevent infinite
+                 // looping if the firmware is misbehaving - we limit to 127
+                 // advancements
+                 static const int max_adv = 0x7f;
+                 bool empty, _full;
+                 for (int n_adv{0}; n_adv < max_adv; n_adv++) {
+                   tgt->daq().bufferStatus(0, empty, _full);
+                   if (empty) break;
                    tgt->daq().advanceLinkReadPtr();
                    usleep(100);
-                   if (last == tgt->daq().getEventOccupancy()) {
-                     PFEXCEPTION_RAISE("InfLoop",
-                                       "Event occupancy is not changing when "
-                                       "we advance the read ptr");
-                   }
-                   last = tgt->daq().getEventOccupancy();
                  }
 
                  tgt->daq().reset();
@@ -749,10 +764,9 @@ auto menu_daq_debug =
                   all_channels_to_csv(fname + ".csv", tgt->nrocs() * 2)};
 
               for (int toffset{min_offset}; toffset < max_offset; toffset++) {
-                tgt->fc().fc_setup_calib(toffset);
+                tgt->fc().fc_setup_calib(toffset, true);
                 usleep(10);
-                pflib_log(info) << "run with FAST_CONTROL.CALIB = "
-                                << tgt->fc().fc_get_setup_calib();
+                pflib_log(info) << "run with FAST_CONTROL.CALIB = " << toffset;
                 daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
               }
             })
@@ -761,7 +775,7 @@ auto menu_daq_debug =
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,
                ONLY_FIBERLESS)
         ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
-               daq_debug_trigger_timein);
+               daq_debug_trigger_timein, ONLY_FIBERLESS);
 
 auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")

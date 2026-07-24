@@ -6,6 +6,7 @@
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
+
 void channel_wise_calib_scan(Target* tgt) {
   int nevents = pftool::readline_int("How many events per time point? ", 10);
   int stepsize = pftool::readline_int("How many steps between calibs? ", 10);
@@ -73,7 +74,9 @@ void channel_wise_calib_scan(Target* tgt) {
       },
       n_links};
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
-  central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+
+  bool enable_l1a_follow;
+  tgt->fc().fc_get_setup_calib(central_charge_to_l1a, enable_l1a_follow);
   for (ch = min_ch; ch < max_ch + 1; ch++) {
     pflib_log(info) << "Scanning channel " << ch;
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
@@ -91,9 +94,8 @@ void channel_wise_calib_scan(Target* tgt) {
       for (charge_to_l1a = central_charge_to_l1a + start_bx;
            charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
            charge_to_l1a++) {
-        tgt->fc().fc_setup_calib(charge_to_l1a);
-        // pflib_log(info) << "charge_to_l1a = " <<
-        // tgt->fc().fc_get_setup_calib();
+        tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+        pflib_log(info) << "charge_to_l1a = " << charge_to_l1a;
         for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
           std::map<std::string, std::map<std::string, uint64_t>>
               phase_parameters;
@@ -108,7 +110,7 @@ void channel_wise_calib_scan(Target* tgt) {
         }
       }
       // reset charge_to_l1a to central value
-      tgt->fc().fc_setup_calib(central_charge_to_l1a);
+      tgt->fc().fc_setup_calib(central_charge_to_l1a, enable_l1a_follow);
     }
   }
 }

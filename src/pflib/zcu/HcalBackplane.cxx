@@ -40,6 +40,7 @@ class HcalBackplaneZCU : public HcalBackplane {
     /// try to make a trig object, but ok to fail
     try {
       trig_ = std::make_unique<ZCUtrig>();
+      trig_->set_l1a_per_ror(daq().samples_per_ror());
     } catch (pflib::Exception& e) {
       pflib_log(info) << "failed to create TRIG connection with " << e.what();
       pflib_log(info)
