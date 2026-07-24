@@ -105,6 +105,9 @@ add_library(packing SHARED
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/ECONDFormatter.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
+  src/pflib/packing/ECONTCaptureHeader.cxx
+  src/pflib/packing/SingleECONTCaptureFrame.cxx
+  src/pflib/packing/TrigAlgoOutput.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
