@@ -16,15 +16,18 @@ namespace pflib {
 
 static const size_t ADDR_CTL_REG = 0;
 static const size_t ADDR_REQUEST = 1;
+static const size_t ADDR_EXT_TRIG_BURST_LEN = 0xa;
 
 static const uint32_t REQ_CLEAR_COUNTERS = 0x2;
 static const uint32_t CTL_ENABLE_ORBITSYNC = 0x0004;
 static const uint32_t CTL_ENABLE_L1AS = 0x0008;
 static const uint32_t CTL_ENABLE_EXT_L1A = 0x0080;
+static const uint32_t MASK_EXT_TRIG_BURST_LEN = 0x3ff0000;
 
 /*
  * see address map listed in hgcal_fc_manager.v
- * https://github.com/slaclab/ldmx-firmware/blob/hcal_zcu102/firmware/targets/LpGBTZCU/ip_repo/fast-control/xilinx/encode/src/hdl/manager/hgcal_fc_manager.v
+ * and documented in the sw xml
+ * https://github.com/slaclab/ldmx-firmware/blob/hcal_zcu102/firmware/targets/LpGBTZCU/ip_repo/fast-control/sw/xml/fastcontrol_axi.xml
  *
  * of note:
  *
@@ -33,7 +36,7 @@ static const uint32_t CTL_ENABLE_EXT_L1A = 0x0080;
  *    0 |     3 | global enable/disable of L1As
  *    0 | 10: 7 | enable external L1A sources 0-3
  *    0 |  5: 4 | pre-L1A offset
- *   10 | 25:16 | number of consecutive L1As to send for a each external trigger
+ *    a | 25:16 | number of consecutive L1As to send for a each external trigger
  */
 
 
@@ -383,6 +386,7 @@ class FastControlCMS_MMap : public FastControl {
     auto led_ror{periodic(LED_ROR)};
     led_ror.burst_length = n;
     led_ror.pack();
+    uio_.writeMasked(ADDR_EXT_TRIG_BURST_LEN, MASK_EXT_TRIG_BURST_LEN, n);
   }
   int getL1AperROR() override {
     // assume the three ROR commands (PEDESTAL, CHARGE_ROR, and LED_ROR)
