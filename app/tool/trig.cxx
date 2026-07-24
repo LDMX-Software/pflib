@@ -150,10 +150,9 @@ void align(const std::string& cmd, Target* tgt) {
     trig->setup_alignment_capture(value);
   }
   if (cmd == "READ") {
-    bool do_fc = pftool::readline_bool("Generate LINKRESET_ECONT?", true);
     bool show_raw = pftool::readline_bool(
         "Show raw data [Y] or idle word interpretation [N]? ", false);
-    if (do_fc) tgt->fc().linkreset_econs();
+    tgt->fc().linkreset_econs();
     usleep(2000);
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
@@ -612,7 +611,7 @@ auto menu_algo =
 
 auto menu_align = 
     menu_trig->submenu("ALIGN", "debug trigger elink alignment")
-        ->line("SPY", "view alignment capture buffer after a link reset", align)
+        ->line("READ", "view alignment capture buffer after a link reset", align)
         ->line("DELAY", "link-specific capture delay offset", align)
         ->line("SETUP", "all-link capture delay", align);
 }  // namespace
