@@ -768,7 +768,7 @@ auto menu_daq_debug =
         ->line("L1APARAMS", "setup parameters for L1A capture", daq_setup,
                ONLY_FIBERLESS)
         ->line("TRIGGER_TIMEIN", "look for candidate trigger delays",
-               daq_debug_trigger_timein);
+               daq_debug_trigger_timein, ONLY_FIBERLESS);
 
 auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
