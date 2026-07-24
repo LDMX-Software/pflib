@@ -228,7 +228,7 @@ void algo(const std::string& cmd, Target* target) {
     for (int i{0}; i < 8; i++) {
       printf("  %d : 0x%02x\n", i, params[i+1]);
     }
-    printf("algo output available? %s", trig->is_algo_output_available() ? "yes" : "no");
+    printf("algo output available? %s\n", trig->is_algo_output_available() ? "yes" : "no");
   }
 }
 
