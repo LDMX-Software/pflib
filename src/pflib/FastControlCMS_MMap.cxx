@@ -394,7 +394,6 @@ class FastControlCMS_MMap : public FastControl {
 
  private:
   UIO uio_;
-  bool enable_charge_follow = true;
   mutable logging::logger the_log_{logging::get("FastControlCMS_MMap")};
 };
 
