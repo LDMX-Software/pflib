@@ -41,14 +41,14 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   static const int BX_FOR_LINK_RESET = 40 * 64 - 64;
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, BX_FOR_LINK_RESET);
   printf("BW FastControl REG_CTL: %08x\n", axi_.read(REG_CTL));
-  printf("  ENABLE_L1A      : %B\n",
-         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1));
-  printf("  DISABLE_EXTERNAL: %B\n",
-         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1));
-  printf("  DISABLE_ROR_MASK: %B\n",
-         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1));
-  printf("  USE_NZS         : %B\n",
-         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1));
+  printf("  ENABLE_L1A      : %s\n",
+         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1) ? "true": "false");
+  printf("  DISABLE_EXTERNAL: %s\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1) ? "true": "false");
+  printf("  DISABLE_ROR_MASK: %s\n",
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1) ? "true": "false");
+  printf("  USE_NZS         : %s\n",
+         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1) ? "true": "false");
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -81,7 +81,7 @@ void BWFastControl::resetCounters() {
 void BWFastControl::sendL1A() { axi_.write(REG_PULSE, 1 << BIT_FIRE_L1A); }
 void BWFastControl::sendROR() { axi_.write(REG_PULSE, 1 << BIT_FIRE_L1ACHAIN); }
 void BWFastControl::setL1AperROR(int n) {
-  return axi_.writeMasked(REG_CTL, MASK_L1A_PER_ROR, l1a_per_ror_);
+  return axi_.writeMasked(REG_CTL, MASK_L1A_PER_ROR, n);
 }
 int BWFastControl::getL1AperROR() {
   return axi_.readMasked(REG_CTL, MASK_L1A_PER_ROR);
