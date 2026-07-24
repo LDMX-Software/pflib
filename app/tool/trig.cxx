@@ -36,18 +36,16 @@ std::vector<SampleFrame> decode_multi_sample(
 }
 
 /**
- * Interaction with Optical links
+ * Interaction with trigger alignment, capture, and algo
  *
  * ## Commands
- * - RESET : call reset on the TRIG block
- * - ALIGN_SETUP : setup the alignment capture time
- * - ALIGN_READ : read the alignment capture buffer
- * - ALIGN_DELAY : set the delay for one elink
+ * - RESET : call reset on the TRIG block (TRIG::reset)
  * - ELINK_SPY : spy on six TRIG elinks (Elinks::spy)
  * - EVENT_SPY : readout the last captured event (TRIG::read_event)
  * - PIPELINE : change depth of capture buffer for readout
  * - SAMPLES_PER_L1A : number of samples to readout per l1a
  * - PRESAMPLES : number of "pre-samples" to include in readout
+ * - BUFFER_CLEAR : readout samples until buffer is emtpy
  */
 void trig(const std::string& cmd, Target* target) {
   static std::string olink_name;
@@ -128,16 +126,34 @@ void trig(const std::string& cmd, Target* target) {
       }
     }
   }
-  if (cmd == "ALIGN_SETUP") {
+  if (cmd == "BUFFER_CLEAR") {
+    while (trig->is_sample_available()) {
+      trig->read_sample();
+      usleep(100000);
+    }
+  }
+}
+
+/**
+ * TRIG.ALIGN commands
+ *
+ * - SETUP : setup the alignment capture time
+ * - READ : read the alignment capture buffer
+ * - DELAY : set the delay for one elink
+ */
+void align(const std::string& cmd, Target* tgt) {
+  pflib::TRIG* trig = tgt->trig();
+  if (trig == 0) return;
+  if (cmd == "SETUP") {
     int value = pftool::readline_int("Alignment capture delay: ",
                                      trig->get_alignment_capture());
     trig->setup_alignment_capture(value);
   }
-  if (cmd == "ALIGN_READ") {
+  if (cmd == "READ") {
     bool do_fc = pftool::readline_bool("Generate LINKRESET_ECONT?", true);
     bool show_raw = pftool::readline_bool(
         "Show raw data [Y] or idle word interpretation [N]? ", false);
-    if (do_fc) target->fc().linkreset_econs();
+    if (do_fc) tgt->fc().linkreset_econs();
     usleep(2000);
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
@@ -160,19 +176,21 @@ void trig(const std::string& cmd, Target* target) {
       printf("\n");
     }
   }
-  if (cmd == "ALIGN_DELAY") {
+  if (cmd == "DELAY") {
     int ilink = pftool::readline_int("Which elink?", 0);
     trig->set_bx_delay(
         ilink, pftool::readline_int("New delay: ", trig->get_bx_delay(ilink)));
   }
-  if (cmd == "BUFFER_CLEAR") {
-    while (trig->is_sample_available()) {
-      trig->read_sample();
-      usleep(100000);
-    }
-  }
 }
 
+/**
+ * TRIG.ALGO commands
+ *
+ * - SPY: view last captured trig algo output
+ * - BUFFER_CLEAR: clear buffer by reading samples until its empty
+ * - CONFIG: change settings of trigger algorithm
+ * - STATUS: print settings of trigger algo and if output is available
+ */
 void algo(const std::string& cmd, Target* target) {
   pflib::TRIG* trig = target->trig();
   if (trig == 0) return;
@@ -211,11 +229,12 @@ void algo(const std::string& cmd, Target* target) {
     for (int i{0}; i < 8; i++) {
       printf("  %d : 0x%02x\n", i, params[i+1]);
     }
+    printf("algo output available? %s", trig->is_algo_output_available() ? "yes" : "no");
   }
 }
 
 /**
- * TRIG.SETUP.TIMEIN
+ * TRIG.TIMEIN
  */
 static void trigger_timein(Target* tgt) {
   pflib::TRIG* trig = tgt->trig();
@@ -388,10 +407,19 @@ static void trigger_timein(Target* tgt) {
       "Want to try another set of timing parameters?", false));
 }
 
+/**
+ * TRIG.SELF_TRIG
+ */
 void self_trigger(Target* tgt) {
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
 
+  /**
+   * Attempts to have trigger algo do the self-triggering by
+   * disabling the following L1A after a charge injection
+   * and enabling external L1As originating from our trigger
+   * algorithm.
+   */
   pflib_log(info) << "setting up parameters for self-trigger test";
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
@@ -524,18 +552,22 @@ auto menu_trig =
         ->line("PRESAMPLES", "set number of pre-samples in an L1A", trig)
         ->line("ECONID", "set econ id", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
-        ->line("ALIGN_SETUP", "Setup the alignment delay", trig)
-        ->line("ALIGN_READ", "Capture and read the alignment windows", trig)
-        ->line("ALIGN_DELAY", "Setup the word delay for an elink", trig)
+        ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
+        ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trigger)
+        ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
+        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
+        ->line("EVENT_SPY", "attempt to read the last captured event", trig);
+
+auto menu_expert = 
+    menu_trig->submenu("EXPERT", "low-level commands for debugging behavior")
         ->line("SW_L1A", "send a single L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
         ->line("SW_ROR", "send a RoR from software",
                [](Target* tgt) { tgt->fc().sendROR(); })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
-        ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
-        ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trigger)
         ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
+        ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
@@ -545,4 +577,10 @@ auto menu_algo =
         ->line("SPY", "view output of trigger algorithm", algo)
         ->line("STATUS", "printout algorithm settings and output capture status", algo)
         ->line("BUFFER_CLEAR", "clear out buffer of algo output", algo);
+
+auto menu_align = 
+    menu_trig->submenu("ALIGN", "debug trigger elink alignment")
+        ->line("SPY", "view alignment capture buffer after a link reset", align)
+        ->line("DELAY", "link-specific capture delay offset", align)
+        ->line("SETUP", "all-link capture delay", align);
 }  // namespace
