@@ -1,7 +1,6 @@
 #include "pflib/zcu/zcu_trig.h"
 
 #include "pflib/Exception.h"
-
 #include "pflib/packing/Hex.h"
 using pflib::packing::hex;
 
@@ -9,7 +8,7 @@ namespace pflib {
 namespace zcu {
 
 static constexpr uint32_t ADDR_RESET = 0x100 / 4;
-static constexpr uint32_t MASK_SW_RESET          = 0x00000001;
+static constexpr uint32_t MASK_SW_RESET = 0x00000001;
 static constexpr uint32_t MASK_SINGLE_SHOT_RESET = 0x00000002;
 
 static constexpr uint32_t ADDR_ADV_BUFFER = 0x080 / 4;
@@ -20,7 +19,7 @@ static constexpr uint32_t ADDR_CONFIGURE = 0x600 / 4;
 static constexpr uint32_t MASK_ENABLE_SINGLE_SHOT = 0x00000002;
 static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
 static constexpr uint32_t MASK_LINK_BX_DELAY_ZERO = 0x00030000;
-static constexpr uint32_t MASK_LINK_BX_DELAY      = 0x0FFF0000;
+static constexpr uint32_t MASK_LINK_BX_DELAY = 0x0FFF0000;
 
 static constexpr uint32_t ADDR_PIPELINE_DEPTH = 0x604 / 4;
 static constexpr uint32_t MASK_PIPELINE_DEPTH = 0x000000FF;
@@ -51,7 +50,7 @@ static constexpr uint32_t ADDR_DAQ_DATA = 0x804 / 4;
 static constexpr uint32_t ADDR_ALGO_DATA = 0x808 / 4;
 
 static constexpr uint32_t ADDR_SINGLE_SHOT_STATUS = 0xC08 / 4;
-static constexpr uint32_t MASK_SINGLE_SHOT_FIRED  = 0x00010000;
+static constexpr uint32_t MASK_SINGLE_SHOT_FIRED = 0x00010000;
 static constexpr uint32_t MASK_SELF_TRIGGER_COUNT = 0x0000ffff;
 
 ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
@@ -68,8 +67,7 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
 void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
 void ZCUtrig::setup_alignment_capture(int delay) {
-  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY,
-                   delay & 0xFFF);
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
 }
 int ZCUtrig::get_alignment_capture() {
   return uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
@@ -150,16 +148,14 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
    */
   if (parameters.size() != 9) {
     PFEXCEPTION_RAISE(
-      "BadConfig",
-      "Wrong number of parameters for simple trigger algorithm"
-    );
+        "BadConfig", "Wrong number of parameters for simple trigger algorithm");
   }
   uio_.writeMasked(ADDR_HISTORY_VETO_MASK, 0xff, parameters[0]);
-  std::array<uint32_t, 2> thresholds_registers = {0,0};
+  std::array<uint32_t, 2> thresholds_registers = {0, 0};
   for (std::size_t i{0}; i < 8; i++) {
     int i_reg = i / 4;
-    int shift = (i % 4)*8;
-    thresholds_registers[i_reg] |= ((parameters[i+1] & 0xff) << shift);
+    int shift = (i % 4) * 8;
+    thresholds_registers[i_reg] |= ((parameters[i + 1] & 0xff) << shift);
   }
   for (int i{0}; i < thresholds_registers.size(); i++) {
     uio_.write(ADDR_THRESHOLDS + i, thresholds_registers[i]);
@@ -174,9 +170,7 @@ std::vector<uint32_t> ZCUtrig::get_algo_setup() {
     thresholds_registers[i] = uio_.read(ADDR_THRESHOLDS + i);
   }
   for (std::size_t i{0}; i < 8; i++) {
-    parameters[i+1] = (
-      (thresholds_registers[i/4] >> (8*(i%4))) & 0xff
-    );
+    parameters[i + 1] = ((thresholds_registers[i / 4] >> (8 * (i % 4))) & 0xff);
   }
   return parameters;
 }

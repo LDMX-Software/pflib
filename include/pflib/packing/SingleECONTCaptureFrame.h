@@ -4,8 +4,8 @@
 
 #include <optional>
 
-#include "pflib/packing/ECONTCaptureHeader.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/packing/ECONTCaptureHeader.h"
 #include "pflib/packing/Reader.h"
 
 namespace pflib::packing {
@@ -17,6 +17,7 @@ namespace pflib::packing {
  */
 class SingleECONTCaptureFrame {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+
  public:
   /**
    * Each ECON-T sample has the following struture,
@@ -49,11 +50,13 @@ class SingleECONTCaptureFrame {
    * - [2:0] = zero padding
    */
   class SingleECONTSample {
-    mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+    mutable ::pflib::logging::logger the_log_{
+        ::pflib::logging::get("decoding")};
     static constexpr std::size_t N_STC = 8;
     std::array<int, N_STC> max_tc_;
     std::array<int, N_STC> stc_sums_;
     int bx_;
+
    public:
     void from(std::span<uint32_t> data);
     int bx() const;
@@ -81,6 +84,6 @@ class SingleECONTCaptureFrame {
   std::vector<SingleECONTSample> samples_;
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

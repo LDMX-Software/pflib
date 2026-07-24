@@ -26,8 +26,10 @@ class BWFastControl : public FastControl {
   virtual void chargepulse();
   virtual void ledpulse();
   virtual void clear_run();
-  virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) override;
-  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) override;
+  virtual void fc_setup_calib(int charge_to_l1a,
+                              bool enable_follow_l1a) override;
+  virtual void fc_get_setup_calib(int& charge_to_l1a,
+                                  bool& enable_follow_l1a) override;
   virtual void fc_setup_led(int charge_to_l1a);
   virtual int fc_get_setup_led();
   virtual void fc_setup_link_reset(int bx);

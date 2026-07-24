@@ -4,8 +4,6 @@
  */
 #include "pflib/TRIG.h"
 
-#include "pftool.h"
-
 #include <optional>
 
 #include "pflib/packing/Hex.h"
@@ -13,6 +11,7 @@
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
+#include "pftool.h"
 
 using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
@@ -21,11 +20,9 @@ ENABLE_LOGGING();
 
 void trig_render(Target* tgt) {}
 
-template<class SampleFrame>
-std::vector<SampleFrame> decode_multi_sample(
-  int n_samples,
-  std::vector<uint32_t>& data
-) {
+template <class SampleFrame>
+std::vector<SampleFrame> decode_multi_sample(int n_samples,
+                                             std::vector<uint32_t>& data) {
   std::vector<SampleFrame> frames(n_samples);
   int offset{0};
   for (int i{0}; i < frames.size(); i++) {
@@ -70,13 +67,15 @@ void trig(const std::string& cmd, Target* target) {
     }
     std::cout << std::flush;
   }
-  if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or cmd == "ECONID") {
+  if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or
+      cmd == "ECONID") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
     if (cmd == "PIPELINE") {
       pipeline = pftool::readline_int("pipeline depth: ", pipeline);
     } else if (cmd == "SAMPLES_PER_L1A") {
-      samples_per_l1a = pftool::readline_int("number of samples per L1A: ", samples_per_l1a);
+      samples_per_l1a =
+          pftool::readline_int("number of samples per L1A: ", samples_per_l1a);
     } else if (cmd == "PRESAMPLES") {
       presamples = pftool::readline_int("number of pre-samples: ", presamples);
     } else if (cmd == "ECONID") {
@@ -112,8 +111,9 @@ void trig(const std::string& cmd, Target* target) {
       printf("%08x\n", word);
     }
 
-    std::vector<SingleECONTCaptureFrame> frames = decode_multi_sample<SingleECONTCaptureFrame>(
-      trig->get_l1a_per_ror(), event);
+    std::vector<SingleECONTCaptureFrame> frames =
+        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                     event);
     printf("BX STC1 STC2 STC3 STC4 STC5 STC6 STC7 STC8\n");
     for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
       const auto& frame{frames[i_l1a]};
@@ -213,11 +213,12 @@ void algo(const std::string& cmd, Target* target) {
   }
   if (cmd == "CONFIG") {
     auto params = trig->get_algo_setup();
-    params[0] = pftool::readline_int("veto mask for recent history: ", params[0], true);
+    params[0] =
+        pftool::readline_int("veto mask for recent history: ", params[0], true);
     for (int i{0}; i < 8; i++) {
       std::stringstream prompt;
       prompt << "threshold for channel " << i;
-      params[i+1] = pftool::readline_int(prompt.str(), params[i+1], true);
+      params[i + 1] = pftool::readline_int(prompt.str(), params[i + 1], true);
     }
     trig->setup_algo(params);
   }
@@ -226,9 +227,10 @@ void algo(const std::string& cmd, Target* target) {
     printf("veto mask for recent history: 0x%02x\n", params[0]);
     printf("thresholds (0 -> disable channel)\n");
     for (int i{0}; i < 8; i++) {
-      printf("  %d : 0x%02x\n", i, params[i+1]);
+      printf("  %d : 0x%02x\n", i, params[i + 1]);
     }
-    printf("algo output available? %s\n", trig->is_algo_output_available() ? "yes" : "no");
+    printf("algo output available? %s\n",
+           trig->is_algo_output_available() ? "yes" : "no");
   }
 }
 
@@ -246,16 +248,17 @@ static void trigger_timein(Target* tgt) {
    * Assuming the pedestal values on the chip are all ~200 (as is the case
    * at UMN), setting the CH_XX.ADC_PEDESTAL and DIGITALHALF_X.ADC_TH to
    * their maxima (255 and 31 respectively) forces the trigger sums to be
-   * zero for pedestals. 
+   * zero for pedestals.
    */
 
   pflib_log(info) << "setting up parameters for trigger link testing";
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
   for (int half{0}; half < 2; half++) {
-    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]["ADC_PEDESTAL"] = 255;
-    roc_setup[
-        pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] = 31;
+    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]
+             ["ADC_PEDESTAL"] = 255;
+    roc_setup[pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] =
+        31;
     auto refvol_page{
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
     roc_setup[refvol_page]["CALIB"] = 3000;
@@ -268,12 +271,9 @@ static void trigger_timein(Target* tgt) {
    * which comes out of ROC0 inside TC0_0 which goes into ECON-T1
    * DIN6 which then is summed into STC6 (I think)
    */
-  static const int iroc_oi = 0,
-                   ch_oi = 0,
-                   stc_oi = 6;
-  auto roc_inject = tgt->roc(iroc_oi).testParameters()
-        .add("CH_0", "LOWRANGE", 1)
-        .apply();
+  static const int iroc_oi = 0, ch_oi = 0, stc_oi = 6;
+  auto roc_inject =
+      tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -288,18 +288,20 @@ static void trigger_timein(Target* tgt) {
 
     auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
     int og_l1offset = dh_page.at("L1OFFSET");
-    int l1offset =
-        pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
-    auto test_l1offset_handle = tgt->roc(iroc_oi).testParameters()
+    int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    auto test_l1offset_handle = tgt->roc(iroc_oi)
+                                    .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
                                     .apply();
 
     int og_pipeline, og_samples_per_l1a, og_presamples, econid;
     trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
-    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a}, presamples{og_presamples};
+    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
+        presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
-    samples_per_l1a = pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
+    samples_per_l1a =
+        pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
     presamples = pftool::readline_int("presamples: ", presamples);
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
@@ -314,12 +316,14 @@ static void trigger_timein(Target* tgt) {
     std::vector<uint32_t> daq_pedestal_event = tgt->read_event();
 
     // decode captured data
-    std::vector<SingleECONTCaptureFrame> trg_pedestals = decode_multi_sample<SingleECONTCaptureFrame>(
-      trig->get_l1a_per_ror(), trg_pedestal_event);
+    std::vector<SingleECONTCaptureFrame> trg_pedestals =
+        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                     trg_pedestal_event);
 
-    std::vector<TrigAlgoOutput> pedestal_algo_output = decode_multi_sample<TrigAlgoOutput>(
-      trig->get_l1a_per_ror(), pedestal_algo_output_raw);
-    
+    std::vector<TrigAlgoOutput> pedestal_algo_output =
+        decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
+                                            pedestal_algo_output_raw);
+
     pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
     daq_pedestals.from(daq_pedestal_event);
 
@@ -335,11 +339,13 @@ static void trigger_timein(Target* tgt) {
 
     // decode after capturing all data so decoding errors don't cause
     // readout pointer misalignment
-    std::vector<SingleECONTCaptureFrame> trg_charge = decode_multi_sample<SingleECONTCaptureFrame>(
-      trig->get_l1a_per_ror(), trg_charge_event);
+    std::vector<SingleECONTCaptureFrame> trg_charge =
+        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                     trg_charge_event);
 
-    std::vector<TrigAlgoOutput> charge_algo_output = decode_multi_sample<TrigAlgoOutput>(
-      trig->get_l1a_per_ror(), charge_algo_output_raw);
+    std::vector<TrigAlgoOutput> charge_algo_output =
+        decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
+                                            charge_algo_output_raw);
 
     pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
     daq_charge.from(daq_charge_event);
@@ -347,12 +353,13 @@ static void trigger_timein(Target* tgt) {
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
     tgt->fc().fc_setup_calib(og_charge_to_l1a, enable_l1a_follow);
 
-    pflib_log(debug) << "reset capture pipeline and n_samples back to original settings";
+    pflib_log(debug)
+        << "reset capture pipeline and n_samples back to original settings";
     pflib_log(debug) << "original pipeline = " << og_pipeline
-                    << " samples_per_l1a = " << og_samples_per_l1a
-                    << " presamples = " << og_presamples;
+                     << " samples_per_l1a = " << og_samples_per_l1a
+                     << " presamples = " << og_presamples;
     trig->setup_daq(og_pipeline, econid, og_samples_per_l1a, og_presamples);
-    
+
     pflib_log(info) << "analyze words readout from links";
     pflib_log(info) << "with charge_to_l1a = " << charge_to_l1a
                     << " roc.l1offset = " << l1offset;
@@ -365,21 +372,23 @@ static void trigger_timein(Target* tgt) {
     auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
     for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
       printf("%2d: %4d %4d -> %4d %4d%s\n", i_sample,
-            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
-            daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
-            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
-            daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc(),
-            (i_sample == tgt->daq().soi()) ? " <- sample of interest" : "");
+             daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
+             daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
+             daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
+             daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc(),
+             (i_sample == tgt->daq().soi()) ? " <- sample of interest" : "");
     }
 
     printf("TRG Data\n");
     printf(" i:  ped -> chrg\n");
     for (int i_l1a{0}; i_l1a < trg_pedestals.size(); i_l1a++) {
-      for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].n_samples(); i_sample++) {
+      for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].n_samples();
+           i_sample++) {
         int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, i_sample)},
             charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
-        printf("%2d: %4d -> %4d%s\n", i_l1a+i_sample, pedestal, charge,
-                (i_l1a+i_sample == tgt->daq().soi()) ? " <- sample of interest" : "");
+        printf("%2d: %4d -> %4d%s\n", i_l1a + i_sample, pedestal, charge,
+               (i_l1a + i_sample == tgt->daq().soi()) ? " <- sample of interest"
+                                                      : "");
       }
     }
 
@@ -387,10 +396,12 @@ static void trigger_timein(Target* tgt) {
     printf("       pedestal  ->    charge   \n");
     printf(" i: highpeak trg -> highpeak trg\n");
     for (int i_l1a{0}; i_l1a < pedestal_algo_output.size(); i_l1a++) {
-      for (int i_sample{0}; i_sample < pedestal_algo_output[i_l1a].n_samples(); i_sample++) {
-        printf("%2d: ", i_l1a+i_sample);
+      for (int i_sample{0}; i_sample < pedestal_algo_output[i_l1a].n_samples();
+           i_sample++) {
+        printf("%2d: ", i_l1a + i_sample);
         for (int i_stc{0}; i_stc < 8; i_stc++) {
-          printf("%d", pedestal_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
+          printf("%d",
+                 pedestal_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
         }
         printf(" %3d", pedestal_algo_output[i_l1a].trigger(i_sample));
         printf(" -> ");
@@ -398,7 +409,8 @@ static void trigger_timein(Target* tgt) {
           printf("%d", charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
         }
         printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
-        if (i_l1a+i_sample == tgt->daq().soi()) printf(" <- sample of interest");
+        if (i_l1a + i_sample == tgt->daq().soi())
+          printf(" <- sample of interest");
         printf("\n");
       }
     }
@@ -423,9 +435,10 @@ void self_trigger(Target* tgt) {
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
   for (int half{0}; half < 2; half++) {
-    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]["ADC_PEDESTAL"] = 255;
-    roc_setup[
-        pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] = 31;
+    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]
+             ["ADC_PEDESTAL"] = 255;
+    roc_setup[pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] =
+        31;
     auto refvol_page{
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
     roc_setup[refvol_page]["CALIB"] = 3000;
@@ -433,12 +446,9 @@ void self_trigger(Target* tgt) {
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
-  static const int iroc_oi = 0,
-                   ch_oi = 0,
-                   stc_oi = 6;
-  auto roc_inject = tgt->roc(iroc_oi).testParameters()
-        .add("CH_0", "LOWRANGE", 1)
-        .apply();
+  static const int iroc_oi = 0, ch_oi = 0, stc_oi = 6;
+  auto roc_inject =
+      tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -449,8 +459,7 @@ void self_trigger(Target* tgt) {
                   << " enable_l1a_follow = " << enable_l1a_follow;
   bool l1aen, extl1a;
   tgt->fc().fc_enables_read(l1aen, extl1a);
-  pflib_log(info) << "l1a_enabled = " << l1aen
-                  << " external_l1a = " << extl1a;
+  pflib_log(info) << "l1a_enabled = " << l1aen << " external_l1a = " << extl1a;
   pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
 
   pflib_log(info) << "disabling the L1A following the charge command";
@@ -466,21 +475,22 @@ void self_trigger(Target* tgt) {
   do {
     auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
     int og_l1offset = dh_page.at("L1OFFSET");
-    int l1offset =
-        pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
-    auto test_l1offset_handle = tgt->roc(iroc_oi).testParameters()
+    int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    auto test_l1offset_handle = tgt->roc(iroc_oi)
+                                    .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
                                     .apply();
 
     int og_pipeline, og_samples_per_l1a, og_presamples, econid;
     trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
-    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a}, presamples{og_presamples};
+    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
+        presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
-    //samples_per_l1a = pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
-    //presamples = pftool::readline_int("presamples: ", presamples);
+    // samples_per_l1a = pftool::readline_int("samples_per_l1a: ",
+    // samples_per_l1a); presamples = pftool::readline_int("presamples: ",
+    // presamples);
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
-
 
     pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
     pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
@@ -491,53 +501,59 @@ void self_trigger(Target* tgt) {
     do {
       usleep(100);
       i100us++;
-    } while(not trig->single_shot_fired() and i100us < 10);
-    pflib_log(info) << "single shot fired: " << std::boolalpha << trig->single_shot_fired();
+    } while (not trig->single_shot_fired() and i100us < 10);
+    pflib_log(info) << "single shot fired: " << std::boolalpha
+                    << trig->single_shot_fired();
     pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
     pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
-  
+
     if (tgt->daq().getEventOccupancy() == 1) {
       // capture data output, using daq last to advance readout pointer
       std::vector<uint32_t> trg_charge_event = trig->read_event();
       std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
       std::vector<uint32_t> daq_charge_event = tgt->read_event();
-  
+
       // decode after capturing all data so decoding errors don't cause
       // readout pointer misalignment
-      std::vector<SingleECONTCaptureFrame> trg_charge = decode_multi_sample<SingleECONTCaptureFrame>(
-        trig->get_l1a_per_ror(), trg_charge_event);
+      std::vector<SingleECONTCaptureFrame> trg_charge =
+          decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                       trg_charge_event);
 
-      std::vector<TrigAlgoOutput> charge_algo_output = decode_multi_sample<TrigAlgoOutput>(
-        trig->get_l1a_per_ror(), charge_algo_output_raw);
-  
+      std::vector<TrigAlgoOutput> charge_algo_output =
+          decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
+                                              charge_algo_output_raw);
+
       pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
       daq_charge.from(daq_charge_event);
-  
+
       printf("DAQ Data\n");
       printf(" i:  t-1   t \n");
       auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
       for (int i_sample{0}; i_sample < daq_charge.samples.size(); i_sample++) {
         printf("%2d: %4d %4d\n", i_sample,
-              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
-              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
+               daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
+               daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
       }
-  
+
       printf("TRG Data\n");
       printf(" i: stc6\n");
       for (int i_l1a{0}; i_l1a < trg_charge.size(); i_l1a++) {
-        for (int i_sample{0}; i_sample < trg_charge[i_l1a].n_samples(); i_sample++) {
+        for (int i_sample{0}; i_sample < trg_charge[i_l1a].n_samples();
+             i_sample++) {
           int charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
-          printf("%2d: %4d\n", i_l1a+i_sample, charge);
+          printf("%2d: %4d\n", i_l1a + i_sample, charge);
         }
       }
-  
+
       printf("ALGO Output\n");
       printf(" i: highpeak trg\n");
       for (int i_l1a{0}; i_l1a < charge_algo_output.size(); i_l1a++) {
-        for (int i_sample{0}; i_sample < charge_algo_output[i_l1a].n_samples(); i_sample++) {
-          printf("%2d: ", i_l1a+i_sample);
+        for (int i_sample{0}; i_sample < charge_algo_output[i_l1a].n_samples();
+             i_sample++) {
+          printf("%2d: ", i_l1a + i_sample);
           for (int i_stc{0}; i_stc < 8; i_stc++) {
-            printf("%d", charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
+            printf("%d",
+                   charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
           }
           printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
           printf("\n");
@@ -573,7 +589,7 @@ void setup(Target* tgt) {
   for (int iroc : tgt->roc_ids()) {
     tgt->roc(iroc).applyParameters(roc_settings);
   }
-  
+
   int pipeline, samples_per_l1a, presamples, econid;
   trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
   pipeline = pftool::readline_int("trig capture pipeline depth?", pipeline);
@@ -582,7 +598,8 @@ void setup(Target* tgt) {
   bool enable_l1a_follow;
   int charge_to_l1a;
   tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
-  charge_to_l1a = pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
+  charge_to_l1a =
+      pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
   tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 }
 
@@ -593,18 +610,25 @@ auto menu_trig =
     pftool::menu("TRIG", "TRIGGER functionalities", trig_render, ONLY_ZCU)
         ->line("STATUS", "printout trigger settings", trig)
         ->line("PIPELINE", "set the pipeline depth for trigger capture", trig)
-        ->line("SAMPLES_PER_L1A", "set number of samples to readout in an L1A", trig)
+        ->line("SAMPLES_PER_L1A", "set number of samples to readout in an L1A",
+               trig)
         ->line("PRESAMPLES", "set number of pre-samples in an L1A", trig)
         ->line("ECONID", "set econ id", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
-        ->line("TIMEIN", "scan delay settings to timein trigger capture", trigger_timein)
-        ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trigger)
-        ->line("SETUP", "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG", setup)
-        ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
+        ->line("TIMEIN", "scan delay settings to timein trigger capture",
+               trigger_timein)
+        ->line("SELF_TRIG", "attempt to trigger on a charge pulse",
+               self_trigger)
+        ->line(
+            "SETUP",
+            "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
+            setup)
+        ->line("BUFFER_CLEAR",
+               "clear buffer by reading events until none are left", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
-auto menu_expert = 
+auto menu_expert =
     menu_trig->submenu("EXPERT", "low-level commands for debugging behavior")
         ->line("SW_L1A", "send a single L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
@@ -612,7 +636,8 @@ auto menu_expert =
                [](Target* tgt) { tgt->fc().sendROR(); })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
-        ->line("BUFFER_CLEAR", "clear buffer by reading events until none are left", trig)
+        ->line("BUFFER_CLEAR",
+               "clear buffer by reading events until none are left", trig)
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
@@ -621,12 +646,14 @@ auto menu_algo =
     menu_trig->submenu("ALGO", "configure and view trigger algorithm")
         ->line("CONFIG", "configure trigger algorithm parameters", algo)
         ->line("SPY", "view output of trigger algorithm", algo)
-        ->line("STATUS", "printout algorithm settings and output capture status", algo)
+        ->line("STATUS",
+               "printout algorithm settings and output capture status", algo)
         ->line("BUFFER_CLEAR", "clear out buffer of algo output", algo);
 
-auto menu_align = 
+auto menu_align =
     menu_trig->submenu("ALIGN", "debug trigger elink alignment")
-        ->line("READ", "view alignment capture buffer after a link reset", align)
+        ->line("READ", "view alignment capture buffer after a link reset",
+               align)
         ->line("DELAY", "link-specific capture delay offset", align)
         ->line("SETUP", "all-link capture delay", align);
 }  // namespace

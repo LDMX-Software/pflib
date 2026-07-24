@@ -55,11 +55,9 @@ ZCU_Capture::ZCU_Capture(int itarget)
   capture_.writeMasked(ADDR_HEADER_MARKER, MASK_HEADER_MARKER, 0x1E6);
   per_econ_ = true;  // reading from the per-econ buffer, not the AXIS buffer
   // make sure to sync the firmware parameters into the in-memory variables
-  pflib::DAQ::setup(
-    capture_.readMasked(ADDR_PACKET_SETUP, MASK_ECON_ID),
-    capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET),
-    capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI)
-  );
+  pflib::DAQ::setup(capture_.readMasked(ADDR_PACKET_SETUP, MASK_ECON_ID),
+                    capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET),
+                    capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI));
   pflib_log(debug) << "econ_id = " << econid()
                    << " samples_per_ror = " << samples_per_ror()
                    << " soi = " << soi();
@@ -148,7 +146,8 @@ std::map<std::string, uint32_t> ZCU_Capture::get_debug(uint32_t ask) {
   dbg["COUNT_WORDS"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 4);
   dbg["COUNT_IO_ADV"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
   dbg["COUNT_TLAST"] = capture_.read(ADDR_BASE_COUNTER + stepsize * 6);
-  dbg["COUNT_SAMPLES_IN_BUFFER"] = capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
+  dbg["COUNT_SAMPLES_IN_BUFFER"] =
+      capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
   dbg["QUICKSPY"] = capture_.read(ADDR_BASE_COUNTER + 0x10);
   dbg["STATE"] = capture_.read(ADDR_BASE_COUNTER + 0x11);
   return dbg;

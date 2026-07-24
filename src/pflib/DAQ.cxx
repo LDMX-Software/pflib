@@ -7,9 +7,9 @@ namespace pflib {
 DAQ::DAQ(int links) : n_links{links}, econid_{0xFFF}, samples_{1}, soi_{0} {}
 
 void DAQ::setup(int econid, int samples_per_ror, int soi) {
-    econid_ = econid;
-    samples_ = samples_per_ror;
-    soi_ = (soi < 0 || soi > samples_ - 1) ? (0) : soi;
+  econid_ = econid;
+  samples_ = samples_per_ror;
+  soi_ = (soi < 0 || soi > samples_ - 1) ? (0) : soi;
 }
 
 int DAQ::econid() const { return econid_; }

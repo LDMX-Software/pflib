@@ -42,13 +42,15 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   axi_.writeMasked(REG_CTL, MASK_LINK_RESET_BX, BX_FOR_LINK_RESET);
   printf("BW FastControl REG_CTL: %08x\n", axi_.read(REG_CTL));
   printf("  ENABLE_L1A      : %s\n",
-         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1) ? "true": "false");
+         (axi_.readMasked(REG_CTL, MASK_ENABLE_L1A) == 1) ? "true" : "false");
   printf("  DISABLE_EXTERNAL: %s\n",
-         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1) ? "true": "false");
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_EXTERNAL) == 1) ? "true"
+                                                                : "false");
   printf("  DISABLE_ROR_MASK: %s\n",
-         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1) ? "true": "false");
+         (axi_.readMasked(REG_CTL, MASK_DISABLE_ROR_MASK) == 1) ? "true"
+                                                                : "false");
   printf("  USE_NZS         : %s\n",
-         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1) ? "true": "false");
+         (axi_.readMasked(REG_CTL, MASK_USE_NZS) == 1) ? "true" : "false");
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -132,7 +134,8 @@ void BWFastControl::fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) {
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_DELTA, charge_to_l1a);
   // TODO can we disable following L1A in Bittware firmware?
 }
-void BWFastControl::fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) {
+void BWFastControl::fc_get_setup_calib(int& charge_to_l1a,
+                                       bool& enable_follow_l1a) {
   charge_to_l1a = axi_.readMasked(REG_CALIB_INT, MASK_CALIB_DELTA);
   enable_follow_l1a = true;
 }

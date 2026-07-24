@@ -2,8 +2,8 @@
 #ifndef PFLIB_PACKING_ECONTCAPTUREHEADER_H
 #define PFLIB_PACKING_ECONTCAPTUREHEADER_H
 
-#include <span>
 #include <cstdint>
+#include <span>
 
 #include "pflib/logging/Logging.h"
 
@@ -29,6 +29,7 @@ class ECONTCaptureHeader {
   int length_;
   /// number of links included in this capture
   int n_links_;
+
  public:
   void from(std::span<uint32_t> data);
   int version() const;
@@ -39,6 +40,6 @@ class ECONTCaptureHeader {
   int n_samples() const;
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

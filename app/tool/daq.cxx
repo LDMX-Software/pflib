@@ -3,11 +3,10 @@
  * DAQ menu (and submenus) command definitions
  */
 #include "daq_run.h"
+#include "pflib/TRIG.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
-
-#include "pflib/TRIG.h"
 
 ENABLE_LOGGING();
 
@@ -61,8 +60,8 @@ static void daq_setup(const std::string& cmd, Target* pft) {
       auto trig = pft->trig();
       if (extl1a and trig) {
         bool single_shot = pftool::readline_bool(
-          "Gate the external L1A with single-shot mode? ",
-          trig->get_enable_single_shot());
+            "Gate the external L1A with single-shot mode? ",
+            trig->get_enable_single_shot());
         trig->enable_single_shot(single_shot);
       }
       daq.enable(true);
@@ -704,11 +703,13 @@ auto menu_daq_debug =
                })
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
-        ->line("CLEAR", "advance readout pointer until buffer is empty and reset",
+        ->line("CLEAR",
+               "advance readout pointer until buffer is empty and reset",
                [](Target* tgt) {
                  // both ZCU and Bittware have an upper limit of 0x7f = 127
-                 // samples in their daq buffers, so - to prevent infinite looping
-                 // if the firmware is misbehaving - we limit to 127 advancements
+                 // samples in their daq buffers, so - to prevent infinite
+                 // looping if the firmware is misbehaving - we limit to 127
+                 // advancements
                  static const int max_adv = 0x7f;
                  bool empty, _full;
                  for (int n_adv{0}; n_adv < max_adv; n_adv++) {

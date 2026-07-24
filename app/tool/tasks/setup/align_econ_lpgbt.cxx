@@ -201,8 +201,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
       }
       if (got_idle_phase < 0) {
         all_succeed = false;
-        pflib_log(warn) << "unable to find word alignment for link "
-                        << ilink << " from ECON-T";
+        pflib_log(warn) << "unable to find word alignment for link " << ilink
+                        << " from ECON-T";
       } else {
         econ.applyParameter("FORMATTERBUFFER", reg_name, got_idle_phase);
       }
@@ -228,10 +228,12 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
               first_bx = bx;
             } else if (bx != first_bx) {
               different_first_bx = true;
-              pflib_log(warn) << "different BX between link " << ilink << " and link 0";
+              pflib_log(warn)
+                  << "different BX between link " << ilink << " and link 0";
             }
           } else if (bx != ((last_bx + 1) % 16) and bx != 31) {
-            pflib_log(warn) << "BX not incrementing by one within link " << ilink; 
+            pflib_log(warn)
+                << "BX not incrementing by one within link " << ilink;
           }
           last_bx = bx % 16;
         }

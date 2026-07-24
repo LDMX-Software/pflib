@@ -1,13 +1,12 @@
 #include "pflib/packing/TrigAlgoOutput.h"
 
 namespace pflib::packing {
-const TrigAlgoOutput::SingleBXOutput& TrigAlgoOutput::sample(std::optional<int> i_sample) const {
+const TrigAlgoOutput::SingleBXOutput& TrigAlgoOutput::sample(
+    std::optional<int> i_sample) const {
   return samples_.at(i_sample.value_or(header_.pre_samples()));
 }
 
-TrigAlgoOutput::TrigAlgoOutput(std::span<uint32_t> data) {
-  from(data);
-}
+TrigAlgoOutput::TrigAlgoOutput(std::span<uint32_t> data) { from(data); }
 
 void TrigAlgoOutput::from(std::span<uint32_t> data) {
   header_.from(data);
@@ -26,12 +25,14 @@ void TrigAlgoOutput::from(std::span<uint32_t> data) {
 Reader& TrigAlgoOutput::read(Reader& r) {
   std::vector<uint32_t> words;
   if (not r.read(words, 2)) {
-    pflib_log(error) << "Need at least 2 32b header words to read a TrigAlgoOutput";
+    pflib_log(error)
+        << "Need at least 2 32b header words to read a TrigAlgoOutput";
     return r;
   }
   header_.from(words);
   if (not r.read(words, header_.length() - 2, 2)) {
-    pflib_log(error) << "Packet truncated, could not read entire length of TrigAlgoOutput words";
+    pflib_log(error) << "Packet truncated, could not read entire length of "
+                        "TrigAlgoOutput words";
     return r;
   }
   // reparses header but avoids copying the sample decoding code
@@ -39,23 +40,18 @@ Reader& TrigAlgoOutput::read(Reader& r) {
   return r;
 }
 
-std::size_t TrigAlgoOutput::n_samples() const {
-  return samples_.size();
-}
+std::size_t TrigAlgoOutput::n_samples() const { return samples_.size(); }
 
-const ECONTCaptureHeader& TrigAlgoOutput::header() const {
-  return header_;
-}
+const ECONTCaptureHeader& TrigAlgoOutput::header() const { return header_; }
 
-int TrigAlgoOutput::length() const {
-  return header_.length();
-}
+int TrigAlgoOutput::length() const { return header_.length(); }
 
-bool TrigAlgoOutput::is_high_peak(int i_stc, std::optional<int> i_sample) const {
+bool TrigAlgoOutput::is_high_peak(int i_stc,
+                                  std::optional<int> i_sample) const {
   return sample(i_sample).is_high_peak_.test(i_stc);
 }
 
 bool TrigAlgoOutput::trigger(std::optional<int> i_sample) const {
   return sample(i_sample).trigger_;
 }
-}
+}  // namespace pflib::packing

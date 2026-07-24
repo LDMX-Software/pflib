@@ -102,7 +102,8 @@ class FastControl {
   virtual void fc_setup_calib(int charge_to_l1a, bool enable_follow_l1a) {}
 
   /** calib pulse setup (charge to l1a time) */
-  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) {}
+  virtual void fc_get_setup_calib(int& charge_to_l1a, bool& enable_follow_l1a) {
+  }
 
   /** led pulse setup */
   virtual void fc_setup_led(int charge_to_l1a) {}

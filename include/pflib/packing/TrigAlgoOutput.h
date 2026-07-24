@@ -2,11 +2,11 @@
 #ifndef PFLIB_PACKING_TRIGALGOOUTPUT_H
 #define PFLIB_PACKING_TRIGALGOOUTPUT_H
 
-#include <optional>
 #include <bitset>
+#include <optional>
 
-#include "pflib/packing/ECONTCaptureHeader.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/packing/ECONTCaptureHeader.h"
 #include "pflib/packing/Reader.h"
 
 namespace pflib::packing {
@@ -20,6 +20,7 @@ class TrigAlgoOutput {
   const SingleBXOutput& sample(std::optional<int> i_sample = {}) const;
   std::vector<SingleBXOutput> samples_;
   ECONTCaptureHeader header_;
+
  public:
   TrigAlgoOutput() = default;
   TrigAlgoOutput(std::span<uint32_t> data);
@@ -32,6 +33,6 @@ class TrigAlgoOutput {
   bool trigger(std::optional<int> i_sample = {}) const;
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

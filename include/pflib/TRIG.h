@@ -48,7 +48,8 @@ class TRIG {
   /**
    * Setup the data collection of raw trigger data path
    *
-   * @param[in] pipeline how far back in time (in BX) we should start the capture
+   * @param[in] pipeline how far back in time (in BX) we should start the
+   * capture
    * @param[in] econ_id id number for ECON-T we are capturing from
    * @param[in] samples_per_l1a how many samples to caputre per L1A
    * @param[in] presamples number of samples before the BX of interest

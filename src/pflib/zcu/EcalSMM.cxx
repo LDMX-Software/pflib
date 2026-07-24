@@ -39,7 +39,8 @@ class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
     try {
       trig_ = std::make_unique<ZCUtrig>();
       trig_->set_l1a_per_ror(daq().samples_per_ror());
-      pflib_log(warn) << "created trig object for EcalSMM but has gone untested!";
+      pflib_log(warn)
+          << "created trig object for EcalSMM but has gone untested!";
     } catch (pflib::Exception& e) {
       pflib_log(info) << "failed to create TRIG connection with " << e.what();
       pflib_log(info)

@@ -2,8 +2,8 @@
 #define PFLIB_ZCU_TRIG_H_INCLUDED
 
 #include "pflib/TRIG.h"
-#include "pflib/zcu/UIO.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/zcu/UIO.h"
 
 namespace pflib {
 namespace zcu {
