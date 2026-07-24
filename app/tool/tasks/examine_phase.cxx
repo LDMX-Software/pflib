@@ -13,11 +13,13 @@ void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc,
   static auto the_log_{::pflib::logging::get("scan_phase_strobe")};
   // scans and prints the effect of phase_strobe
   int nr_bx = 5;
-  int central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
+  bool enable_follow_l1a;
+  int central_charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(central_charge_to_l1a, enable_follow_l1a);
   if (central_charge_to_l1a > 3) {
-    tgt->fc().fc_setup_calib(central_charge_to_l1a - 2);
+    tgt->fc().fc_setup_calib(central_charge_to_l1a - 2, enable_follow_l1a);
   } else if (central_charge_to_l1a == 3) {
-    tgt->fc().fc_setup_calib(central_charge_to_l1a - 1);
+    tgt->fc().fc_setup_calib(central_charge_to_l1a - 1, enable_follow_l1a);
   }
   pflib::DAQ& daq = tgt->daq();
   int initial_nr_bx = daq.samples_per_ror();
@@ -50,11 +52,11 @@ void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc,
     pflib_log(info) << "phase_strobe: " << phase_strobe;
     for (int j = 0; j < nr_bx; j++) {
       int mean_adc = pflib::utility::mean(adcs[j]);
-      pflib_log(info) << "bx:  " << tgt->fc().fc_get_setup_calib() + j
+      pflib_log(info) << "bx:  " << central_charge_to_l1a + j
                       << " adc: " << mean_adc;
     }
   }
-  tgt->fc().fc_setup_calib(central_charge_to_l1a);
+  tgt->fc().fc_setup_calib(central_charge_to_l1a, enable_follow_l1a);
   daq.setup(daq.econid(), initial_nr_bx, daq.soi());
   tgt->fc().setL1AperROR(initial_nr_bx);
 }
@@ -98,6 +100,9 @@ int peak_bx(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer,
   // finds bx of charge injection peak
   bool keep_going = true;
   int bx_calib = 1000;
+  bool enable_follow_l1a;
+  int charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_follow_l1a);
   while (keep_going) {
     for (int bx = 1; bx <= 100; bx++) {
       std::vector<int> adcs;
@@ -110,8 +115,8 @@ int peak_bx(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer,
                             .add("REFERENCEVOLTAGE_0", "CALIB", bx_calib)
                             .add("TOP", "PHASE_STROBE", 0)
                             .apply();
-      tgt->fc().fc_setup_calib(bx);
-      pflib_log(info) << "Testing bx: " << tgt->fc().fc_get_setup_calib();
+      tgt->fc().fc_setup_calib(bx, enable_follow_l1a);
+      pflib_log(info) << "Testing bx: " << bx;
       usleep(10);
 
       // do a run and collect data
@@ -138,9 +143,9 @@ int peak_bx(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer,
       break;
     }
   }
-  auto central_charge_to_l1a = tgt->fc().fc_get_setup_calib();
-  pflib_log(info) << "Final bx: " << central_charge_to_l1a;
-  return central_charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_follow_l1a);
+  pflib_log(info) << "Final bx: " << charge_to_l1a;
+  return charge_to_l1a;
 }
 
 void examine_phase(Target* tgt) {
@@ -161,5 +166,8 @@ void examine_phase(Target* tgt) {
   // scan phase_strobe
   scan_phase_strobe(tgt, roc, i_roc, buffer, nevents);
 
-  pflib_log(info) << "bx is set to " << tgt->fc().fc_get_setup_calib();
+  bool enable_follow_l1a;
+  int charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_follow_l1a);
+  pflib_log(info) << "Final bx: " << charge_to_l1a;
 }

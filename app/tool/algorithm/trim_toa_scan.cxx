@@ -83,9 +83,12 @@ trim_toa_scan(Target* tgt) {
 
   static const std::size_t n_events = 10;
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
-  tgt->fc().fc_setup_calib(
-      17);  // Sets the bunch crossing value, should have the optimal value be
-            // the same for both links on a ROC, may want to change
+  /**
+   * Sets the offset between teh charge injection command and the following L1A.
+   * @TODO This should probably be determined once and not changed within these
+   * algorithms.
+   */
+  tgt->fc().fc_setup_calib(17, true);
   // trim_toa is a channel-wise parameter (1 value per channel)
 
   int calib_step = 4;
