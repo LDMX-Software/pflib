@@ -9,13 +9,12 @@
 namespace pflib::algorithm {
 
 /**
- * Find TOT threshold voltage
+ * Find tot_vref per link and trim_tot per channel
  *
  * @param[in] tgt pointer to Target to interact with
  *
- * @note Only functional for single-ROC targets
  */
-std::map<std::string, std::map<std::string, uint64_t>> tot_vref_scan(
-    Target* tgt, ROC roc, size_t n_events_calib);
+std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
+    Target* tgt);
 
 }  // namespace pflib::algorithm

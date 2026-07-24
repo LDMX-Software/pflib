@@ -7,6 +7,7 @@
 #include "../pftool.h"
 #include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
+#include "examine_phase.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
 #include "get_lpgbt_temps.h"
@@ -24,7 +25,7 @@
 #include "setup/check_lpgbt_backend.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
-#include "tot_vref_scan.h"
+#include "tot_scan.h"
 #include "trim_inv_dacb_scan.h"
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
@@ -54,6 +55,7 @@ auto menu_tasks =
                vref_2d_scan)
         ->line("NOINV_VREF_SCAN", "scan over NOINV_VREF parameter",
                noinv_vref_scan)
+        ->line("EXAMINE_PHASE", "scan over phase parameters", examine_phase)
         ->line("SAMPLING_PHASE_SCAN",
                "scan phase_ck, pedestal for clock phase alignment",
                sampling_phase_scan)
@@ -69,14 +71,13 @@ auto menu_tasks =
                local_pedestal_level)
         ->line("TOA_VREF_SCAN", "scan over VREF parameters for TOA calibration",
                toa_vref_scan)
-        ->line("TOA_SCAN",
-               "just does that bro (changes CALIB while saving only TOA)",
-               toa_scan)
         ->line("TOT_SCAN",
                "scan over VREF and TRIM parameters for TOT calibration",
-               tot_vref_scan)
+               tot_scan)
         ->line("TRIM_TOA_SCAN",
-               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan);
+               "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
+        ->line("TOA_SCAN", "calibrate TRIM_TOA parameters for each channel",
+               toa_scan);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
