@@ -13,7 +13,7 @@ ENABLE_LOGGING();
 
 std::ostream& operator<<(std::ostream& o, std::optional<int> val) {
   if (val) {
-    o << val.value();
+    o << std::setw(4) << val.value();
   } else {
     o << "????";
   }
@@ -39,10 +39,10 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
       for (int i = 0; i < 16; i++) {
-        std::cout << "Channel " << i << ": " << bias.readSiPM(i) << std::endl;
+        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readSiPM(i) << std::endl;
       }
     } else {
-      std::cout << "Channel " << ich << ": " << bias.readSiPM(ich) << std::endl;
+      std::cout << "Channel " << std::setw(2) << ich << ": " << bias.readSiPM(ich) << std::endl;
     }
   }
   if (cmd == "READ_LED") {
@@ -52,10 +52,10 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
       for (int i = 0; i < 16; i++) {
-        std::cout << "Channel " << i << ": " << bias.readLED(i) << std::endl;
+        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readLED(i) << std::endl;
       }
     } else {
-      std::cout << "Channel " << ich << ": " << bias.readLED(ich) << std::endl;
+      std::cout << "Channel " << std::setw(2) << ich << ": " << bias.readLED(ich) << std::endl;
     }
   }
   if (cmd == "SET_SIPM") {
@@ -102,6 +102,17 @@ static void render(Target* tgt) {
   if (not hcal) {
     pflib_log(error)
         << "BIAS menu of commands only availabe for Hcal targets.";
+  }
+  if (pftool::state.readout_config() != pftool::State::CFG_HCALFMC) {
+    std::cout << R"WARN(
+  We currently do not have the ability to readback the voltage settings
+  from the MAX5825 via the lpGBT. This means we cache the last value we
+  wrote to the board in the software.
+  A value of '????' means we haven't written to that channel of the board,
+  so we do not know what value that channel is set to.
+  In this case, either set the channel to the desired setting or check the
+  board manually with a multimeter.
+)WARN" << std::endl;
   }
 }
 
