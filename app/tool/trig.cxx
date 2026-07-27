@@ -234,6 +234,10 @@ void algo(const std::string& cmd, Target* target) {
   }
 }
 
+static int last_charge_to_l1a{},
+           last_l1offset{},
+           last_pipeline{};
+
 /**
  * TRIG.TIMEIN
  */
@@ -284,11 +288,13 @@ static void trigger_timein(Target* tgt) {
 
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+    last_charge_to_l1a = charge_to_l1a;
     tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 
     auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
     int og_l1offset = dh_page.at("L1OFFSET");
     int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    last_l1offset = l1offset;
     auto test_l1offset_handle = tgt->roc(iroc_oi)
                                     .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
@@ -300,6 +306,7 @@ static void trigger_timein(Target* tgt) {
     int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
         presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
+    last_pipeline = pipeline;
     samples_per_l1a =
         pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
     presamples = pftool::readline_int("presamples: ", presamples);
@@ -581,7 +588,7 @@ void setup(Target* tgt) {
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
 
-  int l1offset = pftool::readline_int("L1Offset on HGCROC?");
+  int l1offset = pftool::readline_int("L1Offset on HGCROC?", last_l1offset);
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_settings;
   roc_settings["DIGITALHALF_0"]["L1OFFSET"] = l1offset;
@@ -592,14 +599,14 @@ void setup(Target* tgt) {
 
   int pipeline, samples_per_l1a, presamples, econid;
   trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
-  pipeline = pftool::readline_int("trig capture pipeline depth?", pipeline);
+  pipeline = pftool::readline_int("trig capture pipeline depth?", last_pipeline);
   trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
   bool enable_l1a_follow;
   int charge_to_l1a;
   tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
   charge_to_l1a =
-      pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
+      pftool::readline_int("Calibration to L1A offset?", last_charge_to_l1a);
   tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 }
 
