@@ -114,7 +114,7 @@ void trig(const std::string& cmd, Target* target) {
     std::vector<SingleECONTCaptureFrame> frames =
         decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
                                                      event);
-    printf("BX STC1 STC2 STC3 STC4 STC5 STC6 STC7 STC8\n");
+    printf("BX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n");
     for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
       const auto& frame{frames[i_l1a]};
       for (int i{0}; i < frame.n_samples(); i++) {
@@ -153,7 +153,7 @@ void align(const std::string& cmd, Target* tgt) {
     bool show_raw = pftool::readline_bool(
         "Show raw data [Y] or idle word interpretation [N]? ", false);
     tgt->fc().linkreset_econs();
-    usleep(2000);
+    usleep(3000);
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
       std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
       // see Section 20 of the ECON-T manual,
