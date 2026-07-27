@@ -11,6 +11,15 @@
 
 ENABLE_LOGGING();
 
+std::ostream& operator<<(std::ostream& o, std::optional<int> val) {
+  if (val) {
+    o << val.value();
+  } else {
+    o << "????";
+  }
+  return o;
+}
+
 static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
   static int iboard = 0;
   if (cmd == "STATUS") {

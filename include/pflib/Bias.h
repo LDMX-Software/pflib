@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <vector>
+#include <optional>
 
 #include "pflib/I2C.h"
 
@@ -113,6 +114,7 @@ class MAX5825 {
  */
 class Bias {
  public:
+  static const int N_CHANNELS = 16;
   static const uint8_t ADDR_LED_0;
   static const uint8_t ADDR_LED_1;
   static const uint8_t ADDR_SIPM_0;
@@ -148,8 +150,8 @@ class Bias {
    */
   double readTemp();
 
-  int readSiPM(uint8_t i_sipm);
-  int readLED(uint8_t i_led);
+  std::optional<int> readSiPM(uint8_t i_sipm);
+  std::optional<int> readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
  private:
@@ -164,9 +166,9 @@ class Bias {
   /// whether to use the software cache of the settings
   bool use_cache_;
   /// cache of sipm settings
-  std::array<uint16_t, 15> sipm_cache_;
+  std::array<std::optional<int>, N_CHANNELS> sipm_cache_;
   /// cache of led settings
-  std::array<uint16_t, 15> led_cache_;
+  std::array<std::optional<int>, N_CHANNELS> led_cache_;
 };  // Bias
 
 }  // namespace pflib

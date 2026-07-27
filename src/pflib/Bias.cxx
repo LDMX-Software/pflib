@@ -124,28 +124,28 @@ double Bias::readTemp() {
   return std::stod(str);
 }
 
-int Bias::readSiPM(uint8_t channel) {
-  if (channel > 15) {
+std::optional<int> Bias::readSiPM(uint8_t channel) {
+  if (channel >= N_CHANNELS) {
     PFEXCEPTION_RAISE("BadChannel",
       "Channel number " + std::to_string(channel) +
       " is out of range for the bias chip");
   }
   if (use_cache_) {
-    return sipm_cache_[static_cast<int>(channel)];
+    return sipm_cache_[channel];
   }
   int i_chip = (channel > 7);
   std::vector<uint8_t> data = sipm_.at(i_chip).get((channel & 0x07));
   return ((data.at(0) * 256 + data.at(1)) >> 4);
 }
 
-int Bias::readLED(uint8_t channel) {
-  if (channel > 15) {
+std::optional<int> Bias::readLED(uint8_t channel) {
+  if (channel >= N_CHANNELS) {
     PFEXCEPTION_RAISE("BadChannel",
       "Channel number " + std::to_string(channel) +
       " is out of range for the bias chip");
   }
   if (use_cache_) {
-    return led_cache_[static_cast<std::size_t>(channel)];
+    return led_cache_[channel];
   }
   int i_chip = (channel > 7);
   std::vector<uint8_t> data = led_.at(i_chip).get((channel & 0x07));
@@ -153,7 +153,7 @@ int Bias::readLED(uint8_t channel) {
 }
 
 void Bias::setSiPM(uint8_t channel, uint16_t code) {
-  if (channel > 15) {
+  if (channel >= N_CHANNELS) {
     PFEXCEPTION_RAISE("BadChannel",
       "Channel number " + std::to_string(channel) +
       " is out of range for the bias chip");
@@ -164,7 +164,7 @@ void Bias::setSiPM(uint8_t channel, uint16_t code) {
 }
 
 void Bias::setLED(uint8_t channel, uint16_t code) {
-  if (channel > 15) {
+  if (channel >= N_CHANNELS) {
     PFEXCEPTION_RAISE("BadChannel",
       "Channel number " + std::to_string(channel) +
       " is out of range for the bias chip");
