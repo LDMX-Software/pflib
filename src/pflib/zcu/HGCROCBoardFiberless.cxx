@@ -6,8 +6,8 @@
 #include "pflib/Bias.h"
 #include "pflib/Exception.h"
 #include "pflib/GPIO.h"
-#include "pflib/I2C_Linux.h"
 #include "pflib/HcalTarget.h"
+#include "pflib/I2C_Linux.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/ECONDFormatter.h"
 #include "pflib/zcu/UIO.h"
@@ -227,7 +227,8 @@ class HcalFiberless : public HcalTarget {
     }
 
     roc_ = std::make_unique<ROC>(i2croc, 0x20, "sipm_rocv3b");
-    bias_ = std::make_unique<Bias>(i2cboard, i2cboard, false /*use bias cache*/);
+    bias_ =
+        std::make_unique<Bias>(i2cboard, i2cboard, false /*use bias cache*/);
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 

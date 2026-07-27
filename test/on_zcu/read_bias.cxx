@@ -2,8 +2,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "hgcroc_connection.h"
-#include "pflib/HcalTarget.h"
 #include "pflib/Bias.h"
+#include "pflib/HcalTarget.h"
 
 BOOST_AUTO_TEST_SUITE(read_bias)
 

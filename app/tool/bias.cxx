@@ -5,8 +5,9 @@
  *
  * Only usable for HcalBackplane type targets.
  */
-#include "pflib/HcalTarget.h"
 #include "pflib/Bias.h"
+
+#include "pflib/HcalTarget.h"
 #include "pftool.h"
 
 ENABLE_LOGGING();
@@ -39,10 +40,12 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
       for (int i = 0; i < 16; i++) {
-        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readSiPM(i) << std::endl;
+        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readSiPM(i)
+                  << std::endl;
       }
     } else {
-      std::cout << "Channel " << std::setw(2) << ich << ": " << bias.readSiPM(ich) << std::endl;
+      std::cout << "Channel " << std::setw(2) << ich << ": "
+                << bias.readSiPM(ich) << std::endl;
     }
   }
   if (cmd == "READ_LED") {
@@ -52,10 +55,12 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
       for (int i = 0; i < 16; i++) {
-        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readLED(i) << std::endl;
+        std::cout << "Channel " << std::setw(2) << i << ": " << bias.readLED(i)
+                  << std::endl;
       }
     } else {
-      std::cout << "Channel " << std::setw(2) << ich << ": " << bias.readLED(ich) << std::endl;
+      std::cout << "Channel " << std::setw(2) << ich << ": "
+                << bias.readLED(ich) << std::endl;
     }
   }
   if (cmd == "SET_SIPM") {
@@ -100,8 +105,7 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
 static void render(Target* tgt) {
   auto hcal = dynamic_cast<pflib::HcalTarget*>(tgt);
   if (not hcal) {
-    pflib_log(error)
-        << "BIAS menu of commands only availabe for Hcal targets.";
+    pflib_log(error) << "BIAS menu of commands only availabe for Hcal targets.";
   }
   if (pftool::state.readout_config() != pftool::State::CFG_HCALFMC) {
     std::cout << R"WARN(

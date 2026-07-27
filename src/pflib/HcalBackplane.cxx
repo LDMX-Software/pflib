@@ -18,15 +18,14 @@ HcalBackplane::HcalBackplane() {
   necon_ = 0;
 }
 
-HcalBackplane::HGCROCBoard::HGCROCBoard(
-      std::shared_ptr<I2C> roc_i2c,
-      uint8_t roc_addr,
-      const std::string& roc_typename,
-      std::shared_ptr<I2C> bias_i2c,
-      std::shared_ptr<I2C> board_i2c,
-      bool bias_use_cache
-    ) : roc{roc_i2c, roc_addr, roc_typename},
-    bias{bias_i2c, board_i2c, bias_use_cache} {}
+HcalBackplane::HGCROCBoard::HGCROCBoard(std::shared_ptr<I2C> roc_i2c,
+                                        uint8_t roc_addr,
+                                        const std::string& roc_typename,
+                                        std::shared_ptr<I2C> bias_i2c,
+                                        std::shared_ptr<I2C> board_i2c,
+                                        bool bias_use_cache)
+    : roc{roc_i2c, roc_addr, roc_typename},
+      bias{bias_i2c, board_i2c, bias_use_cache} {}
 
 void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
                          int hgcroc_boardmask, bool use_bias_cache) {
@@ -104,9 +103,9 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
                                                    ADDR_MUX_BOARD, (1 << ibd));
 
     nhgcroc_++;
-    rocs_[ibd] = std::make_unique<HGCROCBoard>(
-        roc_i2c, (0x20 | (ibd * 8)), "sipm_rocv3b",
-        bias_i2c, board_i2c, use_bias_cache);
+    rocs_[ibd] = std::make_unique<HGCROCBoard>(roc_i2c, (0x20 | (ibd * 8)),
+                                               "sipm_rocv3b", bias_i2c,
+                                               board_i2c, use_bias_cache);
     i2c_[pflib::utility::string_format("HGCROC_%d", ibd)] = roc_i2c;
     i2c_[pflib::utility::string_format("BOARD_%d", ibd)] = board_i2c;
     i2c_[pflib::utility::string_format("BIAS_%d", ibd)] = bias_i2c;

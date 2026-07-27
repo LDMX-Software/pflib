@@ -5,8 +5,8 @@
 
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
-#include "pflib/TRIG.h"
 #include "pflib/HcalTarget.h"
+#include "pflib/TRIG.h"
 
 namespace pflib {
 
@@ -32,7 +32,8 @@ class HcalBackplane : public HcalTarget {
    * instead of readback direct from chip, see Bias class for why this
    * is necessary in fiberfull setups
    */
-  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boards, bool use_bias_cache);
+  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boards,
+            bool use_bias_cache);
 
   /** number of boards */
   virtual int nrocs() override { return nhgcroc_; }
@@ -105,14 +106,9 @@ class HcalBackplane : public HcalTarget {
     ROC roc;
     Bias bias;
     /// constructor to forward constructor arguments to members
-    HGCROCBoard(
-      std::shared_ptr<I2C> roc_i2c,
-      uint8_t roc_addr,
-      const std::string& roc_typename,
-      std::shared_ptr<I2C> bias_i2c,
-      std::shared_ptr<I2C> board_i2c,
-      bool bias_use_cache
-    );
+    HGCROCBoard(std::shared_ptr<I2C> roc_i2c, uint8_t roc_addr,
+                const std::string& roc_typename, std::shared_ptr<I2C> bias_i2c,
+                std::shared_ptr<I2C> board_i2c, bool bias_use_cache);
   };
 
   /// the backplane can hold up to 4 HGCROC boards

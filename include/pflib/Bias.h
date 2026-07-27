@@ -3,8 +3,8 @@
 
 #include <unistd.h>
 
-#include <vector>
 #include <optional>
+#include <vector>
 
 #include "pflib/I2C.h"
 
@@ -52,8 +52,8 @@ class MAX5825 {
 
   /**
    * send the SW_RESET command to the MAX5825
-   * 
-   * "All CODE, DAC, and Control Register values are returned to 
+   *
+   * "All CODE, DAC, and Control Register values are returned to
    * their power-on reset values"
    */
   void reset();
@@ -133,7 +133,8 @@ class Bias {
    * or not (false). This is necessary for readback to function on fiberless
    * setups.
    */
-  Bias(std::shared_ptr<I2C> bias_i2c, std::shared_ptr<I2C> board_i2c, bool use_cache);
+  Bias(std::shared_ptr<I2C> bias_i2c, std::shared_ptr<I2C> board_i2c,
+       bool use_cache);
 
   /// dont copy construct this class
   Bias(const Bias&) = delete;
@@ -144,7 +145,7 @@ class Bias {
    * Initialize to standard settings
    */
   void initialize();
-  
+
   /**
    * Read the temperature from the temp sensor on the HGCROC board
    */
@@ -154,6 +155,7 @@ class Bias {
   std::optional<int> readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
+
  private:
   /// I2C comms with bias DACs MAX5825
   std::shared_ptr<I2C> i2c_bias_;

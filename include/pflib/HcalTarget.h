@@ -16,6 +16,6 @@ class HcalTarget : public Target {
   virtual Bias& bias(int which) = 0;
 };
 
-}
+}  // namespace pflib
 
 #endif
