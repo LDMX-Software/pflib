@@ -5,16 +5,17 @@
  *
  * Only usable for HcalBackplane type targets.
  */
-#include "pflib/HcalBackplane.h"
+#include "pflib/HcalTarget.h"
+#include "pflib/Bias.h"
 #include "pftool.h"
 
 ENABLE_LOGGING();
 
-static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
+static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
   static int iboard = 0;
   if (cmd == "STATUS") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
+    pflib::Bias& bias = pft->bias(iboard);
     double temp = bias.readTemp();
     std::cout << "Board temperature: " << temp << " C" << std::endl;
     for (int ch = 0; ch < 16; ch++) {
@@ -24,7 +25,7 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   }
   if (cmd == "READ_SIPM") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
+    pflib::Bias& bias = pft->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
@@ -37,7 +38,7 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   }
   if (cmd == "READ_LED") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
+    pflib::Bias& bias = pft->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     if (ich == -1) {
@@ -50,7 +51,7 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   }
   if (cmd == "SET_SIPM") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
+    pflib::Bias& bias = pft->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     uint16_t dac = pftool::readline_int("Which DAC value? ", 0);
@@ -64,7 +65,7 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   }
   if (cmd == "SET_LED") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
+    pflib::Bias& bias = pft->bias(iboard);
     int ich = pftool::readline_int(
         "Which (zero-indexed) channel? (-1 for all) ", iboard);
     uint16_t dac = pftool::readline_int("Which DAC value? ", 0);
@@ -78,33 +79,31 @@ static void bias(const std::string& cmd, pflib::HcalBackplane* pft) {
   }
   if (cmd == "INIT") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
-    bias.initialize();
+    pft->bias(iboard).initialize();
   }
   if (cmd == "READ_TEMP") {
     iboard = pftool::readline_int("Which board? ", iboard);
-    pflib::Bias bias = pft->bias(iboard);
-    double temp = bias.readTemp();
+    double temp = pft->bias(iboard).readTemp();
     std::cout << "Board temperature: " << temp << " C" << std::endl;
   }
 }
 
 static void render(Target* tgt) {
-  auto hcal = dynamic_cast<pflib::HcalBackplane*>(tgt);
+  auto hcal = dynamic_cast<pflib::HcalTarget*>(tgt);
   if (not hcal) {
     pflib_log(error)
-        << "BIAS menu of commands only availabe for HcalBackplane targets.";
+        << "BIAS menu of commands only availabe for Hcal targets.";
   }
 }
 
 static void bias_wrapper(const std::string& cmd, Target* tgt) {
-  auto hcal = dynamic_cast<pflib::HcalBackplane*>(tgt);
+  auto hcal = dynamic_cast<pflib::HcalTarget*>(tgt);
   if (hcal) {
     bias(cmd, hcal);
   } else {
     PFEXCEPTION_RAISE("NotImpl",
                       "The BIAS menu of commands is only available for "
-                      "HcalBackplane targets.");
+                      "Hcal targets.");
   }
 }
 

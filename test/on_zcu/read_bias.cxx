@@ -2,14 +2,15 @@
 #include <boost/test/unit_test.hpp>
 
 #include "hgcroc_connection.h"
-#include "pflib/HcalBackplane.h"
+#include "pflib/HcalTarget.h"
+#include "pflib/Bias.h"
 
 BOOST_AUTO_TEST_SUITE(read_bias)
 
 void read_biases() {
-  auto hcal = dynamic_cast<pflib::HcalBackplane*>(hgcroc_connection::tgt.get());
+  auto hcal = dynamic_cast<pflib::HcalTarget*>(hgcroc_connection::tgt.get());
   if (not hcal) return;
-  pflib::Bias bias = hcal->bias(0);
+  pflib::Bias& bias = hcal->bias(0);
   for (int i = 0; i < 16; i++) {
     bias.readLED(i);
     bias.readSiPM(i);

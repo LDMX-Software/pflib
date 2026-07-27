@@ -50,6 +50,14 @@ class MAX5825 {
   MAX5825(std::shared_ptr<I2C> i2c, uint8_t max_addr);
 
   /**
+   * send the SW_RESET command to the MAX5825
+   * 
+   * "All CODE, DAC, and Control Register values are returned to 
+   * their power-on reset values"
+   */
+  void reset();
+
+  /**
    * Get the settings for the DACs on this MAX
    *
    * We return the bytes requested i.e. further parsing
@@ -58,8 +66,6 @@ class MAX5825 {
    * returned bytes.
    */
   std::vector<uint8_t> get(uint8_t channel);
-
-  void set(uint8_t channel, uint16_t data_bytes);
 
   /**
    * Write a setting for the DACs on this MAX
@@ -73,54 +79,20 @@ class MAX5825 {
    * Since the chip expects the 12-bit settings to be the 12 MSBs
    * from these two concatenated data words.
    */
-  // void set(uint8_t cmd, uint16_t data_bytes);
+  void set(uint8_t channel, uint16_t data_bytes);
 
   /**
-   * get by DAC index
+   * Set reference voltage
    *
-   * The per-DAC commands return the 12-bit settings as the 12 MSBs
-   * of two adjacent concatenated bits. We do this concatenation
-   * in this file as well as determine how many bytes to request
-   * depending on if we are requesting a single DAC (i_dac <= 7)
-   * or if we are requesting all DACs (i_dac > 7).
-   *
-   * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
-   * to make the DAC selection. Using the commands defined as
-   * static constants in this class, the combination of i_dac and
-   * command is simply adding them together, which is done here.
+   * @param[in] level (0 - external, 1 - 2.5V, 2 - 2.048V, 3 - 4.096V)
    */
-  // std::vector<uint16_t> getByDAC(uint8_t i_dac, uint8_t cmd);
-
-  /**
-   * set by DAC index
-   *
-   * The per-DAC commands expect the 12-bit settings as the 12 MSBs
-   * of the two adjacent concatenated data bytes. We do the shifting
-   * inside of this function, so the twelve_bit_setting should be the
-   * value you want the DAC to be set at.
-   *
-   * The per-DAC commands use the 4 MSBs as a command the 4 LSBs
-   * to make the DAC selection. Using the commands defined as
-   * static constants in this class, the combination of i_dac and
-   * command is simply adding them together, which is done here.
-   */
-  // void setByDAC(uint8_t i_dac, uint8_t cmd, uint16_t twelve_bit_setting);
-
-  /** Set reference voltage
-   * 0 - external
-   * 1 - 2.5V
-   * 2 - 2.048V
-   * 3 - 4.096V
-   */
-  // void setRefVoltage(int level);
+  void setRefVoltage(int level);
 
  private:
   /// our connection
   std::shared_ptr<I2C> i2c_;
   /// our addr on the chip
   uint8_t our_addr_;
-  /// our bus
-  // int bus_;
 };  // MAX5825
 
 /**
@@ -129,15 +101,18 @@ class MAX5825 {
  * two handle the 16 SiPM bias voltages.
  *
  * Both the LED and SiPM bias voltages are indexed from 0 to 15.
- * To convert from that index to a chip and DAC index on that chip,
- * just use integer division and modulus.
+ * The conversion from that index to a chip and DAC index on that chip
+ * is done in this class.
  *
- *  chip_index = int(index > 7)
- *  dac_index  = index - 8*chip_index;
+ * The readback of the DAC settings in the MAX5825 seem to require
+ * a "repeated start" I2C transaction where the register to be read
+ * and the read command are sent before the next I2C stop.
+ * Originally pointed out by Lennart at Lund, this "repeated start"
+ * transaction *cannot* be done by the lpGBT, so *actual* readback
+ * of the DAC settings is not supported in fiberfull setups.
  */
 class Bias {
  public:
-  /// DAC chip addresses
   static const uint8_t ADDR_LED_0;
   static const uint8_t ADDR_LED_1;
   static const uint8_t ADDR_SIPM_0;
@@ -145,33 +120,53 @@ class Bias {
 
  public:
   /**
-   * Wrap an I2C class for communicating with all the DAC chips.
+   * Wrap I2C objects for communicating with all the DAC chips.
    *
    * The bus is 4 + <board-number>, so we set the default to 4 for
    * the case where we only have one board with bus number 0.
+   *
+   * @param[in] bias_i2c I2C object for interacting with MAX5825 bias DACs
+   * @param[in] board_i2c I2C object for talking with HGCROC board periferials
+   * @param[in] use_cache whether to use the software cache for readback (true)
+   * or not (false). This is necessary for readback to function on fiberless
+   * setups.
    */
-  Bias(std::shared_ptr<I2C> bias_i2c, std::shared_ptr<I2C> board_i2c);
+  Bias(std::shared_ptr<I2C> bias_i2c, std::shared_ptr<I2C> board_i2c, bool use_cache);
+
+  /// dont copy construct this class
+  Bias(const Bias&) = delete;
+  /// dont copy assign this class
+  Bias& operator=(const Bias&) = delete;
 
   /**
    * Initialize to standard settings
-   *  Reference voltage - 4.096V
    */
   void initialize();
+  
+  /**
+   * Read the temperature from the temp sensor on the HGCROC board
+   */
   double readTemp();
 
   int readSiPM(uint8_t i_sipm);
   int readLED(uint8_t i_led);
   void setSiPM(uint8_t i_sipm, uint16_t code);
   void setLED(uint8_t i_led, uint16_t code);
-
  private:
+  /// I2C comms with bias DACs MAX5825
   std::shared_ptr<I2C> i2c_bias_;
+  /// I2C comms with HGCROC board periferials
   std::shared_ptr<I2C> i2c_board_;
-
   /// LED bias chips
   std::vector<MAX5825> led_;
   /// SiPM bias chips
   std::vector<MAX5825> sipm_;
+  /// whether to use the software cache of the settings
+  bool use_cache_;
+  /// cache of sipm settings
+  std::array<uint16_t, 15> sipm_cache_;
+  /// cache of led settings
+  std::array<uint16_t, 15> led_cache_;
 };  // Bias
 
 }  // namespace pflib
