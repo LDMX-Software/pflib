@@ -217,5 +217,57 @@ void ZCUtrig::reset_single_shot() {
   uio_.writeMasked(ADDR_RESET, MASK_SINGLE_SHOT_RESET, 1);
 }
 
+class FWHisto {
+ public:
+  FWHisto(UIO& uio, int isub, uint32_t data_reg, uint32_t addr_reg = 0x604 / 4, uint32_t addr_mask = 0x3FF0000)
+    : uio_{uio}, ihist_{isub}, regd_{data_reg}, rega_{addr_reg}, maska_{addr_mask} {}
+  std::vector<uint32_t> read_histogram() {
+    std::vector<uint32_t> data(256, 0);
+    for (int i{0}; i < 256; i++) {
+      uio_.writeMasked(rega_, maska_, i|(ihist_ << 8));
+      data[i] = uio_.read(regd_);
+    }
+    return data;
+  }
+ private:
+  UIO& uio_;
+  int ihist_;
+  uint32_t regd_, rega_, maska_;
+};
+
+static constexpr uint32_t ADDR_HISTO_CLEAR = 0x100 / 4;
+static constexpr uint32_t MASK_HISTO_CLEAR = 0x4;
+
+static constexpr uint32_t ADDR_TRIG_HISTO_03 = 0xC40 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
+
+void ZCUtrig::clear_histograms() {
+  uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR);
+}
+
+void ZCUtrig::debug_histogram(int i) {
+  uio_.write(ADDR_HISTO_CLEAR, (i & 0xFF) << 8);
+  for (int i{0}; i < 2; i++) {
+    int addr = (0xC0C)/4 + i;
+    printf("%03x %08x\n", addr, uio_.read(addr));
+  }
+}
+
+std::vector<uint32_t> ZCUtrig::read_histogram(int ihist) {
+  int block = ihist/4;
+  uint32_t daddr = 0;
+  if (block == 0) {
+    daddr = ADDR_TRIG_HISTO_03;
+  } else if (block == 1) {
+    daddr = ADDR_TRIG_HISTO_47;
+  } else if (block == 2) {
+    daddr = ADDR_TRIG_HISTO_TEST;
+  } else {
+    // bad
+  }
+  return FWHisto(uio_, ihist%4, daddr).read_histogram();
+}
+
 }  // namespace zcu
 }  // namespace pflib

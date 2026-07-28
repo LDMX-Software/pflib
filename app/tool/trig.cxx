@@ -13,6 +13,7 @@
 #include "pflib/utility/string_format.h"
 #include "pftool.h"
 
+
 using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
 
@@ -610,6 +611,31 @@ void setup(Target* tgt) {
   tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 }
 
+#include "pflib/zcu/zcu_trig.h"
+void histo(const std::string& cmd, Target* tgt) {
+  pflib::TRIG* trig = tgt->trig();
+  if (!trig) return;
+  auto* ztrig = dynamic_cast<pflib::zcu::ZCUtrig*>(trig);
+  if (!ztrig) return;
+
+  if (cmd == "CLEAR") {
+    ztrig->clear_histograms();
+  }
+
+  if (cmd == "DEBUG") {
+    ztrig->debug_histogram(pftool::readline_int("Debug code:", 0, true));
+  }
+
+  if (cmd == "READ") {
+    static int ihist = 0;
+    ihist = pftool::readline_int("Which histogram?", ihist); 
+    std::vector<uint32_t> hist = ztrig->read_histogram(ihist);
+    for (std::size_t i{0}; i < hist.size(); i++) {
+      printf("%3d %u\n", i, hist[i]);
+    }
+  }
+}
+
 namespace {
 // accessing the TRIGGER path only works on the ZCU
 // where we have hardware and firmware access to the TRIGGER stream
@@ -663,4 +689,10 @@ auto menu_align =
                align)
         ->line("DELAY", "link-specific capture delay offset", align)
         ->line("SETUP", "all-link capture delay", align);
+
+auto menu_histo = 
+    menu_trig->submenu("HISTO", "view and debug firmware histograms")
+        ->line("READ", "read a histogram of an STC", histo)
+        ->line("DEBUG", "fill a known value into a test histogram", histo)
+        ->line("CLEAR", "clear all of the histograms", histo);
 }  // namespace
