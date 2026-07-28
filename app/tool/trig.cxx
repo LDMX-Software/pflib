@@ -56,17 +56,21 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "STATUS") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
-    std::cout << "pipeline: " << pipeline << "\n"
-              << "econ_id : " << econ_id << "\n"
-              << "samples_per_l1a: " << samples_per_l1a << "\n"
-              << "presamples: " << presamples << "\n"
-              << "capture delay: " << trig->get_alignment_capture() << "\n"
-              << std::flush;
+    printf("settings\n");
+    printf(" %15s: %d\n", "pipeline", pipeline);
+    printf(" %15s: %d\n", "econ_id", econ_id);
+    printf(" %15s: %d\n", "samples_per_l1a", samples_per_l1a);
+    printf(" %15s: %d\n", "presamples", presamples);
+    printf(" %15s: %d\n", "capture delay", trig->get_alignment_capture());
     for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
-      std::cout << "link " << ilink
-                << " bx delay: " << trig->get_bx_delay(ilink) << "\n";
+      printf("      %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
     }
-    std::cout << std::flush;
+    printf("counters\n");
+    printf(" %15s: %d\n", "self-triggers", trig->get_self_trigger_count());
+    printf(" %15s: %d\n", "event occupancy", target->daq().getEventOccupancy());
+    printf("flags\n");
+    printf(" %15s: %d\n", "trig sample", trig->is_sample_available());
+    printf(" %15s: %d\n", "algo output", trig->is_algo_output_available());
   }
   if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or
       cmd == "ECONID") {
@@ -468,6 +472,7 @@ void self_trigger(Target* tgt) {
   bool l1aen, extl1a;
   tgt->fc().fc_enables_read(l1aen, extl1a);
   pflib_log(info) << "l1a_enabled = " << l1aen << " external_l1a = " << extl1a;
+  pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
   pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
 
   pflib_log(info) << "disabling the L1A following the charge command";
@@ -478,6 +483,7 @@ void self_trigger(Target* tgt) {
   trig->enable_single_shot(true);
   tgt->fc().fc_enables(true, true);
 
+  pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
   pflib_log(info) << "event occupancy: " << tgt->daq().getEventOccupancy();
 
   do {
@@ -634,6 +640,21 @@ void histo(const std::string& cmd, Target* tgt) {
       printf("%3d %u\n", i, hist[i]);
     }
   }
+
+  if (cmd == "DUMP") {
+    printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4, 5, 6, 7);
+    std::array<std::vector<uint32_t>, 8> hists;
+    for (int ihist{0}; ihist < hists.size(); ihist++) {
+      hists[ihist] = ztrig->read_histogram(ihist);
+    }
+    for (std::size_t i{0}; i < hists[0].size(); i++) {
+      printf("%3d :", i);
+      for (int ihist{0}; ihist < hists.size(); ihist++) {
+        printf(" %10u", hists[ihist][i]);
+      }
+      printf("\n");
+    }
+  }
 }
 
 namespace {
@@ -694,5 +715,6 @@ auto menu_histo =
     menu_trig->submenu("HISTO", "view and debug firmware histograms")
         ->line("READ", "read a histogram of an STC", histo)
         ->line("DEBUG", "fill a known value into a test histogram", histo)
-        ->line("CLEAR", "clear all of the histograms", histo);
+        ->line("CLEAR", "clear all of the histograms", histo)
+        ->line("DUMP", "print out all histograms at once", histo);
 }  // namespace
