@@ -646,6 +646,8 @@ void histo(const std::string& cmd, Target* tgt) {
   if (cmd == "DUMP") {
     printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4, 5, 6, 7);
     std::array<std::vector<uint32_t>, 8> hists;
+    std::array<unsigned int, 8> total;
+    total.fill(0);
     for (int ihist{0}; ihist < hists.size(); ihist++) {
       hists[ihist] = ztrig->read_histogram(ihist);
     }
@@ -653,9 +655,15 @@ void histo(const std::string& cmd, Target* tgt) {
       printf("%3d :", i);
       for (int ihist{0}; ihist < hists.size(); ihist++) {
         printf(" %10u", hists[ihist][i]);
+        total[ihist] += hists[ihist][i];
       }
       printf("\n");
     }
+    printf("tot :");
+    for (int ihist{0}; ihist < total.size(); ihist++) {
+      printf(" %10u", total[ihist]);
+    }
+    printf("\n");
   }
 }
 
