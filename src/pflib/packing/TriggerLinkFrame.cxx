@@ -5,16 +5,12 @@
 #include "pflib/Exception.h"
 #include "pflib/packing/Mask.h"
 
+#include "pflib/packing/DecodeAEBM.h"
+
 namespace pflib::packing {
 
 uint32_t TriggerLinkFrame::compressed_to_linearized(uint8_t cs) {
-  auto pos = (cs >> 3) & 0xf;
-  if (pos < 1) {
-    // no position stored (i.e. compressed value is < 8)
-    // linearized sum is sum stored as compressed
-    return cs;
-  }
-  return (((1 << 3) + (cs & 0b111)) << (pos + 2 - 3));
+  return static_cast<uint32_t>(decodeAEBM<4, 3>(cs));
 }
 
 void TriggerLinkFrame::from(std::span<uint32_t> data) {

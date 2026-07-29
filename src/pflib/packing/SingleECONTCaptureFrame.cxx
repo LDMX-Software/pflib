@@ -1,6 +1,7 @@
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 
 #include "pflib/packing/Mask.h"
+#include "pflib/packing/DecodeAEBM.h"
 
 namespace pflib::packing {
 void SingleECONTCaptureFrame::SingleECONTSample::from(
@@ -32,6 +33,10 @@ void SingleECONTCaptureFrame::SingleECONTSample::from(
 int SingleECONTCaptureFrame::SingleECONTSample::bx() const { return bx_; }
 
 int SingleECONTCaptureFrame::SingleECONTSample::stc_sum(int i_stc) const {
+  return decodeAEBM<5, 4>(encoded_stc_sum(i_stc));
+}
+
+int SingleECONTCaptureFrame::SingleECONTSample::encoded_stc_sum(int i_stc) const {
   return stc_sums_.at(i_stc);
 }
 
@@ -96,6 +101,11 @@ SingleECONTCaptureFrame::sample(std::optional<int> i_sample) const {
 
 int SingleECONTCaptureFrame::bx(std::optional<int> i_sample) const {
   return sample(i_sample).bx();
+}
+
+int SingleECONTCaptureFrame::encoded_stc_sum(int i_stc,
+                                     std::optional<int> i_sample) const {
+  return sample(i_sample).encoded_stc_sum(i_stc);
 }
 
 int SingleECONTCaptureFrame::stc_sum(int i_stc,
