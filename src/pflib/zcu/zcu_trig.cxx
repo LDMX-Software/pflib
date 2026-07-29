@@ -248,9 +248,17 @@ void ZCUtrig::clear_histograms() {
 
 void ZCUtrig::debug_histogram(int i) {
   uio_.write(ADDR_HISTO_CLEAR, (i & 0xFF) << 8);
-  for (int i{0}; i < 2; i++) {
-    int addr = (0xC0C)/4 + i;
-    printf("%03x %08x\n", addr, uio_.read(addr));
+  std::array<std::vector<uint32_t>, 4> hists;
+  for (int i{0}; i < 4; i++) {
+    hists[i] = FWHisto(uio_, i, ADDR_TRIG_HISTO_TEST).read_histogram();
+  }
+  printf("bin: %10u %10u %10u %10u\n", 0, 1, 2, 3);
+  for (int i{0}; i < 256; i++) {
+    printf("%3d:", i);
+    for (int j{0}; j < 4; j++) {
+      printf(" %10u", hists[j][i]);
+    }
+    printf("\n");
   }
 }
 

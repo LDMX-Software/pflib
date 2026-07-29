@@ -629,7 +629,9 @@ void histo(const std::string& cmd, Target* tgt) {
   }
 
   if (cmd == "DEBUG") {
-    ztrig->debug_histogram(pftool::readline_int("Debug code:", 0, true));
+    static int code = 0;
+    code = pftool::readline_int("debug code:", code, true);
+    ztrig->debug_histogram(code);
   }
 
   if (cmd == "READ") {
