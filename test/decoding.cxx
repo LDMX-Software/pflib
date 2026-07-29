@@ -10,10 +10,10 @@
 #include "pflib/packing/Sample.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
-#include "pflib/packing/DecodeAEBM.h"
+#include "pflib/packing/DecompressAEBM.h"
 
 int decode5E4M(int w) {
-  return pflib::packing::decodeAEBM<5, 4>(w);
+  return pflib::packing::decompressAEBM<5, 4>(w);
 }
 
 std::vector<uint32_t> gen_test_daq_link_frame() {
