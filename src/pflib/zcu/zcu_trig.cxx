@@ -224,8 +224,11 @@ class FWHisto {
   std::vector<uint32_t> read_histogram() {
     std::vector<uint32_t> data(256, 0);
     for (int i{0}; i < 256; i++) {
-      uio_.writeMasked(rega_, maska_, i|(ihist_ << 8));
+      uint32_t val = i | (ihist_ << 8);
+      printf("0x%03x 0x%x 0x%04x 0x%03x -> ", rega_, maska_, regd_, val);
+      uio_.writeMasked(rega_, maska_, val);
       data[i] = uio_.read(regd_);
+      printf("%u\n", data[i]);
     }
     return data;
   }
