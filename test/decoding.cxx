@@ -3,18 +3,16 @@
 
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/ECONDFormatter.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
-#include "pflib/packing/TriggerLinkFrame.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
-#include "pflib/packing/DecompressAEBM.h"
+#include "pflib/packing/TriggerLinkFrame.h"
 
-int decode5E4M(int w) {
-  return pflib::packing::decompressAEBM<5, 4>(w);
-}
+int decode5E4M(int w) { return pflib::packing::decompressAEBM<5, 4>(w); }
 
 std::vector<uint32_t> gen_test_daq_link_frame() {
   std::vector<uint32_t> test_frame = {
@@ -580,11 +578,7 @@ BOOST_AUTO_TEST_SUITE(econt)
 
 BOOST_AUTO_TEST_CASE(single_sample) {
   using pflib::packing::SingleECONTCaptureFrame;
-  std::vector<uint32_t> words = {
-    0x40005020,
-    0x10080444,
-    0xa2d148b0
-  };
+  std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0};
   SingleECONTCaptureFrame::SingleECONTSample sample;
   sample.from(words);
   BOOST_CHECK_EQUAL(sample.bx(), 4);

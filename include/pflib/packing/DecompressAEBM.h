@@ -28,9 +28,9 @@ namespace pflib::packing {
  * @param[in] encoded compressed value to decompress
  * @return decompressed value
  */
-template<unsigned short A, unsigned short B>
+template <unsigned short A, unsigned short B>
 unsigned long decompressAEBM(unsigned long encoded) {
-  static_assert(A+B < 12); // arbitrary limit to avoid typos
+  static_assert(A + B < 12);  // arbitrary limit to avoid typos
   unsigned long mantissa = (encoded & mask<B>);
   unsigned long exponent = ((encoded >> B) & mask<A>);
   if (exponent == 0) {
@@ -43,6 +43,6 @@ unsigned long decompressAEBM(unsigned long encoded) {
   return output;
 }
 
-}
+}  // namespace pflib::packing
 
 #endif

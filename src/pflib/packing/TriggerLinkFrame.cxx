@@ -3,9 +3,8 @@
 #include <iostream>
 
 #include "pflib/Exception.h"
-#include "pflib/packing/Mask.h"
-
 #include "pflib/packing/DecompressAEBM.h"
+#include "pflib/packing/Mask.h"
 
 namespace pflib::packing {
 

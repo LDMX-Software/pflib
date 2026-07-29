@@ -29,8 +29,9 @@ static void bias(const std::string& cmd, pflib::HcalTarget* pft) {
     double temp = bias.readTemp();
     std::cout << "Board temperature: " << temp << " C" << std::endl;
     for (int ch = 0; ch < 16; ch++) {
-      std::cout << "Channel " << std::setw(2) << ch << " SiPM DAC " << bias.readSiPM(ch)
-                << " LED DAC " << bias.readLED(ch) << std::endl;
+      std::cout << "Channel " << std::setw(2) << ch << " SiPM DAC "
+                << bias.readSiPM(ch) << " LED DAC " << bias.readLED(ch)
+                << std::endl;
     }
   }
   if (cmd == "READ_SIPM") {
