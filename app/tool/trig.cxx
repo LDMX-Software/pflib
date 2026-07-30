@@ -382,12 +382,13 @@ static void trigger_timein(Target* tgt) {
     printf(" i:  t-1   t  ->  t-1   t \n");
     auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
     for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
-      printf("%2d: %4d %4d -> %4d %4d%s\n", i_sample,
+      printf("%c%d: %4d %4d -> %4d %4d\n",
+             (i_sample == tgt->daq().soi()) ? '*' : ' ',
+             i_sample,
              daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
              daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
-             daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc(),
-             (i_sample == tgt->daq().soi()) ? " <- sample of interest" : "");
+             daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc());
     }
 
     printf("TRG Data\n");
@@ -397,9 +398,10 @@ static void trigger_timein(Target* tgt) {
            i_sample++) {
         int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, i_sample)},
             charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
-        printf("%2d: %4d -> %4d%s\n", i_l1a + i_sample, pedestal, charge,
-               (i_l1a + i_sample == tgt->daq().soi()) ? " <- sample of interest"
-                                                      : "");
+        printf("%c%d: %4d -> %4d (0x%03x)\n",
+               (i_l1a + i_sample == tgt->daq().soi()) ? '*' : ' ',
+               i_l1a + i_sample, pedestal, charge,
+               trg_charge[i_l1a].encoded_stc_sum(stc_oi, i_sample));
       }
     }
 
@@ -408,11 +410,14 @@ static void trigger_timein(Target* tgt) {
     for (int i_l1a{0}; i_l1a < pedestal_algo_output.size(); i_l1a++) {
       for (int i_sample{0}; i_sample < pedestal_algo_output[i_l1a].n_samples();
            i_sample++) {
-        std::cout << std::setw(2) << i_l1a + i_sample << ": "
-                  << charge_algo_output[i_l1a].sample(i_sample);
-        if (i_l1a + i_sample == tgt->daq().soi())
-          std::cout << " <- sample of interest";
-        printf("\n");
+        if (i_l1a + i_sample == tgt->daq().soi()) {
+          std::cout << '*';
+        } else {
+          std::cout << ' ';
+        }
+        std::cout << i_l1a + i_sample << ": "
+                  << charge_algo_output[i_l1a].sample(i_sample)
+                  << std::endl;
       }
     }
   } while (pftool::readline_bool(
