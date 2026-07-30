@@ -405,24 +405,14 @@ static void trigger_timein(Target* tgt) {
     }
 
     printf("ALGO Output\n");
-    printf("       pedestal  ->    charge   \n");
-    printf(" i: highpeak trg -> highpeak trg\n");
+    printf(" i: charge output\n");
     for (int i_l1a{0}; i_l1a < pedestal_algo_output.size(); i_l1a++) {
       for (int i_sample{0}; i_sample < pedestal_algo_output[i_l1a].n_samples();
            i_sample++) {
-        printf("%2d: ", i_l1a + i_sample);
-        for (int i_stc{0}; i_stc < 8; i_stc++) {
-          printf("%d",
-                 pedestal_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
-        }
-        printf(" %3d", pedestal_algo_output[i_l1a].trigger(i_sample));
-        printf(" -> ");
-        for (int i_stc{0}; i_stc < 8; i_stc++) {
-          printf("%d", charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
-        }
-        printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
+        std::cout << std::setw(2) << i_l1a + i_sample << ": "
+                  << charge_algo_output[i_l1a].sample(i_sample);
         if (i_l1a + i_sample == tgt->daq().soi())
-          printf(" <- sample of interest");
+          std::cout << " <- sample of interest";
         printf("\n");
       }
     }
@@ -560,17 +550,13 @@ void self_trigger(Target* tgt) {
       }
 
       printf("ALGO Output\n");
-      printf(" i: highpeak trg\n");
+      printf(" i: charge output\n");
       for (int i_l1a{0}; i_l1a < charge_algo_output.size(); i_l1a++) {
         for (int i_sample{0}; i_sample < charge_algo_output[i_l1a].n_samples();
              i_sample++) {
-          printf("%2d: ", i_l1a + i_sample);
-          for (int i_stc{0}; i_stc < 8; i_stc++) {
-            printf("%d",
-                   charge_algo_output[i_l1a].is_high_peak(i_stc, i_sample));
-          }
-          printf(" %3d", charge_algo_output[i_l1a].trigger(i_sample));
-          printf("\n");
+          std::cout << std::setw(2) << i_l1a + i_sample
+                    << ": " << charge_algo_output[i_l1a].sample(i_sample)
+                    << std::endl;
         }
       }
     }
