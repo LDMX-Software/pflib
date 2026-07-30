@@ -254,7 +254,19 @@ int main(int argc, char* argv[]) {
         while (!line.empty() && isspace(line[0])) line.erase(line.begin());
         // skip empty lines or ones whose first character is #
         if (!line.empty() && line[0] == '#') continue;
-        // add to command queue
+        // add to command queue after trimming trailing comments
+        auto comment_start = std::find_if(
+          line.rbegin(), line.rend(),
+          [](unsigned char ch) {
+            return ch == '#';
+          });
+        if (comment_start != line.rend()) {
+          // we found a comment, erase it
+          // move the reverse iterator by one to include '#' in erasing
+          // we know we can do this safely since we checked that '#'
+          // is not in index 0 earlier
+          line.erase((comment_start+1).base(), line.end());
+        }
         pftool::add_to_command_queue(line);
       }
       sFile.close();
