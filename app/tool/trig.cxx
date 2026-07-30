@@ -57,20 +57,19 @@ void trig(const std::string& cmd, Target* target) {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
     printf("settings\n");
-    printf(" %15s: %d\n", "pipeline", pipeline);
-    printf(" %15s: %d\n", "econ_id", econ_id);
-    printf(" %15s: %d\n", "samples_per_l1a", samples_per_l1a);
-    printf(" %15s: %d\n", "presamples", presamples);
-    printf(" %15s: %d\n", "capture delay", trig->get_alignment_capture());
+    printf(" %20s: %d\n", "pipeline", pipeline);
+    printf(" %20s: %d\n", "econ_id", econ_id);
+    printf(" %20s: %d\n", "samples_per_l1a", samples_per_l1a);
+    printf(" %20s: %d\n", "presamples", presamples);
+    printf(" %20s: %d\n", "capture delay", trig->get_alignment_capture());
     for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
-      printf("      %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
+      printf("           %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
     }
-    printf("counters\n");
-    printf(" %15s: %d\n", "self-triggers", trig->get_self_trigger_count());
-    printf(" %15s: %d\n", "event occupancy", target->daq().getEventOccupancy());
-    printf("flags\n");
-    printf(" %15s: %d\n", "trig sample", trig->is_sample_available());
-    printf(" %15s: %d\n", "algo output", trig->is_algo_output_available());
+    printf("status\n");
+    printf(" %20s: %d\n", "DAQ event occupancy", target->daq().getEventOccupancy());
+    for (const auto& [name, val]: trig->get_debug()) {
+      printf(" %20s: %d\n", name.c_str(), val);
+    }
   }
   if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or
       cmd == "ECONID") {
