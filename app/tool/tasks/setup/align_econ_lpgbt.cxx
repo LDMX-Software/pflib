@@ -172,10 +172,15 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
 
-    /*
-    static const int ICAPTURE_DELAY = 30;
-    trig->setup_alignment_capture(ICAPTURE_DELAY);
-    */
+    if (trig->get_alignment_capture() == 0) {
+      // capture delay of 0 will /not/ work and is the default
+      // of a newly-loaded firmware, update to a reasonable default
+      // 30 was from when the backplane was on the same table as the ZCU
+      // we also have used 42 after moving the backplane to the dark room
+      // and using much longer optical fibers
+      static const int DEFAULT_CAPTURE_DELAY = 30;
+      trig->setup_alignment_capture(DEFAULT_CAPTURE_DELAY);
+    }
 
     bool all_succeed = true;
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
