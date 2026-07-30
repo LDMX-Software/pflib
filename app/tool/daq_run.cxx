@@ -26,8 +26,9 @@ void daq_run(Target* tgt, const std::string& cmd, DAQRunConsumer& consumer,
   timeval tv0, tvi;
   gettimeofday(&tv0, 0);
   for (int ievt = 0; ievt < nevents; ievt++) {
-    if (ievt % 100 == 1) {
-      pflib_log(info) << ievt - 1 << " events done";
+    if (ievt % 100 == 0 and ievt > 99) {
+      // status on every 100 events after the first 100
+      pflib_log(info) << ievt << " events done";
     }
 
     pflib_log(trace) << "daq event occupancy pre-L1A    : "
