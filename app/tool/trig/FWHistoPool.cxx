@@ -112,9 +112,9 @@ nlohmann::json FWHistoPool::to_json(
 
   nlohmann::json reg;
   reg["type"] = "regular";
-  reg["lower"] = 0.0;
-  reg["upper"] = data.size();
-  reg["bins"] = data.size();
+  reg["lower"] = 0;
+  reg["upper"] = 256;
+  reg["bins"] = 256;
   reg["underflow"] = false;
   reg["overflow"] = false;
   reg["circular"] = false;

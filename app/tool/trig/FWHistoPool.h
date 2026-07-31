@@ -63,6 +63,8 @@ class FWHistoPool {
    * [UHI JSON](https://uhi.readthedocs.io/en/latest/serialization.html#json)
    *
    * This JSON output is helpful for loading into python plotting.
+   * If only the output from this function is written to the file,
+   * then the histogram can be loaded with
    * ```python
    * import json
    * import uhi.io.json
@@ -72,6 +74,7 @@ class FWHistoPool {
    *     h_ir = json.load(f, object_hook=uhi.io.json.object_hook)
    *
    * h = hist.Hist(h_ir)
+   * # h is a 1D histogram of the STC sum
    * ```
    *
    * @param[in] hist histogram to serialize into UHI JSON
@@ -86,15 +89,19 @@ class FWHistoPool {
    * list of UHI JSON histograms
    *
    * This JSON output is helpful for loading into python plotting.
+   * If only the output from this function is written to the file,
+   * then the histogram can be loaded with
    * ```python
    * import json
    * import uhi.io.json
    * import hist
    *
    * with open('path/to/hists.json') as f:
-   *     hist_list = json.load(f, object_hook=uhi.io.json.object_hook)
+   *     h_ir = json.load(f, object_hook=uhi.io.json.object_hook)
    *
-   * hists = [hist.Hist(h) for h in hist_list]
+   * h = hist.Hist(h_ir)
+   * # h is a 2D histogram where the first axis is the STC
+   * # and the second axis is the sum
    * ```
    *
    * @param[in] data set of histograms to serialize into JSON
