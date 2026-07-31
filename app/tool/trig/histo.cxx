@@ -4,8 +4,11 @@
 #include "histo.h"
 
 #include "pflib/TRIG.h"
+#include "pflib/utility/string_format.h"
 #include "FWHistoPool.h"
+#include <fstream>
 
+using pflib::utility::string_format;
 void histo(const std::string& cmd, Target* tgt) {
   static FWHistoPool hist_pool{0};
 
@@ -26,28 +29,55 @@ void histo(const std::string& cmd, Target* tgt) {
     for (std::size_t i{0}; i < hist.size(); i++) {
       printf("%3d %u\n", i, hist[i]);
     }
+    if (pftool::readline_bool("Store histogram in JSON file for plotting?", false)) {
+      auto path = pftool::readline_path(string_format("fwhist-%d-", ihist), "json");
+      std::ofstream file(path);
+      if (not file.is_open()) {
+        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
+      }
+      file << hist_pool.to_json(hist, ihist);
+    }
   }
 
   if (cmd == "DUMP") {
-    printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4, 5, 6, 7);
+    // since the histograms fill so fast,
+    // we read BEFORE asking what to write to enable a RESET->DUMP to
+    // be able to happen quickly
     std::array<std::array<uint32_t, 256>, 8> hists;
     std::array<unsigned int, 8> total;
     total.fill(0);
     for (int ihist{0}; ihist < hists.size(); ihist++) {
       hists[ihist] = hist_pool.read(ihist);
     }
-    for (std::size_t i{0}; i < hists[0].size(); i++) {
-      printf("%3d :", i);
-      for (int ihist{0}; ihist < hists.size(); ihist++) {
-        printf(" %10u", hists[ihist][i]);
-        total[ihist] += hists[ihist][i];
+
+    if (pftool::readline_bool("Show histograms in terminal?", true)) {
+      printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4, 5, 6, 7);
+      for (std::size_t i{0}; i < hists[0].size(); i++) {
+        printf("%3d :", i);
+        for (int ihist{0}; ihist < hists.size(); ihist++) {
+          printf(" %10u", hists[ihist][i]);
+          total[ihist] += hists[ihist][i];
+        }
+        printf("\n");
+      }
+      printf("tot :");
+      for (int ihist{0}; ihist < total.size(); ihist++) {
+        printf(" %10u", total[ihist]);
       }
       printf("\n");
     }
-    printf("tot :");
-    for (int ihist{0}; ihist < total.size(); ihist++) {
-      printf(" %10u", total[ihist]);
+    
+    if (pftool::readline_bool("Store histograms in JSON file for plotting?", false)) {
+      auto path = pftool::readline_path("fwhist-dump-", "json");
+      std::ofstream file{path};
+      if (not file.is_open()) {
+        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
+      }
+      nlohmann::json pool;
+      for (int ihist{0}; ihist < hists.size(); ihist++) {
+        pool[ihist] = FWHistoPool::to_json(hists[ihist], ihist);
+      }
+      file << pool;
     }
-    printf("\n");
   }
 }

@@ -1,5 +1,6 @@
 #include "FWHistoPool.h"
 
+#include "pflib/version/Version.h"
 #include "pflib/utility/string_format.h"
 using pflib::utility::string_format;
 
@@ -14,7 +15,6 @@ static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
 FWHistoPool::FWHistoPool(int i_trigpath)
   : uio_{string_format("trigpath-%d", i_trigpath)}
   {}
-
 
 void FWHistoPool::clear() {
   uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR);
@@ -58,4 +58,33 @@ std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
     data[i] = uio_.read(data_addr);
   }
   return data;
+}
+
+nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data, int ihist) {
+  nlohmann::json hist;
+  hist["uhi_schema"] = 1;
+  hist["writer_info"]["pftool.FWHistoPool"]["version"] = pflib::version::debug();
+  hist["metadata"]["_variance_known"] = true;
+
+  nlohmann::json axis;
+  axis["type"] = "regular";
+  axis["lower"] = 0.0;
+  axis["upper"] = 256.0;
+  axis["bins"] = 256;
+  axis["underflow"] = false;
+  axis["overflow"] = false;
+  axis["circular"] = false;
+  axis["metadata"]["name"] = "";
+  std::string label;
+  if (ihist < 8) {
+    label = string_format("STC%d", ihist);
+  } else {
+    label = string_format("TEST%d", ihist-8);
+  }
+  axis["metadata"]["label"] = label;
+
+  hist["axes"] = { axis };
+  hist["storage"]["type"] = "double";
+  hist["storage"]["values"] = data;
+  return hist;
 }

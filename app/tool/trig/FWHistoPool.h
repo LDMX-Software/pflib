@@ -5,6 +5,8 @@
 #include <optional>
 #include <array>
 
+#include <nlohmann/json.hpp>
+
 #include "pflib/zcu/UIO.h"
 
 /**
@@ -52,7 +54,23 @@ class FWHistoPool {
    * @return the current histogram values as an array
    */
   std::array<uint32_t, 256> read(int ihist);
-  // to_json which converts the std::array into UHI JSON
+  /**
+   * convert the input array and histogram index into
+   * [UHI JSON](https://uhi.readthedocs.io/en/latest/serialization.html#json)
+   *
+   * This JSON output is helpful for loading into python plotting.
+   * ```python
+   * import json
+   * import uhi.io.json
+   * import hist
+   * h = hist.Hist(json.load('path/to/hist.json', object_hook=uhi.io.json.object_hook))
+   * ```
+   *
+   * @param[in] hist histogram to serialize into UHI JSON
+   * @param[in] ihist histogram index to include in labeling
+   * @return JSON representation of histogram
+   */
+  static nlohmann::json to_json(const std::array<uint32_t, 256>& hist, int ihist);
 };
 
 #endif
