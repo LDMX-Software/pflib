@@ -7,7 +7,6 @@
 #include "../pftool.h"
 #include "pflib/HcalTarget.h"
 #include "pflib/utility/string_format.h"
-// #include "pflib/zcu/HGCROCBoardFiberless.h"
 
 ENABLE_LOGGING();
 
