@@ -45,10 +45,6 @@ class ZCUtrig : public TRIG {
   bool single_shot_fired() override;
   void reset_single_shot() override;
 
-  void clear_histograms();
-  void debug_histogram(int i);
-  std::vector<uint32_t> read_histogram(int ihist);
-
  private:
   UIO uio_;
   int nelinks_;
