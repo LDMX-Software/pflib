@@ -69,22 +69,22 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data, int i
   nlohmann::json axis;
   axis["type"] = "regular";
   axis["lower"] = 0.0;
-  axis["upper"] = 256.0;
-  axis["bins"] = 256;
+  axis["upper"] = data.size();
+  axis["bins"] = data.size();
   axis["underflow"] = false;
   axis["overflow"] = false;
   axis["circular"] = false;
-  axis["metadata"]["name"] = "";
-  std::string label;
+  std::string name;
   if (ihist < 8) {
-    label = string_format("STC%d", ihist);
+    name = string_format("STC%d", ihist);
   } else {
-    label = string_format("TEST%d", ihist-8);
+    name = string_format("TEST%d", ihist-8);
   }
-  axis["metadata"]["label"] = label;
+  axis["metadata"]["name"] = name;
+  axis["metadata"]["label"] = name + " Encoded Sum";
 
   hist["axes"] = { axis };
-  hist["storage"]["type"] = "double";
+  hist["storage"]["type"] = "int";
   hist["storage"]["values"] = data;
   return hist;
 }

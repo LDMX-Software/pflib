@@ -30,7 +30,7 @@ void histo(const std::string& cmd, Target* tgt) {
       printf("%3d %u\n", i, hist[i]);
     }
     if (pftool::readline_bool("Store histogram in JSON file for plotting?", false)) {
-      auto path = pftool::readline_path(string_format("fwhist-%d-", ihist), "json");
+      auto path = pftool::readline_path(string_format("fwhist-%d", ihist), ".json");
       std::ofstream file(path);
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
@@ -68,7 +68,7 @@ void histo(const std::string& cmd, Target* tgt) {
     }
     
     if (pftool::readline_bool("Store histograms in JSON file for plotting?", false)) {
-      auto path = pftool::readline_path("fwhist-dump-", "json");
+      auto path = pftool::readline_path("fwhist-dump", ".json");
       std::ofstream file{path};
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
