@@ -8,6 +8,7 @@
 #include "align.h"
 #include "decode_multi_sample.h"
 #include "histo.h"
+#include "watch_run.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "self_trig.h"
 #include "timein.h"
@@ -156,6 +157,7 @@ auto menu_trig =
             "SETUP",
             "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
             setup)
+        ->line("WATCH_RUN", "collect data following self-trigger", watch_run)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
