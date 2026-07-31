@@ -22,7 +22,8 @@ void led_bias_scan(Target* tgt) {
 
   auto hcalbp = dynamic_cast<pflib::HcalTarget*>(tgt);
   if (!hcalbp) {
-    PFEXCEPTION_RAISE("BadTarget", "led_bias_scan only available for Hcal targets");
+    PFEXCEPTION_RAISE("BadTarget",
+                      "led_bias_scan only available for Hcal targets");
   }
   int iboard = 1;
   iboard = pftool::readline_int("Which board? ", iboard);
