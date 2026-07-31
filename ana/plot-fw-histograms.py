@@ -26,18 +26,8 @@ if args.output is None:
 with open(args.filepath) as file:
     data = json.load(file, object_hook=uhi.io.json.object_hook) 
 
-if type(data) is list:
-    # dump of many histograms
-    for hist_ir in data:
-        h = hist.Hist(hist_ir)
-        # assuming that the axis name should go into the legend
-        # and the label (with the name removed) is a good axis label
-        h.plot(label = h.axes[0].name, yerr=args.error_bars)
-        plt.xlabel(h.axes[0].label.replace(h.axes[0].name, '').strip())
-    plt.legend()
-else:
-    # single histogram
-    hist.Hist(data).plot(yerr=args.error_bars)
-
+h = hist.Hist(data)
+h.plot(yerr = args.error_bars)
 plt.yscale('log')
+plt.ylabel('Events / bin')
 plt.savefig(args.output, bbox_inches='tight')
