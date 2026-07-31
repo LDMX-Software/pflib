@@ -93,17 +93,19 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
   return hist;
 }
 
-nlohmann::json FWHistoPool::to_json(const std::array<std::array<uint32_t, 256>, 8>& data) {
+nlohmann::json FWHistoPool::to_json(
+    const std::array<std::array<uint32_t, 256>, 8>& data) {
   nlohmann::json hist;
   hist["uhi_schema"] = 1;
   hist["writer_info"]["pftool.FWHistoPool"]["version"] =
       pflib::version::debug();
   hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
   hist["metadata"]["_variance_known"] = true;
-  
+
   nlohmann::json cat;
   cat["type"] = "category_str";
-  cat["categories"] = {"STC0", "STC1", "STC2", "STC3", "STC4", "STC5", "STC6", "STC7"};
+  cat["categories"] = {"STC0", "STC1", "STC2", "STC3",
+                       "STC4", "STC5", "STC6", "STC7"};
   cat["flow"] = false;
   cat["metadata"]["name"] = "stc";
   cat["metadata"]["label"] = "STC";

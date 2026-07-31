@@ -67,7 +67,7 @@ class FWHistoPool {
    * import json
    * import uhi.io.json
    * import hist
-   * 
+   *
    * with open('path/to/hist.json') as f:
    *     h_ir = json.load(f, object_hook=uhi.io.json.object_hook)
    *
