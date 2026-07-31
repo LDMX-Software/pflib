@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('filepath', type=Path, help='JSON file with histograms to plot')
+parser.add_argument('filepath', type=Path, help='JSON file from TRIG.DUMP or TRIG.READ to plot')
 parser.add_argument('-o', '--output', type=Path, help='output file to save image into')
 parser.add_argument('--error-bars', action='store_true', help='show error bars in plot to represent statistical uncertainty')
 args = parser.parse_args()
@@ -21,8 +21,6 @@ args = parser.parse_args()
 if args.output is None:
     args.output = args.filepath.stem + '.png'
 
-# data is either a list of histograms for the different STC sums (output by TRIG.HISTO.DUMP)
-# or a single STC sum histogram dictionary (output by TRIG.HISTO.READ)
 with open(args.filepath) as file:
     data = json.load(file, object_hook=uhi.io.json.object_hook) 
 
