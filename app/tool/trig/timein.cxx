@@ -10,6 +10,61 @@
 using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
 
+void TimeInSettings::init(Target* tgt) {
+  /**
+   * if the values are zero, copy them from the chips
+   */
+  if (charge_to_l1a == 0) {
+    bool _enable;
+    tgt->fc().fc_get_setup_calib(charge_to_l1a, _enable);
+  }
+  if (l1offset == 0) {
+    // just using one ROC for now
+    auto dh_page = tgt->roc(pftool::state.iroc).getParameters("DIGITALHALF_0");
+    l1offset = dh_page.at("L1OFFSET");
+  }
+  if (pipeline == 0) {
+    int _econid, _samples, _pre;
+    auto trig = tgt->trig();
+    if (!trig) return;
+    trig->get_daq_setup(pipeline, _econid, _samples, _pre);
+  }
+}
+
+void TimeInSettings::apply(Target* tgt) const {
+  std::map<std::string, std::map<std::string, uint64_t>> roc_settings;
+  roc_settings["DIGITALHALF_0"]["L1OFFSET"] = this->l1offset;
+  roc_settings["DIGITALHALF_1"]["L1OFFSET"] = this->l1offset;
+  for (int iroc : tgt->roc_ids()) {
+    tgt->roc(iroc).applyParameters(roc_settings);
+  }
+
+  bool _enable;
+  int _ctl;
+  tgt->fc().fc_get_setup_calib(_ctl, _enable);
+  tgt->fc().fc_setup_calib(this->charge_to_l1a, _enable);
+
+  int _pipeline, samples_per_l1a, presamples, econid;
+  auto trig = tgt->trig();
+  if (!trig) return;
+  trig->get_daq_setup(_pipeline, econid, samples_per_l1a, presamples);
+  trig->setup_daq(this->pipeline, econid, samples_per_l1a, presamples);
+}
+
+void TimeInSettings::update(int new_l1offset, int new_pipeline, int new_charge_to_l1a) {
+  if (new_charge_to_l1a < 0) {
+    /**
+     * if charge_to_l1a is not updated, we shift
+     * it by the difference between the new and old l1offset
+     */
+    this->charge_to_l1a += (new_l1offset - this->l1offset);
+  } else {
+    this->charge_to_l1a = new_charge_to_l1a;
+  }
+  this->l1offset = new_l1offset;
+  this->pipeline = new_pipeline;
+}
+
 TimeInSettings TimeInSettings::last{};
 
 ENABLE_LOGGING();
@@ -20,6 +75,8 @@ void timein(Target* tgt) {
    */
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
+
+  TimeInSettings::last.init(tgt);
 
   /**
    * This command attempts to deduce the capture delay for the trigger
@@ -64,13 +121,11 @@ void timein(Target* tgt) {
 
     int charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    TimeInSettings::last.charge_to_l1a = charge_to_l1a;
     tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 
     auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
     int og_l1offset = dh_page.at("L1OFFSET");
     int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
-    TimeInSettings::last.l1offset = l1offset;
     auto test_l1offset_handle = tgt->roc(iroc_oi)
                                     .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
@@ -82,11 +137,12 @@ void timein(Target* tgt) {
     int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
         presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
-    TimeInSettings::last.pipeline = pipeline;
     samples_per_l1a =
         pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
     presamples = pftool::readline_int("presamples: ", presamples);
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
+
+    TimeInSettings::last.update(l1offset, pipeline, charge_to_l1a);
 
     pflib_log(info)
         << "pedestal runs to confirm alignment and trigger-sum suppression";

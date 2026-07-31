@@ -22,6 +22,8 @@ void self_trig(Target* tgt) {
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
 
+  TimeInSettings::last.init(tgt);
+
   /**
    * Attempts to have trigger algo do the self-triggering by
    * disabling the following L1A after a charge injection
@@ -75,6 +77,7 @@ void self_trig(Target* tgt) {
       last_pipeline{TimeInSettings::last.pipeline};
   do {
     int l1offset = pftool::readline_int("L1Offset on HGCROC?", last_l1offset);
+    last_l1offset = l1offset;
     auto test_l1offset_handle = tgt->roc(iroc_oi)
                                     .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
@@ -86,6 +89,7 @@ void self_trig(Target* tgt) {
     int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
         presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", last_pipeline);
+    last_pipeline = pipeline;
     trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
 
     pflib_log(info) << "self-trigger count: " << trig->get_self_trigger_count();
@@ -156,12 +160,7 @@ void self_trig(Target* tgt) {
   } while (pftool::readline_bool(
       "Want to try another set of timing parameters?", false));
 
-  // shift the charge-to-l1a by the same amount we shifted the
-  // l1offset so that charge injection is still in time
-  int delta_bx = (last_l1offset - TimeInSettings::last.l1offset);
-  TimeInSettings::last.charge_to_l1a += delta_bx;
-  TimeInSettings::last.l1offset = last_l1offset;
-  TimeInSettings::last.pipeline = last_pipeline;
+  TimeInSettings::last.update(last_l1offset, last_pipeline);
 
   pflib_log(info) << "disabling single-shot external L1A";
   tgt->fc().fc_enables(l1aen, extl1a);

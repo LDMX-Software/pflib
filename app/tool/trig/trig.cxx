@@ -127,29 +127,12 @@ void trig(const std::string& cmd, Target* target) {
  * and SELF_TRIG
  */
 void setup(Target* tgt) {
-  pflib::TRIG* trig = tgt->trig();
-  if (trig == 0) return;
-
-  int l1offset = pftool::readline_int("L1Offset on HGCROC?", TimeInSettings::last.l1offset);
-
-  std::map<std::string, std::map<std::string, uint64_t>> roc_settings;
-  roc_settings["DIGITALHALF_0"]["L1OFFSET"] = l1offset;
-  roc_settings["DIGITALHALF_1"]["L1OFFSET"] = l1offset;
-  for (int iroc : tgt->roc_ids()) {
-    tgt->roc(iroc).applyParameters(roc_settings);
-  }
-
-  int pipeline, samples_per_l1a, presamples, econid;
-  trig->get_daq_setup(pipeline, econid, samples_per_l1a, presamples);
-  pipeline = pftool::readline_int("trig capture pipeline depth?", TimeInSettings::last.pipeline);
-  trig->setup_daq(pipeline, econid, samples_per_l1a, presamples);
-
-  bool enable_l1a_follow;
-  int charge_to_l1a;
-  tgt->fc().fc_get_setup_calib(charge_to_l1a, enable_l1a_follow);
-  charge_to_l1a =
+  TimeInSettings::last.init(tgt);
+  TimeInSettings::last.l1offset = pftool::readline_int("L1Offset on HGCROC?", TimeInSettings::last.l1offset);
+  TimeInSettings::last.pipeline = pftool::readline_int("trig capture pipeline depth?", TimeInSettings::last.pipeline);
+  TimeInSettings::last.charge_to_l1a =
       pftool::readline_int("Calibration to L1A offset?", TimeInSettings::last.charge_to_l1a);
-  tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+  TimeInSettings::last.apply(tgt);
 }
 
 namespace {
