@@ -20,14 +20,10 @@ void led_bias_scan(Target* tgt) {
       {36, 37, 38, 39}, {40, 41, 42, 43}, {45, 46, 47, 48}, {49, 50, 51, 52},
       {54, 55, 56, 57}, {58, 59, 60, 61}, {63, 64, 65, 66}, {67, 68, 69, 70}};
 
-  // basically taken straight from the current version of bias.cxx render
-  // function
-  auto hcalbp = dynamic_cast<pflib::HcalBackplane*>(tgt);
-  // auto hcalfl = dynamic_cast<pflib::HcalFiberless*>(tgt);
-  // if (!hcalbp && !hcalfl) {
-  //     PFEXCEPTION_RAISE("ValueError", "led_bias_scan only available for
-  //     HcalBackplane or HcalFiberless targets.");
-  // }
+  auto hcalbp = dynamic_cast<pflib::HcalTarget*>(tgt);
+  if (!hcalbp) {
+    PFEXCEPTION_RAISE("BadTarget", "led_bias_scan only available for Hcal targets");
+  }
   int iboard = 1;
   iboard = pftool::readline_int("Which board? ", iboard);
   // static void bias(const std::string& cmd, pflib::HcalBackplane* pft){
