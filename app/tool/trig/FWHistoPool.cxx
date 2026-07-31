@@ -12,8 +12,12 @@ static constexpr uint32_t ADDR_TRIG_HISTO_03 = 0xC40 / 4;
 static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
 static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
 
+uint32_t FWHistoPool::FW_VERSION = 0;
+
 FWHistoPool::FWHistoPool(int i_trigpath)
-    : uio_{string_format("trigpath-%d", i_trigpath)} {}
+    : uio_{string_format("trigpath-%d", i_trigpath)} {
+  FW_VERSION = (uio_.read(0) & 0xffff);
+}
 
 void FWHistoPool::clear() { uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR); }
 
@@ -63,6 +67,7 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
   hist["uhi_schema"] = 1;
   hist["writer_info"]["pftool.FWHistoPool"]["version"] =
       pflib::version::debug();
+  hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
   hist["metadata"]["_variance_known"] = true;
 
   nlohmann::json axis;
@@ -83,6 +88,38 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
   axis["metadata"]["label"] = name + " Encoded Sum";
 
   hist["axes"] = {axis};
+  hist["storage"]["type"] = "int";
+  hist["storage"]["values"] = data;
+  return hist;
+}
+
+nlohmann::json FWHistoPool::to_json(const std::array<std::array<uint32_t, 256>, 8>& data) {
+  nlohmann::json hist;
+  hist["uhi_schema"] = 1;
+  hist["writer_info"]["pftool.FWHistoPool"]["version"] =
+      pflib::version::debug();
+  hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
+  hist["metadata"]["_variance_known"] = true;
+  
+  nlohmann::json cat;
+  cat["type"] = "category_str";
+  cat["categories"] = {"STC0", "STC1", "STC2", "STC3", "STC4", "STC5", "STC6", "STC7"};
+  cat["flow"] = false;
+  cat["metadata"]["name"] = "stc";
+  cat["metadata"]["label"] = "STC";
+
+  nlohmann::json reg;
+  reg["type"] = "regular";
+  reg["lower"] = 0.0;
+  reg["upper"] = data.size();
+  reg["bins"] = data.size();
+  reg["underflow"] = false;
+  reg["overflow"] = false;
+  reg["circular"] = false;
+  reg["metadata"]["name"] = "encoded_sum";
+  reg["metadata"]["label"] = "Encoded Sum";
+
+  hist["axes"] = {cat, reg};
   hist["storage"]["type"] = "int";
   hist["storage"]["values"] = data;
   return hist;

@@ -38,7 +38,7 @@ void histo(const std::string& cmd, Target* tgt) {
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
-      file << hist_pool.to_json(hist, ihist);
+      file << FWHistoPool::to_json(hist, ihist);
     }
   }
 
@@ -78,11 +78,7 @@ void histo(const std::string& cmd, Target* tgt) {
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
-      nlohmann::json pool;
-      for (int ihist{0}; ihist < hists.size(); ihist++) {
-        pool[ihist] = FWHistoPool::to_json(hists[ihist], ihist);
-      }
-      file << pool;
+      file << FWHistoPool::to_json(hists);
     }
   }
 }
