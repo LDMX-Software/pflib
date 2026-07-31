@@ -95,11 +95,12 @@ void led_bias_scan(Target* tgt) {
 
   auto& mapping{tgt->getRocErxMapping()};
 
-  for (int l = min_cmb_port; l <= max_cmb_port; l++) {
-    for (int j = 0; j < 4; j++) {
-      int ch = cmb_to_ch[l][j];
-      auto [i_erx, i_ch] = mapping.toErxChannel(iboard, ch);
-    }
+ std::map<int, int> ch_to_SiPM;
+  std::map<int, int> ch_to_LED;
+
+  for (int i = min_cmb_port ; i <= max_cmb_port ; i++) {
+          ch_to_SiPM[i] = bias.readSiPM(i);
+          ch_to_LED[i] = bias.readLED(i);
   }
 
   int i_cmb_port{0};
@@ -185,7 +186,7 @@ void led_bias_scan(Target* tgt) {
   }
   // reset the biases to zero for all channels
   for (int i = min_cmb_port; i <= max_cmb_port; i++) {
-    bias.setSiPM(i, 0);
-    bias.setLED(i, 0);
+    bias.setSiPM(i, ch_to_SiPM[i]);
+    bias.setLED(i, ch_to_LED[i]);
   }
 }
