@@ -95,12 +95,12 @@ void led_bias_scan(Target* tgt) {
 
   auto& mapping{tgt->getRocErxMapping()};
 
- std::map<int, int> ch_to_SiPM;
+  std::map<int, int> ch_to_SiPM;
   std::map<int, int> ch_to_LED;
 
-  for (int i = min_cmb_port ; i <= max_cmb_port ; i++) {
-          ch_to_SiPM[i] = bias.readSiPM(i);
-          ch_to_LED[i] = bias.readLED(i);
+  for (int i = min_cmb_port; i <= max_cmb_port; i++) {
+    ch_to_SiPM[i] = bias.readSiPM(i);
+    ch_to_LED[i] = bias.readLED(i);
   }
 
   int i_cmb_port{0};
