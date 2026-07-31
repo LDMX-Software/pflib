@@ -16,9 +16,9 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   static const std::filesystem::path this_file{__FILE__};
   static const std::filesystem::path this_parent{this_file.parent_path()};
   std::filesystem::path fp{filepath};
-  std::string relative{std::filesystem::relative(fp, this_parent)};
+  std::string relative{std::filesystem::relative(fp.parent_path(), this_parent)};
   std::replace(relative.begin(), relative.end(), '/', '.');
-  return pflib::logging::get("pftool." + relative);
+  return pflib::logging::get("pftool." + relative + std::string(fp.stem()));
 }
 
 void pftool::State::init(Target* tgt, int cfg) {
