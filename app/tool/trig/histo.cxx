@@ -3,10 +3,11 @@
  */
 #include "histo.h"
 
+#include <fstream>
+
+#include "FWHistoPool.h"
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
-#include "FWHistoPool.h"
-#include <fstream>
 
 using pflib::utility::string_format;
 void histo(const std::string& cmd, Target* tgt) {
@@ -24,16 +25,18 @@ void histo(const std::string& cmd, Target* tgt) {
 
   if (cmd == "READ") {
     static int ihist = 0;
-    ihist = pftool::readline_int("Which histogram?", ihist); 
+    ihist = pftool::readline_int("Which histogram?", ihist);
     std::array<uint32_t, 256> hist = hist_pool.read(ihist);
     for (std::size_t i{0}; i < hist.size(); i++) {
       printf("%3d %u\n", i, hist[i]);
     }
-    if (pftool::readline_bool("Store histogram in JSON file for plotting?", false)) {
-      auto path = pftool::readline_path(string_format("fwhist-%d", ihist), ".json");
+    if (pftool::readline_bool("Store histogram in JSON file for plotting?",
+                              false)) {
+      auto path =
+          pftool::readline_path(string_format("fwhist-%d", ihist), ".json");
       std::ofstream file(path);
       if (not file.is_open()) {
-        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
+        PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
       file << hist_pool.to_json(hist, ihist);
     }
@@ -51,7 +54,8 @@ void histo(const std::string& cmd, Target* tgt) {
     }
 
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
-      printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4, 5, 6, 7);
+      printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4,
+             5, 6, 7);
       for (std::size_t i{0}; i < hists[0].size(); i++) {
         printf("%3d :", i);
         for (int ihist{0}; ihist < hists.size(); ihist++) {
@@ -66,12 +70,13 @@ void histo(const std::string& cmd, Target* tgt) {
       }
       printf("\n");
     }
-    
-    if (pftool::readline_bool("Store histograms in JSON file for plotting?", false)) {
+
+    if (pftool::readline_bool("Store histograms in JSON file for plotting?",
+                              false)) {
       auto path = pftool::readline_path("fwhist-dump", ".json");
       std::ofstream file{path};
       if (not file.is_open()) {
-        PFEXCEPTION_RAISE("FileOpen", "Unable to open "+path);
+        PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
       nlohmann::json pool;
       for (int ihist{0}; ihist < hists.size(); ihist++) {

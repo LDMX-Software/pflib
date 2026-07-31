@@ -1,7 +1,7 @@
 #include "FWHistoPool.h"
 
-#include "pflib/version/Version.h"
 #include "pflib/utility/string_format.h"
+#include "pflib/version/Version.h"
 using pflib::utility::string_format;
 
 #include "pflib/Exception.h"
@@ -13,12 +13,9 @@ static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
 static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
 
 FWHistoPool::FWHistoPool(int i_trigpath)
-  : uio_{string_format("trigpath-%d", i_trigpath)}
-  {}
+    : uio_{string_format("trigpath-%d", i_trigpath)} {}
 
-void FWHistoPool::clear() {
-  uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR);
-}
+void FWHistoPool::clear() { uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR); }
 
 void FWHistoPool::debug(int fill_val) {
   uio_.write(ADDR_HISTO_CLEAR, (fill_val & 0xFF) << 8);
@@ -39,10 +36,10 @@ void FWHistoPool::debug(int fill_val) {
 std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
   if (ihist < 0 or ihist > 11) {
     PFEXCEPTION_RAISE("OutOfRange",
-        "Provided histogram index " + std::to_string(ihist) +
-        " but the FWHistoPool only supports indices [0,11]");
+                      "Provided histogram index " + std::to_string(ihist) +
+                          " but the FWHistoPool only supports indices [0,11]");
   }
-  int block = ihist/4;
+  int block = ihist / 4;
   uint32_t data_addr = 0;
   if (block == 0) {
     data_addr = ADDR_TRIG_HISTO_03;
@@ -60,10 +57,12 @@ std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
   return data;
 }
 
-nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data, int ihist) {
+nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
+                                    int ihist) {
   nlohmann::json hist;
   hist["uhi_schema"] = 1;
-  hist["writer_info"]["pftool.FWHistoPool"]["version"] = pflib::version::debug();
+  hist["writer_info"]["pftool.FWHistoPool"]["version"] =
+      pflib::version::debug();
   hist["metadata"]["_variance_known"] = true;
 
   nlohmann::json axis;
@@ -78,12 +77,12 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data, int i
   if (ihist < 8) {
     name = string_format("STC%d", ihist);
   } else {
-    name = string_format("TEST%d", ihist-8);
+    name = string_format("TEST%d", ihist - 8);
   }
   axis["metadata"]["name"] = name;
   axis["metadata"]["label"] = name + " Encoded Sum";
 
-  hist["axes"] = { axis };
+  hist["axes"] = {axis};
   hist["storage"]["type"] = "int";
   hist["storage"]["values"] = data;
   return hist;

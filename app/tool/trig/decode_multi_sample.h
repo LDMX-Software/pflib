@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <span>
+#include <vector>
 
 /**
  * apply SampleFrame::from for many samples of data
@@ -22,4 +22,3 @@ std::vector<SampleFrame> decode_multi_sample(int n_samples,
   }
   return frames;
 }
-

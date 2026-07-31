@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace pflib {
 
@@ -47,9 +47,7 @@ class TRIG {
   void set_l1a_per_ror(int l1a_per_ror);
   int get_l1a_per_ror() const;
 
-  virtual std::map<std::string, uint32_t> get_debug() {
-    return {};
-  }
+  virtual std::map<std::string, uint32_t> get_debug() { return {}; }
 
   /**
    * Setup the data collection of raw trigger data path

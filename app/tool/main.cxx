@@ -16,7 +16,8 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   static const std::filesystem::path this_file{__FILE__};
   static const std::filesystem::path this_parent{this_file.parent_path()};
   std::filesystem::path fp{filepath};
-  std::string relative{std::filesystem::relative(fp.parent_path(), this_parent)};
+  std::string relative{
+      std::filesystem::relative(fp.parent_path(), this_parent)};
   std::replace(relative.begin(), relative.end(), '/', '.');
   std::string log_name{"pftool."};
   if (not relative.empty() and relative != ".") {
@@ -260,17 +261,15 @@ int main(int argc, char* argv[]) {
         // skip empty lines or ones whose first character is #
         if (!line.empty() && line[0] == '#') continue;
         // add to command queue after trimming trailing comments
-        auto comment_start = std::find_if(
-          line.rbegin(), line.rend(),
-          [](unsigned char ch) {
-            return ch == '#';
-          });
+        auto comment_start =
+            std::find_if(line.rbegin(), line.rend(),
+                         [](unsigned char ch) { return ch == '#'; });
         if (comment_start != line.rend()) {
           // we found a comment, erase it
           // move the reverse iterator by one to include '#' in erasing
           // we know we can do this safely since we checked that '#'
           // is not in index 0 earlier
-          line.erase((comment_start+1).base(), line.end());
+          line.erase((comment_start + 1).base(), line.end());
         }
         pftool::add_to_command_queue(line);
       }

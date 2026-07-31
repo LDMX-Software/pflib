@@ -1,14 +1,13 @@
 #include "self_trig.h"
 
-#include "timein.h" // for TimeInSettings::last
 #include "decode_multi_sample.h"
-
 #include "pflib/TRIG.h"
-#include "pflib/utility/string_format.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
+#include "pflib/utility/string_format.h"
+#include "timein.h"  // for TimeInSettings::last
 
 using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
@@ -150,9 +149,8 @@ void self_trig(Target* tgt) {
       for (int i_l1a{0}; i_l1a < charge_algo_output.size(); i_l1a++) {
         for (int i_sample{0}; i_sample < charge_algo_output[i_l1a].n_samples();
              i_sample++) {
-          std::cout << std::setw(2) << i_l1a + i_sample
-                    << ": " << charge_algo_output[i_l1a].sample(i_sample)
-                    << std::endl;
+          std::cout << std::setw(2) << i_l1a + i_sample << ": "
+                    << charge_algo_output[i_l1a].sample(i_sample) << std::endl;
         }
       }
     }

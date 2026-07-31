@@ -26,13 +26,13 @@ class TrigAlgoOutput {
     /// if the link alignment was valid
     bool econ_tdata_dv_;
     /// print human readable sample
-    friend inline std::ostream& operator<<(std::ostream& o, const SingleBXOutput& sample) {
+    friend inline std::ostream& operator<<(std::ostream& o,
+                                           const SingleBXOutput& sample) {
       o << "{ is_high_peak: " << sample.is_high_peak_
         << ", elink_valid: " << sample.elink_valid_
         << ", econ_tdata_dv: " << sample.econ_tdata_dv_
         << ", algo_trigger: " << sample.algo_trigger_
-        << ", gated_trigger: " << sample.gated_trigger_
-        << " }";
+        << ", gated_trigger: " << sample.gated_trigger_ << " }";
       return o;
     }
   };
@@ -51,6 +51,7 @@ class TrigAlgoOutput {
   bool algo_trigger(std::optional<int> i_sample = {}) const;
   bool elink_valid(std::optional<int> i_sample = {}) const;
   bool econ_tdata_dv(std::optional<int> i_sample = {}) const;
+
  private:
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
   std::vector<SingleBXOutput> samples_;

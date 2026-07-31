@@ -2,6 +2,7 @@
  * @file align.cxx
  */
 #include "align.h"
+
 #include "pflib/TRIG.h"
 
 void align(const std::string& cmd, Target* tgt) {

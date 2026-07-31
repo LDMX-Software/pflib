@@ -2,10 +2,9 @@
 #ifndef PFTOOL_TRIG_FWHISTO_H
 #define PFTOOL_TRIG_FWHISTO_H
 
-#include <optional>
 #include <array>
-
 #include <nlohmann/json.hpp>
+#include <optional>
 
 #include "pflib/zcu/UIO.h"
 
@@ -19,6 +18,7 @@ class FWHistoPool {
   static const uint32_t ADDR_MASK = 0x3FF0000;
   /// handle to register area of trigpath firmware block
   pflib::UIO uio_;
+
  public:
   /// construct the pool for the passed trigpath index (0 or 1)
   FWHistoPool(int i_trigpath);
@@ -63,14 +63,16 @@ class FWHistoPool {
    * import json
    * import uhi.io.json
    * import hist
-   * h = hist.Hist(json.load('path/to/hist.json', object_hook=uhi.io.json.object_hook))
+   * h = hist.Hist(json.load('path/to/hist.json',
+   * object_hook=uhi.io.json.object_hook))
    * ```
    *
    * @param[in] hist histogram to serialize into UHI JSON
    * @param[in] ihist histogram index to include in labeling
    * @return JSON representation of histogram
    */
-  static nlohmann::json to_json(const std::array<uint32_t, 256>& hist, int ihist);
+  static nlohmann::json to_json(const std::array<uint32_t, 256>& hist,
+                                int ihist);
 };
 
 #endif

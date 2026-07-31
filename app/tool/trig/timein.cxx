@@ -1,11 +1,11 @@
 #include "timein.h"
 
 #include "pflib/TRIG.h"
-#include "pflib/utility/string_format.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
+#include "pflib/utility/string_format.h"
 
 using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
@@ -51,7 +51,8 @@ void TimeInSettings::apply(Target* tgt) const {
   trig->setup_daq(this->pipeline, econid, samples_per_l1a, presamples);
 }
 
-void TimeInSettings::update(int new_l1offset, int new_pipeline, int new_charge_to_l1a) {
+void TimeInSettings::update(int new_l1offset, int new_pipeline,
+                            int new_charge_to_l1a) {
   if (new_charge_to_l1a < 0) {
     /**
      * if charge_to_l1a is not updated, we shift
@@ -211,8 +212,7 @@ void timein(Target* tgt) {
     auto [i_erx, i_ch] = tgt->getRocErxMapping().toErxChannel(iroc_oi, ch_oi);
     for (int i_sample{0}; i_sample < daq_pedestals.samples.size(); i_sample++) {
       printf("%c%d: %4d %4d -> %4d %4d\n",
-             (i_sample == tgt->daq().soi()) ? '*' : ' ',
-             i_sample,
+             (i_sample == tgt->daq().soi()) ? '*' : ' ', i_sample,
              daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
              daq_pedestals.samples.at(i_sample).channel(i_erx, i_ch).adc(),
              daq_charge.samples.at(i_sample).channel(i_erx, i_ch).adc_tm1(),
@@ -244,8 +244,7 @@ void timein(Target* tgt) {
           std::cout << ' ';
         }
         std::cout << i_l1a + i_sample << ": "
-                  << charge_algo_output[i_l1a].sample(i_sample)
-                  << std::endl;
+                  << charge_algo_output[i_l1a].sample(i_sample) << std::endl;
       }
     }
   } while (pftool::readline_bool(

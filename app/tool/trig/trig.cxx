@@ -4,14 +4,13 @@
  */
 #include "pflib/TRIG.h"
 
-#include "align.h"
 #include "algo.h"
-#include "histo.h"
-#include "timein.h"
-#include "self_trig.h"
+#include "align.h"
 #include "decode_multi_sample.h"
-
+#include "histo.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
+#include "self_trig.h"
+#include "timein.h"
 using pflib::packing::SingleECONTCaptureFrame;
 
 #include <optional>
@@ -54,8 +53,9 @@ void trig(const std::string& cmd, Target* target) {
       printf("           %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
     }
     printf("status\n");
-    printf(" %20s: %d\n", "DAQ event occupancy", target->daq().getEventOccupancy());
-    for (const auto& [name, val]: trig->get_debug()) {
+    printf(" %20s: %d\n", "DAQ event occupancy",
+           target->daq().getEventOccupancy());
+    for (const auto& [name, val] : trig->get_debug()) {
       printf(" %20s: %d\n", name.c_str(), val);
     }
   }
@@ -128,10 +128,12 @@ void trig(const std::string& cmd, Target* target) {
  */
 void setup(Target* tgt) {
   TimeInSettings::last.init(tgt);
-  TimeInSettings::last.l1offset = pftool::readline_int("L1Offset on HGCROC?", TimeInSettings::last.l1offset);
-  TimeInSettings::last.pipeline = pftool::readline_int("trig capture pipeline depth?", TimeInSettings::last.pipeline);
-  TimeInSettings::last.charge_to_l1a =
-      pftool::readline_int("Calibration to L1A offset?", TimeInSettings::last.charge_to_l1a);
+  TimeInSettings::last.l1offset = pftool::readline_int(
+      "L1Offset on HGCROC?", TimeInSettings::last.l1offset);
+  TimeInSettings::last.pipeline = pftool::readline_int(
+      "trig capture pipeline depth?", TimeInSettings::last.pipeline);
+  TimeInSettings::last.charge_to_l1a = pftool::readline_int(
+      "Calibration to L1A offset?", TimeInSettings::last.charge_to_l1a);
   TimeInSettings::last.apply(tgt);
 }
 
@@ -149,8 +151,7 @@ auto menu_trig =
         ->line("RESET", "Reset trigger firmware blocks", trig)
         ->line("TIMEIN", "scan delay settings to timein trigger capture",
                timein)
-        ->line("SELF_TRIG", "attempt to trigger on a charge pulse",
-               self_trig)
+        ->line("SELF_TRIG", "attempt to trigger on a charge pulse", self_trig)
         ->line(
             "SETUP",
             "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
@@ -184,7 +185,7 @@ auto menu_align =
         ->line("DELAY", "link-specific capture delay offset", align)
         ->line("SETUP", "all-link capture delay", align);
 
-auto menu_histo = 
+auto menu_histo =
     menu_trig->submenu("HISTO", "view and debug firmware histograms")
         ->line("READ", "read a histogram of an STC", histo)
         ->line("DEBUG", "fill a known value into a test histogram", histo)
