@@ -13,6 +13,7 @@
 #include "get_lpgbt_temps.h"
 #include "global_pedestal_level.h"
 #include "inv_vref_scan.h"
+#include "led_bias_scan.h"
 #include "load_parameter_points.h"
 #include "local_pedestal_level.h"
 #include "multi_channel_scan.h"
@@ -30,7 +31,6 @@
 #include "trim_toa_scan.h"
 #include "vref_2d_scan.h"
 #include "vt50_scan.h"
-#include "led_bias_scan.h"
 
 namespace {
 auto menu_tasks =
