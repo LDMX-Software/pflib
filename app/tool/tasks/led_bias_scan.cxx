@@ -10,7 +10,7 @@
 
 ENABLE_LOGGING();
 
-void led_bias_scan(Target* tgt) {
+void led_bias_scan(pflib::HcalTarget* tgt) {
   // mapping of CMB ports to HGCROC channels, because some channels are skipped
   //  first entry is CMB port 0, then CMB port 1, etc. and the individual
   //  numbers are the HGCROC channels
@@ -27,7 +27,7 @@ void led_bias_scan(Target* tgt) {
   }
   int iboard = 1;
   iboard = pftool::readline_int("Which board? ", iboard);
-  // static void bias(const std::string& cmd, pflib::HcalBackplane* pft){
+  //static void bias(const std::string& cmd, pflib::HcalTarget* pft){
   pflib::Bias bias = hcalbp->bias(iboard);  // bad method
 
   uint16_t LEDstart = pftool::readline_int(
