@@ -8,10 +8,10 @@
 #include "align.h"
 #include "decode_multi_sample.h"
 #include "histo.h"
-#include "watch_run.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "self_trig.h"
 #include "timein.h"
+#include "watch_run.h"
 using pflib::packing::SingleECONTCaptureFrame;
 
 #include <optional>

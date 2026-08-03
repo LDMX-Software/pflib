@@ -1,7 +1,5 @@
 #include "watch_run.h"
 
-#include "pflib/TRIG.h"
-
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
 #include "pflib/packing/Hex.h"
@@ -9,8 +7,8 @@
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
-using pflib::packing::SingleECONTCaptureFrame;
 using pflib::packing::MultiSampleECONDEventPacket;
+using pflib::packing::SingleECONTCaptureFrame;
 
 ENABLE_LOGGING();
 
@@ -23,7 +21,7 @@ void watch_run(pflib::Target* tgt) {
    * watch the self trigger and write out the
    * data that it collects
    */
-  
+
   int n_events = 100;
   auto path{pftool::readline_path("watch-run", ".csv")};
   std::ofstream file{path};
@@ -33,13 +31,12 @@ void watch_run(pflib::Target* tgt) {
 
   file << "i_event,i_sample";
   for (int i_ch{0}; i_ch < 8; i_ch++) {
-    file
-      << ",ch_" << i_ch << ".Tp"
-      << ",ch_" << i_ch << ".Tc"
-      << ",ch_" << i_ch << ".adc_tm1"
-      << ",ch_" << i_ch << ".adc"
-      << ",ch_" << i_ch << ".toa"
-      << ",ch_" << i_ch << ".tot";
+    file << ",ch_" << i_ch << ".Tp"
+         << ",ch_" << i_ch << ".Tc"
+         << ",ch_" << i_ch << ".adc_tm1"
+         << ",ch_" << i_ch << ".adc"
+         << ",ch_" << i_ch << ".toa"
+         << ",ch_" << i_ch << ".tot";
   }
   file << ",stc6\n";
 
@@ -57,13 +54,13 @@ void watch_run(pflib::Target* tgt) {
     do {
       usleep(100);
       i100us++;
-    } while(not trig->single_shot_fired() and i100us < 10000);
+    } while (not trig->single_shot_fired() and i100us < 10000);
 
     if (not trig->single_shot_fired()) {
       pflib_log(warn) << "waiting for 1s and did not see a self-trigger";
       continue;
     }
-    
+
     // capture data output, using daq last to advance readout pointer
     std::vector<uint32_t> trg_charge_event = trig->read_event();
     std::vector<uint32_t> charge_algo_output_raw = trig->read_algo_output();
@@ -73,7 +70,7 @@ void watch_run(pflib::Target* tgt) {
     // readout pointer misalignment
     std::vector<SingleECONTCaptureFrame> trg_charge =
         decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                       trg_charge_event);
+                                                     trg_charge_event);
 
     /*
     std::vector<TrigAlgoOutput> charge_algo_output =
@@ -83,17 +80,15 @@ void watch_run(pflib::Target* tgt) {
 
     pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
     daq_charge.from(daq_charge_event);
-    
+
     // serialize
     for (int i_sample{0}; i_sample < trig->get_l1a_per_ror(); i_sample++) {
       file << i_event << ',' << i_sample;
       for (int ch{0}; ch < 8; ch++) {
-        auto sample{daq_charge.samples.at(i_sample).channel(1 /* should use mapping! */, ch)};
-        file << ',' << sample.Tp()
-             << ',' << sample.Tc()
-             << ',' << sample.adc_tm1()
-             << ',' << sample.adc()
-             << ',' << sample.toa()
+        auto sample{daq_charge.samples.at(i_sample).channel(
+            1 /* should use mapping! */, ch)};
+        file << ',' << sample.Tp() << ',' << sample.Tc() << ','
+             << sample.adc_tm1() << ',' << sample.adc() << ',' << sample.toa()
              << ',' << sample.tot();
       }
       file << ',' << trg_charge[i_sample].stc_sum(6, 0) << '\n';
