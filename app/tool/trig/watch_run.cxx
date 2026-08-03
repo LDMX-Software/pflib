@@ -64,7 +64,9 @@ void watch_run(pflib::Target* tgt) {
     } while (not trig->single_shot_fired() and i100us < 10000);
 
     if (not trig->single_shot_fired()) {
-      pflib_log(warn) << "waiting for 1s and did not see a self-trigger, skipping event " << i_event;
+      pflib_log(warn)
+          << "waiting for 1s and did not see a self-trigger, skipping event "
+          << i_event;
       continue;
     }
 
