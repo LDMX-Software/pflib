@@ -28,7 +28,7 @@ void led_bias_scan(pflib::HcalTarget* tgt) {
   int iboard = 1;
   iboard = pftool::readline_int("Which board? ", iboard);
   // static void bias(const std::string& cmd, pflib::HcalTarget* pft){
-  pflib::Bias bias = hcalbp->bias(iboard);  // bad method
+  auto& bias = hcalbp->bias(iboard);
 
   uint16_t LEDstart = pftool::readline_int(
       "Which LED DAC start value (set equal to end for constant)? ", 2000);
@@ -103,8 +103,8 @@ void led_bias_scan(pflib::HcalTarget* tgt) {
   std::map<int, int> ch_to_LED;
 
   for (int i = min_cmb_port; i <= max_cmb_port; i++) {
-    ch_to_SiPM[i] = bias.readSiPM(i);
-    ch_to_LED[i] = bias.readLED(i);
+    ch_to_SiPM[i] = bias.readSiPM(i).value_or(-1);
+    ch_to_LED[i] = bias.readLED(i).value_or(-1);
   }
 
   int i_cmb_port{0};
