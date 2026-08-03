@@ -71,7 +71,8 @@ void led_bias_scan(Target* tgt) {
   int start_bx = pftool::readline_int("Starting BX? ", 0);
   int n_bx = pftool::readline_int("Number of BX? ", 10);
   int start_led = tgt->fc().fc_get_setup_led();
-  int end_led = pftool::readline_int("Calibration L1A offset for LED? (Hopefully 16-20)", start_led);
+  int end_led = pftool::readline_int(
+      "Calibration L1A offset for LED? (Hopefully 16-20)", start_led);
   tgt->fc().fc_setup_led(end_led);
 
   pflib::ROC roc{tgt->roc(iboard)};
