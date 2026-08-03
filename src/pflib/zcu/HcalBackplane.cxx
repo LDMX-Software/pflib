@@ -29,7 +29,8 @@ class HcalBackplaneZCU : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask);
+    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask,
+               true /* use bias cache */);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);

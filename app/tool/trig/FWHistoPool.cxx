@@ -1,0 +1,128 @@
+#include "FWHistoPool.h"
+
+#include "pflib/utility/string_format.h"
+#include "pflib/version/Version.h"
+using pflib::utility::string_format;
+
+#include "pflib/Exception.h"
+
+static constexpr uint32_t ADDR_HISTO_CLEAR = 0x100 / 4;
+static constexpr uint32_t MASK_HISTO_CLEAR = 0x4;
+static constexpr uint32_t ADDR_TRIG_HISTO_03 = 0xC40 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
+
+uint32_t FWHistoPool::FW_VERSION = 0;
+
+FWHistoPool::FWHistoPool(int i_trigpath)
+    : uio_{string_format("trigpath-%d", i_trigpath)} {
+  FW_VERSION = (uio_.read(0) & 0xffff);
+}
+
+void FWHistoPool::clear() { uio_.write(ADDR_HISTO_CLEAR, MASK_HISTO_CLEAR); }
+
+void FWHistoPool::debug(int fill_val) {
+  uio_.write(ADDR_HISTO_CLEAR, (fill_val & 0xFF) << 8);
+  std::array<std::array<uint32_t, 256>, 4> hists;
+  for (int i{0}; i < 4; i++) {
+    hists[i] = read(8 + i);
+  }
+  printf("bin: %10u %10u %10u %10u\n", 0, 1, 2, 3);
+  for (int i{0}; i < 256; i++) {
+    printf("%3d:", i);
+    for (int j{0}; j < 4; j++) {
+      printf(" %10u", hists[j][i]);
+    }
+    printf("\n");
+  }
+}
+
+std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
+  if (ihist < 0 or ihist > 11) {
+    PFEXCEPTION_RAISE("OutOfRange",
+                      "Provided histogram index " + std::to_string(ihist) +
+                          " but the FWHistoPool only supports indices [0,11]");
+  }
+  int block = ihist / 4;
+  uint32_t data_addr = 0;
+  if (block == 0) {
+    data_addr = ADDR_TRIG_HISTO_03;
+  } else if (block == 1) {
+    data_addr = ADDR_TRIG_HISTO_47;
+  } else if (block == 2) {
+    data_addr = ADDR_TRIG_HISTO_TEST;
+  }
+  std::array<uint32_t, 256> data;
+  for (int i{0}; i < data.size(); i++) {
+    uint32_t val = i | (ihist << 8);
+    uio_.writeMasked(ADDR_REG, ADDR_MASK, val);
+    data[i] = uio_.read(data_addr);
+  }
+  return data;
+}
+
+nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
+                                    int ihist) {
+  nlohmann::json hist;
+  hist["uhi_schema"] = 1;
+  hist["writer_info"]["pftool.FWHistoPool"]["version"] =
+      pflib::version::debug();
+  hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
+  hist["metadata"]["_variance_known"] = true;
+
+  nlohmann::json axis;
+  axis["type"] = "regular";
+  axis["lower"] = 0.0;
+  axis["upper"] = data.size();
+  axis["bins"] = data.size();
+  axis["underflow"] = false;
+  axis["overflow"] = false;
+  axis["circular"] = false;
+  std::string name;
+  if (ihist < 8) {
+    name = string_format("STC%d", ihist);
+  } else {
+    name = string_format("TEST%d", ihist - 8);
+  }
+  axis["metadata"]["name"] = name;
+  axis["metadata"]["label"] = name + " Encoded Sum";
+
+  hist["axes"] = {axis};
+  hist["storage"]["type"] = "int";
+  hist["storage"]["values"] = data;
+  return hist;
+}
+
+nlohmann::json FWHistoPool::to_json(
+    const std::array<std::array<uint32_t, 256>, 8>& data) {
+  nlohmann::json hist;
+  hist["uhi_schema"] = 1;
+  hist["writer_info"]["pftool.FWHistoPool"]["version"] =
+      pflib::version::debug();
+  hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
+  hist["metadata"]["_variance_known"] = true;
+
+  nlohmann::json cat;
+  cat["type"] = "category_str";
+  cat["categories"] = {"STC0", "STC1", "STC2", "STC3",
+                       "STC4", "STC5", "STC6", "STC7"};
+  cat["flow"] = false;
+  cat["metadata"]["name"] = "stc";
+  cat["metadata"]["label"] = "STC";
+
+  nlohmann::json reg;
+  reg["type"] = "regular";
+  reg["lower"] = 0;
+  reg["upper"] = 256;
+  reg["bins"] = 256;
+  reg["underflow"] = false;
+  reg["overflow"] = false;
+  reg["circular"] = false;
+  reg["metadata"]["name"] = "encoded_sum";
+  reg["metadata"]["label"] = "Encoded Sum";
+
+  hist["axes"] = {cat, reg};
+  hist["storage"]["type"] = "int";
+  hist["storage"]["values"] = data;
+  return hist;
+}

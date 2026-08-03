@@ -23,6 +23,8 @@ class ZCUtrig : public TRIG {
 
   int get_bx_delay(int ilink) override;
 
+  std::map<std::string, uint32_t> get_debug() override;
+
   void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
                  int presamples) override;
 

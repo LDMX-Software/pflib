@@ -197,6 +197,18 @@ std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
   return retval;
 }
 
+std::map<std::string, uint32_t> ZCUtrig::get_debug() {
+  std::map<std::string, uint32_t> dbg;
+  uint32_t status = uio_.read(0xC04 / 4);
+  dbg["ELINK_TVALID"] = ((status >> 17) & 0x1);
+  dbg["ECON_TDATA_DV"] = ((status >> 16) & 0x1);
+  dbg["COUNT_L1A"] = ((status >> 8) & 0xff);
+  dbg["COUNT_ALIGNS"] = (status & 0xff);
+  dbg["SINGLE_SHOT_FIRED"] = single_shot_fired();
+  dbg["COUNT_SELF_TRIGGER"] = get_self_trigger_count();
+  return dbg;
+}
+
 bool ZCUtrig::get_enable_single_shot() {
   return uio_.readMasked(ADDR_CONFIGURE, MASK_ENABLE_SINGLE_SHOT) == 1;
 }

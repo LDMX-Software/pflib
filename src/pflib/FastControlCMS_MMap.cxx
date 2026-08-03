@@ -332,6 +332,8 @@ class FastControlCMS_MMap : public FastControl {
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_econd, REQ_link_reset_econd);
     usleep(1000);
     uio_.rmw(ADDR_REQUEST, REQ_link_reset_econt, REQ_link_reset_econt);
+    usleep(1000);
+
     // restore previous situation
     uio_.write(ADDR_CTL_REG, preval);
   }

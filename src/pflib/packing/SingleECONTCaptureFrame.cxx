@@ -1,5 +1,8 @@
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 
+#include "pflib/packing/DecompressAEBM.h"
+#include "pflib/packing/Mask.h"
+
 namespace pflib::packing {
 void SingleECONTCaptureFrame::SingleECONTSample::from(
     std::span<uint32_t> data) {
@@ -9,27 +12,33 @@ void SingleECONTCaptureFrame::SingleECONTSample::from(
         << data.size();
     return;
   }
-  bx_ = ((data[0] >> 28) & 0xf);
+  bx_ = ((data[0] >> 28) & mask<4>);
   for (int i{0}; i < N_STC; i++) {
     // max is all within the first 32b word even if there
     // are more eTx
-    max_tc_[i] = ((data[0] >> (26 - 2 * i)) & 0x3);
+    max_tc_[i] = ((data[0] >> (26 - 2 * i)) & mask<2>);
   }
 
   // just hardcoding 3 eTx for now
-  stc_sums_[0] = ((data[0] >> 2) & 0x1ff);
-  stc_sums_[1] = (((data[0] & 0x11) << 7) | ((data[1] >> 25) & 0x7f));
-  stc_sums_[2] = ((data[1] >> 16) & 0x1ff);
-  stc_sums_[3] = ((data[1] >> 7) & 0x1ff);
-  stc_sums_[4] = (((data[1] & 0x7f) << 2) | ((data[2] >> 30) & 0x3));
-  stc_sums_[5] = ((data[2] >> 21) & 0x1ff);
-  stc_sums_[6] = ((data[2] >> 12) & 0x1ff);
-  stc_sums_[7] = ((data[2] >> 3) & 0x1ff);
+  stc_sums_[0] = ((data[0] >> 3) & mask<9>);
+  stc_sums_[1] =
+      (((data[0] & mask<3>) << 6) | ((data[1] >> (32 - 6)) & mask<6>));
+  stc_sums_[2] = ((data[1] >> 17) & mask<9>);
+  stc_sums_[3] = ((data[1] >> 8) & mask<9>);
+  stc_sums_[4] = (((data[1] & mask<8>) << 1) | ((data[2] >> 31) & mask<1>));
+  stc_sums_[5] = ((data[2] >> 22) & mask<9>);
+  stc_sums_[6] = ((data[2] >> 13) & mask<9>);
+  stc_sums_[7] = ((data[2] >> 4) & mask<9>);
 }
 
 int SingleECONTCaptureFrame::SingleECONTSample::bx() const { return bx_; }
 
 int SingleECONTCaptureFrame::SingleECONTSample::stc_sum(int i_stc) const {
+  return decompressAEBM<5, 4>(encoded_stc_sum(i_stc));
+}
+
+int SingleECONTCaptureFrame::SingleECONTSample::encoded_stc_sum(
+    int i_stc) const {
   return stc_sums_.at(i_stc);
 }
 
@@ -94,6 +103,11 @@ SingleECONTCaptureFrame::sample(std::optional<int> i_sample) const {
 
 int SingleECONTCaptureFrame::bx(std::optional<int> i_sample) const {
   return sample(i_sample).bx();
+}
+
+int SingleECONTCaptureFrame::encoded_stc_sum(
+    int i_stc, std::optional<int> i_sample) const {
+  return sample(i_sample).encoded_stc_sum(i_stc);
 }
 
 int SingleECONTCaptureFrame::stc_sum(int i_stc,

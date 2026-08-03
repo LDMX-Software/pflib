@@ -172,8 +172,15 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
 
-    static const int ICAPTURE_DELAY = 30;
-    trig->setup_alignment_capture(ICAPTURE_DELAY);
+    if (trig->get_alignment_capture() == 0) {
+      // capture delay of 0 will /not/ work and is the default
+      // of a newly-loaded firmware, update to a reasonable default
+      // 30 was from when the backplane was on the same table as the ZCU
+      // we also have used 42 after moving the backplane to the dark room
+      // and using much longer optical fibers
+      static const int DEFAULT_CAPTURE_DELAY = 30;
+      trig->setup_alignment_capture(DEFAULT_CAPTURE_DELAY);
+    }
 
     bool all_succeed = true;
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
@@ -182,9 +189,9 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
       for (int phase = 0; phase < 16; phase++) {
         std::vector<uint16_t> readings;
         econ.applyParameter("FORMATTERBUFFER", reg_name, phase);
-        usleep(2000);
+        usleep(3000);
         tgt->fc().linkreset_econs();
-        usleep(2000);
+        usleep(3000);
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
         for (size_t i = 4; i < 8; i++) {
           readings.push_back((samples[i] >> 16) & ALIGN_MASK);
@@ -214,7 +221,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
       int first_bx = -1;
       for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
         tgt->fc().linkreset_econs();
-        usleep(2000);
+        usleep(3000);
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
         int last_bx = -1;
         for (int i_sample{0}; i_sample < samples.size(); i_sample++) {

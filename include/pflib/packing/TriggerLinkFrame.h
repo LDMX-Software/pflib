@@ -20,8 +20,8 @@ struct TriggerLinkFrame {
    * Convert a compressed trigger sum into its linearized equivalent
    *
    * The chip lossy compresses its trigger sums into seven bits
-   * and this function decompresses the sum into our best estimate
-   * of what the on-chip trigger sum was.
+   * using the 4E+3M encoding and this function decompresses the
+   * sum into our best estimate of what the on-chip trigger sum was.
    *
    * @note This function undoes the wacky compression algorithm, but
    * the scale of the linearized sum is not quite correct.

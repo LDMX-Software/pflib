@@ -6,8 +6,8 @@
 #include "pflib/Bias.h"
 #include "pflib/Exception.h"
 #include "pflib/GPIO.h"
+#include "pflib/HcalTarget.h"
 #include "pflib/I2C_Linux.h"
-#include "pflib/Target.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/ECONDFormatter.h"
 #include "pflib/zcu/UIO.h"
@@ -169,7 +169,7 @@ void FiberlessCapture::advanceLinkReadPtr() {
     uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
 }
 
-class HcalFiberless : public Target {
+class HcalFiberless : public HcalTarget {
  public:
   static constexpr const char* GPO_HGCROC_RESET_HARD = "HGCROC_HARD_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
@@ -189,7 +189,7 @@ class HcalFiberless : public Target {
     PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
   }
 
-  virtual Bias bias(int which) {
+  Bias& bias(int which) override {
     if (which == 0) return *bias_;
     PFEXCEPTION_RAISE("NoMore",
                       "Only one bias board (index=0) for fiberless setup.");
@@ -216,7 +216,7 @@ class HcalFiberless : public Target {
   virtual bool have_econ(int iecon) const override { return false; }
   virtual std::vector<int> econ_ids() const override { return {}; }
 
-  HcalFiberless() : Target() {
+  HcalFiberless() {
     auto i2croc = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     if (not i2croc) {
       PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
@@ -227,7 +227,8 @@ class HcalFiberless : public Target {
     }
 
     roc_ = std::make_unique<ROC>(i2croc, 0x20, "sipm_rocv3b");
-    bias_ = std::make_unique<Bias>(i2cboard, i2cboard);
+    bias_ =
+        std::make_unique<Bias>(i2cboard, i2cboard, false /*use bias cache*/);
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
