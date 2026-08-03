@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+#include "pflib/Bias.h"
 #include "../daq_run.h"
 #include "../pftool.h"
 #include "pflib/HcalTarget.h"
