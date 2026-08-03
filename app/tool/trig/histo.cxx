@@ -4,17 +4,24 @@
 #include "histo.h"
 
 #include <fstream>
+#include <chrono>
 
 #include "FWHistoPool.h"
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
 
 using pflib::utility::string_format;
+using the_clock = std::chrono::high_resolution_clock;
+using a_time_point = std::chrono::time_point<the_clock>;
+
 void histo(const std::string& cmd, Target* tgt) {
+  using namespace std::literals;
   static FWHistoPool hist_pool{0};
+  static a_time_point time_of_last_clear{};
 
   if (cmd == "CLEAR") {
     hist_pool.clear();
+    time_of_last_clear = the_clock::now();
   }
 
   if (cmd == "DEBUG") {
@@ -26,9 +33,18 @@ void histo(const std::string& cmd, Target* tgt) {
   if (cmd == "READ") {
     static int ihist = 0;
     ihist = pftool::readline_int("Which histogram?", ihist);
+    auto now = the_clock::now();
     std::array<uint32_t, 256> hist = hist_pool.read(ihist);
+    double collection_time = (now - time_of_last_clear) / 1.0s;
+    bool raw_counts = pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
     for (std::size_t i{0}; i < hist.size(); i++) {
-      printf("%3d %u\n", i, hist[i]);
+      printf("%3d ", i);
+      if (raw_counts) {
+        printf("%u", hist[i]);
+      } else {
+        printf("%0.4e", hist[i] / collection_time);
+      }
+      printf("\n");
     }
     if (pftool::readline_bool("Store histogram in JSON file for plotting?",
                               false)) {
@@ -38,7 +54,7 @@ void histo(const std::string& cmd, Target* tgt) {
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
-      file << FWHistoPool::to_json(hist, ihist);
+      file << FWHistoPool::to_json(hist, ihist, collection_time);
     }
   }
 
@@ -47,28 +63,29 @@ void histo(const std::string& cmd, Target* tgt) {
     // we read BEFORE asking what to write to enable a RESET->DUMP to
     // be able to happen quickly
     std::array<std::array<uint32_t, 256>, 8> hists;
-    std::array<unsigned int, 8> total;
-    total.fill(0);
+    auto now = the_clock::now();
     for (int ihist{0}; ihist < hists.size(); ihist++) {
       hists[ihist] = hist_pool.read(ihist);
     }
 
+    double collection_time = (now - time_of_last_clear) / 1.0s;
+    std::cout << collection_time << std::endl;
+
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
+      bool raw_counts = pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
       printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4,
              5, 6, 7);
       for (std::size_t i{0}; i < hists[0].size(); i++) {
         printf("%3d :", i);
         for (int ihist{0}; ihist < hists.size(); ihist++) {
-          printf(" %10u", hists[ihist][i]);
-          total[ihist] += hists[ihist][i];
+          if (raw_counts) {
+            printf(" %10u", hists[ihist][i]);
+          } else {
+            printf(" %10.4e", hists[ihist][i] / collection_time);
+          }
         }
         printf("\n");
       }
-      printf("tot :");
-      for (int ihist{0}; ihist < total.size(); ihist++) {
-        printf(" %10u", total[ihist]);
-      }
-      printf("\n");
     }
 
     if (pftool::readline_bool("Store histograms in JSON file for plotting?",
@@ -78,7 +95,7 @@ void histo(const std::string& cmd, Target* tgt) {
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
-      file << FWHistoPool::to_json(hists);
+      file << FWHistoPool::to_json(hists, collection_time);
     }
   }
 }

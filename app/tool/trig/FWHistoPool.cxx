@@ -62,13 +62,14 @@ std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
 }
 
 nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
-                                    int ihist) {
+                                    int ihist, double collection_time) {
   nlohmann::json hist;
   hist["uhi_schema"] = 1;
   hist["writer_info"]["pftool.FWHistoPool"]["version"] =
       pflib::version::debug();
   hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
   hist["metadata"]["_variance_known"] = true;
+  hist["metadata"]["collection_time"] = collection_time;
 
   nlohmann::json axis;
   axis["type"] = "regular";
@@ -88,19 +89,21 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
   axis["metadata"]["label"] = name + " Encoded Sum";
 
   hist["axes"] = {axis};
-  hist["storage"]["type"] = "int";
+  hist["storage"]["type"] = "double";
   hist["storage"]["values"] = data;
   return hist;
 }
 
 nlohmann::json FWHistoPool::to_json(
-    const std::array<std::array<uint32_t, 256>, 8>& data) {
+    const std::array<std::array<uint32_t, 256>, 8>& data,
+    double collection_time) {
   nlohmann::json hist;
   hist["uhi_schema"] = 1;
   hist["writer_info"]["pftool.FWHistoPool"]["version"] =
       pflib::version::debug();
   hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
   hist["metadata"]["_variance_known"] = true;
+  hist["metadata"]["collection_time"] = collection_time;
 
   nlohmann::json cat;
   cat["type"] = "category_str";
@@ -122,7 +125,7 @@ nlohmann::json FWHistoPool::to_json(
   reg["metadata"]["label"] = "Encoded Sum";
 
   hist["axes"] = {cat, reg};
-  hist["storage"]["type"] = "int";
+  hist["storage"]["type"] = "double";
   hist["storage"]["values"] = data;
   return hist;
 }
