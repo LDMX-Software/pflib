@@ -3,8 +3,8 @@
  */
 #include "histo.h"
 
-#include <fstream>
 #include <chrono>
+#include <fstream>
 
 #include "FWHistoPool.h"
 #include "pflib/TRIG.h"
@@ -36,7 +36,8 @@ void histo(const std::string& cmd, Target* tgt) {
     auto now = the_clock::now();
     std::array<uint32_t, 256> hist = hist_pool.read(ihist);
     double collection_time = (now - time_of_last_clear) / 1.0s;
-    bool raw_counts = pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
+    bool raw_counts =
+        pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
     for (std::size_t i{0}; i < hist.size(); i++) {
       printf("%3d ", i);
       if (raw_counts) {
@@ -72,7 +73,8 @@ void histo(const std::string& cmd, Target* tgt) {
     std::cout << collection_time << std::endl;
 
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
-      bool raw_counts = pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
+      bool raw_counts =
+          pftool::readline_bool("Show raw counts (y) or rate (n)?", true);
       printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4,
              5, 6, 7);
       for (std::size_t i{0}; i < hists[0].size(); i++) {
