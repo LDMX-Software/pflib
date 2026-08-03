@@ -22,14 +22,16 @@ void watch_run(pflib::Target* tgt) {
    * data that it collects
    */
 
-  int n_events = 100;
+  int n_events = pftool::readline_int("Number of events to wait for?", 100);
   auto path{pftool::readline_path("watch-run", ".csv")};
   std::ofstream file{path};
   if (not file.is_open()) {
     pflib_log(fatal) << "unabel to open " << path;
+    return;
   }
 
   file << "i_event,i_sample";
+  // TODO: choose channels to write out
   for (int i_ch{0}; i_ch < 8; i_ch++) {
     file << ",ch_" << i_ch << ".Tp"
          << ",ch_" << i_ch << ".Tc"
@@ -49,6 +51,11 @@ void watch_run(pflib::Target* tgt) {
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
   for (int i_event{0}; i_event < n_events; i_event++) {
+    if (i_event % 100 == 0 and i_event > 99) {
+      // status on every 100 events after the first 100
+      pflib_log(info) << i_event << " events collected";
+    }
+
     trig->reset_single_shot();
     int i100us{0};
     do {
@@ -57,7 +64,7 @@ void watch_run(pflib::Target* tgt) {
     } while (not trig->single_shot_fired() and i100us < 10000);
 
     if (not trig->single_shot_fired()) {
-      pflib_log(warn) << "waiting for 1s and did not see a self-trigger";
+      pflib_log(warn) << "waiting for 1s and did not see a self-trigger, skipping event " << i_event;
       continue;
     }
 
