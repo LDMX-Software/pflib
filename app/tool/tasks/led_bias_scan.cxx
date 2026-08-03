@@ -11,7 +11,7 @@
 
 ENABLE_LOGGING();
 
-void led_bias_scan(pflib::HcalTarget* tgt) {
+void led_bias_scan(Target* tgt) {
   // mapping of CMB ports to HGCROC channels, because some channels are skipped
   //  first entry is CMB port 0, then CMB port 1, etc. and the individual
   //  numbers are the HGCROC channels
