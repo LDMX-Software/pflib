@@ -27,7 +27,7 @@ void led_bias_scan(pflib::HcalTarget* tgt) {
   }
   int iboard = 1;
   iboard = pftool::readline_int("Which board? ", iboard);
-  //static void bias(const std::string& cmd, pflib::HcalTarget* pft){
+  // static void bias(const std::string& cmd, pflib::HcalTarget* pft){
   pflib::Bias bias = hcalbp->bias(iboard);  // bad method
 
   uint16_t LEDstart = pftool::readline_int(
