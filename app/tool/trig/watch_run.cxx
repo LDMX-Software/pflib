@@ -30,9 +30,10 @@ void watch_run(pflib::Target* tgt) {
     return;
   }
 
-  int i_roc = pftool::readline_int("ROC to readout: ", pftool::state.iroc);
+  static int i_roc = pftool::state.iroc;
+  i_roc = pftool::readline_int("ROC to readout: ", pftool::state.iroc);
 
-  std::string channel_str = "0,1,2,3,4,5,6,7";
+  static std::string channel_str = "0,1,2,3,4,5,6,7";
   channel_str = pftool::readline(
       "Comma-separated list of channels in that ROC to readout:", channel_str);
   std::stringstream channel_stream{channel_str};
