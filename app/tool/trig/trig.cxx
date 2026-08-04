@@ -11,6 +11,7 @@
 #include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "self_trig.h"
 #include "timein.h"
+#include "watch_run.h"
 using pflib::packing::SingleECONTCaptureFrame;
 
 #include <optional>
@@ -156,6 +157,7 @@ auto menu_trig =
             "SETUP",
             "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
             setup)
+        ->line("WATCH_RUN", "collect data following self-trigger", watch_run)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 

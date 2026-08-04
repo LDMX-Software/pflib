@@ -19,6 +19,7 @@ parser.add_argument('--error-bars', action='store_true', help='show error bars i
 parser.add_argument('--stc', type=int, help='only plot input STC if given')
 parser.add_argument('--roc-adc-th', type=int, help='digitalhalf_#.adc_th setting on the ROCs being used')
 parser.add_argument('--trigger-th', type=int, help='trigger threshold being used')
+parser.add_argument('--raw-counts', action='store_true', help='plot raw counts instead of scaling by collection time to estimate the rate')
 args = parser.parse_args()
 
 if args.output is None:
@@ -28,6 +29,8 @@ with open(args.filepath) as file:
     data = json.load(file, object_hook=uhi.io.json.object_hook) 
 
 h = hist.Hist(data)
+if not args.raw_counts:
+    h /= data['metadata']['collection_time']
 if args.stc is not None and len(h.axes) > 1:
     h[f'STC{args.stc}',:].plot(yerr = args.error_bars)
     plt.annotate(
@@ -54,5 +57,8 @@ for val, name, color in vlines:
         rotation = 90,
     )
 plt.yscale('log')
-plt.ylabel('Events / bin')
+if args.raw_counts:
+    plt.ylabel('Events / bin')
+else:
+    plt.ylabel('Rate / Hz')
 plt.savefig(args.output, bbox_inches='tight')
