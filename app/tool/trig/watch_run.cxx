@@ -33,7 +33,8 @@ void watch_run(pflib::Target* tgt) {
   int i_roc = pftool::readline_int("ROC to readout: ", pftool::state.iroc);
 
   std::string channel_str = "0,1,2,3,4,5,6,7";
-  channel_str = pftool::readline("Comma-separated list of channels in that ROC to readout:", channel_str);
+  channel_str = pftool::readline(
+      "Comma-separated list of channels in that ROC to readout:", channel_str);
   std::stringstream channel_stream{channel_str};
   std::string channel;
   std::vector<int> channels;
@@ -53,13 +54,14 @@ void watch_run(pflib::Target* tgt) {
   }
 
   // TODO: expand deduction to ECON-T2 EcalSMM
-  static const std::vector<std::array<int,4>> i_roc_to_stcs = {
-    {6, 7, 4, 5},
-    {3, 2, 1, 0},
+  static const std::vector<std::array<int, 4>> i_roc_to_stcs = {
+      {6, 7, 4, 5},
+      {3, 2, 1, 0},
   };
 
   if (i_roc > 1) {
-    pflib_log(warn) << "untested using ECON-T2, will not run without further software dev";
+    pflib_log(warn)
+        << "untested using ECON-T2, will not run without further software dev";
     return;
   }
 
@@ -135,7 +137,7 @@ void watch_run(pflib::Target* tgt) {
     }
 
     int new_self_trigger_count = trig->get_self_trigger_count();
-    if (new_self_trigger_count != self_trigger_count+1) {
+    if (new_self_trigger_count != self_trigger_count + 1) {
       // self trigger counter is 16bits and so we may have wrapped around
       // if its getting spammed
       int diff{0};
@@ -146,10 +148,10 @@ void watch_run(pflib::Target* tgt) {
         // no wrap around
         diff = new_self_trigger_count - self_trigger_count - 1;
       }
-      pflib_log(info) << "single-shot gate ignored "
-                      << diff
-                      << " self-triggers while acquiring, decoding, and serializing data"
-                      << " for event " << i_event;
+      pflib_log(info)
+          << "single-shot gate ignored " << diff
+          << " self-triggers while acquiring, decoding, and serializing data"
+          << " for event " << i_event;
     }
     self_trigger_count = new_self_trigger_count;
   }

@@ -49,7 +49,8 @@ void histo(const std::string& cmd, Target* tgt) {
     auto now = the_clock::now();
     std::array<uint32_t, 256> hist = hist_pool.read(ihist);
     std::optional<double> collection_time = get_collection_time(now);
-    pflib_log(info) << "accumulated histogram for " << collection_time.value_or(0) << "s";
+    pflib_log(info) << "accumulated histogram for "
+                    << collection_time.value_or(0) << "s";
     bool raw_counts = true;
     if (collection_time) {
       raw_counts =
@@ -87,13 +88,14 @@ void histo(const std::string& cmd, Target* tgt) {
     }
 
     std::optional<double> collection_time = get_collection_time(now);
-    pflib_log(info) << "accumulated histogram for " << collection_time.value_or(0) << "s";
+    pflib_log(info) << "accumulated histogram for "
+                    << collection_time.value_or(0) << "s";
 
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
       bool raw_counts = true;
       if (collection_time) {
-        raw_counts =
-          pftool::readline_bool("Show raw counts (y) or rate (n)?", raw_counts);
+        raw_counts = pftool::readline_bool("Show raw counts (y) or rate (n)?",
+                                           raw_counts);
       }
       printf("bin : %10u %10u %10u %10u %10u %10u %10u %10u\n", 0, 1, 2, 3, 4,
              5, 6, 7);
