@@ -30,17 +30,44 @@ void watch_run(pflib::Target* tgt) {
     return;
   }
 
-  file << "i_event,i_sample";
-  // TODO: choose channels to write out
-  for (int i_ch{0}; i_ch < 8; i_ch++) {
-    file << ",ch_" << i_ch << ".Tp"
-         << ",ch_" << i_ch << ".Tc"
-         << ",ch_" << i_ch << ".adc_tm1"
-         << ",ch_" << i_ch << ".adc"
-         << ",ch_" << i_ch << ".toa"
-         << ",ch_" << i_ch << ".tot";
+  int i_roc = pftool::readline_int("ROC to readout: ", pftool::state.iroc);
+
+  std::string channel_str = "0,1,2,3,4,5,6,7";
+  channel_str = pftool::readline("Comma-separated list of channels in that ROC to readout:", channel_str);
+  std::stringstream channel_stream{channel_str};
+  std::string channel;
+  std::vector<int> channels;
+  while (getline(channel_stream, channel, ',')) {
+    channels.push_back(std::stoi(channel));
   }
-  file << ",stc6\n";
+  const auto& mapping{tgt->getRocErxMapping()};
+
+  file << "i_event,i_sample";
+  for (int ch : channels) {
+    file << ",ch_" << ch << "_Tp"
+         << ",ch_" << ch << "_Tc"
+         << ",ch_" << ch << "_adc_tm1"
+         << ",ch_" << ch << "_adc"
+         << ",ch_" << ch << "_toa"
+         << ",ch_" << ch << "_tot";
+  }
+
+  // TODO: expand deduction to ECON-T2 EcalSMM
+  static const std::vector<std::array<int,4>> i_roc_to_stcs = {
+    {6, 7, 4, 5},
+    {3, 2, 1, 0},
+  };
+
+  if (i_roc > 1) {
+    pflib_log(warn) << "untested using ECON-T2, will not run without further software dev";
+    return;
+  }
+
+  auto stc_indices = i_roc_to_stcs.at(i_roc);
+  for (int i_stc : stc_indices) {
+    file << ",stc" << i_stc;
+  }
+  file << '\n';
 
   bool l1aen, extl1a;
   tgt->fc().fc_enables_read(l1aen, extl1a);
@@ -94,14 +121,17 @@ void watch_run(pflib::Target* tgt) {
     // serialize
     for (int i_sample{0}; i_sample < trig->get_l1a_per_ror(); i_sample++) {
       file << i_event << ',' << i_sample;
-      for (int ch{0}; ch < 8; ch++) {
-        auto sample{daq_charge.samples.at(i_sample).channel(
-            1 /* should use mapping! */, ch)};
+      for (int ch : channels) {
+        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+        auto sample{daq_charge.samples.at(i_sample).channel(i_erx, i_ch)};
         file << ',' << sample.Tp() << ',' << sample.Tc() << ','
              << sample.adc_tm1() << ',' << sample.adc() << ',' << sample.toa()
              << ',' << sample.tot();
       }
-      file << ',' << trg_charge[i_sample].stc_sum(6, 0) << '\n';
+      for (int i_stc : stc_indices) {
+        file << ',' << trg_charge[i_sample].stc_sum(i_stc, 0);
+      }
+      file << '\n';
     }
 
     int new_self_trigger_count = trig->get_self_trigger_count();
