@@ -1,30 +1,28 @@
 digitalhalf_0:
-  adc_th: 31
-digitalhalf_1:
-  adc_th: 31
+  adc_th: 16
 ch_0:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 14
 ch_1:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 61
 ch_2:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 59
 ch_3:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 37
 ch_4:
-  adc_pedestal: 225
+  adc_pedestal: 210
   # was not leveled?
 ch_5:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 1
 ch_6:
-  adc_pedestal: 225
+  adc_pedestal: 210
   trim_inv: 27
 ch_7:
-  adc_pedestal: 225
+  adc_pedestal: 210
   dacb: 1
   sign_dac: 1
 ch_8:
