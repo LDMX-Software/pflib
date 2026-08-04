@@ -50,6 +50,7 @@ void watch_run(pflib::Target* tgt) {
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
+  int self_trigger_count = trig->get_self_trigger_count();
   for (int i_event{0}; i_event < n_events; i_event++) {
     if (i_event % 100 == 0 and i_event > 99) {
       // status on every 100 events after the first 100
@@ -102,6 +103,25 @@ void watch_run(pflib::Target* tgt) {
       }
       file << ',' << trg_charge[i_sample].stc_sum(6, 0) << '\n';
     }
+
+    int new_self_trigger_count = trig->get_self_trigger_count();
+    if (new_self_trigger_count != self_trigger_count+1) {
+      // self trigger counter is 16bits and so we may have wrapped around
+      // if its getting spammed
+      int diff{0};
+      if (new_self_trigger_count < self_trigger_count) {
+        // wrap around happend
+        diff = (0xffff - self_trigger_count) + new_self_trigger_count;
+      } else {
+        // no wrap around
+        diff = new_self_trigger_count - self_trigger_count - 1;
+      }
+      pflib_log(info) << "single-shot gate ignored "
+                      << diff
+                      << " self-triggers while acquiring, decoding, and serializing data"
+                      << " for event " << i_event;
+    }
+    self_trigger_count = new_self_trigger_count;
   }
 
   tgt->fc().fc_enables(l1aen, extl1a);
