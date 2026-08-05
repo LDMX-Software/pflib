@@ -10,6 +10,8 @@ static constexpr uint32_t ADDR_HISTO_CLEAR = 0x100 / 4;
 static constexpr uint32_t MASK_HISTO_CLEAR = 0x4;
 static constexpr uint32_t ADDR_TRIG_HISTO_03 = 0xC40 / 4;
 static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_ENCODED_03 = 0xC48 / 4;
+static constexpr uint32_t ADDR_TRIG_HISTO_ENCODED_47 = 0xC4C / 4;
 static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
 
 uint32_t FWHistoPool::FW_VERSION = 0;
@@ -50,6 +52,10 @@ std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
   } else if (block == 1) {
     data_addr = ADDR_TRIG_HISTO_47;
   } else if (block == 2) {
+    data_addr = ADDR_TRIG_HISTO_ENCODED_03;
+  } else if (block == 3) {
+    data_addr = ADDR_TRIG_HISTO_ENCODED_47;
+  } else if (block == 4) {
     data_addr = ADDR_TRIG_HISTO_TEST;
   }
   std::array<uint32_t, 256> data;
