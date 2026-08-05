@@ -9,6 +9,8 @@
 #include "decode_multi_sample.h"
 #include "histo.h"
 #include "pflib/packing/SingleECONTCaptureFrame.h"
+#include "pflib/packing/DecompressAEBM.h"
+#include "pflib/zcu/zcu_trig.h"
 #include "self_trig.h"
 #include "timein.h"
 #include "watch_run.h"
@@ -122,6 +124,42 @@ void trig(const std::string& cmd, Target* target) {
 }
 
 /**
+ * ZCU trigger-specific stuff
+ */
+void ztrig(const std::string& cmd, Target* tgt) {
+  pflib::zcu::ZCUtrig* trig = dynamic_cast<pflib::zcu::ZCUtrig*>(tgt->trig());
+  if (!trig) return;
+
+  static uint32_t decoder_lut_addr = 0;
+  if (cmd == "DECODER_LUT_READ") {
+    decoder_lut_addr = pftool::readline_int("Encoded Value to Read: ", decoder_lut_addr, true);
+    uint32_t val = trig->get_decoder_lut(decoder_lut_addr);
+    printf("0x%03x : %d\n", decoder_lut_addr, val);
+  }
+
+  if (cmd == "DECODER_LUT_WRITE") {
+    decoder_lut_addr = pftool::readline_int("Encoded Value to Write for: ", decoder_lut_addr, true);
+    uint32_t val = pftool::readline_int("Value to write: ", trig->get_decoder_lut(decoder_lut_addr));
+    trig->set_decoder_lut(decoder_lut_addr, val);
+  }
+
+  if (cmd == "DECODER_LUT_INIT") {
+    int divisor = pftool::readline_int("Scale to divide decoded values by: ", 1);
+    for (int encoded_val{0}; encoded_val < (1 << 9); encoded_val++) {
+      unsigned long full_decoded_val = pflib::packing::decompressAEBM<5, 4>(encoded_val) / divisor;
+      // the LUT only has an output width of 16 bits, so we saturate
+      // if the full decoded val (after dividing out the scale) would
+      // be above this limit
+      uint32_t lut_decoded_val = 0xffff;
+      if (full_decoded_val < (1 << 16)) {
+        lut_decoded_val = static_cast<uint32_t>(full_decoded_val);
+      }
+      trig->set_decoder_lut(encoded_val, lut_decoded_val);
+    }
+  }
+}
+
+/**
  * TRIG.SETUP
  *
  * apply the various time offset parameters that were deduced in TIMEIN
@@ -159,7 +197,10 @@ auto menu_trig =
             setup)
         ->line("WATCH_RUN", "collect data following self-trigger", watch_run)
         ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
-        ->line("EVENT_SPY", "attempt to read the last captured event", trig);
+        ->line("EVENT_SPY", "attempt to read the last captured event", trig)
+        ->line("DECODER_LUT_READ", "read a value from the decoding LUT", ztrig)
+        ->line("DECODER_LUT_WRITE", "write a value from the decoding LUT", ztrig)
+        ->line("DECODER_LUT_INIT", "initialize the entire decoding LUT", ztrig);
 
 auto menu_expert =
     menu_trig->submenu("EXPERT", "low-level commands for debugging behavior")
