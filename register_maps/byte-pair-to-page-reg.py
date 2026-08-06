@@ -123,7 +123,6 @@ blockname_to_subblock_type = {
     'ch': 'CHANNELWISE',
     'cm': 'CHANNELWISE',
     'calib': 'CHANNELWISE',
-    'HalfWise': 'CHANNELWISE',
     'Top' : 'TOP',
     'DigitalHalf': 'DIGITALHALF',
     'GlobalAnalog': 'GLOBALANALOG',

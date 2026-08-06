@@ -93,14 +93,16 @@ void timein(Target* tgt) {
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
   for (int half{0}; half < 2; half++) {
-    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]
-             ["ADC_PEDESTAL"] = 255;
     roc_setup[pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] =
         31;
     auto refvol_page{
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
     roc_setup[refvol_page]["CALIB"] = 3000;
     roc_setup[refvol_page]["INTCTEST"] = 1;
+  }
+  for (int ch{0}; ch < 72; ch++) {
+    roc_setup[pflib::utility::string_format("CH_%d", half)]
+             ["ADC_PEDESTAL"] = 255;
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
