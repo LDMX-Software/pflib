@@ -138,23 +138,15 @@ std::vector<uint32_t> ZCUtrig::read_sample() {
 static constexpr uint32_t ADDR_DECODER_LUT_READ = 0xC0C / 4;
 static constexpr uint32_t MASK_DECODER_LUT_READ = 0x0000ffff;
 
-static constexpr uint32_t ADDR_DECODER_LUT_CONF = 0x620 / 4;
+static constexpr uint32_t ADDR_DECODER_LUT_CONF = 0x61C / 4;
 static constexpr uint32_t MASK_DECODER_LUT_WVAL = 0x0000ffff;
 static constexpr uint32_t MASK_DECODER_LUT_ADDR = 0x01ff0000;
 // the DO_WRITE strobe is in the ADDR_RESET register
-static constexpr uint32_t MASK_DECODER_LUT_DO_WRITE = 0x00000004;
+static constexpr uint32_t MASK_DECODER_LUT_DO_WRITE = 0x00000008;
 
 uint32_t ZCUtrig::get_decoder_lut(uint32_t addr) {
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_ADDR, addr);
-  usleep(100);
-  for (int i{0}; i < 32; i++) {
-    uint32_t addr = 0xC00 / 4 + i;
-    printf("0x%03x : %08x\n", addr*4, uio_.read(addr));
-  }
-  for (int i{0}; i < 32; i++) {
-    uint32_t addr = 0x600 / 4 + i;
-    printf("0x%03x : %08x\n", addr*4, uio_.read(addr));
-  }
+  usleep(10);
   return uio_.readMasked(ADDR_DECODER_LUT_READ, MASK_DECODER_LUT_READ);
 }
 
