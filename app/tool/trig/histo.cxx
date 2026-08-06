@@ -78,17 +78,16 @@ void histo(const std::string& cmd, Target* tgt) {
   }
 
   if (cmd == "DUMP") {
-    // since the histograms fill so fast,
-    // we read BEFORE asking what to write to enable a RESET->DUMP to
-    // be able to happen quickly
+    bool decoded = pftool::readline_bool("Decoded sums instead of encoded sums?", true);
     std::array<std::array<uint32_t, 256>, 8> hists;
     auto now = the_clock::now();
+    int offset{decoded?0:8};
     for (int ihist{0}; ihist < hists.size(); ihist++) {
-      hists[ihist] = hist_pool.read(ihist);
+      hists[ihist] = hist_pool.read(offset+ihist);
     }
 
     std::optional<double> collection_time = get_collection_time(now);
-    pflib_log(info) << "accumulated histogram for "
+    pflib_log(info) << "accumulated histograms for "
                     << collection_time.value_or(0) << "s";
 
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
@@ -114,12 +113,14 @@ void histo(const std::string& cmd, Target* tgt) {
 
     if (pftool::readline_bool("Store histograms in JSON file for plotting?",
                               false)) {
-      auto path = pftool::readline_path("fwhist-dump", ".json");
+      std::string def_prefix{"fwhist-dump-"};
+      def_prefix += decoded?"decoded":"encoded";
+      auto path = pftool::readline_path(def_prefix, ".json");
       std::ofstream file{path};
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
       }
-      file << FWHistoPool::to_json(hists, collection_time.value_or(0));
+      file << FWHistoPool::to_json(hists, decoded, collection_time.value_or(0));
     }
   }
 }

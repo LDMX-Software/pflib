@@ -145,6 +145,7 @@ void ztrig(const std::string& cmd, Target* tgt) {
 
   if (cmd == "DECODER_LUT_INIT") {
     int divisor = pftool::readline_int("Scale to divide decoded values by: ", 1);
+    bool show_lut = pftool::readline_bool("Show LUT that is being written? ", true);
     for (int encoded_val{0}; encoded_val < (1 << 9); encoded_val++) {
       unsigned long full_decoded_val = pflib::packing::decompressAEBM<5, 4>(encoded_val) / divisor;
       // the LUT only has an output width of 16 bits, so we saturate
@@ -154,6 +155,7 @@ void ztrig(const std::string& cmd, Target* tgt) {
       if (full_decoded_val < (1 << 16)) {
         lut_decoded_val = static_cast<uint32_t>(full_decoded_val);
       }
+      if (show_lut) printf("0x%03x : %d\n", encoded_val, lut_decoded_val);
       trig->set_decoder_lut(encoded_val, lut_decoded_val);
     }
   }

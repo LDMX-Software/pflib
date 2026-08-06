@@ -108,13 +108,16 @@ class FWHistoPool {
    * ```
    *
    * @param[in] data set of histograms to serialize into JSON
+   * @param[in] whether to label the axis for the sums as decoded (true)
+   * or encoded (false)
    * @param[in] collection_time time in s that data was collected,
-   * included in the histograms 'metadata' in the JSON for scaling
+   * included in the histogram's 'metadata' in the JSON for scaling
    * the plot later if desired
    * @return JSON representation of list of histograms
    */
   static nlohmann::json to_json(
       const std::array<std::array<uint32_t, 256>, 8>& data,
+      bool decoded,
       double collection_time);
 };
 

@@ -40,10 +40,10 @@ void FWHistoPool::debug(int fill_val) {
 }
 
 std::array<uint32_t, 256> FWHistoPool::read(int ihist) {
-  if (ihist < 0 or ihist > 11) {
+  if (ihist < 0 or ihist > 19) {
     PFEXCEPTION_RAISE("OutOfRange",
                       "Provided histogram index " + std::to_string(ihist) +
-                          " but the FWHistoPool only supports indices [0,11]");
+                          " but the FWHistoPool only supports indices [0,19]");
   }
   int block = ihist / 4;
   uint32_t data_addr = 0;
@@ -86,13 +86,21 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
   axis["overflow"] = false;
   axis["circular"] = false;
   std::string name;
-  if (ihist < 8) {
-    name = string_format("STC%d", ihist);
+  if (ihist < 16) {
+    name = string_format("STC%d", ihist % 8);
   } else {
-    name = string_format("TEST%d", ihist - 8);
+    name = string_format("TEST%d", ihist % 8);
   }
   axis["metadata"]["name"] = name;
-  axis["metadata"]["label"] = name + " Encoded Sum";
+  std::string label = name;
+  if (ihist < 8) {
+    name += "Decoded Sum";
+  } else if (ihist < 16) {
+    name += "Encoded Sum";
+  } else {
+    name += "STB Fill Code";
+  }
+  axis["metadata"]["label"] = label;
 
   hist["axes"] = {axis};
   hist["storage"]["type"] = "double";
@@ -102,6 +110,7 @@ nlohmann::json FWHistoPool::to_json(const std::array<uint32_t, 256>& data,
 
 nlohmann::json FWHistoPool::to_json(
     const std::array<std::array<uint32_t, 256>, 8>& data,
+    bool decoded,
     double collection_time) {
   nlohmann::json hist;
   hist["uhi_schema"] = 1;
@@ -127,8 +136,13 @@ nlohmann::json FWHistoPool::to_json(
   reg["underflow"] = false;
   reg["overflow"] = false;
   reg["circular"] = false;
-  reg["metadata"]["name"] = "encoded_sum";
-  reg["metadata"]["label"] = "Encoded Sum";
+  if (decoded) {
+    reg["metadata"]["name"] = "decoded_sum";
+    reg["metadata"]["label"] = "Decoded Sum";
+  } else {
+    reg["metadata"]["name"] = "encoded_sum";
+    reg["metadata"]["label"] = "Encoded Sum";
+  }
 
   hist["axes"] = {cat, reg};
   hist["storage"]["type"] = "double";
