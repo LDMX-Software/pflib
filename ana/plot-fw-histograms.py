@@ -19,6 +19,7 @@ parser.add_argument('--error-bars', action='store_true', help='show error bars i
 parser.add_argument('--stc', type=int, help='only plot input STC if given')
 parser.add_argument('--roc-adc-th', type=int, help='digitalhalf_#.adc_th setting on the ROCs being used')
 parser.add_argument('--trigger-th', type=int, help='trigger threshold being used')
+parser.add_argument('--decoder-lut-scale', type=int, help='scale division loaded into decoder lut')
 parser.add_argument('--raw-counts', action='store_true', help='plot raw counts instead of scaling by collection time to estimate the rate')
 args = parser.parse_args()
 
@@ -42,6 +43,9 @@ if args.stc is not None and len(h.axes) > 1:
     )
 else:
     h.plot(yerr = args.error_bars)
+
+if args.decoder_lut_scale is not None:
+    plt.xlabel(plt.gca().get_xlabel() + f' / {args.decoder_lut_scale}')
 
 vlines = []
 if args.roc_adc_th is not None:
