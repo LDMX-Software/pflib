@@ -17,13 +17,15 @@ ENABLE_LOGGING();
 FWHistoPool::FillValue prompt_fill_value() {
   static int choice = 0;
   choice = pftool::readline_int(
-    "Fill Value Options:\n"
-    "  0: decoded sums\n"
-    "  1: encoded sums\n"
-    "  2: high peak values\n"
-    "Which do you choose?", choice);
+      "Fill Value Options:\n"
+      "  0: decoded sums\n"
+      "  1: encoded sums\n"
+      "  2: high peak values\n"
+      "Which do you choose?",
+      choice);
   if (choice < 0 or choice > 2) {
-    PFEXCEPTION_RAISE("BadChoice", "Chosen fill value is not one of the options");
+    PFEXCEPTION_RAISE("BadChoice",
+                      "Chosen fill value is not one of the options");
   }
   return FWHistoPool::FillValue(choice);
 }
@@ -45,8 +47,8 @@ void histo(const std::string& cmd, Target* tgt) {
     static int ihist = 0;
     ihist = pftool::readline_int("Which histogram?", ihist);
     auto hist = hist_pool.read(prompt_fill_value(), ihist);
-    pflib_log(info) << "accumulated histogram for "
-                    << hist.collection_time() << "s";
+    pflib_log(info) << "accumulated histogram for " << hist.collection_time()
+                    << "s";
     bool raw_counts = true;
     if (hist.collection_time() > 0) {
       raw_counts =
@@ -75,8 +77,8 @@ void histo(const std::string& cmd, Target* tgt) {
 
   if (cmd == "DUMP") {
     auto hist = hist_pool.read(prompt_fill_value());
-    pflib_log(info) << "accumulated histograms for "
-                    << hist.collection_time() << "s";
+    pflib_log(info) << "accumulated histograms for " << hist.collection_time()
+                    << "s";
 
     if (pftool::readline_bool("Show histograms in terminal?", true)) {
       bool raw_counts = true;

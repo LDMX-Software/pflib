@@ -11,7 +11,8 @@ static constexpr uint32_t MASK_HISTO_CLEAR = 0x4;
 
 uint32_t FWHistoPool::FW_VERSION = 0;
 
-std::optional<double> FWHistoPool::get_collection_time(FWHistoPool::a_time_point now) const {
+std::optional<double> FWHistoPool::get_collection_time(
+    FWHistoPool::a_time_point now) const {
   using namespace std::literals;
   if (time_of_last_clear_) {
     return (now - time_of_last_clear_.value()) / 1.0s;
@@ -23,14 +24,15 @@ std::optional<double> FWHistoPool::get_collection_time(FWHistoPool::a_time_point
   }
 }
 
-std::array<uint32_t, 256> FWHistoPool::read_fw(FWHistoPool::FillValue fill_type, int index) {
+std::array<uint32_t, 256> FWHistoPool::read_fw(FWHistoPool::FillValue fill_type,
+                                               int index) {
   uint32_t quad_addr, quad_index{static_cast<uint32_t>(index % 4)};
   if (fill_type == FWHistoPool::FillValue::DecodedSum) {
-    quad_addr = (0xC00 + 4*0x10 + 4*(index / 4)) / 4;
+    quad_addr = (0xC00 + 4 * 0x10 + 4 * (index / 4)) / 4;
   } else if (fill_type == FWHistoPool::FillValue::EncodedSum) {
-    quad_addr = (0xC00 + 4*0x12 + 4*(index / 4)) / 4;
+    quad_addr = (0xC00 + 4 * 0x12 + 4 * (index / 4)) / 4;
   } else if (fill_type == FWHistoPool::FillValue::HighPeak) {
-    quad_addr = (0xC00 + 4*0x14 + 4*(index / 4)) / 4;
+    quad_addr = (0xC00 + 4 * 0x14 + 4 * (index / 4)) / 4;
   } else if (fill_type == FWHistoPool::FillValue::Test) {
     // only one quad for test histogram
     quad_addr = 0xC7C / 4;
@@ -73,21 +75,21 @@ void FWHistoPool::debug(int fill_val) {
 }
 
 FWHistoPool::SingleChannelHistogram::SingleChannelHistogram(
-  FillValue fill_type, int index, std::array<uint32_t, 256> values, double collection_time)
-  : fill_type_{fill_type},
-    index_{index},
-    values_{values},
-    collection_time_{collection_time} {}
+    FillValue fill_type, int index, std::array<uint32_t, 256> values,
+    double collection_time)
+    : fill_type_{fill_type},
+      index_{index},
+      values_{values},
+      collection_time_{collection_time} {}
 
 FWHistoPool::FillValue FWHistoPool::SingleChannelHistogram::fill_type() const {
   return fill_type_;
 }
 
-int FWHistoPool::SingleChannelHistogram::index() const {
-  return index_;
-}
+int FWHistoPool::SingleChannelHistogram::index() const { return index_; }
 
-const std::array<uint32_t, 256> FWHistoPool::SingleChannelHistogram::values() const {
+const std::array<uint32_t, 256> FWHistoPool::SingleChannelHistogram::values()
+    const {
   return values_;
 }
 
@@ -96,18 +98,16 @@ double FWHistoPool::SingleChannelHistogram::collection_time() const {
 }
 
 static const std::unordered_map<FWHistoPool::FillValue, std::string> LABELS = {
-  {FWHistoPool::FillValue::EncodedSum, "Encoded Sum"},
-  {FWHistoPool::FillValue::DecodedSum, "Decoded Sum"},
-  {FWHistoPool::FillValue::HighPeak, "High Peak"},
-  {FWHistoPool::FillValue::Test, "Test Fill Code"}
-};
+    {FWHistoPool::FillValue::EncodedSum, "Encoded Sum"},
+    {FWHistoPool::FillValue::DecodedSum, "Decoded Sum"},
+    {FWHistoPool::FillValue::HighPeak, "High Peak"},
+    {FWHistoPool::FillValue::Test, "Test Fill Code"}};
 
 static const std::unordered_map<FWHistoPool::FillValue, std::string> NAMES = {
-  {FWHistoPool::FillValue::EncodedSum, "encoded_sum"},
-  {FWHistoPool::FillValue::DecodedSum, "decoded_sum"},
-  {FWHistoPool::FillValue::HighPeak, "high_peak"},
-  {FWHistoPool::FillValue::Test, "test_fill_code"}
-};
+    {FWHistoPool::FillValue::EncodedSum, "encoded_sum"},
+    {FWHistoPool::FillValue::DecodedSum, "decoded_sum"},
+    {FWHistoPool::FillValue::HighPeak, "high_peak"},
+    {FWHistoPool::FillValue::Test, "test_fill_code"}};
 
 nlohmann::json FWHistoPool::SingleChannelHistogram::to_json() const {
   nlohmann::json hist;
@@ -141,7 +141,8 @@ nlohmann::json FWHistoPool::SingleChannelHistogram::to_json() const {
   return hist;
 }
 
-FWHistoPool::SingleChannelHistogram FWHistoPool::read(FWHistoPool::FillValue fill_type, int index) {
+FWHistoPool::SingleChannelHistogram FWHistoPool::read(
+    FWHistoPool::FillValue fill_type, int index) {
   if (index < 0 or index > 7) {
     PFEXCEPTION_RAISE("OutOfRange",
                       "Provided histogram index " + std::to_string(index) +
@@ -149,21 +150,23 @@ FWHistoPool::SingleChannelHistogram FWHistoPool::read(FWHistoPool::FillValue fil
   }
 
   return SingleChannelHistogram(
-    fill_type, index, read_fw(fill_type, index), get_collection_time(the_clock::now()).value_or(0)
-  );
+      fill_type, index, read_fw(fill_type, index),
+      get_collection_time(the_clock::now()).value_or(0));
 }
 
 FWHistoPool::BlockHistogram::BlockHistogram(
-  FillValue fill_type, std::array<std::array<uint32_t, 256>,8> values, double collection_time)
-  : fill_type_{fill_type},
-    values_{values},
-    collection_time_{collection_time} {}
+    FillValue fill_type, std::array<std::array<uint32_t, 256>, 8> values,
+    double collection_time)
+    : fill_type_{fill_type},
+      values_{values},
+      collection_time_{collection_time} {}
 
 FWHistoPool::FillValue FWHistoPool::BlockHistogram::fill_type() const {
   return fill_type_;
 }
 
-const std::array<std::array<uint32_t, 256>,8> FWHistoPool::BlockHistogram::values() const {
+const std::array<std::array<uint32_t, 256>, 8>
+FWHistoPool::BlockHistogram::values() const {
   return values_;
 }
 

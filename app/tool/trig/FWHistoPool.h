@@ -6,8 +6,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-#include "pflib/zcu/UIO.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/zcu/UIO.h"
 
 /**
  * read and print histograms filled by the firmware
@@ -100,8 +100,11 @@ class FWHistoPool {
     std::array<uint32_t, 256> values_;
     /// time histogram was filling in seconds (or zero if no last clear)
     double collection_time_;
+
    public:
-    SingleChannelHistogram(FillValue fill_type, int index, std::array<uint32_t, 256> values, double collection_time);
+    SingleChannelHistogram(FillValue fill_type, int index,
+                           std::array<uint32_t, 256> values,
+                           double collection_time);
     /// which type of fill value was put into the histogram
     FillValue fill_type() const;
     /// which index was read
@@ -155,8 +158,11 @@ class FWHistoPool {
     std::array<std::array<uint32_t, 256>, 8> values_;
     /// time histogram was filling in seconds (or zero if no last clear)
     double collection_time_;
+
    public:
-    BlockHistogram(FillValue fill_type, std::array<std::array<uint32_t, 256>, 8> values, double collection_time);
+    BlockHistogram(FillValue fill_type,
+                   std::array<std::array<uint32_t, 256>, 8> values,
+                   double collection_time);
     /// which type of fill value was put into the histogram
     FillValue fill_type() const;
     /// access the values of the histogram
