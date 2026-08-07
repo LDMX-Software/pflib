@@ -74,9 +74,9 @@ local_pedestal_level(Target* tgt) {
   // each channel has measurements at different parameter points
   std::map<int, std::array<int, 72>> baseline, highend, lowend;
   // will fill with standard deviations so we can ommit dead channels
-  std::map<int, std::array<int, 72>> basedevs, highdevs, lowdevs;
+  std::map<int, std::array<int, 72>> basedevs;
   // include all zero parmeter run values since hcal used DACB and SIGN_DAC
-  std::map<int, std::array<int, 72>> allzero, zerodevs;
+  std::map<int, std::array<int, 72>> allzero;
 
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
@@ -94,9 +94,7 @@ local_pedestal_level(Target* tgt) {
 	    parameters[ch_str]["TRIM_INV"] = 32; 
 	  }
     }
-    std::cout << "im alive" << std::endl;
     auto test_params = tgt->tempApplyAllROCs(parameters);
-    std::cout << "im still alive" << std::endl;
 
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
@@ -124,30 +122,22 @@ local_pedestal_level(Target* tgt) {
   }
 
   if ( pftool::state.readout_config_is_hcal() ) {
-    {  // allzero run scope (SIGN_DAC = DACB = TRIM_INV = 0)
-      pflib_log(info) << "100 event all-zero-parameters run";
-      std::map<std::string, std::map<std::string, uint64_t>> parameters;
-      for (int ch{0}; ch < 72; ch++) {
-        std::string ch_str{"CH_" + std::to_string(ch)};
-	   // if ( pftool::state.readout_config_is_hcal() ) {
-        parameters[ch_str]["SIGN_DAC"] = 0;
-        parameters[ch_str]["DACB"] = 0;
-        parameters[ch_str]["TRIM_INV"] = 0;
-	   // }
-	   // else {
-	     // parameters[ch_str]["TRIM_INV"] = 0; 
-	   // }
-      }
-      auto test_params = tgt->tempApplyAllROCs(parameters);
+    // allzero run scope (SIGN_DAC = DACB = TRIM_INV = 0)
+    pflib_log(info) << "100 event all-zero-parameters run";
+    std::map<std::string, std::map<std::string, uint64_t>> parameters;
+    for (int ch{0}; ch < 72; ch++) {
+      std::string ch_str{"CH_" + std::to_string(ch)};
+      parameters[ch_str]["SIGN_DAC"] = 0;
+      parameters[ch_str]["DACB"] = 0;
+      parameters[ch_str]["TRIM_INV"] = 0;
+    }
+    auto test_params = tgt->tempApplyAllROCs(parameters);
 
-      daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
-      pflib_log(trace) << "all-zero-params run done, getting channel medians";
-      for (int i_roc : tgt->roc_ids()) {
-        allzero[i_roc] =
-            get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-	    zerodevs[i_roc] =
-            get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-      }
+    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    pflib_log(trace) << "all-zero-params run done, getting channel medians";
+    for (int i_roc : tgt->roc_ids()) {
+      allzero[i_roc] =
+          get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
   }
 
@@ -172,8 +162,6 @@ local_pedestal_level(Target* tgt) {
     for (int i_roc : tgt->roc_ids()) {
       highend[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-	  highdevs[i_roc] =
-          get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
   }
 
@@ -198,8 +186,6 @@ local_pedestal_level(Target* tgt) {
     for (int i_roc : tgt->roc_ids()) {
       lowend[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-	  lowdevs[i_roc] =
-          get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
     }
   }
 
@@ -208,6 +194,9 @@ local_pedestal_level(Target* tgt) {
       settings;
   for (int i_roc : tgt->roc_ids()) {
     for (int ch{0}; ch < 72; ch++) {
+      if (basedevs[i_roc].at(ch) == 0) {
+        continue;      
+      }
       std::string page{pflib::utility::string_format("CH_%d", ch)};
       int i_half = ch / 36;
       if (baseline[i_roc].at(ch) < target[i_roc].at(i_half)) {
