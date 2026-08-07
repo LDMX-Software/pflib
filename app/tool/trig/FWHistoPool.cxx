@@ -8,11 +8,6 @@ using pflib::utility::string_format;
 
 static constexpr uint32_t ADDR_HISTO_CLEAR = 0x100 / 4;
 static constexpr uint32_t MASK_HISTO_CLEAR = 0x4;
-static constexpr uint32_t ADDR_TRIG_HISTO_03 = 0xC40 / 4;
-static constexpr uint32_t ADDR_TRIG_HISTO_47 = 0xC44 / 4;
-static constexpr uint32_t ADDR_TRIG_HISTO_ENCODED_03 = 0xC48 / 4;
-static constexpr uint32_t ADDR_TRIG_HISTO_ENCODED_47 = 0xC4C / 4;
-static constexpr uint32_t ADDR_TRIG_HISTO_TEST = 0xC7C / 4;
 
 uint32_t FWHistoPool::FW_VERSION = 0;
 
@@ -31,20 +26,14 @@ std::optional<double> FWHistoPool::get_collection_time(FWHistoPool::a_time_point
 std::array<uint32_t, 256> FWHistoPool::read_fw(FWHistoPool::FillValue fill_type, int index) {
   uint32_t quad_addr, quad_index{static_cast<uint32_t>(index % 4)};
   if (fill_type == FWHistoPool::FillValue::DecodedSum) {
-    if (index < 4) {
-      quad_addr = ADDR_TRIG_HISTO_03;
-    } else {
-      quad_addr = ADDR_TRIG_HISTO_47;
-    }
+    quad_addr = (0xC00 + 4*0x10 + 4*(index / 4)) / 4;
   } else if (fill_type == FWHistoPool::FillValue::EncodedSum) {
-    if (index < 4) {
-      quad_addr = ADDR_TRIG_HISTO_ENCODED_03;
-    } else {
-      quad_addr = ADDR_TRIG_HISTO_ENCODED_47;
-    }
+    quad_addr = (0xC00 + 4*0x12 + 4*(index / 4)) / 4;
+  } else if (fill_type == FWHistoPool::FillValue::HighPeak) {
+    quad_addr = (0xC00 + 4*0x14 + 4*(index / 4)) / 4;
   } else if (fill_type == FWHistoPool::FillValue::Test) {
     // only one quad for test histogram
-    quad_addr = ADDR_TRIG_HISTO_TEST;
+    quad_addr = 0xC7C / 4;
   }
   std::array<uint32_t, 256> data;
   for (int i{0}; i < data.size(); i++) {
@@ -109,12 +98,14 @@ double FWHistoPool::SingleChannelHistogram::collection_time() const {
 static const std::unordered_map<FWHistoPool::FillValue, std::string> LABELS = {
   {FWHistoPool::FillValue::EncodedSum, "Encoded Sum"},
   {FWHistoPool::FillValue::DecodedSum, "Decoded Sum"},
+  {FWHistoPool::FillValue::HighPeak, "High Peak"},
   {FWHistoPool::FillValue::Test, "Test Fill Code"}
 };
 
 static const std::unordered_map<FWHistoPool::FillValue, std::string> NAMES = {
   {FWHistoPool::FillValue::EncodedSum, "encoded_sum"},
   {FWHistoPool::FillValue::DecodedSum, "decoded_sum"},
+  {FWHistoPool::FillValue::HighPeak, "high_peak"},
   {FWHistoPool::FillValue::Test, "test_fill_code"}
 };
 

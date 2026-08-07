@@ -73,8 +73,10 @@ class FWHistoPool {
     DecodedSum = 0,
     /// the sums as unpacked but still in their 5E+4M encoding
     EncodedSum = 1,
+    /// value of rolling sum, high peaks used for trigger
+    HighPeak = 2,
     /// the test histogram codes
-    Test = 2
+    Test = 15
   };
 
   /**

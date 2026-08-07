@@ -16,7 +16,12 @@ ENABLE_LOGGING();
 
 FWHistoPool::FillValue prompt_fill_value() {
   static int choice = 0;
-  choice = pftool::readline_int("Fill Value Options:\n  0: decoded sums\n  1: encoded sums\n  2: test hist\nWhich do you choose?", choice);
+  choice = pftool::readline_int(
+    "Fill Value Options:\n"
+    "  0: decoded sums\n"
+    "  1: encoded sums\n"
+    "  2: high peak values\n"
+    "Which do you choose?", choice);
   if (choice < 0 or choice > 2) {
     PFEXCEPTION_RAISE("BadChoice", "Chosen fill value is not one of the options");
   }
@@ -103,6 +108,9 @@ void histo(const std::string& cmd, Target* tgt) {
           break;
         case FWHistoPool::FillValue::EncodedSum:
           def_prefix += "encoded";
+          break;
+        case FWHistoPool::FillValue::HighPeak:
+          def_prefix += "highpeak";
           break;
         default:
           break;
