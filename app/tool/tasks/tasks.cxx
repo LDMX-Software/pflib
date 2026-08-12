@@ -24,6 +24,7 @@
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "setup/check_lpgbt_backend.h"
+#include "SPS_readout.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_scan.h"
@@ -79,7 +80,8 @@ auto menu_tasks =
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("TOA_SCAN", "calibrate TRIM_TOA parameters for each channel",
                toa_scan)
-        ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan);
+        ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan)
+        ->line("SPS_READOUT", "Take data of a photospectrum on one bunch crossing", sps_readout);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
