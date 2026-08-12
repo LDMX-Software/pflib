@@ -41,10 +41,10 @@ static std::array<int, 72> get_adc_medians(
   return medians;
 }
 
-static std::array<int, 72> get_adc_stdevs(
+static std::array<double, 72> get_adc_stdevs(
     int i_roc, const pflib::packing::SingleECONDRocErxMapping& mapping,
     const std::vector<pflib::packing::MultiSampleECONDEventPacket>& data) {
-  std::array<int, 72> stdevs;
+  std::array<double, 72> stdevs;
   /// reserve a vector of the appropriate size to avoid repeating allocation
   /// time for all 72 channels
   std::vector<int> adcs(data.size());
@@ -74,7 +74,7 @@ local_pedestal_level(Target* tgt) {
   // each channel has measurements at different parameter points
   std::map<int, std::array<int, 72>> baseline, highend, lowend;
   // will fill with standard deviations so we can ommit dead channels
-  std::map<int, std::array<int, 72>> basedevs;
+  std::map<int, std::array<double, 72>> basedevs;
   // include all zero parmeter run values since hcal used DACB and SIGN_DAC
   std::map<int, std::array<int, 72>> allzero;
 
@@ -99,15 +99,17 @@ local_pedestal_level(Target* tgt) {
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
     std::map<int, std::array<int, 72>> medians;
-	std::map<int, std::array<int, 72>> stdevs;
+	std::map<int, std::array<double, 72>> stdevs;
     for (int i_roc : tgt->roc_ids()) {
       medians[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-	  stdevs[i_roc] =
+	  basedevs[i_roc] =
           get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
+      for (const auto& num : basedevs[i_roc]) {
+        pflib_log(debug) << num << " ";
+      }
     }
-    baseline = medians;
-	basedevs = stdevs;
+    baseline = medians; 
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_half{0}; i_half < 2; i_half++) {
       for (int i_roc : tgt->roc_ids()) {
@@ -317,11 +319,9 @@ local_pedestal_level(Target* tgt) {
 		  }
         }
 		else /* ecal */ {
-		  double trim_diff = static_cast<double>(baseline[i_roc].at(ch) -
-                                                lowend[i_roc].at(ch));
 		  double optim = 32 - ( scale * 32 );
 		  uint64_t val = static_cast<uint64_t>(optim);
-	      pflib_log(trace) << "Scale " << (diff/trim_diff)
+	      pflib_log(trace) << "Scale " << scale
 							 << " giving optimal value of "
                              << optim << " for TRIM_INV"
 							    " which rounds to " << val;
