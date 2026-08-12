@@ -1,12 +1,12 @@
 #include "local_pedestal_level.h"
 
+#include <iostream>
+
 #include "../daq_run.h"
 #include "../tasks/local_pedestal_level.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/stdev.h"
 #include "pflib/utility/string_format.h"
-
-#include <iostream>
 
 namespace pflib::algorithm {
 
@@ -85,31 +85,30 @@ local_pedestal_level(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
       std::string ch_str{"CH_" + std::to_string(ch)};
-	  if ( pftool::state.readout_config_is_hcal() ) {
+      if (pftool::state.readout_config_is_hcal()) {
         parameters[ch_str]["SIGN_DAC"] = 0;
         parameters[ch_str]["DACB"] = 0;
         parameters[ch_str]["TRIM_INV"] = 32;
-	  }
-	  else {
-	    parameters[ch_str]["TRIM_INV"] = 32; 
-	  }
+      } else {
+        parameters[ch_str]["TRIM_INV"] = 32;
+      }
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
     daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
     pflib_log(trace) << "baseline run done, getting channel medians";
     std::map<int, std::array<int, 72>> medians;
-	std::map<int, std::array<double, 72>> stdevs;
+    std::map<int, std::array<double, 72>> stdevs;
     for (int i_roc : tgt->roc_ids()) {
       medians[i_roc] =
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-	  basedevs[i_roc] =
+      basedevs[i_roc] =
           get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
       for (const auto& num : basedevs[i_roc]) {
         pflib_log(debug) << num << " ";
       }
     }
-    baseline = medians; 
+    baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_half{0}; i_half < 2; i_half++) {
       for (int i_roc : tgt->roc_ids()) {
@@ -123,7 +122,7 @@ local_pedestal_level(Target* tgt) {
     pflib_log(trace) << "got medians per half";
   }
 
-  if ( pftool::state.readout_config_is_hcal() ) {
+  if (pftool::state.readout_config_is_hcal()) {
     // allzero run scope (SIGN_DAC = DACB = TRIM_INV = 0)
     pflib_log(info) << "100 event all-zero-parameters run";
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
@@ -148,14 +147,13 @@ local_pedestal_level(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
       std::string ch_str{"CH_" + std::to_string(ch)};
-	  if ( pftool::state.readout_config_is_hcal() ) {
+      if (pftool::state.readout_config_is_hcal()) {
         parameters[ch_str]["SIGN_DAC"] = 0;
         parameters[ch_str]["DACB"] = 0;
         parameters[ch_str]["TRIM_INV"] = 63;
-	  }
-	  else {
+      } else {
         parameters[ch_str]["TRIM_INV"] = 63;
-	  }
+      }
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
@@ -172,14 +170,13 @@ local_pedestal_level(Target* tgt) {
     std::map<std::string, std::map<std::string, uint64_t>> parameters;
     for (int ch{0}; ch < 72; ch++) {
       std::string ch_str{"CH_" + std::to_string(ch)};
-	  if ( pftool::state.readout_config_is_hcal() ) {
+      if (pftool::state.readout_config_is_hcal()) {
         parameters[ch_str]["SIGN_DAC"] = 1;
         parameters[ch_str]["DACB"] = 31;
         parameters[ch_str]["TRIM_INV"] = 0;
-	  }
-	  else {
+      } else {
         parameters[ch_str]["TRIM_INV"] = 0;
-	  }
+      }
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
@@ -197,7 +194,7 @@ local_pedestal_level(Target* tgt) {
   for (int i_roc : tgt->roc_ids()) {
     for (int ch{0}; ch < 72; ch++) {
       if (basedevs[i_roc].at(ch) == 0) {
-        continue;      
+        continue;
       }
       std::string page{pflib::utility::string_format("CH_%d", ch)};
       int i_half = ch / 36;
@@ -221,123 +218,126 @@ local_pedestal_level(Target* tgt) {
           settings[i_roc][page]["TRIM_INV"] = 63;
           continue;
         }
-		// scale is in [0,1]
-        double optim = 32 + ( scale * 31 );
+        // scale is in [0,1]
+        double optim = 32 + (scale * 31);
         uint64_t val = static_cast<uint64_t>(optim);
         pflib_log(trace) << "Scale " << scale << " giving optimal value of "
                          << optim << " which rounds to " << val;
         settings[i_roc][page]["TRIM_INV"] = val;
-		continue;
-      } else /* baseline[ch] > target[i_half]  */{
+        continue;
+      } else /* baseline[ch] > target[i_half]  */ {
         double scale = static_cast<double>(baseline[i_roc].at(ch) -
                                            target[i_roc].at(i_half)) /
                        (baseline[i_roc].at(ch) - lowend[i_roc].at(ch));
-        if ( scale < 0 && pftool::state.readout_config_is_hcal() ) {
+        if (scale < 0 && pftool::state.readout_config_is_hcal()) {
           pflib_log(warn) << "Channel " << ch
                           << " is above target but decreasing TRIM_INV "
-							 "and using SIGN_DAC=1 and increasing DACB "
+                             "and using SIGN_DAC=1 and increasing DACB "
                              "made it higher??? Skipping...";
           continue;
         }
-		if ( scale < 0 && !pftool::state.readout_config_is_hcal() ) {
+        if (scale < 0 && !pftool::state.readout_config_is_hcal()) {
           pflib_log(warn) << "Channel " << ch
                           << " is above target but decreasing TRIM_INV "
                              "made it higher??? Skipping...";
           continue;
         }
-		if (scale > 1 && pftool::state.readout_config_is_hcal() ) {
+        if (scale > 1 && pftool::state.readout_config_is_hcal()) {
           pflib_log(warn)
-            << "Channel " << ch
-            << " is so far above target that we cannot lower it enough."
-            << " Setting SIGN_DAC=1 and DACB to its maximumum."
-		    << " Setting TRIM_INV = 0.";
-		  settings[i_roc][page]["TRIM_INV"] = 0;
+              << "Channel " << ch
+              << " is so far above target that we cannot lower it enough."
+              << " Setting SIGN_DAC=1 and DACB to its maximumum."
+              << " Setting TRIM_INV = 0.";
+          settings[i_roc][page]["TRIM_INV"] = 0;
           settings[i_roc][page]["SIGN_DAC"] = 1;
           settings[i_roc][page]["DACB"] = 31;
           continue;
         }
-        if (scale > 1 && !pftool::state.readout_config_is_hcal() ) {
+        if (scale > 1 && !pftool::state.readout_config_is_hcal()) {
           pflib_log(warn)
-            << "Channel " << ch
-            << " is so far above target that we cannot lower it enough."
-		    << " Setting TRIM_INV = 0.";
-		  settings[i_roc][page]["TRIM_INV"] = 0;
+              << "Channel " << ch
+              << " is so far above target that we cannot lower it enough."
+              << " Setting TRIM_INV = 0.";
+          settings[i_roc][page]["TRIM_INV"] = 0;
           continue;
         }
-		// scale is in [0,1]
-		double diff = static_cast<double>(baseline[i_roc].at(ch) -
-                                         target[i_roc].at(i_half));
-		if ( pftool::state.readout_config_is_hcal() ) {
-		  double trim_diff = static_cast<double>(baseline[i_roc].at(ch) -
-                                                allzero[i_roc].at(ch));
-		  double dacb_diff = static_cast<double>(allzero[i_roc].at(ch) -
-                                                lowend[i_roc].at(ch));
-		  if (trim_diff < 0 || dacb_diff < 0) {
-		    pflib_log(debug) << "Channel " << ch
-							 << " is above target but lowering TRIM_INV "
-							 << "or setting SIGN_DAC = 1 and raising DACB"
-							 << " made it higher??? Skipping...";
-			continue;
-		  }
-		  if (diff <= trim_diff) {
-		    double optim = 32 - ( (diff / trim_diff) * 32 );
-			uint64_t val = static_cast<uint64_t>(optim);
-            pflib_log(trace) << "Scale " << (diff/trim_diff)
-							 << " giving optimal value of "
-                             << optim << " for TRIM_INV" 
-							    " which rounds to " << val;
-		    if (val ==0 ) {
-              pflib_log(debug) << "Channel " << ch
-                               << " is above target but too close to use TRIM_INV "
-                                  "to lower, skipping.";
-			} else {
-			  pflib_log(debug) << "Channel " << ch
-                               << " is above target, lowering TRIM_INV";
-			  settings[i_roc][page]["TRIM_INV"] = val;
-			}
-	      }
-		  else /* diff > trim_diff */ {
-            double optim = ( (diff - trim_diff) / dacb_diff ) * 31;
-			uint64_t val = static_cast<uint64_t>(optim);
-            pflib_log(trace) << "Scale " << ((diff-trim_diff)/dacb_diff)
-							 << " giving optimal value of "
-                             << optim << " for DACB"
-							    " which rounds to " << val;
-			if (val == 0) {
-			  pflib_log(debug) << "Channel " << ch
-							   << " is above target but too close to use DACB "
-								  "to lower. Setting TRIM_INV = 0";
-			  settings[i_roc][page]["TRIM_INV"] = 0;
-			} else {
-			  pflib_log(debug) << "Channel" << ch
-							   << " is above target, setting TRIM_INV = 0."
-								  " Setting SIGN_DAC = 1 and DACB.";
-			  settings[i_roc][page]["TRIM_INV"] = 0;
-			  settings[i_roc][page]["SIGN_DAC"] = 1;
-			  settings[i_roc][page]["DACB"] = val;
+        // scale is in [0,1]
+        double diff = static_cast<double>(baseline[i_roc].at(ch) -
+                                          target[i_roc].at(i_half));
+        if (pftool::state.readout_config_is_hcal()) {
+          double trim_diff = static_cast<double>(baseline[i_roc].at(ch) -
+                                                 allzero[i_roc].at(ch));
+          double dacb_diff =
+              static_cast<double>(allzero[i_roc].at(ch) - lowend[i_roc].at(ch));
+          if (trim_diff < 0 || dacb_diff < 0) {
+            pflib_log(debug)
+                << "Channel " << ch << " is above target but lowering TRIM_INV "
+                << "or setting SIGN_DAC = 1 and raising DACB"
+                << " made it higher??? Skipping...";
+            continue;
+          }
+          if (diff <= trim_diff) {
+            double optim = 32 - ((diff / trim_diff) * 32);
+            uint64_t val = static_cast<uint64_t>(optim);
+            pflib_log(trace) << "Scale " << (diff / trim_diff)
+                             << " giving optimal value of " << optim
+                             << " for TRIM_INV"
+                                " which rounds to "
+                             << val;
+            if (val == 0) {
+              pflib_log(debug)
+                  << "Channel " << ch
+                  << " is above target but too close to use TRIM_INV "
+                     "to lower, skipping.";
+            } else {
+              pflib_log(debug)
+                  << "Channel " << ch << " is above target, lowering TRIM_INV";
+              settings[i_roc][page]["TRIM_INV"] = val;
             }
-		  }
-        }
-		else /* ecal */ {
-		  double optim = 32 - ( scale * 32 );
-		  uint64_t val = static_cast<uint64_t>(optim);
-	      pflib_log(trace) << "Scale " << scale
-							 << " giving optimal value of "
-                             << optim << " for TRIM_INV"
-							    " which rounds to " << val;
-		  if (val == 0) {
-		    pflib_log(debug) << "Channel" << ch
-						     << " is above target but too close to use TRIM_INV "
-								"to lower, skipping.";
-		  } else {
-		    pflib_log(debug) << "Channel" << ch
-						     << " is above target, setting TRIM_INV.";
-		    settings[i_roc][page]["TRIM_INV"] = val;
-		  } 
-		} // end if ecal
-      } // end if baseline > target
-    } // end loop over channels
-  } // end loop over rocs
+          } else /* diff > trim_diff */ {
+            double optim = ((diff - trim_diff) / dacb_diff) * 31;
+            uint64_t val = static_cast<uint64_t>(optim);
+            pflib_log(trace) << "Scale " << ((diff - trim_diff) / dacb_diff)
+                             << " giving optimal value of " << optim
+                             << " for DACB"
+                                " which rounds to "
+                             << val;
+            if (val == 0) {
+              pflib_log(debug) << "Channel " << ch
+                               << " is above target but too close to use DACB "
+                                  "to lower. Setting TRIM_INV = 0";
+              settings[i_roc][page]["TRIM_INV"] = 0;
+            } else {
+              pflib_log(debug) << "Channel" << ch
+                               << " is above target, setting TRIM_INV = 0."
+                                  " Setting SIGN_DAC = 1 and DACB.";
+              settings[i_roc][page]["TRIM_INV"] = 0;
+              settings[i_roc][page]["SIGN_DAC"] = 1;
+              settings[i_roc][page]["DACB"] = val;
+            }
+          }
+        } else /* ecal */ {
+          double optim = 32 - (scale * 32);
+          uint64_t val = static_cast<uint64_t>(optim);
+          pflib_log(trace) << "Scale " << scale << " giving optimal value of "
+                           << optim
+                           << " for TRIM_INV"
+                              " which rounds to "
+                           << val;
+          if (val == 0) {
+            pflib_log(debug)
+                << "Channel" << ch
+                << " is above target but too close to use TRIM_INV "
+                   "to lower, skipping.";
+          } else {
+            pflib_log(debug)
+                << "Channel" << ch << " is above target, setting TRIM_INV.";
+            settings[i_roc][page]["TRIM_INV"] = val;
+          }
+        }  // end if ecal
+      }  // end if baseline > target
+    }  // end loop over channels
+  }  // end loop over rocs
 
   return settings;
 }
