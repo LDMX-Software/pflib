@@ -12,7 +12,7 @@ namespace zcu {
 ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
     : transright_("transceiver_right"),
       coder_(coder_name),
-      coder_name_(coder_name),
+      coder_name_(isdaq ? coder_name : "trigpath-0"),
       ilink_(ilink),
       isdaq_(isdaq),
       the_log_{logging::get("zcu_optolink")} {
@@ -22,7 +22,6 @@ ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
   transright_.write(0x2, 0xF0000);
   int chipaddr = 0x78;          // EC
   if (isdaq) chipaddr |= 0x04;  // IC
-
   transport_ =
       std::make_unique<lpGBT_ICEC_Simple>(coder_name, !isdaq, chipaddr);
 }
@@ -31,6 +30,7 @@ static const uint32_t REG_STATUS = 3;
 
 void ZCUOptoLink::soft_reset_link() {
   /// reset the decoder for the current link
+  // trigpath update
   coder_.write(0, 1 << (ilink_ % 2));
 }
 
@@ -134,15 +134,24 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval["BUFFBYPASS_ERROR"] = (val >> 4) & 0x1;
   retval["CDR_LOCK"] = transright_.read(7) & 0xFFF;
 
-  val = coder_.read(2);
   std::string prefix = "LINK" + std::to_string(ilink_);
-  retval[prefix + " READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
-  retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
-  /**
-   * The LINK_ERRORS are not being incremented when a known error is injected,
-   * so without a future firmware patch, we are electing to ignore them.
-  retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
-   */
+  if (isdaq_) {
+    val = coder_.read(2);
+    // READY is lpgbt_decoder_read
+    retval[prefix + " READY"] = (val >> (0 * 2 + (ilink_ % 2))) & 0x1;
+    // NOT_IN_RESET is resetn_decoder_gth_clock
+    retval[prefix + " NOT_IN_RESET"] = (val >> (1 * 2 + (ilink_ % 2))) & 0x1;
+    /**
+     * The LINK_ERRORS are not being incremented when a known error is injected,
+     * so without a future firmware patch, we are electing to ignore them.
+    retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+     */
+  } else {
+    val = coder_.read(0xC04 / 4);
+    retval[prefix + " STATUS_REG"] = val;
+    retval[prefix + " READY"] = (val >> 19) & 0x1;
+    retval[prefix + " NOT_IN_RESET"] = (val >> 18) & 0x1;
+  }
 
   /*
   for (int i{0}; i < 80; i++) {
@@ -173,7 +182,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
     for (int i = 0; i < cnames.size(); i++) {
       retval[cnames[i]] = coder_.read(CRATES_OFFSET + i);
     }
-  } else {
+  } else if (isdaq_) {
     static const std::array<const char*, 10> cnames = {
         "DAQ_LINK_WORD",   "TRIG_LINK_WORD", "DAQ_LINK_ERROR",
         "TRIG_LINK_ERROR", "DAQ_LINK_CLOCK", "TRIG_LINK_CLOCK",
@@ -202,6 +211,20 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
       printf("CODER @ %02d: %08x\n", i, coder_.read(i));
     }
     */
+  } else {
+    // is trigger link and not singleLPGBT
+    static constexpr int RATES_OFFSET = (0xC00 + 4*0x20) / 4;
+    static const std::array<const char*, 6> cnames = {
+      "AXI_CLK", "CLK_40", "LINK_CLK", "LINK_WORD", "LINK_ERR", "LINK_FECERR"
+    };
+    for (int i{0}; i < cnames.size(); i++) {
+      uint32_t val = coder_.read(RATES_OFFSET + i);
+      if (i == 5) {
+        // the FECERR rates have a longer integration time
+        val /= 1000;
+      }
+      retval[cnames[i]] = val;
+    }
   }
 
   return retval;
