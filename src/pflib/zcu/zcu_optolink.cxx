@@ -11,8 +11,9 @@ namespace zcu {
 
 ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
     : transright_("transceiver_right"),
-      coder_(coder_name),
-      coder_name_(isdaq ? coder_name : "trigpath-0"),
+      // TODO generalize
+      coder_(isdaq ? coder_name : "trigpath-0"),
+      coder_name_(coder_name),
       ilink_(ilink),
       isdaq_(isdaq),
       the_log_{logging::get("zcu_optolink")} {
@@ -30,7 +31,7 @@ static const uint32_t REG_STATUS = 3;
 
 void ZCUOptoLink::soft_reset_link() {
   /// reset the decoder for the current link
-  // trigpath update
+  // TODO trigpath update
   coder_.write(0, 1 << (ilink_ % 2));
 }
 
@@ -148,9 +149,8 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
      */
   } else {
     val = coder_.read(0xC04 / 4);
-    retval[prefix + " STATUS_REG"] = val;
-    retval[prefix + " READY"] = (val >> 19) & 0x1;
-    retval[prefix + " NOT_IN_RESET"] = (val >> 18) & 0x1;
+    retval[prefix + " READY"] = (val >> 31) & 0x1;
+    retval[prefix + " NOT_IN_RESET"] = (val >> 30) & 0x1;
   }
 
   /*
