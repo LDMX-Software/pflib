@@ -230,7 +230,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
       retval[cnames[i]] = val;
     }
   } else {
-    // is trigger link and not singleLPGBT
+    // is not singleLPGBT and not daq, so is trigger link
     static constexpr int RATES_OFFSET = (0xC00 + 4 * 0x20) / 4;
     // same names but ordered differently in registers
     static const std::array<const char*, 6> cnames = {
