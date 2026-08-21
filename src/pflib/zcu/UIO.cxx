@@ -148,8 +148,6 @@ void UIO::rmw(size_t where, uint32_t mask_to_mod, uint32_t orval) {
   ptr_[where] = val;
 }
 
-const std::string& UIO::name() const {
-  return name_;
-}
+const std::string& UIO::name() const { return name_; }
 
 }  // namespace pflib

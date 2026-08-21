@@ -17,7 +17,7 @@ std::string trigpath_coder_name(const std::string& coder_name) {
     /// don't return a suffix if we didn't find one
     return "trigpath";
   }
-  return "trigpath"+coder_name.substr(hyphen_it);
+  return "trigpath" + coder_name.substr(hyphen_it);
 }
 
 ZCUOptoLink::ZCUOptoLink(const std::string& coder_name, int ilink, bool isdaq)
@@ -219,8 +219,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   } else if (isdaq_) {
     static const std::array<const char*, 6> cnames = {
         "LINK_WORD", "LINK_ERROR", "LINK_CLOCK",
-        "CLOCK_40", "AXI_CLK", "LINK_FECERR"
-        };
+        "CLOCK_40",  "AXI_CLK",    "LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       uint32_t val = coder_.read(CRATES_OFFSET + i);
@@ -232,12 +231,11 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
     }
   } else {
     // is trigger link and not singleLPGBT
-    static constexpr int RATES_OFFSET = (0xC00 + 4*0x20) / 4;
+    static constexpr int RATES_OFFSET = (0xC00 + 4 * 0x20) / 4;
     // same names but ordered differently in registers
     static const std::array<const char*, 6> cnames = {
-      "AXI_CLK", "CLOCK_40", "LINK_CLOCK",
-      "LINK_WORD", "LINK_ERROR", "LINK_FECERR"
-    };
+        "AXI_CLK",   "CLOCK_40",   "LINK_CLOCK",
+        "LINK_WORD", "LINK_ERROR", "LINK_FECERR"};
     for (int i{0}; i < cnames.size(); i++) {
       uint32_t val = coder_.read(RATES_OFFSET + i);
       if (i == 5) {
