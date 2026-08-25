@@ -32,17 +32,22 @@ with open(args.filepath) as file:
 h = hist.Hist(data)
 if not args.raw_counts:
     h /= data['metadata']['collection_time']
+note = []
+note.append(f'Collection Time: {data["metadata"]["collection_time"]:.2f}s')
 if args.stc is not None and len(h.axes) > 1:
     h[f'STC{args.stc}',:].plot(yerr = args.error_bars)
+    note.append(f'STC{args.stc}')
+else:
+    h.plot(yerr = args.error_bars)
+
+if len(note) > 0:
     plt.annotate(
-        f'STC{args.stc}',
+        '\n'.join(note),
         (0.95, 0.95),
         xycoords = 'axes fraction',
         ha = 'right',
         va = 'top',
     )
-else:
-    h.plot(yerr = args.error_bars)
 
 if args.decoder_lut_scale is not None:
     plt.xlabel(plt.gca().get_xlabel() + f' / {args.decoder_lut_scale}')
