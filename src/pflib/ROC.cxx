@@ -240,7 +240,7 @@ std::map<std::string, std::map<std::string, uint64_t>> ROC::defaults() {
 std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
     const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   /**
-   * 1. get registers YAML file contains by compiling without defaults
+   * Step 1. get registers YAML file contains by compiling without defaults
    *    - we need to re-map the HALFWISE parameters to their corresponding
    * channels so that the "touched" registers are appropriately resolved to the
    * CH_## ones instead of the write-only HALFWISE_# ones
@@ -248,7 +248,7 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
   auto affected_parameters = parameters;
   for (int half{0}; half < 2; half++) {
     /// @note Copying the HALFWISE_# parameters into the constituent CH_##
-    /// parmaeters will increasing compile and load times since it multiples the
+    /// parameters will increasing compile and load times since it multiples the
     /// number of registers we need to read/write by a factor of 36.
     std::string halfwise = "HALFWISE_" + std::to_string(half);
     if (auto page_it = affected_parameters.find(halfwise);
@@ -263,14 +263,14 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
   }
   auto touched_registers = compiler_.compile(affected_parameters);
   /**
-   * 2. get the current register values on the chip for the registers that are
+   * Step 2. get the current register values on the chip for the registers that are
    * affected
    */
   auto chip_reg{getRegisters(touched_registers)};
   // copy of current chip values to return
   auto ret_val = chip_reg;
   /**
-   * 3. compile this parameter onto those register values
+   * Step 3. compile this parameter onto those register values
    *    we can use the lower-level compile here because the
    *    compile in step 1 checks that all of the page and param
    *    names are correct
@@ -283,7 +283,7 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
     }
   }
   /**
-   * 4. put these updated values onto the chip
+   * Step 4. put these updated values onto the chip
    */
   this->setRegisters(chip_reg);
   return ret_val;
