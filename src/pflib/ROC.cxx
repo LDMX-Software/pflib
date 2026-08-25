@@ -241,10 +241,28 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
     const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
+   *    - we need to re-map the HALFWISE parameters to their corresponding channels
+   *      so that the "touched" registers are appropriately resolved to the CH_##
+   *      ones instead of the write-only HALFWISE_# ones
    */
-  auto touched_registers = compiler_.compile(parameters);
+  auto affected_parameters = parameters;
+  for (int half{0}; half < 2; half++ ) {
+    /// @note Copying the HALFWISE_# parameters into the constituent CH_## parmaeters
+    /// will increasing compile and load times since it multiples the number of registers
+    /// we need to read/write by a factor of 36.
+    std::string halfwise = "HALFWISE_"+std::to_string(half);
+    if (auto page_it = affected_parameters.find(halfwise); page_it != affected_parameters.end()) {
+      int ch_0 = (half == 0) ? 0 : 36;
+      for (int i_ch{0}; i_ch < 36; i_ch++) {
+        std::string ch_page = "CH_"+std::to_string(i_ch + ch_0);
+        affected_parameters[ch_page] = page_it->second;
+      }
+      affected_parameters.erase(affected_parameters.find(halfwise));
+    }
+  }
+  auto touched_registers = compiler_.compile(affected_parameters);
   /**
-   * 2. get the current register values on the chip which is
+   * 2. get the current register values on the chip for the registers that are affected
    */
   auto chip_reg{getRegisters(touched_registers)};
   // copy of current chip values to return
@@ -322,6 +340,10 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
     YAML::Emitter out;
     out << YAML::BeginMap;
     for (const auto& page : parameter_values) {
+      // skip write-only HALFWISE pages
+      if (page.first.starts_with("HALFWISE_")) {
+        continue;
+      }
       out << YAML::Key << page.first;
       out << YAML::Value << YAML::BeginMap;
       for (const auto& param : page.second) {
@@ -333,9 +355,18 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
 
     f << out.c_str();
   } else {
+    bool is_v2 = (type_version_ == "sipm_rocv2");
     // read all the pages and write to CSV while reading
     std::map<int, std::map<int, uint8_t>> register_values;
     for (int page : compiler_.get_known_pages()) {
+      // WARNING: lazyness
+      // I am being lazy here and instead of having complicated code
+      // deduce which page IDs correspond to "HALFWISE_" I observed
+      // that they are 90 and 44 for all v3 ROCs and they don't exist
+      // for v2 ROCs
+      if (not is_v2 and (page == 90 or page == 44)) {
+        continue;
+      }
       // all pages have up to 16 registers
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
       for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
