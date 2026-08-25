@@ -46,7 +46,7 @@ endif()
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
   cmake_policy(SET CMP0167 NEW)
 endif()
-find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
+find_package(Boost COMPONENTS log unit_test_framework python serialization REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -254,6 +254,9 @@ target_link_libraries(pfdecompile pflib)
 
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
+
+add_executable(boost-seri-check app/boost-seri-check.cxx)
+target_link_libraries(boost-seri-check Boost::serialization)
 
 # add pflib prefix to all our pflib libraries
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
