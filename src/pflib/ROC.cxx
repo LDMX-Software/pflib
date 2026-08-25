@@ -241,20 +241,21 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
     const std::map<std::string, std::map<std::string, uint64_t>>& parameters) {
   /**
    * 1. get registers YAML file contains by compiling without defaults
-   *    - we need to re-map the HALFWISE parameters to their corresponding channels
-   *      so that the "touched" registers are appropriately resolved to the CH_##
-   *      ones instead of the write-only HALFWISE_# ones
+   *    - we need to re-map the HALFWISE parameters to their corresponding
+   * channels so that the "touched" registers are appropriately resolved to the
+   * CH_## ones instead of the write-only HALFWISE_# ones
    */
   auto affected_parameters = parameters;
-  for (int half{0}; half < 2; half++ ) {
-    /// @note Copying the HALFWISE_# parameters into the constituent CH_## parmaeters
-    /// will increasing compile and load times since it multiples the number of registers
-    /// we need to read/write by a factor of 36.
-    std::string halfwise = "HALFWISE_"+std::to_string(half);
-    if (auto page_it = affected_parameters.find(halfwise); page_it != affected_parameters.end()) {
+  for (int half{0}; half < 2; half++) {
+    /// @note Copying the HALFWISE_# parameters into the constituent CH_##
+    /// parmaeters will increasing compile and load times since it multiples the
+    /// number of registers we need to read/write by a factor of 36.
+    std::string halfwise = "HALFWISE_" + std::to_string(half);
+    if (auto page_it = affected_parameters.find(halfwise);
+        page_it != affected_parameters.end()) {
       int ch_0 = (half == 0) ? 0 : 36;
       for (int i_ch{0}; i_ch < 36; i_ch++) {
-        std::string ch_page = "CH_"+std::to_string(i_ch + ch_0);
+        std::string ch_page = "CH_" + std::to_string(i_ch + ch_0);
         affected_parameters[ch_page] = page_it->second;
       }
       affected_parameters.erase(affected_parameters.find(halfwise));
@@ -262,7 +263,8 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
   }
   auto touched_registers = compiler_.compile(affected_parameters);
   /**
-   * 2. get the current register values on the chip for the registers that are affected
+   * 2. get the current register values on the chip for the registers that are
+   * affected
    */
   auto chip_reg{getRegisters(touched_registers)};
   // copy of current chip values to return
