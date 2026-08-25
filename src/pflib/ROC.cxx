@@ -263,8 +263,8 @@ std::map<int, std::map<int, uint8_t>> ROC::applyParameters(
   }
   auto touched_registers = compiler_.compile(affected_parameters);
   /**
-   * Step 2. get the current register values on the chip for the registers that are
-   * affected
+   * Step 2. get the current register values on the chip for the registers that
+   * are affected
    */
   auto chip_reg{getRegisters(touched_registers)};
   // copy of current chip values to return
