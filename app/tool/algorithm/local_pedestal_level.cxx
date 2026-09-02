@@ -103,8 +103,8 @@ local_pedestal_level(Target* tgt) {
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
       basedevs[i_roc] =
           get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-      //for (const auto& num : basedevs[i_roc]) {
-          //std::cout << num << " " ;
+      // for (const auto& num : basedevs[i_roc]) {
+      // std::cout << num << " " ;
       //}
     }
     baseline = medians;
@@ -192,11 +192,11 @@ local_pedestal_level(Target* tgt) {
       settings;
   std::map<int, std::vector<int>> ignored_channels;
   for (int i_roc : tgt->roc_ids()) {
-    //ignored_channels[i_roc];
+    // ignored_channels[i_roc];
     for (int ch{0}; ch < 72; ch++) {
       if (basedevs[i_roc].at(ch) < 0.1) {
         ignored_channels[i_roc].push_back(ch);
-        continue;      
+        continue;
       }
       std::string page{pflib::utility::string_format("CH_%d", ch)};
       int i_half = ch / 36;
@@ -319,37 +319,39 @@ local_pedestal_level(Target* tgt) {
             }
           }
         } else /* ecal */ {
-		  double optim = 32 - ( scale * 32 );
-		  uint64_t val = static_cast<uint64_t>(optim);
-	      pflib_log(trace) << "Scale " << scale
-							 << " giving optimal value of "
-                             << optim << " for TRIM_INV"
-							    " which rounds to " << val;
-		  if (val == 0) {
-		    pflib_log(debug) << "Channel" << ch
-						     << " is above target but too close to use TRIM_INV "
-								"to lower, skipping.";
-		  } else {
-		    pflib_log(debug) << "Channel" << ch
-						     << " is above target, setting TRIM_INV.";
-		    settings[i_roc][page]["TRIM_INV"] = val;
-		  } 
-		} // end if ecal
-      } // end if baseline > target
-    } // end loop over channels
-  } // end loop over rocs
+          double optim = 32 - (scale * 32);
+          uint64_t val = static_cast<uint64_t>(optim);
+          pflib_log(trace) << "Scale " << scale << " giving optimal value of "
+                           << optim
+                           << " for TRIM_INV"
+                              " which rounds to "
+                           << val;
+          if (val == 0) {
+            pflib_log(debug)
+                << "Channel" << ch
+                << " is above target but too close to use TRIM_INV "
+                   "to lower, skipping.";
+          } else {
+            pflib_log(debug)
+                << "Channel" << ch << " is above target, setting TRIM_INV.";
+            settings[i_roc][page]["TRIM_INV"] = val;
+          }
+        }  // end if ecal
+      }  // end if baseline > target
+    }  // end loop over channels
+  }  // end loop over rocs
   for (const auto& [i_roc, values] : ignored_channels) {
     std::cout << "Channels ignored for ROC " << i_roc << ": ";
-    
+
     if (values.empty()) {
-        std::cout << "No channels ignored";
+      std::cout << "No channels ignored";
     } else {
       for (int val : values) {
         std::cout << val << " ";
       }
     }
     std::cout << '\n';
-  } 
+  }
   return settings;
 }
 
