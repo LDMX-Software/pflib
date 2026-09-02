@@ -13,6 +13,7 @@
 #include "get_lpgbt_temps.h"
 #include "global_pedestal_level.h"
 #include "inv_vref_scan.h"
+#include "led_bias_scan.h"
 #include "load_parameter_points.h"
 #include "local_pedestal_level.h"
 #include "multi_channel_scan.h"
@@ -77,7 +78,8 @@ auto menu_tasks =
         ->line("TRIM_TOA_SCAN",
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("TOA_SCAN", "calibrate TRIM_TOA parameters for each channel",
-               toa_scan);
+               toa_scan)
+        ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")

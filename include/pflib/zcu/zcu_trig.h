@@ -23,6 +23,8 @@ class ZCUtrig : public TRIG {
 
   int get_bx_delay(int ilink) override;
 
+  std::map<std::string, uint32_t> get_debug() override;
+
   void setup_daq(int pipeline, int econ_id, int samples_per_l1a,
                  int presamples) override;
 
@@ -31,6 +33,9 @@ class ZCUtrig : public TRIG {
 
   bool is_sample_available() override;
   std::vector<uint32_t> read_sample() override;
+
+  uint32_t get_decoder_lut(uint32_t addr);
+  void set_decoder_lut(uint32_t addr, uint32_t val);
 
   void setup_algo(const std::vector<uint32_t>& parameters) override;
   std::vector<uint32_t> get_algo_setup() override;

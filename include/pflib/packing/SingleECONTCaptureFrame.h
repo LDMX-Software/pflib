@@ -59,8 +59,13 @@ class SingleECONTCaptureFrame {
 
    public:
     void from(std::span<uint32_t> data);
+    /// bx counter for this sample of STC sums
     int bx() const;
+    /// decode the 5E+4M encoding into a linearized sum value
     int stc_sum(int i_stc) const;
+    /// the raw value trasmitted by the ECON-T
+    int encoded_stc_sum(int i_stc) const;
+    /// index of the TC within the STC that was the maximum
     int max_tc(int i_stc) const;
   };
 
@@ -71,6 +76,7 @@ class SingleECONTCaptureFrame {
   const SingleECONTSample& sample(std::optional<int> i_sample = {}) const;
   int bx(std::optional<int> i_sample = {}) const;
   int stc_sum(int i_stc, std::optional<int> i_sample = {}) const;
+  int encoded_stc_sum(int i_stc, std::optional<int> i_sample = {}) const;
   int max_tc(int i_stc, std::optional<int> i_sample = {}) const;
   const ECONTCaptureHeader& header() const;
   int length() const;

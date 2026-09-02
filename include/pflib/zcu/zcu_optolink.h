@@ -47,7 +47,6 @@ class ZCUOptoLink : public pflib::OptoLink {
   std::unique_ptr<::pflib::zcu::lpGBT_ICEC_Simple> transport_;
   ::pflib::UIO transright_;
   ::pflib::UIO coder_;
-  std::string coder_name_;
   int ilink_;
   bool isdaq_;
   mutable logging::logger the_log_;
