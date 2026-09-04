@@ -223,7 +223,6 @@ std::map<std::string, uint32_t> ZCUtrig::get_debug() {
   std::map<std::string, uint32_t> dbg;
   static const uint32_t LINK_STATUS_REG = 0xC04 / 4;
   uint32_t status = uio_.read(LINK_STATUS_REG);
-  dbg["ELINK_TVALID"] = ((status >> 17) & 0x1);
   dbg["ECON_TDATA_DV"] = ((status >> 16) & 0x1);
   dbg["COUNT_L1A"] = ((status >> 8) & 0xff);
   dbg["COUNT_ALIGNS"] = (status & 0xff);

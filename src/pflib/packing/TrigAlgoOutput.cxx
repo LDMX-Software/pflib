@@ -18,7 +18,6 @@ void TrigAlgoOutput::from(std::span<uint32_t> data) {
   }
   samples_.resize(header_.n_samples());
   for (int i_sample{0}; i_sample < samples_.size(); i_sample++) {
-    samples_[i_sample].elink_valid_ = (((data[i_sample + 2] >> 31) & 0x1) == 1);
     samples_[i_sample].econ_tdata_dv_ =
         (((data[i_sample + 2] >> 30) & 0x1) == 1);
     samples_[i_sample].is_high_peak_ = ((data[i_sample + 2] >> 8) & 0xff);
@@ -62,10 +61,6 @@ bool TrigAlgoOutput::trigger(std::optional<int> i_sample) const {
 
 bool TrigAlgoOutput::algo_trigger(std::optional<int> i_sample) const {
   return sample(i_sample).algo_trigger_;
-}
-
-bool TrigAlgoOutput::elink_valid(std::optional<int> i_sample) const {
-  return sample(i_sample).elink_valid_;
 }
 
 bool TrigAlgoOutput::econ_tdata_dv(std::optional<int> i_sample) const {
