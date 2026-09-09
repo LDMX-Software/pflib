@@ -234,9 +234,8 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
     static constexpr int RATES_OFFSET = (0xC00 + 4 * 0x20) / 4;
     // same names but ordered differently in registers
     static const std::array<const char*, 7> cnames = {
-        "AXI_CLK",   "CLOCK_40",   "LINK_CLOCK",
-        "LINK_WORD", "LINK_ERROR", "LINK_FECERR",
-        "CLK_200"};
+        "AXI_CLK",    "CLOCK_40",    "LINK_CLOCK", "LINK_WORD",
+        "LINK_ERROR", "LINK_FECERR", "CLK_200"};
     for (int i{0}; i < cnames.size(); i++) {
       uint32_t val = coder_.read(RATES_OFFSET + i);
       if (i == 5) {
