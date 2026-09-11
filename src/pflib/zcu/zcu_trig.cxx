@@ -69,12 +69,15 @@ void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 void ZCUtrig::setup_alignment(int delay, uint16_t pattern, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);
-  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH, (bypass_match ? 1 : 0));
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH,
+                   (bypass_match ? 1 : 0));
 }
-void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern, bool& bypass_match) {
+void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
+                                  bool& bypass_match) {
   delay = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
   pattern = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN);
-  bypass_match = (uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH)==1);
+  bypass_match =
+      (uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH) == 1);
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
