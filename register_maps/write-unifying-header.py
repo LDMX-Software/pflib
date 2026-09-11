@@ -54,7 +54,7 @@ with open(args.output_src, 'w') as f:
     f.write('  REGISTER_MAP_BY_TYPE = {\n')
     f.write(',\n'.join(
         '    {"%s", {%s::PAGE_LUT, %s::PARAMETER_LUT}}'%(rt,rt,rt)
-        for rt in all_types
+        for rt in all_types+["econd::with_zs"]
     ))
     f.write('\n  };\n')
     f.write('  return REGISTER_MAP_BY_TYPE;\n')

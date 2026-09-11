@@ -8,8 +8,16 @@
 import argparse
 
 parser=argparse.ArgumentParser(description="ZCU Controls")
-parser.add_argument('--newrefclk',type=float,default=320.64,help='New reference clock (default 320.64 MHz)')
-parser.add_argument('--curclk',type=lambda x: int(x,0),required=True,help='Current GTH_REFCLK reading in hex')
+parser.add_argument(
+    '--newrefclk',type=float,default=320.64,
+    help='New reference clock in MHz (default 320.64). The DAQ link word clock is 1/8 of this ref clock. The LHC/CMS standard is ~320 and leads to a DAQ link word of ~40. 297.148 mimics the clock of the LESA/SLAC beamline and leads to a DAQ link word of ~37.14.'
+)
+parser.add_argument(
+    '--curclk',
+    type=lambda x: int(x,0),
+    required=True,
+    help='Current GTH_REFCLK reading in hex'
+)
 
 args=parser.parse_args()
 

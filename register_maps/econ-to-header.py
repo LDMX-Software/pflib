@@ -93,8 +93,8 @@ def make_register_locations(address, mask, shift, size_byte):
     reg_locs = []
     n_bits_total = bin(mask).count("1")
     if n_bits_total == 0:
-        # if no bits used all bytes get n_bits=0
-        return [f"RegisterLocation(0x{address + i:04x}, 0, 0)" for i in range(size_byte)]
+        # if no bits
+        return []
 
     # determine which byte the parameter starts in
     start_byte_offset = shift // 8
@@ -118,6 +118,9 @@ def make_register_locations(address, mask, shift, size_byte):
         else:
             # if not, use 0
             bits_in_byte = 0
+
+        if bits_in_byte == 0:
+            continue
             
         # shift for the byte: first byte uses start_bit_offset, others 0
         shift_for_byte = start_bit_offset if param_byte_index == 0 and bits_in_byte > 0 else 0
@@ -186,6 +189,18 @@ def process_register(name_prefix, props, lines, register_byte_lut = {}):
                 process_register(new_prefix, subval, lines, register_byte_lut)
 
 
+def append_luts(lines, page_names):
+    lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
+    for name in page_names:
+        lines.append(f'  {{"{name}", {name}}},')
+    lines.append("});")
+
+    lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
+    for name in page_names:
+        lines.append(f'  {{"{name}", {{0, {name}}}}},')
+    lines.append("});")
+
+
 def generate_header(input_yaml, data, econ_type):
     """Generate the C++ header content for a given page."""
     lines = []
@@ -219,16 +234,16 @@ def generate_header(input_yaml, data, econ_type):
         lines.append(f"const Page {page_var} = get_{page_var}();\n")
 
     # print(register_byte_lut)
-        
-    lines.append("\nconst PageLUT PAGE_LUT = PageLUT::Mapping({")
-    for name in page_names:
-        lines.append(f'  {{"{name}", {name}}},')
-    lines.append("});")
+    if econ_type == "d":
+        # default LUT ignores the ZS parameters since there are so many of them
+        append_luts(lines, [name for name in page_names if "ZS" not in name])
 
-    lines.append("\nconst ParameterLUT PARAMETER_LUT = ParameterLUT::Mapping({")
-    for name in page_names:
-        lines.append(f'  {{"{name}", {{0, {name}}}}},')
-    lines.append("});")
+        # have secondary LUT that has the ZS parameters accessible under econd::with_zs
+        lines.append("\nnamespace with_zs {\n");
+        append_luts(lines, page_names)
+        lines.append("\n} //"+f" namespace with_zs\n")
+    else:
+        append_luts(lines, page_names)
     
     lines.append("\n} //"+f" namespace econ{econ_type}\n")
 

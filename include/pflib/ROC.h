@@ -8,6 +8,7 @@
 
 #include "pflib/Compile.h"
 #include "pflib/I2C.h"
+#include "pflib/TempParameters.h"
 #include "pflib/logging/Logging.h"
 
 namespace pflib {
@@ -88,7 +89,7 @@ class ROC {
    * that page and the value is the parameter value
    * @return chip registers that **were** on the chip before the application
    * of these parameters, helpful if users want to unset them later with
-   * ROC::TestParameters
+   * TempParameters
    */
   std::map<int, std::map<int, uint8_t>> applyParameters(
       const std::map<std::string, std::map<std::string, uint64_t>>& parameters);
@@ -125,42 +126,6 @@ class ROC {
   void dumpSettings(const std::string& filepath, bool decompile);
 
   /**
-   * test certain parameters before setting them back to old values
-   */
-  class TestParameters {
-    std::map<int, std::map<int, uint8_t>> previous_registers_;
-    ROC& roc_;
-
-   public:
-    /**
-     * Construct a set of test parameters
-     *
-     * Apply the input settings to the roc and store
-     * the previous chip settings to be applied in the destructor
-     */
-    TestParameters(
-        ROC& roc,
-        std::map<std::string, std::map<std::string, uint64_t>> new_params);
-    /// applies the unset parameters to the ROC
-    ~TestParameters();
-    /// cannot copy or assign this lock
-    TestParameters(const TestParameters&) = delete;
-    TestParameters& operator=(const TestParameters&) = delete;
-    /// Build a TestParameters parameter by parameter
-    class Builder {
-      std::map<std::string, std::map<std::string, uint64_t>> parameters_;
-      ROC& roc_;
-
-     public:
-      Builder(ROC& roc);
-      Builder& add(const std::string& page, const std::string& param,
-                   const uint64_t& val);
-      Builder& add_all_channels(const std::string& param, const uint64_t& val);
-      [[nodiscard]] TestParameters apply();
-    };
-  };
-
-  /**
    * start a set of test parameters
    *
    * Use when you want to temporarily set parameters on the chip
@@ -180,7 +145,7 @@ class ROC {
    * // PAGE.PARAM1 restored to previous settings
    * ```
    */
-  TestParameters::Builder testParameters();
+  TempParameters<ROC>::Builder testParameters();
 
  private:
   std::shared_ptr<I2C> i2c_;

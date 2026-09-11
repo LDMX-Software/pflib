@@ -103,7 +103,6 @@ static void i2c(const std::string& cmd, Target* target) {
  * - PHASE : pflib::Elinks::setAlignPhase
  * - HARD_RESET : pflib::Elinks::resetHard
  * - SCAN : pflib::Elinks::scanAlign
- * - STATUS : pflib::Target::elinkStatus with std::cout input
  *
  * @param[in] cmd ELINKS command
  * @param[in] pft active target
@@ -113,7 +112,7 @@ static void elinks(const std::string& cmd, Target* pft) {
   if (cmd == "SPY") {
     pftool::state.ilink =
         pftool::readline_int("Which elink? ", pftool::state.ilink);
-    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink);
+    std::vector<uint32_t> spy = elinks.spy(pftool::state.ilink, true);
     for (size_t i = 0; i < spy.size(); i++)
       printf("%02d %08x\n", int(i), spy[i]);
   }
@@ -172,7 +171,7 @@ static void elinks(const std::string& cmd, Target* pft) {
       elinks.setAlignPhase(alink, apt);
       int bpt = elinks.scanBitslip(alink);
       if (bpt >= 0) elinks.setBitslip(alink, bpt);
-      std::vector<uint32_t> spy = elinks.spy(alink);
+      std::vector<uint32_t> spy = elinks.spy(alink, true);
       printf(" %d Best phase : %d  Bitslip : %d  Spy: 0x%08x\n", alink, apt,
              bpt, spy[0]);
     }
@@ -212,6 +211,12 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().sendL1A();
     printf("Sent SW L1A\n");
   }
+  if (cmd == "LINK_RESET_BX") {
+    int bx{0};
+    pft->fc().fc_get_setup_link_reset(bx);
+    bx = pftool::readline_int("Which BX to send link reset on?", bx);
+    pft->fc().fc_setup_link_reset(bx);
+  }
   if (cmd == "LINK_RESET") {
     pft->fc().linkreset_rocs();
     printf("Sent LINK RESET\n");
@@ -239,9 +244,13 @@ static void fc(const std::string& cmd, Target* pft) {
     do_status = true;
   }
   if (cmd == "CALIB") {
-    int offset = pft->fc().fc_get_setup_calib();
+    bool enable_l1a_follow;
+    int offset;
+    pft->fc().fc_get_setup_calib(offset, enable_l1a_follow);
     offset = pftool::readline_int("Calibration L1A offset?", offset);
-    pft->fc().fc_setup_calib(offset);
+    enable_l1a_follow =
+        pftool::readline_bool("Enable following L1A?", enable_l1a_follow);
+    pft->fc().fc_setup_calib(offset, enable_l1a_follow);
   }
 
   if (cmd == "LED") {
@@ -255,7 +264,10 @@ static void fc(const std::string& cmd, Target* pft) {
     for (const auto& pair : cnt) {
       printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
-
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    printf("  L1A Enabled          : %d\n", l1aen);
+    printf("  External L1A Enabled : %d\n", extl1a);
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
   }
 }
@@ -270,11 +282,12 @@ auto menu_i2c = menu_expert->submenu("I2C", "raw I2C interactions")
                     ->line("MULTIWRITE", "Write to an address", i2c);
 auto menu_elinks =
     menu_expert->submenu("ELINKS", "manage the elinks")
-        ->line("RELINK", "Follow standard procedure to establish links", elinks)
+        ->line("RELINK", "Follow standard procedure to establish links", elinks,
+               ONLY_FIBERLESS)
         ->line("HARD_RESET", "Hard reset of the PLL", elinks)
-        ->line("STATUS", "Elink status summary", elinks)
         ->line("SPY", "Spy on an elink", elinks)
-        ->line("AUTO", "Attempt to re-align automatically", elinks)
+        ->line("AUTO", "Attempt to re-align automatically", elinks,
+               ONLY_FIBERLESS)
         ->line("BITSLIP", "Set the bitslip for a link or turn on auto", elinks)
         ->line("SCAN", "Scan on an elink", elinks)
         ->line("DELAY", "Set the delay on an elink", elinks);
@@ -284,11 +297,14 @@ auto menu_fc =
         ->submenu("FAST_CONTROL", "configuration and testing of fast control")
         ->line("STATUS", "Check status and counters", fc)
         ->line("SW_L1A", "Send a software L1A", fc)
+        ->line("LINK_RESET_BX", "change BX of link reset", fc)
         ->line("LINK_RESET", "Send a link reset", fc)
         ->line("BUFFER_CLEAR", "Send a buffer clear", fc)
         ->line("RUN_CLEAR", "Send a run clear", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
+        ->line("SEND_CALIB", "send a calib pulse command",
+               [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("LED", "Setup LED calibration pulse", fc)
         ->line("ORBIT_BLINKER",
                "send L1A once every orbit for alignment testing (10kHz)", fc);

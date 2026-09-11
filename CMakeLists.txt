@@ -40,6 +40,12 @@ if (NOT TARGET yaml-cpp::yaml-cpp)
 endif()
 
 # Boost for CRC calculator, Test, Logging, and Python bindings
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+  cmake_policy(SET CMP0167 NEW)
+endif()
 find_package(Boost COMPONENTS log unit_test_framework python REQUIRED)
 # Python for Python bindings
 find_package(Python3 COMPONENTS Interpreter Development)
@@ -92,10 +98,16 @@ add_library(packing SHARED
   src/pflib/packing/BufferReader.cxx
   src/pflib/packing/Sample.cxx
   src/pflib/packing/DAQLinkFrame.cxx
+  src/pflib/packing/DAQSampleHeader.cxx
   src/pflib/packing/TriggerLinkFrame.cxx
   src/pflib/packing/SingleROCEventPacket.cxx
+  src/pflib/packing/SingleECONDRocErxMapping.cxx
   src/pflib/packing/ECONDEventPacket.cxx
+  src/pflib/packing/ECONDFormatter.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
+  src/pflib/packing/ECONTCaptureHeader.cxx
+  src/pflib/packing/SingleECONTCaptureFrame.cxx
+  src/pflib/packing/TrigAlgoOutput.cxx
 )
 target_include_directories(packing PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -126,17 +138,19 @@ set(pflib_src
   src/pflib/lpgbt/GPIO.cxx
   src/pflib/GPIO_HcalHGCROCZCU.cxx
   src/pflib/FastControlCMS_MMap.cxx
-  src/pflib/ECOND_Formatter.cxx
   src/pflib/zcu/UIO.cxx
   src/pflib/zcu/lpGBT_ICEC_ZCU_Simple.cxx
   src/pflib/zcu/zcu_elinks.cxx
   src/pflib/zcu/zcu_daq.cxx
+  src/pflib/zcu/zcu_trig.cxx
   src/pflib/zcu/zcu_optolink.cxx
   src/pflib/zcu/HcalBackplane.cxx
   src/pflib/zcu/EcalSMM.cxx
   src/pflib/zcu/HGCROCBoardFiberless.cxx
-  src/pflib/Ecal.cxx
+  src/pflib/EcalModule.cxx
+  src/pflib/EcalSingleModuleMotherboard.cxx
   src/pflib/Bias.cxx
+  src/pflib/TRIG.cxx
 )
 
 if (${Rogue_FOUND})
@@ -180,6 +194,7 @@ target_include_directories(menu PUBLIC
 add_executable(
   test-pflib
   test/main.cxx
+  test/mapping.cxx
   test/compile.cxx
   test/decoding.cxx
   test/utility.cxx

@@ -1,119 +1,44 @@
 #include "toa_scan.h"
 
-#include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 
-#include "../daq_run.h"
+#include <fstream>
 
-ENABLE_LOGGING();
-
-template <class EventPacket>
-static void toa_scan_writer(Target* tgt, pflib::ROC& roc, size_t nevents,
-                            std::string& output_filepath) {
-  int calib = 0;
-  int n_links = 2;
-  if constexpr (std::is_same_v<EventPacket,
-                               pflib::packing::MultiSampleECONDEventPacket>) {
-    n_links = tgt->econ(pftool::state.iecon).nLinks();
-  }
-  DecodeAndWriteToCSV<EventPacket> writer{
-      output_filepath,
-      [&](std::ofstream& f) {
-        nlohmann::json header;
-        header["scan_type"] = "CH_#.TOA sweep";
-        header["trigger"] = "CHARGE";
-        header["nevents_per_point"] = nevents;
-        f << "# " << header << "\n"
-          << "CALIB";
-        for (int ch{0}; ch < 72; ch++) {
-          f << "," << ch;
-        }
-        f << "\n";
-      },
-      [&](std::ofstream& f, const EventPacket& ep) {
-        f << calib;
-        // Write the TOA values for each channel
-        for (int ch{0}; ch < 72; ch++) {
-          f << "," << ep.channel(ch).toa();
-        }
-        f << "\n";
-      },
-      n_links};
-
-  tgt->setup_run(1 /* dummy - not stored */, pftool::state.daq_format_mode,
-                 1 /* dummy */);
-
-  // Take a charge injection run.
-  auto setup_builder = roc.testParameters()
-                           .add("REFERENCEVOLTAGE_0", "CALIB", calib)
-                           .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                           .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
-                           .add("REFERENCEVOLTAGE_1", "INTCTEST", 1);
-  for (int ch{0}; ch < 72; ch++) {
-    setup_builder.add("CH_" + std::to_string(ch), "LOWRANGE", 1);
-  }
-  auto setup_test = setup_builder.apply();
-
-  for (calib = 0; calib < 800; calib += 4) {
-    pflib_log(info) << "Running CALIB = " << calib;
-    // Set the CALIB parameters for both halves
-    auto calib_test = roc.testParameters()
-                          .add("REFERENCEVOLTAGE_0", "CALIB", calib)
-                          .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-                          .apply();
-    daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
-  }
-}
+#include "../algorithm/toa_scan.h"
 
 void toa_scan(Target* tgt) {
-  int nevents = pftool::readline_int("Number of events per point: ", 100);
+  auto settings = pflib::algorithm::toa_scan(tgt);
+  for (const auto& [i_roc, parameters] : settings) {
+    auto roc{tgt->roc(i_roc)};
+    YAML::Emitter out;
+    out << YAML::BeginMap;
+    for (const auto& page : parameters) {
+      out << YAML::Key << page.first;
+      out << YAML::Value << YAML::BeginMap;
+      for (const auto& param : page.second) {
+        out << YAML::Key << param.first << YAML::Value << param.second;
+      }
+      out << YAML::EndMap;
+    }
+    out << YAML::EndMap;
 
-  std::string output_filepath = pftool::readline_path("toa_scan", ".csv");
+    if (pftool::readline_bool("View deduced settings? ", false)) {
+      std::cout << out.c_str() << std::endl;
+    }
 
-  auto roc = tgt->roc(pftool::state.iroc);
+    if (pftool::readline_bool("Apply settings to the chip? ", true)) {
+      roc.applyParameters(parameters);
+    }
 
-  // DecodeAndWriteToCSV writer{
-  //     output_filepath,
-  //     [&](std::ofstream& f) {
-  //       nlohmann::json header;
-  //       header["scan_type"] = "CH_#.TOA sweep";
-  //       header["trigger"] = "CHARGE";
-  //       header["nevents_per_point"] = nevents;
-  //       f << "# " << header << "\n"
-  //         << "CALIB";
-  //       for (int ch{0}; ch < 72; ch++) {
-  //         f << "," << ch;
-  //       }
-  //       f << "\n";
-  //     },
-  //     [&](std::ofstream& f, const pflib::packing::SingleROCEventPacket& ep) {
-  //       f << calib;
-  //       // Write the TOA values for each channel
-  //       for (int ch{0}; ch < 72; ch++) {
-  //         f << "," << ep.channel(ch).toa();
-  //       }
-  //       f << "\n";
-  //     }};
+    if (pftool::readline_bool("Save settings to a file? ", false)) {
+      std::string fname = pftool::readline_path(
+          "toa_scan-roc-" + std::to_string(i_roc) + "-settings", ".yaml");
 
-  // tgt->setup_run(1 /* dummy */, Target::DaqFormat::SIMPLEROC, 1 /* dummy */);
-
-  // // Take a charge injection run.
-  // auto setup_builder = roc.testParameters()
-  //                          .add("REFERENCEVOLTAGE_0", "CALIB", calib)
-  //                          .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-  //                          .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
-  //                          .add("REFERENCEVOLTAGE_1", "INTCTEST", 1);
-  // for (int ch{0}; ch < 72; ch++) {
-  //   setup_builder.add("CH_" + std::to_string(ch), "LOWRANGE", 1);
-  // }
-  // auto setup_test = setup_builder.apply();
-
-  // for (calib = 0; calib < 800; calib += 4) {
-  //   pflib_log(info) << "Running CALIB = " << calib;
-  //   // Set the CALIB parameters for both halves
-  //   auto calib_test = roc.testParameters()
-  //                         .add("REFERENCEVOLTAGE_0", "CALIB", calib)
-  //                         .add("REFERENCEVOLTAGE_1", "CALIB", calib)
-  //                         .apply();
-  //   daq_run(tgt, "CHARGE", writer, nevents, pftool::state.daq_rate);
-  // }
+      std::ofstream f{fname};
+      if (not f.is_open()) {
+        PFEXCEPTION_RAISE("File", "Unable to open file " + fname + ".");
+      }
+      f << out.c_str() << std::endl;
+    }
+  }
 }

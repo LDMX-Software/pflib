@@ -448,32 +448,8 @@ int ECON::nLinks() {
   return n_links;
 }
 
-ECON::TestParameters::TestParameters(
-    ECON& econ,
-    std::map<std::string, std::map<std::string, uint64_t>> new_params)
-    : econ_{econ} {
-  previous_registers_ = econ_.applyParameters(new_params);
-}
-
-ECON::TestParameters::~TestParameters() {
-  econ_.setRegisters(previous_registers_);
-}
-
-ECON::TestParameters::Builder::Builder(ECON& econ)
-    : parameters_{}, econ_{econ} {}
-
-ECON::TestParameters::Builder& ECON::TestParameters::Builder::add(
-    const std::string& page, const std::string& param, const uint64_t& val) {
-  parameters_[page][param] = val;
-  return *this;
-}
-
-ECON::TestParameters ECON::TestParameters::Builder::apply() {
-  return TestParameters(econ_, parameters_);
-}
-
-ECON::TestParameters::Builder ECON::testParameters() {
-  return ECON::TestParameters::Builder(*this);
+TempParameters<ECON>::Builder ECON::testParameters() {
+  return TempParameters<ECON>::Builder(*this);
 }
 
 }  // namespace pflib

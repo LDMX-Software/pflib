@@ -28,7 +28,7 @@ static void usage() {
                "registers\n"
                "  --careful     : Print warnings and skip parameters with "
                "missing registers (default)\n"
-               "  -r,--roc      : Define the ROC type_version that should be "
+               "  -c,--chip      : Define the CHIP type_version that should be "
                "used for compilation\n"
                "                  By default, we use the sipm_rocv3b register "
                "mapping.\n"
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   bool careful{true};
   std::string input_filename;
   std::string output_filename;
-  std::string roc_type_version;
+  std::string chip_type_version;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
     if (arg[0] == '-') {
@@ -59,14 +59,14 @@ int main(int argc, char* argv[]) {
       if (arg == "--help" or arg == "-h") {
         usage();
         return 0;
-      } else if (arg == "--roc" or arg == "-r") {
+      } else if (arg == "--chip" or arg == "-c") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
                            << " parameter requires are argument after it.";
           return 1;
         }
         i_arg++;
-        roc_type_version = argv[i_arg];
+        chip_type_version = argv[i_arg];
       } else if (arg == "--output" or arg == "-o") {
         if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
           pflib_log(fatal) << "The " << arg
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
   try {
     // compilation checks parameter/page names
     parameters =
-        pflib::Compiler::get(roc_type_version).decompile(settings, careful);
+        pflib::Compiler::get(chip_type_version).decompile(settings, careful);
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "[" << e.name() << "] " << e.message();
     return -1;

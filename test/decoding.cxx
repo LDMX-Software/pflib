@@ -1,14 +1,18 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
-#include "pflib/ECOND_Formatter.h"
 #include "pflib/Exception.h"
 #include "pflib/packing/DAQLinkFrame.h"
+#include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/ECONDEventPacket.h"
+#include "pflib/packing/ECONDFormatter.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
+#include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TriggerLinkFrame.h"
+
+int decode5E4M(int w) { return pflib::packing::decompressAEBM<5, 4>(w); }
 
 std::vector<uint32_t> gen_test_daq_link_frame() {
   std::vector<uint32_t> test_frame = {
@@ -140,6 +144,17 @@ BOOST_AUTO_TEST_CASE(tot_output) {
   BOOST_CHECK(s.toa() == 3);
 }
 
+BOOST_AUTO_TEST_CASE(high_tot) {
+  pflib::packing::Sample s;
+  s.word = 0b11000000000111000000100000000011;
+  BOOST_CHECK(s.Tc() == true);
+  BOOST_CHECK(s.Tp() == true);
+  BOOST_CHECK(s.adc() == -1);
+  BOOST_CHECK(s.tot() == 2064);
+  BOOST_CHECK(s.adc_tm1() == 1);
+  BOOST_CHECK(s.toa() == 3);
+}
+
 BOOST_AUTO_TEST_CASE(tot_busy) {
   pflib::packing::Sample s;
   s.word = 0b01000000000100000000100000000011;
@@ -219,7 +234,7 @@ BOOST_AUTO_TEST_SUITE(trigger)
 
 BOOST_AUTO_TEST_CASE(example_decompression) {
   uint8_t compressed = 0b0100111;
-  uint32_t decomp = 0b1111000;
+  uint32_t decomp = 0b1111100;
   BOOST_CHECK_EQUAL(
       decomp,
       pflib::packing::TriggerLinkFrame::compressed_to_linearized(compressed));
@@ -237,7 +252,7 @@ BOOST_AUTO_TEST_CASE(decompress_small) {
 
 BOOST_AUTO_TEST_CASE(decompress_large) {
   uint8_t compressed = 0b1111011;
-  uint32_t decomp = 0b101100000000000000;
+  uint32_t decomp = 0b101110000000000000;
   BOOST_CHECK_EQUAL(
       decomp,
       pflib::packing::TriggerLinkFrame::compressed_to_linearized(compressed));
@@ -484,13 +499,15 @@ BOOST_AUTO_TEST_CASE(econd_spec_example_fig33) {
   BOOST_CHECK_EQUAL(-1, ep.links[0].channels[26].adc_tm1());
   BOOST_CHECK_EQUAL(ch4_adc, ep.links[0].channels[26].adc());
   BOOST_CHECK_EQUAL(ch4_toa, ep.links[0].channels[26].toa());
-  BOOST_CHECK_EQUAL(ch4_tot, ep.links[0].channels[26].tot());
+  // HGCROC does 12bit compression that we need to decompress
+  BOOST_CHECK_EQUAL(((ch4_tot & mask<9>) << 3), ep.links[0].channels[26].tot());
 
   BOOST_TEST_INFO("Checking transmitted channel 5 (should be CH 29)");
   BOOST_CHECK_EQUAL(ch5_adctm1, ep.links[0].channels[29].adc_tm1());
   BOOST_CHECK_EQUAL(-1, ep.links[0].channels[29].adc());
   BOOST_CHECK_EQUAL(ch5_toa, ep.links[0].channels[29].toa());
-  BOOST_CHECK_EQUAL(ch5_tot, ep.links[0].channels[29].tot());
+  // HGCROC does 12bit compression that we need to decompress
+  BOOST_CHECK_EQUAL(((ch5_tot & mask<9>) << 3), ep.links[0].channels[29].tot());
 
   BOOST_TEST_INFO("Checking transmitted channel 6 (should be CH 31)");
   BOOST_CHECK_EQUAL(ch6_adctm1, ep.links[0].channels[31].adc_tm1());
@@ -540,8 +557,7 @@ BOOST_AUTO_TEST_CASE(roundtrip_with_formatter) {
   using pflib::packing::hex;
   int bx{1111}, l1a{24}, orb{0};
   auto test_frame = gen_test_daq_link_frame();
-  pflib::ECOND_Formatter formatter;
-  formatter.disable_zs();
+  pflib::packing::ECONDFormatter formatter(true);
   formatter.startEvent(bx, l1a, orb);
   for (int i{0}; i < 2; i++) {
     formatter.add_elink_packet(i, test_frame);
@@ -554,6 +570,40 @@ BOOST_AUTO_TEST_CASE(roundtrip_with_formatter) {
   for (const auto& link : ep.links) {
     check_test_daq_link_frame(link, bx, l1a, orb, false);
   }
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(econt)
+
+BOOST_AUTO_TEST_CASE(single_sample) {
+  using pflib::packing::SingleECONTCaptureFrame;
+  std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0};
+  SingleECONTCaptureFrame::SingleECONTSample sample;
+  sample.from(words);
+  BOOST_CHECK_EQUAL(sample.bx(), 4);
+  BOOST_CHECK_EQUAL(sample.max_tc(0), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(1), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(2), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(3), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(4), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(5), 0);
+  BOOST_CHECK_EQUAL(sample.max_tc(6), 1);
+  BOOST_CHECK_EQUAL(sample.max_tc(7), 1);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(0), 0b000000100);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(1), 0b000000100);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(2), 0b000000100);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(3), 0b000000100);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(4), 0b010001001);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(5), 0b010001011);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(6), 0b010001010);
+  BOOST_CHECK_EQUAL(sample.encoded_stc_sum(7), 0b010001011);
+}
+
+BOOST_AUTO_TEST_CASE(decode_5E4M) {
+  BOOST_CHECK_EQUAL(decode5E4M(0), 0);
+  BOOST_CHECK_EQUAL(decode5E4M(7), 7);
+  BOOST_CHECK_EQUAL(decode5E4M(0b010001001), 0b110011000000);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

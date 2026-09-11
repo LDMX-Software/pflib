@@ -1,0 +1,155 @@
+digitalhalf_0:
+  adc_th: 16
+ch_0:
+  adc_pedestal: 210
+  trim_inv: 14
+ch_1:
+  adc_pedestal: 210
+  trim_inv: 61
+ch_2:
+  adc_pedestal: 210
+  trim_inv: 59
+ch_3:
+  adc_pedestal: 210
+  trim_inv: 37
+ch_4:
+  adc_pedestal: 210
+  # was not leveled?
+ch_5:
+  adc_pedestal: 210
+  trim_inv: 1
+ch_6:
+  adc_pedestal: 210
+  trim_inv: 27
+ch_7:
+  adc_pedestal: 210
+  dacb: 1
+  sign_dac: 1
+ch_8:
+  channel_off: 1
+ch_9:
+  channel_off: 1
+ch_10:
+  channel_off: 1
+ch_11:
+  channel_off: 1
+ch_12:
+  channel_off: 1
+ch_13:
+  channel_off: 1
+ch_14:
+  channel_off: 1
+ch_15:
+  channel_off: 1
+ch_16:
+  channel_off: 1
+ch_17:
+  channel_off: 1
+ch_18:
+  channel_off: 1
+ch_19:
+  channel_off: 1
+ch_20:
+  channel_off: 1
+ch_21:
+  channel_off: 1
+ch_22:
+  channel_off: 1
+ch_23:
+  channel_off: 1
+ch_24:
+  channel_off: 1
+ch_25:
+  channel_off: 1
+ch_26:
+  channel_off: 1
+ch_27:
+  channel_off: 1
+ch_28:
+  channel_off: 1
+ch_29:
+  channel_off: 1
+ch_30:
+  channel_off: 1
+ch_31:
+  channel_off: 1
+ch_32:
+  channel_off: 1
+ch_33:
+  channel_off: 1
+ch_34:
+  channel_off: 1
+ch_35:
+  channel_off: 1
+ch_36:
+  channel_off: 1
+ch_37:
+  channel_off: 1
+ch_38:
+  channel_off: 1
+ch_39:
+  channel_off: 1
+ch_40:
+  channel_off: 1
+ch_41:
+  channel_off: 1
+ch_42:
+  channel_off: 1
+ch_43:
+  channel_off: 1
+ch_44:
+  channel_off: 1
+ch_45:
+  channel_off: 1
+ch_46:
+  channel_off: 1
+ch_47:
+  channel_off: 1
+ch_48:
+  channel_off: 1
+ch_49:
+  channel_off: 1
+ch_50:
+  channel_off: 1
+ch_51:
+  channel_off: 1
+ch_52:
+  channel_off: 1
+ch_53:
+  channel_off: 1
+ch_54:
+  channel_off: 1
+ch_55:
+  channel_off: 1
+ch_56:
+  channel_off: 1
+ch_57:
+  channel_off: 1
+ch_58:
+  channel_off: 1
+ch_59:
+  channel_off: 1
+ch_60:
+  channel_off: 1
+ch_61:
+  channel_off: 1
+ch_62:
+  channel_off: 1
+ch_63:
+  channel_off: 1
+ch_64:
+  channel_off: 1
+ch_65:
+  channel_off: 1
+ch_66:
+  channel_off: 1
+ch_67:
+  channel_off: 1
+ch_68:
+  channel_off: 1
+ch_69:
+  channel_off: 1
+ch_70:
+  channel_off: 1
+ch_71:
+  channel_off: 1

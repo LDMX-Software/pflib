@@ -3,9 +3,13 @@
 #include <iostream>
 #include <memory>
 
-#include "pflib/ECOND_Formatter.h"
-#include "pflib/HcalBackplane.h"
+#include "pflib/Bias.h"
+#include "pflib/Exception.h"
+#include "pflib/GPIO.h"
+#include "pflib/HcalTarget.h"
 #include "pflib/I2C_Linux.h"
+#include "pflib/packing/DAQSampleHeader.h"
+#include "pflib/packing/ECONDFormatter.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -22,23 +26,24 @@ class FiberlessCapture : public Elinks, public DAQ {
         uio_("ldmx_buffer", 16 * 4096) {  // currently covers all elinks
   }
 
-  virtual int getBitslip(int ilink);
-  virtual uint32_t getStatusRaw(int ilink) { return 0; }
-  virtual void setBitslip(int ilink, int bitslip);
-  virtual std::vector<uint32_t> spy(int ilink);
-  virtual void clearErrorCounters(int ilink) {}
-  virtual void resetHard() {}
-  virtual void setAlignPhase(int ilink, int phase);
-  virtual int getAlignPhase(int ilink);
+  virtual int getBitslip(int ilink) final;
+  virtual uint32_t getStatusRaw(int ilink) final { return 0; }
+  virtual void setBitslip(int ilink, int bitslip) final;
+  virtual std::vector<uint32_t> spy(int ilink, bool new_capture) final;
+  virtual void clearErrorCounters(int ilink) final {}
+  virtual void resetHard() final {}
+  virtual void setAlignPhase(int ilink, int phase) final;
+  virtual int getAlignPhase(int ilink) final;
 
   // DAQ-related
-  virtual void reset();
-  virtual int getEventOccupancy();
-  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width);
-  virtual void getLinkSetup(int ilink, int& l1a_delay, int& l1a_capture_width);
-  virtual void bufferStatus(int ilink, bool& empty, bool& full);
-  virtual std::vector<uint32_t> getLinkData(int ilink);
-  virtual void advanceLinkReadPtr();
+  virtual void reset() final;
+  virtual int getEventOccupancy() final;
+  virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) final;
+  virtual void getLinkSetup(int ilink, int& l1a_delay,
+                            int& l1a_capture_width) final;
+  virtual void bufferStatus(int ilink, bool& empty, bool& full) final;
+  virtual std::vector<uint32_t> getLinkData(int ilink) final;
+  virtual void advanceLinkReadPtr() final;
 
  private:
   int ctl_for(int ilink) {
@@ -88,12 +93,12 @@ int FiberlessCapture::getAlignPhase(int ilink) {
   return uio_.readMasked(ictl, MASK_PHASE);
 }
 
-std::vector<uint32_t> FiberlessCapture::spy(int ilink) {
+std::vector<uint32_t> FiberlessCapture::spy(int ilink, bool _new_capture) {
+  /// new_capture is ignored in this hardware setup
   std::vector<uint32_t> rv;
   int spy_addr = ADDR_LINK_STATUS_BASE + 2 * ilink;
   rv.push_back(uio_.read(spy_addr));
   return rv;
-  ;
 }
 
 void FiberlessCapture::reset() {
@@ -164,18 +169,54 @@ void FiberlessCapture::advanceLinkReadPtr() {
     uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
 }
 
-class HcalFiberless : public HcalBackplane {
+class HcalFiberless : public HcalTarget {
  public:
   static constexpr const char* GPO_HGCROC_RESET_HARD = "HGCROC_HARD_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_SOFT = "HGCROC_SOFT_RSTB";
   static constexpr const char* GPO_HGCROC_RESET_I2C = "HGCROC_RSTB_I2C";
 
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
+      override {
+    // implementing a "null" mapping for the fiberless connection even
+    // though it doesn't have ECONs so that all DAQ logic can flow through
+    // the SingleECONDMapping
+    static const std::vector<std::pair<int, int>> THE_MAP = {{0, 1}};
+    return THE_MAP;
+  }
+
+  const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
+
+  Bias& bias(int which) override {
+    if (which == 0) return *bias_;
+    PFEXCEPTION_RAISE("NoMore",
+                      "Only one bias board (index=0) for fiberless setup.");
+  }
+  virtual ROC& roc(int which) override {
+    if (which == 0) return *roc_;
+    PFEXCEPTION_RAISE("NoMore", "Only one ROC (index=0) for fiberless setup.");
+  }
+  virtual ECON& econ(int which) override {
+    PFEXCEPTION_RAISE("InvalidECONid",
+                      "No ECONs connected for Fiberless targets.");
+  }
+  virtual void hardResetECONs() override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
+  virtual void softResetECON(int which = -1) override {
+    PFEXCEPTION_RAISE("Invalid", "No ECONs connected for Fiberless targets.");
+  }
+  virtual GPIO& gpio() { return *gpio_; }
   virtual int nrocs() override { return 1; }
-  virtual int necons() override { return 0; }
   virtual bool have_roc(int i) const override { return (i == 0); }
   virtual std::vector<int> roc_ids() const override { return {0}; }
+  virtual int necons() override { return 0; }
+  virtual bool have_econ(int iecon) const override { return false; }
+  virtual std::vector<int> econ_ids() const override { return {}; }
 
-  HcalFiberless() : HcalBackplane() {
+  HcalFiberless() {
     auto i2croc = std::shared_ptr<I2C>(new I2C_Linux("/dev/i2c-24"));
     if (not i2croc) {
       PFEXCEPTION_RAISE("I2CError", "Could not open ROC I2C bus");
@@ -185,9 +226,9 @@ class HcalFiberless : public HcalBackplane {
       PFEXCEPTION_RAISE("I2CError", "Could not open bias I2C bus");
     }
 
-    rocs_[0] = std::make_unique<HGCROCBoard>(ROC(i2croc, 0x20, "sipm_rocv3b"),
-                                             Bias(i2cboard, i2cboard));
-    nhgcroc_++;
+    roc_ = std::make_unique<ROC>(i2croc, 0x20, "sipm_rocv3b");
+    bias_ =
+        std::make_unique<Bias>(i2cboard, i2cboard, false /*use bias cache*/);
 
     gpio_.reset(make_GPIO_HcalHGCROCZCU());
 
@@ -218,11 +259,6 @@ class HcalFiberless : public HcalBackplane {
     gpio_->setGPO(GPO_HGCROC_RESET_SOFT, true);   // active low
   }
 
-  ECON& econ(int which) override {
-    PFEXCEPTION_RAISE("InvalidECONid",
-                      "No ECONs connected for Fiberless targets.");
-  }
-
   virtual Elinks& elinks() override { return *capture_; }
   virtual DAQ& daq() override { return *capture_; }
   virtual FastControl& fc() override { return *fc_; }
@@ -230,13 +266,16 @@ class HcalFiberless : public HcalBackplane {
   virtual std::vector<uint32_t> read_event();
 
  public:
+  std::unique_ptr<GPIO> gpio_;
   std::shared_ptr<FastControl> fc_;
   std::shared_ptr<FiberlessCapture> capture_;
+  std::unique_ptr<ROC> roc_;
+  std::unique_ptr<Bias> bias_;
   int run_;
   Target::DaqFormat daqformat_;
   int ievt_, l1a_;
   int contribid_;
-  ECOND_Formatter formatter_;
+  packing::ECONDFormatter formatter_{true};
 };
 
 static const int SUBSYSTEM_ID_HCAL_DAQ = 0x07;
@@ -289,17 +328,8 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         buffer.push_back(0x12345678);
         daq().advanceLinkReadPtr();
       } break;
-      case DaqFormat::ECOND_NO_ZS: {
+      case DaqFormat::ECOND_SW_HEADERS: {
         const int bc = 0;  // bx number...
-        /*
-        buffer.push_back(0xb33f2025);
-        buffer.push_back(run_);
-        buffer.push_back((ievt_ << 8) | bc);
-        buffer.push_back(0);
-        buffer.push_back((0xA6u << 24) | (contribid_ << 16) |
-                         (SUBSYSTEM_ID_HCAL_DAQ << 8) | (0));
-        */
-
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           // assume orbit zero, L1A spaced by two
           formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
@@ -310,12 +340,13 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
-          uint32_t header = formatter_.getPacket().size();
-          header |= (0x1 << 28);
-          header |= (daq().econid() & 0x3ff) << 18;
-          header |= (il1a & 0x1f) << 13;
-          if (il1a == daq().soi()) header |= (1 << 12);
-          buffer.push_back(header);
+          buffer.push_back(pflib::packing::DAQSampleHeader{
+              .version = 1,
+              .econd_id = static_cast<uint32_t>(daq().econid()),
+              .i_l1a = static_cast<uint32_t>(il1a),
+              .is_soi = (il1a == daq().soi()),
+              .econd_len = static_cast<uint32_t>(formatter_.getPacket().size())}
+                               .to());
 
           // insert ECOND packet into buffer
           buffer.insert(buffer.end(), formatter_.getPacket().begin(),
@@ -326,13 +357,7 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         }
         l1a_ += daq().samples_per_ror();
         // add a special "header" to mark that we have no more ECON packets
-        uint32_t header{0};
-        header |= (0x1 << 28);
-        header |= (daq().econid() & 0x3ff) << 18;
-        buffer.push_back(header);
-        /*
-        buffer.push_back(0x12345678);
-        */
+        buffer.push_back(pflib::packing::DAQSampleHeader::ending_trailer());
       } break;
       default: {
         PFEXCEPTION_RAISE("NoImpl", "DaqFormat provided is not implemented");

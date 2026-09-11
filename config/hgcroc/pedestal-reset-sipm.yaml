@@ -1,0 +1,12 @@
+calib_*:
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 0
+ch_*:
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 0
+cm_*:
+  dacb: 0
+  sign_dac: 0
+  trim_inv: 0

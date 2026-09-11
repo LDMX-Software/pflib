@@ -30,7 +30,14 @@ int Sample::adc() const {
 
 int Sample::tot() const {
   if (Tc()) {
-    return ((this->word >> 10) & mask<10>);
+    // the HGCROC compresses a 12bit ToT measurement to 10bits
+    int compressed = ((this->word >> 10) & mask<10>);
+    // if the highest bit is set, then shift the lower 9 by three
+    if (compressed & 0b1000000000) {
+      return ((compressed & mask<9>) << 3);
+    } else {
+      return compressed;
+    }
   } else {
     return -1;
   }

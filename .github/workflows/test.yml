@@ -17,9 +17,9 @@ jobs:
           - bittware-host
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: get just
-        uses: extractions/setup-just@v3
+        uses: extractions/setup-just@v4
       - name: get denv
         run: |
           curl -s https://tomeichlersmith.github.io/denv/install | sh

@@ -18,7 +18,7 @@ namespace pflib {
  */
 class DAQ {
  protected:
-  DAQ(int links) : n_links{links}, econid_{0xFFF}, samples_{1}, soi_{0} {}
+  DAQ(int links);
 
  public:
   virtual void reset() = 0;
@@ -33,38 +33,32 @@ class DAQ {
   virtual void bufferStatus(int ilink, bool& empty, bool& full) = 0;
 
   /// setup overall event information for daq channels
-  virtual void setup(int econid, int samples_per_ror, int soi = -1) {
-    econid_ = econid;
-    samples_ = samples_per_ror;
-    soi_ = (soi < 0 || soi > samples_ - 1) ? (0) : soi;
-  }
+  virtual void setup(int econid, int samples_per_ror, int soi = -1);
   /// get the econid
-  int econid() const { return econid_; }
+  int econid() const;
   /// get the samples
-  int samples_per_ror() const { return samples_; }
+  int samples_per_ror() const;
   /// get the soi
-  int soi() const { return soi_; }
+  int soi() const;
 
   /// enable/disable the readout
-  virtual void enable(bool enable = true) { enabled_ = enable; }
+  virtual void enable(bool enable = true);
   /// is the readout enabled?
-  virtual bool enabled() { return enabled_; }
+  virtual bool enabled();
   /// number of elinks
-  int nlinks() const { return n_links; }
+  int nlinks() const;
   /// is AXIS enabled?
-  virtual bool AXIS_enabled() { return false; }
+  virtual bool AXIS_enabled();
   /// enable/disable AXIS
-  virtual void AXIS_enable(bool enable) {}
+  virtual void AXIS_enable(bool enable);
 
   /// read out link data
   virtual std::vector<uint32_t> getLinkData(int ilink) = 0;
   /// Advance link read pointer
-  virtual void advanceLinkReadPtr() {}
+  virtual void advanceLinkReadPtr() = 0;
 
   /// get any useful debugging data
-  virtual std::map<std::string, uint32_t> get_debug(uint32_t ask) {
-    return std::map<std::string, uint32_t>();
-  }
+  virtual std::map<std::string, uint32_t> get_debug(uint32_t ask);
 
   /**
    * readout an event including emulation of the headers the firmware inserts
@@ -80,8 +74,12 @@ class DAQ {
   int n_links;
   /// enabled
   bool enabled_;
+  /// id for the econ we are reading
   int econid_;
-  int samples_, soi_;
+  /// number of samples per readout request
+  int samples_;
+  /// index for sample of interest in set of samples
+  int soi_;
 };
 
 }  // namespace pflib

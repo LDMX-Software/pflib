@@ -23,7 +23,7 @@ jobs:
     steps:
       -
         name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive' # for doxygen-awesome-css
@@ -40,7 +40,7 @@ jobs:
           doxyfile-path: docs/doxyfile #relative to working directory
       -
         name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./docs/html
 

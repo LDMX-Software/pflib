@@ -120,7 +120,7 @@ std::pair<bool, std::map<int, int>> check_channel_phase_lock(
   return std::make_pair(all_locked, phases);
 }
 
-void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
+bool align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
   /**
    * phase alignment between ECON and HGCROC's 1.28GHz data channels
    */
@@ -134,6 +134,7 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
     parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 1;
   }
   econ.applyParameters(parameters);
+  usleep(100);
 
   // Toggle Phase Training
   // this 1->0 transition is what triggers the phase training request
@@ -142,6 +143,7 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
     parameters["CHEPRXGRP"][std::to_string(ch) + "_TRAIN_CHANNEL"] = 0;
   }
   econ.applyParameters(parameters);
+  usleep(100);
 
   auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
 
@@ -161,9 +163,11 @@ void align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
                 [std::to_string(ch) + "_PHASE_SELECT_CHANNELINPUT"] = phase;
     }
     econ.applyParameters(parameters);
+    return true;
   } else {
     pflib_log(warn) << "Not all channels are locked so not fixing the phase "
                        "(leaving in track_mode = 1)";
+    return false;
   }
 }
 
@@ -205,19 +209,15 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   // FAST CONTROL - ENABLE THE BCR (ORBIT SYNC)
   tgt->fc().standard_setup();
 
-  // TODO: Read BX value of link reset rocd
-
-  // ------- Scan when the ECON takes snapshot -----
-  int start_val{1}, end_val{51};
-  /*
-  if (on_zcu) {
-    start_val = 1;  // 3490;  // near your orbit region of interest
-    end_val = 51;   // 3540;    // up to orbit rollover
-  } else {
-    start_val = 64 * 40 - 60;  // near your orbit region of interest
-    end_val = 64 * 40 - 1;     // up to orbit rollover
-  }
-  */
+  /**
+   * @note We have no idea which BX value the link reset rocd
+   * fast command is being sent on. If we could read this value
+   * from the firmware, that should allow us to guess at a smaller
+   * region in time to scan.
+   * For now, we just start at BX=1 and count up until we find the first
+   * match.
+   */
+  int start_val{1}, end_val{on_zcu ? 3540 : (64 * 40 - 1)};
 
   bool aligned{false};
   for (int snapshot_bx{start_val}; snapshot_bx < end_val; snapshot_bx++) {
@@ -226,7 +226,11 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
     // FAST CONTROL - LINK_RESET
     tgt->fc().linkreset_rocs();
 
-    pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    if (snapshot_bx % 100 == 0) {
+      pflib_log(info) << "checking snapshot on bx " << snapshot_bx;
+    } else {
+      pflib_log(debug) << "checking snapshot on bx " << snapshot_bx;
+    }
 
     bool should_continue = false;
     for (int channel : channels) {
@@ -291,12 +295,9 @@ void align_phase_word(Target* tgt) {
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
   auto& econ = tgt->econ(iecon);
+  bool is_daq = (econ.type() == "econd");
   int edgesel = 0;
-  int invertfcmd = 0;
-  if (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU ||
-      pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_BW) {
-    invertfcmd = 1;
-  }
+  int invertfcmd = pftool::state.readout_config_is_hcal() ? 1 : 0;
   // Ensure ECON is in Run mode
   econ.setRunMode(true, edgesel, invertfcmd);
 
@@ -325,12 +326,25 @@ void align_phase_word(Target* tgt) {
    */
   auto roc_ids = tgt->roc_ids();
   // Get channels dynamically from ROC to eRx object channel mapping
-  auto& mapping = tgt->getRocErxMapping();
-  // Dynamic channels. 2 eRx per ROC
+  // we need to use the lower-level hardware mapping since we want the
+  // eRx ID number and not just the index it would produce after decoding
   std::vector<int> channels;
-  for (int i_roc : roc_ids) {
-    channels.push_back(mapping[i_roc].first);
-    channels.push_back(mapping[i_roc].second);
+  if (is_daq) {
+    auto& mapping = tgt->getHardwareRocErxMappingDAQ();
+    for (int i_roc : roc_ids) {
+      channels.push_back(mapping[i_roc].first);
+      channels.push_back(mapping[i_roc].second);
+    }
+  } else {
+    auto& mapping = tgt->getHardwareRocErxMappingTRG();
+    for (int i_roc : roc_ids) {
+      const auto& [i_econ, econt_erx] = mapping.at(i_roc);
+      if (i_econ == iecon) {
+        for (int erx : econt_erx) {
+          channels.push_back(erx);
+        }
+      }
+    }
   }
 
   // inform the user of the ECON channels that we are going to attempt to align
@@ -349,7 +363,15 @@ void align_phase_word(Target* tgt) {
   }
 
   // ----- PHASE ALIGNMENT ----- //
-  align_phase(tgt, econ, channels);
+  if (not align_phase(tgt, econ, channels)) {
+    bool cont = pftool::readline_bool("Continue? ", false);
+    if (not cont) {
+      for (int i_roc : roc_ids) {
+        tgt->roc(i_roc).setRegisters(resets[i_roc]);
+      }
+      return;
+    }
+  }
 
   // do something funkier for word alignment
   // to ensure that word alignment is functioning properly

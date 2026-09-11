@@ -11,15 +11,17 @@ namespace pflib::packing {
  * Without a trigger link set up, the decoding cannot be fuctionally tested.
  *
  * This class is merely a skeleton of how unpacking could be done for these
- * trigger link frames.
+ * trigger link frames on a **fiberless** setup. This class does **not**
+ * handle the change in format the happens when the trigger data streams
+ * from one or more ROCs are processed by an ECON-T.
  */
 struct TriggerLinkFrame {
   /**
    * Convert a compressed trigger sum into its linearized equivalent
    *
    * The chip lossy compresses its trigger sums into seven bits
-   * and this function decompresses the sum into our best estimate
-   * of what the on-chip trigger sum was.
+   * using the 4E+3M encoding and this function decompresses the
+   * sum into our best estimate of what the on-chip trigger sum was.
    *
    * @note This function undoes the wacky compression algorithm, but
    * the scale of the linearized sum is not quite correct.

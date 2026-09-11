@@ -41,6 +41,9 @@ class UIO {
   /** Generate an RMW cycle (read, apply INVERSE OF MASK, apply OR) */
   void rmw(size_t where, uint32_t bits_to_modify, uint32_t newval);
 
+  /// get the name of this UIO device
+  const std::string& name() const;
+
  private:
   /** Open a given device file directly */
   void iopen(const std::string& dev, size_t size = 4096);

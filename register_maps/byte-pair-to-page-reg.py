@@ -62,18 +62,23 @@ class Parameter:
 
     @classmethod
     def from_swamp_parameter(cls, parameter_node):
+        # we want to sort the parameter's register locations from LSB to MSB
+        # and we do this by sorting the parameter's register nodes by the 'param_minbit'
+        registers = list(parameter_node.items())
+        registers.sort(key = lambda pair: pair[1]['param_minbit'])
         # the defval_mask is relative to the register it is in
         # so we construct the default value after deducing the n_bits and min_bits
         locations =  [
             RegisterLocationInSubBlock.from_swamp_register(regnode)
-            for i_chunk, regnode in parameter_node.items()
+            for i_chunk, regnode in registers
         ]
         defval = 0
         curr_min_bit = 0
-        for regnode, location in zip(parameter_node.values(), locations):
+        for (i_chunk, regnode), location in zip(registers, locations):
             chunk = ((regnode['defval_mask'] >> location.min_bit) & ((1 << location.n_bits) - 1))
             defval |= (chunk << curr_min_bit)
             curr_min_bit += location.n_bits
+
         # store the default value as a string in binary, padded out to the full length
         # again, hopefully making it easier for comparison to the manual
         bit_rep = '0b'+f'{defval:0b}'.zfill(curr_min_bit) if defval != 0 else '0'
@@ -207,7 +212,7 @@ with open(args.output.with_suffix('.h'), 'w') as f:
             '  the_map["%s"] = %s;'%(parameter_name, parameter_spec.to_cpp())
             for parameter_name, parameter_spec in parameters.items()
         ))
-        f.write('  return the_map;\n')
+        f.write('\n  return the_map;\n')
         f.write('} // get_%s()\n'%(name))
         f.write('\nconst Page %s = get_%s();\n\n'%(name,name))
 

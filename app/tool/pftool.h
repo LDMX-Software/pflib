@@ -36,6 +36,8 @@ static const unsigned int NEED_FIBER = 0b1u;
 static const unsigned int ONLY_FIBERLESS = 0b10u;
 /// menus/commands that only make sense for the Hcal
 static const unsigned int ONLY_HCAL = 0b100u;
+/// category for commands that only make sense on the ZCU
+static const unsigned int ONLY_ZCU = 0b1000u;
 
 /**
  * The type of menu we are constructing

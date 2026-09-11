@@ -7,6 +7,7 @@
 #include "pflib/zcu/zcu_daq.h"
 #include "pflib/zcu/zcu_elinks.h"
 #include "pflib/zcu/zcu_optolink.h"
+#include "pflib/zcu/zcu_trig.h"
 
 namespace pflib {
 
@@ -28,13 +29,24 @@ class HcalBackplaneZCU : public HcalBackplane {
     trig_lpgbt_ =
         std::make_unique<pflib::lpGBT>(opto_["TRG"]->lpgbt_transport());
 
-    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask);
+    this->init(*daq_lpgbt_, *trig_lpgbt_, board_mask,
+               true /* use bias cache */);
 
     elinks_ = std::make_unique<OptoElinksZCU>(&(*daq_lpgbt_), &(*trig_lpgbt_),
                                               itarget);
-    daq_ = std::make_unique<ZCU_Capture>();
+    daq_ = std::make_unique<ZCU_Capture>(itarget);
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
+    /// try to make a trig object, but ok to fail
+    try {
+      trig_ = std::make_unique<ZCUtrig>();
+      trig_->set_l1a_per_ror(daq().samples_per_ror());
+    } catch (pflib::Exception& e) {
+      pflib_log(info) << "failed to create TRIG connection with " << e.what();
+      pflib_log(info)
+          << "(only necessary if you are trying to capture the trigger path)";
+    }
   }
 
   virtual void softResetROC(int which) override {

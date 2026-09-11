@@ -9,15 +9,15 @@ namespace bittware {
 class OptoElinksBW : public Elinks {
  public:
   OptoElinksBW(int ilink, const char* dev);
-  virtual std::vector<uint32_t> spy(int ilink);
-  virtual void setBitslip(int ilink, int bitslip) {
+  virtual std::vector<uint32_t> spy(int ilink, bool new_capture) final;
+  virtual void setBitslip(int ilink, int bitslip) final {
     /// only in ECON
   }
-  virtual int getBitslip(int ilink) { return 0; }
-  virtual int scanBitslip(int ilink) { return -1; }
-  virtual uint32_t getStatusRaw(int ilink) { return 0; }
-  virtual void clearErrorCounters(int ilink) {}
-  virtual void resetHard() {
+  virtual int getBitslip(int ilink) final { return 0; }
+  virtual int scanBitslip(int ilink) final { return -1; }
+  virtual uint32_t getStatusRaw(int ilink) final { return 0; }
+  virtual void clearErrorCounters(int ilink) final {}
+  virtual void resetHard() final {
     // not meaningful here
   }
 

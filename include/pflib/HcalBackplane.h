@@ -5,14 +5,15 @@
 
 #include "pflib/Bias.h"
 #include "pflib/GPIO.h"
-#include "pflib/Target.h"
+#include "pflib/HcalTarget.h"
+#include "pflib/TRIG.h"
 
 namespace pflib {
 
 /**
  * representing an HcalBackplane
  */
-class HcalBackplane : public Target {
+class HcalBackplane : public HcalTarget {
  public:
   /// virtual destructor since we'll be holding this as a Target
   virtual ~HcalBackplane() = default;
@@ -27,8 +28,12 @@ class HcalBackplane : public Target {
    * @param[in] trig_lpgbt accessor to TRIG lpGBT
    * @param[in] hgcroc_boards bit-mask saying if a board is active/enabled (1)
    * or inactive/disabled (0) - the bit in position i represents board i
+   * @param[in] use_bias_cache use software cache of bias voltage settings
+   * instead of readback direct from chip, see Bias class for why this
+   * is necessary in fiberfull setups
    */
-  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boards);
+  void init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt, int hgcroc_boards,
+            bool use_bias_cache);
 
   /** number of boards */
   virtual int nrocs() override { return nhgcroc_; }
@@ -55,7 +60,7 @@ class HcalBackplane : public Target {
   virtual ECON& econ(int which) override;
 
   /** Get an I2C interface for the given HGCROC board's bias bus  */
-  Bias bias(int which);
+  Bias& bias(int which) override;
 
   /** Get the GPIO object for debugging purposes */
   virtual GPIO& gpio() { return *gpio_; }
@@ -66,8 +71,21 @@ class HcalBackplane : public Target {
   /** get the DAQ object */
   virtual DAQ& daq() = 0;
 
-  /** Get the ROC to eRx mapping */
-  const std::vector<std::pair<int, int>>& getRocErxMapping() override;
+  /** get the trig object, if valid */
+  virtual TRIG* trig(int itrig) { return (itrig == 0) ? (trig_.get()) : (0); }
+
+  /** Get the ROC to eRx mapping for the DAQ path */
+  const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ()
+      override;
+  /** Get the ROC to eRx mapping for the TRG path*/
+  const std::vector<std::pair<int, std::vector<int>>>&
+  getHardwareRocErxMappingTRG() override;
+
+  /// the ROC to eRx mapping along the DAQ path for this hardware
+  static const std::vector<std::pair<int, int>> ROC_ERX_MAPPING_DAQ;
+  /// the ROC to eRx mapping along the TRG path for this hardware
+  static const std::vector<std::pair<int, std::vector<int>>>
+      ROC_ERX_MAPPING_TRG;
 
  protected:
   /** Number of HGCROC boards in this system */
@@ -87,6 +105,10 @@ class HcalBackplane : public Target {
   struct HGCROCBoard {
     ROC roc;
     Bias bias;
+    /// constructor to forward constructor arguments to members
+    HGCROCBoard(std::shared_ptr<I2C> roc_i2c, uint8_t roc_addr,
+                const std::string& roc_typename, std::shared_ptr<I2C> bias_i2c,
+                std::shared_ptr<I2C> board_i2c, bool bias_use_cache);
   };
 
   /// the backplane can hold up to 4 HGCROC boards
@@ -94,6 +116,9 @@ class HcalBackplane : public Target {
 
   /// the ECONs on the ECON Mezzanine on this backplane
   std::array<std::unique_ptr<ECON>, 3> econs_;
+
+  /// pointer to the TRIG object if available
+  std::unique_ptr<pflib::TRIG> trig_;
 };
 
 }  // namespace pflib

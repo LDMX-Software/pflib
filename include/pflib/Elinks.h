@@ -49,9 +49,11 @@ class Elinks {
    * spy into the passed link
    *
    * @param[in] ilink link index
+   * @param[in] new_capture whether to try a new capture (true) or
+   * just read a different link from the last capture (false)
    * @return the bytes retreived from the spy
    */
-  virtual std::vector<uint32_t> spy(int ilink) = 0;
+  virtual std::vector<uint32_t> spy(int ilink, bool new_capture) = 0;
 
   /**
    * set the bitslip value (word-level adjustment)

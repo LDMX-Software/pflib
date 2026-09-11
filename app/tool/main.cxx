@@ -16,26 +16,36 @@ pflib::logging::logger get_by_file(const std::string& filepath) {
   static const std::filesystem::path this_file{__FILE__};
   static const std::filesystem::path this_parent{this_file.parent_path()};
   std::filesystem::path fp{filepath};
-  std::string relative{std::filesystem::relative(fp, this_parent)};
+  std::string relative{
+      std::filesystem::relative(fp.parent_path(), this_parent)};
   std::replace(relative.begin(), relative.end(), '/', '.');
-  return pflib::logging::get("pftool." + relative);
+  std::string log_name{"pftool."};
+  if (not relative.empty() and relative != ".") {
+    log_name += relative + ".";
+  }
+  log_name += std::string(fp.stem());
+  return pflib::logging::get(log_name);
 }
 
 void pftool::State::init(Target* tgt, int cfg) {
   cfg_ = cfg;
   /**
-   * set default format mode depending on readout config
+   * set default format mode to be the ECOND format with
+   * headers that are inserted by SW (on the ZCU) or FW
+   * (on the Bittware).
    *
-   * if fiberless, default to SIMPLEROC, otherwise assume
-   * ECOND readout
+   * if fiberless, we rely on the ECOND format being
+   * reliably mimicked by ECOND_Formatter
    */
-  if (cfg_ == CFG_HCALFMC) {
-    daq_format_mode = Target::DaqFormat::SIMPLEROC;
-  } else {
-    daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
-  }
+  daq_format_mode = Target::DaqFormat::ECOND_SW_HEADERS;
   /// copy over page and param names for tab completion
   std::vector<int> roc_ids{tgt->roc_ids()};
+
+  // default iroc to first valid ROC given the boardmask
+  if (not roc_ids.empty()) {
+    iroc = roc_ids.at(0);
+  }
+
   for (int id : roc_ids) {
     auto defs = tgt->roc(id).defaults();
     for (const auto& page : defs) {
@@ -250,7 +260,17 @@ int main(int argc, char* argv[]) {
         while (!line.empty() && isspace(line[0])) line.erase(line.begin());
         // skip empty lines or ones whose first character is #
         if (!line.empty() && line[0] == '#') continue;
-        // add to command queue
+        // add to command queue after trimming trailing comments
+        auto comment_start =
+            std::find_if(line.rbegin(), line.rend(),
+                         [](unsigned char ch) { return ch == '#'; });
+        if (comment_start != line.rend()) {
+          // we found a comment, erase it
+          // move the reverse iterator by one to include '#' in erasing
+          // we know we can do this safely since we checked that '#'
+          // is not in index 0 earlier
+          line.erase((comment_start + 1).base(), line.end());
+        }
         pftool::add_to_command_queue(line);
       }
       sFile.close();
@@ -365,7 +385,7 @@ int main(int argc, char* argv[]) {
       tgt.reset(pflib::makeTargetHcalBackplaneBittware(ilink, boardmask,
                                                        dev.c_str()));
       readout_cfg = pftool::State::CFG_HCALOPTO_BW;
-      pftool::root()->hide(ONLY_FIBERLESS);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_ZCU);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
@@ -378,7 +398,7 @@ int main(int argc, char* argv[]) {
       auto rocmask = target.get<int>("rocmask", 0x3f);
       tgt.reset(pflib::makeTargetEcalSMMBittware(ilink, rocmask, dev.c_str()));
       readout_cfg = pftool::State::CFG_ECALOPTO_BW;
-      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL);
+      pftool::root()->hide(ONLY_FIBERLESS | ONLY_HCAL | ONLY_ZCU);
 #else
       pflib_log(fatal) << "Target type '" << target_type << "' requires Rogue.";
       return 1;
