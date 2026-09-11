@@ -16,9 +16,16 @@ void align(const std::string& cmd, Target* tgt) {
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
   if (cmd == "SETUP") {
-    int value = pftool::readline_int("Alignment capture delay: ",
-                                     trig->get_alignment_capture());
-    trig->setup_alignment_capture(value);
+    int delay;
+    uint16_t pattern;
+    bool bypass_pattern;
+    trig->get_alignment_setup(delay, pattern, bypass_pattern);
+    delay = pftool::readline_int("Alignment capture delay: ", delay);
+    pattern =
+        pftool::readline_int("11bit Pattern to search for: ", pattern, true);
+    bypass_pattern =
+        pftool::readline_bool("Bypass Pattern for capture?", bypass_pattern);
+    trig->setup_alignment(delay, pattern, bypass_pattern);
   }
   if (cmd == "READ") {
     bool show_raw = pftool::readline_bool(
@@ -45,10 +52,5 @@ void align(const std::string& cmd, Target* tgt) {
       }
       printf("\n");
     }
-  }
-  if (cmd == "DELAY") {
-    int ilink = pftool::readline_int("Which elink?", 0);
-    trig->set_bx_delay(
-        ilink, pftool::readline_int("New delay: ", trig->get_bx_delay(ilink)));
   }
 }
