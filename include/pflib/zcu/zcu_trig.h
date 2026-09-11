@@ -15,7 +15,8 @@ class ZCUtrig : public TRIG {
   int n_elinks() const override { return nelinks_; }
 
   void setup_alignment(int delay, uint16_t pattern, bool bypass_match) override;
-  void get_alignment_setup(int& delay, uint16_t& pattern, bool& bypass_match) override;
+  void get_alignment_setup(int& delay, uint16_t& pattern,
+                           bool& bypass_match) override;
 
   std::vector<uint32_t> read_capture_buffer(int ilink) override;
 

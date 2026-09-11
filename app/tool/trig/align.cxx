@@ -21,8 +21,10 @@ void align(const std::string& cmd, Target* tgt) {
     bool bypass_pattern;
     trig->get_alignment_setup(delay, pattern, bypass_pattern);
     delay = pftool::readline_int("Alignment capture delay: ", delay);
-    pattern = pftool::readline_int("11bit Pattern to search for: ", pattern, true);
-    bypass_pattern = pftool::readline_bool("Bypass Pattern for capture?", bypass_pattern);
+    pattern =
+        pftool::readline_int("11bit Pattern to search for: ", pattern, true);
+    bypass_pattern =
+        pftool::readline_bool("Bypass Pattern for capture?", bypass_pattern);
     trig->setup_alignment(delay, pattern, bypass_pattern);
   }
   if (cmd == "READ") {
