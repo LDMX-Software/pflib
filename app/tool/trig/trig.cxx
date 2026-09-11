@@ -46,15 +46,18 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "STATUS") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
+    int align_delay{-1};
+    uint16_t align_patt{};
+    bool bypass_patt{};
+    trig->get_alignment_setup(align_delay, align_patt, bypass_patt);
     printf("settings\n");
     printf(" %20s: %d\n", "pipeline", pipeline);
     printf(" %20s: %d\n", "econ_id", econ_id);
     printf(" %20s: %d\n", "samples_per_l1a", samples_per_l1a);
     printf(" %20s: %d\n", "presamples", presamples);
-    printf(" %20s: %d\n", "capture delay", trig->get_alignment_capture());
-    for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
-      printf("           %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
-    }
+    printf(" %20s: %d\n", "align delay", align_delay);
+    printf(" %20s: 0x%03x\n", "alignment pattern", align_patt);
+    printf(" %20s: %d\n", "align bypass pattern", bypass_patt);
     printf("status\n");
     printf(" %20s: %d\n", "DAQ event occupancy",
            target->daq().getEventOccupancy());
@@ -234,7 +237,6 @@ auto menu_align =
     menu_trig->submenu("ALIGN", "debug trigger elink alignment")
         ->line("READ", "view alignment capture buffer after a link reset",
                align)
-        ->line("DELAY", "link-specific capture delay offset", align)
         ->line("SETUP", "all-link capture delay", align);
 
 auto menu_histo =

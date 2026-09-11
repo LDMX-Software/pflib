@@ -14,14 +14,10 @@ class ZCUtrig : public TRIG {
   void reset();
   int n_elinks() const override { return nelinks_; }
 
-  void setup_alignment_capture(int delay) override;
-  int get_alignment_capture() override;
+  void setup_alignment(int delay, uint16_t pattern, bool bypass_match) override;
+  void get_alignment_setup(int& delay, uint16_t& pattern, bool& bypass_match) override;
 
   std::vector<uint32_t> read_capture_buffer(int ilink) override;
-
-  void set_bx_delay(int ilink, int delay) override;
-
-  int get_bx_delay(int ilink) override;
 
   std::map<std::string, uint32_t> get_debug() override;
 
