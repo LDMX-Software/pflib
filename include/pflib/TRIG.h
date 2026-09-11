@@ -25,20 +25,14 @@ class TRIG {
   /** How many elinks are there? */
   virtual int n_elinks() const = 0;
 
-  /** Set up the alignment capture function */
-  virtual void setup_alignment_capture(int delay) = 0;
+  /** Set up the alignment */
+  virtual void setup_alignment(int delay, uint16_t pattern, bool bypass_pattern) = 0;
 
-  /** Get the alignment capture function */
-  virtual int get_alignment_capture() = 0;
+  /** Get the alignment setup*/
+  virtual void get_alignment_setup(int& delay, uint16_t& pattern, bool& bypass_pattern) = 0;
 
   /** Read the capture block for the given elink */
   virtual std::vector<uint32_t> read_capture_buffer(int ilink) = 0;
-
-  /** Set the BX delay for the given elink */
-  virtual void set_bx_delay(int ilink, int delay) = 0;
-
-  /** Get the BX delay for the given elink */
-  virtual int get_bx_delay(int ilink) = 0;
 
   /**
    * @param[in] l1a_per_ror number of L1A sent per ReadOut Request
