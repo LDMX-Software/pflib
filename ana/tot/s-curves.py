@@ -16,10 +16,14 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('data', type=Path, help='decoded CSV file to analyze')
-parser.add_argument("-pa", "--plot-adc", 
+parser.add_argument('-sd', '--save_directory', type=Path, 
+                    help='Path to directory, in which the results will be saved. Default is directory before the source path.')
+parser.add_argument("-pa", "--plot-adc", action="store_true",
                     help='Plot the adc, with toa and tot, all channels for each link')
-parser.add_argument("-ptw", "--plot_time_walk", 
+parser.add_argument("-ptw", "--plot_time_walk", action="store_true",
                     help='Plot the TOA time walk')
+parser.add_argument("-dis", "--discretized_plots", action="store_true",
+                    help='Plot the discretized s-curves, one plot for each channel')
 parser.add_argument("-st", "--style", type=Path,
                     help='Adress of matplotlib style sheet')
 args = parser.parse_args()
@@ -30,6 +34,13 @@ print(samples)
 
 if (args.style != None):
     plt.style.use(args.style)
+
+data_dir = args.data.parent
+if args.save_directory:
+    output_dir = args.save_directory
+else:
+    output_dir = data_dir/ "s_curve_plots"
+output_dir.mkdir(parents=True, exist_ok=True)
 
 def toa_conv(df):
     return (df['toa'] / 1024) * 50
@@ -45,7 +56,6 @@ if (args.plot_time_walk):
             ax[1].plot(ch_df['calib'], toa_conv(ch_df))
     plt.show()
 
-#quit()
 
 if (args.plot_adc):
     fig, ax = plt.subplots(1,1)
@@ -56,7 +66,7 @@ if (args.plot_adc):
     ax.legend()
     ax.set_xlabel('Time [ns]', fontsize=24)
     ax.set_ylabel('Output data', fontsize=24)
-    fig.savefig('adc_link0.png', dpi=400, bbox_inches='tight')
+    fig.savefig(output_dir / 'adc_link0.png', dpi=400, bbox_inches='tight')
     plt.close()
 
     fig, ax = plt.subplots(1,1)
@@ -67,13 +77,14 @@ if (args.plot_adc):
     ax.legend()
     ax.set_xlabel('Time [ns]', fontsize=24)
     ax.set_ylabel('Output data', fontsize=24)
-    fig.savefig('adc_link1.png', dpi=400, bbox_inches='tight')
+    fig.savefig(output_dir / 'adc_link1.png', dpi=400, bbox_inches='tight')
     plt.close()
 
 fig_toa, ax_toa = plt.subplots(1, 2, sharey=True)
 fig_tot, ax_tot = plt.subplots(1, 2, sharey=True)
 fig_adc, ax_adc = plt.subplots(1, 1)
-fig_ch, ax_ch = plt.subplots(8,9, sharex=True)
+fig_ch_toa, ax_ch_toa = plt.subplots(8,9, sharex=True, sharey=True, figsize=(10, 10))
+fig_ch_tot, ax_ch_tot = plt.subplots(8,9, sharex=True, sharey=True, figsize=(10, 10))
 
 # Efficiency calculation
 def efficiency(vals):
@@ -126,7 +137,11 @@ for ch_id, ch_df in ch_group:
     max_val = temp_df['max_adc'].max()
     if (max_val > max_non_saturated):
         max_non_saturated = max_val
-    ax_ch[ch_id // 9, ch_id % 9].plot(ch_df['calib'], ch_df['toa_eff'], label=ch_id)
+
+    ax_ch_toa[ch_id // 9, ch_id % 9].plot(ch_df['calib'], ch_df['toa_eff'], label=ch_id)
+    ax_ch_tot[ch_id // 9, ch_id % 9].plot(ch_df['calib'], ch_df['tot_eff'], label=ch_id)
+    ax_ch_toa[ch_id // 9, ch_id % 9].set_title(f"Ch. {ch_id}", fontsize=9)
+    ax_ch_tot[ch_id // 9, ch_id % 9].set_title(f"Ch. {ch_id}", fontsize=9)
 
 ax_adc.axhline(y = max_non_saturated, linestyle='--', color='b', label=f'max non-saturated at {max_non_saturated}')
 
@@ -143,10 +158,37 @@ ax_tot[0].set_ylabel('TOT efficiency')
 ax_adc.legend(fontsize=12, ncols=6)
 ax_adc.set_xlabel('Calib [a.u.]')
 ax_adc.set_ylabel('Max ADC [a.u.]')
-fig_toa.savefig("toa_s_curve.png", dpi=400)
-fig_tot.savefig("tot_s_curve.png", dpi=400)
-fig_adc.savefig("adc_linearity.png", dpi=400)
+
+fig_ch_toa.suptitle("TOA efficiency curves for all channels", fontsize=18)
+fig_ch_toa.supxlabel("Calib [a.u.]", fontsize=15)
+fig_ch_toa.supylabel('TOA efficiency', fontsize=15)
+fig_ch_tot.suptitle("TOT efficiency curves for all channels", fontsize=18)
+fig_ch_tot.supxlabel("Calib [a.u.]", fontsize=15)
+fig_ch_tot.supylabel('TOT efficiency', fontsize=15)
+fig_toa.savefig(output_dir / "toa_s_curve.png", dpi=400)
+fig_tot.savefig(output_dir / "tot_s_curve.png", dpi=400)
+fig_adc.savefig(output_dir / "adc_linearity.png", dpi=400)
+fig_ch_toa.tight_layout()
+fig_ch_tot.tight_layout()
+fig_ch_toa.savefig(output_dir / "toa_s_curves_channel_grid.png", dpi=400)
+fig_ch_tot.savefig(output_dir / "tot_s_curves_channel_grid.png", dpi=400)
 #fig_ch.savefig("toa_s_curve_channel.png", dpi=400)
 plt.show()
 #fig_toa.savefig('toa_efficiency.png', dpi=400, bbox_inches='tight')
 #fig_tot.savefig('tot_efficiency.png', dpi=400, bbox_inches='tight')
+
+#plots the discretized s-curves for all channels, as just lines can sometimes be a bit misleading
+if (args.discretized_plots):
+    for ch_id, ch_df in ch_group:
+        fig_ch, ax_ch = plt.subplots()
+
+        ax_ch.scatter(ch_df['calib'], ch_df['tot_eff'], s=8)
+
+        ax_ch.set_xlabel('Calib [a.u.]')
+        ax_ch.set_ylabel('TOT efficiency')
+        ax_ch.set_title(f'Channel {ch_id}')
+        ax_ch.set_axisbelow(True)
+        ax_ch.grid(True, alpha=0.3)
+
+        fig_ch.savefig(output_dir / f"tot_s_curve_channel_{ch_id}.png", dpi=400, bbox_inches='tight')
+        plt.close(fig_ch)
