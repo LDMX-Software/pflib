@@ -38,7 +38,7 @@ if args.fit_line: fit_data = {'Channel' : [], 'ADC_R2' : [], 'TOT_R2' : []}
 for ch, df_ch in df.groupby("channel"):   
 
     df_valid = df_ch.copy()
-    df_valid.loc[df_valid["tot"] <= 0, "tot"] = np.nan # remove invalid TOT with value -1 for median calculation
+    df_valid.loc[df_valid["tot"] <= 0, "tot"] = np.nan # set TOT values of -1 to NaN, to exclude them from the median calculation
 
     df_med = df_valid.groupby(["calib", "time"]).agg({"adc": "median", "tot": "median"}).reset_index() # take median over same calib and timepoint
     df_med2 = df_med.groupby("calib").agg({"adc": "median", "tot": "median"}).reset_index() #take median over the above medians
@@ -80,29 +80,23 @@ for ch, df_ch in df.groupby("channel"):
             ax2.plot(df_med2["calib"][df_med2["tot"] > args.fit_line_threshold], tot_fit, color="blue", alpha = 0.5, linestyle='--',
                                    label=f'TOT fit: y = {tot_fit_results.slope:.3g}x + {tot_fit_results.intercept:.3g}')
             ax2.legend(loc = 'lower right')
-        ax2.scatter(df_med2["calib"], df_med2["tot"], color="blue", s=1)
+        ax2.scatter(df_med2["calib"], df_med2["tot"], color="blue", s=2, linewidths=0)
         ax2.set_ylabel("Median TOT [a.u.]", color="blue")
         
         plt.title(f"Channel {ch}")
-        plt.savefig(output_dir / f"channel_{ch}.png", dpi=300)
+        plt.savefig(output_dir / f"channel_{ch}.png", dpi=400, bbox_inches='tight')
         plt.close()
 
-    if (args.plot == "TOT-HEATMAP") or (args.plot == "ALL"):    
+    if (args.plot == "TOT-RAW") or (args.plot == "ALL"):    
 
-        #plot of raw TOT values, colormapped to the respective calib
         fig, ax = plt.subplots()
         df_tot = df_ch[df_ch["tot"] > 0] #raw TOT values
 
-        norm = mcolors.Normalize(vmin=df_tot["calib"].min(), vmax=df_tot["calib"].max())
-        cmap = plt.get_cmap("plasma")
+        sc = ax.scatter(df_tot["calib"], df_tot["tot"], s=1, alpha=0.3)
 
-        sc = ax.scatter(df_tot["calib"], df_tot["tot"], c=df_tot["calib"], cmap=cmap, norm=norm, s=0.1)
-
-        cbar = plt.colorbar(sc, ax=ax)
-        cbar.set_label("CALIB")
         ax.set_xlabel("CALIB")
         ax.set_ylabel("TOT [a.u.]")
-        plt.title(f"Channel {ch}, TOT distribution")
+        plt.title(f"Channel {ch}, Raw TOT distribution")
         ax.set_axisbelow(True)
         ax.grid(True)
         plt.savefig(output_dir / f"channel_{ch}_TOT_raw.png", dpi=300)
