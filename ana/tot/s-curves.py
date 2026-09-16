@@ -177,12 +177,13 @@ plt.show()
 #fig_toa.savefig('toa_efficiency.png', dpi=400, bbox_inches='tight')
 #fig_tot.savefig('tot_efficiency.png', dpi=400, bbox_inches='tight')
 
-#plots the discretized s-curves for all channels, as just lines can sometimes be a bit misleading
+#plots additonally the discretized s-curves for all channels, as just lines can sometimes be a bit misleading
 if (args.discretized_plots):
     for ch_id, ch_df in ch_group:
         fig_ch, ax_ch = plt.subplots()
 
-        ax_ch.scatter(ch_df['calib'], ch_df['tot_eff'], s=8)
+        ax_ch.scatter(ch_df['calib'], ch_df['tot_eff'], s=8, color="coral", zorder=2)
+        ax_ch.plot(ch_df['calib'], ch_df['tot_eff'], zorder=1)
 
         ax_ch.set_xlabel('Calib [a.u.]')
         ax_ch.set_ylabel('TOT efficiency')
