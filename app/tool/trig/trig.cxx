@@ -29,7 +29,6 @@ void trig_render(Target* tgt) {}
  *
  * ## Commands
  * - RESET : call reset on the TRIG block (TRIG::reset)
- * - ELINK_SPY : spy on six TRIG elinks (Elinks::spy)
  * - EVENT_SPY : readout the last captured event (TRIG::read_event)
  * - PIPELINE : change depth of capture buffer for readout
  * - SAMPLES_PER_L1A : number of samples to readout per l1a
@@ -64,6 +63,10 @@ void trig(const std::string& cmd, Target* target) {
     for (const auto& [name, val] : trig->get_debug()) {
       printf(" %20s: %d\n", name.c_str(), val);
     }
+    for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
+      std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
+      printf(" align capture link %d: %08x\n", ilink, val[0]);
+    }
   }
   if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or
       cmd == "ECONID") {
@@ -80,23 +83,6 @@ void trig(const std::string& cmd, Target* target) {
       econ_id = pftool::readline_int("set econ id: ", econ_id);
     }
     trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
-  }
-  if (cmd == "ELINK_SPY") {
-    pflib::Elinks& elinks = target->elinks();
-    std::vector<std::vector<uint32_t>> spy(6);
-    printf("word :");
-    for (int ilink{0}; ilink < spy.size(); ilink++) {
-      spy[ilink] = elinks.spy(6 + ilink, ilink == 0);
-      printf("  Link %2d", ilink);
-    }
-    printf("\n");
-    for (int iword{0}; iword < spy[0].size(); iword++) {
-      printf("%4d :", iword);
-      for (int ilink{0}; ilink < spy.size(); ilink++) {
-        printf(" %08x", spy[ilink][iword]);
-      }
-      printf("\n");
-    }
   }
   if (cmd == "EVENT_SPY") {
     std::vector<uint32_t> event = trig->read_event();
@@ -207,7 +193,6 @@ auto menu_trig =
             "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
             setup)
         ->line("WATCH_RUN", "collect data following self-trigger", watch_run)
-        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig)
         ->line("DECODER_LUT_READ", "read a value from the decoding LUT", ztrig)
         ->line("DECODER_LUT_WRITE", "write a value from the decoding LUT",
@@ -223,7 +208,6 @@ auto menu_expert =
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("RESET", "Reset trigger firmware blocks", trig)
-        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
 auto menu_algo =
@@ -237,6 +221,7 @@ auto menu_align =
     menu_trig->submenu("ALIGN", "debug trigger elink alignment")
         ->line("READ", "view alignment capture buffer after a link reset",
                align)
+        ->line("STATUS", "printout settings and status", trig)
         ->line("SETUP", "all-link capture delay", align);
 
 auto menu_histo =

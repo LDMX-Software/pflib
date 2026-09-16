@@ -201,9 +201,9 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
         tgt->fc().linkreset_econs();
         usleep(3000);
         std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
-        for (size_t i = 4; i < 8; i++) {
-          readings.push_back((samples[i] >> 16) & ALIGN_MASK);
-          readings.push_back(samples[i] & ALIGN_MASK);
+        for (const auto& sample : samples) {
+          readings.push_back((sample >> 16) & ALIGN_MASK);
+          readings.push_back(sample & ALIGN_MASK);
         }
         if (std::count(readings.begin(), readings.end(), idle) ==
             readings.size()) {
