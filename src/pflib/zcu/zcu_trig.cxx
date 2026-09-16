@@ -81,10 +81,10 @@ void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
-  static const int N_SAMPLES = 8;
+  static const int N_SAMPLES = 1;
   std::vector<uint32_t> retval(N_SAMPLES, 0);
   for (int i = 0; i < N_SAMPLES; i++) {
-    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (i + ilink * N_SAMPLES));
+    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (ilink << 3) + i);
   }
   return retval;
 }
@@ -213,13 +213,27 @@ std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
 
 std::map<std::string, uint32_t> ZCUtrig::get_debug() {
   std::map<std::string, uint32_t> dbg;
-  static const uint32_t LINK_STATUS_REG = 0xC04 / 4;
+  static const uint32_t LINK_STATUS_REG = 0xC00 / 4 + 0x001;
   uint32_t status = uio_.read(LINK_STATUS_REG);
   dbg["ECON_TDATA_DV"] = ((status >> 16) & 0x1);
   dbg["COUNT_L1A"] = ((status >> 8) & 0xff);
   dbg["COUNT_ALIGNS"] = (status & 0xff);
   dbg["SINGLE_SHOT_FIRED"] = single_shot_fired();
   dbg["COUNT_SELF_TRIGGER"] = get_self_trigger_count();
+
+  static const uint32_t FIFO_STATUS_REG = 0xC00 / 4 + 0x004;
+  static const uint32_t STB_COUNT_REG = 0xC00 / 4 + 0x005;
+
+  uint32_t fifo_status = uio_.read(FIFO_STATUS_REG);
+  dbg["COUNT_BC0"] = ((fifo_status >> 24) & 0xff);
+  dbg["COUNT_SW_RESET_40"] = ((fifo_status >> 16) & 0xff);
+  dbg["FIFO_WR_COUNT"] = ((fifo_status >> 8) & 0xff);
+  dbg["FIFO_RD_COUNT"] = ((fifo_status >> 0) & 0xff);
+
+  uint32_t stb_status = uio_.read(STB_COUNT_REG);
+  dbg["COUNT_ALIGNS_200"] = ((stb_status >> 24) & 0xff);
+  dbg["COUNT_STB5"]   = ((stb_status >> 16) & 0xff);
+  dbg["COUNT_RESETS"] = ((stb_status >>  0) & 0xffff);
   return dbg;
 }
 
