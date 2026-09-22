@@ -222,18 +222,10 @@ std::map<std::string, uint32_t> ZCUtrig::get_debug() {
   dbg["COUNT_SELF_TRIGGER"] = get_self_trigger_count();
 
   static const uint32_t FIFO_STATUS_REG = 0xC00 / 4 + 0x004;
-  static const uint32_t STB_COUNT_REG = 0xC00 / 4 + 0x005;
 
   uint32_t fifo_status = uio_.read(FIFO_STATUS_REG);
   dbg["COUNT_BC0"] = ((fifo_status >> 24) & 0xff);
-  dbg["COUNT_SW_RESET_40"] = ((fifo_status >> 16) & 0xff);
-  dbg["FIFO_WR_COUNT"] = ((fifo_status >> 8) & 0xff);
-  dbg["FIFO_RD_COUNT"] = ((fifo_status >> 0) & 0xff);
-
-  uint32_t stb_status = uio_.read(STB_COUNT_REG);
-  dbg["COUNT_ALIGNS_200"] = ((stb_status >> 24) & 0xff);
-  dbg["COUNT_STB5"]   = ((stb_status >> 16) & 0xff);
-  dbg["COUNT_RESETS"] = ((stb_status >>  0) & 0xffff);
+  dbg["COUNT_RESETS"] = ((fifo_status >>  0) & 0xffff);
   return dbg;
 }
 
