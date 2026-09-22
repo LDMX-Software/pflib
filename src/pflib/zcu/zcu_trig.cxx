@@ -225,7 +225,7 @@ std::map<std::string, uint32_t> ZCUtrig::get_debug() {
 
   uint32_t fifo_status = uio_.read(FIFO_STATUS_REG);
   dbg["COUNT_BC0"] = ((fifo_status >> 24) & 0xff);
-  dbg["COUNT_RESETS"] = ((fifo_status >>  0) & 0xffff);
+  dbg["COUNT_RESETS"] = ((fifo_status >> 0) & 0xffff);
   return dbg;
 }
 
