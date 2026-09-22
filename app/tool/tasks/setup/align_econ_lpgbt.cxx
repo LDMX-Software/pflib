@@ -188,7 +188,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     }
 
     // we want to bypass pattern matching during alignment
-    trig->setup_alignment(new_delay, pattern, true);
+    trig->setup_alignment(new_delay, pattern, bypass_pattern);
 
     bool all_succeed = true;
     for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
