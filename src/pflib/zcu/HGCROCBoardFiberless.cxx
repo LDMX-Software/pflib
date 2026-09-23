@@ -331,12 +331,17 @@ std::vector<uint32_t> HcalFiberless::read_event() {
       case DaqFormat::ECOND_SW_HEADERS: {
         const int bc = 0;  // bx number...
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
-          // assume orbit zero, L1A spaced by two
-          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
-          // only consuming DAQ links in ECOND (D for DAQ)
-          for (int i = 0; i < 2; i++) {
-            formatter_.add_elink_packet(i, daq().getLinkData(i));
-          }
+          // assume that the EBO of the two links output by the single HGCROC
+          // are in agreement, so we just peak at the header of link 0
+          // to get the event, bx, and orbit numbers.
+          auto link0_data = daq().getLinkData(0);
+          formatter_.startEvent(
+              (link0_data[0] >> 16) & 0xfff, // bx
+              (link0_data[0] >> 10) & 0x3f,  // event
+              (link0_data[0] >>  7) & 0x7    // orbit
+          );
+          formatter_.add_elink_packet(0, link0_data);
+          formatter_.add_elink_packet(1, daq().getLinkData(1));
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
