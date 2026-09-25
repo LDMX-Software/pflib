@@ -25,6 +25,9 @@ class TRIG {
   /** How many elinks are there? */
   virtual int n_elinks() const = 0;
 
+  /// reset the aligner block
+  virtual void reset_alignment() = 0;
+
   /** Set up the alignment */
   virtual void setup_alignment(int delay, uint16_t pattern,
                                bool bypass_pattern) = 0;

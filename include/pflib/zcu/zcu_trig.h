@@ -14,6 +14,7 @@ class ZCUtrig : public TRIG {
   void reset();
   int n_elinks() const override { return nelinks_; }
 
+  void reset_alignment() override;
   void setup_alignment(int delay, uint16_t pattern, bool bypass_match) override;
   void get_alignment_setup(int& delay, uint16_t& pattern,
                            bool& bypass_match) override;
