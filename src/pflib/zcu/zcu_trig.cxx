@@ -66,6 +66,10 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
 }
 void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
+void ZCUtrig::reset_alignment() {
+  uio_.write(ADDR_RESET, (1 << 5));
+}
+
 void ZCUtrig::setup_alignment(int delay, uint16_t pattern, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);

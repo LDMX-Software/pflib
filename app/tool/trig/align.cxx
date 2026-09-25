@@ -15,6 +15,9 @@ void align(const std::string& cmd, Target* tgt) {
    */
   pflib::TRIG* trig = tgt->trig();
   if (trig == 0) return;
+  if (cmd == "RESET") {
+    trig->reset_alignment();
+  }
   if (cmd == "SETUP") {
     int delay;
     uint16_t pattern;

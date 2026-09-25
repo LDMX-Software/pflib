@@ -222,6 +222,7 @@ auto menu_align =
         ->line("READ", "view alignment capture buffer after a link reset",
                align)
         ->line("STATUS", "printout settings and status", trig)
+        ->line("RESET", "reset link aligner firmware block", align)
         ->line("SETUP", "all-link capture delay", align);
 
 auto menu_histo =
