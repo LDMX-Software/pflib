@@ -138,9 +138,8 @@ void watch_run(pflib::Target* tgt) {
     }
 
     int new_self_trigger_count = trig->get_self_trigger_count();
-    if (new_self_trigger_count != self_trigger_count + 1) {
+    if (new_self_trigger_count != ((self_trigger_count + 1) % 0xffff)) {
       // self trigger counter is 16bits and so we may have wrapped around
-      // if its getting spammed
       int diff{0};
       if (new_self_trigger_count < self_trigger_count) {
         // wrap around happend

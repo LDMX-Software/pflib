@@ -16,20 +16,23 @@ class TrigAlgoOutput {
   struct SingleBXOutput {
     /// whether STC i had a high peak
     std::bitset<8> is_high_peak_;
+    /// the last 5 clk ticks of the algo trigger
+    std::bitset<5> algo_trigger_history_;
+    /// the last 5 clk ticks of the actual trigger
+    std::bitset<5> gated_trigger_history_;
     /// if the algorithm would trigger
     bool algo_trigger_;
     /// if a trigger was actually sent
     /// (the trigger may be prevented by the single-shot gate)
     bool gated_trigger_;
-    /// if the elink was valid
-    bool elink_valid_;
     /// if the link alignment was valid
     bool econ_tdata_dv_;
     /// print human readable sample
     friend inline std::ostream& operator<<(std::ostream& o,
                                            const SingleBXOutput& sample) {
       o << "{ is_high_peak: " << sample.is_high_peak_
-        << ", elink_valid: " << sample.elink_valid_
+        << ", algo_history: " << sample.algo_trigger_history_
+        << ", gated_history: " << sample.gated_trigger_history_
         << ", econ_tdata_dv: " << sample.econ_tdata_dv_
         << ", algo_trigger: " << sample.algo_trigger_
         << ", gated_trigger: " << sample.gated_trigger_ << " }";
@@ -49,7 +52,6 @@ class TrigAlgoOutput {
   bool trigger(std::optional<int> i_sample = {}) const;
   /// reports if the algo would have triggered
   bool algo_trigger(std::optional<int> i_sample = {}) const;
-  bool elink_valid(std::optional<int> i_sample = {}) const;
   bool econ_tdata_dv(std::optional<int> i_sample = {}) const;
 
  private:
