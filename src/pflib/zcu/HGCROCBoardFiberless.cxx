@@ -335,10 +335,9 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           // are in agreement, so we just peak at the header of link 0
           // to get the event, bx, and orbit numbers.
           auto link0_data = daq().getLinkData(0);
-          formatter_.startEvent(
-              (link0_data[0] >> 16) & 0xfff, // bx
-              (link0_data[0] >> 10) & 0x3f,  // event
-              (link0_data[0] >>  7) & 0x7    // orbit
+          formatter_.startEvent((link0_data[0] >> 16) & 0xfff,  // bx
+                                (link0_data[0] >> 10) & 0x3f,   // event
+                                (link0_data[0] >> 7) & 0x7      // orbit
           );
           formatter_.add_elink_packet(0, link0_data);
           formatter_.add_elink_packet(1, daq().getLinkData(1));
