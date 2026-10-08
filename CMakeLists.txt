@@ -81,6 +81,7 @@ add_library(utility SHARED
   src/pflib/utility/efficiency.cxx
   src/pflib/utility/mean.cxx
   src/pflib/utility/stdev.cxx
+  src/pflib/utility/intel_hex.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -233,6 +234,9 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
+
+add_executable(ihex app/ihex.cxx)
+target_link_libraries(ihex PRIVATE utility)
 
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
