@@ -138,8 +138,8 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
-                                  int iecon, bool check_all_phases) {
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
+                                  bool check_all_phases) {
   if (econ.type() == "econd") {
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
@@ -206,7 +206,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     if (pftool::state.readout_config_is_hcal()) {
       i_elinks = HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon);
     } else {
-      pflib_log(warn) << "unsure on which links to check for EcalSMM, looking at all 6";
+      pflib_log(warn)
+          << "unsure on which links to check for EcalSMM, looking at all 6";
     }
 
     bool all_succeed = true;
@@ -219,7 +220,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
         usleep(3000);
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> samples = trig->read_capture_buffer(i_elinks.at(ilink));
+        std::vector<uint32_t> samples =
+            trig->read_capture_buffer(i_elinks.at(ilink));
         for (const auto& sample : samples) {
           readings.push_back((sample >> 16) & ALIGN_MASK);
           readings.push_back(sample & ALIGN_MASK);
@@ -249,7 +251,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
       for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> samples = trig->read_capture_buffer(i_elinks.at(ilink));
+        std::vector<uint32_t> samples =
+            trig->read_capture_buffer(i_elinks.at(ilink));
         int last_bx = -1;
         for (int i_sample{0}; i_sample < samples.size(); i_sample++) {
           int bx = ((samples[i_sample] >> (16 + 11)) & 0x1f);

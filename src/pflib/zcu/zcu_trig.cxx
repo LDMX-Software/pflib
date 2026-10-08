@@ -232,14 +232,14 @@ std::map<std::string, uint32_t> ZCUtrig::get_debug() {
 
   uint32_t bc0_counts = uio_.read(0xC00 / 4 + 0x005);
   dbg["COUNT_BC02"] = ((bc0_counts >> 16) & 0xff);
-  dbg["COUNT_BC01"] = ((bc0_counts >>  8) & 0xff);
-  dbg["COUNT_BC00"] = ((bc0_counts >>  0) & 0xff);
+  dbg["COUNT_BC01"] = ((bc0_counts >> 8) & 0xff);
+  dbg["COUNT_BC00"] = ((bc0_counts >> 0) & 0xff);
 
   uint32_t wait_for_write = uio_.read(0xC00 / 4 + 0x006);
-  dbg["WAIT_FOR_WRITE0"] = ((wait_for_write >> 0*8) & 0xff);
-  dbg["WAIT_FOR_WRITE1"] = ((wait_for_write >> 1*8) & 0xff);
-  dbg["WAIT_FOR_WRITE2"] = ((wait_for_write >> 2*8) & 0xff);
-  dbg["WAIT_FOR_WRITE3"] = ((wait_for_write >> 3*8) & 0xff);
+  dbg["WAIT_FOR_WRITE0"] = ((wait_for_write >> 0 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE1"] = ((wait_for_write >> 1 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE2"] = ((wait_for_write >> 2 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE3"] = ((wait_for_write >> 3 * 8) & 0xff);
   return dbg;
 }
 
