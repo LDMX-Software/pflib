@@ -18,11 +18,12 @@ static constexpr uint32_t MASK_ADV_ALGO_BUFFER = 0x4;
 static constexpr uint32_t ADDR_CONFIGURE = 0x600 / 4;
 static constexpr uint32_t MASK_ENABLE_SINGLE_SHOT = 0x00000002;
 static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
-static constexpr uint32_t MASK_LINK_BX_DELAY_ZERO = 0x00030000;
-static constexpr uint32_t MASK_LINK_BX_DELAY = 0x0FFF0000;
+static constexpr uint32_t MASK_LINK_PATTERN = 0x07ff0000;
+static constexpr uint32_t MASK_LINK_BYPASS_PATTERN_MATCH = 0x08000000;
 
 static constexpr uint32_t ADDR_PIPELINE_DEPTH = 0x604 / 4;
 static constexpr uint32_t MASK_PIPELINE_DEPTH = 0x000000FF;
+static constexpr uint32_t MASK_IGNORE_ELINKS = 0x00007e00;
 
 static constexpr uint32_t ADDR_SAMPLES_PER_L1A = 0x400 / 4;
 static constexpr uint32_t MASK_SAMPLES_PER_L1A = 0x00003F00;
@@ -66,35 +67,29 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
 }
 void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
-void ZCUtrig::setup_alignment_capture(int delay) {
+void ZCUtrig::reset_alignment() { uio_.write(ADDR_RESET, (1 << 5)); }
+
+void ZCUtrig::setup_alignment(int delay, uint16_t pattern, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH,
+                   (bypass_match ? 1 : 0));
 }
-int ZCUtrig::get_alignment_capture() {
-  return uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
+void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
+                                  bool& bypass_match) {
+  delay = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
+  pattern = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN);
+  bypass_match =
+      (uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH) == 1);
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
-  static const int N_SAMPLES = 8;
+  static const int N_SAMPLES = 1;
   std::vector<uint32_t> retval(N_SAMPLES, 0);
   for (int i = 0; i < N_SAMPLES; i++) {
-    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (i + ilink * N_SAMPLES));
+    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (ilink << 3) + i);
   }
   return retval;
-}
-
-static const int BITS_OF_DELAY = 2;
-static const int MASK_OF_DELAY = 0x3;
-
-void ZCUtrig::set_bx_delay(int ilink, int delay) {
-  return uio_.writeMasked(ADDR_CONFIGURE,
-                          MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink),
-                          delay & MASK_OF_DELAY);
-}
-
-int ZCUtrig::get_bx_delay(int ilink) {
-  if (ilink < 0 || ilink >= nelinks_) return -1;
-  return uio_.readMasked(ADDR_CONFIGURE,
-                         MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink));
 }
 
 void ZCUtrig::setup_daq(int pipeline, int econ_id, int samples_per_l1a,
@@ -221,14 +216,30 @@ std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
 
 std::map<std::string, uint32_t> ZCUtrig::get_debug() {
   std::map<std::string, uint32_t> dbg;
-  static const uint32_t LINK_STATUS_REG = 0xC04 / 4;
+  static const uint32_t LINK_STATUS_REG = 0xC00 / 4 + 0x001;
   uint32_t status = uio_.read(LINK_STATUS_REG);
-  dbg["ELINK_TVALID"] = ((status >> 17) & 0x1);
   dbg["ECON_TDATA_DV"] = ((status >> 16) & 0x1);
   dbg["COUNT_L1A"] = ((status >> 8) & 0xff);
   dbg["COUNT_ALIGNS"] = (status & 0xff);
   dbg["SINGLE_SHOT_FIRED"] = single_shot_fired();
   dbg["COUNT_SELF_TRIGGER"] = get_self_trigger_count();
+
+  static const uint32_t FIFO_STATUS_REG = 0xC00 / 4 + 0x004;
+
+  uint32_t fifo_status = uio_.read(FIFO_STATUS_REG);
+  dbg["COUNT_BC0"] = ((fifo_status >> 24) & 0xff);
+  dbg["COUNT_RESETS"] = ((fifo_status >> 0) & 0xffff);
+
+  uint32_t bc0_counts = uio_.read(0xC00 / 4 + 0x005);
+  dbg["COUNT_BC02"] = ((bc0_counts >> 16) & 0xff);
+  dbg["COUNT_BC01"] = ((bc0_counts >> 8) & 0xff);
+  dbg["COUNT_BC00"] = ((bc0_counts >> 0) & 0xff);
+
+  uint32_t wait_for_write = uio_.read(0xC00 / 4 + 0x006);
+  dbg["WAIT_FOR_WRITE0"] = ((wait_for_write >> 0 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE1"] = ((wait_for_write >> 1 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE2"] = ((wait_for_write >> 2 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE3"] = ((wait_for_write >> 3 * 8) & 0xff);
   return dbg;
 }
 

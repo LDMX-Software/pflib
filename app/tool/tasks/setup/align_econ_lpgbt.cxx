@@ -49,6 +49,17 @@ static void print_locked_status(pflib::lpGBT& lpgbt) {
   }
 }
 
+/**
+ * The HcalBackplane has two ECON-Ts connected to the TRIG lpGBT
+ * and each ECON-T has multiple output links through lpGBT
+ * connected to channel 0 of a series of groups
+ */
+std::vector<std::vector<int>> HCAL_BACKPLANE_I_ECON_TO_GROUP = {
+    {0},        // ECON-D
+    {0, 1, 2},  // ECON-T1
+    {3, 4, 5}   // ECON-T2
+};
+
 static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
                                  bool check_all_phases) {
   // ----- bit alignment with PRBS7 as input -----
@@ -105,14 +116,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
     lpgbt.check_prbs_errors_erx(0, check_all_phases);
   } else if (pftool::state.readout_config_is_hcal()) {
-    // ECON-T has multiple output links through lpGBT
-    // connected to channel 0 of a series of groups
-    std::vector<std::vector<int>> i_econ_to_group = {
-        {0},        // ECON-D
-        {0, 1, 2},  // ECON-T1
-        {3, 4, 5}   // ECON-T2
-    };
-    for (int ierx : i_econ_to_group.at(iecon)) {
+    for (int ierx : HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon)) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
       lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
     }
@@ -134,7 +138,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
+static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
                                   bool check_all_phases) {
   if (econ.type() == "econd") {
     // word-alignment
@@ -172,18 +176,42 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
 
-    if (trig->get_alignment_capture() == 0) {
+    int delay;
+    uint16_t pattern;
+    bool bypass_pattern;
+    trig->get_alignment_setup(delay, pattern, bypass_pattern);
+    int new_delay = delay;
+    if (delay == 0) {
       // capture delay of 0 will /not/ work and is the default
       // of a newly-loaded firmware, update to a reasonable default
       // 30 was from when the backplane was on the same table as the ZCU
       // we also have used 42 after moving the backplane to the dark room
       // and using much longer optical fibers
       static const int DEFAULT_CAPTURE_DELAY = 30;
-      trig->setup_alignment_capture(DEFAULT_CAPTURE_DELAY);
+      new_delay = DEFAULT_CAPTURE_DELAY;
+    }
+
+    // we want to bypass pattern matching during alignment
+    trig->setup_alignment(new_delay, pattern, bypass_pattern);
+
+    /**
+     * we are assuming that the active elinks in the TRIG match
+     * the eRx labeling for the different ECON connections.
+     *
+     * We are also assuming that, in the Hcal backplane case,
+     * ECON-T1 eTx 0, 1, 2 -> TRIG lpGBT eRx 0, 1, 2
+     * ECON-T2 eTx 0, 1, 2 -> TRIG lpGBT eRx 3, 4, 5
+     */
+    std::vector<int> i_elinks{0, 1, 2, 3, 4, 5};
+    if (pftool::state.readout_config_is_hcal()) {
+      i_elinks = HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon);
+    } else {
+      pflib_log(warn)
+          << "unsure on which links to check for EcalSMM, looking at all 6";
     }
 
     bool all_succeed = true;
-    for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
+    for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
       std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
       int got_idle_phase = -1;
       for (int phase = 0; phase < 16; phase++) {
@@ -192,10 +220,11 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
         usleep(3000);
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
-        for (size_t i = 4; i < 8; i++) {
-          readings.push_back((samples[i] >> 16) & ALIGN_MASK);
-          readings.push_back(samples[i] & ALIGN_MASK);
+        std::vector<uint32_t> samples =
+            trig->read_capture_buffer(i_elinks.at(ilink));
+        for (const auto& sample : samples) {
+          readings.push_back((sample >> 16) & ALIGN_MASK);
+          readings.push_back(sample & ALIGN_MASK);
         }
         if (std::count(readings.begin(), readings.end(), idle) ==
             readings.size()) {
@@ -219,10 +248,11 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ,
       pflib_log(info) << "checking if aligned links are in time";
       bool different_first_bx = false;
       int first_bx = -1;
-      for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
+      for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> samples = trig->read_capture_buffer(ilink);
+        std::vector<uint32_t> samples =
+            trig->read_capture_buffer(i_elinks.at(ilink));
         int last_bx = -1;
         for (int i_sample{0}; i_sample < samples.size(); i_sample++) {
           int bx = ((samples[i_sample] >> (16 + 11)) & 0x1f);
@@ -266,6 +296,6 @@ void align_econ_lpgbt(Target* tgt) {
     align_econ_lpgbt_bit(tgt, econ, iecon, check_all_phases);
   }
   if (pftool::readline_bool("Continue to word alignment?", true)) {
-    align_econ_lpgbt_word(tgt, econ, check_all_phases);
+    align_econ_lpgbt_word(tgt, econ, iecon, check_all_phases);
   }
 }
