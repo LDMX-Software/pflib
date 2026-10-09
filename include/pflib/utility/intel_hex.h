@@ -60,10 +60,6 @@ class DataRecord {
   template<typename WordType,
            std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
   WordType get() {
-    if (sizeof(WordType) != get_bytes().size()) {
-      // ignoring some data, should not be using this convenience function
-      printf("warning: WordType size does not match number of bytes stored in record.\n");
-    }
     WordType word = 0;
     for (int i_byte{0}; i_byte < get_bytes().size(); i_byte++) {
       word |= (static_cast<WordType>(get_bytes().at(i_byte)) << 8*i_byte);
@@ -107,13 +103,16 @@ class Reader {
  *
  * The user is expected to Writer::add records
  * one at a time.
- * ```cppp
+ * ```cpp
  * intel_hex::Writer ih_writer("file.hex");
  * DataRecord record;
  * for (const auto& [addr, value] : registers) {
  *   // maybe value is a 4 bytes (32 bits)
  *   record.from(addr, value);
  * }
+ * // file closed when ih_writer is destructed
+ * // or you can call close() manually
+ * ```
  */
 class Writer {
   FILE* output_file_;

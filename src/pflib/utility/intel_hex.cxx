@@ -1,6 +1,10 @@
 #include "pflib/utility/intel_hex.h"
 
+#include "pflib/logging/Logging.h"
+
 namespace pflib::utility::intel_hex {
+
+static ::pflib::logging::logger the_log_{::pflib::logging::get("intel_hex")};
 
 void DataRecord::from_bytes(uint16_t addr, std::vector<uint8_t> data) {
   addr_ = addr;
@@ -36,11 +40,14 @@ bool Reader::next() {
     bytes.push_back(byte);
   }
 
-  if (sum != 0x100) {
-    printf("bad checksum %x\n", sum);
+  if (sum & 0xff != 0x00) {
+    pflib_log(warn) << "reader: bad checksum " << std::hex << (sum & 0xff)
+                    << " (should be zero)";
   }
   if (bytes[0] != bytes.size() - 5) {
-    printf("bad length (reported: %d, actual: %d)\n", bytes[0], bytes.size());
+    pflib_log(warn) << "reader: bad length, report: " << bytes[0]
+                    << " actual: " << bytes.size()
+                    << " (reported should be 5 less than actual)";
   }
 
   std::vector<uint8_t> data{bytes.begin() + 4, bytes.end() - 1};
@@ -58,7 +65,7 @@ const DataRecord& Reader::get() {
 Writer::Writer(const std::string& output_filepath)
   : output_file_{fopen(output_filepath.c_str(), "w")} {
     if (output_file_ == nullptr) {
-      printf("unable to open file");
+      pflib_log(error) << "unable to open output intel_hex file " << output_filepath;
     }
 }
 
@@ -83,7 +90,6 @@ void Writer::add(const DataRecord& data) {
     fprintf(output_file_, "%02x", byte);
     checksum += byte;
   }
-  checksum &= 0xff;
   checksum = static_cast<uint8_t>(-static_cast<unsigned int>(checksum));
   fprintf(output_file_, "%02x\n", checksum);
 }

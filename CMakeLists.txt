@@ -72,6 +72,12 @@ endif()
 # if a look-up-table changes and re-compile the library
 add_subdirectory(register_maps)
 
+add_library(logging SHARED src/pflib/logging/Logging.cxx)
+target_include_directories(logging PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(logging PUBLIC Boost::log)
+
 add_library(utility SHARED
   src/pflib/utility/crc.cxx
   src/pflib/utility/ends_with.cxx
@@ -87,12 +93,7 @@ target_include_directories(utility PUBLIC
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(utility SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
-
-add_library(logging SHARED src/pflib/logging/Logging.cxx)
-target_include_directories(logging PUBLIC 
-  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
-target_link_libraries(logging PUBLIC Boost::log)
+target_link_libraries(utility PUBLIC logging)
 
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
