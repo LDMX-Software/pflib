@@ -10,10 +10,10 @@
 #include <iomanip>
 #include <iostream>
 
-#include "pflib/utility/intel_hex.h"
 #include "pflib/Compile.h"
 #include "pflib/Exception.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/utility/intel_hex.h"
 #include "pflib/version/Version.h"
 
 static void usage() {
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     output_filename += ("." + output_type);
   } else if (output_type.empty()) {
     // output file given but not output type, deduce from file name
-    output_type = output_filename.substr(output_filename.find_last_of('.')+1);
+    output_type = output_filename.substr(output_filename.find_last_of('.') + 1);
   }
 
   if (output_type.empty()) {
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
           << '\n';
       }
     }
-  
+
     f.flush();
   } else if (output_type == "ihex") {
     pflib::utility::intel_hex::Writer w{output_filename};
@@ -175,7 +175,8 @@ int main(int argc, char* argv[]) {
       }
     }
   } else {
-    pflib_log(fatal) << "Output type '" << output_type << "' is neither 'csv' nor 'ihex'";
+    pflib_log(fatal) << "Output type '" << output_type
+                     << "' is neither 'csv' nor 'ihex'";
     return 2;
   }
 

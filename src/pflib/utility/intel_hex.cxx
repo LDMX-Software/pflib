@@ -11,18 +11,14 @@ void DataRecord::from_bytes(uint16_t addr, std::vector<uint8_t> data) {
   data_ = data;
 }
 
-const std::vector<uint8_t>& DataRecord::get_bytes() const {
-  return data_;
-}
+const std::vector<uint8_t>& DataRecord::get_bytes() const { return data_; }
 
-const uint16_t& DataRecord::addr() const {
-  return addr_;
-}
+const uint16_t& DataRecord::addr() const { return addr_; }
 
 static const char* EOF_LINE = ":00000001FF";
 
 Reader::Reader(const std::string& input_filepath)
-  : input_file_{input_filepath}, current_record_{}, error_count_{0} {}
+    : input_file_{input_filepath}, current_record_{}, error_count_{0} {}
 
 bool Reader::next() {
   std::string line;
@@ -43,7 +39,8 @@ bool Reader::next() {
   if (line == EOF_LINE) return false;
   if (line.empty() and input_file_.eof()) {
     error_count_++;
-    pflib_log(warn) << "reader: reached end of file without finding a EOF record";
+    pflib_log(warn)
+        << "reader: reached end of file without finding a EOF record";
     return false;
   }
 
@@ -69,31 +66,24 @@ bool Reader::next() {
   }
 
   std::vector<uint8_t> data{bytes.begin() + 4, bytes.end() - 1};
-  current_record_.from_bytes(
-      static_cast<uint16_t>((bytes[1] << 8) | bytes[2]),
-      data
-  );
+  current_record_.from_bytes(static_cast<uint16_t>((bytes[1] << 8) | bytes[2]),
+                             data);
   return true;
 }
 
-std::size_t Reader::errors() const {
-  return error_count_;
-}
+std::size_t Reader::errors() const { return error_count_; }
 
-const DataRecord& Reader::get() {
-  return current_record_;
-}
- 
+const DataRecord& Reader::get() { return current_record_; }
+
 Writer::Writer(const std::string& output_filepath)
-  : output_file_{fopen(output_filepath.c_str(), "w")} {
-    if (output_file_ == nullptr) {
-      pflib_log(error) << "unable to open output intel_hex file " << output_filepath;
-    }
+    : output_file_{fopen(output_filepath.c_str(), "w")} {
+  if (output_file_ == nullptr) {
+    pflib_log(error) << "unable to open output intel_hex file "
+                     << output_filepath;
+  }
 }
 
-Writer::~Writer() {
-  close();
-}
+Writer::~Writer() { close(); }
 
 void Writer::add(const DataRecord& data) {
   if (!output_file_) return;
@@ -104,7 +94,7 @@ void Writer::add(const DataRecord& data) {
   byte_row[2] = ((data.addr() >> 0) & 0xff);
   byte_row[3] = 0x01;
   for (int i_byte{0}; i_byte < data.get_bytes().size(); i_byte++) {
-    byte_row[4+i_byte] = data.get_bytes().at(i_byte);
+    byte_row[4 + i_byte] = data.get_bytes().at(i_byte);
   }
   fprintf(output_file_, ":");
   uint8_t checksum = 0;
@@ -121,4 +111,4 @@ void Writer::close() {
   if (output_file_) fclose(output_file_);
 }
 
-}
+}  // namespace pflib::utility::intel_hex

@@ -4,13 +4,13 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <vector>
+#include <fstream>
 #include <string>
 #include <type_traits>
-#include <fstream>
+#include <vector>
 
 namespace pflib::utility {
- 
+
 /**
  * A reader/writer implemeting a subset of the Intel HEX format
  *
@@ -42,28 +42,31 @@ class DataRecord {
   std::vector<uint8_t> data_;
   /// address for the data
   uint16_t addr_;
+
  public:
   /// set contents of data record
   void from_bytes(uint16_t addr, std::vector<uint8_t> data);
   /// set contents of data record using width of integer type
-  template<typename WordType,
-           std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
+  template <typename WordType,
+            std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
   void from(uint16_t addr, WordType value) {
     addr_ = addr;
     data_.resize(sizeof(WordType));
     for (int i_byte{0}; i_byte < sizeof(WordType); i_byte++) {
-      data_[i_byte] = static_cast<uint8_t>((value >> 8*(sizeof(WordType)-i_byte-1)) & 0xff);
+      data_[i_byte] = static_cast<uint8_t>(
+          (value >> 8 * (sizeof(WordType) - i_byte - 1)) & 0xff);
     }
   }
   /// get raw bytes of data
   const std::vector<uint8_t>& get_bytes() const;
   /// get data in terms of integer type
-  template<typename WordType,
-           std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
+  template <typename WordType,
+            std::enable_if_t<std::is_integral<WordType>::value, bool> = true>
   WordType get() {
     WordType word = 0;
     for (int i_byte{0}; i_byte < get_bytes().size(); i_byte++) {
-      word |= (static_cast<WordType>(get_bytes().at(i_byte)) << 8*(sizeof(WordType)-i_byte-1));
+      word |= (static_cast<WordType>(get_bytes().at(i_byte))
+               << 8 * (sizeof(WordType) - i_byte - 1));
     }
     return word;
   }
@@ -91,6 +94,7 @@ class Reader {
   std::ifstream input_file_;
   DataRecord current_record_;
   std::size_t error_count_;
+
  public:
   Reader(const Reader&) = delete;
   Reader& operator=(const Reader&) = delete;
@@ -119,6 +123,7 @@ class Reader {
  */
 class Writer {
   FILE* output_file_;
+
  public:
   Writer(const Writer&) = delete;
   Writer& operator=(const Writer&) = delete;
@@ -128,8 +133,8 @@ class Writer {
   void close();
 };
 
-}
+}  // namespace intel_hex
 
-}
+}  // namespace pflib::utility
 
 #endif

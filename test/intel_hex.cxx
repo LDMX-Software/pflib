@@ -1,11 +1,11 @@
 #define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
+#include "pflib/utility/intel_hex.h"
 
+#include <boost/test/unit_test.hpp>
 #include <random>
 
-#include "pflib/utility/intel_hex.h"
-#include "pflib/Compile.h"
 #include "helpers.h"
+#include "pflib/Compile.h"
 
 BOOST_AUTO_TEST_SUITE(intel_hex)
 
@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(write_read_one_register) {
     d.from<uint32_t>(0x0102, 0x12345678);
     w.add(d);
     // writer closed on destruction
-  } 
+  }
 
   {
     pflib::utility::intel_hex::Reader r{image.file_path_};
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(write_read_wide_register) {
     d.from<uint64_t>(0xacdc, 0xabcdef0912345678ul);
     w.add(d);
     // writer closed on destruction
-  } 
+  }
 
   {
     pflib::utility::intel_hex::Reader r{image.file_path_};
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_SUITE(check_corruption)
 
 BOOST_AUTO_TEST_CASE(corrupted_value) {
   TempFile image{"corrupted_value.ihex",
-    R"IHEX(:08acdc01abcdef9012345678eb
+                 R"IHEX(:08acdc01abcdef9012345678eb
 :00000001FF
 )IHEX"};
   BOOST_TEST_MESSAGE("checking that reader warns on a corrupted value");
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(corrupted_value) {
 
 BOOST_AUTO_TEST_CASE(bad_line) {
   TempFile image{"bad_line.ihex",
-    R"IHEX(foo
+                 R"IHEX(foo
 :08acdc01abcdef0912345678eb
 :00000001FF
 )IHEX"};
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(bad_line) {
 
 BOOST_AUTO_TEST_CASE(no_eof_line) {
   TempFile image{"no_eof_line.ihex",
-    R"IHEX(:08acdc01abcdef0912345678eb
+                 R"IHEX(:08acdc01abcdef0912345678eb
 )IHEX"};
   BOOST_TEST_MESSAGE("checking that reader warns on missing EOF record");
   pflib::utility::intel_hex::Reader r{image.file_path_};
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(no_eof_line) {
 
 BOOST_AUTO_TEST_CASE(ignore_comments) {
   TempFile image{"ignore_comments.ihex",
-    R"IHEX(// we ignore lines starting with two slashes
+                 R"IHEX(// we ignore lines starting with two slashes
 :08acdc01abcdef0912345678eb
 
 :00000001FF
