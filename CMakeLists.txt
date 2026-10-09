@@ -201,6 +201,7 @@ add_executable(
   test/decoding.cxx
   test/utility.cxx
   test/parameters.cxx
+  test/intel_hex.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
@@ -235,9 +236,6 @@ target_link_libraries(test-menu PRIVATE pflib menu)
 
 add_executable(pfdecoder app/pfdecoder.cxx)
 target_link_libraries(pfdecoder PRIVATE pflib)
-
-add_executable(ihex app/ihex.cxx)
-target_link_libraries(ihex PRIVATE utility)
 
 add_executable(econd-decoder app/econd_decoder.cxx)
 target_link_libraries(econd-decoder PRIVATE pflib)
