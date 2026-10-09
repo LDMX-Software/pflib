@@ -34,9 +34,8 @@ namespace intel_hex {
 /**
  * a record of data from/to the IntelHex format
  *
- * the from/to template functions are where we decide on
- * endian-ness. The Intel Hex format states that the data should be big-endian,
- * but I don't know if what we are writing is big or little and I don't care.
+ * The from/get template functions are where we decide on endian-ness
+ * of the data values (we choose big-endian as defined by format).
  */
 class DataRecord {
   /// actual data in this record
@@ -53,7 +52,7 @@ class DataRecord {
     addr_ = addr;
     data_.resize(sizeof(WordType));
     for (int i_byte{0}; i_byte < sizeof(WordType); i_byte++) {
-      data_[i_byte] = static_cast<uint8_t>((value >> 8*i_byte) & 0xff);
+      data_[i_byte] = static_cast<uint8_t>((value >> 8*(sizeof(WordType)-i_byte-1)) & 0xff);
     }
   }
   /// get raw bytes of data
@@ -64,7 +63,7 @@ class DataRecord {
   WordType get() {
     WordType word = 0;
     for (int i_byte{0}; i_byte < get_bytes().size(); i_byte++) {
-      word |= (static_cast<WordType>(get_bytes().at(i_byte)) << 8*i_byte);
+      word |= (static_cast<WordType>(get_bytes().at(i_byte)) << 8*(sizeof(WordType)-i_byte-1));
     }
     return word;
   }

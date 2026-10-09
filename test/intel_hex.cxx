@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_SUITE(check_corruption)
 
 BOOST_AUTO_TEST_CASE(corrupted_value) {
   TempFile image{"corrupted_value.ihex",
-    R"IHEX(:08acdc017856341290efcdabeb
+    R"IHEX(:08acdc01abcdef9012345678eb
 :00000001FF
 )IHEX"};
   BOOST_TEST_MESSAGE("checking that reader warns on a corrupted value");
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(corrupted_value) {
 BOOST_AUTO_TEST_CASE(bad_line) {
   TempFile image{"bad_line.ihex",
     R"IHEX(foo
-:08acdc017856341209efcdabeb
+:08acdc01abcdef0912345678eb
 :00000001FF
 )IHEX"};
   BOOST_TEST_MESSAGE("checking that reader warns on a bad line");
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(bad_line) {
 
 BOOST_AUTO_TEST_CASE(no_eof_line) {
   TempFile image{"no_eof_line.ihex",
-    R"IHEX(:08acdc017856341209efcdabeb
+    R"IHEX(:08acdc01abcdef0912345678eb
 )IHEX"};
   BOOST_TEST_MESSAGE("checking that reader warns on missing EOF record");
   pflib::utility::intel_hex::Reader r{image.file_path_};
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(no_eof_line) {
 BOOST_AUTO_TEST_CASE(ignore_comments) {
   TempFile image{"ignore_comments.ihex",
     R"IHEX(// we ignore lines starting with two slashes
-:08acdc017856341209efcdabeb
+:08acdc01abcdef0912345678eb
 
 :00000001FF
 )IHEX"};
