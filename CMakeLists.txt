@@ -72,6 +72,12 @@ endif()
 # if a look-up-table changes and re-compile the library
 add_subdirectory(register_maps)
 
+add_library(logging SHARED src/pflib/logging/Logging.cxx)
+target_include_directories(logging PUBLIC 
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(logging PUBLIC Boost::log)
+
 add_library(utility SHARED
   src/pflib/utility/crc.cxx
   src/pflib/utility/ends_with.cxx
@@ -81,17 +87,13 @@ add_library(utility SHARED
   src/pflib/utility/efficiency.cxx
   src/pflib/utility/mean.cxx
   src/pflib/utility/stdev.cxx
+  src/pflib/utility/intel_hex.cxx
 )
 target_include_directories(utility PUBLIC 
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(utility SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
-
-add_library(logging SHARED src/pflib/logging/Logging.cxx)
-target_include_directories(logging PUBLIC 
-  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
-target_link_libraries(logging PUBLIC Boost::log)
+target_link_libraries(utility PUBLIC logging)
 
 add_library(packing SHARED
   src/pflib/packing/FileReader.cxx
@@ -199,6 +201,7 @@ add_executable(
   test/decoding.cxx
   test/utility.cxx
   test/parameters.cxx
+  test/intel_hex.cxx
 )
 target_link_libraries(test-pflib PRIVATE Boost::unit_test_framework pflib packing)
 
