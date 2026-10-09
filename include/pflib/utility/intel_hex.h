@@ -89,11 +89,13 @@ class DataRecord {
 class Reader {
   std::ifstream input_file_;
   DataRecord current_record_;
+  std::size_t error_count_;
  public:
   Reader(const Reader&) = delete;
   Reader& operator=(const Reader&) = delete;
   ~Reader() = default;
   Reader(const std::string& input_filepath);
+  std::size_t errors() const;
   bool next();
   const DataRecord& get();
 };

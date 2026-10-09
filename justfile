@@ -76,6 +76,9 @@ install dir=default_install_dir: (_cmake "-DCMAKE_INSTALL_PREFIX=" + dir)
 # alias for configure and then build
 compile: configure build
 
+# include test messages written with BOOST_TEST_MESSAGE
+export BOOST_TEST_LOG_LEVEL:= "message"
+
 # run Boost.Test executable
 test: _test
 

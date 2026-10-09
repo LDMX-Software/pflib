@@ -22,7 +22,7 @@ const uint16_t& DataRecord::addr() const {
 static const char* EOF_LINE = ":00000001FF";
 
 Reader::Reader(const std::string& input_filepath)
-  : input_file_{input_filepath} {}
+  : input_file_{input_filepath}, current_record_{}, error_count_{0} {}
 
 bool Reader::next() {
   // TODO: skip comments
@@ -41,10 +41,12 @@ bool Reader::next() {
   }
 
   if (sum & 0xff != 0x00) {
+    error_count_++;
     pflib_log(warn) << "reader: bad checksum " << std::hex << (sum & 0xff)
                     << " (should be zero)";
   }
   if (bytes[0] != bytes.size() - 5) {
+    error_count_++;
     pflib_log(warn) << "reader: bad length, report: " << bytes[0]
                     << " actual: " << bytes.size()
                     << " (reported should be 5 less than actual)";
@@ -56,6 +58,10 @@ bool Reader::next() {
       data
   );
   return true;
+}
+
+std::size_t Reader::errors() const {
+  return error_count_;
 }
 
 const DataRecord& Reader::get() {
