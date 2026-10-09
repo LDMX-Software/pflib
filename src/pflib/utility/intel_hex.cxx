@@ -25,11 +25,27 @@ Reader::Reader(const std::string& input_filepath)
   : input_file_{input_filepath}, current_record_{}, error_count_{0} {}
 
 bool Reader::next() {
-  // TODO: skip comments
   std::string line;
-  std::getline(input_file_, line);
+  while (std::getline(input_file_, line)) {
+    if (line.starts_with(":")) {
+      // found a record
+      break;
+    }
+    if (line.empty() or line.starts_with("//")) {
+      // intentionally ignore empty lines and comments
+      continue;
+    }
+    error_count_++;
+    pflib_log(warn) << "reader: found '" << line
+                    << "' that is neither a record or a comment, ignoring";
+  }
 
   if (line == EOF_LINE) return false;
+  if (line.empty() and input_file_.eof()) {
+    error_count_++;
+    pflib_log(warn) << "reader: reached end of file without finding a EOF record";
+    return false;
+  }
 
   std::vector<uint8_t> bytes;
   int sum{0};

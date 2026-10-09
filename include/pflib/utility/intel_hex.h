@@ -24,8 +24,10 @@ namespace pflib::utility {
  *
  * A few other specializations
  * - the lines are always separated by a newline
+ * - empty lines are ignored
  * - lines beginning with '//' are comments and ignored
- * - lines beginning with ':' are records and parsed, all other lines are errors
+ * - lines beginning with ':' are records and parsed,
+ * - all other lines are errors
  */
 namespace intel_hex {
 
