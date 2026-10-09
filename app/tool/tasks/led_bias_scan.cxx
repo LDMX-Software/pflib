@@ -65,9 +65,9 @@ void led_bias_scan(Target* tgt) {
     PFEXCEPTION_RAISE("ValueError", "Chosen SiPM_start needs to be below 4095");
   }
 
-  int min_cmb_port = pftool::readline_int("Channel to start scan on? ", 0);
+  int min_cmb_port = pftool::readline_int("CMB port to start scan on? ", 0);
   int max_cmb_port = pftool::readline_int(
-      "Channel to end scan on (if only one channel, enter same as above)? ", 0);
+      "CMB port to end scan on (if only one port, enter same as above)? ", 0);
   int nevents = pftool::readline_int("How many events per time point? ", 1);
   int start_bx = pftool::readline_int("Starting BX? ", 0);
   int n_bx = pftool::readline_int("Number of BX? ", 10);
@@ -120,6 +120,7 @@ void led_bias_scan(Target* tgt) {
   int n_phase_strobe{16};
   int offset{1};
   int n_links = 2 * tgt->nrocs();
+  double temperature{0};
 
   DecodeAndWriteToCSV writer{
       fname,
@@ -132,7 +133,7 @@ void led_bias_scan(Target* tgt) {
         header["SiPM DAC start"] = SiPMstart;
         header["SiPM DAC end"] = SiPMend;
         f << std::boolalpha << "# " << header << '\n'
-          << "time,i_cmb_port,ch,dacSiPM,dacLED,"
+          << "time,i_cmb_port,ch,i_erx,i_ch,dacSiPM,dacLED,temperature"
           << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f,
@@ -140,8 +141,8 @@ void led_bias_scan(Target* tgt) {
         for (int j = 0; j < 4; j++) {
           ch = cmb_to_ch[i_cmb_port][j];
           auto [i_erx, i_ch] = mapping.toErxChannel(iboard, ch);
-          f << time << ',' << i_cmb_port << ',' << i_ch << ',' << dacSiPM << ','
-            << dacLED << ',';
+          f << time << ',' << i_cmb_port << ',' << ch << ',' << i_erx << ',' << i_ch << ',' << dacSiPM << ','
+            << dacLED << ',' << temperature << ',';
           ep.samples[ep.i_soi].channel(i_erx, i_ch).to_csv(f);
           f << '\n';
         }
@@ -154,9 +155,7 @@ void led_bias_scan(Target* tgt) {
   central_charge_to_l1a = tgt->fc().fc_get_setup_led();
 
   for (dacSiPM = SiPMstart; dacSiPM <= SiPMend; dacSiPM += SiPMstep) {
-    pflib_log(info) << "DAC SiPM = " << dacSiPM;
     for (dacLED = LEDstart; dacLED <= LEDend; dacLED += LEDstep) {
-      pflib_log(info) << "DAC LED = " << dacLED;
       for (i_cmb_port = min_cmb_port; i_cmb_port <= max_cmb_port;
            i_cmb_port++) {
         usleep(10);
@@ -164,11 +163,14 @@ void led_bias_scan(Target* tgt) {
         usleep(10);
         bias.setLED(i_cmb_port, dacLED);
 
+        temperature = bias.readTemp();
+
+        pflib_log(info) << "CMB port " << i_cmb_port  << " | SiPM bias = " << dacSiPM << " | LED bias = " << dacLED;
+
         for (charge_to_l1a = central_charge_to_l1a + start_bx;
              charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
              charge_to_l1a++) {
           tgt->fc().fc_setup_led(charge_to_l1a);
-          pflib_log(info) << "led_to_l1a = " << tgt->fc().fc_get_setup_led();
 
           for (phase_strobe = 0; phase_strobe < n_phase_strobe;
                phase_strobe++) {
@@ -176,7 +178,6 @@ void led_bias_scan(Target* tgt) {
                 roc.testParameters()
                     .add("TOP", "PHASE_STROBE", phase_strobe)
                     .apply();
-            pflib_log(info) << "TOP.PHASE_STROBE = " << phase_strobe;
             usleep(10);  // make sure parameters are applied
             time =
                 (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
