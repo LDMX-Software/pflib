@@ -273,7 +273,6 @@ class HcalFiberless : public HcalTarget {
   std::unique_ptr<Bias> bias_;
   int run_;
   Target::DaqFormat daqformat_;
-  int ievt_, l1a_;
   int contribid_;
   packing::ECONDFormatter formatter_{true};
 };
@@ -287,8 +286,6 @@ void HcalFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
     contribid_ = 255;
   else
     contribid_ = contrib_id & 0xFF;
-  ievt_ = 0;
-  l1a_ = 0;
   daq().reset();
   fc().clear_run();
 }
@@ -296,40 +293,40 @@ void HcalFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
 std::vector<uint32_t> HcalFiberless::read_event() {
   std::vector<uint32_t> buffer;
   if (has_event()) {
-    ievt_++;
     switch (daqformat_) {
       case DaqFormat::SIMPLEROC: {
-        buffer.push_back(0x11888811);
-        buffer.push_back(0xbeef2025);
-
-        buffer.push_back(0);  // come back to this
-        for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
+        for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
+          buffer.push_back(0x11888811);
+          buffer.push_back(0xbeef2025);
+  
           buffer.push_back(0);  // come back to this
-        size_t len_total = buffer.size() - 2;
-
-        for (int i = 0; i < daq().nlinks(); i++) {
-          std::vector<uint32_t> data = daq().getLinkData(i);
-          if (i >= 2) {  // trigger links
-            uint32_t theader = 0x30000000 | ((i - 2)) | (data.size() << 8);
-            data.insert(data.begin(), theader);
+          for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
+            buffer.push_back(0);  // come back to this
+          size_t len_total = buffer.size() - 2;
+  
+          for (int i = 0; i < daq().nlinks(); i++) {
+            std::vector<uint32_t> data = daq().getLinkData(i);
+            if (i >= 2) {  // trigger links
+              uint32_t theader = 0x30000000 | ((i - 2)) | (data.size() << 8);
+              data.insert(data.begin(), theader);
+            }
+            size_t len = data.size();
+            len_total += len;
+            buffer.insert(buffer.end(), data.begin(), data.end());
+            // insert the subpacket length
+            if (i % 2)
+              buffer[2 + 1 + i / 2] |= (len << 16);
+            else
+              buffer[2 + 1 + i / 2] |= (len);
           }
-          size_t len = data.size();
-          len_total += len;
-          buffer.insert(buffer.end(), data.begin(), data.end());
-          // insert the subpacket length
-          if (i % 2)
-            buffer[2 + 1 + i / 2] |= (len << 16);
-          else
-            buffer[2 + 1 + i / 2] |= (len);
+          // record the total length
+          buffer[2] |= len_total;
+          buffer.push_back(0xd07e2025);
+          buffer.push_back(0x12345678);
+          daq().advanceLinkReadPtr();
         }
-        // record the total length
-        buffer[2] |= len_total;
-        buffer.push_back(0xd07e2025);
-        buffer.push_back(0x12345678);
-        daq().advanceLinkReadPtr();
       } break;
       case DaqFormat::ECOND_SW_HEADERS: {
-        const int bc = 0;  // bx number...
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           // assume that the EBO of the two links output by the single HGCROC
           // are in agreement, so we just peak at the header of link 0
@@ -359,7 +356,6 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           // advance L1A pointer
           daq().advanceLinkReadPtr();
         }
-        l1a_ += daq().samples_per_ror();
         // add a special "header" to mark that we have no more ECON packets
         buffer.push_back(pflib::packing::DAQSampleHeader::ending_trailer());
       } break;
