@@ -107,9 +107,11 @@ void FiberlessCapture::reset() {
   uio_.rmw(ADDR_TOP_CTL, MASK_RESET_BUFFER, MASK_RESET_BUFFER);
 }
 int FiberlessCapture::getEventOccupancy() {
-  // use link 0 for occupancy
+  // using link 0 for occupancy
+  // but the link's "event" buffer is actually counting _samples_
+  // we need to divide out the number of L1As we sent
   return uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS,
-                         MASK_OCCUPANCY);
+                         MASK_OCCUPANCY) / samples_per_ror();
 }
 void FiberlessCapture::setupLink(int ilink, int l1a_delay,
                                  int l1a_capture_width) {
@@ -167,8 +169,8 @@ std::vector<uint32_t> FiberlessCapture::getLinkData(int ilink) {
 }
 
 void FiberlessCapture::advanceLinkReadPtr() {
-  if (getEventOccupancy() > 0)
-    uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
+  /// always advance pointer, expect user to know what they're doing
+  uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
 }
 
 std::map<std::string, uint32_t> FiberlessCapture::get_debug(uint32_t ask) {
