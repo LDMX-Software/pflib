@@ -133,7 +133,7 @@ void led_bias_scan(Target* tgt) {
         header["SiPM DAC start"] = SiPMstart;
         header["SiPM DAC end"] = SiPMend;
         f << std::boolalpha << "# " << header << '\n'
-          << "time,i_cmb_port,ch,i_erx,i_ch,dacSiPM,dacLED,temperature"
+          << "time,i_cmb_port,ch,dacSiPM,dacLED,temperature,"
           << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f,
@@ -141,7 +141,7 @@ void led_bias_scan(Target* tgt) {
         for (int j = 0; j < 4; j++) {
           ch = cmb_to_ch[i_cmb_port][j];
           auto [i_erx, i_ch] = mapping.toErxChannel(iboard, ch);
-          f << time << ',' << i_cmb_port << ',' << ch << ',' << i_erx << ',' << i_ch << ',' << dacSiPM << ','
+          f << time << ',' << i_cmb_port << ',' << ch << ',' << dacSiPM << ','
             << dacLED << ',' << temperature << ',';
           ep.samples[ep.i_soi].channel(i_erx, i_ch).to_csv(f);
           f << '\n';
