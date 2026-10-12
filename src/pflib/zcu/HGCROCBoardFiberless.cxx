@@ -111,7 +111,8 @@ int FiberlessCapture::getEventOccupancy() {
   // but the link's "event" buffer is actually counting _samples_
   // we need to divide out the number of L1As we sent
   return uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS,
-                         MASK_OCCUPANCY) / samples_per_ror();
+                         MASK_OCCUPANCY) /
+         samples_per_ror();
 }
 void FiberlessCapture::setupLink(int ilink, int l1a_delay,
                                  int l1a_capture_width) {
