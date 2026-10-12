@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 
+#include "pflib/utility/string_format.h"
 #include "pflib/Bias.h"
 #include "pflib/Exception.h"
 #include "pflib/GPIO.h"
@@ -44,6 +45,7 @@ class FiberlessCapture : public Elinks, public DAQ {
   virtual void bufferStatus(int ilink, bool& empty, bool& full) final;
   virtual std::vector<uint32_t> getLinkData(int ilink) final;
   virtual void advanceLinkReadPtr() final;
+  virtual std::map<std::string, uint32_t> get_debug(uint32_t) final;
 
  private:
   int ctl_for(int ilink) {
@@ -133,7 +135,7 @@ void FiberlessCapture::getLinkSetup(int ilink, int& l1a_delay,
 }
 void FiberlessCapture::bufferStatus(int ilink, bool& empty, bool& full) {
   empty = true;
-  full = true;  // implauible
+  full = true;  // implausible
   if (ilink < 0 || ilink >= DAQ::nlinks()) return;
   uint32_t ifl =
       uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS + ilink * 2,
@@ -167,6 +169,16 @@ std::vector<uint32_t> FiberlessCapture::getLinkData(int ilink) {
 void FiberlessCapture::advanceLinkReadPtr() {
   if (getEventOccupancy() > 0)
     uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
+}
+
+std::map<std::string, uint32_t> FiberlessCapture::get_debug(uint32_t ask) {
+  using pflib::utility::string_format;
+  std::map<std::string, uint32_t> dbg;
+  for (int ilink{0}; ilink < 6; ilink++) {
+    dbg[string_format("LINK%d_STATUS_REG", ilink)] = uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink);
+    dbg[string_format("LINK%d_BUFFER_STATUS_REG", ilink)] = uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink + 1);
+  }
+  return dbg;
 }
 
 class HcalFiberless : public HcalTarget {
