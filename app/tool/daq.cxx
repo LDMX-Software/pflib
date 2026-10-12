@@ -56,7 +56,11 @@ static void daq_setup(const std::string& cmd, Target* pft) {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
     if (!daq.enabled()) {
-      extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      if (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) {
+        extl1a = false;
+      } else {
+        extl1a = pftool::readline_bool("Enable external/central L1A? ", extl1a);
+      }
       auto trig = pft->trig();
       if (extl1a and trig) {
         bool single_shot = pftool::readline_bool(
@@ -67,11 +71,14 @@ static void daq_setup(const std::string& cmd, Target* pft) {
       daq.enable(true);
       pft->fc().fc_enables(true, extl1a);
       bool readout_to_AXIS = daq.AXIS_enabled();
-      readout_to_AXIS = pftool::readline_bool(
-          "Enable readout to AXIS (false for 'internal' readout) ",
-          readout_to_AXIS);
+      if (pftool::state.readout_config() != pftool::State::CFG_HCALFMC) {
+        readout_to_AXIS = pftool::readline_bool(
+            "Enable readout to AXIS (false for 'internal' readout) ",
+            readout_to_AXIS);
+      }
       daq.AXIS_enable(readout_to_AXIS);
     } else {
+      pflib_log(info) << "DAQ already enabled, disabling...";
       pft->fc().fc_enables(false, extl1a);
       daq.enable(false);
     }
