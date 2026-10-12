@@ -3,7 +3,6 @@
 #include <iostream>
 #include <memory>
 
-#include "pflib/utility/string_format.h"
 #include "pflib/Bias.h"
 #include "pflib/Exception.h"
 #include "pflib/GPIO.h"
@@ -11,6 +10,7 @@
 #include "pflib/I2C_Linux.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/ECONDFormatter.h"
+#include "pflib/utility/string_format.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -175,8 +175,10 @@ std::map<std::string, uint32_t> FiberlessCapture::get_debug(uint32_t ask) {
   using pflib::utility::string_format;
   std::map<std::string, uint32_t> dbg;
   for (int ilink{0}; ilink < 6; ilink++) {
-    dbg[string_format("LINK%d_STATUS_REG", ilink)] = uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink);
-    dbg[string_format("LINK%d_BUFFER_STATUS_REG", ilink)] = uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink + 1);
+    dbg[string_format("LINK%d_STATUS_REG", ilink)] =
+        uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink);
+    dbg[string_format("LINK%d_BUFFER_STATUS_REG", ilink)] =
+        uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink + 1);
   }
   return dbg;
 }
@@ -310,12 +312,12 @@ std::vector<uint32_t> HcalFiberless::read_event() {
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
           buffer.push_back(0x11888811);
           buffer.push_back(0xbeef2025);
-  
+
           buffer.push_back(0);  // come back to this
           for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
             buffer.push_back(0);  // come back to this
           size_t len_total = buffer.size() - 2;
-  
+
           for (int i = 0; i < daq().nlinks(); i++) {
             std::vector<uint32_t> data = daq().getLinkData(i);
             if (i >= 2) {  // trigger links
