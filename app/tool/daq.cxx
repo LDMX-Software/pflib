@@ -730,6 +730,19 @@ auto menu_daq_debug =
                })
         ->line("SW_L1A", "send a L1A from software",
                [](Target* tgt) { tgt->fc().sendL1A(); })
+        ->line("SW_ROR", "send a ROR from software",
+               [](Target* tgt) { tgt->fc().sendROR(); })
+        ->line("FC_STATUS", "get Fast Control command counters",
+               [](Target* tgt) {
+                 std::map<std::string, uint32_t> cnt = tgt->fc().getCmdCounters();
+                 for (const auto& pair : cnt) {
+                   printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
+                 }
+                 bool l1aen, extl1a;
+                 tgt->fc().fc_enables_read(l1aen, extl1a);
+                 printf("  L1A Enabled          : %d\n", l1aen);
+                 printf("  External L1A Enabled : %d\n", extl1a);
+               })
         ->line(
             "CHARGE_TIMEIN",
             "Scan pulse-l1a time offset to see when it should be",
