@@ -261,6 +261,15 @@ class HcalFiberless : public HcalTarget {
     i2c_["BIAS"] = i2cboard;
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
+    // the FC block in the firmware keeps a copy of the number of L1A per RoR
+    // so we copy that into the DAQ setup here to make sure they stay in sync
+    // between software runs
+    capture_->setup(
+        capture_->econid(),
+        fc_->getL1AperROR(),
+        capture_->soi()
+    );
   }
 
   virtual void hardResetROCs() override {
