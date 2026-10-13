@@ -188,7 +188,7 @@ namespace {
 // accessing the TRIGGER path only works on the ZCU
 // where we have hardware and firmware access to the TRIGGER stream
 auto menu_trig =
-    pftool::menu("TRIG", "TRIGGER functionalities", trig_render, ONLY_ZCU)
+    pftool::menu("TRIG", "TRIGGER functionalities", trig_render, ONLY_ZCU | NEED_FIBER)
         ->line("STATUS", "printout trigger settings", trig)
         ->line("PIPELINE", "set the pipeline depth for trigger capture", trig)
         ->line("SAMPLES_PER_L1A", "set number of samples to readout in an L1A",
