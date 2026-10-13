@@ -734,7 +734,8 @@ auto menu_daq_debug =
                [](Target* tgt) { tgt->fc().sendROR(); })
         ->line("FC_STATUS", "get Fast Control command counters",
                [](Target* tgt) {
-                 std::map<std::string, uint32_t> cnt = tgt->fc().getCmdCounters();
+                 std::map<std::string, uint32_t> cnt =
+                     tgt->fc().getCmdCounters();
                  for (const auto& pair : cnt) {
                    printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
                  }
