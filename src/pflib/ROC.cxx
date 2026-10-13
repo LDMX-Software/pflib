@@ -7,6 +7,7 @@
 
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/load_integer_csv.h"
+#include "pflib/utility/intel_hex.h"
 #include "register_maps/direct_access.h"
 
 namespace pflib {
@@ -22,20 +23,65 @@ ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
 
 const std::string& ROC::type() const { return type_version_; }
 
+/// maximum number of times to attempt I2C transaction
+static const int max_tries = 5;
+static const int max_nbytes = 8;
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(1400);
 
-  // printf("i2c base address %#x\n", roc_base_);
-  std::vector<uint8_t> retval;
-  retval.reserve(len);
-  for (int i = 0; i < len; i++) {
-    retval.push_back(getValue(ipage, i));
-  }
-  return retval;
+  int ibyte{0};
+  int bytes_left = len;
+  std::vector<uint8_t> data;
+  data.reserve(len);
+  do {
+    std::vector<uint8_t> waddr;
+    uint16_t fulladdr = (ipage << 5) + ibyte;
+    waddr.push_back(static_cast<uint8_t>(fulladdr & 0xFF));
+    waddr.push_back(static_cast<uint8_t>((fulladdr >> 8) & 0xFF));
+
+    int nread = (max_nbytes < bytes_left) ? max_nbytes : bytes_left;
+    pflib_log(debug) << "reading " << nread << " bytes from 0x" << std::hex << static_cast<int>(fulladdr);
+    
+    bool done = false;
+    int i_try{0};
+    do {
+      try {
+        auto chunk = i2c_->general_write_read(roc_base_, waddr, nread);
+        data.insert(data.end(), chunk.begin(), chunk.end());
+        pflib_log(debug) << "got " << chunk.size() << " bytes";
+        done = true;
+      } catch (const pflib::Exception& e) {
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
+                         << " failed with [" << e.name() << "]: " << e.message();
+      }
+      i_try++;
+    } while (not done and i_try < max_tries);
+
+    if (not done) {
+      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+                                      std::to_string(max_tries) + " attempts");
+    }
+
+    bytes_left -= nread;
+    ibyte += nread;
+  } while (bytes_left > 0);
+
+  return data;
 }
 
-/// maximum number of times to attempt I2C transaction
-static const int max_tries = 5;
+/*
+void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
+  i2c_->set_bus_speed(1400);
+
+  uint16_t fulladdr = (ipage << 5);
+  std::vector<uint8_t> wbuf;
+  wbuf.push_back(static_cast<uint8_t>((fulladdr >> 8) & 0xFF));
+  wbuf.push_back(static_cast<uint8_t>(fulladdr & 0xFF));
+  wbuf.insert(wbuf.end(), vals.begin(), vals.end());
+  i2c_->general_write_read(roc_base_, wbuf, 0);
+}
+*/
 
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_->set_bus_speed(1400);
@@ -200,15 +246,28 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
   return chip_reg;
 }
 
-void ROC::loadRegisters(const std::string& file_name) {
-  utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
-    if (cells.size() == 3) {
-      setValue(cells.at(0), cells.at(1), cells.at(2));
-    } else {
-      pflib_log(warn) << "Ignoring ROC CSV register settings line without "
-                         "exactly three columns";
+void ROC::loadSettings(const std::string& file_name, bool is_csv) {
+  if (is_csv) {
+    /**
+     * @note When loading from CSV, we do not assume that all of the registers
+     * are present and therefore we do single-byte I2C transactions for everything.
+     */
+    utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
+      if (cells.size() == 3) {
+        setValue(cells.at(0), cells.at(1), cells.at(2));
+      } else {
+        pflib_log(warn) << "Ignoring ROC CSV register settings line without "
+                           "exactly three columns";
+      }
+    });
+  } else {
+    utility::intel_hex::Reader r{file_name};
+    while (r.next()) {
+      auto d = r.get();
+      // TODO: chunk into some maximum number of bytes (I think 8?)
+      //writePage(d.addr(), d.get_bytes());
     }
-  });
+  }
 }
 
 std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
@@ -318,7 +377,7 @@ void ROC::applyParameter(const std::string& page, const std::string& param,
   this->applyParameters(p);
 }
 
-void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
+void ROC::dumpSettings(const std::string& filename, bool should_decompile, bool use_csv) {
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings.");
   }
@@ -358,8 +417,9 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
     f << out.c_str();
   } else {
     bool is_v2 = (type_version_ == "sipm_rocv2");
-    // read all the pages and write to CSV while reading
-    std::map<int, std::map<int, uint8_t>> register_values;
+    // read all the pages and write to CSV/IHEX while reading
+    pflib::utility::intel_hex::Writer w{filename};
+    pflib::utility::intel_hex::DataRecord d;
     for (int page : compiler_.get_known_pages()) {
       // WARNING: lazyness
       // I am being lazy here and instead of having complicated code
@@ -371,8 +431,13 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
       }
       // all pages have up to 16 registers
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
-      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
-        f << page << "," << reg << "," << packing::hex(v.at(reg)) << '\n';
+      if (use_csv) {
+        for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
+          f << page << "," << reg << "," << packing::hex(v.at(reg)) << '\n';
+        }
+      } else {
+        d.from_bytes((page << 5), v);
+        w.add(d);
       }
     }
   }

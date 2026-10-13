@@ -49,7 +49,9 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
     int page = pftool::readline_int("Which page? ", 0);
     int len = pftool::readline_int("Length?", 8);
     std::vector<uint8_t> v = roc.readPage(page, len);
-    for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
+    for (int i = 0; i < int(v.size()); i++) {
+      printf("%02d : %02x %02x\n", i, v[i], roc.getValue(page, i));
+    }
   }
   if (cmd == "POKE") {
     int page = pftool::readline_int("Which page? ", 0);
@@ -64,12 +66,12 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
                  "[page,offset,value].\n"
               << std::flush;
     std::string fname = pftool::readline("Filename: ");
-    roc.loadRegisters(fname);
+    roc.loadSettings(fname, true);
   }
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
         "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".csv");
-    roc.dumpSettings(fname, false);
+    roc.dumpSettings(fname, false, true);
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
     for (const auto& name : roc.getDirectAccessParameters()) {
@@ -208,7 +210,12 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
         "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
-    roc.dumpSettings(fname, true);
+    roc.dumpSettings(fname, true, true);
+  }
+  if (cmd == "DUMP_IMAGE") {
+    std::string fname = pftool::readline_path(
+        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".ihex");
+    roc.dumpSettings(fname, false, false);
   }
 }
 
@@ -226,6 +233,7 @@ auto menu_roc =
         ->line("POKE", "change a single parameter value", roc)
         ->line("LOAD", "Load parameter values onto the chip from a YAML file",
                roc)
+        ->line("DUMP_IMAGE", "dump hgcroc settings to an image", roc)
         ->line("DUMP", "Dump hgcroc settings to a file", roc);
 
 auto menu_roc_expert =
