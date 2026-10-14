@@ -105,13 +105,47 @@ void timein(Target* tgt) {
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
   /**
-   * We inject a pulse into Channel 0 of ROC0 on the HcalBackplane
-   * which comes out of ROC0 inside TC0_0 which goes into ECON-T1
-   * DIN6 which then is summed into STC6 (I think)
+   * mapping
+   *
+   * the Target::getHardwareRocErxMapping
+   * gives the ROC trig channel -> eRx mapping
+   *
+   * The STC4 algorithm sums groups of 4 adjacent TCs
+   * and each trig channel carries 4 adjacent TCs along
+   * with a 4 bit header, so the eRx input index is
+   * equal to the STC index.
+   *
+   * The ROC channel goes into a TC in a confusing way.
+   * Channels whose index is equal to 0 modulo 8 (except
+   * channel index 0) are ignored in the sum-by-4 on the
+   * HGCROC.
    */
-  static const int iroc_oi = 0, ch_oi = 0, stc_oi = 6;
+  int iroc_oi = 0, ch_oi = 0;
+  iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
+  ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
+
+  if (ch_oi % 9 == 8) {
+    PFEXCEPTION_RAISE("BadConf", "ROC Channel indices that that are 8 mod 9 are not used");
+  }
+  if (not tgt->have_roc(iroc_oi)) {
+    PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
+  }
+  
+  auto [econt_id_oi, erxs] = tgt->getHardwareRocErxMappingTRG().at(iroc_oi);
+  int roc_tc = 2*(ch_oi / 9) + ((ch_oi % 9) / 4); // TC index
+  int roc_trg_channel = roc_tc / 4; // each trig channel holds 4 TCs
+  int econt_oi = econt_id_oi - 1; // index is off by one relative to ID
+  int stc_oi = erxs.at(roc_trg_channel);
+  pflib_log(info) << "pulse into ROC" << iroc_oi
+                  << " channel " << ch_oi;
+  pflib_log(info) << "which goes into ROC" << iroc_oi
+                  << " TC" << roc_tc
+                  << " included in ROC trig channel " << roc_trg_channel;
+  pflib_log(info) << "looking for pulse in ECON-T" << econt_id_oi 
+                  << " STC" << stc_oi;
+  
   auto roc_inject =
-      tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
+      tgt->roc(iroc_oi).testParameters().add("CH_"+std::to_string(ch_oi), "LOWRANGE", 1).apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -167,7 +201,7 @@ void timein(Target* tgt) {
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             pedestal_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2*tgt->nrocs());
     daq_pedestals.from(daq_pedestal_event);
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
@@ -190,7 +224,7 @@ void timein(Target* tgt) {
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             charge_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
@@ -227,12 +261,12 @@ void timein(Target* tgt) {
     for (int i_l1a{0}; i_l1a < trg_pedestals.size(); i_l1a++) {
       for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].n_samples();
            i_sample++) {
-        int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, i_sample)},
-            charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
+        int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, econt_oi, i_sample)},
+            charge{trg_charge[i_l1a].stc_sum(stc_oi, econt_oi, i_sample)};
         printf("%c%d: %4d -> %4d (0x%03x)\n",
                (i_l1a + i_sample == tgt->daq().soi()) ? '*' : ' ',
                i_l1a + i_sample, pedestal, charge,
-               trg_charge[i_l1a].encoded_stc_sum(stc_oi, i_sample));
+               trg_charge[i_l1a].encoded_stc_sum(stc_oi, econt_oi, i_sample));
       }
     }
 
