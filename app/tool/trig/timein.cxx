@@ -1,9 +1,9 @@
 #include "timein.h"
 
 #include "pflib/TRIG.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
 
@@ -161,7 +161,7 @@ void timein(Target* tgt) {
     // decode captured data
     std::vector<HcalECONTCaptureFrame> trg_pedestals =
         decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     trg_pedestal_event);
+                                                   trg_pedestal_event);
 
     std::vector<TrigAlgoOutput> pedestal_algo_output =
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
@@ -184,7 +184,7 @@ void timein(Target* tgt) {
     // readout pointer misalignment
     std::vector<HcalECONTCaptureFrame> trg_charge =
         decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     trg_charge_event);
+                                                   trg_charge_event);
 
     std::vector<TrigAlgoOutput> charge_algo_output =
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),

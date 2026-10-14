@@ -6,10 +6,10 @@
 #include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/ECONDFormatter.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 
 int decode5E4M(int w) { return pflib::packing::decompressAEBM<5, 4>(w); }
@@ -603,14 +603,8 @@ BOOST_AUTO_TEST_CASE(single_sample) {
 BOOST_AUTO_TEST_CASE(two_econts) {
   using pflib::packing::HcalECONTCaptureFrame;
   std::vector<uint32_t> words = {
-    0x10540408,
-    0x160010e1,
-    0x50085020,
-    0x10080444,
-    0xa2d148b0,
-    0x50040020,
-    0x10080445,
-    0x22914890,
+      0x10540408, 0x160010e1, 0x50085020, 0x10080444,
+      0xa2d148b0, 0x50040020, 0x10080445, 0x22914890,
   };
   HcalECONTCaptureFrame frame;
   frame.from(words);

@@ -103,7 +103,8 @@ void trig(const std::string& cmd, Target* target) {
                                                    event);
     printf("N ECON-T: %d\n", frames.at(0).n_econt());
     for (int i_econt{0}; i_econt < frames.at(0).n_econt(); i_econt++) {
-      printf("ECON-T%d\nBX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n", i_econt+1);
+      printf("ECON-T%d\nBX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n",
+             i_econt + 1);
       for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
         const auto& frame{frames[i_l1a]};
         for (int i{0}; i < frame.n_samples(); i++) {

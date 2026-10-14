@@ -4,8 +4,7 @@
 #include "pflib/packing/Mask.h"
 
 namespace pflib::packing {
-void HcalECONTCaptureFrame::SingleECONTSample::from(
-    std::span<uint32_t> data) {
+void HcalECONTCaptureFrame::SingleECONTSample::from(std::span<uint32_t> data) {
   if (data.size() != 3) {
     pflib_log(error)
         << "Data received by SingleECONTSample is not length 3, it is length "
@@ -37,8 +36,7 @@ int HcalECONTCaptureFrame::SingleECONTSample::stc_sum(int i_stc) const {
   return decompressAEBM<5, 4>(encoded_stc_sum(i_stc));
 }
 
-int HcalECONTCaptureFrame::SingleECONTSample::encoded_stc_sum(
-    int i_stc) const {
+int HcalECONTCaptureFrame::SingleECONTSample::encoded_stc_sum(int i_stc) const {
   return stc_sums_.at(i_stc);
 }
 
@@ -61,14 +59,13 @@ void HcalECONTCaptureFrame::from(std::span<uint32_t> data) {
 
   if (header_.n_links() % 3 != 0) {
     pflib_log(error) << "Truncated packet? Number of links captured ("
-                     << header_.n_links()
-                     << ") is not a multiple of 3.";
+                     << header_.n_links() << ") is not a multiple of 3.";
   }
 
   // each ECON-T in the Hcal outputs 3 eTx
   int n_econt = header_.n_links() / 3;
-  pflib_log(debug) << "found " << header_.n_links()
-                   << " which means " << n_econt << " ECON-Ts";
+  pflib_log(debug) << "found " << header_.n_links() << " which means "
+                   << n_econt << " ECON-Ts";
   pflib_log(debug) << " each with " << header_.n_samples() << " samples";
 
   /**
@@ -82,7 +79,8 @@ void HcalECONTCaptureFrame::from(std::span<uint32_t> data) {
   }
   for (int i_sample{0}; i_sample < header_.n_samples(); i_sample++) {
     for (int i_econt{0}; i_econt < n_econt; i_econt++) {
-      samples_[i_econt][i_sample].from(data.subspan(2 + 3 * (i_sample + i_econt), 3));
+      samples_[i_econt][i_sample].from(
+          data.subspan(2 + 3 * (i_sample + i_econt), 3));
     }
   }
 }
@@ -113,29 +111,30 @@ Reader& HcalECONTCaptureFrame::read(Reader& r) {
   return r;
 }
 
-const HcalECONTCaptureFrame::SingleECONTSample&
-HcalECONTCaptureFrame::sample(std::optional<int> i_econt, std::optional<int> i_sample) const {
-  return samples_.at(i_econt.value_or(0)).at(i_sample.value_or(header().pre_samples()));
+const HcalECONTCaptureFrame::SingleECONTSample& HcalECONTCaptureFrame::sample(
+    std::optional<int> i_econt, std::optional<int> i_sample) const {
+  return samples_.at(i_econt.value_or(0))
+      .at(i_sample.value_or(header().pre_samples()));
 }
 
-int HcalECONTCaptureFrame::bx(std::optional<int> i_econt, std::optional<int> i_sample) const {
+int HcalECONTCaptureFrame::bx(std::optional<int> i_econt,
+                              std::optional<int> i_sample) const {
   return sample(i_econt, i_sample).bx();
 }
 
-int HcalECONTCaptureFrame::encoded_stc_sum(
-    int i_stc, std::optional<int> i_econt, std::optional<int> i_sample) const {
+int HcalECONTCaptureFrame::encoded_stc_sum(int i_stc,
+                                           std::optional<int> i_econt,
+                                           std::optional<int> i_sample) const {
   return sample(i_econt, i_sample).encoded_stc_sum(i_stc);
 }
 
-int HcalECONTCaptureFrame::stc_sum(int i_stc,
-                                     std::optional<int> i_econt,
-                                     std::optional<int> i_sample) const {
+int HcalECONTCaptureFrame::stc_sum(int i_stc, std::optional<int> i_econt,
+                                   std::optional<int> i_sample) const {
   return sample(i_econt, i_sample).stc_sum(i_stc);
 }
 
-int HcalECONTCaptureFrame::max_tc(int i_stc,
-                                     std::optional<int> i_econt,
-                                    std::optional<int> i_sample) const {
+int HcalECONTCaptureFrame::max_tc(int i_stc, std::optional<int> i_econt,
+                                  std::optional<int> i_sample) const {
   return sample(i_econt, i_sample).max_tc(i_stc);
 }
 
@@ -155,8 +154,6 @@ int HcalECONTCaptureFrame::pre_samples() const {
   return header().pre_samples();
 }
 
-std::size_t HcalECONTCaptureFrame::n_samples() const {
-  return samples_.size();
-}
+std::size_t HcalECONTCaptureFrame::n_samples() const { return samples_.size(); }
 
 }  // namespace pflib::packing

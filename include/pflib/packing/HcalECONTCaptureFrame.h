@@ -73,11 +73,16 @@ class HcalECONTCaptureFrame {
   HcalECONTCaptureFrame(std::span<uint32_t> data);
   Reader& read(Reader& r);
   void from(std::span<uint32_t> data);
-  const SingleECONTSample& sample(std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
-  int bx(std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
-  int stc_sum(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
-  int encoded_stc_sum(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
-  int max_tc(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
+  const SingleECONTSample& sample(std::optional<int> i_econt = {},
+                                  std::optional<int> i_sample = {}) const;
+  int bx(std::optional<int> i_econt = {},
+         std::optional<int> i_sample = {}) const;
+  int stc_sum(int i_stc, std::optional<int> i_econt = {},
+              std::optional<int> i_sample = {}) const;
+  int encoded_stc_sum(int i_stc, std::optional<int> i_econt = {},
+                      std::optional<int> i_sample = {}) const;
+  int max_tc(int i_stc, std::optional<int> i_econt = {},
+             std::optional<int> i_sample = {}) const;
   const ECONTCaptureHeader& header() const;
   int n_econt() const;
   int length() const;

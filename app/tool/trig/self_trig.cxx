@@ -2,9 +2,9 @@
 
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
 #include "timein.h"  // for TimeInSettings::last
@@ -116,7 +116,7 @@ void self_trig(Target* tgt) {
       // readout pointer misalignment
       std::vector<HcalECONTCaptureFrame> trg_charge =
           decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                       trg_charge_event);
+                                                     trg_charge_event);
 
       std::vector<TrigAlgoOutput> charge_algo_output =
           decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
