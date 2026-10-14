@@ -115,28 +115,31 @@ void timein(Target* tgt) {
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
-  do {
-    bool enable_l1a_follow;
-    int og_charge_to_l1a;
-    tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
+  bool enable_l1a_follow;
+  int og_charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
 
-    int charge_to_l1a =
-        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
+  auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
+  int og_l1offset = dh_page.at("L1OFFSET");
+
+  int charge_to_l1a{og_charge_to_l1a};
+  int l1offset{og_l1offset};
+  int og_pipeline, og_samples_per_l1a, og_presamples, econid;
+  trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+  int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
+      presamples{og_presamples};
+  do {
+    charge_to_l1a =
+        pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
     tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
 
-    auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
-    int og_l1offset = dh_page.at("L1OFFSET");
-    int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    l1offset = pftool::readline_int("L1Offset on HGCROC?", l1offset);
     auto test_l1offset_handle = tgt->roc(iroc_oi)
                                     .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
                                     .apply();
 
-    int og_pipeline, og_samples_per_l1a, og_presamples, econid;
-    trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
-    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
-        presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
     samples_per_l1a =
         pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
