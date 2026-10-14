@@ -15,7 +15,7 @@ class TrigAlgoOutput {
  public:
   struct SingleBXOutput {
     /// whether STC i had a high peak
-    std::bitset<8> is_high_peak_;
+    std::bitset<16> is_high_peak_;
     /// the last 5 clk ticks of the algo trigger
     std::bitset<5> algo_trigger_history_;
     /// the last 5 clk ticks of the actual trigger
