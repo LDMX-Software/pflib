@@ -101,7 +101,7 @@ void trig(const std::string& cmd, Target* target) {
     std::vector<HcalECONTCaptureFrame> frames =
         decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
                                                    event);
-    printf("N ECON-T: %d\n", frames.at(0).n_econt());
+    printf("N ECON-T: %d, N samples: %d\n", frames.at(0).n_econt(), frames.at(0).n_samples());
     for (int i_econt{0}; i_econt < frames.at(0).n_econt(); i_econt++) {
       printf("ECON-T%d\nBX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n",
              i_econt + 1);

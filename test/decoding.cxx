@@ -608,6 +608,10 @@ BOOST_AUTO_TEST_CASE(two_econts) {
   };
   HcalECONTCaptureFrame frame;
   frame.from(words);
+
+  BOOST_CHECK_EQUAL(frame.n_econt(), 2);
+  BOOST_CHECK_EQUAL(frame.n_samples(), 1);
+
   {
     BOOST_TEST_MESSAGE("checking ECON-T indexed 0");
     const auto& sample{frame.sample(0, 0)};

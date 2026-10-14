@@ -154,6 +154,8 @@ int HcalECONTCaptureFrame::pre_samples() const {
   return header().pre_samples();
 }
 
-std::size_t HcalECONTCaptureFrame::n_samples() const { return samples_.size(); }
+std::size_t HcalECONTCaptureFrame::n_samples() const {
+  return header().n_samples();
+}
 
 }  // namespace pflib::packing
