@@ -49,7 +49,8 @@ void trig(const std::string& cmd, Target* target) {
     uint16_t align_patt{};
     uint8_t elinks_to_ignore{};
     bool bypass_patt{};
-    trig->get_alignment_setup(align_delay, align_patt, elinks_to_ignore, bypass_patt);
+    trig->get_alignment_setup(align_delay, align_patt, elinks_to_ignore,
+                              bypass_patt);
     printf("settings\n");
     printf(" %20s: %d\n", "pipeline", pipeline);
     printf(" %20s: %d\n", "econ_id", econ_id);
@@ -124,7 +125,8 @@ void ztrig(const std::string& cmd, Target* tgt) {
   static uint16_t decoder_lut_addr = 0;
   static int decoder_lut_ch = 0;
   if (cmd == "DECODER_LUT_READ") {
-    decoder_lut_ch = pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
+    decoder_lut_ch =
+        pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
     decoder_lut_addr =
         pftool::readline_int("Encoded Value to Read: ", decoder_lut_addr, true);
     uint32_t val = trig->get_decoder_lut(decoder_lut_ch, decoder_lut_addr);
@@ -132,11 +134,13 @@ void ztrig(const std::string& cmd, Target* tgt) {
   }
 
   if (cmd == "DECODER_LUT_WRITE") {
-    decoder_lut_ch = pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
+    decoder_lut_ch =
+        pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
     decoder_lut_addr = pftool::readline_int(
         "Encoded Value to Write for: ", decoder_lut_addr, true);
     uint32_t val = pftool::readline_int(
-        "Value to write: ", trig->get_decoder_lut(decoder_lut_ch, decoder_lut_addr));
+        "Value to write: ",
+        trig->get_decoder_lut(decoder_lut_ch, decoder_lut_addr));
     trig->set_decoder_lut(decoder_lut_ch, decoder_lut_addr, val);
   }
 
@@ -145,9 +149,12 @@ void ztrig(const std::string& cmd, Target* tgt) {
         pftool::readline_int("Scale to divide decoded values by: ", 1);
     bool show_lut =
         pftool::readline_bool("Show LUT that is being written? ", true);
-    decoder_lut_ch = pftool::readline_int("Channel to read (0-15, -1 is all): ", decoder_lut_ch);
+    decoder_lut_ch = pftool::readline_int("Channel to read (0-15, -1 is all): ",
+                                          decoder_lut_ch);
     if (decoder_lut_ch > 15) {
-      PFEXCEPTION_RAISE("BadConf", "A maximum of 16 (indexed 0-15) trigger channels are available.");
+      PFEXCEPTION_RAISE(
+          "BadConf",
+          "A maximum of 16 (indexed 0-15) trigger channels are available.");
     }
     for (int encoded_val{0}; encoded_val < (1 << 9); encoded_val++) {
       unsigned long full_decoded_val =

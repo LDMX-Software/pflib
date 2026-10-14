@@ -69,7 +69,8 @@ void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
 void ZCUtrig::reset_alignment() { uio_.write(ADDR_RESET, (1 << 5)); }
 
-void ZCUtrig::setup_alignment(int delay, uint16_t pattern, uint8_t elinks_to_ignore, bool bypass_match) {
+void ZCUtrig::setup_alignment(int delay, uint16_t pattern,
+                              uint8_t elinks_to_ignore, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH,
@@ -77,7 +78,8 @@ void ZCUtrig::setup_alignment(int delay, uint16_t pattern, uint8_t elinks_to_ign
   uio_.writeMasked(ADDR_PIPELINE_DEPTH, MASK_IGNORE_ELINKS, elinks_to_ignore);
 }
 void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
-                                  uint8_t& elinks_to_ignore, bool& bypass_match) {
+                                  uint8_t& elinks_to_ignore,
+                                  bool& bypass_match) {
   delay = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
   pattern = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN);
   bypass_match =
@@ -138,19 +140,19 @@ static constexpr uint32_t MASK_DECODER_LUT_READ = 0x0000ffff;
 static constexpr uint32_t ADDR_DECODER_LUT_CONF = 0x61C / 4;
 static constexpr uint32_t MASK_DECODER_LUT_WVAL = 0x0000ffff;
 static constexpr uint32_t MASK_DECODER_LUT_ADDR = 0x01ff0000;
-static constexpr uint32_t MASK_DECODER_LUT_CH   = 0xf0000000;
+static constexpr uint32_t MASK_DECODER_LUT_CH = 0xf0000000;
 // the DO_WRITE strobe is in the ADDR_RESET register
 static constexpr uint32_t MASK_DECODER_LUT_DO_WRITE = 0x00000008;
 
 uint32_t ZCUtrig::get_decoder_lut(uint16_t channel, uint16_t addr) {
-  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH  , channel);
+  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH, channel);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_ADDR, addr);
   usleep(10);
   return uio_.readMasked(ADDR_DECODER_LUT_READ, MASK_DECODER_LUT_READ);
 }
 
 void ZCUtrig::set_decoder_lut(uint16_t channel, uint16_t addr, uint32_t val) {
-  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH  , channel);
+  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH, channel);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_ADDR, addr);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_WVAL, val);
   usleep(10);

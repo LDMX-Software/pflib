@@ -27,8 +27,8 @@ void align(const std::string& cmd, Target* tgt) {
     delay = pftool::readline_int("Alignment capture delay: ", delay);
     pattern =
         pftool::readline_int("11bit Pattern to search for: ", pattern, true);
-    elinks_to_ignore =
-        pftool::readline_int("Bit mask of elinks to ignore: ", elinks_to_ignore, true);
+    elinks_to_ignore = pftool::readline_int(
+        "Bit mask of elinks to ignore: ", elinks_to_ignore, true);
     bypass_pattern =
         pftool::readline_bool("Bypass Pattern for capture?", bypass_pattern);
     trig->setup_alignment(delay, pattern, elinks_to_ignore, bypass_pattern);
