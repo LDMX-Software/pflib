@@ -30,10 +30,12 @@ class TRIG {
 
   /** Set up the alignment */
   virtual void setup_alignment(int delay, uint16_t pattern,
+                               uint8_t elinks_to_ignore,
                                bool bypass_pattern) = 0;
 
   /** Get the alignment setup*/
   virtual void get_alignment_setup(int& delay, uint16_t& pattern,
+                                   uint8_t& elinks_to_ignore,
                                    bool& bypass_pattern) = 0;
 
   /** Read the capture block for the given elink */

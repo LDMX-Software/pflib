@@ -178,8 +178,9 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
 
     int delay;
     uint16_t pattern;
+    uint8_t elinks_to_ignore;
     bool bypass_pattern;
-    trig->get_alignment_setup(delay, pattern, bypass_pattern);
+    trig->get_alignment_setup(delay, pattern, elinks_to_ignore, bypass_pattern);
     int new_delay = delay;
     if (delay == 0) {
       // capture delay of 0 will /not/ work and is the default
@@ -192,7 +193,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
     }
 
     // we want to bypass pattern matching during alignment
-    trig->setup_alignment(new_delay, pattern, bypass_pattern);
+    trig->setup_alignment(new_delay, pattern, elinks_to_ignore, bypass_pattern);
 
     /**
      * we are assuming that the active elinks in the TRIG match

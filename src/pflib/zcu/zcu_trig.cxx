@@ -69,18 +69,20 @@ void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
 void ZCUtrig::reset_alignment() { uio_.write(ADDR_RESET, (1 << 5)); }
 
-void ZCUtrig::setup_alignment(int delay, uint16_t pattern, bool bypass_match) {
+void ZCUtrig::setup_alignment(int delay, uint16_t pattern, uint8_t elinks_to_ignore, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH,
                    (bypass_match ? 1 : 0));
+  uio_.writeMasked(ADDR_PIPELINE_DEPTH, MASK_IGNORE_ELINKS, elinks_to_ignore);
 }
 void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
-                                  bool& bypass_match) {
+                                  uint8_t& elinks_to_ignore, bool& bypass_match) {
   delay = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
   pattern = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN);
   bypass_match =
       (uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH) == 1);
+  elinks_to_ignore = uio_.readMasked(ADDR_PIPELINE_DEPTH, MASK_IGNORE_ELINKS);
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {

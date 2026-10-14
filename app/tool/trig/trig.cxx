@@ -47,8 +47,9 @@ void trig(const std::string& cmd, Target* target) {
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
     int align_delay{-1};
     uint16_t align_patt{};
+    uint8_t elinks_to_ignore{};
     bool bypass_patt{};
-    trig->get_alignment_setup(align_delay, align_patt, bypass_patt);
+    trig->get_alignment_setup(align_delay, align_patt, elinks_to_ignore, bypass_patt);
     printf("settings\n");
     printf(" %20s: %d\n", "pipeline", pipeline);
     printf(" %20s: %d\n", "econ_id", econ_id);
@@ -56,6 +57,7 @@ void trig(const std::string& cmd, Target* target) {
     printf(" %20s: %d\n", "presamples", presamples);
     printf(" %20s: %d\n", "align delay", align_delay);
     printf(" %20s: 0x%03x\n", "alignment pattern", align_patt);
+    printf(" %20s: 0x%02x\n", "elinks to ignore", elinks_to_ignore);
     printf(" %20s: %d\n", "align bypass pattern", bypass_patt);
     printf("status\n");
     printf(" %20s: %d\n", "DAQ event occupancy",
