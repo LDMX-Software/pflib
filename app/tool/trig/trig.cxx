@@ -122,7 +122,7 @@ void ztrig(const std::string& cmd, Target* tgt) {
   if (!trig) return;
 
   static uint16_t decoder_lut_addr = 0;
-  static uint16_t decoder_lut_ch = 0;
+  static int decoder_lut_ch = 0;
   if (cmd == "DECODER_LUT_READ") {
     decoder_lut_ch = pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
     decoder_lut_addr =
