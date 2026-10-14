@@ -166,17 +166,17 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
   /**
    * the current simple trigger has the following parameters
    * 0 -> history veto mask (1 byte)
-   * 1 -> threshold for STC0 (1 byte)
-   * 2 -> threshold for STC1
-   * ... and so on up to index 8 (STC7)
+   * 1 -> threshold for ECON-T1 STC0 (1 byte)
+   * 2 -> threshold for ECON-T1 STC1
+   * ... and so on up to index 15 (ECON-T2 STC7)
    */
-  if (parameters.size() != 9) {
+  if (parameters.size() != 17) {
     PFEXCEPTION_RAISE(
         "BadConfig", "Wrong number of parameters for simple trigger algorithm");
   }
   uio_.writeMasked(ADDR_HISTORY_VETO_MASK, 0xff, parameters[0]);
-  std::array<uint32_t, 2> thresholds_registers = {0, 0};
-  for (std::size_t i{0}; i < 8; i++) {
+  std::array<uint32_t, 4> thresholds_registers = {0, 0};
+  for (std::size_t i{0}; i < 16; i++) {
     int i_reg = i / 4;
     int shift = (i % 4) * 8;
     thresholds_registers[i_reg] |= ((parameters[i + 1] & 0xff) << shift);
@@ -187,13 +187,13 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
 }
 
 std::vector<uint32_t> ZCUtrig::get_algo_setup() {
-  std::vector<uint32_t> parameters(9);
+  std::vector<uint32_t> parameters(17);
   parameters[0] = uio_.readMasked(ADDR_HISTORY_VETO_MASK, 0xff);
-  std::array<uint32_t, 2> thresholds_registers;
+  std::array<uint32_t, 4> thresholds_registers;
   for (int i{0}; i < thresholds_registers.size(); i++) {
     thresholds_registers[i] = uio_.read(ADDR_THRESHOLDS + i);
   }
-  for (std::size_t i{0}; i < 8; i++) {
+  for (std::size_t i{0}; i < 16; i++) {
     parameters[i + 1] = ((thresholds_registers[i / 4] >> (8 * (i % 4))) & 0xff);
   }
   return parameters;

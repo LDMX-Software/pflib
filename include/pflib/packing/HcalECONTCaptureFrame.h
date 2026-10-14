@@ -15,7 +15,7 @@ namespace pflib::packing {
  * along with two headers written by the firmware that
  * encode how many samples there are and which are important
  */
-class SingleECONTCaptureFrame {
+class HcalECONTCaptureFrame {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
 
  public:
@@ -69,16 +69,17 @@ class SingleECONTCaptureFrame {
     int max_tc(int i_stc) const;
   };
 
-  SingleECONTCaptureFrame() = default;
-  SingleECONTCaptureFrame(std::span<uint32_t> data);
+  HcalECONTCaptureFrame() = default;
+  HcalECONTCaptureFrame(std::span<uint32_t> data);
   Reader& read(Reader& r);
   void from(std::span<uint32_t> data);
-  const SingleECONTSample& sample(std::optional<int> i_sample = {}) const;
-  int bx(std::optional<int> i_sample = {}) const;
-  int stc_sum(int i_stc, std::optional<int> i_sample = {}) const;
-  int encoded_stc_sum(int i_stc, std::optional<int> i_sample = {}) const;
-  int max_tc(int i_stc, std::optional<int> i_sample = {}) const;
+  const SingleECONTSample& sample(std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
+  int bx(std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
+  int stc_sum(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
+  int encoded_stc_sum(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
+  int max_tc(int i_stc, std::optional<int> i_econt = {}, std::optional<int> i_sample = {}) const;
   const ECONTCaptureHeader& header() const;
+  int n_econt() const;
   int length() const;
   int version() const;
   int econ_id() const;
@@ -87,7 +88,7 @@ class SingleECONTCaptureFrame {
 
  private:
   ECONTCaptureHeader header_;
-  std::vector<SingleECONTSample> samples_;
+  std::vector<std::vector<SingleECONTSample>> samples_;
 };
 
 }  // namespace pflib::packing

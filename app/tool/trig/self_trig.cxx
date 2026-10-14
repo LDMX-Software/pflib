@@ -4,12 +4,12 @@
 #include "pflib/TRIG.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
-#include "pflib/packing/SingleECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
 #include "timein.h"  // for TimeInSettings::last
 
-using pflib::packing::SingleECONTCaptureFrame;
+using pflib::packing::HcalECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
 
 ENABLE_LOGGING();
@@ -114,8 +114,8 @@ void self_trig(Target* tgt) {
 
       // decode after capturing all data so decoding errors don't cause
       // readout pointer misalignment
-      std::vector<SingleECONTCaptureFrame> trg_charge =
-          decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
+      std::vector<HcalECONTCaptureFrame> trg_charge =
+          decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
                                                        trg_charge_event);
 
       std::vector<TrigAlgoOutput> charge_algo_output =
