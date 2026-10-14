@@ -32,8 +32,8 @@ class ZCUtrig : public TRIG {
   bool is_sample_available() override;
   std::vector<uint32_t> read_sample() override;
 
-  uint32_t get_decoder_lut(uint32_t addr);
-  void set_decoder_lut(uint32_t addr, uint32_t val);
+  uint32_t get_decoder_lut(uint16_t channel, uint16_t addr);
+  void set_decoder_lut(uint16_t channel, uint16_t addr, uint32_t val);
 
   void setup_algo(const std::vector<uint32_t>& parameters) override;
   std::vector<uint32_t> get_algo_setup() override;
