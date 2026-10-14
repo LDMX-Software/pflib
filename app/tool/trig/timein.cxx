@@ -125,27 +125,28 @@ void timein(Target* tgt) {
   ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
 
   if (ch_oi % 9 == 8) {
-    PFEXCEPTION_RAISE("BadConf", "ROC Channel indices that that are 8 mod 9 are not used");
+    PFEXCEPTION_RAISE("BadConf",
+                      "ROC Channel indices that that are 8 mod 9 are not used");
   }
   if (not tgt->have_roc(iroc_oi)) {
     PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
   }
-  
+
   auto [econt_id_oi, erxs] = tgt->getHardwareRocErxMappingTRG().at(iroc_oi);
-  int roc_tc = 2*(ch_oi / 9) + ((ch_oi % 9) / 4); // TC index
-  int roc_trg_channel = roc_tc / 4; // each trig channel holds 4 TCs
-  int econt_oi = econt_id_oi - 1; // index is off by one relative to ID
+  int roc_tc = 2 * (ch_oi / 9) + ((ch_oi % 9) / 4);  // TC index
+  int roc_trg_channel = roc_tc / 4;  // each trig channel holds 4 TCs
+  int econt_oi = econt_id_oi - 1;    // index is off by one relative to ID
   int stc_oi = erxs.at(roc_trg_channel);
-  pflib_log(info) << "pulse into ROC" << iroc_oi
-                  << " channel " << ch_oi;
-  pflib_log(info) << "which goes into ROC" << iroc_oi
-                  << " TC" << roc_tc
+  pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
+  pflib_log(info) << "which goes into ROC" << iroc_oi << " TC" << roc_tc
                   << " included in ROC trig channel " << roc_trg_channel;
-  pflib_log(info) << "looking for pulse in ECON-T" << econt_id_oi 
-                  << " STC" << stc_oi;
-  
-  auto roc_inject =
-      tgt->roc(iroc_oi).testParameters().add("CH_"+std::to_string(ch_oi), "LOWRANGE", 1).apply();
+  pflib_log(info) << "looking for pulse in ECON-T" << econt_id_oi << " STC"
+                  << stc_oi;
+
+  auto roc_inject = tgt->roc(iroc_oi)
+                        .testParameters()
+                        .add("CH_" + std::to_string(ch_oi), "LOWRANGE", 1)
+                        .apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -201,7 +202,7 @@ void timein(Target* tgt) {
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             pedestal_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2*tgt->nrocs());
+    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2 * tgt->nrocs());
     daq_pedestals.from(daq_pedestal_event);
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
@@ -224,7 +225,7 @@ void timein(Target* tgt) {
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             charge_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2 * tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
