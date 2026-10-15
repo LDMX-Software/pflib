@@ -25,20 +25,19 @@ for channel, ch_df in channel_groups:
 
         fig, ax = plt.subplots(figsize=(8, 5))
 
-        # group by LED DAC
-        led_groups = sipm_df.groupby('dacLED')
+        med = sipm_df.groupby(['dacLED', 'time'], as_index=False).agg(adc=('adc', 'median')).sort_values(['dacLED', 'time']) # compute median over multiple events
 
         cmap = plt.get_cmap('viridis')
+        led_groups = med.groupby('dacLED')
         n = len(led_groups)
 
-        for i, (dacLED, led_df) in enumerate(led_groups):
+        for i, (dacLED, med_df) in enumerate(led_groups):
 
-            led_df = led_df.sort_values('time')
             color = cmap(i / max(n - 1, 1))
-            ax.scatter(led_df['time'], led_df['adc'], marker='o', s=10, linewidth=1, color=color, label=f'LED DAC {dacLED}')
+            ax.scatter(med_df['time'], med_df['adc'], marker='o', s=10, linewidth=1, color=color, label=f'LED DAC {dacLED}')
 
         ax.set_xlabel('Time [ns]')
-        ax.set_ylabel('ADC')
+        ax.set_ylabel('Median ADC')
         ax.set_title(f'LED Pulse Scan\n HGCROC Channel {channel}, SiPM DAC {dacSiPM}')
         ax.grid(True)
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=7)
