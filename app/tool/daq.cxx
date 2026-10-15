@@ -240,7 +240,7 @@ static void daq_setup_standard(Target* tgt) {
     for (int i = 0; i < daq.nlinks(); i++) {
       if (i < 2) {
         /// DAQ link, timed in with pedestals and idles
-        daq.setupLink(i, 12, 40);
+        daq.setupLink(i, 13, 40);
       } else {
         /**
          * Trigger link, timed in with DAQ.DEBUG.TRIGGER_TIMEIN
