@@ -71,7 +71,11 @@ static const uint32_t MASK_OCCUPANCY = 0x000000FF;
 static const uint32_t MASK_BUFFER_FULL = 0x00000100;
 static const uint32_t MASK_BUFFER_EMPTY = 0x00000200;
 
+static const uint32_t MASK_COUNT_ADV = 0xffff0000;
+static const uint32_t MASK_COUNT_L1A = 0x0000ffff;
+
 static const size_t ADDR_TOP_CTL = 0x0;
+static const size_t ADDR_COUNTERS = 0x22;
 static const size_t ADDR_LINK_STATUS_BASE = 0x26;
 static const size_t ADDR_OFFSET_BUFSTATUS = 1;
 
@@ -177,9 +181,9 @@ void FiberlessCapture::advanceLinkReadPtr() {
 std::map<std::string, uint32_t> FiberlessCapture::get_debug(uint32_t ask) {
   using pflib::utility::string_format;
   std::map<std::string, uint32_t> dbg;
+  dbg["COUNT_ADV"] = uio_.readMasked(ADDR_COUNTERS, MASK_COUNT_ADV);
+  dbg["COUNT_L1A_BUFFER"] = uio_.readMasked(ADDR_COUNTERS, MASK_COUNT_L1A);
   for (int ilink{0}; ilink < 6; ilink++) {
-    dbg[string_format("LINK%d_STATUS_REG", ilink)] =
-        uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink);
     dbg[string_format("LINK%d_BUFFER_STATUS_REG", ilink)] =
         uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink + 1);
   }
