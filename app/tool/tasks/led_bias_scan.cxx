@@ -165,7 +165,9 @@ void led_bias_scan(Target* tgt) {
 
         temperature = bias.readTemp();
 
-        pflib_log(info) << "CMB port " << i_cmb_port  << " | SiPM bias = " << dacSiPM << " | LED bias = " << dacLED;
+        pflib_log(info) << "CMB port " << i_cmb_port
+                        << " | SiPM bias = " << dacSiPM
+                        << " | LED bias = " << dacLED;
 
         for (charge_to_l1a = central_charge_to_l1a + start_bx;
              charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
