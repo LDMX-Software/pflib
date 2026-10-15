@@ -10,6 +10,7 @@
 #include "pflib/I2C_Linux.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/ECONDFormatter.h"
+#include "pflib/utility/string_format.h"
 #include "pflib/zcu/UIO.h"
 
 namespace pflib {
@@ -44,6 +45,7 @@ class FiberlessCapture : public Elinks, public DAQ {
   virtual void bufferStatus(int ilink, bool& empty, bool& full) final;
   virtual std::vector<uint32_t> getLinkData(int ilink) final;
   virtual void advanceLinkReadPtr() final;
+  virtual std::map<std::string, uint32_t> get_debug(uint32_t) final;
 
  private:
   int ctl_for(int ilink) {
@@ -69,7 +71,11 @@ static const uint32_t MASK_OCCUPANCY = 0x000000FF;
 static const uint32_t MASK_BUFFER_FULL = 0x00000100;
 static const uint32_t MASK_BUFFER_EMPTY = 0x00000200;
 
+static const uint32_t MASK_COUNT_ADV = 0xffff0000;
+static const uint32_t MASK_COUNT_L1A = 0x0000ffff;
+
 static const size_t ADDR_TOP_CTL = 0x0;
+static const size_t ADDR_COUNTERS = 0x22;
 static const size_t ADDR_LINK_STATUS_BASE = 0x26;
 static const size_t ADDR_OFFSET_BUFSTATUS = 1;
 
@@ -105,9 +111,12 @@ void FiberlessCapture::reset() {
   uio_.rmw(ADDR_TOP_CTL, MASK_RESET_BUFFER, MASK_RESET_BUFFER);
 }
 int FiberlessCapture::getEventOccupancy() {
-  // use link 0 for occupancy
+  // using link 0 for occupancy
+  // but the link's "event" buffer is actually counting _samples_
+  // we need to divide out the number of L1As we sent
   return uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS,
-                         MASK_OCCUPANCY);
+                         MASK_OCCUPANCY) /
+         samples_per_ror();
 }
 void FiberlessCapture::setupLink(int ilink, int l1a_delay,
                                  int l1a_capture_width) {
@@ -133,7 +142,7 @@ void FiberlessCapture::getLinkSetup(int ilink, int& l1a_delay,
 }
 void FiberlessCapture::bufferStatus(int ilink, bool& empty, bool& full) {
   empty = true;
-  full = true;  // implauible
+  full = true;  // implausible
   if (ilink < 0 || ilink >= DAQ::nlinks()) return;
   uint32_t ifl =
       uio_.readMasked(ADDR_LINK_STATUS_BASE + ADDR_OFFSET_BUFSTATUS + ilink * 2,
@@ -165,8 +174,20 @@ std::vector<uint32_t> FiberlessCapture::getLinkData(int ilink) {
 }
 
 void FiberlessCapture::advanceLinkReadPtr() {
-  if (getEventOccupancy() > 0)
-    uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
+  /// always advance pointer, expect user to know what they're doing
+  uio_.rmw(ADDR_TOP_CTL, MASK_ADVANCE_FIFO, MASK_ADVANCE_FIFO);
+}
+
+std::map<std::string, uint32_t> FiberlessCapture::get_debug(uint32_t ask) {
+  using pflib::utility::string_format;
+  std::map<std::string, uint32_t> dbg;
+  dbg["COUNT_ADV"] = uio_.readMasked(ADDR_COUNTERS, MASK_COUNT_ADV);
+  dbg["COUNT_L1A_BUFFER"] = uio_.readMasked(ADDR_COUNTERS, MASK_COUNT_L1A);
+  for (int ilink{0}; ilink < 6; ilink++) {
+    dbg[string_format("LINK%d_BUFFER_STATUS_REG", ilink)] =
+        uio_.read(ADDR_LINK_STATUS_BASE + 2 * ilink + 1);
+  }
+  return dbg;
 }
 
 class HcalFiberless : public HcalTarget {
@@ -244,6 +265,11 @@ class HcalFiberless : public HcalTarget {
     i2c_["BIAS"] = i2cboard;
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
+    // the FC block in the firmware keeps a copy of the number of L1A per RoR
+    // so we copy that into the DAQ setup here to make sure they stay in sync
+    // between software runs
+    capture_->setup(capture_->econid(), fc_->getL1AperROR(), capture_->soi());
   }
 
   virtual void hardResetROCs() override {
@@ -273,7 +299,6 @@ class HcalFiberless : public HcalTarget {
   std::unique_ptr<Bias> bias_;
   int run_;
   Target::DaqFormat daqformat_;
-  int ievt_, l1a_;
   int contribid_;
   packing::ECONDFormatter formatter_{true};
 };
@@ -287,8 +312,6 @@ void HcalFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
     contribid_ = 255;
   else
     contribid_ = contrib_id & 0xFF;
-  ievt_ = 0;
-  l1a_ = 0;
   daq().reset();
   fc().clear_run();
 }
@@ -296,47 +319,51 @@ void HcalFiberless::setup_run(int run, DaqFormat format, int contrib_id) {
 std::vector<uint32_t> HcalFiberless::read_event() {
   std::vector<uint32_t> buffer;
   if (has_event()) {
-    ievt_++;
     switch (daqformat_) {
       case DaqFormat::SIMPLEROC: {
-        buffer.push_back(0x11888811);
-        buffer.push_back(0xbeef2025);
+        for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
+          buffer.push_back(0x11888811);
+          buffer.push_back(0xbeef2025);
 
-        buffer.push_back(0);  // come back to this
-        for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
           buffer.push_back(0);  // come back to this
-        size_t len_total = buffer.size() - 2;
+          for (int i = 0; i < (daq().nlinks() + 1) / 2; i++)
+            buffer.push_back(0);  // come back to this
+          size_t len_total = buffer.size() - 2;
 
-        for (int i = 0; i < daq().nlinks(); i++) {
-          std::vector<uint32_t> data = daq().getLinkData(i);
-          if (i >= 2) {  // trigger links
-            uint32_t theader = 0x30000000 | ((i - 2)) | (data.size() << 8);
-            data.insert(data.begin(), theader);
+          for (int i = 0; i < daq().nlinks(); i++) {
+            std::vector<uint32_t> data = daq().getLinkData(i);
+            if (i >= 2) {  // trigger links
+              uint32_t theader = 0x30000000 | ((i - 2)) | (data.size() << 8);
+              data.insert(data.begin(), theader);
+            }
+            size_t len = data.size();
+            len_total += len;
+            buffer.insert(buffer.end(), data.begin(), data.end());
+            // insert the subpacket length
+            if (i % 2)
+              buffer[2 + 1 + i / 2] |= (len << 16);
+            else
+              buffer[2 + 1 + i / 2] |= (len);
           }
-          size_t len = data.size();
-          len_total += len;
-          buffer.insert(buffer.end(), data.begin(), data.end());
-          // insert the subpacket length
-          if (i % 2)
-            buffer[2 + 1 + i / 2] |= (len << 16);
-          else
-            buffer[2 + 1 + i / 2] |= (len);
+          // record the total length
+          buffer[2] |= len_total;
+          buffer.push_back(0xd07e2025);
+          buffer.push_back(0x12345678);
+          daq().advanceLinkReadPtr();
         }
-        // record the total length
-        buffer[2] |= len_total;
-        buffer.push_back(0xd07e2025);
-        buffer.push_back(0x12345678);
-        daq().advanceLinkReadPtr();
       } break;
       case DaqFormat::ECOND_SW_HEADERS: {
-        const int bc = 0;  // bx number...
         for (int il1a = 0; il1a < daq().samples_per_ror(); il1a++) {
-          // assume orbit zero, L1A spaced by two
-          formatter_.startEvent(bc + il1a * 2, l1a_ + il1a, 0);
-          // only consuming DAQ links in ECOND (D for DAQ)
-          for (int i = 0; i < 2; i++) {
-            formatter_.add_elink_packet(i, daq().getLinkData(i));
-          }
+          // assume that the EBO of the two links output by the single HGCROC
+          // are in agreement, so we just peak at the header of link 0
+          // to get the event, bx, and orbit numbers.
+          auto link0_data = daq().getLinkData(0);
+          formatter_.startEvent((link0_data[0] >> 16) & 0xfff,  // bx
+                                (link0_data[0] >> 10) & 0x3f,   // event
+                                (link0_data[0] >> 7) & 0x7      // orbit
+          );
+          formatter_.add_elink_packet(0, link0_data);
+          formatter_.add_elink_packet(1, daq().getLinkData(1));
           formatter_.finishEvent();
 
           // add header giving specs around ECOND packet
@@ -355,7 +382,6 @@ std::vector<uint32_t> HcalFiberless::read_event() {
           // advance L1A pointer
           daq().advanceLinkReadPtr();
         }
-        l1a_ += daq().samples_per_ror();
         // add a special "header" to mark that we have no more ECON packets
         buffer.push_back(pflib::packing::DAQSampleHeader::ending_trailer());
       } break;
