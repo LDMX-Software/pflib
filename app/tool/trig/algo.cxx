@@ -30,7 +30,7 @@ void algo(const std::string& cmd, Target* target) {
     auto params = trig->get_algo_setup();
     params[0] =
         pftool::readline_int("veto mask for recent history: ", params[0], true);
-    for (int i{0}; i < 8; i++) {
+    for (int i{0}; i < 16; i++) {
       std::stringstream prompt;
       prompt << "threshold for channel " << i;
       params[i + 1] = pftool::readline_int(prompt.str(), params[i + 1], true);
@@ -41,7 +41,7 @@ void algo(const std::string& cmd, Target* target) {
     auto params = trig->get_algo_setup();
     printf("veto mask for recent history: 0x%02x\n", params[0]);
     printf("thresholds (0 -> disable channel)\n");
-    for (int i{0}; i < 8; i++) {
+    for (int i{0}; i < 16; i++) {
       printf("  %d : 0x%02x\n", i, params[i + 1]);
     }
     printf("algo output available? %s\n",
