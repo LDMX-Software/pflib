@@ -90,21 +90,6 @@ void timein(Target* tgt) {
    * zero for pedestals.
    */
 
-  pflib_log(info) << "setting up parameters for trigger link testing";
-
-  std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
-  for (int half{0}; half < 2; half++) {
-    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]
-             ["ADC_PEDESTAL"] = 255;
-    roc_setup[pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] =
-        31;
-    auto refvol_page{
-        pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
-    roc_setup[refvol_page]["CALIB"] = 3000;
-    roc_setup[refvol_page]["INTCTEST"] = 1;
-  }
-  auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
-
   int iroc_oi = 0, ch_oi = 0;
   iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
   ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
@@ -121,6 +106,22 @@ void timein(Target* tgt) {
   pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
   pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
                   << stc_oi;
+
+
+  pflib_log(info) << "setting up parameters for trigger link testing";
+
+  std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
+  for (int half{0}; half < 2; half++) {
+    roc_setup[pflib::utility::string_format("HALFWISE_%d", half)]
+             ["ADC_PEDESTAL"] = 255;
+    roc_setup[pflib::utility::string_format("DIGITALHALF_%d", half)]["ADC_TH"] =
+        31;
+    auto refvol_page{
+        pflib::utility::string_format("REFERENCEVOLTAGE_%d", half)};
+    roc_setup[refvol_page]["CALIB"] = 3000;
+    roc_setup[refvol_page]["INTCTEST"] = 1;
+  }
+  auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
   auto roc_inject = tgt->roc(iroc_oi)
                         .testParameters()

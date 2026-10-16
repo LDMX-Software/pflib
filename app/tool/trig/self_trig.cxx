@@ -3,6 +3,7 @@
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/TrigAlgoOutput.h"
@@ -29,6 +30,23 @@ void self_trig(Target* tgt) {
    * and enabling external L1As originating from our trigger
    * algorithm.
    */
+  int iroc_oi = 0, ch_oi = 0;
+  iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
+  ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
+
+  if (not tgt->have_roc(iroc_oi)) {
+    PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
+  }
+  pflib::packing::HcalECONTRocSTCMapping mapping(tgt->getHardwareRocErxMappingTRG());
+  auto [econt_oi, stc_oi] = mapping.toECONTSTC(iroc_oi, ch_oi);
+  if (stc_oi < 0) {
+    PFEXCEPTION_RAISE("BadConf",
+                      "ROC Channel is excluded from trigger sums.");
+  }
+  pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
+  pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
+                  << stc_oi;
+
   pflib_log(info) << "setting up parameters for self-trigger test";
 
   std::map<std::string, std::map<std::string, uint64_t>> roc_setup;
@@ -44,7 +62,6 @@ void self_trig(Target* tgt) {
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
-  static const int iroc_oi = 0, ch_oi = 0, stc_oi = 6;
   auto roc_inject =
       tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
 
@@ -122,7 +139,7 @@ void self_trig(Target* tgt) {
           decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                               charge_algo_output_raw);
 
-      pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+      pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
       daq_charge.from(daq_charge_event);
 
       printf("DAQ Data\n");
@@ -135,11 +152,11 @@ void self_trig(Target* tgt) {
       }
 
       printf("TRG Data\n");
-      printf(" i: stc6\n");
+      printf(" i: econ-t%d stc%d\n", econt_oi, stc_oi);
       for (int i_l1a{0}; i_l1a < trg_charge.size(); i_l1a++) {
         for (int i_sample{0}; i_sample < trg_charge[i_l1a].n_samples();
              i_sample++) {
-          int charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
+          int charge{trg_charge[i_l1a].stc_sum(stc_oi, econt_oi, i_sample)};
           printf("%2d: %4d\n", i_l1a + i_sample, charge);
         }
       }
