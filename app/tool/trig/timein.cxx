@@ -2,6 +2,7 @@
 
 #include "pflib/TRIG.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/TrigAlgoOutput.h"
@@ -104,43 +105,21 @@ void timein(Target* tgt) {
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
-  /**
-   * mapping
-   *
-   * the Target::getHardwareRocErxMapping
-   * gives the ROC trig channel -> eRx mapping
-   *
-   * The STC4 algorithm sums groups of 4 adjacent TCs
-   * and each trig channel carries 4 adjacent TCs along
-   * with a 4 bit header, so the eRx input index is
-   * equal to the STC index.
-   *
-   * The ROC channel goes into a TC in a confusing way.
-   * Channels whose index is equal to 0 modulo 8 (except
-   * channel index 0) are ignored in the sum-by-4 on the
-   * HGCROC.
-   */
   int iroc_oi = 0, ch_oi = 0;
   iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
   ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
 
-  if (ch_oi % 9 == 8) {
-    PFEXCEPTION_RAISE("BadConf",
-                      "ROC Channel indices that that are 8 mod 9 are not used");
-  }
   if (not tgt->have_roc(iroc_oi)) {
     PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
   }
-
-  auto [econt_id_oi, erxs] = tgt->getHardwareRocErxMappingTRG().at(iroc_oi);
-  int roc_tc = 2 * (ch_oi / 9) + ((ch_oi % 9) / 4);  // TC index
-  int roc_trg_channel = roc_tc / 4;  // each trig channel holds 4 TCs
-  int econt_oi = econt_id_oi - 1;    // index is off by one relative to ID
-  int stc_oi = erxs.at(roc_trg_channel);
+  pflib::packing::HcalECONTRocSTCMapping mapping(tgt->getHardwareRocErxMappingTRG());
+  auto [econt_oi, stc_oi] = mapping.toECONTSTC(iroc_oi, ch_oi);
+  if (stc_oi < 0) {
+    PFEXCEPTION_RAISE("BadConf",
+                      "ROC Channel is excluded from trigger sums.");
+  }
   pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
-  pflib_log(info) << "which goes into ROC" << iroc_oi << " TC" << roc_tc
-                  << " included in ROC trig channel " << roc_trg_channel;
-  pflib_log(info) << "looking for pulse in ECON-T" << econt_id_oi << " STC"
+  pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
                   << stc_oi;
 
   auto roc_inject = tgt->roc(iroc_oi)
