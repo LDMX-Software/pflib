@@ -166,7 +166,8 @@ void timein(Target* tgt) {
   do {
     charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
+    // this test needs the L1A following the charge pulse
+    tgt->fc().fc_setup_calib(charge_to_l1a, true); 
 
     l1offset = pftool::readline_int("L1Offset on HGCROC?", l1offset);
     auto test_l1offset_handle = tgt->roc(iroc_oi)
