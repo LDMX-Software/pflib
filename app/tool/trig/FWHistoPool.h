@@ -43,28 +43,6 @@ class FWHistoPool {
   void clear();
 
   /**
-   * use the test histograms to check the functionality of the histogram block
-   *
-   * The fill value is split across the four test histograms.
-   * The lowest 2 bits go into test histogram 0.
-   * The next lowest 2 bits go into test histogram 1 multiplied by 4.
-   * The next lowest 2 bits go into test histogram 2 multiplied by 16.
-   * The next lowest 2 bits go into test histogram 3 multiplied by 64.
-   *
-   * For example, a value of 85 (= 0b01010101) should cause
-   * bin 1 of histogram 0, bin 4 of histogram 1, bin 16 of histogram 2,
-   * and bin 64 of histogram 2 to increment by one.
-   *
-   * After doing this single fill, all of the test histograms are
-   * printed to the terminal to view the resulting values.
-   *
-   * @note Since the fill happens on each BX clock and the register
-   * that is normally being used to fill the test histograms is zero,
-   * the zero-bin should also have a large number in it.
-   */
-  void debug(int fill_val);
-
-  /**
    * the blocks of histograms are logically distinct by
    * what values we fill into them
    */
@@ -75,18 +53,17 @@ class FWHistoPool {
     EncodedSum = 1,
     /// value of rolling sum, high peaks used for trigger
     HighPeak = 2,
-    /// the test histogram codes
-    Test = 15
   };
 
   /**
    * read a histogram's content from the firmware
    *
    * @param[in] fill_type block of histograms to read from
+   * @param[in] econt which ECON-T (0 or 1)
    * @param[in] index index of the histogram we want in that block
    * @return histogram content
    */
-  std::array<uint32_t, 256> read_fw(FillValue fill_type, int index);
+  std::array<uint32_t, 256> read_fw(FillValue fill_type, int econt, int index);
 
   /**
    * A single histogram read into memory
@@ -94,6 +71,8 @@ class FWHistoPool {
   class SingleChannelHistogram {
     /// what type of value was filled into the histogram
     FillValue fill_type_;
+    /// which ECON-T was read
+    int econt_;
     /// index of STC in this histogram
     int index_;
     /// content of the histogram
@@ -102,7 +81,7 @@ class FWHistoPool {
     double collection_time_;
 
    public:
-    SingleChannelHistogram(FillValue fill_type, int index,
+    SingleChannelHistogram(FillValue fill_type, int econt, int index,
                            std::array<uint32_t, 256> values,
                            double collection_time);
     /// which type of fill value was put into the histogram
@@ -143,10 +122,11 @@ class FWHistoPool {
    *
    * @param[in] fill_type FillValue choosing which block of histograms
    * to read from
+   * @param[in] econt index of ECON-T to read from [0,1]
    * @param[in] ihist index of histogram within that block [0,7]
    * @return the current histogram
    */
-  SingleChannelHistogram read(FillValue fill_type, int ihist);
+  SingleChannelHistogram read(FillValue fill_type, int econt, int ihist);
 
   /**
    * a full histogram block read into memory
@@ -154,13 +134,15 @@ class FWHistoPool {
   class BlockHistogram {
     /// what type of value was filled into the histogram
     FillValue fill_type_;
+    /// which ECON-T was read
+    int econt_;
     /// content of the histogram
     std::array<std::array<uint32_t, 256>, 8> values_;
     /// time histogram was filling in seconds (or zero if no last clear)
     double collection_time_;
 
    public:
-    BlockHistogram(FillValue fill_type,
+    BlockHistogram(FillValue fill_type, int econt,
                    std::array<std::array<uint32_t, 256>, 8> values,
                    double collection_time);
     /// which type of fill value was put into the histogram
@@ -202,9 +184,10 @@ class FWHistoPool {
    * the input value type
    *
    * @param[in] fill_type FillValue choosing which block of histograms to read
+   * @param[in] econt which ECON-T (0 or 1)
    * @return the block histogram read in
    */
-  BlockHistogram read(FillValue fill_type);
+  BlockHistogram read(FillValue fill_type, int econt);
 };
 
 #endif

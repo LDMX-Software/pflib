@@ -25,17 +25,21 @@ std::optional<double> FWHistoPool::get_collection_time(
 }
 
 std::array<uint32_t, 256> FWHistoPool::read_fw(FWHistoPool::FillValue fill_type,
-                                               int index) {
+                                               int econt, int index) {
+  if (econt < 0 or econt > 1) {
+    pflib_log(error) << "only ECON-T indices 0 or 1 are supported";
+    return {};
+  }
   uint32_t quad_addr, quad_index{static_cast<uint32_t>(index % 4)};
   if (fill_type == FWHistoPool::FillValue::DecodedSum) {
-    quad_addr = (0xC00 + 4 * 0x10 + 4 * (index / 4)) / 4;
+    quad_addr = 0xC00 / 4 + 0x10 + (index / 4) + 6 * econt;
   } else if (fill_type == FWHistoPool::FillValue::EncodedSum) {
-    quad_addr = (0xC00 + 4 * 0x12 + 4 * (index / 4)) / 4;
+    quad_addr = 0xC00 / 4 + 0x12 + (index / 4) + 6 * econt;
   } else if (fill_type == FWHistoPool::FillValue::HighPeak) {
-    quad_addr = (0xC00 + 4 * 0x14 + 4 * (index / 4)) / 4;
-  } else if (fill_type == FWHistoPool::FillValue::Test) {
-    // only one quad for test histogram
-    quad_addr = 0xC7C / 4;
+    quad_addr = 0xC00 / 4 + 0x14 + (index / 4) + 6 * econt;
+  } else {
+    pflib_log(error) << "unrecognized FillValue " << static_cast<int>(fill_type);
+    return {};
   }
   std::array<uint32_t, 256> data;
   for (int i{0}; i < data.size(); i++) {
@@ -58,26 +62,11 @@ void FWHistoPool::clear() {
   time_of_last_clear_ = the_clock::now();
 }
 
-void FWHistoPool::debug(int fill_val) {
-  uio_.write(ADDR_HISTO_CLEAR, (fill_val & 0xFF) << 8);
-  std::array<std::array<uint32_t, 256>, 4> hists;
-  for (int i{0}; i < 4; i++) {
-    hists[i] = read_fw(FWHistoPool::FillValue::Test, i);
-  }
-  printf("bin: %10u %10u %10u %10u\n", 0, 1, 2, 3);
-  for (int i{0}; i < 256; i++) {
-    printf("%3d:", i);
-    for (int j{0}; j < 4; j++) {
-      printf(" %10u", hists[j][i]);
-    }
-    printf("\n");
-  }
-}
-
 FWHistoPool::SingleChannelHistogram::SingleChannelHistogram(
-    FillValue fill_type, int index, std::array<uint32_t, 256> values,
+    FillValue fill_type, int econt, int index, std::array<uint32_t, 256> values,
     double collection_time)
     : fill_type_{fill_type},
+      econt_{econt},
       index_{index},
       values_{values},
       collection_time_{collection_time} {}
@@ -100,14 +89,12 @@ double FWHistoPool::SingleChannelHistogram::collection_time() const {
 static const std::unordered_map<FWHistoPool::FillValue, std::string> LABELS = {
     {FWHistoPool::FillValue::EncodedSum, "Encoded Sum"},
     {FWHistoPool::FillValue::DecodedSum, "Decoded Sum"},
-    {FWHistoPool::FillValue::HighPeak, "High Peak"},
-    {FWHistoPool::FillValue::Test, "Test Fill Code"}};
+    {FWHistoPool::FillValue::HighPeak, "High Peak"}};
 
 static const std::unordered_map<FWHistoPool::FillValue, std::string> NAMES = {
     {FWHistoPool::FillValue::EncodedSum, "encoded_sum"},
     {FWHistoPool::FillValue::DecodedSum, "decoded_sum"},
-    {FWHistoPool::FillValue::HighPeak, "high_peak"},
-    {FWHistoPool::FillValue::Test, "test_fill_code"}};
+    {FWHistoPool::FillValue::HighPeak, "high_peak"}};
 
 nlohmann::json FWHistoPool::SingleChannelHistogram::to_json() const {
   nlohmann::json hist;
@@ -126,12 +113,7 @@ nlohmann::json FWHistoPool::SingleChannelHistogram::to_json() const {
   axis["underflow"] = false;
   axis["overflow"] = false;
   axis["circular"] = false;
-  std::string name;
-  if (fill_type_ == FWHistoPool::FillValue::Test) {
-    name = string_format("TEST%d", index_);
-  } else {
-    name = string_format("STC%d", index_);
-  }
+  std::string name = string_format("ECON-T%d STC%d", econt_, index_);
   axis["metadata"]["name"] = name;
   axis["metadata"]["label"] = name + LABELS.at(fill_type_);
 
@@ -142,7 +124,12 @@ nlohmann::json FWHistoPool::SingleChannelHistogram::to_json() const {
 }
 
 FWHistoPool::SingleChannelHistogram FWHistoPool::read(
-    FWHistoPool::FillValue fill_type, int index) {
+    FWHistoPool::FillValue fill_type, int econt, int index) {
+  if (econt < 0 or econt > 1) {
+    PFEXCEPTION_RAISE("OutOfRange",
+                      "Provided ECON-T index " + std::to_string(econt) +
+                          " but the FWHistoPool only supports indices [0,1]");
+  }
   if (index < 0 or index > 7) {
     PFEXCEPTION_RAISE("OutOfRange",
                       "Provided histogram index " + std::to_string(index) +
@@ -150,14 +137,15 @@ FWHistoPool::SingleChannelHistogram FWHistoPool::read(
   }
 
   return SingleChannelHistogram(
-      fill_type, index, read_fw(fill_type, index),
+      fill_type, econt, index, read_fw(fill_type, econt, index),
       get_collection_time(the_clock::now()).value_or(0));
 }
 
 FWHistoPool::BlockHistogram::BlockHistogram(
-    FillValue fill_type, std::array<std::array<uint32_t, 256>, 8> values,
+    FillValue fill_type, int econt, std::array<std::array<uint32_t, 256>, 8> values,
     double collection_time)
     : fill_type_{fill_type},
+      econt_{econt},
       values_{values},
       collection_time_{collection_time} {}
 
@@ -182,6 +170,7 @@ nlohmann::json FWHistoPool::BlockHistogram::to_json() const {
   hist["writer_info"]["trigpath-firmware"]["version"] = FW_VERSION;
   hist["metadata"]["_variance_known"] = true;
   hist["metadata"]["collection_time"] = collection_time_;
+  hist["metadata"]["econt"] = econt_;
 
   nlohmann::json cat;
   cat["type"] = "category_str";
@@ -199,8 +188,8 @@ nlohmann::json FWHistoPool::BlockHistogram::to_json() const {
   reg["underflow"] = false;
   reg["overflow"] = false;
   reg["circular"] = false;
-  reg["metadata"]["name"] = NAMES.at(fill_type_);
-  reg["metadata"]["label"] = LABELS.at(fill_type_);
+  reg["metadata"]["name"] = string_format("econt%d_", econt_) + NAMES.at(fill_type_);
+  reg["metadata"]["label"] = string_format("ECON-T%d ", econt_) + LABELS.at(fill_type_);
 
   hist["axes"] = {cat, reg};
   hist["storage"]["type"] = "double";
@@ -208,11 +197,11 @@ nlohmann::json FWHistoPool::BlockHistogram::to_json() const {
   return hist;
 }
 
-FWHistoPool::BlockHistogram FWHistoPool::read(FillValue fill_type) {
+FWHistoPool::BlockHistogram FWHistoPool::read(FillValue fill_type, int econt) {
   auto colltime = get_collection_time(the_clock::now());
   std::array<std::array<uint32_t, 256>, 8> content;
   for (int ihist{0}; ihist < 8; ihist++) {
-    content[ihist] = read_fw(fill_type, ihist);
+    content[ihist] = read_fw(fill_type, econt, ihist);
   }
-  return BlockHistogram(fill_type, content, colltime.value_or(0));
+  return BlockHistogram(fill_type, econt, content, colltime.value_or(0));
 }
