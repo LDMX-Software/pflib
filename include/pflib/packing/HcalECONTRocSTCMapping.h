@@ -20,10 +20,10 @@ namespace pflib::packing {
 class HcalECONTRocSTCMapping {
   /// hardware mapping copied from the Target
   std::vector<std::pair<int, std::vector<int>>> roc_trg_to_econt_erx_;
+
  public:
-  HcalECONTRocSTCMapping(
-    const std::vector<std::pair<int, std::vector<int>>>& roc_trg_to_econt_erx
-  );
+  HcalECONTRocSTCMapping(const std::vector<std::pair<int, std::vector<int>>>&
+                             roc_trg_to_econt_erx);
   /**
    * which trigger channel the input ROC channel goes to
    *
@@ -48,6 +48,6 @@ class HcalECONTRocSTCMapping {
   std::pair<int, int> toECONTSTC(int i_roc, int ch) const;
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

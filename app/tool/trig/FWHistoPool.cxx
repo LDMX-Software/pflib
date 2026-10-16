@@ -38,7 +38,8 @@ std::array<uint32_t, 256> FWHistoPool::read_fw(FWHistoPool::FillValue fill_type,
   } else if (fill_type == FWHistoPool::FillValue::HighPeak) {
     quad_addr = 0xC00 / 4 + 0x14 + (index / 4) + 6 * econt;
   } else {
-    pflib_log(error) << "unrecognized FillValue " << static_cast<int>(fill_type);
+    pflib_log(error) << "unrecognized FillValue "
+                     << static_cast<int>(fill_type);
     return {};
   }
   std::array<uint32_t, 256> data;
@@ -142,8 +143,8 @@ FWHistoPool::SingleChannelHistogram FWHistoPool::read(
 }
 
 FWHistoPool::BlockHistogram::BlockHistogram(
-    FillValue fill_type, int econt, std::array<std::array<uint32_t, 256>, 8> values,
-    double collection_time)
+    FillValue fill_type, int econt,
+    std::array<std::array<uint32_t, 256>, 8> values, double collection_time)
     : fill_type_{fill_type},
       econt_{econt},
       values_{values},
@@ -188,8 +189,10 @@ nlohmann::json FWHistoPool::BlockHistogram::to_json() const {
   reg["underflow"] = false;
   reg["overflow"] = false;
   reg["circular"] = false;
-  reg["metadata"]["name"] = string_format("econt%d_", econt_) + NAMES.at(fill_type_);
-  reg["metadata"]["label"] = string_format("ECON-T%d ", econt_) + LABELS.at(fill_type_);
+  reg["metadata"]["name"] =
+      string_format("econt%d_", econt_) + NAMES.at(fill_type_);
+  reg["metadata"]["label"] =
+      string_format("ECON-T%d ", econt_) + LABELS.at(fill_type_);
 
   hist["axes"] = {cat, reg};
   hist["storage"]["type"] = "double";

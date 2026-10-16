@@ -61,8 +61,8 @@ void histo(const std::string& cmd, Target* tgt) {
     }
     if (pftool::readline_bool("Store histogram in JSON file for plotting?",
                               false)) {
-      auto path =
-          pftool::readline_path(string_format("fwhist-econt-%d-stc-%d", econt, ihist), ".json");
+      auto path = pftool::readline_path(
+          string_format("fwhist-econt-%d-stc-%d", econt, ihist), ".json");
       std::ofstream file(path);
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);

@@ -37,11 +37,11 @@ void self_trig(Target* tgt) {
   if (not tgt->have_roc(iroc_oi)) {
     PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
   }
-  pflib::packing::HcalECONTRocSTCMapping mapping(tgt->getHardwareRocErxMappingTRG());
+  pflib::packing::HcalECONTRocSTCMapping mapping(
+      tgt->getHardwareRocErxMappingTRG());
   auto [econt_oi, stc_oi] = mapping.toECONTSTC(iroc_oi, ch_oi);
   if (stc_oi < 0) {
-    PFEXCEPTION_RAISE("BadConf",
-                      "ROC Channel is excluded from trigger sums.");
+    PFEXCEPTION_RAISE("BadConf", "ROC Channel is excluded from trigger sums.");
   }
   pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
   pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
@@ -62,8 +62,10 @@ void self_trig(Target* tgt) {
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
-  auto roc_inject =
-      tgt->roc(iroc_oi).testParameters().add("CH_"+std::to_string(ch_oi), "LOWRANGE", 1).apply();
+  auto roc_inject = tgt->roc(iroc_oi)
+                        .testParameters()
+                        .add("CH_" + std::to_string(ch_oi), "LOWRANGE", 1)
+                        .apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
@@ -139,7 +141,7 @@ void self_trig(Target* tgt) {
           decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                               charge_algo_output_raw);
 
-      pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
+      pflib::packing::MultiSampleECONDEventPacket daq_charge(2 * tgt->nrocs());
       daq_charge.from(daq_charge_event);
 
       printf("DAQ Data\n");

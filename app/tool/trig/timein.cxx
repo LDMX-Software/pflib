@@ -96,16 +96,15 @@ void timein(Target* tgt) {
   if (not tgt->have_roc(iroc_oi)) {
     PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
   }
-  pflib::packing::HcalECONTRocSTCMapping mapping(tgt->getHardwareRocErxMappingTRG());
+  pflib::packing::HcalECONTRocSTCMapping mapping(
+      tgt->getHardwareRocErxMappingTRG());
   auto [econt_oi, stc_oi] = mapping.toECONTSTC(iroc_oi, ch_oi);
   if (stc_oi < 0) {
-    PFEXCEPTION_RAISE("BadConf",
-                      "ROC Channel is excluded from trigger sums.");
+    PFEXCEPTION_RAISE("BadConf", "ROC Channel is excluded from trigger sums.");
   }
   pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
   pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
                   << stc_oi;
-
 
   pflib_log(info) << "setting up parameters for trigger link testing";
 
@@ -147,7 +146,7 @@ void timein(Target* tgt) {
     charge_to_l1a =
         pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
     // this test needs the L1A following the charge pulse
-    tgt->fc().fc_setup_calib(charge_to_l1a, true); 
+    tgt->fc().fc_setup_calib(charge_to_l1a, true);
 
     l1offset = pftool::readline_int("L1Offset on HGCROC?", l1offset);
     auto test_l1offset_handle = tgt->roc(iroc_oi)

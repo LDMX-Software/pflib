@@ -17,33 +17,35 @@ ENABLE_LOGGING();
  * configure which ROC channels to readout handle writing the CSV
  */
 class WriteROCCHannels {
-  std::vector<std::pair<int,int>> channels_to_readout_;
-  std::vector<std::pair<int,int>> stcs_to_readout_;
+  std::vector<std::pair<int, int>> channels_to_readout_;
+  std::vector<std::pair<int, int>> stcs_to_readout_;
   std::ofstream file_;
+
  public:
   void reset() {
     channels_to_readout_.clear();
     stcs_to_readout_.clear();
   }
-  bool configured() {
-    return not channels_to_readout_.empty();
-  }
-  void add(int i_roc, int i_ch, const pflib::packing::HcalECONTRocSTCMapping& mapping) {
+  bool configured() { return not channels_to_readout_.empty(); }
+  void add(int i_roc, int i_ch,
+           const pflib::packing::HcalECONTRocSTCMapping& mapping) {
     channels_to_readout_.emplace_back(i_roc, i_ch);
     stcs_to_readout_.emplace_back(mapping.toECONTSTC(i_roc, i_ch));
   }
   bool open(const std::string& filepath) {
     file_.open(filepath);
-    if (not file_.is_open()) { return false; }
+    if (not file_.is_open()) {
+      return false;
+    }
     // write header line
     file_ << "i_event,i_sample";
     for (const auto& [roc, ch] : channels_to_readout_) {
       file_ << ",roc_" << roc << "_ch_" << ch << "_Tp"
-           << ",roc_" << roc << "_ch_" << ch << "_Tc"
-           << ",roc_" << roc << "_ch_" << ch << "_adc_tm1"
-           << ",roc_" << roc << "_ch_" << ch << "_adc"
-           << ",roc_" << roc << "_ch_" << ch << "_toa"
-           << ",roc_" << roc << "_ch_" << ch << "_tot";
+            << ",roc_" << roc << "_ch_" << ch << "_Tc"
+            << ",roc_" << roc << "_ch_" << ch << "_adc_tm1"
+            << ",roc_" << roc << "_ch_" << ch << "_adc"
+            << ",roc_" << roc << "_ch_" << ch << "_toa"
+            << ",roc_" << roc << "_ch_" << ch << "_tot";
     }
     for (const auto& [econt, stc] : stcs_to_readout_) {
       file_ << ",econt_" << econt << "_stc_" << stc;
@@ -51,21 +53,18 @@ class WriteROCCHannels {
     file_ << '\n';
     return true;
   }
-  void serialize(
-    const MultiSampleECONDEventPacket& data,
-    const std::vector<HcalECONTCaptureFrame>& trig,
-    int i_event,
-    int n_samples,
-    const pflib::packing::SingleECONDRocErxMapping& mapping
-  ) {
+  void serialize(const MultiSampleECONDEventPacket& data,
+                 const std::vector<HcalECONTCaptureFrame>& trig, int i_event,
+                 int n_samples,
+                 const pflib::packing::SingleECONDRocErxMapping& mapping) {
     for (int i_sample{0}; i_sample < n_samples; i_sample++) {
       file_ << i_event << ',' << i_sample;
       for (const auto& [roc, ch] : channels_to_readout_) {
         auto [i_erx, i_ch] = mapping.toErxChannel(roc, ch);
         auto sample{data.samples.at(i_sample).channel(i_erx, i_ch)};
         file_ << ',' << sample.Tp() << ',' << sample.Tc() << ','
-              << sample.adc_tm1() << ',' << sample.adc() << ','
-              << sample.toa() << ',' << sample.tot();
+              << sample.adc_tm1() << ',' << sample.adc() << ',' << sample.toa()
+              << ',' << sample.tot();
       }
       for (const auto& [econt, stc] : stcs_to_readout_) {
         file_ << ',' << trig[i_sample].stc_sum(stc, econt, 0);
@@ -73,9 +72,7 @@ class WriteROCCHannels {
       file_ << '\n';
     }
   }
-  void close() {
-    file_.close();
-  }
+  void close() { file_.close(); }
   friend inline std::ostream& operator<<(std::ostream& o,
                                          const WriteROCCHannels& self) {
     o << "[";
@@ -100,17 +97,21 @@ void watch_run(pflib::Target* tgt) {
   int n_events = pftool::readline_int("Number of events to wait for?", 100);
   static WriteROCCHannels writer;
   if (writer.configured()) {
-    pflib_log(info) << "ROC Channels being readout defined before a prior run: " << writer;
-    if (pftool::readline_bool("Change which channels are being read out?", false)) {
+    pflib_log(info) << "ROC Channels being readout defined before a prior run: "
+                    << writer;
+    if (pftool::readline_bool("Change which channels are being read out?",
+                              false)) {
       writer.reset();
     }
   }
   if (not writer.configured()) {
-    pflib::packing::HcalECONTRocSTCMapping mapping(tgt->getHardwareRocErxMappingTRG());
+    pflib::packing::HcalECONTRocSTCMapping mapping(
+        tgt->getHardwareRocErxMappingTRG());
     for (int i_roc : tgt->roc_ids()) {
       static std::string channel_str = "0,1,2,3,4,5,6,7";
-      channel_str = pftool::readline(
-        "Comma-separated list of channels in ROC"+std::to_string(i_roc)+" to readout:", channel_str);
+      channel_str = pftool::readline("Comma-separated list of channels in ROC" +
+                                         std::to_string(i_roc) + " to readout:",
+                                     channel_str);
       std::stringstream channel_stream{channel_str};
       std::string channel;
       while (getline(channel_stream, channel, ',')) {
@@ -172,10 +173,11 @@ void watch_run(pflib::Target* tgt) {
                                             charge_algo_output_raw);
     */
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2 * tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
-    writer.serialize(daq_charge, trg_charge, i_event, trig->get_l1a_per_ror(), mapping);
+    writer.serialize(daq_charge, trg_charge, i_event, trig->get_l1a_per_ror(),
+                     mapping);
 
     int new_self_trigger_count = trig->get_self_trigger_count();
     if (new_self_trigger_count != ((self_trigger_count + 1) % 0xffff)) {
