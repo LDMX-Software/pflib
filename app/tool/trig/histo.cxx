@@ -32,21 +32,17 @@ FWHistoPool::FillValue prompt_fill_value() {
 
 void histo(const std::string& cmd, Target* tgt) {
   static FWHistoPool hist_pool{0};
+  static int econt{0};
 
   if (cmd == "CLEAR") {
     hist_pool.clear();
   }
 
-  if (cmd == "DEBUG") {
-    static int code = 0b01010101;
-    code = pftool::readline_int("debug code:", code, true);
-    hist_pool.debug(code);
-  }
-
   if (cmd == "READ") {
     static int ihist = 0;
+    econt = pftool::readline_int("Which ECON-T?", econt);
     ihist = pftool::readline_int("Which histogram?", ihist);
-    auto hist = hist_pool.read(prompt_fill_value(), ihist);
+    auto hist = hist_pool.read(prompt_fill_value(), econt, ihist);
     pflib_log(info) << "accumulated histogram for " << hist.collection_time()
                     << "s";
     bool raw_counts = true;
@@ -65,8 +61,8 @@ void histo(const std::string& cmd, Target* tgt) {
     }
     if (pftool::readline_bool("Store histogram in JSON file for plotting?",
                               false)) {
-      auto path =
-          pftool::readline_path(string_format("fwhist-%d", ihist), ".json");
+      auto path = pftool::readline_path(
+          string_format("fwhist-econt-%d-stc-%d", econt, ihist), ".json");
       std::ofstream file(path);
       if (not file.is_open()) {
         PFEXCEPTION_RAISE("FileOpen", "Unable to open " + path);
@@ -76,7 +72,8 @@ void histo(const std::string& cmd, Target* tgt) {
   }
 
   if (cmd == "DUMP") {
-    auto hist = hist_pool.read(prompt_fill_value());
+    econt = pftool::readline_int("Which ECON-T?", econt);
+    auto hist = hist_pool.read(prompt_fill_value(), econt);
     pflib_log(info) << "accumulated histograms for " << hist.collection_time()
                     << "s";
 
@@ -103,7 +100,7 @@ void histo(const std::string& cmd, Target* tgt) {
 
     if (pftool::readline_bool("Store histograms in JSON file for plotting?",
                               false)) {
-      std::string def_prefix{"fwhist-dump-"};
+      std::string def_prefix{string_format("fwhist-dump-econt-%d-", econt)};
       switch (hist.fill_type()) {
         case FWHistoPool::FillValue::DecodedSum:
           def_prefix += "decoded";

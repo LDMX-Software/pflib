@@ -18,11 +18,12 @@ static constexpr uint32_t MASK_ADV_ALGO_BUFFER = 0x4;
 static constexpr uint32_t ADDR_CONFIGURE = 0x600 / 4;
 static constexpr uint32_t MASK_ENABLE_SINGLE_SHOT = 0x00000002;
 static constexpr uint32_t MASK_LINK_CAPTURE_DELAY = 0x0000FFF0;
-static constexpr uint32_t MASK_LINK_BX_DELAY_ZERO = 0x00030000;
-static constexpr uint32_t MASK_LINK_BX_DELAY = 0x0FFF0000;
+static constexpr uint32_t MASK_LINK_PATTERN = 0x07ff0000;
+static constexpr uint32_t MASK_LINK_BYPASS_PATTERN_MATCH = 0x08000000;
 
 static constexpr uint32_t ADDR_PIPELINE_DEPTH = 0x604 / 4;
 static constexpr uint32_t MASK_PIPELINE_DEPTH = 0x000000FF;
+static constexpr uint32_t MASK_IGNORE_ELINKS = 0x00007e00;
 
 static constexpr uint32_t ADDR_SAMPLES_PER_L1A = 0x400 / 4;
 static constexpr uint32_t MASK_SAMPLES_PER_L1A = 0x00003F00;
@@ -66,35 +67,33 @@ ZCUtrig::ZCUtrig() : uio_("trigpath-0"), the_log_{logging::get("ZCUtrig-0")} {
 }
 void ZCUtrig::reset() { uio_.write(ADDR_RESET, MASK_SW_RESET); }
 
-void ZCUtrig::setup_alignment_capture(int delay) {
+void ZCUtrig::reset_alignment() { uio_.write(ADDR_RESET, (1 << 5)); }
+
+void ZCUtrig::setup_alignment(int delay, uint16_t pattern,
+                              uint8_t elinks_to_ignore, bool bypass_match) {
   uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY, delay & 0xFFF);
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN, pattern & 0x7FF);
+  uio_.writeMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH,
+                   (bypass_match ? 1 : 0));
+  uio_.writeMasked(ADDR_PIPELINE_DEPTH, MASK_IGNORE_ELINKS, elinks_to_ignore);
 }
-int ZCUtrig::get_alignment_capture() {
-  return uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
+void ZCUtrig::get_alignment_setup(int& delay, uint16_t& pattern,
+                                  uint8_t& elinks_to_ignore,
+                                  bool& bypass_match) {
+  delay = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_CAPTURE_DELAY);
+  pattern = uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_PATTERN);
+  bypass_match =
+      (uio_.readMasked(ADDR_CONFIGURE, MASK_LINK_BYPASS_PATTERN_MATCH) == 1);
+  elinks_to_ignore = uio_.readMasked(ADDR_PIPELINE_DEPTH, MASK_IGNORE_ELINKS);
 }
 
 std::vector<uint32_t> ZCUtrig::read_capture_buffer(int ilink) {
-  static const int N_SAMPLES = 8;
+  static const int N_SAMPLES = 1;
   std::vector<uint32_t> retval(N_SAMPLES, 0);
   for (int i = 0; i < N_SAMPLES; i++) {
-    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (i + ilink * N_SAMPLES));
+    retval[i] = uio_.read(ADDR_ALIGNER_SPY_BASE + (ilink << 3) + i);
   }
   return retval;
-}
-
-static const int BITS_OF_DELAY = 2;
-static const int MASK_OF_DELAY = 0x3;
-
-void ZCUtrig::set_bx_delay(int ilink, int delay) {
-  return uio_.writeMasked(ADDR_CONFIGURE,
-                          MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink),
-                          delay & MASK_OF_DELAY);
-}
-
-int ZCUtrig::get_bx_delay(int ilink) {
-  if (ilink < 0 || ilink >= nelinks_) return -1;
-  return uio_.readMasked(ADDR_CONFIGURE,
-                         MASK_LINK_BX_DELAY_ZERO << (BITS_OF_DELAY * ilink));
 }
 
 void ZCUtrig::setup_daq(int pipeline, int econ_id, int samples_per_l1a,
@@ -141,16 +140,19 @@ static constexpr uint32_t MASK_DECODER_LUT_READ = 0x0000ffff;
 static constexpr uint32_t ADDR_DECODER_LUT_CONF = 0x61C / 4;
 static constexpr uint32_t MASK_DECODER_LUT_WVAL = 0x0000ffff;
 static constexpr uint32_t MASK_DECODER_LUT_ADDR = 0x01ff0000;
+static constexpr uint32_t MASK_DECODER_LUT_CH = 0xf0000000;
 // the DO_WRITE strobe is in the ADDR_RESET register
 static constexpr uint32_t MASK_DECODER_LUT_DO_WRITE = 0x00000008;
 
-uint32_t ZCUtrig::get_decoder_lut(uint32_t addr) {
+uint32_t ZCUtrig::get_decoder_lut(uint16_t channel, uint16_t addr) {
+  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH, channel);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_ADDR, addr);
   usleep(10);
   return uio_.readMasked(ADDR_DECODER_LUT_READ, MASK_DECODER_LUT_READ);
 }
 
-void ZCUtrig::set_decoder_lut(uint32_t addr, uint32_t val) {
+void ZCUtrig::set_decoder_lut(uint16_t channel, uint16_t addr, uint32_t val) {
+  uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_CH, channel);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_ADDR, addr);
   uio_.writeMasked(ADDR_DECODER_LUT_CONF, MASK_DECODER_LUT_WVAL, val);
   usleep(10);
@@ -164,17 +166,17 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
   /**
    * the current simple trigger has the following parameters
    * 0 -> history veto mask (1 byte)
-   * 1 -> threshold for STC0 (1 byte)
-   * 2 -> threshold for STC1
-   * ... and so on up to index 8 (STC7)
+   * 1 -> threshold for ECON-T1 STC0 (1 byte)
+   * 2 -> threshold for ECON-T1 STC1
+   * ... and so on up to index 15 (ECON-T2 STC7)
    */
-  if (parameters.size() != 9) {
+  if (parameters.size() != 17) {
     PFEXCEPTION_RAISE(
         "BadConfig", "Wrong number of parameters for simple trigger algorithm");
   }
   uio_.writeMasked(ADDR_HISTORY_VETO_MASK, 0xff, parameters[0]);
-  std::array<uint32_t, 2> thresholds_registers = {0, 0};
-  for (std::size_t i{0}; i < 8; i++) {
+  std::array<uint32_t, 4> thresholds_registers = {0, 0};
+  for (std::size_t i{0}; i < 16; i++) {
     int i_reg = i / 4;
     int shift = (i % 4) * 8;
     thresholds_registers[i_reg] |= ((parameters[i + 1] & 0xff) << shift);
@@ -185,13 +187,13 @@ void ZCUtrig::setup_algo(const std::vector<uint32_t>& parameters) {
 }
 
 std::vector<uint32_t> ZCUtrig::get_algo_setup() {
-  std::vector<uint32_t> parameters(9);
+  std::vector<uint32_t> parameters(17);
   parameters[0] = uio_.readMasked(ADDR_HISTORY_VETO_MASK, 0xff);
-  std::array<uint32_t, 2> thresholds_registers;
+  std::array<uint32_t, 4> thresholds_registers;
   for (int i{0}; i < thresholds_registers.size(); i++) {
     thresholds_registers[i] = uio_.read(ADDR_THRESHOLDS + i);
   }
-  for (std::size_t i{0}; i < 8; i++) {
+  for (std::size_t i{0}; i < 16; i++) {
     parameters[i + 1] = ((thresholds_registers[i / 4] >> (8 * (i % 4))) & 0xff);
   }
   return parameters;
@@ -221,14 +223,30 @@ std::vector<uint32_t> ZCUtrig::read_algo_output_sample() {
 
 std::map<std::string, uint32_t> ZCUtrig::get_debug() {
   std::map<std::string, uint32_t> dbg;
-  static const uint32_t LINK_STATUS_REG = 0xC04 / 4;
+  static const uint32_t LINK_STATUS_REG = 0xC00 / 4 + 0x001;
   uint32_t status = uio_.read(LINK_STATUS_REG);
-  dbg["ELINK_TVALID"] = ((status >> 17) & 0x1);
   dbg["ECON_TDATA_DV"] = ((status >> 16) & 0x1);
   dbg["COUNT_L1A"] = ((status >> 8) & 0xff);
   dbg["COUNT_ALIGNS"] = (status & 0xff);
   dbg["SINGLE_SHOT_FIRED"] = single_shot_fired();
   dbg["COUNT_SELF_TRIGGER"] = get_self_trigger_count();
+
+  static const uint32_t FIFO_STATUS_REG = 0xC00 / 4 + 0x004;
+
+  uint32_t fifo_status = uio_.read(FIFO_STATUS_REG);
+  dbg["COUNT_BC0"] = ((fifo_status >> 24) & 0xff);
+  dbg["COUNT_RESETS"] = ((fifo_status >> 0) & 0xffff);
+
+  uint32_t bc0_counts = uio_.read(0xC00 / 4 + 0x005);
+  dbg["COUNT_BC02"] = ((bc0_counts >> 16) & 0xff);
+  dbg["COUNT_BC01"] = ((bc0_counts >> 8) & 0xff);
+  dbg["COUNT_BC00"] = ((bc0_counts >> 0) & 0xff);
+
+  uint32_t wait_for_write = uio_.read(0xC00 / 4 + 0x006);
+  dbg["WAIT_FOR_WRITE0"] = ((wait_for_write >> 0 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE1"] = ((wait_for_write >> 1 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE2"] = ((wait_for_write >> 2 * 8) & 0xff);
+  dbg["WAIT_FOR_WRITE3"] = ((wait_for_write >> 3 * 8) & 0xff);
   return dbg;
 }
 

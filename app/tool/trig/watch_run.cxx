@@ -2,15 +2,87 @@
 
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
-#include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
+using pflib::packing::HcalECONTCaptureFrame;
 using pflib::packing::MultiSampleECONDEventPacket;
-using pflib::packing::SingleECONTCaptureFrame;
 
 ENABLE_LOGGING();
+
+/**
+ * configure which ROC channels to readout handle writing the CSV
+ */
+class WriteROCCHannels {
+  std::vector<std::pair<int, int>> channels_to_readout_;
+  std::vector<std::pair<int, int>> stcs_to_readout_;
+  std::ofstream file_;
+
+ public:
+  void reset() {
+    channels_to_readout_.clear();
+    stcs_to_readout_.clear();
+  }
+  bool configured() { return not channels_to_readout_.empty(); }
+  void add(int i_roc, int i_ch,
+           const pflib::packing::HcalECONTRocSTCMapping& mapping) {
+    channels_to_readout_.emplace_back(i_roc, i_ch);
+    stcs_to_readout_.emplace_back(mapping.toECONTSTC(i_roc, i_ch));
+  }
+  bool open(const std::string& filepath) {
+    file_.open(filepath);
+    if (not file_.is_open()) {
+      return false;
+    }
+    // write header line
+    file_ << "i_event,i_sample";
+    for (const auto& [roc, ch] : channels_to_readout_) {
+      file_ << ",roc_" << roc << "_ch_" << ch << "_Tp"
+            << ",roc_" << roc << "_ch_" << ch << "_Tc"
+            << ",roc_" << roc << "_ch_" << ch << "_adc_tm1"
+            << ",roc_" << roc << "_ch_" << ch << "_adc"
+            << ",roc_" << roc << "_ch_" << ch << "_toa"
+            << ",roc_" << roc << "_ch_" << ch << "_tot";
+    }
+    for (const auto& [econt, stc] : stcs_to_readout_) {
+      file_ << ",econt_" << econt << "_stc_" << stc;
+    }
+    file_ << '\n';
+    return true;
+  }
+  void serialize(const MultiSampleECONDEventPacket& data,
+                 const std::vector<HcalECONTCaptureFrame>& trig, int i_event,
+                 int n_samples,
+                 const pflib::packing::SingleECONDRocErxMapping& mapping) {
+    for (int i_sample{0}; i_sample < n_samples; i_sample++) {
+      file_ << i_event << ',' << i_sample;
+      for (const auto& [roc, ch] : channels_to_readout_) {
+        auto [i_erx, i_ch] = mapping.toErxChannel(roc, ch);
+        auto sample{data.samples.at(i_sample).channel(i_erx, i_ch)};
+        file_ << ',' << sample.Tp() << ',' << sample.Tc() << ','
+              << sample.adc_tm1() << ',' << sample.adc() << ',' << sample.toa()
+              << ',' << sample.tot();
+      }
+      for (const auto& [econt, stc] : stcs_to_readout_) {
+        file_ << ',' << trig[i_sample].stc_sum(stc, econt, 0);
+      }
+      file_ << '\n';
+    }
+  }
+  void close() { file_.close(); }
+  friend inline std::ostream& operator<<(std::ostream& o,
+                                         const WriteROCCHannels& self) {
+    o << "[";
+    for (const auto& [i_roc, i_ch] : self.channels_to_readout_) {
+      o << " ROC" << i_roc << " CH" << i_ch;
+    }
+    o << " ]";
+    return o;
+  }
+};
 
 void watch_run(pflib::Target* tgt) {
   auto trig = tgt->trig();
@@ -23,54 +95,37 @@ void watch_run(pflib::Target* tgt) {
    */
 
   int n_events = pftool::readline_int("Number of events to wait for?", 100);
-  auto path{pftool::readline_path("watch-run", ".csv")};
-  std::ofstream file{path};
-  if (not file.is_open()) {
-    pflib_log(fatal) << "unabel to open " << path;
-    return;
+  static WriteROCCHannels writer;
+  if (writer.configured()) {
+    pflib_log(info) << "ROC Channels being readout defined before a prior run: "
+                    << writer;
+    if (pftool::readline_bool("Change which channels are being read out?",
+                              false)) {
+      writer.reset();
+    }
   }
-
-  static int i_roc = pftool::state.iroc;
-  i_roc = pftool::readline_int("ROC to readout: ", pftool::state.iroc);
-
-  static std::string channel_str = "0,1,2,3,4,5,6,7";
-  channel_str = pftool::readline(
-      "Comma-separated list of channels in that ROC to readout:", channel_str);
-  std::stringstream channel_stream{channel_str};
-  std::string channel;
-  std::vector<int> channels;
-  while (getline(channel_stream, channel, ',')) {
-    channels.push_back(std::stoi(channel));
+  if (not writer.configured()) {
+    pflib::packing::HcalECONTRocSTCMapping mapping(
+        tgt->getHardwareRocErxMappingTRG());
+    for (int i_roc : tgt->roc_ids()) {
+      static std::string channel_str = "0,1,2,3,4,5,6,7";
+      channel_str = pftool::readline("Comma-separated list of channels in ROC" +
+                                         std::to_string(i_roc) + " to readout:",
+                                     channel_str);
+      std::stringstream channel_stream{channel_str};
+      std::string channel;
+      while (getline(channel_stream, channel, ',')) {
+        writer.add(i_roc, std::stoi(channel), mapping);
+      }
+    }
   }
   const auto& mapping{tgt->getRocErxMapping()};
 
-  file << "i_event,i_sample";
-  for (int ch : channels) {
-    file << ",ch_" << ch << "_Tp"
-         << ",ch_" << ch << "_Tc"
-         << ",ch_" << ch << "_adc_tm1"
-         << ",ch_" << ch << "_adc"
-         << ",ch_" << ch << "_toa"
-         << ",ch_" << ch << "_tot";
-  }
-
-  // TODO: expand deduction to ECON-T2 EcalSMM
-  static const std::vector<std::array<int, 4>> i_roc_to_stcs = {
-      {6, 7, 4, 5},
-      {3, 2, 1, 0},
-  };
-
-  if (i_roc > 1) {
-    pflib_log(warn)
-        << "untested using ECON-T2, will not run without further software dev";
+  auto path{pftool::readline_path("watch-run", ".csv")};
+  if (not writer.open(path)) {
+    pflib_log(fatal) << "unable to open " << path;
     return;
   }
-
-  auto stc_indices = i_roc_to_stcs.at(i_roc);
-  for (int i_stc : stc_indices) {
-    file << ",stc" << i_stc;
-  }
-  file << '\n';
 
   bool l1aen, extl1a;
   tgt->fc().fc_enables_read(l1aen, extl1a);
@@ -108,9 +163,9 @@ void watch_run(pflib::Target* tgt) {
 
     // decode after capturing all data so decoding errors don't cause
     // readout pointer misalignment
-    std::vector<SingleECONTCaptureFrame> trg_charge =
-        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     trg_charge_event);
+    std::vector<HcalECONTCaptureFrame> trg_charge =
+        decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                   trg_charge_event);
 
     /*
     std::vector<TrigAlgoOutput> charge_algo_output =
@@ -118,29 +173,15 @@ void watch_run(pflib::Target* tgt) {
                                             charge_algo_output_raw);
     */
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2 * tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
-    // serialize
-    for (int i_sample{0}; i_sample < trig->get_l1a_per_ror(); i_sample++) {
-      file << i_event << ',' << i_sample;
-      for (int ch : channels) {
-        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
-        auto sample{daq_charge.samples.at(i_sample).channel(i_erx, i_ch)};
-        file << ',' << sample.Tp() << ',' << sample.Tc() << ','
-             << sample.adc_tm1() << ',' << sample.adc() << ',' << sample.toa()
-             << ',' << sample.tot();
-      }
-      for (int i_stc : stc_indices) {
-        file << ',' << trg_charge[i_sample].stc_sum(i_stc, 0);
-      }
-      file << '\n';
-    }
+    writer.serialize(daq_charge, trg_charge, i_event, trig->get_l1a_per_ror(),
+                     mapping);
 
     int new_self_trigger_count = trig->get_self_trigger_count();
-    if (new_self_trigger_count != self_trigger_count + 1) {
+    if (new_self_trigger_count != ((self_trigger_count + 1) % 0xffff)) {
       // self trigger counter is 16bits and so we may have wrapped around
-      // if its getting spammed
       int diff{0};
       if (new_self_trigger_count < self_trigger_count) {
         // wrap around happend

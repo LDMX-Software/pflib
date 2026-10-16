@@ -9,12 +9,12 @@
 #include "decode_multi_sample.h"
 #include "histo.h"
 #include "pflib/packing/DecompressAEBM.h"
-#include "pflib/packing/SingleECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/zcu/zcu_trig.h"
 #include "self_trig.h"
 #include "timein.h"
 #include "watch_run.h"
-using pflib::packing::SingleECONTCaptureFrame;
+using pflib::packing::HcalECONTCaptureFrame;
 
 #include <optional>
 
@@ -29,7 +29,6 @@ void trig_render(Target* tgt) {}
  *
  * ## Commands
  * - RESET : call reset on the TRIG block (TRIG::reset)
- * - ELINK_SPY : spy on six TRIG elinks (Elinks::spy)
  * - EVENT_SPY : readout the last captured event (TRIG::read_event)
  * - PIPELINE : change depth of capture buffer for readout
  * - SAMPLES_PER_L1A : number of samples to readout per l1a
@@ -46,20 +45,30 @@ void trig(const std::string& cmd, Target* target) {
   if (cmd == "STATUS") {
     int pipeline{-1}, econ_id{-1}, samples_per_l1a{-1}, presamples{-1};
     trig->get_daq_setup(pipeline, econ_id, samples_per_l1a, presamples);
+    int align_delay{-1};
+    uint16_t align_patt{};
+    uint8_t elinks_to_ignore{};
+    bool bypass_patt{};
+    trig->get_alignment_setup(align_delay, align_patt, elinks_to_ignore,
+                              bypass_patt);
     printf("settings\n");
     printf(" %20s: %d\n", "pipeline", pipeline);
     printf(" %20s: %d\n", "econ_id", econ_id);
     printf(" %20s: %d\n", "samples_per_l1a", samples_per_l1a);
     printf(" %20s: %d\n", "presamples", presamples);
-    printf(" %20s: %d\n", "capture delay", trig->get_alignment_capture());
-    for (int ilink{0}; ilink < trig->n_elinks(); ilink++) {
-      printf("           %d bx delay: %d\n", ilink, trig->get_bx_delay(ilink));
-    }
+    printf(" %20s: %d\n", "align delay", align_delay);
+    printf(" %20s: 0x%03x\n", "alignment pattern", align_patt);
+    printf(" %20s: 0x%02x\n", "elinks to ignore", elinks_to_ignore);
+    printf(" %20s: %d\n", "align bypass pattern", bypass_patt);
     printf("status\n");
     printf(" %20s: %d\n", "DAQ event occupancy",
            target->daq().getEventOccupancy());
     for (const auto& [name, val] : trig->get_debug()) {
       printf(" %20s: %d\n", name.c_str(), val);
+    }
+    for (int ilink = 0; ilink < trig->n_elinks(); ilink++) {
+      std::vector<uint32_t> val = trig->read_capture_buffer(ilink);
+      printf(" align capture link %d: %08x\n", ilink, val[0]);
     }
   }
   if (cmd == "PIPELINE" or cmd == "SAMPLES_PER_L1A" or cmd == "PRESAMPLES" or
@@ -78,23 +87,6 @@ void trig(const std::string& cmd, Target* target) {
     }
     trig->setup_daq(pipeline, econ_id, samples_per_l1a, presamples);
   }
-  if (cmd == "ELINK_SPY") {
-    pflib::Elinks& elinks = target->elinks();
-    std::vector<std::vector<uint32_t>> spy(6);
-    printf("word :");
-    for (int ilink{0}; ilink < spy.size(); ilink++) {
-      spy[ilink] = elinks.spy(6 + ilink, ilink == 0);
-      printf("  Link %2d", ilink);
-    }
-    printf("\n");
-    for (int iword{0}; iword < spy[0].size(); iword++) {
-      printf("%4d :", iword);
-      for (int ilink{0}; ilink < spy.size(); ilink++) {
-        printf(" %08x", spy[ilink][iword]);
-      }
-      printf("\n");
-    }
-  }
   if (cmd == "EVENT_SPY") {
     std::vector<uint32_t> event = trig->read_event();
     if (event.empty()) {
@@ -106,18 +98,23 @@ void trig(const std::string& cmd, Target* target) {
       printf("%08x\n", word);
     }
 
-    std::vector<SingleECONTCaptureFrame> frames =
-        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     event);
-    printf("BX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n");
-    for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
-      const auto& frame{frames[i_l1a]};
-      for (int i{0}; i < frame.n_samples(); i++) {
-        printf("%2d", frame.bx(i));
-        for (int j{0}; j < 8; j++) {
-          printf(" %4d", frame.stc_sum(j, i));
+    std::vector<HcalECONTCaptureFrame> frames =
+        decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                   event);
+    printf("N ECON-T: %d, N samples: %d\n", frames.at(0).n_econt(),
+           frames.at(0).n_samples());
+    for (int i_econt{0}; i_econt < frames.at(0).n_econt(); i_econt++) {
+      printf("ECON-T%d\nBX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n",
+             i_econt + 1);
+      for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
+        const auto& frame{frames[i_l1a]};
+        for (int i{0}; i < frame.n_samples(); i++) {
+          printf("%2d", frame.bx(i_econt, i));
+          for (int j{0}; j < 8; j++) {
+            printf(" %4d", frame.stc_sum(j, i_econt, i));
+          }
+          printf("\n");
         }
-        printf("\n");
       }
     }
   }
@@ -130,20 +127,26 @@ void ztrig(const std::string& cmd, Target* tgt) {
   pflib::zcu::ZCUtrig* trig = dynamic_cast<pflib::zcu::ZCUtrig*>(tgt->trig());
   if (!trig) return;
 
-  static uint32_t decoder_lut_addr = 0;
+  static uint16_t decoder_lut_addr = 0;
+  static int decoder_lut_ch = 0;
   if (cmd == "DECODER_LUT_READ") {
+    decoder_lut_ch =
+        pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
     decoder_lut_addr =
         pftool::readline_int("Encoded Value to Read: ", decoder_lut_addr, true);
-    uint32_t val = trig->get_decoder_lut(decoder_lut_addr);
-    printf("0x%03x : %d\n", decoder_lut_addr, val);
+    uint32_t val = trig->get_decoder_lut(decoder_lut_ch, decoder_lut_addr);
+    printf("%02d 0x%03x : %d\n", decoder_lut_ch, decoder_lut_addr, val);
   }
 
   if (cmd == "DECODER_LUT_WRITE") {
+    decoder_lut_ch =
+        pftool::readline_int("Channel to read (0-15): ", decoder_lut_ch);
     decoder_lut_addr = pftool::readline_int(
         "Encoded Value to Write for: ", decoder_lut_addr, true);
     uint32_t val = pftool::readline_int(
-        "Value to write: ", trig->get_decoder_lut(decoder_lut_addr));
-    trig->set_decoder_lut(decoder_lut_addr, val);
+        "Value to write: ",
+        trig->get_decoder_lut(decoder_lut_ch, decoder_lut_addr));
+    trig->set_decoder_lut(decoder_lut_ch, decoder_lut_addr, val);
   }
 
   if (cmd == "DECODER_LUT_INIT") {
@@ -151,6 +154,13 @@ void ztrig(const std::string& cmd, Target* tgt) {
         pftool::readline_int("Scale to divide decoded values by: ", 1);
     bool show_lut =
         pftool::readline_bool("Show LUT that is being written? ", true);
+    decoder_lut_ch = pftool::readline_int("Channel to read (0-15, -1 is all): ",
+                                          decoder_lut_ch);
+    if (decoder_lut_ch > 15) {
+      PFEXCEPTION_RAISE(
+          "BadConf",
+          "A maximum of 16 (indexed 0-15) trigger channels are available.");
+    }
     for (int encoded_val{0}; encoded_val < (1 << 9); encoded_val++) {
       unsigned long full_decoded_val =
           pflib::packing::decompressAEBM<5, 4>(encoded_val) / divisor;
@@ -162,7 +172,13 @@ void ztrig(const std::string& cmd, Target* tgt) {
         lut_decoded_val = static_cast<uint32_t>(full_decoded_val);
       }
       if (show_lut) printf("0x%03x : %d\n", encoded_val, lut_decoded_val);
-      trig->set_decoder_lut(encoded_val, lut_decoded_val);
+      if (decoder_lut_ch < 0) {
+        for (int ch{0}; ch < 16; ch++) {
+          trig->set_decoder_lut(ch, encoded_val, lut_decoded_val);
+        }
+      } else {
+        trig->set_decoder_lut(decoder_lut_ch, encoded_val, lut_decoded_val);
+      }
     }
   }
 }
@@ -205,7 +221,6 @@ auto menu_trig =
             "apply time offset parameters deduced from TIMEIN and/or SELF_TRIG",
             setup)
         ->line("WATCH_RUN", "collect data following self-trigger", watch_run)
-        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig)
         ->line("DECODER_LUT_READ", "read a value from the decoding LUT", ztrig)
         ->line("DECODER_LUT_WRITE", "write a value from the decoding LUT",
@@ -221,7 +236,6 @@ auto menu_expert =
         ->line("ADV", "advance the readout pointers",
                [](Target* tgt) { tgt->daq().advanceLinkReadPtr(); })
         ->line("RESET", "Reset trigger firmware blocks", trig)
-        ->line("ELINK_SPY", "spy on the six TRIG elinks", trig)
         ->line("EVENT_SPY", "attempt to read the last captured event", trig);
 
 auto menu_algo =
@@ -235,7 +249,8 @@ auto menu_align =
     menu_trig->submenu("ALIGN", "debug trigger elink alignment")
         ->line("READ", "view alignment capture buffer after a link reset",
                align)
-        ->line("DELAY", "link-specific capture delay offset", align)
+        ->line("STATUS", "printout settings and status", trig)
+        ->line("RESET", "reset link aligner firmware block", align)
         ->line("SETUP", "all-link capture delay", align);
 
 auto menu_histo =

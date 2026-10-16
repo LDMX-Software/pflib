@@ -1,13 +1,14 @@
 #include "timein.h"
 
 #include "pflib/TRIG.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
-#include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
 
-using pflib::packing::SingleECONTCaptureFrame;
+using pflib::packing::HcalECONTCaptureFrame;
 using pflib::packing::TrigAlgoOutput;
 
 void TimeInSettings::init(Target* tgt) {
@@ -88,6 +89,22 @@ void timein(Target* tgt) {
    * their maxima (255 and 31 respectively) forces the trigger sums to be
    * zero for pedestals.
    */
+  int iroc_oi = 0, ch_oi = 0;
+  iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
+  ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
+
+  if (not tgt->have_roc(iroc_oi)) {
+    PFEXCEPTION_RAISE("BadConf", "Requested ROC is not enabled.");
+  }
+  pflib::packing::HcalECONTRocSTCMapping mapping(
+      tgt->getHardwareRocErxMappingTRG());
+  auto [econt_oi, stc_oi] = mapping.toECONTSTC(iroc_oi, ch_oi);
+  if (stc_oi < 0) {
+    PFEXCEPTION_RAISE("BadConf", "ROC Channel is excluded from trigger sums.");
+  }
+  pflib_log(info) << "pulse into ROC" << iroc_oi << " channel " << ch_oi;
+  pflib_log(info) << "looking for pulse in ECON-T" << econt_oi << " STC"
+                  << stc_oi;
 
   pflib_log(info) << "setting up parameters for trigger link testing";
 
@@ -104,39 +121,40 @@ void timein(Target* tgt) {
   }
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
-  /**
-   * We inject a pulse into Channel 0 of ROC0 on the HcalBackplane
-   * which comes out of ROC0 inside TC0_0 which goes into ECON-T1
-   * DIN6 which then is summed into STC6 (I think)
-   */
-  static const int iroc_oi = 0, ch_oi = 0, stc_oi = 6;
-  auto roc_inject =
-      tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
+  auto roc_inject = tgt->roc(iroc_oi)
+                        .testParameters()
+                        .add("CH_" + std::to_string(ch_oi), "LOWRANGE", 1)
+                        .apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 
+  bool enable_l1a_follow;
+  int og_charge_to_l1a;
+  tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
+
+  // assuming that both halves share the same L1OFFSET
+  auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
+  int og_l1offset = dh_page.at("L1OFFSET");
+
+  int charge_to_l1a{og_charge_to_l1a};
+  int l1offset{og_l1offset};
+  int og_pipeline, og_samples_per_l1a, og_presamples, econid;
+  trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
+  int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
+      presamples{og_presamples};
   do {
-    bool enable_l1a_follow;
-    int og_charge_to_l1a;
-    tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
+    charge_to_l1a =
+        pftool::readline_int("Calibration to L1A offset?", charge_to_l1a);
+    // this test needs the L1A following the charge pulse
+    tgt->fc().fc_setup_calib(charge_to_l1a, true);
 
-    int charge_to_l1a =
-        pftool::readline_int("Calibration to L1A offset?", og_charge_to_l1a);
-    tgt->fc().fc_setup_calib(charge_to_l1a, enable_l1a_follow);
-
-    auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
-    int og_l1offset = dh_page.at("L1OFFSET");
-    int l1offset = pftool::readline_int("L1Offset on HGCROC?", og_l1offset);
+    l1offset = pftool::readline_int("L1Offset on HGCROC?", l1offset);
     auto test_l1offset_handle = tgt->roc(iroc_oi)
                                     .testParameters()
                                     .add("DIGITALHALF_0", "L1OFFSET", l1offset)
                                     .add("DIGITALHALF_1", "L1OFFSET", l1offset)
                                     .apply();
 
-    int og_pipeline, og_samples_per_l1a, og_presamples, econid;
-    trig->get_daq_setup(og_pipeline, econid, og_samples_per_l1a, og_presamples);
-    int pipeline{og_pipeline}, samples_per_l1a{og_samples_per_l1a},
-        presamples{og_presamples};
     pipeline = pftool::readline_int("pipeline: ", pipeline);
     samples_per_l1a =
         pftool::readline_int("samples_per_l1a: ", samples_per_l1a);
@@ -156,15 +174,15 @@ void timein(Target* tgt) {
     std::vector<uint32_t> daq_pedestal_event = tgt->read_event();
 
     // decode captured data
-    std::vector<SingleECONTCaptureFrame> trg_pedestals =
-        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     trg_pedestal_event);
+    std::vector<HcalECONTCaptureFrame> trg_pedestals =
+        decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                   trg_pedestal_event);
 
     std::vector<TrigAlgoOutput> pedestal_algo_output =
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             pedestal_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_pedestals(2 * tgt->nrocs());
     daq_pedestals.from(daq_pedestal_event);
 
     pflib_log(info) << "charge injection run to see non-zero trigger sums in "
@@ -179,15 +197,15 @@ void timein(Target* tgt) {
 
     // decode after capturing all data so decoding errors don't cause
     // readout pointer misalignment
-    std::vector<SingleECONTCaptureFrame> trg_charge =
-        decode_multi_sample<SingleECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                     trg_charge_event);
+    std::vector<HcalECONTCaptureFrame> trg_charge =
+        decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
+                                                   trg_charge_event);
 
     std::vector<TrigAlgoOutput> charge_algo_output =
         decode_multi_sample<TrigAlgoOutput>(trig->get_l1a_per_ror(),
                                             charge_algo_output_raw);
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2 * tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
     pflib_log(debug) << "reset charge_to_l1a back to " << og_charge_to_l1a;
@@ -224,12 +242,12 @@ void timein(Target* tgt) {
     for (int i_l1a{0}; i_l1a < trg_pedestals.size(); i_l1a++) {
       for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].n_samples();
            i_sample++) {
-        int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, i_sample)},
-            charge{trg_charge[i_l1a].stc_sum(stc_oi, i_sample)};
+        int pedestal{trg_pedestals[i_l1a].stc_sum(stc_oi, econt_oi, i_sample)},
+            charge{trg_charge[i_l1a].stc_sum(stc_oi, econt_oi, i_sample)};
         printf("%c%d: %4d -> %4d (0x%03x)\n",
                (i_l1a + i_sample == tgt->daq().soi()) ? '*' : ' ',
                i_l1a + i_sample, pedestal, charge,
-               trg_charge[i_l1a].encoded_stc_sum(stc_oi, i_sample));
+               trg_charge[i_l1a].encoded_stc_sum(stc_oi, econt_oi, i_sample));
       }
     }
 

@@ -6,10 +6,10 @@
 #include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/ECONDFormatter.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
-#include "pflib/packing/SingleECONTCaptureFrame.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 
 int decode5E4M(int w) { return pflib::packing::decompressAEBM<5, 4>(w); }
@@ -577,9 +577,9 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(econt)
 
 BOOST_AUTO_TEST_CASE(single_sample) {
-  using pflib::packing::SingleECONTCaptureFrame;
+  using pflib::packing::HcalECONTCaptureFrame;
   std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0};
-  SingleECONTCaptureFrame::SingleECONTSample sample;
+  HcalECONTCaptureFrame::SingleECONTSample sample;
   sample.from(words);
   BOOST_CHECK_EQUAL(sample.bx(), 4);
   BOOST_CHECK_EQUAL(sample.max_tc(0), 0);
@@ -598,6 +598,63 @@ BOOST_AUTO_TEST_CASE(single_sample) {
   BOOST_CHECK_EQUAL(sample.encoded_stc_sum(5), 0b010001011);
   BOOST_CHECK_EQUAL(sample.encoded_stc_sum(6), 0b010001010);
   BOOST_CHECK_EQUAL(sample.encoded_stc_sum(7), 0b010001011);
+}
+
+BOOST_AUTO_TEST_CASE(two_econts) {
+  using pflib::packing::HcalECONTCaptureFrame;
+  std::vector<uint32_t> words = {
+      0x10540408, 0x160010e1, 0x50085020, 0x10080444,
+      0xa2d148b0, 0x50040020, 0x10080445, 0x22914890,
+  };
+  HcalECONTCaptureFrame frame;
+  frame.from(words);
+
+  BOOST_CHECK_EQUAL(frame.n_econt(), 2);
+  BOOST_CHECK_EQUAL(frame.n_samples(), 1);
+
+  {
+    BOOST_TEST_MESSAGE("checking ECON-T indexed 0");
+    const auto& sample{frame.sample(0, 0)};
+    BOOST_CHECK_EQUAL(sample.bx(), 5);
+    BOOST_CHECK_EQUAL(sample.max_tc(0), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(1), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(2), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(3), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(4), 2);
+    BOOST_CHECK_EQUAL(sample.max_tc(5), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(6), 1);
+    BOOST_CHECK_EQUAL(sample.max_tc(7), 1);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(0), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(1), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(2), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(3), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(4), 0b010001001);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(5), 0b010001011);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(6), 0b010001010);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(7), 0b010001011);
+  }
+
+  {
+    BOOST_TEST_MESSAGE("checking ECON-T indexed 1");
+    const auto& sample{frame.sample(1, 0)};
+    BOOST_CHECK_EQUAL(sample.bx(), 5);
+    BOOST_CHECK_EQUAL(sample.max_tc(0), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(1), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(2), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(3), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(4), 1);
+    BOOST_CHECK_EQUAL(sample.max_tc(5), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(6), 0);
+    BOOST_CHECK_EQUAL(sample.max_tc(7), 0);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(0), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(1), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(2), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(3), 0b000000100);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(4), 0b010001010);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(5), 0b010001010);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(6), 0b010001010);
+    BOOST_CHECK_EQUAL(sample.encoded_stc_sum(7), 0b010001001);
+  }
 }
 
 BOOST_AUTO_TEST_CASE(decode_5E4M) {

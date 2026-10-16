@@ -391,12 +391,11 @@ static void daq(const std::string& cmd, Target* pft) {
       runname = "led";
     }
 
-    int run = pftool::readline_int("Run number? ", run);
     int nevents = pftool::readline_int("How many events? ", 100);
     pftool::state.daq_rate =
         pftool::readline_int("Readout rate? (Hz) ", pftool::state.daq_rate);
 
-    pft->setup_run(run, pftool::state.daq_format_mode,
+    pft->setup_run(1, pftool::state.daq_format_mode,
                    pftool::state.daq_contrib_id);
 
     std::string fname = pftool::readline_path(runname);
