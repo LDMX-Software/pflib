@@ -110,7 +110,7 @@ void watch_run(pflib::Target* tgt) {
     for (int i_roc : tgt->roc_ids()) {
       static std::string channel_str = "0,1,2,3,4,5,6,7";
       channel_str = pftool::readline(
-        "Comma-separated list of channels in ROC"+std::to_string(i_roc)+"to readout:", channel_str);
+        "Comma-separated list of channels in ROC"+std::to_string(i_roc)+" to readout:", channel_str);
       std::stringstream channel_stream{channel_str};
       std::string channel;
       while (getline(channel_stream, channel, ',')) {
@@ -172,7 +172,7 @@ void watch_run(pflib::Target* tgt) {
                                             charge_algo_output_raw);
     */
 
-    pflib::packing::MultiSampleECONDEventPacket daq_charge(2);
+    pflib::packing::MultiSampleECONDEventPacket daq_charge(2*tgt->nrocs());
     daq_charge.from(daq_charge_event);
 
     writer.serialize(daq_charge, trg_charge, i_event, trig->get_l1a_per_ror(), mapping);
