@@ -63,7 +63,7 @@ void self_trig(Target* tgt) {
   auto roc_test_lock = tgt->tempApplyAllROCs(roc_setup);
 
   auto roc_inject =
-      tgt->roc(iroc_oi).testParameters().add("CH_0", "LOWRANGE", 1).apply();
+      tgt->roc(iroc_oi).testParameters().add("CH_"+std::to_string(ch_oi), "LOWRANGE", 1).apply();
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
 

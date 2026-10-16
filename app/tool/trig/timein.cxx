@@ -89,7 +89,6 @@ void timein(Target* tgt) {
    * their maxima (255 and 31 respectively) forces the trigger sums to be
    * zero for pedestals.
    */
-
   int iroc_oi = 0, ch_oi = 0;
   iroc_oi = pftool::readline_int("ROC to pulse into: ", iroc_oi);
   ch_oi = pftool::readline_int("Channel to pulse into: ", ch_oi);
@@ -134,6 +133,7 @@ void timein(Target* tgt) {
   int og_charge_to_l1a;
   tgt->fc().fc_get_setup_calib(og_charge_to_l1a, enable_l1a_follow);
 
+  // assuming that both halves share the same L1OFFSET
   auto dh_page = tgt->roc(iroc_oi).getParameters("DIGITALHALF_0");
   int og_l1offset = dh_page.at("L1OFFSET");
 
