@@ -90,36 +90,41 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
 }
 
+void i2c_scan(int ibus, ToolBox* target) {
+  target->lpgbt->setup_i2c(ibus, 100);
+  for (int addr = 0; addr < 0x80; addr++) {
+    bool success = true;
+    char failchar;
+    target->lpgbt->start_i2c_read(ibus, addr);  // try reading a byte
+    try {
+      target->lpgbt->i2c_transaction_check(ibus, true);
+    } catch (pflib::Exception& e) {
+      if (e.name() == "I2CErrorNoCLK")
+        failchar = 'C';
+      else if (e.name() == "I2CErrorNoACK")
+        failchar = '-';
+      else if (e.name() == "I2CErrorSDALow")
+        failchar = '*';
+      else
+        failchar = '?';
+      //	printf(e.what());
+      success = false;
+    }
+    if ((addr % 0x10) == 0) printf("\n%02x ", addr);
+    if (success)
+      printf("%02x ", addr);
+    else
+      printf("%c%c ", failchar, failchar);
+  }
+  printf("\n");
+}
+
 void i2c(const std::string& cmd, ToolBox* target) {
   static int ibus = 0;
   ibus = tool::readline_int("Which I2C bus?", ibus);
   target->lpgbt->setup_i2c(ibus, 100);
   if (cmd == "SCAN") {
-    for (int addr = 0; addr < 0x80; addr++) {
-      bool success = true;
-      char failchar;
-      target->lpgbt->start_i2c_read(ibus, addr);  // try reading a byte
-      try {
-        target->lpgbt->i2c_transaction_check(ibus, true);
-      } catch (pflib::Exception& e) {
-        if (e.name() == "I2CErrorNoCLK")
-          failchar = 'C';
-        else if (e.name() == "I2CErrorNoACK")
-          failchar = '-';
-        else if (e.name() == "I2CErrorSDALow")
-          failchar = '*';
-        else
-          failchar = '?';
-        //	printf(e.what());
-        success = false;
-      }
-      if ((addr % 0x10) == 0) printf("\n%02x ", addr);
-      if (success)
-        printf("%02x ", addr);
-      else
-        printf("%c%c ", failchar, failchar);
-    }
-    printf("\n");
+    i2c_scan(ibus, target);
   }
   static int i2c_addr = 0;
   if (cmd == "WRITE") {
@@ -791,6 +796,44 @@ void test(const std::string& cmd, ToolBox* target) {
   }
 }
 
+void test_comms(ToolBox* target) {
+  do {
+    auto& olink{get_olink(target, "DAQ")};
+    olink.reset_link();
+
+    auto info = olink.opto_status();
+    if (info["BUFFBYPASS_DONE"] != 1 or info["BUFFBYPASS_ERROR"] != 0) {
+      printf("unable to do buffer bypass, board was not off during olink reset\n");
+      continue;
+    }
+
+    if (not tool::readline_bool("link reset, board re-powered? ", true)) {
+      return;
+    }
+
+    usleep(10000);
+    opto("FULLSTATUS", target);
+    info = olink.opto_status();
+    if (info["READY"] != 1) {
+      printf("board is not reporting READY\n");
+      continue;
+    }
+    info = olink.opto_rates();
+    if (info["BX_CLK"] != info["LINK_WORD"] or info["LINK_ERROR"] > 0) {
+      printf("board not achieving optical link lock\n");
+      continue;
+    }
+
+    // opto link lock achieved, apply lpGBT configuration
+    general("STANDARD_ECAL", target);
+    usleep(1000);
+
+    // do I2C scan
+    i2c_scan(1, target);
+
+  } while (tool::readline_bool("Test another board or try again? ", true));
+}
+
 namespace {
 
 auto gen =
@@ -855,6 +898,7 @@ auto mtest =
         ->line("CTL", "Test the fast control lines", test)
         ->line("EC", "Test the EC control link", test)
         ->line("ELINKS", "Test the uplink elinks", test)
+        ->line("COMMS", "test basic comms of DAQ lpGBT on EcalSMM", test_comms)
         ->line("ALL", "Run all tests", test);
 
 }  // namespace
