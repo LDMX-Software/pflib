@@ -28,7 +28,9 @@ _default:
 
 denv_exists := path_exists(justfile_directory() / ".denv")
 conda_env_name := `cat .conda 2> /dev/null || echo "MISSING"`
-env_cmd_prefix := if path_exists(justfile_directory() / ".conda") == "true" { f"conda run --name {{conda_env_name}} --live-stream -- " } else if denv_exists == "true" { "denv " } else { "" }
+conda_prefix := env("CONDA_PREFIX", "")
+conda_init_exists := path_exists(justfile_directory() / ".conda")
+env_cmd_prefix := if conda_prefix == "" { if conda_init_exists == "true" { f"conda run --name {{conda_env_name}} --live-stream -- " } else if denv_exists == "true" { "denv " } else { "" } } else { "" }
 
 _cmake *CONFIG:
     {{ env_cmd_prefix }}cmake -B build -S . {{ CONFIG }}
