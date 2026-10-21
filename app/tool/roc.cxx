@@ -71,7 +71,10 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
     if (not is_csv and fname.ends_with(".ihex")) {
       is_csv = false;
     } else {
-      is_csv = pftool::readline_bool("Unrecognized file extension. Should we treat it as a CSV (y) or IHEX (n)? ", true);
+      is_csv = pftool::readline_bool(
+          "Unrecognized file extension. Should we treat it as a CSV (y) or "
+          "IHEX (n)? ",
+          true);
     }
     if (tgt->nrocs() > 1) {
       bool apply_to_all = pftool::readline_bool(
@@ -99,10 +102,11 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
         "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings");
-    bool is_csv = 
-        pftool::readline_bool("Should we write the registers into CSV or IHEX? ", false);
+    bool is_csv = pftool::readline_bool(
+        "Should we write the registers into CSV or IHEX? ", false);
     pflib_log(info) << "starting dump";
-    roc.dumpSettings(fname + (is_csv ? ".csv" : ".ihex"), false /*should_decompile*/, is_csv);
+    roc.dumpSettings(fname + (is_csv ? ".csv" : ".ihex"),
+                     false /*should_decompile*/, is_csv);
     pflib_log(info) << "dump complete";
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
@@ -273,7 +277,8 @@ auto menu_roc_expert =
         ->submenu("EXPERT", "expert interaction with ROC", roc_expert_render)
         ->line("PAGE", "view a page of register values", roc_expert)
         ->line("POKE", "change a single register's value", roc_expert)
-        ->line("LOAD", "load many register values from a CSV or IHEX", roc_expert)
+        ->line("LOAD", "load many register values from a CSV or IHEX",
+               roc_expert)
         ->line("DUMP", "write out all the register values into a CSV or IHEX",
                roc_expert)
         ->line("DIRECT_ACCESS_PARAMETERS",

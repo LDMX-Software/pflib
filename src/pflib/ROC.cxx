@@ -6,8 +6,8 @@
 #include <iostream>
 
 #include "pflib/packing/Hex.h"
-#include "pflib/utility/load_integer_csv.h"
 #include "pflib/utility/intel_hex.h"
+#include "pflib/utility/load_integer_csv.h"
 #include "register_maps/direct_access.h"
 
 class ByteVector {
@@ -68,15 +68,16 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
         done = true;
       } catch (const pflib::Exception& e) {
         uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
-        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << pflib::packing::hex(fulladdr)
-                         << " failed with [" << e.name() << "]: " << e.message();
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr "
+                         << pflib::packing::hex(fulladdr) << " failed with ["
+                         << e.name() << "]: " << e.message();
       }
       i_try++;
     } while (not done and i_try < max_tries);
 
     if (not done) {
       PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
-                                     std::to_string(max_tries) + " attempts");
+                                       std::to_string(max_tries) + " attempts");
     }
   }
   pflib_log(debug) << ByteVector(data);
@@ -108,15 +109,16 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
         done = true;
       } catch (const pflib::Exception& e) {
         uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
-        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << pflib::packing::hex(fulladdr)
-                         << " failed with [" << e.name() << "]: " << e.message();
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr "
+                         << pflib::packing::hex(fulladdr) << " failed with ["
+                         << e.name() << "]: " << e.message();
       }
       i_try++;
     } while (not done and i_try < max_tries);
 
     if (not done) {
       PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
-                                     std::to_string(max_tries) + " attempts");
+                                       std::to_string(max_tries) + " attempts");
     }
   }
 }
@@ -288,7 +290,8 @@ void ROC::loadSettings(const std::string& file_name, bool is_csv) {
   if (is_csv) {
     /**
      * @note When loading from CSV, we do not assume that all of the registers
-     * are present and therefore we do single-byte I2C transactions for everything.
+     * are present and therefore we do single-byte I2C transactions for
+     * everything.
      */
     utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
       if (cells.size() == 3) {
@@ -414,7 +417,8 @@ void ROC::applyParameter(const std::string& page, const std::string& param,
   this->applyParameters(p);
 }
 
-void ROC::dumpSettings(const std::string& filename, bool should_decompile, bool use_csv) {
+void ROC::dumpSettings(const std::string& filename, bool should_decompile,
+                       bool use_csv) {
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings.");
   }
