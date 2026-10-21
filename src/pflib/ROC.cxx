@@ -302,8 +302,7 @@ void ROC::loadSettings(const std::string& file_name, bool is_csv) {
     utility::intel_hex::Reader r{file_name};
     while (r.next()) {
       auto d = r.get();
-      // TODO: chunk into some maximum number of bytes (I think 8?)
-      //writePage(d.addr(), d.get_bytes());
+      writePage(d.addr(), d.get_bytes());
     }
   }
 }
@@ -467,14 +466,13 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile, bool 
       if (not is_v2 and (page == 90 or page == 44)) {
         continue;
       }
-      // all pages have up to 16 registers
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
       if (use_csv) {
         for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
           f << page << "," << reg << "," << packing::hex(v.at(reg)) << '\n';
         }
       } else {
-        d.from_bytes((page << 5), v);
+        d.from_bytes(page, v);
         w.add(d);
       }
     }
