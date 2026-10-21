@@ -803,7 +803,8 @@ void test_comms(ToolBox* target) {
 
     auto info = olink.opto_status();
     if (info["BUFFBYPASS_DONE"] != 1 or info["BUFFBYPASS_ERROR"] != 0) {
-      printf("unable to do buffer bypass, board was not off during olink reset\n");
+      printf(
+          "unable to do buffer bypass, board was not off during olink reset\n");
       continue;
     }
 
