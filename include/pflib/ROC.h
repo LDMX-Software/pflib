@@ -28,6 +28,7 @@ class ROC {
   const std::string& type() const;
 
   std::vector<uint8_t> readPage(int ipage, int len);
+  void writePage(int ipage, std::vector<uint8_t> vals);
   uint8_t getValue(int page, int offset);
   void setValue(int page, int offset, uint8_t value);
 

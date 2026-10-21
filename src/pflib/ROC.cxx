@@ -41,40 +41,34 @@ const std::string& ROC::type() const { return type_version_; }
 
 /// maximum number of times to attempt I2C transaction
 static const int max_tries = 5;
-static const int max_nbytes = 1;
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(1400);
 
-  int ibyte{0};
-  int bytes_left = len;
-  std::vector<uint8_t> data;
-  std::vector<uint8_t> chunk;
-  chunk.resize(max_nbytes);
-  data.reserve(len);
-  do {
-    std::vector<uint8_t> waddr;
-    uint16_t fulladdr = (ipage << 5) + ibyte;
-    waddr.push_back(static_cast<uint8_t>(fulladdr & 0xFF));
-    waddr.push_back(static_cast<uint8_t>((fulladdr >> 8) & 0xFF));
+  /**
+   * The HGCROC itself does not support multi-byte transactions into
+   * its registers, but we can reduce the number of transactions by
+   * using the fact that pages are adjacent registers so only one
+   * part of the address (R0, the LSB) needs to change.
+   */
+  uint16_t page_base_addr = (ipage << 5);
+  uint8_t r0 = (page_base_addr & 0xff);
+  uint8_t r1 = (page_base_addr >> 8) & 0xff;
+  i2c_->write_byte(roc_base_ + 1, r1);
 
-    int nread = (max_nbytes < bytes_left) ? max_nbytes : bytes_left;
-    pflib_log(debug) << "reading " << nread << " bytes from 0x" << std::hex << static_cast<int>(fulladdr);
-    
-    bool done = false;
+  std::vector<uint8_t> data;
+  data.resize(len);
+  for (int ibyte{0}; ibyte < len; ibyte++) {
     int i_try{0};
+    bool done{false};
     do {
       try {
-        i2c_->write_byte(roc_base_, waddr[0]);
-        i2c_->write_byte(roc_base_ + 1, waddr[1]);
-        for (int i_byte{0}; i_byte < nread; i_byte++) {
-          chunk[i_byte] = i2c_->read_byte(roc_base_ + 2 + i_byte);
-        }
-        data.insert(data.end(), chunk.begin(), chunk.end());
-        pflib_log(debug) << "got " << chunk.size() << " bytes: " << ByteVector(chunk);
+        i2c_->write_byte(roc_base_, r0 + ibyte);
+        data[ibyte] = i2c_->read_byte(roc_base_ + 2);
         done = true;
       } catch (const pflib::Exception& e) {
-        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
+        uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << pflib::packing::hex(fulladdr)
                          << " failed with [" << e.name() << "]: " << e.message();
       }
       i_try++;
@@ -82,29 +76,50 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 
     if (not done) {
       PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
-                                      std::to_string(max_tries) + " attempts");
+                                     std::to_string(max_tries) + " attempts");
     }
-
-    bytes_left -= nread;
-    ibyte += nread;
-  } while (bytes_left > 0);
-
+  }
   pflib_log(debug) << ByteVector(data);
   return data;
 }
 
-/*
 void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
   i2c_->set_bus_speed(1400);
 
-  uint16_t fulladdr = (ipage << 5);
-  std::vector<uint8_t> wbuf;
-  wbuf.push_back(static_cast<uint8_t>((fulladdr >> 8) & 0xFF));
-  wbuf.push_back(static_cast<uint8_t>(fulladdr & 0xFF));
-  wbuf.insert(wbuf.end(), vals.begin(), vals.end());
-  i2c_->general_write_read(roc_base_, wbuf, 0);
+  /**
+   * The HGCROC itself does not support multi-byte transactions into
+   * its registers, but we can reduce the number of transactions by
+   * using the fact that pages are adjacent registers so only one
+   * part of the address (R0, the LSB) needs to change.
+   */
+
+  uint16_t page_base_addr = (ipage << 5);
+  uint8_t r0 = (page_base_addr & 0xff);
+  uint8_t r1 = (page_base_addr >> 8) & 0xff;
+  i2c_->write_byte(roc_base_ + 1, r1);
+
+  for (int ibyte{0}; ibyte < vals.size(); ibyte++) {
+    int i_try{0};
+    bool done{false};
+    do {
+      try {
+        i2c_->write_byte(roc_base_, r0 + ibyte);
+        i2c_->write_byte(roc_base_ + 2, vals[ibyte]);
+        done = true;
+      } catch (const pflib::Exception& e) {
+        uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << pflib::packing::hex(fulladdr)
+                         << " failed with [" << e.name() << "]: " << e.message();
+      }
+      i_try++;
+    } while (not done and i_try < max_tries);
+
+    if (not done) {
+      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+                                     std::to_string(max_tries) + " attempts");
+    }
+  }
 }
-*/
 
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_->set_bus_speed(1400);
