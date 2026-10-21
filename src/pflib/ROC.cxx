@@ -10,6 +10,22 @@
 #include "pflib/utility/intel_hex.h"
 #include "register_maps/direct_access.h"
 
+class ByteVector {
+  const std::vector<uint8_t>& v_;
+
+ public:
+  ByteVector(const std::vector<uint8_t>& v) : v_{v} {}
+  friend inline std::ostream& operator<<(std::ostream& o,
+                                         const ByteVector& self) {
+    o << "[" << std::setfill('0') << std::hex;
+    for (const auto& v : self.v_) {
+      o << " " << std::setw(2) << static_cast<int>(v);
+    }
+    o << " ]" << std::setfill(' ') << std::dec;
+    return o;
+  }
+};
+
 namespace pflib {
 
 ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
@@ -25,7 +41,7 @@ const std::string& ROC::type() const { return type_version_; }
 
 /// maximum number of times to attempt I2C transaction
 static const int max_tries = 5;
-static const int max_nbytes = 8;
+static const int max_nbytes = 1;
 
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(1400);
@@ -33,6 +49,8 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   int ibyte{0};
   int bytes_left = len;
   std::vector<uint8_t> data;
+  std::vector<uint8_t> chunk;
+  chunk.resize(max_nbytes);
   data.reserve(len);
   do {
     std::vector<uint8_t> waddr;
@@ -47,9 +65,13 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
     int i_try{0};
     do {
       try {
-        auto chunk = i2c_->general_write_read(roc_base_, waddr, nread);
+        i2c_->write_byte(roc_base_, waddr[0]);
+        i2c_->write_byte(roc_base_ + 1, waddr[1]);
+        for (int i_byte{0}; i_byte < nread; i_byte++) {
+          chunk[i_byte] = i2c_->read_byte(roc_base_ + 2 + i_byte);
+        }
         data.insert(data.end(), chunk.begin(), chunk.end());
-        pflib_log(debug) << "got " << chunk.size() << " bytes";
+        pflib_log(debug) << "got " << chunk.size() << " bytes: " << ByteVector(chunk);
         done = true;
       } catch (const pflib::Exception& e) {
         pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
@@ -67,6 +89,7 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
     ibyte += nread;
   } while (bytes_left > 0);
 
+  pflib_log(debug) << ByteVector(data);
   return data;
 }
 
