@@ -45,17 +45,16 @@ static void roc_expert_render(Target* tgt) {
  */
 static void roc_expert(const std::string& cmd, Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
+  static int page{0}, len{8}, entry{0};
   if (cmd == "PAGE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int len = pftool::readline_int("Length?", 8);
+    page = pftool::readline_int("Which page? ", page);
+    len = pftool::readline_int("Length?", len);
     std::vector<uint8_t> v = roc.readPage(page, len);
-    for (int i = 0; i < int(v.size()); i++) {
-      printf("%02d : %02x %02x\n", i, v[i], roc.getValue(page, i));
-    }
+    for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
   }
   if (cmd == "POKE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int entry = pftool::readline_int("Offset: ", 0);
+    page = pftool::readline_int("Which page? ", page);
+    entry = pftool::readline_int("Offset: ", entry);
     int value = pftool::readline_int("New value: ");
 
     roc.setValue(page, entry, value);
