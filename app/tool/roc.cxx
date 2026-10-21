@@ -45,15 +45,16 @@ static void roc_expert_render(Target* tgt) {
  */
 static void roc_expert(const std::string& cmd, Target* tgt) {
   auto roc = tgt->roc(pftool::state.iroc);
+  static int page{0}, len{8}, entry{0};
   if (cmd == "PAGE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int len = pftool::readline_int("Length?", 8);
+    page = pftool::readline_int("Which page? ", page);
+    len = pftool::readline_int("Length?", len);
     std::vector<uint8_t> v = roc.readPage(page, len);
     for (int i = 0; i < int(v.size()); i++) printf("%02d : %02x\n", i, v[i]);
   }
   if (cmd == "POKE") {
-    int page = pftool::readline_int("Which page? ", 0);
-    int entry = pftool::readline_int("Offset: ", 0);
+    page = pftool::readline_int("Which page? ", page);
+    entry = pftool::readline_int("Offset: ", entry);
     int value = pftool::readline_int("New value: ");
 
     roc.setValue(page, entry, value);
@@ -61,15 +62,51 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
   if (cmd == "LOAD") {
     std::cout << "\n"
                  " --- This command expects a CSV file with columns "
-                 "[page,offset,value].\n"
+                 "[page,offset,value]\n"
+                 " --- or a IHEX file written by ROC.DUMP_IMAGE\n"
               << std::flush;
     std::string fname = pftool::readline("Filename: ");
-    roc.loadRegisters(fname);
+    bool is_csv = fname.ends_with(".csv");
+    if (not is_csv and fname.ends_with(".ihex")) {
+      is_csv = false;
+    } else {
+      is_csv = pftool::readline_bool(
+          "Unrecognized file extension. Should we treat it as a CSV (y) or "
+          "IHEX (n)? ",
+          true);
+    }
+    if (tgt->nrocs() > 1) {
+      bool apply_to_all = pftool::readline_bool(
+          "Apply this same file to all the ROCs (Y) or just to the selected "
+          "i_roc = " +
+              std::to_string(pftool::state.iroc) + "? ",
+          false);
+      if (apply_to_all) {
+        for (int iroc : tgt->roc_ids()) {
+          pflib_log(info) << "starting load for ROC" << iroc;
+          tgt->roc(iroc).loadSettings(fname, is_csv);
+          pflib_log(info) << "load for ROC" << iroc << " complete";
+        }
+      } else {
+        pflib_log(info) << "starting load";
+        roc.loadSettings(fname, is_csv);
+        pflib_log(info) << "load complete";
+      }
+    } else {
+      pflib_log(info) << "starting load";
+      roc.loadSettings(fname, is_csv);
+      pflib_log(info) << "load complete";
+    }
   }
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
-        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".csv");
-    roc.dumpSettings(fname, false);
+        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings");
+    bool is_csv = pftool::readline_bool(
+        "Should we write the registers into CSV or IHEX? ", false);
+    pflib_log(info) << "starting dump";
+    roc.dumpSettings(fname + (is_csv ? ".csv" : ".ihex"),
+                     false /*should_decompile*/, is_csv);
+    pflib_log(info) << "dump complete";
   }
   if (cmd == "DIRECT_ACCESS_PARAMETERS") {
     for (const auto& name : roc.getDirectAccessParameters()) {
@@ -208,7 +245,12 @@ static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "DUMP") {
     std::string fname = pftool::readline_path(
         "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".yaml");
-    roc.dumpSettings(fname, true);
+    roc.dumpSettings(fname, true, true);
+  }
+  if (cmd == "DUMP_IMAGE") {
+    std::string fname = pftool::readline_path(
+        "hgcroc_" + std::to_string(pftool::state.iroc) + "_settings", ".ihex");
+    roc.dumpSettings(fname, false, false);
   }
 }
 
@@ -226,6 +268,7 @@ auto menu_roc =
         ->line("POKE", "change a single parameter value", roc)
         ->line("LOAD", "Load parameter values onto the chip from a YAML file",
                roc)
+        ->line("DUMP_IMAGE", "dump hgcroc settings to an image", roc)
         ->line("DUMP", "Dump hgcroc settings to a file", roc);
 
 auto menu_roc_expert =
@@ -233,8 +276,9 @@ auto menu_roc_expert =
         ->submenu("EXPERT", "expert interaction with ROC", roc_expert_render)
         ->line("PAGE", "view a page of register values", roc_expert)
         ->line("POKE", "change a single register's value", roc_expert)
-        ->line("LOAD", "load many register values from a CSV", roc_expert)
-        ->line("DUMP", "write out all the register values into a CSV",
+        ->line("LOAD", "load many register values from a CSV or IHEX",
+               roc_expert)
+        ->line("DUMP", "write out all the register values into a CSV or IHEX",
                roc_expert)
         ->line("DIRECT_ACCESS_PARAMETERS",
                "print out the names of the direct access parameters",

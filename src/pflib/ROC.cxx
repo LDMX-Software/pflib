@@ -6,8 +6,25 @@
 #include <iostream>
 
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/intel_hex.h"
 #include "pflib/utility/load_integer_csv.h"
 #include "register_maps/direct_access.h"
+
+class ByteVector {
+  const std::vector<uint8_t>& v_;
+
+ public:
+  ByteVector(const std::vector<uint8_t>& v) : v_{v} {}
+  friend inline std::ostream& operator<<(std::ostream& o,
+                                         const ByteVector& self) {
+    o << "[" << std::setfill('0') << std::hex;
+    for (const auto& v : self.v_) {
+      o << " " << std::setw(2) << static_cast<int>(v);
+    }
+    o << " ]" << std::setfill(' ') << std::dec;
+    return o;
+  }
+};
 
 namespace pflib {
 
@@ -22,20 +39,89 @@ ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
 
 const std::string& ROC::type() const { return type_version_; }
 
+/// maximum number of times to attempt I2C transaction
+static const int max_tries = 5;
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(1400);
 
-  // printf("i2c base address %#x\n", roc_base_);
-  std::vector<uint8_t> retval;
-  retval.reserve(len);
-  for (int i = 0; i < len; i++) {
-    retval.push_back(getValue(ipage, i));
+  /**
+   * The HGCROC itself does not support multi-byte transactions into
+   * its registers, but we can reduce the number of transactions by
+   * using the fact that pages are adjacent registers so only one
+   * part of the address (R0, the LSB) needs to change.
+   */
+  uint16_t page_base_addr = (ipage << 5);
+  uint8_t r0 = (page_base_addr & 0xff);
+  uint8_t r1 = (page_base_addr >> 8) & 0xff;
+  i2c_->write_byte(roc_base_ + 1, r1);
+
+  std::vector<uint8_t> data;
+  data.resize(len);
+  for (int ibyte{0}; ibyte < len; ibyte++) {
+    int i_try{0};
+    bool done{false};
+    do {
+      try {
+        i2c_->write_byte(roc_base_, r0 + ibyte);
+        data[ibyte] = i2c_->read_byte(roc_base_ + 2);
+        done = true;
+      } catch (const pflib::Exception& e) {
+        uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr "
+                         << pflib::packing::hex(fulladdr) << " failed with ["
+                         << e.name() << "]: " << e.message();
+      }
+      i_try++;
+    } while (not done and i_try < max_tries);
+
+    if (not done) {
+      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+                                       std::to_string(max_tries) + " attempts");
+    }
   }
-  return retval;
+  pflib_log(debug) << ByteVector(data);
+  return data;
 }
 
-/// maximum number of times to attempt I2C transaction
-static const int max_tries = 5;
+void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
+  i2c_->set_bus_speed(1400);
+
+  /**
+   * The HGCROC itself does not support multi-byte transactions into
+   * its registers, but we can reduce the number of transactions by
+   * using the fact that pages are adjacent registers so only one
+   * part of the address (R0, the LSB) needs to change.
+   */
+
+  uint16_t page_base_addr = (ipage << 5);
+  uint8_t r0 = (page_base_addr & 0xff);
+  uint8_t r1 = (page_base_addr >> 8) & 0xff;
+  i2c_->write_byte(roc_base_ + 1, r1);
+
+  for (int ibyte{0}; ibyte < vals.size(); ibyte++) {
+    int i_try{0};
+    bool done{false};
+    do {
+      try {
+        i2c_->write_byte(roc_base_, r0 + ibyte);
+        i2c_->write_byte(roc_base_ + 2, vals[ibyte]);
+        done = true;
+      } catch (const pflib::Exception& e) {
+        uint16_t fulladdr = (static_cast<uint16_t>(r1) << 8) | r0;
+        pflib_log(debug) << "I2C Attempt " << i_try << " on addr "
+                         << pflib::packing::hex(fulladdr) << " failed with ["
+                         << e.name() << "]: " << e.message();
+      }
+      i_try++;
+    } while (not done and i_try < max_tries);
+
+    if (not done) {
+      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+                                       std::to_string(max_tries) + " attempts");
+    }
+  }
+}
 
 uint8_t ROC::getValue(int ipage, int offset) {
   i2c_->set_bus_speed(1400);
@@ -200,15 +286,28 @@ std::map<int, std::map<int, uint8_t>> ROC::getRegisters(
   return chip_reg;
 }
 
-void ROC::loadRegisters(const std::string& file_name) {
-  utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
-    if (cells.size() == 3) {
-      setValue(cells.at(0), cells.at(1), cells.at(2));
-    } else {
-      pflib_log(warn) << "Ignoring ROC CSV register settings line without "
-                         "exactly three columns";
+void ROC::loadSettings(const std::string& file_name, bool is_csv) {
+  if (is_csv) {
+    /**
+     * @note When loading from CSV, we do not assume that all of the registers
+     * are present and therefore we do single-byte I2C transactions for
+     * everything.
+     */
+    utility::load_integer_csv(file_name, [this](const std::vector<int>& cells) {
+      if (cells.size() == 3) {
+        setValue(cells.at(0), cells.at(1), cells.at(2));
+      } else {
+        pflib_log(warn) << "Ignoring ROC CSV register settings line without "
+                           "exactly three columns";
+      }
+    });
+  } else {
+    utility::intel_hex::Reader r{file_name};
+    while (r.next()) {
+      auto d = r.get();
+      writePage(d.addr(), d.get_bytes());
     }
-  });
+  }
 }
 
 std::map<std::string, uint64_t> ROC::getParameters(const std::string& page) {
@@ -318,7 +417,8 @@ void ROC::applyParameter(const std::string& page, const std::string& param,
   this->applyParameters(p);
 }
 
-void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
+void ROC::dumpSettings(const std::string& filename, bool should_decompile,
+                       bool use_csv) {
   if (filename.empty()) {
     PFEXCEPTION_RAISE("Filename", "No filename provided to dump roc settings.");
   }
@@ -358,8 +458,9 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
     f << out.c_str();
   } else {
     bool is_v2 = (type_version_ == "sipm_rocv2");
-    // read all the pages and write to CSV while reading
-    std::map<int, std::map<int, uint8_t>> register_values;
+    // read all the pages and write to CSV/IHEX while reading
+    pflib::utility::intel_hex::Writer w{filename};
+    pflib::utility::intel_hex::DataRecord d;
     for (int page : compiler_.get_known_pages()) {
       // WARNING: lazyness
       // I am being lazy here and instead of having complicated code
@@ -369,10 +470,14 @@ void ROC::dumpSettings(const std::string& filename, bool should_decompile) {
       if (not is_v2 and (page == 90 or page == 44)) {
         continue;
       }
-      // all pages have up to 16 registers
       std::vector<uint8_t> v = readPage(page, N_REGISTERS_PER_PAGE);
-      for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
-        f << page << "," << reg << "," << packing::hex(v.at(reg)) << '\n';
+      if (use_csv) {
+        for (int reg{0}; reg < N_REGISTERS_PER_PAGE; reg++) {
+          f << page << "," << reg << "," << packing::hex(v.at(reg)) << '\n';
+        }
+      } else {
+        d.from_bytes(page, v);
+        w.add(d);
       }
     }
   }

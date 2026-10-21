@@ -28,6 +28,7 @@ class ROC {
   const std::string& type() const;
 
   std::vector<uint8_t> readPage(int ipage, int len);
+  void writePage(int ipage, std::vector<uint8_t> vals);
   uint8_t getValue(int page, int offset);
   void setValue(int page, int offset, uint8_t value);
 
@@ -53,15 +54,6 @@ class ROC {
    */
   std::map<int, std::map<int, uint8_t>> getRegisters(
       const std::map<int, std::map<int, uint8_t>>& selected = {});
-
-  /**
-   * set registers on the HGCROC to specific values
-   *
-   * @param[in] file_path path to CSV file containing register values,
-   * the first column is the page, the second column is the register in that
-   * page, and then the last column is the value of the register
-   */
-  void loadRegisters(const std::string& file_path);
 
   /**
    * Get the parameters for the input page
@@ -122,8 +114,23 @@ class ROC {
    * @param[in] filepath file to which to dump settings into
    * @param[in] decompile if true, decompile the registers into parameters
    * and write a YAML file, else just write a CSV file of the registers
+   * @param[in] use_csv if true (and decompile is false), write out the
+   * registers into a CSV, otherwise write into IHEX for safety
    */
-  void dumpSettings(const std::string& filepath, bool decompile);
+  void dumpSettings(const std::string& filepath, bool decompile, bool use_csv);
+
+  /**
+   * load the settings from the input filepath onto the HGCROC
+   *
+   * @param[in] filepath path to file that contains the registers
+   * and their values to load (either in CSV or IHEX)
+   * @param[in] is_csv flag to tell if the file is in CSV or IHEX format
+   *
+   * @see loadParameters if you want to load a YAML file of parameter values.
+   * It is separate because it requires extra complexity to compile the
+   * parameters into registers.
+   */
+  void loadSettings(const std::string& filepath, bool is_csv);
 
   /**
    * start a set of test parameters
