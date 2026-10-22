@@ -12,7 +12,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from hgcroc_fit import ESA_CLOCK_NS, HgcrocShape, fit_fixed, fit_free
+from hgcroc_fit import ESA_CLOCK_NS, fit_fixed, fit_free, load_shape
 from pedestal_noise import pedestal_table
 from samples import Samples
 
@@ -29,6 +29,9 @@ def main():
         "--offset", type=float, help="ECal t0 minus HCal time [ns], default: calibrate"
     )
     p.add_argument("--clock", type=float, default=ESA_CLOCK_NS)
+    p.add_argument(
+        "--shape", help="template from fit_template.py (default: ldmx-sw ECal shape)"
+    )
     p.add_argument(
         "--seed-sigma",
         type=float,
@@ -55,7 +58,7 @@ def main():
     args = p.parse_args()
 
     s = Samples(args.input)
-    shape = HgcrocShape()
+    shape = load_shape(args.shape)
     peds = pd.read_csv(args.pedestals) if args.pedestals else pedestal_table(s)
     n_ror, n_link, n_ch, n_s = s.adc.shape
     ped = peds["pedestal"].to_numpy().reshape(n_link, n_ch)

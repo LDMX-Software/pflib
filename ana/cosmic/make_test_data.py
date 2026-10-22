@@ -10,7 +10,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from hgcroc_fit import ESA_CLOCK_NS, HgcrocShape
+from hgcroc_fit import ESA_CLOCK_NS, load_shape
 
 COLUMNS = [
     "timestamp",
@@ -97,10 +97,19 @@ def main():
     )
     p.add_argument("--clock", type=float, default=ESA_CLOCK_NS)
     p.add_argument("--seed", type=int, default=1)
+    p.add_argument(
+        "--true-shape", help="pulse shape to simulate, five comma separated numbers"
+    )
+    p.add_argument(
+        "--roc-phase",
+        type=float,
+        default=2.0,
+        help="PHASE_CK offset of ROC 1 in the time scans [ns]",
+    )
     args = p.parse_args()
 
     rng = np.random.default_rng(args.seed)
-    shape = HgcrocShape()
+    shape = load_shape(args.true_shape)
     n_ror, n_s, clock = args.n_ror, args.n_samples, args.clock
     t_samples = np.arange(n_s) * clock
     phase = rng.uniform(0, clock, n_ror)
@@ -155,8 +164,30 @@ def main():
     pd.DataFrame({"ror": r, "link": lk, "channel": c, "amp_adc": amp[r, lk, c]}).to_csv(
         f"{args.output}_truth_hits.csv", index=False
     )
+    # CHARGE_TIMESCAN like scans of one channel on two ROCs, time axis in 25 ns BX
+    for roc, dphase in ((0, 0.0), (1, args.roc_phase)):
+        tt = np.arange(-50, 150, 25 / 16)
+        a = (
+            200 * shape(tt * clock / 25 - (20 + dphase))
+            + 50
+            + rng.normal(0, 1, len(tt))
+        )
+        with open(f"{args.output}_timescan_roc{roc}.csv", "w") as f:
+            f.write(f'# {{"iroc": {roc}, "channel": 10, "calib": 200}}\n')
+            pd.DataFrame(
+                {
+                    "time": tt,
+                    "Tp": 0,
+                    "Tc": 0,
+                    "adc_tm1": 0,
+                    "adc": np.floor(a + 0.5).astype(int),
+                    "tot": 0,
+                    "toa": 0,
+                }
+            ).to_csv(f, index=False)
     print(
-        f"wrote {args.output}_ecal.csv, {args.output}_hcal.csv, {args.output}_truth[_hits].csv"
+        f"wrote {args.output}_ecal.csv, {args.output}_hcal.csv, {args.output}_truth[_hits].csv,"
+        f" {args.output}_timescan_roc[01].csv"
     )
     print(
         f"pulse in sample {args.l1offset - args.true_latency}, true offset {-args.hcal_offset:.2f} ns"

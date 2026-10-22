@@ -33,6 +33,17 @@ class HgcrocShape:
         )
 
 
+def load_shape(arg):
+    """HgcrocShape from a fit_template.py CSV or five comma separated numbers"""
+    if arg is None:
+        return HgcrocShape()
+    if "," in arg:
+        return HgcrocShape(tuple(float(v) for v in arg.split(",")))
+    import pandas as pd
+
+    return HgcrocShape(tuple(pd.read_csv(arg).iloc[0]))
+
+
 def _grid(t_lo, t_hi, step):
     # accumulate like the C++ loop so both scan the same points
     g = []
