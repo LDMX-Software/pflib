@@ -1,9 +1,9 @@
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 
-#include "pflib/packing/SingleECONDRocErxMapping.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
+#include "pflib/packing/SingleECONDRocErxMapping.h"
 
 namespace pflib::packing {
 
@@ -18,7 +18,8 @@ const std::string MultiSampleECONDEventPacket::to_csv_header_with_mapping =
     "timestamp,orbit,bx,event,i_sample,i_roc,channel,Tp,Tc,adc_tm1,adc,tot,"
     "toa";
 
-void MultiSampleECONDEventPacket::to_csv(std::ofstream& f, const SingleECONDRocErxMapping* mapping) const {
+void MultiSampleECONDEventPacket::to_csv(
+    std::ofstream& f, const SingleECONDRocErxMapping* mapping) const {
   /**
    * The columns of the output CSV are
    * ```

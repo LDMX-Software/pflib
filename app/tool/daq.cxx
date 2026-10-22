@@ -411,11 +411,13 @@ static void daq(const std::string& cmd, Target* pft) {
               fname + ".csv",
               [](std::ofstream& f) {
                 f << std::boolalpha;
-                f << pflib::packing::MultiSampleECONDEventPacket::to_csv_header_with_mapping
+                f << pflib::packing::MultiSampleECONDEventPacket::
+                         to_csv_header_with_mapping
                   << '\n';
               },
-              [&mapping](std::ofstream& f,
-                 const pflib::packing::MultiSampleECONDEventPacket& ep) {
+              [&mapping](
+                  std::ofstream& f,
+                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
                 ep.to_csv(f, &mapping);
               },
               pft->nrocs() * 2);

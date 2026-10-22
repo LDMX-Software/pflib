@@ -59,22 +59,24 @@ class MultiSampleECONDEventPacket {
   /// header string if using MultiSampleECONDEventPacket::to_csv
   static const std::string to_csv_header;
 
-  /// header string if using MultiSampleECONDEventPacket::to_csv with an input mapping
+  /// header string if using MultiSampleECONDEventPacket::to_csv with an input
+  /// mapping
   static const std::string to_csv_header_with_mapping;
 
   /**
    * write out all of the samples into the input CSV file
    *
    * @param[in] f output file stream to write rows into
-   * @param[in] mapping if provided, use the input mapping to convert the (i_erx, i_ch) indices
-   * into (i_roc, ch indices)
+   * @param[in] mapping if provided, use the input mapping to convert the
+   * (i_erx, i_ch) indices into (i_roc, ch indices)
    *
    * @note This changes the channel-labeling columns and so the
    * MultiSampleECONDEventPacket::to_csv_header_with_mapping
    * should be used instead of MultiSampleECONDEventPacket::to_csv_header
    * when writing the column header row in the output CSV file
    */
-  void to_csv(std::ofstream& f, const SingleECONDRocErxMapping* mapping = nullptr) const;
+  void to_csv(std::ofstream& f,
+              const SingleECONDRocErxMapping* mapping = nullptr) const;
 };
 
 }  // namespace pflib::packing

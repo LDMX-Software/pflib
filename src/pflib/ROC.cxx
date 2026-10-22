@@ -76,7 +76,8 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
     do {
       try {
         auto chunk = i2c_->general_write_read(roc_base_ + 3, {}, n_read);
-        pflib_log(debug) << "got " << chunk.size() << " bytes: " << ByteVector(chunk);
+        pflib_log(debug) << "got " << chunk.size()
+                         << " bytes: " << ByteVector(chunk);
         data.insert(data.end(), chunk.begin(), chunk.end());
         done = true;
       } catch (const pflib::Exception& e) {
