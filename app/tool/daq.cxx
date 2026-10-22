@@ -403,6 +403,7 @@ static void daq(const std::string& cmd, Target* pft) {
         pftool::readline_bool("Should we decode the packet into CSV?", true);
 
     std::unique_ptr<DAQRunConsumer> consumer;
+    const auto& mapping{pft->getRocErxMapping()};
     if (decoding) {
       switch (pftool::state.daq_format_mode) {
         case Target::DaqFormat::ECOND_SW_HEADERS:
@@ -410,12 +411,14 @@ static void daq(const std::string& cmd, Target* pft) {
               fname + ".csv",
               [](std::ofstream& f) {
                 f << std::boolalpha;
-                f << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+                f << pflib::packing::MultiSampleECONDEventPacket::
+                         to_csv_header_with_mapping
                   << '\n';
               },
-              [](std::ofstream& f,
-                 const pflib::packing::MultiSampleECONDEventPacket& ep) {
-                ep.to_csv(f);
+              [&mapping](
+                  std::ofstream& f,
+                  const pflib::packing::MultiSampleECONDEventPacket& ep) {
+                ep.to_csv(f, &mapping);
               },
               pft->nrocs() * 2);
           break;

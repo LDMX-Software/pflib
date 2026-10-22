@@ -2,6 +2,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "../../SpaceSeparated.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 
@@ -69,25 +70,6 @@ class ROCAlignParams {
         << " = " << bxtrig;
     }
     o << " }";
-    return o;
-  }
-};
-
-/**
- * emit a vector as a space-separate list
- */
-class SpaceSeparated {
-  const std::vector<int>& v_;
-
- public:
-  SpaceSeparated(const std::vector<int>& v) : v_{v} {}
-  friend inline std::ostream& operator<<(std::ostream& o,
-                                         const SpaceSeparated& self) {
-    o << "[";
-    for (const auto& v : self.v_) {
-      o << " " << v;
-    }
-    o << " ]";
     return o;
   }
 };
@@ -348,7 +330,8 @@ void align_phase_word(Target* tgt) {
   }
 
   // inform the user of the ECON channels that we are going to attempt to align
-  pflib_log(info) << "Channels to be configured: " << SpaceSeparated(channels);
+  pflib_log(info) << "Channels to be configured: "
+                  << SpaceSeparated(channels.begin(), channels.end());
 
   // phase alignment wants the idle to be all A
   // so there is a bit transition on every clock tick

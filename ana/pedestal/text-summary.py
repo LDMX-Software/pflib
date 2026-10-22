@@ -7,7 +7,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('pedestals', help='decoded pedestal CSV file to summarize')
 args = parser.parse_args()
 
-samples = pd.read_csv(args.pedestals).groupby(['i_link','channel'])
+samples = pd.read_csv(args.pedestals)
+major_column = 'i_link' if 'i_link' in samples.keys() else 'i_roc'
+samples = samples.groupby([major_column, 'channel'])
 
 summary = pd.DataFrame({
     'mean': samples.adc.mean(),
