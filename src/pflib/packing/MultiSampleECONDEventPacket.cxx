@@ -1,5 +1,6 @@
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 
+#include "pflib/packing/SingleECONDRocErxMapping.h"
 #include "pflib/packing/DAQSampleHeader.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
@@ -10,29 +11,53 @@ MultiSampleECONDEventPacket::MultiSampleECONDEventPacket(int n_links)
     : n_links_{n_links} {}
 
 const std::string MultiSampleECONDEventPacket::to_csv_header =
-    "timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,"
+    "timestamp,orbit,bx,event,i_sample,i_link,channel,Tp,Tc,adc_tm1,adc,tot,"
     "toa";
 
-void MultiSampleECONDEventPacket::to_csv(std::ofstream& f) const {
+const std::string MultiSampleECONDEventPacket::to_csv_header_with_mapping =
+    "timestamp,orbit,bx,event,i_sample,i_roc,channel,Tp,Tc,adc_tm1,adc,tot,"
+    "toa";
+
+void MultiSampleECONDEventPacket::to_csv(std::ofstream& f, const SingleECONDRocErxMapping* mapping) const {
   /**
    * The columns of the output CSV are
    * ```
-   * timestamp,orbit,bx,event,i_link,channel,i_sample,Tp,Tc,adc_tm1,adc,tot,toa
+   * timestamp,orbit,bx,event,i_sample,i_link,channel,Tp,Tc,adc_tm1,adc,tot,toa
    * ```
+   * where `i_link` is the index of the active eRx being read out and `channel`
+   * ranges from 0 to 35 or is `"calib"` if a mapping is not provided
+   * (mapping == nullptr) and
+   * ```
+   * timestamp,orbit,bx,event,i_sample,i_roc,channel,Tp,Tc,adc_tm1,adc,tot,toa
+   * ```
+   * where `i_roc` is the index of the ROC that is read out and `channel`
+   * ranges from 0 to 71 or is `"calib_<half>"`.
+   * if a mapping is provided (mapping != nullptr).
    */
+
   for (std::size_t i_sample{0}; i_sample < samples.size(); i_sample++) {
     const auto& sample{samples[i_sample]};
     for (std::size_t i_link{0}; i_link < sample.links.size(); i_link++) {
       const auto& daq_link{sample.links[i_link]};
       f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
-        << daq_link.event << ',' << i_link << ',' << "calib," << i_sample
-        << ',';
+        << daq_link.event << ',' << i_sample << ',';
+      if (mapping == nullptr) {
+        f << i_link << ',' << "calib,";
+      } else {
+        auto [roc, half] = mapping->toROCHalf(i_link);
+        f << roc << ',' << "calib_" << half << ',';
+      }
       daq_link.calib.to_csv(f);
       f << '\n';
       for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
         f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
-          << daq_link.event << ',' << i_link << ',' << i_ch << ',' << i_sample
-          << ',';
+          << daq_link.event << ',' << i_sample << ',';
+        if (mapping == nullptr) {
+          f << i_link << ',' << i_ch << ',';
+        } else {
+          auto [roc, ch] = mapping->toROCChannel(i_link, i_ch);
+          f << roc << ',' << ch << ',';
+        }
         daq_link.channels[i_ch].to_csv(f);
         f << '\n';
       }
