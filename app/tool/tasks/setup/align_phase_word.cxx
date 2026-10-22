@@ -1,9 +1,11 @@
 #include "align_phase_word.h"
+#include "../../SpaceSeparated.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
+
 
 ENABLE_LOGGING();
 
@@ -69,25 +71,6 @@ class ROCAlignParams {
         << " = " << bxtrig;
     }
     o << " }";
-    return o;
-  }
-};
-
-/**
- * emit a vector as a space-separate list
- */
-class SpaceSeparated {
-  const std::vector<int>& v_;
-
- public:
-  SpaceSeparated(const std::vector<int>& v) : v_{v} {}
-  friend inline std::ostream& operator<<(std::ostream& o,
-                                         const SpaceSeparated& self) {
-    o << "[";
-    for (const auto& v : self.v_) {
-      o << " " << v;
-    }
-    o << " ]";
     return o;
   }
 };

@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "../daq_run.h"
+#include "../SpaceSeparated.h"
 #include "../tasks/local_pedestal_level.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/stdev.h"
@@ -341,16 +342,7 @@ local_pedestal_level(Target* tgt) {
     }  // end loop over channels
   }  // end loop over rocs
   for (const auto& [i_roc, values] : ignored_channels) {
-    std::cout << "Channels ignored for ROC " << i_roc << ": ";
-
-    if (values.empty()) {
-      std::cout << "No channels ignored";
-    } else {
-      for (int val : values) {
-        std::cout << val << " ";
-      }
-    }
-    std::cout << '\n';
+    pflib_log(info) << "ROC" << i_roc << " ignored channels: " << SpaceSeparated(values);
   }
   return settings;
 }
