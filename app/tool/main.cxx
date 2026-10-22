@@ -318,6 +318,11 @@ int main(int argc, char* argv[]) {
         pftool_params.get<std::string>("runnumber_file");
   }
 
+  if (pftool_params.exists("daq_rate")) {
+    pftool::state.daq_rate =
+        pftool_params.get<int>("daq_rate");
+  }
+
   if (not configuration.exists("target")) {
     std::cerr << "Need to define a 'target' in the configuration." << std::endl;
     return 3;
