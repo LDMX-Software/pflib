@@ -96,7 +96,7 @@ local_pedestal_level(Target* tgt) {
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
     pflib_log(trace) << "baseline run done, getting channel medians";
     std::map<int, std::array<int, 72>> medians;
     for (int i_roc : tgt->roc_ids()) {
@@ -134,7 +134,7 @@ local_pedestal_level(Target* tgt) {
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
     pflib_log(trace) << "all-zero-params run done, getting channel medians";
     for (int i_roc : tgt->roc_ids()) {
       allzero[i_roc] =
@@ -157,7 +157,7 @@ local_pedestal_level(Target* tgt) {
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
 
     for (int i_roc : tgt->roc_ids()) {
       highend[i_roc] =
@@ -180,7 +180,7 @@ local_pedestal_level(Target* tgt) {
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
 
-    daq_run(tgt, "PEDESTAL", buffer, n_events, 100);
+    daq_run(tgt, "PEDESTAL", buffer, n_events, pftool::state.daq_rate);
 
     for (int i_roc : tgt->roc_ids()) {
       lowend[i_roc] =
