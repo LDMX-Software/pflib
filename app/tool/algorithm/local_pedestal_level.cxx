@@ -59,6 +59,16 @@ static std::array<double, 72> get_adc_stdevs(
   return stdevs;
 }
 
+/**
+ * maximum ADC standard deviation to consider a channel as broken
+ *
+ * normal channels have electronic noise at least on the order of 1 ADC,
+ * so the standard deviation of many ADC samples should be 1 ADC or greater.
+ * We consider a channel to be broken (or disabled) if the standard deviation
+ * is less than 0.1.
+ */
+static const double MAX_BROKEN_ADC_STD = 0.1;
+
 std::map<int, std::map<std::string, std::map<std::string, uint64_t>>>
 local_pedestal_level(Target* tgt) {
   static auto the_log_{::pflib::logging::get("local_pedestal_level")};
@@ -107,11 +117,21 @@ local_pedestal_level(Target* tgt) {
     pflib_log(trace) << "got channel medians, getting link medians";
     for (int i_half{0}; i_half < 2; i_half++) {
       for (int i_roc : tgt->roc_ids()) {
-        auto start{medians.at(i_roc).begin() + 36 * i_half};
-        auto end{start + 36};
-        auto halfway{start + 18};
-        std::nth_element(start, halfway, end);
-        target[i_roc][i_half] = *halfway;
+        std::vector<int> half_medians;
+        // only include non-broken channels when determining target median
+        half_medians.reserve(36);
+        for (int i_ch{0}; i_ch < 36; i_ch++) {
+          if (basedevs[i_roc][i_ch + 36 * i_half] > MAX_BROKEN_ADC_STD) {
+            half_medians.push_back(medians[i_roc][i_ch + 36 * i_half]);
+          }
+        }
+        if (half_medians.empty()) {
+          pflib_log(warn) << "no channels in ROC" << i_roc << " half " << i_half
+                          << " are enabled, they all should be skipped";
+          target[i_roc][i_half] = 1023;
+        } else {
+          target[i_roc][i_half] = pflib::utility::median(half_medians);
+        }
       }
     }
     pflib_log(trace) << "got medians per half";
@@ -193,7 +213,7 @@ local_pedestal_level(Target* tgt) {
                                       target[i_roc].end());
     // ignored_channels[i_roc];
     for (int ch{0}; ch < 72; ch++) {
-      if (basedevs[i_roc].at(ch) < 0.1) {
+      if (basedevs[i_roc].at(ch) < MAX_BROKEN_ADC_STD) {
         ignored_channels[i_roc].push_back(ch);
         continue;
       }
