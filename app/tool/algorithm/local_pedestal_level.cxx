@@ -189,7 +189,8 @@ local_pedestal_level(Target* tgt) {
   std::map<int, std::vector<int>> ignored_channels;
   for (int i_roc : tgt->roc_ids()) {
     pflib_log(info) << "ROC" << i_roc << " targets by half: "
-                    << SpaceSeparated(target[i_roc].begin(), target[i_roc].end());
+                    << SpaceSeparated(target[i_roc].begin(),
+                                      target[i_roc].end());
     // ignored_channels[i_roc];
     for (int ch{0}; ch < 72; ch++) {
       if (basedevs[i_roc].at(ch) < 0.1) {

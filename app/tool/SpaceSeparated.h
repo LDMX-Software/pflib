@@ -5,10 +5,11 @@
 /**
  * emit an iterator-range as a space-separated list
  */
-template<typename Iterator>
+template <typename Iterator>
 class SpaceSeparated {
   Iterator begin_;
   Iterator end_;
+
  public:
   SpaceSeparated(Iterator begin, Iterator end) : begin_{begin}, end_{end} {}
   friend inline std::ostream& operator<<(std::ostream& o,
