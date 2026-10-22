@@ -1,11 +1,10 @@
 #include "align_phase_word.h"
-#include "../../SpaceSeparated.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "../../SpaceSeparated.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
-
 
 ENABLE_LOGGING();
 

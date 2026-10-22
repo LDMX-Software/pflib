@@ -5,9 +5,10 @@
 /**
  * emit a vector as a space-separate list
  */
-template<typename T>
+template <typename T>
 class SpaceSeparated {
   const std::vector<T>& v_;
+
  public:
   SpaceSeparated(const std::vector<T>& v) : v_{v} {}
   friend inline std::ostream& operator<<(std::ostream& o,
