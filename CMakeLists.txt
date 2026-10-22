@@ -163,6 +163,7 @@ if (${Rogue_FOUND})
     src/pflib/bittware/bittware_elinks.cxx
     src/pflib/bittware/bittware_daq.cxx
     src/pflib/bittware/bittware_FastControl.cxx
+    src/pflib/bittware/APxMemBlock.cxx
     src/pflib/bittware/HcalBackplane.cxx
     src/pflib/bittware/EcalSMM.cxx
     )
