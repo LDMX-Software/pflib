@@ -3,19 +3,19 @@
 #define TOOL_SPACESEPARATED_H
 
 /**
- * emit a vector as a space-separate list
+ * emit an iterator-range as a space-separated list
  */
-template <typename T>
+template<typename Iterator>
 class SpaceSeparated {
-  const std::vector<T>& v_;
-
+  Iterator begin_;
+  Iterator end_;
  public:
-  SpaceSeparated(const std::vector<T>& v) : v_{v} {}
+  SpaceSeparated(Iterator begin, Iterator end) : begin_{begin}, end_{end} {}
   friend inline std::ostream& operator<<(std::ostream& o,
                                          const SpaceSeparated& self) {
     o << "[";
-    for (const auto& v : self.v_) {
-      o << " " << v;
+    for (auto it{self.begin_}; it != self.end_; it++) {
+      o << " " << *it;
     }
     o << " ]";
     return o;

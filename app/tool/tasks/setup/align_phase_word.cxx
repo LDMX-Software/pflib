@@ -330,7 +330,8 @@ void align_phase_word(Target* tgt) {
   }
 
   // inform the user of the ECON channels that we are going to attempt to align
-  pflib_log(info) << "Channels to be configured: " << SpaceSeparated(channels);
+  pflib_log(info) << "Channels to be configured: "
+                  << SpaceSeparated(channels.begin(), channels.end());
 
   // phase alignment wants the idle to be all A
   // so there is a bit transition on every clock tick

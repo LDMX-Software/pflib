@@ -67,8 +67,6 @@ local_pedestal_level(Target* tgt) {
   static const std::size_t n_events = 100;
 
   tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
-  pflib_log(info) << "Using DAQ format mode: "
-                  << static_cast<int>(pftool::state.daq_format_mode);
 
   // each output stream ("half" of a ROC) has its own target pedestal value
   std::map<int, std::array<int, 2>> target;
@@ -104,9 +102,6 @@ local_pedestal_level(Target* tgt) {
           get_adc_medians(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
       basedevs[i_roc] =
           get_adc_stdevs(i_roc, tgt->getRocErxMapping(), buffer.get_buffer());
-      // for (const auto& num : basedevs[i_roc]) {
-      // std::cout << num << " " ;
-      //}
     }
     baseline = medians;
     pflib_log(trace) << "got channel medians, getting link medians";
@@ -193,6 +188,8 @@ local_pedestal_level(Target* tgt) {
       settings;
   std::map<int, std::vector<int>> ignored_channels;
   for (int i_roc : tgt->roc_ids()) {
+    pflib_log(info) << "ROC" << i_roc << " targets by half: "
+                    << SpaceSeparated(target[i_roc].begin(), target[i_roc].end());
     // ignored_channels[i_roc];
     for (int ch{0}; ch < 72; ch++) {
       if (basedevs[i_roc].at(ch) < 0.1) {
@@ -342,8 +339,8 @@ local_pedestal_level(Target* tgt) {
     }  // end loop over channels
   }  // end loop over rocs
   for (const auto& [i_roc, values] : ignored_channels) {
-    pflib_log(info) << "ROC" << i_roc
-                    << " ignored channels: " << SpaceSeparated(values);
+    pflib_log(info) << "ROC" << i_roc << " ignored channels: "
+                    << SpaceSeparated(values.begin(), values.end());
   }
   return settings;
 }
