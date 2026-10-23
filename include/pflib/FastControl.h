@@ -121,6 +121,18 @@ class FastControl {
   /** set the enables for various trigger/spill sources */
   virtual void fc_enables(bool l1a_overall, bool ext_l1a) {}
 
+  /**
+   * check the FC link status and whether external RORs
+   * are accepted even when the link is down
+   */
+  virtual void fc_link_read(bool& link_ready, bool& override_link_ready) {
+    link_ready = true;
+    override_link_ready = false;
+  }
+
+  /** accept external RORs even when the FC link is down */
+  virtual void fc_override_link_ready(bool override_link_ready) {}
+
   /** get the period in us for the timer trigger */
   virtual int fc_timer_setup_read() { return -1; }
 

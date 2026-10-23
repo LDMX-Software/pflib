@@ -41,6 +41,10 @@ class BWFastControl : public FastControl {
   /** set the enables for various trigger sources */
   virtual void fc_enables(bool all_l1a, bool ext_l1a);
 
+  virtual void fc_link_read(bool& link_ready,
+                            bool& override_link_ready) override;
+  virtual void fc_override_link_ready(bool override_link_ready) override;
+
  private:
   AxiLite axi_;
 };
