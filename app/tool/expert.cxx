@@ -200,6 +200,9 @@ static void elinks(const std::string& cmd, Target* pft) {
  *   pflib::FastControl::getErrorCounters, pflib::FastControl::getCmdCounters,
  *   pflib::FastControl::getMultisampleSetup
  * - ORBIT_BLINKER: toggle if orbit blinker is on or not
+ * - EXTERNAL: enable external RORs and choose whether to accept them
+ *   while the FC link is down, pflib::FastControl::fc_enables and
+ *   pflib::FastControl::fc_override_link_ready
  *
  * @param[in] cmd FC menu command
  * @param[in] pft active target
@@ -259,15 +262,32 @@ static void fc(const std::string& cmd, Target* pft) {
     pft->fc().fc_setup_led(offset);
   }
 
+  if (cmd == "EXTERNAL") {
+    bool l1aen, extl1a, link_ready, override_link_ready;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    pft->fc().fc_link_read(link_ready, override_link_ready);
+    printf("  FC Link Ready: %d\n", link_ready);
+    extl1a = pftool::readline_bool("Enable external ROR/L1A?", extl1a);
+    override_link_ready = pftool::readline_bool(
+        "Accept external RORs even when the FC link is down?",
+        override_link_ready);
+    pft->fc().fc_override_link_ready(override_link_ready);
+    pft->fc().fc_enables(l1aen, extl1a);
+    do_status = true;
+  }
+
   if (cmd == "STATUS" || do_status) {
     std::map<std::string, uint32_t> cnt = pft->fc().getCmdCounters();
     for (const auto& pair : cnt) {
       printf("  %-30s: %10u \n", pair.first.c_str(), pair.second);
     }
-    bool l1aen, extl1a;
+    bool l1aen, extl1a, link_ready, override_link_ready;
     pft->fc().fc_enables_read(l1aen, extl1a);
+    pft->fc().fc_link_read(link_ready, override_link_ready);
     printf("  L1A Enabled          : %d\n", l1aen);
     printf("  External L1A Enabled : %d\n", extl1a);
+    printf("  FC Link Ready        : %d\n", link_ready);
+    printf("  Override Link Ready  : %d\n", override_link_ready);
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
   }
 }
@@ -306,6 +326,8 @@ auto menu_fc =
         ->line("SEND_CALIB", "send a calib pulse command",
                [](Target* tgt) { tgt->fc().chargepulse(); })
         ->line("LED", "Setup LED calibration pulse", fc)
+        ->line("EXTERNAL", "enable external RORs and the link-ready override",
+               fc)
         ->line("ORBIT_BLINKER",
                "send L1A once every orbit for alignment testing (10kHz)", fc);
 }  // namespace
