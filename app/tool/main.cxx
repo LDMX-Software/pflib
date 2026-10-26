@@ -319,8 +319,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (pftool_params.exists("daq_rate")) {
-    pftool::state.daq_rate =
-        pftool_params.get<int>("daq_rate");
+    pftool::state.daq_rate = pftool_params.get<int>("daq_rate");
   }
 
   if (not configuration.exists("target")) {
