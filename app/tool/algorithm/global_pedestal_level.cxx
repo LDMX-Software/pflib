@@ -180,7 +180,6 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
                std::map<int, std::array<int, 2>>& noinv_vref) {
   static auto the_log_{
       ::pflib::logging::get("global_pedestal_level:get_param")};
-  std::array<int, 2> channels = {17, 51};
 
   // clear variables
   pedestals_l0.clear();
@@ -209,21 +208,26 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
 
     auto data = buffer.get_buffer();
 
-    std::map<int, std::vector<int>> adcs_l0;
-    std::map<int, std::vector<int>> adcs_l1;
     for (int i_roc : tgt->roc_ids()) {
       const pflib::packing::SingleECONDRocErxMapping& mapping =
           tgt->getRocErxMapping();
-      auto [i_erx_0, i_ch_0] = mapping.toErxChannel(i_roc, channels[0]);
-      auto [i_erx_1, i_ch_1] = mapping.toErxChannel(i_roc, channels[1]);
-      for (std::size_t i{0}; i < data.size(); i++) {
-        adcs_l0[i_roc].push_back(data[i].soi().channel(i_erx_0, i_ch_0).adc());
-        adcs_l1[i_roc].push_back(data[i].soi().channel(i_erx_1, i_ch_1).adc());
+      // median of per-channel medians per half, one odd channel cannot steer it
+      std::array<std::vector<int>, 2> ch_medians;
+      std::array<std::vector<double>, 2> ch_stds;
+      for (int ch{0}; ch < 72; ch++) {
+        auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
+        std::vector<int> adcs;
+        adcs.reserve(data.size());
+        for (std::size_t i{0}; i < data.size(); i++) {
+          adcs.push_back(data[i].soi().channel(i_erx, i_ch).adc());
+        }
+        ch_medians[ch / 36].push_back(pflib::utility::median(adcs));
+        ch_stds[ch / 36].push_back(pflib::utility::stdev(adcs));
       }
-      pedestals_l0[i_roc].push_back(pflib::utility::median(adcs_l0[i_roc]));
-      stds_l0[i_roc].push_back(pflib::utility::stdev(adcs_l0[i_roc]));
-      pedestals_l1[i_roc].push_back(pflib::utility::median(adcs_l1[i_roc]));
-      stds_l1[i_roc].push_back(pflib::utility::stdev(adcs_l1[i_roc]));
+      pedestals_l0[i_roc].push_back(pflib::utility::median(ch_medians[0]));
+      stds_l0[i_roc].push_back(pflib::utility::median(ch_stds[0]));
+      pedestals_l1[i_roc].push_back(pflib::utility::median(ch_medians[1]));
+      stds_l1[i_roc].push_back(pflib::utility::median(ch_stds[1]));
       inv_vrefs[i_roc].push_back(inv_vref);
     }
   }
