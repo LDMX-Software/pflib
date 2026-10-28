@@ -259,6 +259,9 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
+add_executable(pfinit-opto-fiber app/pfinit-opto-fiber.cxx)
+target_link_libraries(pfdefaults pflib)
+
 # add pflib prefix to all our pflib libraries
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
