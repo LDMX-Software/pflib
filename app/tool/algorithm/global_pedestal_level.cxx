@@ -248,7 +248,7 @@ global_pedestal_level(Target* tgt) {
     }
   }
 
-  int target_adc = 150;
+  int target_adc = pftool::readline_int("Target ADC: ", 150);
 
   DecodeAndBuffer buffer{nevents, tgt->nrocs() * 2};
 
