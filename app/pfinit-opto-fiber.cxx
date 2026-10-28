@@ -56,7 +56,64 @@ void i2c_scan(int ibus, pflib::lpGBT& lpgbt) {
   printf("\n");
 }
 
-int main(int argc, char* argv[]) {
+struct LpGBTPair {
+  mutable pflib::logging::logger the_log_{pflib::logging::get("LpGBTPair")};
+  std::string name;
+  pflib::Parameters configuration;
+  bool bittware;
+  bool hcal;
+  std::unique_ptr<pflib::OptoLink> olink_data, olink_trig;
+  std::unique_ptr<pflib::lpGBT> lpgbt_ic, lpgbt_ec; 
+  void from_yaml(const std::string& filepath) {
+    name = filepath;
+    configuration.from_yaml(filepath);
+    auto target{configuration.get<pflib::Parameters>("target")};
+    if (not target.exists("type")) {
+      PFEXCEPTION_RAISE("BadConf", "Target configuration does not define a 'type'.");
+    }
+    std::string target_type{target.get<std::string>("type")};
+    std::string device;
+    int i_link;
+    if (target_type == "Fiberless" or target_type == "HcalFMC") {
+      PFEXCEPTION_RAISE("BadConf", "No reason to initialize optical fibers on fiberless targets.");
+    } else if (target_type == "HcalBackplaneZCU" or target_type == "EcalSMMZCU") {
+      bittware = false;
+      i_link = target.get<int>("ilink");
+      if (i_link < 0 or i_link > 1) {
+        pflib_log(fatal) << "ZCU i_link can only be 0 or 1";
+      }
+      device = "standardLpGBTpair-"+std::to_string(i_link);
+    } else if (target_type == "HcalBackplaneBittware" or target_type == "EcalSMMBittware") {
+#ifdef USE_ROGUE
+      bittware = true;
+      i_link = target.get<int>("ilink");
+      device = target.get<std::string>("dev", "/dev/datadev_0");
+#else
+      PFEXCEPTION_RAISE("BadComp", "Bittware type targets require Rogue");
+#endif
+    } else {
+      PFEXCEPTION_RAISE("BadConf", target_type + " is not recognized.");
+    }
+
+    if (bittware) {
+#ifdef USE_ROGUE
+      auto bw_olink_data = new pflib::bittware::BWOptoLink(i_link, device.c_str());
+      olink_data.reset(bw_olink_data);
+      olink_trig = std::make_unique<pflib::bittware::BWOptoLink>(i_link + 1, *bw_olink_data);
+#endif
+    } else {
+      olink_data = std::make_unique<pflib::zcu::ZCUOptoLink>(device, 2 * i_link + 0, true);
+      olink_trig = std::make_unique<pflib::zcu::ZCUOptoLink>(device, 2 * i_link + 1, false);
+    }
+
+    lpgbt_ic = std::make_unique<pflib::lpGBT>(olink_data->lpgbt_transport());
+    lpgbt_ec = std::make_unique<pflib::lpGBT>(olink_trig->lpgbt_transport());
+
+    hcal = (target_type == "HcalBackplaneBittware" or target_type == "HcalBackplaneZCU");
+  }
+};
+
+int main(int argc, char* argv[]) try {
   pflib::logging::fixture f;
   auto the_log_{pflib::logging::get("pfinit-opto-fiber")};
 
@@ -70,95 +127,34 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::vector<std::string> configs;
+  std::vector<LpGBTPair> targets(argc-1);
   for (int i = 1; i < argc; i++) {
-    configs.push_back(argv[i]);
+    targets[i-1].from_yaml(argv[i]);
   }
 
-  if (configs.size() > 1) {
-    pflib_log(error) << "Only one config.yaml at a time rightnow.";
-    return 2;
+  for (const auto& tgt : targets) {
+    printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
+    print_opto_status(*tgt.olink_data);
   }
-
-  pflib::Parameters configuration;
-  configuration.from_yaml(configs[0], true);
-
-  auto pftool_params{configuration.get<pflib::Parameters>("pftool", {})};
-  if (pftool_params.exists("log_level")) {
-    pflib::logging::set(
-        pflib::logging::convert(pftool_params.get<int>("log_level")));
-  }
-
-  if (not configuration.exists("target")) {
-    pflib_log(error) << "Need to define a 'target' in the configuration.";
-    return 3;
-  }
-
-  auto target{configuration.get<pflib::Parameters>("target")};
-
-  if (not target.exists("type")) {
-    pflib_log(error) << "Need to define target's 'type'.";
-    return 4;
-  }
-
-  bool bittware = false;
-  int i_link = 0;
-  std::string target_type{target.get<std::string>("type")};
-  std::string target_name;
-  if (target_type == "Fiberless" or target_type == "HcalFMC") {
-    pflib_log(fatal) << "No reason to initialize optical fibers on fiberless targets.";
-    return 5;
-  } else if (target_type == "HcalBackplaneZCU" or target_type == "EcalSMMZCU") {
-    bittware = false;
-    i_link = target.get<int>("ilink");
-    if (i_link < 0 or i_link > 1) {
-      pflib_log(fatal) << "ZCU i_link can only be 0 or 1";
-    }
-    target_name = "standardLpGBTpair-"+std::to_string(i_link);
-  } else if (target_type == "HcalBackplaneBittware" or target_type == "EcalSMMBittware") {
-#ifdef USE_ROGUE
-    bittware = true;
-    i_link = target.get<int>("ilink");
-    target_name = target.get<std::string>("dev", "/dev/datadev_0");
-#else
-    pflib_log(fatal) << "Bittware type targets require Rogue";
-    return 1;
-#endif
-  } else {
-    pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
-    return 1;
-  }
-
-  std::unique_ptr<pflib::OptoLink> olink_data, olink_trig;
-  if (bittware) {
-#ifdef USE_ROGUE
-    auto bw_olink_data = new pflib::bittware::BWOptoLink(i_link, target_name.c_str());
-    olink_data.reset(bw_olink_data);
-    olink_trig = std::make_unique<pflib::bittware::BWOptoLink>(i_link + 1, *bw_olink_data);
-#endif
-  } else {
-    olink_data = std::make_unique<pflib::zcu::ZCUOptoLink>(target_name, 2 * i_link + 0, true);
-    olink_trig = std::make_unique<pflib::zcu::ZCUOptoLink>(target_name, 2 * i_link + 1, false);
-  }
-
-  int chipaddr = 0x78 | 0x4;
-
-  pflib::lpGBT lpgbt_ic(olink_data->lpgbt_transport());
-  pflib::lpGBT lpgbt_ec(olink_trig->lpgbt_transport());
-
-  printf("DATA Optical Fiber\n");
-  print_opto_status(*olink_data);
 
   pflib_log(info) << "reseting DATA fiber where slow control is";
-  olink_data->reset_link();
-  auto info = olink_data->opto_status();
-  if (info["BUFFBYPASS_DONE"] != 1 or info["BUFFBYPASS_ERROR"] != 0) {
-    pflib_log(error) << "unable to do buffer bypass, board was not off during olink reset";
-    return 5;
+  bool any_fail = false;
+  for (const auto& tgt : targets) {
+    tgt.olink_data->reset_link();
+    auto info = tgt.olink_data->opto_status();
+    if (info["BUFFBYPASS_DONE"] != 1 or info["BUFFBYPASS_ERROR"] != 0) {
+      any_fail = true;
+      pflib_log(error) << "unable to do buffer bypass for target '"
+                       << tgt.name << "', board was probably not off during olink reset";
+    }
   }
+  if (any_fail) return 1;
   usleep(10000);
-  printf("DATA Optical Fiber\n");
-  print_opto_status(*olink_data);
+
+  for (const auto& tgt : targets) {
+    printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
+    print_opto_status(*tgt.olink_data);
+  }
 
   // wait for power
   if (not pflib::menu::BaseMenu::readline_bool(
@@ -168,59 +164,73 @@ int main(int argc, char* argv[]) {
   }
 
   usleep(1000); // let links get aligned
-  printf("DATA Optical Fiber\n");
-  print_opto_status(*olink_data);
-  info = olink_data->opto_status();
-  if (info["READY"] != 1) {
-    pflib_log(error) << "board is not reporting READY";
-    return 5;
+
+  any_fail = false;
+  for (const auto& tgt : targets) {
+    printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
+    print_opto_status(*tgt.olink_data);
+    auto info = tgt.olink_data->opto_status();
+    if (info["READY"] != 1) {
+      pflib_log(error) << "board is not reporting READY";
+      any_fail = true;
+    }
+    info = tgt.olink_data->opto_rates();
+    if (info["BX_CLK"] != info["LINK_WORD"] or info["LINK_ERROR"] > 0) {
+      pflib_log(error) << "board not achieving optical link lock";
+      any_fail = true;
+    }
+    pflib_log(info) << "DATA optical fiber locked with board";
+  }
+  if (any_fail) return 1;
+
+  for (const auto& tgt : targets) {
+    pflib_log(info) << "applying lpGBT configuration onto " << tgt.name;
+    if (tgt.hcal) {
+      pflib::lpgbt::standard_config::setup_hcal_daq(*tgt.lpgbt_ic);
+      pflib_log(info) << "applied standard HCAL DAQ configuration, pausing to be loaded...";
+      sleep(2);
+      pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
+      pflib_log(info) << "applied standard HCAL TRIG configuration";
+    } else {
+      pflib::lpgbt::standard_config::setup_ecal(
+          *tgt.lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                                 DAQ_SingleModuleMotherboard);
+      pflib_log(info) << "applied standard ECAL DAQ configuration, pausing to be loaded...";
+      sleep(2);
+      pflib::lpgbt::standard_config::setup_ecal(
+          *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                        TRIG_SingleModuleMotherboard);
+      pflib_log(info) << "applied standard ECAL TRIG configuration";
+    }
   }
 
-  info = olink_data->opto_rates();
-  if (info["BX_CLK"] != info["LINK_WORD"] or info["LINK_ERROR"] > 0) {
-    pflib_log(error) << "board not achieving optical link lock";
-    return 5;
-  }
-  pflib_log(info) << "DATA optical fiber locked with board";
-
-  pflib_log(info) << "applying lpGBT configuration";
-  if (target_type == "HcalBackplaneZCU" or target_type == "HcalBackplaneBittware") {
-    pflib::lpgbt::standard_config::setup_hcal_daq(lpgbt_ic);
-    pflib_log(info) << "applied standard HCAL DAQ configuration, pausing to be loaded...";
-    sleep(2);
-    pflib::lpgbt::standard_config::setup_hcal_trig(lpgbt_ec);
-    pflib_log(info) << "applied standard HCAL TRIG configuration";
-  } else if (target_type == "EcalSMMZCU" or target_type == "EcalSMMBittware") {
-    pflib::lpgbt::standard_config::setup_ecal(
-        lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                               DAQ_SingleModuleMotherboard);
-    pflib_log(info) << "applied standard ECAL DAQ configuration, pausing to be loaded...";
-    sleep(2);
-    pflib::lpgbt::standard_config::setup_ecal(
-        lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                      TRIG_SingleModuleMotherboard);
-    pflib_log(info) << "applied standard ECAL TRIG configuration";
-  } else {
-    pflib_log(error) << "unrecognized target type '" << target_type << "' when trying to apply lpGBT configuration";
-    return 5;
+  for (const auto& tgt : targets) {
+    // do i2c scan, Hcal uses Bus 0 and Bus 1 while Ecal only uses Bus 1
+    if (tgt.hcal) {
+      pflib_log(info) << "I2C Scan on Bus 0 of " << tgt.name;
+    }
+    pflib_log(info) << "I2C Scan on Bus 1 of " << tgt.name;
+    i2c_scan(1, *tgt.lpgbt_ic);
   }
 
-  // do i2c scan, Hcal uses Bus 0 and Bus 1 while Ecal only uses Bus 1
-  if (target_type == "HcalBackplaneZCU" or target_type == "HcalBackplaneBittware") {
-    printf("I2C Scan on Bus 0\n");
-    i2c_scan(0, lpgbt_ic);
-  }
-  printf("I2C Scan on Bus 1\n");
-  i2c_scan(1, lpgbt_ic);
-
-  // try link trick on TRIG fiber
-  if (not bittware) {
-    pflib_log(info) << "do link trick on TRIG fiber";
-    olink_trig->run_linktrick();
-    usleep(1000);
-    printf("TRIG Optical Fiber\n");
-    print_opto_status(*olink_trig);
+  for (const auto& tgt : targets) {
+    // try link trick on TRIG fiber
+    if (not tgt.bittware) {
+      pflib_log(info) << "do link trick on TRIG fiber for " << tgt.name;
+      tgt.olink_trig->run_linktrick();
+      usleep(1000);
+      pflib_log(info) << "TRIG Opto Fiber Status from " << tgt.name;
+      print_opto_status(*tgt.olink_trig);
+    }
   }
 
   return 0;
+} catch (const pflib::Exception& e) {
+  auto the_log_{pflib::logging::get("pfinit-opto-fiber")};
+  pflib_log(fatal) << "[" << e.name() << "]: " << e.message();
+  return 126;
+} catch (const std::runtime_error& e) {
+  auto the_log_{pflib::logging::get("pfinit-opto-fiber")};
+  pflib_log(fatal) << e.what();
+  return 127;
 }
