@@ -1,9 +1,4 @@
 ERX:
-# lower third is for ROC1 on ECON-T1
-  0_ENABLE: 0
-  1_ENABLE: 0
-  2_ENABLE: 0
-  3_ENABLE: 0
 # disable higher third of eRx which
 # are not connected to anything on the HcalBackplane
   8_ENABLE: 0
