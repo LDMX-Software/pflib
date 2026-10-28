@@ -1,12 +1,12 @@
-#include "pflib/menu/Menu.h"
 #include "pflib/Parameters.h"
 #include "pflib/logging/Logging.h"
+#include "pflib/menu/Menu.h"
 #include "pflib/zcu/zcu_optolink.h"
 #ifdef USE_ROGUE
 #include "pflib/bittware/bittware_optolink.h"
 #endif
-#include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/lpGBT.h"
+#include "pflib/lpgbt/lpGBT_standard_configs.h"
 
 // TODO: move to OptoLink to share between app/lpgbt and here
 void print_opto_status(pflib::OptoLink& olink) {
@@ -63,27 +63,32 @@ struct LpGBTPair {
   bool bittware;
   bool hcal;
   std::unique_ptr<pflib::OptoLink> olink_data, olink_trig;
-  std::unique_ptr<pflib::lpGBT> lpgbt_ic, lpgbt_ec; 
+  std::unique_ptr<pflib::lpGBT> lpgbt_ic, lpgbt_ec;
   void from_yaml(const std::string& filepath) {
     name = filepath;
     configuration.from_yaml(filepath);
     auto target{configuration.get<pflib::Parameters>("target")};
     if (not target.exists("type")) {
-      PFEXCEPTION_RAISE("BadConf", "Target configuration does not define a 'type'.");
+      PFEXCEPTION_RAISE("BadConf",
+                        "Target configuration does not define a 'type'.");
     }
     std::string target_type{target.get<std::string>("type")};
     std::string device;
     int i_link;
     if (target_type == "Fiberless" or target_type == "HcalFMC") {
-      PFEXCEPTION_RAISE("BadConf", "No reason to initialize optical fibers on fiberless targets.");
-    } else if (target_type == "HcalBackplaneZCU" or target_type == "EcalSMMZCU") {
+      PFEXCEPTION_RAISE(
+          "BadConf",
+          "No reason to initialize optical fibers on fiberless targets.");
+    } else if (target_type == "HcalBackplaneZCU" or
+               target_type == "EcalSMMZCU") {
       bittware = false;
       i_link = target.get<int>("ilink");
       if (i_link < 0 or i_link > 1) {
         pflib_log(fatal) << "ZCU i_link can only be 0 or 1";
       }
-      device = "standardLpGBTpair-"+std::to_string(i_link);
-    } else if (target_type == "HcalBackplaneBittware" or target_type == "EcalSMMBittware") {
+      device = "standardLpGBTpair-" + std::to_string(i_link);
+    } else if (target_type == "HcalBackplaneBittware" or
+               target_type == "EcalSMMBittware") {
 #ifdef USE_ROGUE
       bittware = true;
       i_link = target.get<int>("ilink");
@@ -97,19 +102,24 @@ struct LpGBTPair {
 
     if (bittware) {
 #ifdef USE_ROGUE
-      auto bw_olink_data = new pflib::bittware::BWOptoLink(i_link, device.c_str());
+      auto bw_olink_data =
+          new pflib::bittware::BWOptoLink(i_link, device.c_str());
       olink_data.reset(bw_olink_data);
-      olink_trig = std::make_unique<pflib::bittware::BWOptoLink>(i_link + 1, *bw_olink_data);
+      olink_trig = std::make_unique<pflib::bittware::BWOptoLink>(
+          i_link + 1, *bw_olink_data);
 #endif
     } else {
-      olink_data = std::make_unique<pflib::zcu::ZCUOptoLink>(device, 2 * i_link + 0, true);
-      olink_trig = std::make_unique<pflib::zcu::ZCUOptoLink>(device, 2 * i_link + 1, false);
+      olink_data = std::make_unique<pflib::zcu::ZCUOptoLink>(
+          device, 2 * i_link + 0, true);
+      olink_trig = std::make_unique<pflib::zcu::ZCUOptoLink>(
+          device, 2 * i_link + 1, false);
     }
 
     lpgbt_ic = std::make_unique<pflib::lpGBT>(olink_data->lpgbt_transport());
     lpgbt_ec = std::make_unique<pflib::lpGBT>(olink_trig->lpgbt_transport());
 
-    hcal = (target_type == "HcalBackplaneBittware" or target_type == "HcalBackplaneZCU");
+    hcal = (target_type == "HcalBackplaneBittware" or
+            target_type == "HcalBackplaneZCU");
   }
 };
 
@@ -119,17 +129,16 @@ int main(int argc, char* argv[]) try {
 
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
-    printf("   %s [-h | --help] config.yaml\n\n",
-           argv[0]);
+    printf("   %s [-h | --help] config.yaml\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf("  -h|--help : print this help and exit\n");
     printf("\n");
     return 1;
   }
 
-  std::vector<LpGBTPair> targets(argc-1);
+  std::vector<LpGBTPair> targets(argc - 1);
   for (int i = 1; i < argc; i++) {
-    targets[i-1].from_yaml(argv[i]);
+    targets[i - 1].from_yaml(argv[i]);
   }
 
   for (const auto& tgt : targets) {
@@ -144,8 +153,8 @@ int main(int argc, char* argv[]) try {
     auto info = tgt.olink_data->opto_status();
     if (info["BUFFBYPASS_DONE"] != 1 or info["BUFFBYPASS_ERROR"] != 0) {
       any_fail = true;
-      pflib_log(error) << "unable to do buffer bypass for target '"
-                       << tgt.name << "', board was probably not off during olink reset";
+      pflib_log(error) << "unable to do buffer bypass for target '" << tgt.name
+                       << "', board was probably not off during olink reset";
     }
   }
   if (any_fail) return 1;
@@ -158,12 +167,13 @@ int main(int argc, char* argv[]) try {
 
   // wait for power
   if (not pflib::menu::BaseMenu::readline_bool(
-        "Waiting to re-power/re-connect the front-end ('n' to exit)...", true)) {
+          "Waiting to re-power/re-connect the front-end ('n' to exit)...",
+          true)) {
     pflib_log(debug) << "leaving";
     return 0;
   }
 
-  usleep(1000); // let links get aligned
+  usleep(1000);  // let links get aligned
 
   any_fail = false;
   for (const auto& tgt : targets) {
@@ -187,19 +197,21 @@ int main(int argc, char* argv[]) try {
     pflib_log(info) << "applying lpGBT configuration onto " << tgt.name;
     if (tgt.hcal) {
       pflib::lpgbt::standard_config::setup_hcal_daq(*tgt.lpgbt_ic);
-      pflib_log(info) << "applied standard HCAL DAQ configuration, pausing to be loaded...";
+      pflib_log(info)
+          << "applied standard HCAL DAQ configuration, pausing to be loaded...";
       sleep(2);
       pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
       pflib_log(info) << "applied standard HCAL TRIG configuration";
     } else {
       pflib::lpgbt::standard_config::setup_ecal(
           *tgt.lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                                 DAQ_SingleModuleMotherboard);
-      pflib_log(info) << "applied standard ECAL DAQ configuration, pausing to be loaded...";
+                             DAQ_SingleModuleMotherboard);
+      pflib_log(info)
+          << "applied standard ECAL DAQ configuration, pausing to be loaded...";
       sleep(2);
       pflib::lpgbt::standard_config::setup_ecal(
           *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                        TRIG_SingleModuleMotherboard);
+                             TRIG_SingleModuleMotherboard);
       pflib_log(info) << "applied standard ECAL TRIG configuration";
     }
   }
