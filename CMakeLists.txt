@@ -259,6 +259,12 @@ target_link_libraries(pfdecompile pflib)
 add_executable(pfdefaults app/pfdefaults.cxx)
 target_link_libraries(pfdefaults pflib)
 
+add_executable(pfinit-opto-fiber app/pfinit-opto-fiber.cxx)
+target_link_libraries(pfinit-opto-fiber pflib menu)
+if (${Rogue_FOUND})
+  target_compile_definitions(pfinit-opto-fiber PRIVATE USE_ROGUE)
+endif()
+
 # add pflib prefix to all our pflib libraries
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
@@ -266,7 +272,7 @@ set_target_properties(pypflib PROPERTIES PREFIX "")
 install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
 # not installing the C++ rogue-decoder because it won't work with Rogue 6.8
 # due to a linking error from within Rogue
-install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults pfinit-opto-fiber
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
