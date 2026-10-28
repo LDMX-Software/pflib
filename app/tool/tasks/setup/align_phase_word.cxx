@@ -243,7 +243,10 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
       pflib_log(debug) << "channel " << channel << " match: " << std::boolalpha
                        << (ch_pm == 1) << " : 0x" << std::hex << snapshot
                        << std::dec;
-      if (ch_pm == 1) {
+      if (ch_pm == 1 and select < 32) {
+        // negative shift would throw
+        pflib_log(debug) << " select = " << int(select) << " < 32";
+      } else if (ch_pm == 1) {
         auto shifted((snapshot >> (select - 32)) & 0xffffffffull);
         pflib_log(debug) << " select = " << int(select) << " shifted: 0x"
                          << std::hex << shifted << std::dec
