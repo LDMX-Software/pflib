@@ -900,7 +900,8 @@ bool lpGBT::i2c_transaction_check(int ibus, bool wait) {
     }
     if (val & NOACK) {
       char msg[64];
-      snprintf(msg, sizeof(msg), "No acknowledge from I2C target 0x%02x on bus %d",
+      snprintf(msg, sizeof(msg),
+               "No acknowledge from I2C target 0x%02x on bus %d",
                i2c_[ibus].last_addr, ibus);
       PFEXCEPTION_RAISE("I2CErrorNoACK", msg);
     }

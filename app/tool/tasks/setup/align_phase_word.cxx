@@ -80,7 +80,8 @@ class ROCAlignParams {
  * get the selected phase while there
  */
 std::pair<bool, std::map<int, int>> check_channel_phase_lock(
-    pflib::ECON& econ, std::vector<int> channels, bool report_unlocked = false) {
+    pflib::ECON& econ, std::vector<int> channels,
+    bool report_unlocked = false) {
   // Check channel locks
   static const int CHEPRXGRP_RO[12] = {0x341, 0x345, 0x349, 0x34d,
                                        0x351, 0x355, 0x359, 0x35d,
@@ -99,8 +100,9 @@ std::pair<bool, std::map<int, int>> check_channel_phase_lock(
                      << " locked = " << locked << " dll_locked = " << dll_locked
                      << " dll_state = " << dll_state << " phase = " << phase;
     if (report_unlocked and not locked) {
-      pflib_log(warn) << "  channel " << ch << " not locked, dll_locked = "
-                      << dll_locked << " dll_state = " << dll_state;
+      pflib_log(warn) << "  channel " << ch
+                      << " not locked, dll_locked = " << dll_locked
+                      << " dll_state = " << dll_state;
     }
   }
   return std::make_pair(all_locked, phases);
