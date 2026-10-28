@@ -214,11 +214,13 @@ int main(int argc, char* argv[]) {
   i2c_scan(1, lpgbt_ic);
 
   // try link trick on TRIG fiber
-  pflib_log(info) << "do link trick on TRIG fiber";
-  olink_trig->run_linktrick();
-  usleep(1000);
-  printf("TRIG Optical Fiber\n");
-  print_opto_status(*olink_trig);
+  if (not bittware) {
+    pflib_log(info) << "do link trick on TRIG fiber";
+    olink_trig->run_linktrick();
+    usleep(1000);
+    printf("TRIG Optical Fiber\n");
+    print_opto_status(*olink_trig);
+  }
 
   return 0;
 }
