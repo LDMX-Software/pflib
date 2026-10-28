@@ -23,7 +23,10 @@ std::vector<uint32_t> OptoElinksBW::spy(int ilink, bool new_capture) {
   if (new_capture) {
     axil_.write(REG_PULSE, (1 << BIT_SPY_START));
   }
-  axil_.writeMasked(REG_READ_WHICH, MASK_READ_WHICH, ilink);
+  // firmware picks elink as olink * 6 + elink
+  static constexpr int ELINKS_PER_OLINK = 6;
+  axil_.writeMasked(REG_READ_WHICH, MASK_READ_WHICH,
+                    ilinkOpto_ * ELINKS_PER_OLINK + ilink);
   usleep(1000);
   for (int i = 0; i < 32; i++) {
     usleep(1);
