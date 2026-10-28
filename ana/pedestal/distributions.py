@@ -1,4 +1,4 @@
-"""Plot the distribution of pedestals on both links"""
+"""Plot the distribution of pedestals on each link or ROC"""
 
 import argparse
 from pathlib import Path
@@ -19,41 +19,39 @@ if args.style_sheet:
     plt.style.use(args.style_sheet)
 
 samples = pd.read_csv(args.pedestals[0])
+samples['channel'] = samples['channel'].astype(str)
 
-link0 = samples[(samples['i_link'] == 0) & (samples['channel'] != 'calib')]
-link1 = samples[(samples['i_link'] == 1) & (samples['channel'] != 'calib')]
+# i_link/i_ch or roc/ch indexing
+i_link_i_ch_indexing = 'i_link' in samples.columns
+label = 'link' if i_link_i_ch_indexing else 'ROC '
+major_column = 'i_link' if i_link_i_ch_indexing else 'i_roc'
+n_ch = 36 if i_link_i_ch_indexing else 72
 
-fig, ax = plt.subplots(1,2,sharey=True)
-ax0 = ax[0]; ax1 = ax[1]
+ids = np.sort(samples[major_column].unique())
+fig, ax = plt.subplots(1,len(ids),sharey=True,squeeze=False,figsize=(3.2*len(ids),4.8))
+ax = ax[0]
 
 cmap = plt.get_cmap('plasma')
 bins = np.array([(i+0.5) for i in range(0,1024)])
-
-for i in range(36):
-    color = cmap(i/36)
-    ax0.hist(link0[link0['channel'] == str(i)]['adc'], bins=bins, color=color)
-    ax1.hist(link1[link1['channel'] == str(i)]['adc'], bins=bins, color=color)
-
-fig.supxlabel('ADC [a.u.]')
-ax0.set_ylabel('Counts')
-ax0.set_title('link0')
-ax1.set_title('link1')
-ax0.set_xlim(link0['adc'].min()-3, link0['adc'].max()+3)
-ax1.set_xlim(link1['adc'].min()-3, link1['adc'].max()+3)
-
-norm = matplotlib.colors.Normalize(vmin=0, vmax=35)
+norm = matplotlib.colors.Normalize(vmin=0, vmax=n_ch-1)
 sm = cm.ScalarMappable(norm=norm, cmap=cmap)
 sm.set_array([])
-axins0 = inset_axes(ax0, width='20%', height='4%', loc='upper right', borderpad=1.4)
-cbar0 = fig.colorbar(sm, cax=axins0, orientation='horizontal', ticks=[0, 35])
-cbar0.ax.set_xticklabels(['0', '35'])
-axins1 = inset_axes(ax1, width='20%', height='4%', loc='upper right', borderpad=1.4)
-cbar1 = fig.colorbar(sm, cax=axins1, orientation='horizontal', ticks=[0, 35])
-cbar1.ax.set_xticklabels(['0', '35'])
-axins0.xaxis.set_ticks_position('bottom')
-axins1.xaxis.set_ticks_position('bottom')
-axins0.set_title('channels', fontsize=10)
-axins1.set_title('channels', fontsize=10)
+
+for a, i in zip(ax, ids):
+    group = samples[(samples[major_column] == i) & (~samples['channel'].str.startswith('calib'))]
+    for ch in range(n_ch):
+        a.hist(group[group['channel'] == str(ch)]['adc'], bins=bins, color=cmap(ch/n_ch))
+    a.set_title(f'{label}{i}')
+    a.set_xlim(group['adc'].min()-3, group['adc'].max()+3)
+
+    axins = inset_axes(a, width='20%', height='4%', loc='upper right', borderpad=1.4)
+    cbar = fig.colorbar(sm, cax=axins, orientation='horizontal', ticks=[0, n_ch-1])
+    cbar.ax.set_xticklabels(['0', str(n_ch-1)])
+    axins.xaxis.set_ticks_position('bottom')
+    axins.set_title('channels', fontsize=10)
+
+fig.supxlabel('ADC [a.u.]')
+ax[0].set_ylabel('Counts')
 
 filename = 'pedestal_distribution.png'
 fig.savefig(filename)
