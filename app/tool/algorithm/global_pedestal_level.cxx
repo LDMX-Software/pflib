@@ -241,9 +241,16 @@ global_pedestal_level(Target* tgt) {
   std::map<int, std::array<int, 2>> noinv_vref_tgt;
   std::map<int, std::array<bool, 2>> found_parameters;
 
+  // -1 keeps the NOINV_VREF already on the chip (e.g. from a ROC config)
+  int noinv_vref_start =
+      pftool::readline_int("Starting NOINV_VREF (-1 = keep chip value): ", 612);
   for (int i_roc : tgt->roc_ids()) {
     for (int i_link = 0; i_link < 2; i_link++) {
-      noinv_vref_tgt[i_roc][i_link] = 612;
+      noinv_vref_tgt[i_roc][i_link] =
+          (noinv_vref_start < 0)
+              ? tgt->roc(i_roc).getParameters(pflib::utility::string_format(
+                    "REFERENCEVOLTAGE_%d", i_link))["NOINV_VREF"]
+              : noinv_vref_start;
       found_parameters[i_roc][i_link] = false;
     }
   }
