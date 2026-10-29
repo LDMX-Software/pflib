@@ -1,6 +1,5 @@
 #include "pflib/bittware/bittware_optolink.h"
 
-#include "pflib/logging/Logging.h"
 #include "pflib/utility/string_format.h"
 
 namespace pflib {
@@ -58,9 +57,8 @@ void BWOptoLink::soft_reset_link() {
 
 void BWOptoLink::reset_link() {
   /**
-   * Only the RX reset of this link is used. The 0x080 bits are
-   * 0 = GTH (all links), 1 = TX (all links), 2-5 = RX per link,
-   * so a TX or GTH reset would break the other links in the block.
+   * This reset could affect all links in a block since
+   * we use the GTH_RESET if the RX_RESET isn't working.
    */
 
   /// only do these items for daq links
@@ -68,19 +66,29 @@ void BWOptoLink::reset_link() {
 
   const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
   const uint32_t RX_RESET = 0x4 << ilink_;
+  const uint32_t TX_RESET = 0x2 << ilink_;
+  // global, not dependent on ilink_
+  const uint32_t GTH_RESET = 0x1;
 
-  int done{0};
-  int attempts{0};
+  // first, light attempt, just link-specific resets
+  gtys_.write(0x080, TX_RESET);
+  gtys_.write(0x080, RX_RESET);
+  usleep(1000);
+  int done = gtys_.readMasked(REG_STATUS, 0x1);
+  int attempts = 1;
   while (!done and attempts < 1000) {
-    gtys_.write(0x080, RX_RESET);
-    usleep(1000);
-    done = gtys_.readMasked(REG_STATUS, 0x1);
-    attempts++;
-  }
-  if (!done) {
-    auto the_log_{pflib::logging::get("BWOptoLink")};
-    pflib_log(warn) << "link " << ilink_ << " RX buffer bypass not done after "
-                    << attempts << " RX resets";
+    if (attempts % 10 == 0) {
+      /// GTH_RESET about 1/10 of the attempts
+      gtys_.write(0x080, GTH_RESET);
+      usleep(1000);
+      done = gtys_.readMasked(REG_STATUS, 0x1);
+    } else {
+      /// RX_RESET the other 9/10 attempts
+      gtys_.write(0x080, RX_RESET);  // RX_RESET
+      usleep(1000);
+      done = gtys_.readMasked(REG_STATUS, 0x1);
+    }
+    attempts += 1;
   }
 
   coder_->write(REG_DECODER_RESET, 1 << ilink_);  // reset the DECODER
