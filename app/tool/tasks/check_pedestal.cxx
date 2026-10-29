@@ -10,10 +10,10 @@
 ENABLE_LOGGING();
 
 void check_pedestal(Target* tgt) {
-  auto fname =
-      pftool::readline("Calibration file: ", pftool::state.calib_file);
+  auto fname = pftool::readline("Calibration file: ", pftool::state.calib_file);
   int nevents = pftool::readline_int("Number of events: ", 100);
-  int max_off = pftool::readline_int("Flag channels off by more than (ADC): ", 10);
+  int max_off =
+      pftool::readline_int("Flag channels off by more than (ADC): ", 10);
 
   YAML::Node expected;
   try {
@@ -44,8 +44,10 @@ void check_pedestal(Target* tgt) {
       auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
       std::vector<int> adcs;
       adcs.reserve(data.size());
-      for (const auto& ep : data) adcs.push_back(ep.soi().channel(i_erx, i_ch).adc());
-      int diff = pflib::utility::median(adcs) - std::lround(exp[ch].as<double>());
+      for (const auto& ep : data)
+        adcs.push_back(ep.soi().channel(i_erx, i_ch).adc());
+      int diff =
+          pflib::utility::median(adcs) - std::lround(exp[ch].as<double>());
       diffs.push_back(diff);
       if (std::abs(diff) > max_off) {
         off.push_back(std::to_string(ch) + " (" + std::to_string(diff) + ")");

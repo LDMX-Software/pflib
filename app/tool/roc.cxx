@@ -224,8 +224,8 @@ static void apply_calib(Target* pft, const std::string& fname) {
 
 static void roc(const std::string& cmd, Target* pft) {
   if (cmd == "APPLY_CALIB") {
-    auto fname = pftool::readline("Calibration file: ",
-                                  pftool::state.calib_file);
+    auto fname =
+        pftool::readline("Calibration file: ", pftool::state.calib_file);
     apply_calib(pft, fname);
     return;
   }
