@@ -59,10 +59,6 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
    */
 
   uint16_t page_base_addr = (ipage << 5);
-  uint8_t r0 = (page_base_addr & 0xff);
-  uint8_t r1 = (page_base_addr >> 8) & 0xff;
-  i2c_->write_byte(roc_base_ + 0, r0);
-  i2c_->write_byte(roc_base_ + 1, r1);
   pflib_log(debug) << "reading " << len << " bytes from "
                    << pflib::packing::hex(page_base_addr);
 
@@ -75,23 +71,24 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
     bool done{false};
     do {
       try {
+        // point at this chunk on every attempt, the address auto-increments
+        uint16_t addr = page_base_addr + (len - n_bytes_left);
+        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
+        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
         auto chunk = i2c_->general_write_read(roc_base_ + 3, {}, n_read);
         pflib_log(debug) << "got " << chunk.size()
                          << " bytes: " << ByteVector(chunk);
         data.insert(data.end(), chunk.begin(), chunk.end());
         done = true;
       } catch (const pflib::Exception& e) {
-        uint16_t r0 = i2c_->read_byte(roc_base_ + 0);
-        uint16_t r1 = i2c_->read_byte(roc_base_ + 1);
-        uint16_t fulladdr = ((r1 << 8) | r0);
-        pflib_log(warn) << "I2C Attempt " << i_try << " on addr "
-                        << pflib::packing::hex(fulladdr) << " failed with ["
-                        << e.name() << "]: " << e.message();
+        i_try++;
+        pflib_log(warn) << "I2C attempt " << i_try << " reading page " << ipage
+                        << " failed with [" << e.name() << "]: " << e.message();
       }
     } while (not done and i_try < MAX_TRIES);
 
     if (not done) {
-      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+      PFEXCEPTION_RAISE("I2CFail", "Failed to readPage after " +
                                        std::to_string(MAX_TRIES) + " attempts");
     }
 
@@ -111,10 +108,6 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
    */
 
   uint16_t page_base_addr = (ipage << 5);
-  uint8_t r0 = (page_base_addr & 0xff);
-  uint8_t r1 = (page_base_addr >> 8) & 0xff;
-  i2c_->write_byte(roc_base_ + 0, r0);
-  i2c_->write_byte(roc_base_ + 1, r1);
 
   auto start_byte = vals.begin();
   do {
@@ -125,20 +118,21 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
     bool done{false};
     do {
       try {
+        // point at this chunk on every attempt, the address auto-increments
+        uint16_t addr = page_base_addr + (start_byte - vals.begin());
+        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
+        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
         i2c_->general_write_read(roc_base_ + 3, chunk, 0);
         done = true;
       } catch (const pflib::Exception& e) {
-        uint16_t r0 = i2c_->read_byte(roc_base_ + 0);
-        uint16_t r1 = i2c_->read_byte(roc_base_ + 1);
-        uint16_t fulladdr = ((r1 << 8) | r0);
-        pflib_log(debug) << "I2C Attempt " << i_try << " on addr "
-                         << pflib::packing::hex(fulladdr) << " failed with ["
-                         << e.name() << "]: " << e.message();
+        i_try++;
+        pflib_log(warn) << "I2C attempt " << i_try << " writing page " << ipage
+                        << " failed with [" << e.name() << "]: " << e.message();
       }
     } while (not done and i_try < MAX_TRIES);
 
     if (not done) {
-      PFEXCEPTION_RAISE("I2CFail", "Failed to getValue after " +
+      PFEXCEPTION_RAISE("I2CFail", "Failed to writePage after " +
                                        std::to_string(MAX_TRIES) + " attempts");
     }
 
