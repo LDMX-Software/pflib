@@ -200,8 +200,14 @@ int main(int argc, char* argv[]) try {
       pflib_log(info)
           << "applied standard HCAL DAQ configuration, pausing to be loaded...";
       sleep(2);
-      pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
-      pflib_log(info) << "applied standard HCAL TRIG configuration";
+      try {
+        pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
+        pflib_log(info) << "applied standard HCAL TRIG configuration";
+      } catch (const pflib::Exception& e) {
+        // TRIG lpGBT is optional for DAQ, keep configuring the other targets
+        pflib_log(warn) << "HCAL TRIG lpGBT not configured on " << tgt.name
+                        << ": [" << e.name() << "] " << e.message();
+      }
     } else {
       pflib::lpgbt::standard_config::setup_ecal(
           *tgt.lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
@@ -209,10 +215,16 @@ int main(int argc, char* argv[]) try {
       pflib_log(info)
           << "applied standard ECAL DAQ configuration, pausing to be loaded...";
       sleep(2);
-      pflib::lpgbt::standard_config::setup_ecal(
-          *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                             TRIG_SingleModuleMotherboard);
-      pflib_log(info) << "applied standard ECAL TRIG configuration";
+      try {
+        pflib::lpgbt::standard_config::setup_ecal(
+            *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               TRIG_SingleModuleMotherboard);
+        pflib_log(info) << "applied standard ECAL TRIG configuration";
+      } catch (const pflib::Exception& e) {
+        // TRIG lpGBT is optional for DAQ, keep configuring the other targets
+        pflib_log(warn) << "ECAL TRIG lpGBT not configured on " << tgt.name
+                        << ": [" << e.name() << "] " << e.message();
+      }
     }
   }
 
