@@ -7,6 +7,7 @@
 #include "../pftool.h"
 #include "channel_wise_calib_scan.h"
 #include "charge_timescan.h"
+#include "check_pedestal.h"
 #include "examine_phase.h"
 #include "expert/scan_orbit.h"
 #include "gen_scan.h"
@@ -79,7 +80,10 @@ auto menu_tasks =
                "calibrate TRIM_TOA parameters for each channel", trim_toa_scan)
         ->line("TOA_SCAN", "calibrate TRIM_TOA parameters for each channel",
                toa_scan)
-        ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan);
+        ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan)
+        ->line("CHECK_PEDESTAL",
+               "compare a pedestal run with the calibration set expectation",
+               check_pedestal);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
