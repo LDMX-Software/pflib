@@ -2,3 +2,4 @@ target:
   type: "EcalSMMBittware"
   ilink: 2
   dev: "/dev/datadev_1"
+calib: config/calib/ecal-smm-esa-l2/2026-10-28.yaml
