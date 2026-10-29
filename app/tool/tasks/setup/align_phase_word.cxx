@@ -282,6 +282,8 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
       auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
       pflib_log(info) << "all channels have phase lock (still): "
                       << std::boolalpha << all_locked;
+      // freeze, link resets for other ECONs on this FC would re-snapshot
+      econ.applyParameters({{"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 0}}}});
       break;
     }
   }
