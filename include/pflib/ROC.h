@@ -97,6 +97,16 @@ class ROC {
   void loadParameters(const std::string& file_path, bool prepend_defaults);
 
   /**
+   * Apply the parameters in a YAML node on top of the values on the chip
+   *
+   * The node is parsed like a YAML settings file (page name -> parameter
+   * name -> value, case insensitive, wildcards allowed).
+   *
+   * @param[in] params YAML map of pages to parameters
+   */
+  void loadParameters(const YAML::Node& params);
+
+  /**
    * Short-hand for applying a single parameter
    *
    * We construct a small std::map and use the applyParameters function above.

@@ -427,6 +427,12 @@ void ROC::loadParameters(const std::string& file_path, bool prepend_defaults) {
   }
 }
 
+void ROC::loadParameters(const YAML::Node& params) {
+  std::map<std::string, std::map<std::string, uint64_t>> parameters;
+  compiler_.extract(params, parameters);
+  applyParameters(parameters);
+}
+
 void ROC::applyParameter(const std::string& page, const std::string& param,
                          const uint64_t& val) {
   std::map<std::string, std::map<std::string, uint64_t>> p;

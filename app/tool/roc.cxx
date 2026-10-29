@@ -2,6 +2,10 @@
  * @file roc.cxx
  * ROC menu commands and support functions
  */
+#include <yaml-cpp/yaml.h>
+
+#include <algorithm>
+
 #include "pftool.h"
 ENABLE_LOGGING();
 
@@ -156,7 +160,75 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
  * @param[in] cmd ROC command
  * @param[in] pft active target
  */
+/**
+ * Load a calibration set onto the ROCs of this target
+ *
+ * The file holds an optional `base` settings file applied to every ROC,
+ * one `rocN` block of settings per ROC, `masks` (rocN -> mask parameter
+ * -> list of channels) and an optional `fc.calib_delay`. Other keys
+ * (meta, expected_pedestal) are bookkeeping and ignored here.
+ */
+static void apply_calib(Target* pft, const std::string& fname) {
+  YAML::Node calib;
+  try {
+    calib = YAML::LoadFile(fname);
+  } catch (const YAML::Exception& e) {
+    PFEXCEPTION_RAISE("BadFile", "Unable to load calibration " + fname);
+  }
+  auto ids = pft->roc_ids();
+  auto roc_id = [&](const std::string& key) {
+    int i_roc = std::stoi(key.substr(3));
+    if (std::find(ids.begin(), ids.end(), i_roc) == ids.end()) {
+      PFEXCEPTION_RAISE("BadConf", fname + " has " + key +
+                                       " which is not a ROC of this target");
+    }
+    return i_roc;
+  };
+
+  if (calib["base"] and not calib["base"].IsNull()) {
+    auto base = calib["base"].as<std::string>();
+    pflib_log(info) << "loading base " << base << " onto all ROCs";
+    for (int i_roc : ids) pft->roc(i_roc).loadParameters(base, false);
+  }
+  for (const auto& entry : calib) {
+    auto key = entry.first.as<std::string>();
+    if (key.rfind("roc", 0) != 0) continue;
+    int i_roc = roc_id(key);
+    pflib_log(info) << "loading " << key;
+    pft->roc(i_roc).loadParameters(entry.second);
+  }
+  if (calib["masks"]) {
+    for (const auto& roc_masks : calib["masks"]) {
+      auto key = roc_masks.first.as<std::string>();
+      int i_roc = roc_id(key);
+      std::map<std::string, std::map<std::string, uint64_t>> masks;
+      for (const auto& mask : roc_masks.second) {
+        auto param = mask.first.as<std::string>();
+        for (int ch : mask.second.as<std::vector<int>>()) {
+          masks["CH_" + std::to_string(ch)][param] = 1;
+        }
+      }
+      pflib_log(info) << "masking " << masks.size() << " channels on " << key;
+      pft->roc(i_roc).applyParameters(masks);
+    }
+  }
+  if (calib["fc"] and calib["fc"]["calib_delay"]) {
+    int delay = calib["fc"]["calib_delay"].as<int>();
+    int og_delay;
+    bool follow;
+    pft->fc().fc_get_setup_calib(og_delay, follow);
+    pft->fc().fc_setup_calib(delay, follow);
+    pflib_log(info) << "calib delay " << og_delay << " -> " << delay;
+  }
+}
+
 static void roc(const std::string& cmd, Target* pft) {
+  if (cmd == "APPLY_CALIB") {
+    auto fname = pftool::readline("Calibration file: ",
+                                  pftool::state.calib_file);
+    apply_calib(pft, fname);
+    return;
+  }
   if (cmd == "HARDRESET") {
     pft->hardResetROCs();
   }
@@ -268,6 +340,8 @@ auto menu_roc =
         ->line("POKE", "change a single parameter value", roc)
         ->line("LOAD", "Load parameter values onto the chip from a YAML file",
                roc)
+        ->line("APPLY_CALIB",
+               "Load the target's calibration set (base, per ROC, masks)", roc)
         ->line("DUMP_IMAGE", "dump hgcroc settings to an image", roc)
         ->line("DUMP", "Dump hgcroc settings to a file", roc);
 

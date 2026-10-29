@@ -106,6 +106,8 @@ class pftool : public pflib::menu::Menu<Target*> {
     int daq_rate{100};
     /// path to where the run number is stored
     std::string last_run_file{".last_run_file"};
+    /// calibration set named by the target configuration (calib: ...)
+    std::string calib_file;
   };
   /// actual instance of the state
   static State state;
