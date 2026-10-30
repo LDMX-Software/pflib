@@ -307,6 +307,8 @@ uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
   uint16_t value = adc_read(ipos, 15, gain);
 
   bit_clr(REG_DAC_CONFIG_H, CURDAC_ENABLE);
+  tport_.write_reg(REG_CURDAC_CHN, 0);
+  tport_.write_reg(REG_CURDAC_VALUE, 0);
 
   return value;
 }

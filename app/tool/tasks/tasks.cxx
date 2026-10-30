@@ -42,6 +42,8 @@ auto menu_tasks =
         ->line("GEN_SCAN", "scan over file of input parameter points", gen_scan)
         ->line("GET_LPGBT_TEMPS", "Return the temperatue of the lpGBT",
                get_lpgbt_temps)
+        ->line("READ_RTD", "Read a module RTD with the lpGBT current DAC",
+               read_rtd)
         ->line("PARAMETER_TIMESCAN",
                "scan charge/calib pulse over time for varying parameters",
                parameter_timescan)
