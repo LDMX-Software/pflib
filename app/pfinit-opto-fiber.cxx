@@ -56,6 +56,21 @@ void i2c_scan(int ibus, pflib::lpGBT& lpgbt) {
   printf("\n");
 }
 
+// one-line countdown while the front end powers up
+void wait_for_power_up(int seconds) {
+  const std::string label = "Waiting for the front end to power up";
+  for (int left = seconds; left > 0; left--) {
+    int done = seconds - left;
+    printf("\r  %s [%s%s] %2d s ", label.c_str(),
+           std::string(2 * done, '#').c_str(),
+           std::string(2 * left, '.').c_str(), left);
+    fflush(stdout);
+    sleep(1);
+  }
+  printf("\r  %s [%s] done\n", label.c_str(),
+         std::string(2 * seconds, '#').c_str());
+}
+
 struct LpGBTPair {
   mutable pflib::logging::logger the_log_{pflib::logging::get("LpGBTPair")};
   std::string name;
@@ -173,7 +188,7 @@ int main(int argc, char* argv[]) try {
     return 0;
   }
 
-  usleep(1000);  // let links get aligned
+  wait_for_power_up(10);  // let the front end power up and links align
 
   any_fail = false;
   for (const auto& tgt : targets) {
