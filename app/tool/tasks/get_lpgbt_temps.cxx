@@ -197,9 +197,9 @@ void read_rtd(Target* tgt) {
   std::string cdac = "CDAC" + std::to_string(pin) + "_";
 
   // tune VREF for the junction temperature, as in read_internal_temp_precise
-  int vref_tune = lpgbt_card.find_vref_tune(
-      c("VREF_SLOPE"), c("VREF_OFFSET"), c("TEMPERATURE_UNCALVREF_SLOPE"),
-      c("TEMPERATURE_UNCALVREF_OFFSET"));
+  int vref_tune = lpgbt_card.find_vref_tune(c("VREF_SLOPE"), c("VREF_OFFSET"),
+                                            c("TEMPERATURE_UNCALVREF_SLOPE"),
+                                            c("TEMPERATURE_UNCALVREF_OFFSET"));
   double tj = (vref_tune - c("VREF_OFFSET")) / c("VREF_SLOPE");
 
   auto volts = [&](int code) {
@@ -220,8 +220,8 @@ void read_rtd(Target* tgt) {
     v = volts(code);
   }
   if (v > 0.95) {
-    printf("  > ERROR: ADC%d at %.3f V with %d current steps, RTD open?\n",
-           pin, v, code);
+    printf("  > ERROR: ADC%d at %.3f V with %d current steps, RTD open?\n", pin,
+           v, code);
     return;
   }
   if (v < 0.05) {
