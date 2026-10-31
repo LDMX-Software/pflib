@@ -1,7 +1,5 @@
-# yes, Layer 3 was plugged into link 2
-# Layer 2 was not assembled and I (Tom)
-# arbitrarily chose to not have an empty link
 target:
   type: "EcalSMMBittware"
-  ilink: 2
+  ilink: 3
   dev: "/dev/datadev_1"
+calib: config/calib/ecal-smm-esa-l3/2026-10-28.yaml

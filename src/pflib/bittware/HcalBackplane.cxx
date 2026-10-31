@@ -35,7 +35,7 @@ class HcalBackplaneBW : public HcalBackplane {
 
     elinks_ = std::make_unique<bittware::OptoElinksBW>(itarget, dev);
 
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev, itarget);
 
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }

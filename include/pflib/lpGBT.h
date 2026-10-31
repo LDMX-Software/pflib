@@ -287,6 +287,7 @@ class lpGBT {
   struct I2C {
     uint8_t ctl_reg;
     uint8_t read_len;
+    uint8_t last_addr;  // for error messages
   } i2c_[3];
   ::pflib::lpgbt::GPIO gpio_;
   mutable logging::logger the_log_{logging::get("lpGBT")};

@@ -66,7 +66,8 @@ void BWOptoLink::reset_link() {
 
   const uint32_t REG_STATUS = 0x804 + ilink_ * 4;
   const uint32_t RX_RESET = 0x4 << ilink_;
-  const uint32_t TX_RESET = 0x2 << ilink_;
+  // bit 1 is a single TX reset shared by all links
+  const uint32_t TX_RESET = 0x2;
   // global, not dependent on ilink_
   const uint32_t GTH_RESET = 0x1;
 

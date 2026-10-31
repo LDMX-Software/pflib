@@ -31,7 +31,7 @@ class EcalSMMTargetBW : public EcalSingleModuleMotherboard {
     init(*daq_lpgbt_, *trig_lpgbt_, I2C_BUS_M0, roc_mask);
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
-    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev);
+    daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev, itarget);
     fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 

@@ -307,6 +307,8 @@ uint16_t lpGBT::adc_resistance_read(int ipos, int current, int gain) {
   uint16_t value = adc_read(ipos, 15, gain);
 
   bit_clr(REG_DAC_CONFIG_H, CURDAC_ENABLE);
+  tport_.write_reg(REG_CURDAC_CHN, 0);
+  tport_.write_reg(REG_CURDAC_VALUE, 0);
 
   return value;
 }
@@ -842,6 +844,7 @@ static constexpr uint8_t CMD_I2C_READ_MULTI = 0xD;
 void lpGBT::start_i2c_read(int ibus, uint8_t i2c_addr, int len) {
   if (ibus < 0 || ibus > 2 || len < 0 || len > 16) return;
   i2c_[ibus].read_len = len;
+  i2c_[ibus].last_addr = i2c_addr;
   write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
   if (len == 1) {
     write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE, i2c_[ibus].ctl_reg);
@@ -857,6 +860,7 @@ void lpGBT::start_i2c_read(int ibus, uint8_t i2c_addr, int len) {
 
 void lpGBT::i2c_write(int ibus, uint8_t i2c_addr, uint8_t value) {
   if (ibus < 0 || ibus > 2) return;
+  i2c_[ibus].last_addr = i2c_addr;
   write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
   write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE, i2c_[ibus].ctl_reg);
   write(REG_I2CM0CMD + ibus * REG_I2C_WSTRIDE, CMD_I2C_WRITE_CR);
@@ -867,6 +871,7 @@ void lpGBT::i2c_write(int ibus, uint8_t i2c_addr, uint8_t value) {
 void lpGBT::i2c_write(int ibus, uint8_t i2c_addr,
                       const std::vector<uint8_t>& values) {
   if (ibus < 0 || ibus > 2 || values.size() > 16) return;
+  i2c_[ibus].last_addr = i2c_addr;
   write(REG_I2CM0ADDRESS + ibus * REG_I2C_WSTRIDE, i2c_addr);
   write(REG_I2CM0DATA0 + ibus * REG_I2C_WSTRIDE,
         i2c_[ibus].ctl_reg | (values.size() << 2));
@@ -896,7 +901,11 @@ bool lpGBT::i2c_transaction_check(int ibus, bool wait) {
       PFEXCEPTION_RAISE("I2CErrorNoCLK", "No clock on I2C controller");
     }
     if (val & NOACK) {
-      PFEXCEPTION_RAISE("I2CErrorNoACK", "No acknowledge from I2C target");
+      char msg[64];
+      snprintf(msg, sizeof(msg),
+               "No acknowledge from I2C target 0x%02x on bus %d",
+               i2c_[ibus].last_addr, ibus);
+      PFEXCEPTION_RAISE("I2CErrorNoACK", msg);
     }
     if (val & LEVELE) {
       PFEXCEPTION_RAISE("I2CErrorSDALow", "SDA Line Low on Start");

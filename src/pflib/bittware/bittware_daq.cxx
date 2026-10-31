@@ -29,7 +29,8 @@ static constexpr uint32_t MASK_SOI = 0x00001E00;
 static constexpr uint32_t ADDR_PICK_ECON = 0x400;
 static constexpr uint32_t MASK_PICK_ECON = 0x000F0000;
 
-static constexpr uint32_t ADDR_ECON0_ID = 0x408;  //
+// ECON i id at 0x408 + 4 * (i / 2), bits 16 * (i % 2)
+static constexpr uint32_t ADDR_ECON0_ID = 0x408;
 static constexpr uint32_t MASK_ECON0_ID = 0x03FF;
 
 static constexpr uint32_t ADDR_PAGE_SPY = 0x400;
@@ -44,9 +45,10 @@ static constexpr uint32_t ADDR_INFO = 0x940;
 static constexpr uint32_t MASK_IO_NEVENTS = 0x0000007f;
 static constexpr uint32_t MASK_IO_SIZE_NEXT = 0x0001FF00;
 
-HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
+HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev, int iecon)
     : DAQ(1),
       capture_(BASE_ADDRESS_CAPTURE0, dev),
+      iecon_{iecon},
       the_log_{logging::get("bw_capture")} {
   uint16_t hw_type = capture_.get_hardware_type();
   uint16_t fw_vers = capture_.get_firmware_version();
@@ -72,16 +74,23 @@ HcalBackplaneBW_Capture::HcalBackplaneBW_Capture(const char* dev)
   int samples_per_ror =
       capture_.readMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET);
   int soi = capture_.readMasked(ADDR_PACKET_SETUP, MASK_SOI);
-  // TODO: handle multiple ECONs (needs support higher in the chain)
-  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
-  int econid = capture_.readMasked(ADDR_ECON0_ID, MASK_ECON0_ID);
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, iecon_);
+  int econid = read_econ_id();
   pflib::DAQ::setup(econid, samples_per_ror, soi);
+}
+void HcalBackplaneBW_Capture::write_econ_id(int econid) {
+  capture_.writeMasked(ADDR_ECON0_ID + 4 * (iecon_ / 2),
+                       MASK_ECON0_ID << (16 * (iecon_ % 2)), econid);
+}
+int HcalBackplaneBW_Capture::read_econ_id() {
+  return capture_.readMasked(ADDR_ECON0_ID + 4 * (iecon_ / 2),
+                             MASK_ECON0_ID << (16 * (iecon_ % 2)));
 }
 void HcalBackplaneBW_Capture::reset() {
   capture_.write(ADDR_EVB_CLEAR, MASK_EVB_CLEAR);  // auto-clear
 }
-int HcalBackplaneBW_Capture::getEventOccupancy() {  // hmm... multiple econs...
-  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
+int HcalBackplaneBW_Capture::getEventOccupancy() {
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, iecon_);
   auto nsamples = capture_.readMasked(ADDR_INFO, MASK_IO_NEVENTS);
   if (samples_per_ror() == 0) {
     pflib_log(warn) << "DAQ not configured, Samples/ROR set to zero.";
@@ -100,19 +109,16 @@ void HcalBackplaneBW_Capture::setup(int econid, int samples_per_ror, int soi) {
   pflib::DAQ::setup(econid, samples_per_ror, soi);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_L1A_PER_PACKET, samples_per_ror);
   capture_.writeMasked(ADDR_PACKET_SETUP, MASK_SOI, soi);
-  // TODO: handle multiple ECONs (needs support higher in the chain)
-  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, 0);
-  capture_.writeMasked(ADDR_ECON0_ID, MASK_ECON0_ID, econid);
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, iecon_);
+  write_econ_id(econid);
 }
 void HcalBackplaneBW_Capture::enable(bool doenable) {
-  if (doenable)
-    capture_.writeMasked(ADDR_ENABLE, MASK_ENABLE, 1);
-  else
-    capture_.writeMasked(ADDR_ENABLE, MASK_ENABLE, 0);
+  // only touch our bit, other links may be running
+  capture_.writeMasked(ADDR_ENABLE, 1u << iecon_, doenable ? 1 : 0);
   pflib::DAQ::enable(doenable);
 }
 bool HcalBackplaneBW_Capture::enabled() {
-  return capture_.readMasked(ADDR_ENABLE, MASK_ENABLE);
+  return capture_.readMasked(ADDR_ENABLE, 1u << iecon_);
 }
 
 void HcalBackplaneBW_Capture::AXIS_enable(bool doenable) {
@@ -125,7 +131,7 @@ bool HcalBackplaneBW_Capture::AXIS_enabled() {
   return capture_.readMasked(ADDR_DISABLE_AXIS, MASK_DISABLE_AXIS) == 0;
 }
 std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
-  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
+  capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, iecon_ + ilink);
   uint32_t words = 0;
   std::vector<uint32_t> retval;
   static const uint32_t UBITS = 0x180;
@@ -145,8 +151,8 @@ std::vector<uint32_t> HcalBackplaneBW_Capture::getLinkData(int ilink) {
   return retval;
 }
 void HcalBackplaneBW_Capture::advanceLinkReadPtr() {
-  // auto-clear, only correct for one econ right now
-  capture_.write(ADDR_ADV_IO, 1);
+  // auto-clear
+  capture_.write(ADDR_ADV_IO, 1u << iecon_);
 }
 
 std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
@@ -172,7 +178,7 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
   dbg["AXIS.COUNT_TREADY_!TVALID"] =
       capture_.read(ADDR_BASE_COUNTER + stepsize * 5);
 
-  for (int ilink = 0; ilink < nlinks(); ilink++) {
+  for (int ilink = iecon_; ilink < iecon_ + nlinks(); ilink++) {
     capture_.writeMasked(ADDR_PICK_ECON, MASK_PICK_ECON, ilink);
     dbg[string_format("ECON%d.COUNT_IDLES", ilink)] =
         capture_.read(ADDR_BASE_LINK_COUNTER);

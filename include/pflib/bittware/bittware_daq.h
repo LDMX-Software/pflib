@@ -8,7 +8,8 @@ namespace bittware {
 
 class HcalBackplaneBW_Capture : public DAQ {
  public:
-  HcalBackplaneBW_Capture(const char* dev);
+  /// iecon is the ECON slot in the firmware, one per fiber link
+  HcalBackplaneBW_Capture(const char* dev, int iecon = 0);
   virtual void reset();
   virtual int getEventOccupancy();
   virtual void setupLink(int ilink, int l1a_delay, int l1a_capture_width) {
@@ -31,6 +32,9 @@ class HcalBackplaneBW_Capture : public DAQ {
 
  private:
   AxiLite capture_;
+  int iecon_;
+  void write_econ_id(int econid);
+  int read_econ_id();
   bool per_econ_;
   mutable logging::logger the_log_;
 };

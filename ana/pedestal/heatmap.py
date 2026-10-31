@@ -1,4 +1,4 @@
-"""heatmap of pedestal data separated by link_channel"""
+"""heatmap of pedestal data separated by link_channel or roc_channel"""
 
 import pandas as pd
 import numpy as np
@@ -17,7 +17,10 @@ if args.output is None:
     args.output = args.pedestals.parent / (args.pedestals.stem + '-heatmap.png')
 
 samples = pd.read_csv(args.pedestals)
-samples['uid'] = samples['i_link'].astype(str)+'_'+samples['channel']
+# i_link/i_ch or roc/ch indexing
+i_link_i_ch_indexing = 'i_link' in samples.columns
+major_column = 'i_link' if i_link_i_ch_indexing else 'i_roc'
+samples['uid'] = samples[major_column].astype(str)+'_'+samples['channel'].astype(str)
 
 fig, axes = plt.subplots(
     nrows = 3,
@@ -48,7 +51,7 @@ for ax, xname, xlabel in zip(
     ).cbar.set_label('Counts')
     ax.set_xlabel(None)
 
-axes[-1].set_xlabel('Link_Channel')
+axes[-1].set_xlabel('Link_Channel' if i_link_i_ch_indexing else 'ROC_Channel')
 plt.xticks(rotation=90, size='x-small')
 axes[0].set_title(args.pedestals.stem)
 fig.savefig(args.output, bbox_inches='tight')
