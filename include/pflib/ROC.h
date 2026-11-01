@@ -165,6 +165,8 @@ class ROC {
   TempParameters<ROC>::Builder testParameters();
 
  private:
+  /// set the register pointer (R0, R1) and read it back until it matches
+  void setPointer(uint16_t addr);
   std::shared_ptr<I2C> i2c_;
   uint8_t roc_base_;
   std::string type_version_;

@@ -49,6 +49,24 @@ static const int MAX_TRIES = 5;
  */
 static const int MAX_NBYTES = 16;
 
+/**
+ * A misheard I2C address on a noisy bus sends the pointer bytes to another
+ * sub-register, so the following read or write lands in the wrong place.
+ * Read R0 and R1 back before trusting the pointer.
+ */
+void ROC::setPointer(uint16_t addr) {
+  for (int i_try{0}; i_try < MAX_TRIES; i_try++) {
+    i2c_->write_byte(roc_base_ + 0, addr & 0xff);
+    i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
+    uint16_t got = i2c_->read_byte(roc_base_ + 0) |
+                   (uint16_t(i2c_->read_byte(roc_base_ + 1)) << 8);
+    if (got == addr) return;
+    pflib_log(warn) << "I2C pointer readback " << pflib::packing::hex(got)
+                    << " != " << pflib::packing::hex(addr);
+  }
+  PFEXCEPTION_RAISE("I2CPointer", "Failed to set the ROC register pointer");
+}
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(1400);
 
@@ -73,9 +91,15 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
       try {
         // point at this chunk on every attempt, the address auto-increments
         uint16_t addr = page_base_addr + (len - n_bytes_left);
-        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
-        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
+        setPointer(addr);
         auto chunk = i2c_->general_write_read(roc_base_ + 3, {}, n_read);
+        // read twice, a corrupted transfer rarely repeats
+        setPointer(addr);
+        auto again = i2c_->general_write_read(roc_base_ + 3, {}, n_read);
+        if (again != chunk) {
+          PFEXCEPTION_RAISE("I2CReadMismatch",
+                            "two reads of the same chunk differ");
+        }
         pflib_log(debug) << "got " << chunk.size()
                          << " bytes: " << ByteVector(chunk);
         data.insert(data.end(), chunk.begin(), chunk.end());
@@ -120,9 +144,15 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
       try {
         // point at this chunk on every attempt, the address auto-increments
         uint16_t addr = page_base_addr + (start_byte - vals.begin());
-        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
-        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
+        setPointer(addr);
         i2c_->general_write_read(roc_base_ + 3, chunk, 0);
+        // read back what landed
+        setPointer(addr);
+        auto got = i2c_->general_write_read(roc_base_ + 3, {}, chunk.size());
+        if (got != chunk) {
+          PFEXCEPTION_RAISE("I2CWriteMismatch",
+                            "chunk read back differs from what was written");
+        }
         done = true;
       } catch (const pflib::Exception& e) {
         i_try++;
@@ -150,13 +180,17 @@ uint8_t ROC::getValue(int ipage, int offset) {
 
   for (int i_try{0}; i_try < MAX_TRIES; i_try++) {
     try {
-      i2c_->write_byte(roc_base_ + 0, fulladdr & 0xFF);
-      i2c_->write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
-      // now read
-      return i2c_->read_byte(roc_base_ + 2);
+      setPointer(fulladdr);
+      // R2 does not auto-increment: read twice
+      uint8_t val = i2c_->read_byte(roc_base_ + 2);
+      if (i2c_->read_byte(roc_base_ + 2) != val) {
+        PFEXCEPTION_RAISE("I2CReadMismatch",
+                          "two reads of one register differ");
+      }
+      return val;
     } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
-                       << " failed with [" << e.name() << "]: " << e.message();
+      pflib_log(warn) << "I2C attempt " << i_try << " on addr " << fulladdr
+                      << " failed with [" << e.name() << "]: " << e.message();
     }
   }
 
@@ -248,14 +282,16 @@ void ROC::setValue(int page, int offset, uint8_t value) {
 
   for (int i_try{0}; i_try < MAX_TRIES; i_try++) {
     try {
-      i2c_->write_byte(roc_base_ + 0, fulladdr & 0xFF);
-      i2c_->write_byte(roc_base_ + 1, (fulladdr >> 8) & 0xFF);
+      setPointer(fulladdr);
       i2c_->write_byte(roc_base_ + 2, value & 0xFF);
+      if (i2c_->read_byte(roc_base_ + 2) != value) {
+        PFEXCEPTION_RAISE("I2CWriteMismatch", "register read back differs");
+      }
       // leave to signal we don't need to try anymore
       return;
     } catch (const pflib::Exception& e) {
-      pflib_log(debug) << "I2C Attempt " << i_try << " on addr " << fulladdr
-                       << " failed with [" << e.name() << "]: " << e.message();
+      pflib_log(warn) << "I2C attempt " << i_try << " on addr " << fulladdr
+                      << " failed with [" << e.name() << "]: " << e.message();
     }
   }
 
