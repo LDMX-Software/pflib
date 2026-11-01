@@ -52,11 +52,12 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
 
-    output_ << (mapping_ ? pflib::packing::MultiSampleECONDEventPacket::
-                               to_csv_header_with_mapping
-                         : pflib::packing::MultiSampleECONDEventPacket::
-                               to_csv_header)
-            << '\n';
+    output_
+        << (mapping_
+                ? pflib::packing::MultiSampleECONDEventPacket::
+                      to_csv_header_with_mapping
+                : pflib::packing::MultiSampleECONDEventPacket::to_csv_header)
+        << '\n';
   }
   void acceptFrame(
       std::shared_ptr<rogue::interfaces::stream::Frame> frame) override {
@@ -110,27 +111,28 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
 };
 
 static void usage() {
-  std::cout << "\n"
-               " USAGE:\n"
-               "  rogue-decoder [options] input_file.dat\n"
-               "\n"
-               " OPTIONS:\n"
-               "  -h,--help    : print this help and exit\n"
-               "  -o,--output  : output CSV file to dump samples into "
-               "(default is input file with extension changed)\n"
-               "  --n-links    : number of active links connected to the"
-               " ECON-D (default 2)\n"
-               "  -l,--log     : logging level to printout (-1: trace up to 4: "
-               "fatal)\n"
-               "  -c,--contrib : which contributor to focus on (hcal or ecal)\n"
-               "  --econ       : only decode sample packets from this ECON-D ID"
-               " (e.g. one layer of a multi-layer ECal frame)\n"
-               "  --rocs       : comma-separated active ROCs, mapped with the"
-               " ECal module or HCal backplane eRx map (from -c); sets --n-links"
-               " and writes i_roc and channel 0-71\n"
-               "  --cm         : also write the common-mode words as channels"
-               " cm0 and cm1\n"
-            << std::endl;
+  std::cout
+      << "\n"
+         " USAGE:\n"
+         "  rogue-decoder [options] input_file.dat\n"
+         "\n"
+         " OPTIONS:\n"
+         "  -h,--help    : print this help and exit\n"
+         "  -o,--output  : output CSV file to dump samples into "
+         "(default is input file with extension changed)\n"
+         "  --n-links    : number of active links connected to the"
+         " ECON-D (default 2)\n"
+         "  -l,--log     : logging level to printout (-1: trace up to 4: "
+         "fatal)\n"
+         "  -c,--contrib : which contributor to focus on (hcal or ecal)\n"
+         "  --econ       : only decode sample packets from this ECON-D ID"
+         " (e.g. one layer of a multi-layer ECal frame)\n"
+         "  --rocs       : comma-separated active ROCs, mapped with the"
+         " ECal module or HCal backplane eRx map (from -c); sets --n-links"
+         " and writes i_roc and channel 0-71\n"
+         "  --cm         : also write the common-mode words as channels"
+         " cm0 and cm1\n"
+      << std::endl;
 }
 
 int main(int argc, char* argv[]) {
