@@ -1,5 +1,7 @@
 #include "pflib/HcalBackplane.h"
 
+#include <cstdlib>
+
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -92,6 +94,11 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   auto roc_i2c =
       std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
+  // the strong SCL/SDA drivers garble ROC addresses on the backplane (NoACKs,
+  // writes landing in other registers); normal strength is clean
+  if (not std::getenv("PFLIB_LPGBT_I2C_CFG")) {
+    daq_lpgbt.setup_i2c(I2C_BUS_HGCROCS, 1000, false, false, false);
+  }
   roc_i2c->set_bus_speed(1000);
   for (int ibd = 0; ibd < 4; ibd++) {
     if ((hgcroc_boardmask & (1 << ibd)) == 0) continue;

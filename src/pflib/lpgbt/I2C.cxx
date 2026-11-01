@@ -1,11 +1,22 @@
 #include "pflib/lpgbt/I2C.h"
 
+#include <cstdlib>
+#include <string>
+
 namespace pflib {
 namespace lpgbt {
 
 I2C::I2C(lpGBT& lpGBT, int ibus) : lpgbt_{lpGBT}, ibus_{ibus} {
+  // PFLIB_LPGBT_I2C_CFG bits: 1 SCL push-pull, 2 strong SCL, 4 strong SDA,
+  // 8 SCL pull-up, 16 SDA pull-up; unset keeps the setup_i2c defaults
+  const char* env = std::getenv("PFLIB_LPGBT_I2C_CFG");
   // default speed to 100kHz
-  lpgbt_.setup_i2c(ibus_, 100);
+  if (env) {
+    int cfg = std::stoi(env, nullptr, 0);
+    lpgbt_.setup_i2c(ibus_, 100, cfg & 1, cfg & 2, cfg & 4, cfg & 8, cfg & 16);
+  } else {
+    lpgbt_.setup_i2c(ibus_, 100);
+  }
 }
 
 void I2C::set_bus_speed(int speed) { lpgbt_.setup_i2c_speed(ibus_, speed); }
