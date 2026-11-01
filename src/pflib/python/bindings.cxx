@@ -42,7 +42,7 @@ T get(const bp::dict& config, const char* key, T def) {
 class PyTarget {
   /// our handle to the pflib::Target
   std::shared_ptr<pflib::Target> tgt_;
-  /// readout setup applied at configure and pre_start
+  /// readout setup applied at configure, -1 (samples 0) keeps the card value
   int econ_id_, samples_, soi_;
   bool external_, axis_;
 
@@ -54,9 +54,9 @@ class PyTarget {
     int ilink = get<int>(config, "ilink", 0);
     int mask =
         get<int>(config, "rocmask", target == "ecal-bittware" ? 0x3f : 0xf);
-    econ_id_ = get<int>(config, "econ_id", ilink);
-    samples_ = get<int>(config, "samples", 1);
-    soi_ = get<int>(config, "soi", 0);
+    econ_id_ = get<int>(config, "econ_id", -1);
+    samples_ = get<int>(config, "samples", 0);
+    soi_ = get<int>(config, "soi", -1);
     external_ = get<bool>(config, "external", true);
     axis_ = get<bool>(config, "axis", true);
 
@@ -76,9 +76,13 @@ class PyTarget {
   /// so the run-start ECR/EBR sent before the subsystems' Prestart get through
   void configure() {
     auto& daq = tgt_->daq();
-    daq.setup(econ_id_, samples_, soi_);
-    if (tgt_->trig()) tgt_->trig()->set_l1a_per_ror(samples_);
-    tgt_->fc().setL1AperROR(samples_);
+    // unset: keep what pftool left on the card
+    int samples = samples_ > 0 ? samples_ : daq.samples_per_ror();
+    int soi = soi_ >= 0 ? soi_ : daq.soi();
+    int econ_id = econ_id_ >= 0 ? econ_id_ : daq.econid();
+    daq.setup(econ_id, samples, soi);
+    if (tgt_->trig()) tgt_->trig()->set_l1a_per_ror(samples);
+    tgt_->fc().setL1AperROR(samples);
     daq.enable(true);
     tgt_->fc().fc_enables(true, external_);
     daq.AXIS_enable(axis_);
@@ -116,9 +120,10 @@ Parameters (all optional):
   dev      PCIe device of a Bittware target (default "/dev/datadev_0")
   ilink    optical link, also the capture slot (default 0)
   rocmask  ROC (ECal) or board (HCal) mask (default 0x3f / 0xf)
-  econ_id  ECON ID label of the capture slot (default ilink)
-  samples  samples (L1As) per readout request (default 1)
-  soi      sample of interest (default 0)
+  econ_id  ECON ID label of the capture slot (default: keep the card's)
+  samples  samples (L1As) per readout request (default: keep the card's,
+           e.g. set with pftool DAQ SETUP)
+  soi      sample of interest (default: keep the card's)
   external take L1As from the central readout requests (default True)
   axis     read out through AXIS/DMA (default True)
 )DOC";

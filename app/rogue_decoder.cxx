@@ -3,11 +3,16 @@
  */
 
 #include <iostream>
+#include <memory>
+#include <sstream>
 
+#include "pflib/EcalModule.h"
 #include "pflib/Exception.h"
+#include "pflib/HcalBackplane.h"
 #include "pflib/logging/Logging.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
+#include "pflib/packing/SingleECONDRocErxMapping.h"
 #include "pflib/version/Version.h"
 #ifdef NEED_ROGUE_NUMPY
 #include "rogue/numpy.h"
@@ -27,16 +32,30 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
   mutable pflib::logging::logger the_log_{pflib::logging::get("CaloCSVWriter")};
   std::ofstream output_;
   int contrib_id_{0};
+  int only_econd_{-1};
+  bool with_cm_{false};
+  std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping_;
   pflib::packing::MultiSampleECONDEventPacket ep_;
 
  public:
-  CaloCSVWriter(const std::string& filepath, int nlinks, int contrib_id)
-      : output_{filepath}, ep_{nlinks}, contrib_id_{contrib_id} {
+  CaloCSVWriter(
+      const std::string& filepath, int nlinks, int contrib_id,
+      int only_econd = -1, bool with_cm = false,
+      std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping = {})
+      : output_{filepath},
+        contrib_id_{contrib_id},
+        only_econd_{only_econd},
+        with_cm_{with_cm},
+        mapping_{std::move(mapping)},
+        ep_{nlinks} {
     if (not output_) {
       PFEXCEPTION_RAISE("NoOpen", "Unable to open file '" + filepath + "'.");
     }
 
-    output_ << pflib::packing::MultiSampleECONDEventPacket::to_csv_header
+    output_ << (mapping_ ? pflib::packing::MultiSampleECONDEventPacket::
+                               to_csv_header_with_mapping
+                         : pflib::packing::MultiSampleECONDEventPacket::
+                               to_csv_header)
             << '\n';
   }
   void acceptFrame(
@@ -59,7 +78,8 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     rogue::interfaces::stream::fromFrame(frame_it, 1, &contrib_id);
     rogue::interfaces::stream::fromFrame(frame_it, 1, &sentinel);
 
-    if (subsystem_id != 5) {
+    // 5 = ECal, 7 = HCal in the 2026 merger config
+    if (subsystem_id != 5 and subsystem_id != 7) {
       pflib_log(debug) << "Frame belongs to non-calo subsystem "
                        << subsystem_id;
       return;
@@ -84,8 +104,8 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
       rogue::interfaces::stream::fromFrame(frame_it, 4, &(words[i_word]));
     }
 
-    ep_.from(words, true);
-    ep_.to_csv(output_);
+    ep_.from(words, true, only_econd_);
+    ep_.to_csv(output_, mapping_.get(), with_cm_);
   }
 };
 
@@ -103,6 +123,13 @@ static void usage() {
                "  -l,--log     : logging level to printout (-1: trace up to 4: "
                "fatal)\n"
                "  -c,--contrib : which contributor to focus on (hcal or ecal)\n"
+               "  --econ       : only decode sample packets from this ECON-D ID"
+               " (e.g. one layer of a multi-layer ECal frame)\n"
+               "  --rocs       : comma-separated active ROCs, mapped with the"
+               " ECal module or HCal backplane eRx map (from -c); sets --n-links"
+               " and writes i_roc and channel 0-71\n"
+               "  --cm         : also write the common-mode words as channels"
+               " cm0 and cm1\n"
             << std::endl;
 }
 
@@ -122,6 +149,9 @@ int main(int argc, char* argv[]) {
 
   int n_links{2};
   int contrib_id{0};
+  int only_econd{-1};
+  bool with_cm{false};
+  std::vector<int> rocs;
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
     std::string arg{argv[i_arg]};
@@ -189,6 +219,30 @@ int main(int argc, char* argv[]) {
                            << " should be 'hcal' or 'ecal'";
           return 1;
         }
+      } else if (arg == "--econ" or arg == "--rocs") {
+        if (i_arg + 1 == argc or argv[i_arg + 1][0] == '-') {
+          pflib_log(fatal) << "The " << arg
+                           << " parameter requires an argument after it.";
+          return 1;
+        }
+        i_arg++;
+        try {
+          if (arg == "--econ") {
+            only_econd = std::stoi(argv[i_arg]);
+          } else {
+            std::stringstream ss{argv[i_arg]};
+            std::string roc;
+            while (std::getline(ss, roc, ',')) {
+              rocs.push_back(std::stoi(roc));
+            }
+          }
+        } catch (const std::invalid_argument& e) {
+          pflib_log(fatal) << "The argument to " << arg << " '" << argv[i_arg]
+                           << "' is not an integer (list).";
+          return 1;
+        }
+      } else if (arg == "--cm") {
+        with_cm = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -218,8 +272,20 @@ int main(int argc, char* argv[]) {
   try {
     // setup stream
     auto reader = std::make_shared<rogue::utilities::fileio::StreamReader>();
-    auto writer =
-        std::make_shared<CaloCSVWriter>(out_file, n_links, contrib_id);
+    std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping;
+    if (not rocs.empty()) {
+      if (contrib_id != 20 and contrib_id != 40) {
+        pflib_log(fatal) << "--rocs needs -c ecal or -c hcal for the eRx map";
+        return 1;
+      }
+      mapping = std::make_unique<pflib::packing::SingleECONDRocErxMapping>(
+          contrib_id == 20 ? pflib::HcalBackplane::ROC_ERX_MAPPING_DAQ
+                           : pflib::EcalModule::ROC_ERX_MAPPING_DAQ,
+          rocs);
+      n_links = 2 * rocs.size();
+    }
+    auto writer = std::make_shared<CaloCSVWriter>(
+        out_file, n_links, contrib_id, only_econd, with_cm, std::move(mapping));
     reader->addSlave(writer);
 
     // run
