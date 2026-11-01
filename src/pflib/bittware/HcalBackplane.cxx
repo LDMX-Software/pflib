@@ -66,6 +66,10 @@ class HcalBackplaneBW : public HcalBackplane {
   }
 
   virtual void hardResetROCs() override {
+    // on the ESA backplane only DAQ GPIO 8 (HGCROC_I2C_RST) resets the ROCs,
+    // all boards at once; the HGCROCn_HRST pins toggle but reset nothing
+    daq_lpgbt_->gpio_interface().setGPO("HGCROC_I2C_RST", false);
+    daq_lpgbt_->gpio_interface().setGPO("HGCROC_I2C_RST", true);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", false);
     trig_lpgbt_->gpio_interface().setGPO("HGCROC0_HRST", true);
     daq_lpgbt_->gpio_interface().setGPO("HGCROC1_HRST", false);
