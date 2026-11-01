@@ -694,7 +694,8 @@ auto menu_daq =
         ->line("RESET", "Reset the DAQ", daq)
         ->line("LINK_ECON", "Reset ECON links", daq, NEED_FIBER)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
-        ->line("CHARGE", "Take a charge-injection run", daq);
+        ->line("CHARGE", "Take a charge-injection run", daq)
+        ->line("LED", "Take an LED-flash run", daq);
 
 auto menu_daq_debug =
     menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
