@@ -1,0 +1,6 @@
+# lpGBT internal temperature (DAQ lpGBT, average constants)
+TASKS
+GET_LPGBT_TEMPS
+y
+EXIT
+EXIT

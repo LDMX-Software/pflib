@@ -1,0 +1,21 @@
+# central-run DMA test: slot on, central L1As, AXIS on, ECON ID 3
+# ./build/pftool -s scripts/daq-axis-ext-l3.pfl config/pftool/ecal-smm-esa-l3.yaml
+DAQ
+SETUP
+CONFIG
+# contrib id
+
+# ECON ID
+3
+# samples per ROR, sample of interest
+
+
+DISABLE
+ENABLE
+# external L1A? Y: central L1As from the run
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT

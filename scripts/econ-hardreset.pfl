@@ -1,0 +1,4 @@
+# hard reset the ECON-D(s) of this target via lpGBT GPIO
+ECON
+HARDRESET
+EXIT

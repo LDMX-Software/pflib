@@ -1,0 +1,98 @@
+# pedestal leveling for a 6-ROC layer, after scripts/align-econd.pfl:
+# ./build/pftool -s scripts/align-econd.pfl -s scripts/level-pedestals.pfl -s scripts/pedestal.pfl config/pftool/ecal-smm-esa-lN.yaml
+# one entry per line, empty line = accept default, no trailing comments
+DAQ
+RESET
+SETUP
+FORMAT
+CONFIG
+# contributor id, ECON ID, samples per ROR, sample of interest
+
+
+
+
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+EXIT
+EXIT
+TASKS
+GLOBAL_PEDESTAL_LEVEL
+# events per point
+100
+# noinv_vref step
+20
+# starting NOINV_VREF, -1 keeps the value from the ROC config
+-1
+# target ADC
+150
+# ROC0: view, apply, save, filename
+N
+Y
+Y
+
+# ROC1: view, apply, save, filename
+N
+Y
+Y
+
+# ROC2: view, apply, save, filename
+N
+Y
+Y
+
+# ROC3: view, apply, save, filename
+N
+Y
+Y
+
+# ROC4: view, apply, save, filename
+N
+Y
+Y
+
+# ROC5: view, apply, save, filename
+N
+Y
+Y
+
+LOCAL_PEDESTAL_LEVEL
+# ROC0: view, apply, save, filename
+N
+Y
+Y
+
+# ROC1: view, apply, save, filename
+N
+Y
+Y
+
+# ROC2: view, apply, save, filename
+N
+Y
+Y
+
+# ROC3: view, apply, save, filename
+N
+Y
+Y
+
+# ROC4: view, apply, save, filename
+N
+Y
+Y
+
+# ROC5: view, apply, save, filename
+N
+Y
+Y
+
+EXIT
+DAQ
+SETUP
+DISABLE
+EXIT
+EXIT

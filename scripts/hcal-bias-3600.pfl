@@ -1,0 +1,32 @@
+# HCal SiPM bias: INIT (DACs to 0, 4.096 V ref) then all 16 SiPM ports to 3600, boards 0, 2, 3
+# HV supply at 48 V; DACs reset at every LV cycle, so rerun after power-up
+BIAS
+INIT
+0
+SET_SIPM
+0
+-1
+3600
+INIT
+2
+SET_SIPM
+2
+-1
+3600
+INIT
+3
+SET_SIPM
+3
+-1
+3600
+READ_SIPM
+0
+-1
+READ_SIPM
+2
+-1
+READ_SIPM
+3
+-1
+EXIT
+EXIT

@@ -1,0 +1,24 @@
+# last step before a central run with L2 and L3: DAQ RESET (drop leftover
+# events in all slots), then L3 (ECON ID 3) on with central L1As and AXIS,
+# in one session so external L1As stay enabled; run daq-axis-ext-l2 first
+DAQ
+RESET
+SETUP
+CONFIG
+# contrib id
+
+# ECON ID
+3
+# samples per ROR, sample of interest
+
+
+DISABLE
+ENABLE
+# external L1A?
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT
+EXIT

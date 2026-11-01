@@ -1,0 +1,34 @@
+# 20-event pedestal with 1 sample per readout, sample of interest 0, AXI readout
+DAQ
+RESET
+SETUP
+CONFIG
+# contrib id
+
+# ECON ID (keep)
+
+# samples per ROR
+1
+# sample of interest
+0
+DISABLE
+ENABLE
+# external L1A?
+N
+# readout to AXIS?
+N
+EXIT
+PEDESTAL
+# events
+20
+# rate
+
+# file
+
+# decode?
+Y
+SETUP
+DISABLE
+EXIT
+EXIT
+EXIT

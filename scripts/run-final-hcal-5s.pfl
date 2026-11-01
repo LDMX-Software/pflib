@@ -1,0 +1,24 @@
+# 5 samples per RoR, SOI 2 (copy of run-final-hcal.pfl with CONFIG)
+# last step before a central run on the HCal card: DAQ RESET, slot on with
+# central L1As and AXIS, in one session so external L1As stay enabled
+DAQ
+RESET
+SETUP
+CONFIG
+# contrib id
+
+# ECON ID
+0
+# samples per ROR, sample of interest
+5
+2
+DISABLE
+ENABLE
+# external L1A?
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT
+EXIT

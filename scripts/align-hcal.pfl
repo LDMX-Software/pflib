@@ -1,0 +1,49 @@
+# HCAL ECON-D alignment: ./build/pftool -s scripts/align-hcal.pfl config/pftool/hcal-backplane-esa.yaml
+# one entry per line, empty line = accept default, no trailing comments
+ECON
+IECON
+0
+LOAD
+config/econ/econd_hcal_esa.yaml
+# fill unspecified values with manual defaults?
+N
+RUNMODE
+Y
+EXIT
+ROC
+RUNMODE_ALL
+EXIT
+DAQ
+SETUP
+STANDARD
+EXIT
+EXIT
+# expect PUSM State Val: 8 READY
+ECON
+STATUS
+EXIT
+TASKS
+SETUP
+PHASE_WORD_ALIGN
+# which ECON
+0
+# answers Continue? if phase lock fails, else harmless unknown command
+N
+ALIGN_ECON_LPGBT
+# which ECON
+0
+# check all phases?
+N
+# do bit alignment?
+Y
+# invert elink data? empty = HCAL default (Y)
+
+# continue to word alignment?
+Y
+# idle pattern
+0x1277cc
+EXIT
+EXIT
+DAQ
+STATUS
+EXIT

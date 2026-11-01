@@ -1,0 +1,38 @@
+# pedestal run for any target, after alignment:
+# ./build/pftool -s scripts/pedestal.pfl config/pftool/<target>.yaml
+# one entry per line, empty line = accept default, no trailing comments
+DAQ
+# clear events left over from earlier runs
+RESET
+SETUP
+FORMAT
+CONFIG
+# contributor id
+
+# ECON ID
+
+# samples per ROR
+
+# sample of interest
+
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+EXIT
+PEDESTAL
+# how many events?
+100
+# readout rate (Hz)
+
+# filename
+
+# decode into CSV?
+Y
+STATUS
+SETUP
+DISABLE
+EXIT
+EXIT
