@@ -22,6 +22,7 @@
 #include "parameter_timescan.h"
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
+#include "set_zs_thresholds.h"
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "setup/check_lpgbt_backend.h"
@@ -85,7 +86,10 @@ auto menu_tasks =
         ->line("LED_BIAS_SCAN", "Sweeps SiPM and LED DACs", led_bias_scan)
         ->line("CHECK_PEDESTAL",
                "compare a pedestal run with the calibration set expectation",
-               check_pedestal);
+               check_pedestal)
+        ->line("SET_ZS_THRESHOLDS",
+               "set ECON-D ZS thresholds to pedestal plus a margin",
+               set_zs_thresholds);
 
 auto menu_expert_tasks =
     menu_tasks->submenu("EXPERT", "low-level but complicated tasks")
