@@ -86,7 +86,8 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   // next, create the Hcal I2C objects
   auto econ_i2c = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_ECONS);
-  // ECON bus: normal drive as on the ROC bus, PFLIB_ECON_I2C_STRONG keeps strong
+  // ECON bus: normal drive as on the ROC bus, PFLIB_ECON_I2C_STRONG keeps
+  // strong
   if (not std::getenv("PFLIB_LPGBT_I2C_CFG") and
       not std::getenv("PFLIB_ECON_I2C_STRONG")) {
     daq_lpgbt.setup_i2c(I2C_BUS_ECONS, 1000, false, false, false);
