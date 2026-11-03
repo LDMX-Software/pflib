@@ -7,8 +7,53 @@
 #include <fstream>
 
 #include "../daq_run.h"
+#include "pflib/Compile.h"
 
 ENABLE_LOGGING();
+
+using Settings = std::map<std::string, std::map<std::string, uint64_t>>;
+
+// lpGBT I2C moves at most 16 bytes per transaction, 2 of them the address
+static constexpr std::size_t MAX_CHUNK = 14;
+
+// call f(start, n) for runs of contiguous addresses, at most MAX_CHUNK long
+template <typename F>
+static void for_each_chunk(const std::map<int, uint8_t>& regs, F f) {
+  int start{-1}, n{0};
+  for (const auto& [addr, val] : regs) {
+    if (start >= 0 and addr == start + n and n < MAX_CHUNK) {
+      n++;
+      continue;
+    }
+    if (start >= 0) f(start, n);
+    start = addr;
+    n = 1;
+  }
+  if (start >= 0) f(start, n);
+}
+
+// read-modify-write like ECON::applyParameters, but with the ZS-aware map
+// and in transfers the lpGBT I2C master can do
+static void apply_with_zs(pflib::ECON& econ, const Settings& settings) {
+  auto compiler = pflib::Compiler::get("econd::with_zs");
+  auto touched = compiler.compile(settings);
+  std::map<int, std::map<int, uint8_t>> chip_reg;
+  for_each_chunk(touched[0], [&](int start, int n) {
+    auto vals = econ.getValues(start, n);
+    for (int i{0}; i < n; i++) chip_reg[0][start + i] = vals.at(i);
+  });
+  for (const auto& [page, vals] : settings) {
+    for (const auto& [name, val] : vals) {
+      compiler.compile(pflib::upper_cp(page), pflib::upper_cp(name), val,
+                       chip_reg);
+    }
+  }
+  for_each_chunk(chip_reg[0], [&](int start, int n) {
+    std::vector<uint8_t> vals;
+    for (int i{0}; i < n; i++) vals.push_back(chip_reg[0][start + i]);
+    econ.setValues(start, vals);
+  });
+}
 
 void set_zs_thresholds(Target* tgt) {
   auto& econ = tgt->econ(pftool::state.iecon);
@@ -16,11 +61,33 @@ void set_zs_thresholds(Target* tgt) {
     PFEXCEPTION_RAISE("BadEcon", "ECON " + std::to_string(pftool::state.iecon) +
                                      " is not an ECON-D");
   }
-  bool take_run = pftool::readline_bool(
-      "Take a pedestal run (otherwise use the calib file)? ", true);
+  auto source = pftool::readline("Pedestal source (RUN, CALIB) or YAML: ",
+                                 {"RUN", "CALIB", "YAML"}, "RUN");
+
+  Settings settings;
+  if (source == "YAML") {
+    auto fname = pftool::readline("ZS settings file: ");
+    YAML::Node node;
+    try {
+      node = YAML::LoadFile(fname);
+    } catch (const YAML::Exception& e) {
+      PFEXCEPTION_RAISE("BadFile", "Unable to load " + fname);
+    }
+    for (const auto& page : node) {
+      for (const auto& param : page.second) {
+        settings[page.first.as<std::string>()][param.first.as<std::string>()] =
+            param.second.as<uint64_t>();
+      }
+    }
+    apply_with_zs(econ, settings);
+    pflib_log(info) << "applied " << fname << " to ECON "
+                    << pftool::state.iecon;
+    return;
+  }
+
   int nevents{0};
   YAML::Node expected;
-  if (take_run) {
+  if (source == "RUN") {
     nevents = pftool::readline_int("Number of events: ", 100);
   } else {
     auto fname =
@@ -43,7 +110,7 @@ void set_zs_thresholds(Target* tgt) {
 
   // pedestal per (ROC, channel)
   std::map<int, std::vector<double>> ped;
-  if (take_run) {
+  if (source == "RUN") {
     econ.applyParameter("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", 1);
     tgt->setup_run(1, Target::DaqFormat::ECOND_SW_HEADERS, 1);
     DecodeAndBuffer buffer{static_cast<std::size_t>(nevents), tgt->nrocs() * 2};
@@ -71,9 +138,8 @@ void set_zs_thresholds(Target* tgt) {
   }
 
   // ZS page names use the physical eRx, slot 18 is the calib channel
-  const auto roc_half_to_erx = tgt->getHardwareRocErxMappingDAQ();
-  std::map<std::string, std::map<std::string, uint64_t>> params;
-  auto& zs = params["ZS"];
+  const auto& roc_half_to_erx = tgt->getHardwareRocErxMappingDAQ();
+  auto& zs = settings["ZS"];
   for (const auto& [i_roc, peds] : ped) {
     int c_min{255}, c_max{0};
     for (int half{0}; half < 2; half++) {
@@ -97,12 +163,11 @@ void set_zs_thresholds(Target* tgt) {
     pflib_log(info) << "ROC " << i_roc << ": c from " << c_min << " to "
                     << c_max;
   }
-  econ.applyParameters(params);
-  params["ROCDAQCTRL"]["GLOBAL_PASS_THRU_MODE"] = zs_on ? 0 : 1;
-  econ.applyParameter("ROCDAQCTRL", "GLOBAL_PASS_THRU_MODE", zs_on ? 0 : 1);
+  settings["ROCDAQCTRL"]["GLOBAL_PASS_THRU_MODE"] = zs_on ? 0 : 1;
+  apply_with_zs(econ, settings);
 
   YAML::Node node;
-  for (const auto& [page, vals] : params) {
+  for (const auto& [page, vals] : settings) {
     for (const auto& [name, val] : vals) node[page][name] = val;
   }
   std::ofstream f{out};
