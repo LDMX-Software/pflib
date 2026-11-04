@@ -1,4 +1,4 @@
-# CHANNEL_OFF on ROC0/ROC2 ch 0-12, 36-48 (not wired to bars, light up with HV on); ends at the top menu
+# CHANNEL_OFF on ROC0/2 ch 0-12, 36-48 (not on bars)
 ROC
 IROC
 0

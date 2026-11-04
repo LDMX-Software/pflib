@@ -1,7 +1,4 @@
-# HCal trigger front end after pfinit + roc-apply-calib + align-hcal (HcalBackplane target):
-# ECON-T config + RUNMODE on both, ECON-T 1 eRx 0-3 off (no ROC1), ECON-T to TRIG lpGBT bit
-# alignment, serializers 4 (eTx0 BX header at [31:28]), ROC to ECON-T PHASE_WORD_ALIGN,
-# trigger Adc_pedestal per ROC, Adc_TH 4, ECON-T status. Ends at the top menu, so it chains:
+# HCal trigger front end after align-hcal; ends at the top menu
 # ./build/pftool -s scripts/esa26/econt-bringup.pfl -s scripts/esa26/off-unmapped.pfl config/pftool/hcal-backplane-esa.yaml < /dev/null
 ECON
 IECON

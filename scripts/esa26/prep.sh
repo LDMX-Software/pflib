@@ -1,10 +1,8 @@
 #!/bin/bash
-# ESA26 run prep, after Prestart and before OpenFile: L1OFFSET (HCal 63, ECal 65), 5 samples SoI 2,
-# central L1As to AXIS on L2, L3, HCal (L2 first: the others start with DAQ RESET), then clear both
-# formatters of any RoR left from Prestart. FW = ldmx-firmware checkout with formatter_reset.py.
+# run prep after Prestart: L1OFFSET, 5 samples, central L1As, formatter reset
 cd "$(dirname "$0")/../.."
 source /u1/ldmx/miniforge3/etc/profile.d/conda.sh && conda activate ldmx-env-base
-# normal drive + pull-ups until 24 is the pflib default
+# until 24 is the pflib default
 export PFLIB_LPGBT_I2C_CFG=${PFLIB_LPGBT_I2C_CFG:-24}
 FW=${FW:-/u1/tamasvami/hcaltrig/ldmx-firmware}
 L=logs-$(date +%Y%m%d)/prep-$(date +%H%M%S); mkdir -p $L

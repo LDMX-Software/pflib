@@ -1,14 +1,12 @@
 #!/bin/bash
-# ZS on for a central run, lambda = kappa = 0 (before Prestart; pftool after the prep would stop central L1As):
-# ECal L2/L3 c = calib pedestal + TE (task CALIB source); HCal c = pass-through pedestal + TH (task YAML
-# source; its RUN source decodes garbage on the HCal). Outputs and 1000-event checks in OUT.
-# TE=5 TH=10 OUT=zs-$(date +%Y%m%d) [ONLY=ecal|hcal] scripts/esa26/zs-on.sh
+# ZS before the run: ECal calib ped + TE, HCal pass-through ped + TH
+# TE=5 TH=10 OUT=dir [ONLY=ecal|hcal] scripts/esa26/zs-on.sh
 cd "$(dirname "$0")/../.."
 source /u1/ldmx/miniforge3/etc/profile.d/conda.sh && conda activate ldmx-env-base
 export PFLIB_LPGBT_I2C_CFG=${PFLIB_LPGBT_I2C_CFG:-24}
 TE=${TE:-5}; TH=${TH:-10}; R=$(realpath -m ${OUT:-zs-$(date +%Y%m%d)}); mkdir -p $R
 C=config/pftool
-# DAQ part: 1-sample internal pedestal run into $R/$1.csv
+# pedestal run into $R/$1.csv
 ped() { printf "DAQ\nRESET\nSETUP\nFORMAT\nCONFIG\n\n\n\n\nDISABLE\nENABLE\nN\nN\nEXIT\nPEDESTAL\n$2\n\n$R/$1\nY\nSTATUS\nSETUP\nDISABLE\nEXIT\nEXIT\n"; }
 kept() { python3 -c "
 import csv; r=[x for x in csv.DictReader(open('$R/$1.csv')) if x['channel'].isdigit()]; print(round(sum(int(x['adc'])>0 for x in r)/$2,3))"; }
@@ -17,7 +15,7 @@ one() {  # name config zs-answers nevents
   ./build/pftool -s $R/$1.pfl $2 < /dev/null > $R/$1.log 2>&1; local rc=$?
   echo "$1: rc $rc NoACK $(grep -c I2CErrorNoACK $R/$1.log) err $(grep -c "\] error" $R/$1.log) | $(grep -o "ROC [0-9]: c from [0-9]* to [0-9]*" $R/$1.log | tr "\n" " ")| $(grep -o "pass-through [01]\|applied" $R/$1.log) | kept per event $(kept $1 $4)"
 }
-# SET_ZS_THRESHOLDS answers: source, calib file (empty = target's), T, lambda, kappa, apply, output yaml
+# answers: source, calib, T, lambda, kappa, apply, output
 [ "$ONLY" = hcal ] || one zs-l2 $C/ecal-smm-esa-l2-100v.yaml "CALIB\n\n$TE\n0\n0\nY\n$R/zs-l2.yaml" 1000
 [ "$ONLY" = hcal ] || one zs-l3 $C/l3-roc023-ecal-smm-esa-100v.yaml "CALIB\n\n$TE\n0\n0\nY\n$R/zs-l3.yaml" 1000
 [ "$ONLY" = ecal ] || one hcal-pt $C/hcal-backplane-esa.yaml "YAML\nconfig/esa26/hcal-zs-defaults.yaml" 1000

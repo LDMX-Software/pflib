@@ -1,4 +1,4 @@
-# run prep after Prestart: readout timing L1OFFSET, 5 samples SoI 2, central L1As to AXIS
+# run prep: L1OFFSET, 5 samples, central L1As
 ROC
 LOAD
 config/esa26/l1off-63.yaml

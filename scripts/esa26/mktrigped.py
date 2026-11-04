@@ -1,5 +1,5 @@
-# Per-ROC yaml: trigger-path Adc_pedestal = HV-on DAQ pedestal median (+offset)
-# python3 mktrigped.py ped-summary.csv [offset] [outdir]  (csv columns roc, ch, median)
+# trigger Adc_pedestal per ROC = HV-on DAQ pedestal median
+# python3 mktrigped.py summary.csv [offset] [outdir]
 import csv, os, sys
 src = sys.argv[1] if len(sys.argv) > 1 else 'ped-hvon-summary.csv'
 off = int(sys.argv[2]) if len(sys.argv) > 2 else 0
