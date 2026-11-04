@@ -1,0 +1,15 @@
+# CHANNEL_OFF on ROC0/ROC2 ch 0-12, 36-48 (not wired to bars, light up with HV on); ends at the top menu
+ROC
+IROC
+0
+LOAD
+config/esa26/off-unmapped.yaml
+N
+N
+IROC
+2
+LOAD
+config/esa26/off-unmapped.yaml
+N
+N
+EXIT

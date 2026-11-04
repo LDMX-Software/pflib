@@ -1,0 +1,4 @@
+# fast-control link reset to the ECON-Ts (APx TRIG word alignment, after HcalTrig.py align)
+DAQ
+LINK_ECON
+EXIT

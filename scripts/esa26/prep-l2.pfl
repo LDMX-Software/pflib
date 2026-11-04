@@ -1,0 +1,29 @@
+# run prep after Prestart: readout timing L1OFFSET, 5 samples SoI 2, central L1As to AXIS
+ROC
+LOAD
+config/esa26/l1off-65.yaml
+# chip defaults first?
+N
+# all ROCs?
+Y
+EXIT
+DAQ
+SETUP
+CONFIG
+# contributor id
+
+# ECON ID
+2
+# samples per ROR
+5
+# sample of interest
+2
+DISABLE
+ENABLE
+# external/central L1A?
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT
