@@ -1,5 +1,7 @@
 #include "pflib/ROC.h"
 
+#include <cstdlib>
+#include <unistd.h>
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
@@ -40,7 +42,11 @@ ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
 const std::string& ROC::type() const { return type_version_; }
 
 /// maximum number of times to attempt I2C transaction
-static const int MAX_TRIES = 5;
+/// (PFLIB_ROC_I2C_TRIES overrides the default 5)
+static const int MAX_TRIES = [] {
+  const char* env = std::getenv("PFLIB_ROC_I2C_TRIES");
+  return env ? std::stoi(env) : 5;
+}();
 
 /**
  * The limit on the number of bytes included in any single
@@ -106,6 +112,7 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
         done = true;
       } catch (const pflib::Exception& e) {
         i_try++;
+        usleep(1000 * i_try);
         pflib_log(warn) << "I2C attempt " << i_try << " reading page " << ipage
                         << " failed with [" << e.name() << "]: " << e.message();
       }
@@ -156,6 +163,7 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
         done = true;
       } catch (const pflib::Exception& e) {
         i_try++;
+        usleep(1000 * i_try);
         pflib_log(warn) << "I2C attempt " << i_try << " writing page " << ipage
                         << " failed with [" << e.name() << "]: " << e.message();
       }
