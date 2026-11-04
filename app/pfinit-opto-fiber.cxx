@@ -144,16 +144,28 @@ int main(int argc, char* argv[]) try {
 
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
-    printf("   %s [-h | --help] config.yaml\n\n", argv[0]);
+    printf("   %s [-h | --help] [-w | --wait N] config.yaml...\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf("  -h|--help : print this help and exit\n");
+    printf("  -w|--wait : wait N s for the re-power instead of asking\n");
     printf("\n");
     return 1;
   }
 
-  std::vector<LpGBTPair> targets(argc - 1);
+  int wait_s{-1};
+  std::vector<std::string> configs;
   for (int i = 1; i < argc; i++) {
-    targets[i - 1].from_yaml(argv[i]);
+    std::string arg{argv[i]};
+    if ((arg == "-w" or arg == "--wait") and i + 1 < argc) {
+      wait_s = std::stoi(argv[++i]);
+    } else {
+      configs.push_back(arg);
+    }
+  }
+
+  std::vector<LpGBTPair> targets(configs.size());
+  for (std::size_t i = 0; i < configs.size(); i++) {
+    targets[i].from_yaml(configs[i]);
   }
 
   for (const auto& tgt : targets) {
@@ -181,7 +193,10 @@ int main(int argc, char* argv[]) try {
   }
 
   // wait for power
-  if (not pflib::menu::BaseMenu::readline_bool(
+  if (wait_s >= 0) {
+    pflib_log(info) << "waiting " << wait_s << " s to re-power the front-end";
+    sleep(wait_s);
+  } else if (not pflib::menu::BaseMenu::readline_bool(
           "Waiting to re-power/re-connect the front-end ('n' to exit)...",
           true)) {
     pflib_log(debug) << "leaving";
