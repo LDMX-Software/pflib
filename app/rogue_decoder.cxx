@@ -34,6 +34,7 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
   int contrib_id_{0};
   int only_econd_{-1};
   bool with_cm_{false};
+  bool kept_only_{false};
   std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping_;
   pflib::packing::MultiSampleECONDEventPacket ep_;
 
@@ -41,11 +42,13 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
   CaloCSVWriter(
       const std::string& filepath, int nlinks, int contrib_id,
       int only_econd = -1, bool with_cm = false,
-      std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping = {})
+      std::unique_ptr<pflib::packing::SingleECONDRocErxMapping> mapping = {},
+      bool kept_only = false)
       : output_{filepath},
         contrib_id_{contrib_id},
         only_econd_{only_econd},
         with_cm_{with_cm},
+        kept_only_{kept_only},
         mapping_{std::move(mapping)},
         ep_{nlinks} {
     if (not output_) {
@@ -106,7 +109,35 @@ class CaloCSVWriter : public rogue::interfaces::stream::Slave {
     }
 
     ep_.from(words, true, only_econd_);
-    ep_.to_csv(output_, mapping_.get(), with_cm_);
+    if (kept_only_) {
+      write_kept();
+    } else {
+      ep_.to_csv(output_, mapping_.get(), with_cm_);
+    }
+  }
+
+  /// only channels the ECON-D kept (ZS runs): ADC or TOT above 0
+  void write_kept() {
+    for (std::size_t i_sample{0}; i_sample < ep_.samples.size(); i_sample++) {
+      const auto& links{ep_.samples[i_sample].links};
+      for (std::size_t i_link{0}; i_link < links.size(); i_link++) {
+        const auto& l{links[i_link]};
+        for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
+          const auto& c{l.channels[i_ch]};
+          if (c.adc() <= 0 and c.tot() <= 0) continue;
+          output_ << ep_.timestamp << ',' << l.orbit << ',' << l.bx << ','
+                  << l.event << ',' << i_sample << ',';
+          if (mapping_) {
+            auto [roc, ch] = mapping_->toROCChannel(i_link, i_ch);
+            output_ << roc << ',' << ch << ',';
+          } else {
+            output_ << i_link << ',' << i_ch << ',';
+          }
+          c.to_csv(output_);
+          output_ << '\n';
+        }
+      }
+    }
   }
 };
 
@@ -130,6 +161,8 @@ static void usage() {
          "  --rocs       : comma-separated active ROCs, mapped with the"
          " ECal module or HCal backplane eRx map (from -c); sets --n-links"
          " and writes i_roc and channel 0-71\n"
+         "  --kept       : only write channels with ADC or TOT above 0"
+         " (ZS runs)\n"
          "  --cm         : also write the common-mode words as channels"
          " cm0 and cm1\n"
       << std::endl;
@@ -153,6 +186,7 @@ int main(int argc, char* argv[]) {
   int contrib_id{0};
   int only_econd{-1};
   bool with_cm{false};
+  bool kept_only{false};
   std::vector<int> rocs;
   std::string in_file, out_file;
   for (int i_arg{1}; i_arg < argc; i_arg++) {
@@ -245,6 +279,8 @@ int main(int argc, char* argv[]) {
         }
       } else if (arg == "--cm") {
         with_cm = true;
+      } else if (arg == "--kept") {
+        kept_only = true;
       } else {
         pflib_log(fatal) << "Unrecognized option " << arg;
         return 1;
@@ -287,7 +323,8 @@ int main(int argc, char* argv[]) {
       n_links = 2 * rocs.size();
     }
     auto writer = std::make_shared<CaloCSVWriter>(
-        out_file, n_links, contrib_id, only_econd, with_cm, std::move(mapping));
+        out_file, n_links, contrib_id, only_econd, with_cm, std::move(mapping),
+        kept_only);
     reader->addSlave(writer);
 
     // run
