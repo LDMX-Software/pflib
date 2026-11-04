@@ -8,15 +8,12 @@ namespace lpgbt {
 
 I2C::I2C(lpGBT& lpGBT, int ibus) : lpgbt_{lpGBT}, ibus_{ibus} {
   // PFLIB_LPGBT_I2C_CFG bits: 1 SCL push-pull, 2 strong SCL, 4 strong SDA,
-  // 8 SCL pull-up, 16 SDA pull-up; unset keeps the setup_i2c defaults
+  // 8 SCL pull-up, 16 SDA pull-up; default 24 = normal drive + pull-ups
+  // (strong drive garbles ROC I2C on the ECal and HCal boards)
   const char* env = std::getenv("PFLIB_LPGBT_I2C_CFG");
+  int cfg = env ? std::stoi(env, nullptr, 0) : 24;
   // default speed to 100kHz
-  if (env) {
-    int cfg = std::stoi(env, nullptr, 0);
-    lpgbt_.setup_i2c(ibus_, 100, cfg & 1, cfg & 2, cfg & 4, cfg & 8, cfg & 16);
-  } else {
-    lpgbt_.setup_i2c(ibus_, 100);
-  }
+  lpgbt_.setup_i2c(ibus_, 100, cfg & 1, cfg & 2, cfg & 4, cfg & 8, cfg & 16);
 }
 
 void I2C::set_bus_speed(int speed) { lpgbt_.setup_i2c_speed(ibus_, speed); }

@@ -86,11 +86,9 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   // next, create the Hcal I2C objects
   auto econ_i2c = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_ECONS);
-  // ECON bus: normal drive as on the ROC bus, PFLIB_ECON_I2C_STRONG keeps
-  // strong
-  if (not std::getenv("PFLIB_LPGBT_I2C_CFG") and
-      not std::getenv("PFLIB_ECON_I2C_STRONG")) {
-    daq_lpgbt.setup_i2c(I2C_BUS_ECONS, 1000, false, false, false);
+  // ECON bus: normal drive from lpgbt::I2C, PFLIB_ECON_I2C_STRONG for strong
+  if (std::getenv("PFLIB_ECON_I2C_STRONG")) {
+    daq_lpgbt.setup_i2c(I2C_BUS_ECONS, 1000);
   }
   econ_i2c->set_bus_speed(1000);
   i2c_["ECON"] = econ_i2c;
@@ -100,11 +98,8 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   auto roc_i2c =
       std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
-  // the strong SCL/SDA drivers garble ROC addresses on the backplane (NoACKs,
-  // writes landing in other registers); normal strength is clean
-  if (not std::getenv("PFLIB_LPGBT_I2C_CFG")) {
-    daq_lpgbt.setup_i2c(I2C_BUS_HGCROCS, 1000, false, false, false);
-  }
+  // normal drive from lpgbt::I2C: the strong SCL/SDA drivers garble ROC
+  // addresses on the backplane (NoACKs, writes landing in other registers)
   roc_i2c->set_bus_speed(1000);
   for (int ibd = 0; ibd < 4; ibd++) {
     if ((hgcroc_boardmask & (1 << ibd)) == 0) continue;
