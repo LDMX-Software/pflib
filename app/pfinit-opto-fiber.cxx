@@ -197,8 +197,9 @@ int main(int argc, char* argv[]) try {
     pflib_log(info) << "waiting " << wait_s << " s to re-power the front-end";
     sleep(wait_s);
   } else if (not pflib::menu::BaseMenu::readline_bool(
-          "Waiting to re-power/re-connect the front-end ('n' to exit)...",
-          true)) {
+                 "Waiting to re-power/re-connect the front-end ('n' to "
+                 "exit)...",
+                 true)) {
     pflib_log(debug) << "leaving";
     return 0;
   }
