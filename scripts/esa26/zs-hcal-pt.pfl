@@ -1,0 +1,41 @@
+# HCal: pass-through, then a 1000-event pedestal run (hcal-pt.csv) for hcal_zs_yaml.py
+TASKS
+SET_ZS_THRESHOLDS
+YAML
+config/esa26/hcal-zs-defaults.yaml
+EXIT
+DAQ
+# clear events left over from earlier runs
+RESET
+SETUP
+FORMAT
+CONFIG
+# contributor id
+
+# ECON ID
+
+# samples per ROR
+
+# sample of interest
+
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+EXIT
+PEDESTAL
+# how many events?
+1000
+# readout rate (Hz)
+
+# filename
+hcal-pt
+# decode into CSV?
+Y
+STATUS
+SETUP
+DISABLE
+EXIT
+EXIT
