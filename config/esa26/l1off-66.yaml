@@ -1,0 +1,5 @@
+# run timing: ECal 66 (retimed 05-Nov evening, run 255 vs 271-273 moved 1 BX)
+DIGITALHALF_0:
+  L1OFFSET: 66
+DIGITALHALF_1:
+  L1OFFSET: 66
