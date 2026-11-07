@@ -80,7 +80,8 @@ class ROCAlignParams {
  * get the selected phase while there
  */
 std::pair<bool, std::map<int, int>> check_channel_phase_lock(
-    pflib::ECON& econ, std::vector<int> channels) {
+    pflib::ECON& econ, std::vector<int> channels,
+    bool report_unlocked = false) {
   // Check channel locks
   static const int CHEPRXGRP_RO[12] = {0x341, 0x345, 0x349, 0x34d,
                                        0x351, 0x355, 0x359, 0x35d,
@@ -98,6 +99,11 @@ std::pair<bool, std::map<int, int>> check_channel_phase_lock(
     pflib_log(debug) << "channel " << ch << std::boolalpha
                      << " locked = " << locked << " dll_locked = " << dll_locked
                      << " dll_state = " << dll_state << " phase = " << phase;
+    if (report_unlocked and not locked) {
+      pflib_log(warn) << "  channel " << ch
+                      << " not locked, dll_locked = " << dll_locked
+                      << " dll_state = " << dll_state;
+    }
   }
   return std::make_pair(all_locked, phases);
 }
@@ -127,7 +133,16 @@ bool align_phase(Target* tgt, pflib::ECON& econ, std::vector<int> channels) {
   econ.applyParameters(parameters);
   usleep(100);
 
-  auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
+  // training can take longer than one check, poll for up to 1s
+  auto lock = check_channel_phase_lock(econ, channels);
+  for (int i_try{0}; i_try < 100 and not lock.first; i_try++) {
+    usleep(10000);
+    lock = check_channel_phase_lock(econ, channels);
+  }
+  if (not lock.first) {
+    lock = check_channel_phase_lock(econ, channels, true);
+  }
+  auto& [all_locked, phases] = lock;
 
   /**
    * manual says we should go into fixed phase mode (track_mode = 0)
@@ -202,6 +217,8 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   int start_val{1}, end_val{on_zcu ? 3540 : (64 * 40 - 1)};
 
   bool aligned{false};
+  // first BX each channel matched, for the failure summary
+  std::map<int, int> first_match_bx;
   for (int snapshot_bx{start_val}; snapshot_bx < end_val; snapshot_bx++) {
     econ.setValue(ALIGNER_ORBSYN_CNT_SNAPSHOT, snapshot_bx, 2);
 
@@ -235,6 +252,10 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
         }
       }
 
+      if (ch_pm == 1 and first_match_bx.count(channel) == 0) {
+        first_match_bx[channel] = snapshot_bx;
+      }
+
       if (should_continue or (ch_pm != 1)) {
         // this channel has not found the header so we should continue searching
         should_continue = true;
@@ -243,7 +264,10 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
       pflib_log(debug) << "channel " << channel << " match: " << std::boolalpha
                        << (ch_pm == 1) << " : 0x" << std::hex << snapshot
                        << std::dec;
-      if (ch_pm == 1) {
+      if (ch_pm == 1 and select < 32) {
+        // negative shift would throw
+        pflib_log(debug) << " select = " << int(select) << " < 32";
+      } else if (ch_pm == 1) {
         auto shifted((snapshot >> (select - 32)) & 0xffffffffull);
         pflib_log(debug) << " select = " << int(select) << " shifted: 0x"
                          << std::hex << shifted << std::dec
@@ -258,12 +282,23 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
       auto [all_locked, phases] = check_channel_phase_lock(econ, channels);
       pflib_log(info) << "all channels have phase lock (still): "
                       << std::boolalpha << all_locked;
+      // freeze, link resets for other ECONs on this FC would re-snapshot
+      econ.applyParameters({{"ALIGNER", {{"GLOBAL_SNAPSHOT_EN", 0}}}});
       break;
     }
   }
   // -------------- END SNAPSHOT BX SCAN ------------ //
   if (not aligned) {
     pflib_log(warn) << "failed to find header pattern in any BX checked";
+    for (int channel : channels) {
+      auto it = first_match_bx.find(channel);
+      if (it == first_match_bx.end()) {
+        pflib_log(warn) << "  channel " << channel << ": never matched";
+      } else {
+        pflib_log(info) << "  channel " << channel << ": first matched on bx "
+                        << it->second;
+      }
+    }
   }
 }
 

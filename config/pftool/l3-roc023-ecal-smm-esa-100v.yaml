@@ -1,0 +1,6 @@
+target:
+  type: "EcalSMMBittware"
+  ilink: 3
+  dev: "/dev/datadev_1"
+  rocmask: 0x0d # ROC0, ROC2, ROC3 only; ROC1, 4, 5 lose P1V5A_DW since the 29-Oct reassembly
+calib: config/calib/ecal-smm-esa-l3/2026-11-03-100V-roc023.yaml

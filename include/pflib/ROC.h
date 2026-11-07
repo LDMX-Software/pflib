@@ -97,6 +97,16 @@ class ROC {
   void loadParameters(const std::string& file_path, bool prepend_defaults);
 
   /**
+   * Apply the parameters in a YAML node on top of the values on the chip
+   *
+   * The node is parsed like a YAML settings file (page name -> parameter
+   * name -> value, case insensitive, wildcards allowed).
+   *
+   * @param[in] params YAML map of pages to parameters
+   */
+  void loadParameters(const YAML::Node& params);
+
+  /**
    * Short-hand for applying a single parameter
    *
    * We construct a small std::map and use the applyParameters function above.
@@ -155,6 +165,8 @@ class ROC {
   TempParameters<ROC>::Builder testParameters();
 
  private:
+  /// set the register pointer (R0, R1) and read it back until it matches
+  void setPointer(uint16_t addr);
   std::shared_ptr<I2C> i2c_;
   uint8_t roc_base_;
   std::string type_version_;

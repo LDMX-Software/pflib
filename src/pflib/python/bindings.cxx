@@ -7,6 +7,8 @@
 
 #include "logging.h"
 #include "packing.h"
+#include "pflib/Exception.h"
+#include "pflib/TRIG.h"
 #include "pflib/Target.h"
 #include "version.h"
 
@@ -26,43 +28,73 @@
  * we can connect `pyrogue.LocalVariable` to specific setters/getters
  * here in order to ease passage of configuration between rogue and us.
  */
+namespace {
+
+/// value of key in the Python dict, or the default if it is missing
+template <typename T>
+T get(const bp::dict& config, const char* key, T def) {
+  if (not config.has_key(key)) return def;
+  return bp::extract<T>(config[key]);
+}
+
+}  // namespace
+
 class PyTarget {
   /// our handle to the pflib::Target
   std::shared_ptr<pflib::Target> tgt_;
+  /// readout setup applied at configure, -1 (samples 0) keeps the card value
+  int econ_id_, samples_, soi_;
+  bool external_, axis_;
 
  public:
-  /// construct a PyTarget given some arbitrary Python dict of parameters
+  /// construct a PyTarget given a Python dict of parameters
   PyTarget(bp::dict config) {
-    // where we std::make_shared a dervied type of pflib::Target
-    // depending on the setup
-    std::cout << "creating { ";
-    for (auto it = bp::stl_input_iterator<bp::tuple>(config.items());
-         it != bp::stl_input_iterator<bp::tuple>(); it++) {
-      bp::tuple kv = *it;
-      auto key = bp::extract<const char*>(bp::str(kv[0]));
-      auto val = bp::extract<const char*>(bp::str(kv[1]));
-      std::cout << key << ": " << val << ", ";
-    }
-    std::cout << "}" << std::endl;
+    auto target = get<std::string>(config, "target", "hcal-zcu");
+    auto dev = get<std::string>(config, "dev", "/dev/datadev_0");
+    int ilink = get<int>(config, "ilink", 0);
+    int mask =
+        get<int>(config, "rocmask", target == "ecal-bittware" ? 0x3f : 0xf);
+    econ_id_ = get<int>(config, "econ_id", -1);
+    samples_ = get<int>(config, "samples", 0);
+    soi_ = get<int>(config, "soi", -1);
+    external_ = get<bool>(config, "external", true);
+    axis_ = get<bool>(config, "axis", true);
 
-    tgt_.reset(
-        pflib::makeTargetHcalBackplaneZCU(0 /*ilink*/, 0xf /*boardmask*/));
+    if (target == "ecal-bittware") {
+      tgt_.reset(pflib::makeTargetEcalSMMBittware(ilink, mask, dev.c_str()));
+    } else if (target == "hcal-bittware") {
+      tgt_.reset(
+          pflib::makeTargetHcalBackplaneBittware(ilink, mask, dev.c_str()));
+    } else if (target == "hcal-zcu") {
+      tgt_.reset(pflib::makeTargetHcalBackplaneZCU(ilink, mask));
+    } else {
+      PFEXCEPTION_RAISE("BadTarget", "Unknown target '" + target + "'");
+    }
   }
+  /// readout setup of the capture slot and fast control, then take central
+  /// L1As into it (pftool DAQ CONFIG and ENABLE); done here, not in pre_start,
+  /// so the run-start ECR/EBR sent before the subsystems' Prestart get through
   void configure() {
-    // apply configuration stuff
-    std::cout << "configure" << std::endl;
+    auto& daq = tgt_->daq();
+    // unset: keep what pftool left on the card
+    int samples = samples_ > 0 ? samples_ : daq.samples_per_ror();
+    int soi = soi_ >= 0 ? soi_ : daq.soi();
+    int econ_id = econ_id_ >= 0 ? econ_id_ : daq.econid();
+    daq.setup(econ_id, samples, soi);
+    if (tgt_->trig()) tgt_->trig()->set_l1a_per_ror(samples);
+    tgt_->fc().setL1AperROR(samples);
+    daq.enable(true);
+    tgt_->fc().fc_enables(true, external_);
+    daq.AXIS_enable(axis_);
   }
-  void trigger_align() { std::cout << "trigger_align" << std::endl; }
-  void ror_latency() { std::cout << "ror_latency" << std::endl; }
-  void pre_start() {
-    // prepare to collect data
-    std::cout << "start_run" << std::endl;
-    tgt_->setup_run(1 /*run*/, pflib::Target::DaqFormat::ECOND_SW_HEADERS,
-                    42 /* contrib_id */);
-  }
-  void go() { std::cout << "go" << std::endl; }
-  void stop() { std::cout << "stop" << std::endl; }
-  void reset() { std::cout << "reset" << std::endl; }
+  void trigger_align() {}
+  void ror_latency() {}
+  /// clear the capture slot (pftool DAQ RESET); setup_run is not used, its
+  /// RUN_CLEAR upsets the front ends
+  void pre_start() { tgt_->daq().reset(); }
+  void go() {}
+  void stop() {}
+  void reset() {}
   /// should not use in actual DAQ
   std::vector<uint32_t> grab_pedestals() {
     tgt_->fc().sendL1A();
@@ -82,6 +114,18 @@ static const char* PyTarget__init____doc__ = R"DOC(construct a pflib::Target
 
 Given a dictionary of configuration parameters, construct a C++ pflib::Target
 and await further run commands.
+
+Parameters (all optional):
+  target   "ecal-bittware", "hcal-bittware" or "hcal-zcu" (default)
+  dev      PCIe device of a Bittware target (default "/dev/datadev_0")
+  ilink    optical link, also the capture slot (default 0)
+  rocmask  ROC (ECal) or board (HCal) mask (default 0x3f / 0xf)
+  econ_id  ECON ID label of the capture slot (default: keep the card's)
+  samples  samples (L1As) per readout request (default: keep the card's,
+           e.g. set with pftool DAQ SETUP)
+  soi      sample of interest (default: keep the card's)
+  external take L1As from the central readout requests (default True)
+  axis     read out through AXIS/DMA (default True)
 )DOC";
 
 static const char* PyTarget_grab_pedestals__doc__ =

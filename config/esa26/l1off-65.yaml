@@ -1,0 +1,5 @@
+# run timing: HCal 63, ECal 65 (runs 234-254)
+DIGITALHALF_0:
+  L1OFFSET: 65
+DIGITALHALF_1:
+  L1OFFSET: 65

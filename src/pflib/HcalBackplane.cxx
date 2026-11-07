@@ -1,5 +1,7 @@
 #include "pflib/HcalBackplane.h"
 
+#include <cstdlib>
+
 #include "pflib/lpgbt/I2C.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 #include "pflib/utility/string_format.h"
@@ -84,6 +86,10 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   // next, create the Hcal I2C objects
   auto econ_i2c = std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_ECONS);
+  // ECON bus: normal drive from lpgbt::I2C, PFLIB_ECON_I2C_STRONG for strong
+  if (std::getenv("PFLIB_ECON_I2C_STRONG")) {
+    daq_lpgbt.setup_i2c(I2C_BUS_ECONS, 1000);
+  }
   econ_i2c->set_bus_speed(1000);
   i2c_["ECON"] = econ_i2c;
   econs_[0] = std::make_unique<ECON>(econ_i2c, (0x60 | 0), "econd");
@@ -92,6 +98,8 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   auto roc_i2c =
       std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
+  // normal drive from lpgbt::I2C: the strong SCL/SDA drivers garble ROC
+  // addresses on the backplane (NoACKs, writes landing in other registers)
   roc_i2c->set_bus_speed(1000);
   for (int ibd = 0; ibd < 4; ibd++) {
     if ((hgcroc_boardmask & (1 << ibd)) == 0) continue;

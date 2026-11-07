@@ -1,0 +1,7 @@
+# apply the standard ECal DAQ+TRIG lpGBT config without a link reset
+# (what pfinit does after re-power; TRIG timeout is caught here)
+# ./build/pflpgbt --bw <ilink> /dev/datadev_1 -s scripts/lpgbt-std-ecal.pfl < /dev/null
+GENERAL
+STANDARD_ECAL
+EXIT
+EXIT

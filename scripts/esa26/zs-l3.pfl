@@ -1,0 +1,53 @@
+# ECal L3 ZS: c = calibration pedestal + 5, lambda = kappa = 0, then a 1000-event check (zs-l3-check.csv)
+TASKS
+SET_ZS_THRESHOLDS
+# source
+CALIB
+# calibration file (empty = the target's)
+
+# threshold above pedestal T
+5
+# lambda
+0
+# kappa
+0
+# ZS on
+Y
+# output yaml
+zs-l3.yaml
+EXIT
+DAQ
+# clear events left over from earlier runs
+RESET
+SETUP
+FORMAT
+CONFIG
+# contributor id
+
+# ECON ID
+
+# samples per ROR
+
+# sample of interest
+
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+EXIT
+PEDESTAL
+# how many events?
+1000
+# readout rate (Hz)
+
+# filename
+zs-l3-check
+# decode into CSV?
+Y
+STATUS
+SETUP
+DISABLE
+EXIT
+EXIT

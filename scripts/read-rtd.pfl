@@ -1,0 +1,8 @@
+# module RTD temperature via lpGBT current DAC (run where lpgbt_calibration.csv or calibration_results.yaml is)
+TASKS
+READ_RTD
+DAQ
+5
+1000
+EXIT
+EXIT

@@ -1,0 +1,6 @@
+# resync: EBR + OCR + ECR to all front ends
+EXPERT
+FAST_CONTROL
+RUN_CLEAR
+EXIT
+EXIT

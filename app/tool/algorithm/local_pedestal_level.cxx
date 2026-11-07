@@ -87,6 +87,9 @@ local_pedestal_level(Target* tgt) {
   // include all zero parmeter run values since hcal used DACB and SIGN_DAC
   std::map<int, std::array<int, 72>> allzero;
 
+  // ECal channels freeze (constant ADC) for TRIM_INV above about 50
+  const int trim_inv_max = pftool::state.readout_config_is_hcal() ? 63 : 48;
+
   DecodeAndBuffer buffer{n_events, tgt->nrocs() * 2};
 
   {  // baseline run scope
@@ -165,9 +168,9 @@ local_pedestal_level(Target* tgt) {
       if (pftool::state.readout_config_is_hcal()) {
         parameters[ch_str]["SIGN_DAC"] = 0;
         parameters[ch_str]["DACB"] = 0;
-        parameters[ch_str]["TRIM_INV"] = 63;
+        parameters[ch_str]["TRIM_INV"] = trim_inv_max;
       } else {
-        parameters[ch_str]["TRIM_INV"] = 63;
+        parameters[ch_str]["TRIM_INV"] = trim_inv_max;
       }
     }
     auto test_params = tgt->tempApplyAllROCs(parameters);
@@ -236,11 +239,11 @@ local_pedestal_level(Target* tgt) {
                           << " is so far below target that we cannot increase "
                              "TRIM_INV enough."
                           << " Setting TRIM_INV to its maximum.";
-          settings[i_roc][page]["TRIM_INV"] = 63;
+          settings[i_roc][page]["TRIM_INV"] = trim_inv_max;
           continue;
         }
         // scale is in [0,1]
-        double optim = 32 + (scale * 31);
+        double optim = 32 + (scale * (trim_inv_max - 32));
         uint64_t val = static_cast<uint64_t>(optim);
         pflib_log(trace) << "Scale " << scale << " giving optimal value of "
                          << optim << " which rounds to " << val;

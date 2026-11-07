@@ -1,0 +1,8 @@
+# load the target calibration set (calib: in the target yaml), replaces
+# scripts/roc-config-ecal.pfl + scripts/level-pedestals.pfl:
+# ./build/pftool -s scripts/roc-hardreset.pfl -s scripts/roc-apply-calib.pfl -s scripts/align-econd.pfl -s scripts/check-pedestal.pfl config/pftool/ecal-smm-esa-lN.yaml
+ROC
+APPLY_CALIB
+# calibration file, empty = calib: from the target yaml
+
+EXIT

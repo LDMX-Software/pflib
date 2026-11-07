@@ -263,13 +263,6 @@ class Compiler {
   std::map<int, std::map<int, uint8_t>> compile(const std::string& setting_file,
                                                 bool prepend_defaults = true);
 
- private:
-  /**
-   * Private constructor, only access Compiler instances from the
-   * static get method so that we can ensure they are properly configured.
-   */
-  Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut);
-
   /**
    * Extract a map of page_name, param_name to their values by crawling the YAML
    * tree.
@@ -286,6 +279,12 @@ class Compiler {
       std::map<std::string, std::map<std::string, uint64_t>>& settings);
 
  private:
+  /**
+   * Private constructor, only access Compiler instances from the
+   * static get method so that we can ensure they are properly configured.
+   */
+  Compiler(const ParameterLUT& parameter_lut, const PageLUT& page_lut);
+
   const ParameterLUT& parameter_lut_;
   const PageLUT& page_lut_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("compile")};

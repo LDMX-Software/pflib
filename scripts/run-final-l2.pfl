@@ -1,0 +1,16 @@
+# last step before a central run: DAQ RESET (drop leftover events in all
+# slots), then this slot on with central L1As and AXIS, in one session
+# so external L1As stay enabled
+DAQ
+RESET
+SETUP
+DISABLE
+ENABLE
+# external L1A?
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT
+EXIT

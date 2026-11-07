@@ -91,7 +91,10 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_scan(
       std::string refvol_page{
           pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
       buffer_parameters[i_roc][refvol_page]["INTCTEST"] = 1;
-      buffer_parameters[i_roc][refvol_page]["CHOICE_CINJ"] = 1;
+      // only the SiPM ROC has CHOICE_CINJ
+      if (pftool::state.readout_config_is_hcal()) {
+        buffer_parameters[i_roc][refvol_page]["CHOICE_CINJ"] = 1;
+      }
     }
     for (int ch{0}; ch < 72; ch++) {
       auto ch_page = pflib::utility::string_format("CH_%d", ch);
@@ -173,7 +176,9 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> toa_scan(
       std::string refvol_page{
           pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
       link_parameters[i_roc][refvol_page]["INTCTEST"] = 1;
-      link_parameters[i_roc][refvol_page]["CHOICE_CINJ"] = 1;
+      if (pftool::state.readout_config_is_hcal()) {
+        link_parameters[i_roc][refvol_page]["CHOICE_CINJ"] = 1;
+      }
       link_parameters[i_roc][refvol_page]["TOA_VREF"] =
           vref_targets[i_roc][i_link];
       link_parameters[i_roc][refvol_page]["CALIB"] = target_calib;

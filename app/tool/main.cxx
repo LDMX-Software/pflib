@@ -329,6 +329,10 @@ int main(int argc, char* argv[]) {
 
   auto target{configuration.get<pflib::Parameters>("target")};
 
+  if (configuration.exists("calib")) {
+    pftool::state.calib_file = configuration.get<std::string>("calib");
+  }
+
   if (not target.exists("type")) {
     std::cerr << "Need to define target's 'type'." << std::endl;
     return 4;

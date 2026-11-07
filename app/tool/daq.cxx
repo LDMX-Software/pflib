@@ -52,6 +52,13 @@ static void print_daq_status(Target* pft) {
  */
 static void daq_setup(const std::string& cmd, Target* pft) {
   pflib::DAQ& daq = pft->daq();
+  if (cmd == "DISABLE") {
+    // unlike ENABLE this never toggles on, safe at the start of scripts
+    bool l1aen, extl1a;
+    pft->fc().fc_enables_read(l1aen, extl1a);
+    pft->fc().fc_enables(false, extl1a);
+    daq.enable(false);
+  }
   if (cmd == "ENABLE") {
     bool l1aen, extl1a;
     pft->fc().fc_enables_read(l1aen, extl1a);
@@ -687,7 +694,8 @@ auto menu_daq =
         ->line("RESET", "Reset the DAQ", daq)
         ->line("LINK_ECON", "Reset ECON links", daq, NEED_FIBER)
         ->line("PEDESTAL", "Take a simple random pedestal run", daq)
-        ->line("CHARGE", "Take a charge-injection run", daq);
+        ->line("CHARGE", "Take a charge-injection run", daq)
+        ->line("LED", "Take an LED-flash run", daq);
 
 auto menu_daq_debug =
     menu_daq->submenu("DEBUG", "expert functions for debugging DAQ")
@@ -804,6 +812,7 @@ auto menu_daq_setup =
     menu_daq->submenu("SETUP", "setup the DAQ")
         ->line("STATUS", "Status of the DAQ", print_daq_status)
         ->line("ENABLE", "Toggle enable status", daq_setup)
+        ->line("DISABLE", "Disable the DAQ and L1As", daq_setup)
         ->line("L1APARAMS", "Setup parameters for L1A capture", daq_setup,
                ONLY_FIBERLESS)
         ->line("STANDARD", "Do the standard setup for HCAL", daq_setup_standard)

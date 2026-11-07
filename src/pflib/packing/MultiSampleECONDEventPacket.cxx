@@ -19,7 +19,8 @@ const std::string MultiSampleECONDEventPacket::to_csv_header_with_mapping =
     "toa";
 
 void MultiSampleECONDEventPacket::to_csv(
-    std::ofstream& f, const SingleECONDRocErxMapping* mapping) const {
+    std::ofstream& f, const SingleECONDRocErxMapping* mapping,
+    bool with_cm) const {
   /**
    * The columns of the output CSV are
    * ```
@@ -50,6 +51,22 @@ void MultiSampleECONDEventPacket::to_csv(
       }
       daq_link.calib.to_csv(f);
       f << '\n';
+      if (with_cm) {
+        // CM words only carry an ADC value
+        int cm[2] = {daq_link.adc_cm0, daq_link.adc_cm1};
+        for (int i_cm{0}; i_cm < 2; i_cm++) {
+          f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
+            << daq_link.event << ',' << i_sample << ',';
+          if (mapping == nullptr) {
+            f << i_link << ",cm" << i_cm << ',';
+          } else {
+            auto [roc, half] = mapping->toROCHalf(i_link);
+            f << roc << ",cm" << i_cm << '_' << half << ',';
+          }
+          // Tp, Tc as bools so they follow the stream's boolalpha like Sample
+          f << false << ',' << false << ",-1," << cm[i_cm] << ",-1,-1\n";
+        }
+      }
       for (std::size_t i_ch{0}; i_ch < 36; i_ch++) {
         f << timestamp << ',' << daq_link.orbit << ',' << daq_link.bx << ','
           << daq_link.event << ',' << i_sample << ',';
@@ -67,7 +84,8 @@ void MultiSampleECONDEventPacket::to_csv(
 }
 
 void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame,
-                                       bool expect_ldmx_ror_header) {
+                                       bool expect_ldmx_ror_header,
+                                       int only_econd) {
   samples.clear();
   contrib_id = 0;
   subsys_id = 0;
@@ -102,6 +120,11 @@ void MultiSampleECONDEventPacket::from(std::span<uint32_t> frame,
       pflib_log(trace) << "Last sample packet found, leaving loop at offset = "
                        << offset << " (frame.size() = " << frame.size() << ")";
       break;
+    }
+
+    if (only_econd >= 0 and header.econd_id != only_econd) {
+      offset += 1 + header.econd_len;
+      continue;
     }
 
     if (i_sample > 0 and econd_id != header.econd_id) {

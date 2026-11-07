@@ -1,0 +1,31 @@
+# compare a pedestal run with the calibration set expected_pedestal
+DAQ
+RESET
+SETUP
+FORMAT
+CONFIG
+
+
+
+
+DISABLE
+ENABLE
+N
+N
+EXIT
+EXIT
+TASKS
+CHECK_PEDESTAL
+# calibration file, empty = calib: from the target yaml
+
+# events
+100
+# flag channels off by more than (ADC)
+10
+EXIT
+DAQ
+SETUP
+DISABLE
+EXIT
+EXIT
+EXIT
