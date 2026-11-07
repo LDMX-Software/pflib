@@ -1,0 +1,30 @@
+# run prep: L1OFFSET, 5 samples, central L1As
+ROC
+LOAD
+config/esa26/l1off-66.yaml
+# chip defaults first?
+N
+# all ROCs?
+Y
+EXIT
+DAQ
+RESET
+SETUP
+CONFIG
+# contributor id
+
+# ECON ID
+1
+# samples per ROR
+5
+# sample of interest
+2
+DISABLE
+ENABLE
+# external/central L1A?
+Y
+# readout to AXIS?
+Y
+STATUS
+EXIT
+EXIT

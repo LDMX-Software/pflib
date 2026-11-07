@@ -1,0 +1,6 @@
+target:
+  type: "EcalSMMBittware"
+  ilink: 1
+  dev: "/dev/datadev_1"
+  rocmask: 0x1f # ROC0-4; ROC5 hangs the I2C bus at base LOAD (01-Nov)
+calib: config/calib/ecal-smm-esa-l1/2026-11-07-100V-roc01234.yaml

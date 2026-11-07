@@ -1,0 +1,50 @@
+# ECon-D alignment, L1 with ROC0-4 (ROC5 off): ./build/pftool -s scripts/align-econd-l1-no-roc5.pfl config/pftool/l1-no-roc5-ecal-smm-esa-100v.yaml
+# ECON run bit first so the PUSM has time to reach READY
+ECON
+LOAD
+config/econ/econd_ecal_smm_init_l1_no_roc5.yaml
+# fill unspecified values with manual defaults?
+N
+RUNMODE
+Y
+EXIT
+ROC
+RUNMODE_ALL
+EXIT
+DAQ
+SETUP
+STANDARD
+EXIT
+EXIT
+# expect PUSM State Val: 8 READY
+ECON
+STATUS
+EXIT
+# ROC -> ECON-D phase and word alignment
+TASKS
+SETUP
+PHASE_WORD_ALIGN
+# which ECON
+0
+# answers Continue? if phase lock fails, else harmless unknown command
+N
+# ECON-D -> lpGBT alignment
+ALIGN_ECON_LPGBT
+# which ECON
+0
+# check all phases?
+N
+# do bit alignment?
+Y
+# invert elink data?
+N
+# continue to word alignment?
+Y
+# idle pattern
+0x1277CC
+EXIT
+EXIT
+# expect ECON0.QUICKSPY = 0x1277CCxx
+DAQ
+STATUS
+EXIT
