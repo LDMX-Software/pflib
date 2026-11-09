@@ -1,5 +1,5 @@
 # HCal LED flash vs LED DAC, board 2, all ports, SiPM 3600, LED offset 24 (flash seen at 21 to 28), fixed phase
-# PFLIB_ROC_I2C_KHZ=400 ./build/pftool -s scripts/hcal-led-dac-scan.pfl config/pftool/hcal-backplane-esa.yaml
+# ./build/pftool -s scripts/hcal-led-dac-scan.pfl config/pftool/hcal-backplane-esa.yaml
 BIAS
 SET_SIPM
 2

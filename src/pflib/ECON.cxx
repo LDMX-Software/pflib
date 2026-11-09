@@ -2,7 +2,6 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -186,7 +185,6 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
 
   // perform write, then read back (a garbled I2C transfer can land elsewhere)
   i2c_->general_write_read(econ_base_, wbuf, values.size());
-  if (std::getenv("PFLIB_ECON_NO_READBACK")) return;
   for (int attempt = 0; attempt < 2; attempt++) {
     std::vector<uint8_t> back = getValues(reg_addr, values.size());
     if (back == values) return;

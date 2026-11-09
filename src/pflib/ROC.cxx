@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <yaml-cpp/yaml.h>
 
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
@@ -42,11 +41,7 @@ ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
 const std::string& ROC::type() const { return type_version_; }
 
 /// maximum number of times to attempt I2C transaction
-/// (PFLIB_ROC_I2C_TRIES overrides the default 5)
-static const int MAX_TRIES = [] {
-  const char* env = std::getenv("PFLIB_ROC_I2C_TRIES");
-  return env ? std::stoi(env) : 5;
-}();
+static const int MAX_TRIES = 20;
 
 /**
  * The limit on the number of bytes included in any single
