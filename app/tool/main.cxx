@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
         return 2;
       }
       i++;
-      std::fstream sFile(argv[i]);
+      std::ifstream sFile(argv[i]);
       if (!sFile.is_open()) {
         pflib_log(fatal) << "Unable to open script file " << argv[i];
         return 2;

@@ -973,7 +973,7 @@ int main(int argc, char* argv[]) {
         return 2;
       }
       i++;
-      std::fstream sFile(argv[i]);
+      std::ifstream sFile(argv[i]);
       if (!sFile.is_open()) {
         std::cerr << "Unable to open script file " << argv[i] << std::endl;
         return 2;
