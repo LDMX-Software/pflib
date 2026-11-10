@@ -84,15 +84,17 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   int n_bytes_left = len;
   std::vector<uint8_t> data;
   data.reserve(len);
+  bool pointer_ok{false};
   do {
     int n_read = (n_bytes_left < MAX_NBYTES) ? n_bytes_left : MAX_NBYTES;
     int i_try{0};
     bool done{false};
     do {
       try {
-        // point at this chunk on every attempt, the address auto-increments
+        // R3 auto-increments, after a good chunk the pointer is already here
+        // v3c HGCROCs fix the I2C instability, with only v3c drop setPointer
         uint16_t addr = page_base_addr + (len - n_bytes_left);
-        setPointer(addr);
+        if (not pointer_ok) setPointer(addr);
         auto chunk = i2c_->general_write_read(roc_base_ + 3, {}, n_read);
         // read twice, a corrupted transfer rarely repeats
         setPointer(addr);
@@ -105,7 +107,9 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
                          << " bytes: " << ByteVector(chunk);
         data.insert(data.end(), chunk.begin(), chunk.end());
         done = true;
+        pointer_ok = true;
       } catch (const pflib::Exception& e) {
+        pointer_ok = false;
         i_try++;
         usleep(1000 * i_try);
         pflib_log(warn) << "I2C attempt " << i_try << " reading page " << ipage
@@ -136,6 +140,7 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
   uint16_t page_base_addr = (ipage << 5);
 
   auto start_byte = vals.begin();
+  bool pointer_ok{false};
   do {
     int n_bytes_left = vals.end() - start_byte;
     int n_read = (n_bytes_left < MAX_NBYTES) ? n_bytes_left : MAX_NBYTES;
@@ -144,9 +149,10 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
     bool done{false};
     do {
       try {
-        // point at this chunk on every attempt, the address auto-increments
+        // R3 auto-increments, after a good chunk the pointer is already here
+        // v3c HGCROCs fix the I2C instability, with only v3c drop setPointer
         uint16_t addr = page_base_addr + (start_byte - vals.begin());
-        setPointer(addr);
+        if (not pointer_ok) setPointer(addr);
         i2c_->general_write_read(roc_base_ + 3, chunk, 0);
         // read back what landed
         setPointer(addr);
@@ -156,7 +162,9 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
                             "chunk read back differs from what was written");
         }
         done = true;
+        pointer_ok = true;
       } catch (const pflib::Exception& e) {
+        pointer_ok = false;
         i_try++;
         usleep(1000 * i_try);
         pflib_log(warn) << "I2C attempt " << i_try << " writing page " << ipage
