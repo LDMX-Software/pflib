@@ -92,6 +92,8 @@ void HcalBackplane::init(lpGBT& daq_lpgbt, lpGBT& trig_lpgbt,
 
   auto roc_i2c =
       std::make_shared<pflib::lpgbt::I2C>(daq_lpgbt, I2C_BUS_HGCROCS);
+  // normal drive from lpgbt::I2C: the strong SCL/SDA drivers garble ROC
+  // addresses on the backplane (NoACKs, writes landing in other registers)
   roc_i2c->set_bus_speed(1000);
   for (int ibd = 0; ibd < 4; ibd++) {
     if ((hgcroc_boardmask & (1 << ibd)) == 0) continue;

@@ -4,8 +4,9 @@ namespace pflib {
 namespace lpgbt {
 
 I2C::I2C(lpGBT& lpGBT, int ibus) : lpgbt_{lpGBT}, ibus_{ibus} {
-  // default speed to 100kHz
-  lpgbt_.setup_i2c(ibus_, 100);
+  // normal drive + pull-ups (strong drive garbles ROC I2C on the ECal and
+  // HCal boards), default speed to 100kHz
+  lpgbt_.setup_i2c(ibus_, 100, false, false, false, true, true);
 }
 
 void I2C::set_bus_speed(int speed) { lpgbt_.setup_i2c_speed(ibus_, speed); }

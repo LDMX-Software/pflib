@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/load_integer_csv.h"
@@ -182,8 +183,26 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
   wbuf.push_back(static_cast<uint8_t>(reg_addr & 0xFF));
   wbuf.insert(wbuf.end(), values.begin(), values.end());
 
-  // perform write
+  // perform write, then read back (a garbled I2C transfer can land elsewhere)
   i2c_->general_write_read(econ_base_, wbuf, values.size());
+  for (int attempt = 0; attempt < 2; attempt++) {
+    std::vector<uint8_t> back = getValues(reg_addr, values.size());
+    if (back == values) return;
+    std::ostringstream oss;
+    for (size_t i = 0; i < values.size(); ++i) {
+      if (back.size() > i and back[i] == values[i]) continue;
+      oss << std::hex << " [0x" << (reg_addr + int(i)) << "] wrote 0x"
+          << int(values[i]) << " read ";
+      if (back.size() > i) {
+        oss << "0x" << int(back[i]);
+      } else {
+        oss << "none";
+      }
+    }
+    pflib_log(warn) << "ECON readback mismatch (attempt " << attempt
+                    << "):" << oss.str();
+    if (attempt == 0) i2c_->general_write_read(econ_base_, wbuf, values.size());
+  }
 }
 
 void ECON::setRegisters(

@@ -1,0 +1,4 @@
+# hard reset all ROCs, clears earlier leveling settings
+ROC
+HARDRESET
+EXIT

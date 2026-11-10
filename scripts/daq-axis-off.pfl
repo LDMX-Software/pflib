@@ -1,0 +1,17 @@
+# AXIS off (card-wide), this layer's slot off, then DAQ RESET (all slots,
+# groupers, merger). Run once before scripts/../merger-sim/formatter_reset.py
+# ./build/pftool -s scripts/daq-axis-off.pfl config/pftool/ecal-smm-esa-l1.yaml
+DAQ
+SETUP
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+DISABLE
+STATUS
+EXIT
+RESET
+EXIT
+EXIT

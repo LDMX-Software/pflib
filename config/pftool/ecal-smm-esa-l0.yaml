@@ -1,4 +1,5 @@
 target:
   type: "EcalSMMBittware"
   ilink: 0
+  rocmask: 0x36 # ROC0 and ROC3 not present
   dev: "/dev/datadev_1"

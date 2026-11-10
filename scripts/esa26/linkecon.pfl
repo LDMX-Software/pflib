@@ -1,0 +1,4 @@
+# link reset to the ECON-Ts, after HcalTrig.py align
+DAQ
+LINK_ECON
+EXIT

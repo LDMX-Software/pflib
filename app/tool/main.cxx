@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
         return 2;
       }
       i++;
-      std::fstream sFile(argv[i]);
+      std::ifstream sFile(argv[i]);
       if (!sFile.is_open()) {
         pflib_log(fatal) << "Unable to open script file " << argv[i];
         return 2;
@@ -328,6 +328,10 @@ int main(int argc, char* argv[]) {
   }
 
   auto target{configuration.get<pflib::Parameters>("target")};
+
+  if (configuration.exists("calib")) {
+    pftool::state.calib_file = configuration.get<std::string>("calib");
+  }
 
   if (not target.exists("type")) {
     std::cerr << "Need to define target's 'type'." << std::endl;

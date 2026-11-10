@@ -56,6 +56,21 @@ void i2c_scan(int ibus, pflib::lpGBT& lpgbt) {
   printf("\n");
 }
 
+// one-line countdown while the front end powers up
+void wait_for_power_up(int seconds) {
+  const std::string label = "Waiting for the front end to power up";
+  for (int left = seconds; left > 0; left--) {
+    int done = seconds - left;
+    printf("\r  %s [%s%s] %2d s ", label.c_str(),
+           std::string(2 * done, '#').c_str(),
+           std::string(2 * left, '.').c_str(), left);
+    fflush(stdout);
+    sleep(1);
+  }
+  printf("\r  %s [%s] done\n", label.c_str(),
+         std::string(2 * seconds, '#').c_str());
+}
+
 struct LpGBTPair {
   mutable pflib::logging::logger the_log_{pflib::logging::get("LpGBTPair")};
   std::string name;
@@ -129,16 +144,28 @@ int main(int argc, char* argv[]) try {
 
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
-    printf("   %s [-h | --help] config.yaml\n\n", argv[0]);
+    printf("   %s [-h | --help] [-w | --wait N] config.yaml...\n\n", argv[0]);
     printf("OPTIONS:\n");
     printf("  -h|--help : print this help and exit\n");
+    printf("  -w|--wait : wait N s for the re-power instead of asking\n");
     printf("\n");
     return 1;
   }
 
-  std::vector<LpGBTPair> targets(argc - 1);
+  int wait_s{-1};
+  std::vector<std::string> configs;
   for (int i = 1; i < argc; i++) {
-    targets[i - 1].from_yaml(argv[i]);
+    std::string arg{argv[i]};
+    if ((arg == "-w" or arg == "--wait") and i + 1 < argc) {
+      wait_s = std::stoi(argv[++i]);
+    } else {
+      configs.push_back(arg);
+    }
+  }
+
+  std::vector<LpGBTPair> targets(configs.size());
+  for (std::size_t i = 0; i < configs.size(); i++) {
+    targets[i].from_yaml(configs[i]);
   }
 
   for (const auto& tgt : targets) {
@@ -166,14 +193,18 @@ int main(int argc, char* argv[]) try {
   }
 
   // wait for power
-  if (not pflib::menu::BaseMenu::readline_bool(
-          "Waiting to re-power/re-connect the front-end ('n' to exit)...",
-          true)) {
+  if (wait_s >= 0) {
+    pflib_log(info) << "waiting " << wait_s << " s to re-power the front-end";
+    sleep(wait_s);
+  } else if (not pflib::menu::BaseMenu::readline_bool(
+                 "Waiting to re-power/re-connect the front-end ('n' to "
+                 "exit)...",
+                 true)) {
     pflib_log(debug) << "leaving";
     return 0;
   }
 
-  usleep(1000);  // let links get aligned
+  wait_for_power_up(10);  // let the front end power up and links align
 
   any_fail = false;
   for (const auto& tgt : targets) {
@@ -200,8 +231,14 @@ int main(int argc, char* argv[]) try {
       pflib_log(info)
           << "applied standard HCAL DAQ configuration, pausing to be loaded...";
       sleep(2);
-      pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
-      pflib_log(info) << "applied standard HCAL TRIG configuration";
+      try {
+        pflib::lpgbt::standard_config::setup_hcal_trig(*tgt.lpgbt_ec);
+        pflib_log(info) << "applied standard HCAL TRIG configuration";
+      } catch (const pflib::Exception& e) {
+        // TRIG lpGBT is optional for DAQ, keep configuring the other targets
+        pflib_log(warn) << "HCAL TRIG lpGBT not configured on " << tgt.name
+                        << ": [" << e.name() << "] " << e.message();
+      }
     } else {
       pflib::lpgbt::standard_config::setup_ecal(
           *tgt.lpgbt_ic, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
@@ -209,10 +246,16 @@ int main(int argc, char* argv[]) try {
       pflib_log(info)
           << "applied standard ECAL DAQ configuration, pausing to be loaded...";
       sleep(2);
-      pflib::lpgbt::standard_config::setup_ecal(
-          *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
-                             TRIG_SingleModuleMotherboard);
-      pflib_log(info) << "applied standard ECAL TRIG configuration";
+      try {
+        pflib::lpgbt::standard_config::setup_ecal(
+            *tgt.lpgbt_ec, pflib::lpgbt::standard_config::ECAL_lpGBT_Config::
+                               TRIG_SingleModuleMotherboard);
+        pflib_log(info) << "applied standard ECAL TRIG configuration";
+      } catch (const pflib::Exception& e) {
+        // TRIG lpGBT is optional for DAQ, keep configuring the other targets
+        pflib_log(warn) << "ECAL TRIG lpGBT not configured on " << tgt.name
+                        << ": [" << e.name() << "] " << e.message();
+      }
     }
   }
 

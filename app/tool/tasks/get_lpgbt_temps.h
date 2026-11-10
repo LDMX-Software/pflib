@@ -50,3 +50,4 @@ inline bool yaml_has_chipid(const std::string& yaml_file, std::string& chipid) {
 }
 
 void get_lpgbt_temps(Target* tgt);
+void read_rtd(Target* tgt);

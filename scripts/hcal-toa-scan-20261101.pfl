@@ -1,0 +1,32 @@
+# HCal toa characterization with HV on: CHANNEL_WISE_CALIB_SCAN high range, all channels
+DAQ
+RESET
+SETUP
+FORMAT
+CONFIG
+
+
+
+
+DISABLE
+ENABLE
+N
+N
+EXIT
+EXIT
+TASKS
+CHANNEL_WISE_CALIB_SCAN
+# events, calib step, start BX, number of BX, channels, calib range
+10
+10
+-2
+1
+0
+71
+0
+251
+hcal-toatot-20261101/toa-roc0.csv
+hcal-toatot-20261101/toa-roc2.csv
+hcal-toatot-20261101/toa-roc3.csv
+EXIT
+EXIT

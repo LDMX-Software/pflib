@@ -1,0 +1,417 @@
+# calibration set, load with ROC APPLY_CALIB (written by ana/calib/make_calib.py)
+meta:
+  date: '2026-11-07'
+  pflib: e417da8
+  note: L1 (ilink 1), ROC0-4 (ROC5 off), 100 V three-layer lockstep, leveled 07-Nov; no TOA/TOT tuning
+  sources:
+  - /u1/tamasvami/l1-20261106/level/global_pedestal_level-roc-0-settings_20261107_121133.yaml
+  - /u1/tamasvami/l1-20261106/level/global_pedestal_level-roc-1-settings_20261107_121133.yaml
+  - /u1/tamasvami/l1-20261106/level/global_pedestal_level-roc-2-settings_20261107_121133.yaml
+  - /u1/tamasvami/l1-20261106/level/global_pedestal_level-roc-3-settings_20261107_121133.yaml
+  - /u1/tamasvami/l1-20261106/level/global_pedestal_level-roc-4-settings_20261107_121133.yaml
+  - /u1/tamasvami/l1-20261106/level/local_pedestal_level-roc-0-settings_20261107_121152.yaml
+  - /u1/tamasvami/l1-20261106/level/local_pedestal_level-roc-1-settings_20261107_121153.yaml
+  - /u1/tamasvami/l1-20261106/level/local_pedestal_level-roc-2-settings_20261107_121154.yaml
+  - /u1/tamasvami/l1-20261106/level/local_pedestal_level-roc-3-settings_20261107_121155.yaml
+  - /u1/tamasvami/l1-20261106/level/local_pedestal_level-roc-4-settings_20261107_121156.yaml
+  pedestal: /u1/tamasvami/l1-20261106/level/pedestal_20261107_121156.csv
+base: config/hgcroc/ecal-hdfull-cms-mmts.yaml
+fc:
+  calib_delay: 17
+roc0:
+  REFERENCEVOLTAGE_0: {INV_VREF: 309, NOINV_VREF: 250}
+  REFERENCEVOLTAGE_1: {INV_VREF: 314, NOINV_VREF: 230}
+  CH_0: {TRIM_INV: 24}
+  CH_1: {TRIM_INV: 13}
+  CH_2: {TRIM_INV: 31}
+  CH_3: {TRIM_INV: 14}
+  CH_4: {TRIM_INV: 30}
+  CH_5: {TRIM_INV: 25}
+  CH_6: {TRIM_INV: 26}
+  CH_7: {TRIM_INV: 48}
+  CH_8: {TRIM_INV: 40}
+  CH_9: {TRIM_INV: 35}
+  CH_10: {TRIM_INV: 47}
+  CH_11: {TRIM_INV: 10}
+  CH_12: {TRIM_INV: 8}
+  CH_13: {TRIM_INV: 38}
+  CH_14: {TRIM_INV: 48}
+  CH_15: {TRIM_INV: 48}
+  CH_16: {TRIM_INV: 48}
+  CH_17: {TRIM_INV: 28}
+  CH_18: {TRIM_INV: 17}
+  CH_19: {TRIM_INV: 27}
+  CH_20: {TRIM_INV: 39}
+  CH_21: {TRIM_INV: 37}
+  CH_22: {TRIM_INV: 48}
+  CH_23: {TRIM_INV: 1}
+  CH_24: {TRIM_INV: 3}
+  CH_25: {TRIM_INV: 17}
+  CH_26: {TRIM_INV: 48}
+  CH_27: {TRIM_INV: 36}
+  CH_28: {TRIM_INV: 22}
+  CH_29: {TRIM_INV: 16}
+  CH_30: {TRIM_INV: 48}
+  CH_31: {TRIM_INV: 38}
+  CH_32: {TRIM_INV: 48}
+  CH_33: {TRIM_INV: 48}
+  CH_34: {TRIM_INV: 39}
+  CH_35: {TRIM_INV: 32}
+  CH_36: {TRIM_INV: 48}
+  CH_37: {TRIM_INV: 41}
+  CH_38: {TRIM_INV: 0}
+  CH_39: {TRIM_INV: 29}
+  CH_40: {TRIM_INV: 1}
+  CH_41: {TRIM_INV: 26}
+  CH_42: {TRIM_INV: 40}
+  CH_43: {TRIM_INV: 23}
+  CH_44: {TRIM_INV: 5}
+  CH_45: {TRIM_INV: 36}
+  CH_46: {TRIM_INV: 40}
+  CH_47: {TRIM_INV: 21}
+  CH_48: {TRIM_INV: 48}
+  CH_49: {TRIM_INV: 48}
+  CH_50: {TRIM_INV: 48}
+  CH_51: {TRIM_INV: 48}
+  CH_52: {TRIM_INV: 48}
+  CH_53: {TRIM_INV: 14}
+  CH_54: {TRIM_INV: 4}
+  CH_55: {TRIM_INV: 36}
+  CH_56: {TRIM_INV: 19}
+  CH_57: {TRIM_INV: 28}
+  CH_58: {TRIM_INV: 40}
+  CH_59: {TRIM_INV: 48}
+  CH_60: {TRIM_INV: 7}
+  CH_61: {TRIM_INV: 10}
+  CH_62: {TRIM_INV: 14}
+  CH_63: {TRIM_INV: 5}
+  CH_64: {TRIM_INV: 48}
+  CH_65: {TRIM_INV: 32}
+  CH_66: {TRIM_INV: 48}
+  CH_67: {TRIM_INV: 35}
+  CH_68: {TRIM_INV: 48}
+  CH_69: {TRIM_INV: 16}
+  CH_70: {TRIM_INV: 34}
+  CH_71: {TRIM_INV: 25}
+roc1:
+  REFERENCEVOLTAGE_0: {INV_VREF: 361, NOINV_VREF: 250}
+  REFERENCEVOLTAGE_1: {INV_VREF: 365, NOINV_VREF: 250}
+  CH_0: {TRIM_INV: 27}
+  CH_1: {TRIM_INV: 19}
+  CH_2: {TRIM_INV: 44}
+  CH_3: {TRIM_INV: 23}
+  CH_4: {TRIM_INV: 18}
+  CH_5: {TRIM_INV: 27}
+  CH_6: {TRIM_INV: 9}
+  CH_7: {TRIM_INV: 32}
+  CH_8: {TRIM_INV: 28}
+  CH_9: {TRIM_INV: 34}
+  CH_10: {TRIM_INV: 35}
+  CH_11: {TRIM_INV: 32}
+  CH_12: {TRIM_INV: 16}
+  CH_13: {TRIM_INV: 33}
+  CH_14: {TRIM_INV: 26}
+  CH_15: {TRIM_INV: 30}
+  CH_16: {TRIM_INV: 37}
+  CH_17: {TRIM_INV: 37}
+  CH_18: {TRIM_INV: 32}
+  CH_19: {TRIM_INV: 26}
+  CH_20: {TRIM_INV: 46}
+  CH_21: {TRIM_INV: 44}
+  CH_22: {TRIM_INV: 27}
+  CH_23: {TRIM_INV: 15}
+  CH_24: {TRIM_INV: 24}
+  CH_25: {TRIM_INV: 31}
+  CH_26: {TRIM_INV: 46}
+  CH_27: {TRIM_INV: 40}
+  CH_28: {TRIM_INV: 48}
+  CH_29: {TRIM_INV: 25}
+  CH_30: {TRIM_INV: 40}
+  CH_31: {TRIM_INV: 34}
+  CH_32: {TRIM_INV: 48}
+  CH_33: {TRIM_INV: 23}
+  CH_34: {TRIM_INV: 41}
+  CH_35: {TRIM_INV: 32}
+  CH_36: {TRIM_INV: 29}
+  CH_37: {TRIM_INV: 31}
+  CH_38: {TRIM_INV: 36}
+  CH_39: {TRIM_INV: 12}
+  CH_40: {TRIM_INV: 41}
+  CH_41: {TRIM_INV: 26}
+  CH_42: {TRIM_INV: 15}
+  CH_43: {TRIM_INV: 27}
+  CH_44: {TRIM_INV: 48}
+  CH_45: {TRIM_INV: 26}
+  CH_46: {TRIM_INV: 31}
+  CH_47: {TRIM_INV: 21}
+  CH_48: {TRIM_INV: 13}
+  CH_49: {TRIM_INV: 32}
+  CH_50: {TRIM_INV: 40}
+  CH_51: {TRIM_INV: 26}
+  CH_52: {TRIM_INV: 25}
+  CH_53: {TRIM_INV: 32}
+  CH_54: {TRIM_INV: 38}
+  CH_55: {TRIM_INV: 47}
+  CH_56: {TRIM_INV: 44}
+  CH_57: {TRIM_INV: 21}
+  CH_58: {TRIM_INV: 38}
+  CH_59: {TRIM_INV: 33}
+  CH_60: {TRIM_INV: 37}
+  CH_61: {TRIM_INV: 34}
+  CH_62: {TRIM_INV: 12}
+  CH_63: {TRIM_INV: 18}
+  CH_64: {TRIM_INV: 32}
+  CH_65: {TRIM_INV: 25}
+  CH_66: {TRIM_INV: 35}
+  CH_67: {TRIM_INV: 34}
+  CH_68: {TRIM_INV: 21}
+  CH_69: {TRIM_INV: 40}
+  CH_70: {TRIM_INV: 35}
+  CH_71: {TRIM_INV: 44}
+roc2:
+  REFERENCEVOLTAGE_0: {INV_VREF: 307, NOINV_VREF: 250}
+  REFERENCEVOLTAGE_1: {INV_VREF: 317, NOINV_VREF: 250}
+  CH_1: {TRIM_INV: 48}
+  CH_2: {TRIM_INV: 48}
+  CH_3: {TRIM_INV: 27}
+  CH_4: {TRIM_INV: 35}
+  CH_5: {TRIM_INV: 19}
+  CH_6: {TRIM_INV: 26}
+  CH_8: {TRIM_INV: 12}
+  CH_9: {TRIM_INV: 0}
+  CH_10: {TRIM_INV: 48}
+  CH_11: {TRIM_INV: 48}
+  CH_12: {TRIM_INV: 20}
+  CH_13: {TRIM_INV: 48}
+  CH_14: {TRIM_INV: 32}
+  CH_15: {TRIM_INV: 9}
+  CH_16: {TRIM_INV: 37}
+  CH_18: {TRIM_INV: 34}
+  CH_19: {TRIM_INV: 46}
+  CH_20: {TRIM_INV: 48}
+  CH_21: {TRIM_INV: 45}
+  CH_22: {TRIM_INV: 13}
+  CH_23: {TRIM_INV: 40}
+  CH_24: {TRIM_INV: 48}
+  CH_25: {TRIM_INV: 39}
+  CH_26: {TRIM_INV: 25}
+  CH_27: {TRIM_INV: 34}
+  CH_28: {TRIM_INV: 29}
+  CH_29: {TRIM_INV: 15}
+  CH_30: {TRIM_INV: 1}
+  CH_31: {TRIM_INV: 35}
+  CH_32: {TRIM_INV: 36}
+  CH_33: {TRIM_INV: 46}
+  CH_35: {TRIM_INV: 29}
+  CH_36: {TRIM_INV: 28}
+  CH_37: {TRIM_INV: 44}
+  CH_38: {TRIM_INV: 48}
+  CH_39: {TRIM_INV: 33}
+  CH_40: {TRIM_INV: 43}
+  CH_41: {TRIM_INV: 48}
+  CH_42: {TRIM_INV: 0}
+  CH_43: {TRIM_INV: 24}
+  CH_44: {TRIM_INV: 25}
+  CH_45: {TRIM_INV: 19}
+  CH_46: {TRIM_INV: 47}
+  CH_47: {TRIM_INV: 21}
+  CH_48: {TRIM_INV: 37}
+  CH_49: {TRIM_INV: 23}
+  CH_50: {TRIM_INV: 48}
+  CH_51: {TRIM_INV: 48}
+  CH_52: {TRIM_INV: 33}
+  CH_53: {TRIM_INV: 0}
+  CH_54: {TRIM_INV: 31}
+  CH_55: {TRIM_INV: 41}
+  CH_56: {TRIM_INV: 24}
+  CH_57: {TRIM_INV: 48}
+  CH_58: {TRIM_INV: 48}
+  CH_59: {TRIM_INV: 48}
+  CH_60: {TRIM_INV: 48}
+  CH_61: {TRIM_INV: 35}
+  CH_62: {TRIM_INV: 24}
+  CH_63: {TRIM_INV: 47}
+  CH_64: {TRIM_INV: 32}
+  CH_65: {TRIM_INV: 28}
+  CH_66: {TRIM_INV: 14}
+  CH_67: {TRIM_INV: 26}
+  CH_68: {TRIM_INV: 38}
+  CH_69: {TRIM_INV: 15}
+  CH_70: {TRIM_INV: 19}
+  CH_71: {TRIM_INV: 15}
+roc3:
+  REFERENCEVOLTAGE_0: {INV_VREF: 296, NOINV_VREF: 250}
+  REFERENCEVOLTAGE_1: {INV_VREF: 326, NOINV_VREF: 230}
+  CH_0: {TRIM_INV: 16}
+  CH_1: {TRIM_INV: 22}
+  CH_2: {TRIM_INV: 22}
+  CH_3: {TRIM_INV: 48}
+  CH_4: {TRIM_INV: 39}
+  CH_5: {TRIM_INV: 16}
+  CH_6: {TRIM_INV: 48}
+  CH_7: {TRIM_INV: 19}
+  CH_8: {TRIM_INV: 6}
+  CH_9: {TRIM_INV: 37}
+  CH_10: {TRIM_INV: 14}
+  CH_11: {TRIM_INV: 41}
+  CH_12: {TRIM_INV: 32}
+  CH_13: {TRIM_INV: 16}
+  CH_14: {TRIM_INV: 36}
+  CH_15: {TRIM_INV: 23}
+  CH_16: {TRIM_INV: 48}
+  CH_17: {TRIM_INV: 17}
+  CH_18: {TRIM_INV: 34}
+  CH_19: {TRIM_INV: 25}
+  CH_20: {TRIM_INV: 38}
+  CH_21: {TRIM_INV: 35}
+  CH_22: {TRIM_INV: 16}
+  CH_23: {TRIM_INV: 37}
+  CH_24: {TRIM_INV: 15}
+  CH_25: {TRIM_INV: 37}
+  CH_26: {TRIM_INV: 40}
+  CH_27: {TRIM_INV: 36}
+  CH_28: {TRIM_INV: 45}
+  CH_29: {TRIM_INV: 10}
+  CH_30: {TRIM_INV: 34}
+  CH_31: {TRIM_INV: 10}
+  CH_32: {TRIM_INV: 42}
+  CH_33: {TRIM_INV: 32}
+  CH_34: {TRIM_INV: 16}
+  CH_35: {TRIM_INV: 15}
+  CH_36: {TRIM_INV: 34}
+  CH_37: {TRIM_INV: 43}
+  CH_38: {TRIM_INV: 48}
+  CH_39: {TRIM_INV: 46}
+  CH_40: {TRIM_INV: 28}
+  CH_41: {TRIM_INV: 48}
+  CH_42: {TRIM_INV: 10}
+  CH_43: {TRIM_INV: 35}
+  CH_44: {TRIM_INV: 26}
+  CH_45: {TRIM_INV: 19}
+  CH_46: {TRIM_INV: 42}
+  CH_47: {TRIM_INV: 21}
+  CH_48: {TRIM_INV: 36}
+  CH_49: {TRIM_INV: 42}
+  CH_50: {TRIM_INV: 28}
+  CH_51: {TRIM_INV: 40}
+  CH_52: {TRIM_INV: 35}
+  CH_53: {TRIM_INV: 32}
+  CH_54: {TRIM_INV: 47}
+  CH_55: {TRIM_INV: 28}
+  CH_56: {TRIM_INV: 48}
+  CH_57: {TRIM_INV: 0}
+  CH_58: {TRIM_INV: 45}
+  CH_59: {TRIM_INV: 19}
+  CH_60: {TRIM_INV: 39}
+  CH_61: {TRIM_INV: 47}
+  CH_62: {TRIM_INV: 34}
+  CH_63: {TRIM_INV: 8}
+  CH_64: {TRIM_INV: 21}
+  CH_65: {TRIM_INV: 21}
+  CH_66: {TRIM_INV: 17}
+  CH_67: {TRIM_INV: 20}
+  CH_68: {TRIM_INV: 18}
+  CH_69: {TRIM_INV: 13}
+  CH_70: {TRIM_INV: 35}
+  CH_71: {TRIM_INV: 21}
+roc4:
+  REFERENCEVOLTAGE_0: {INV_VREF: 356, NOINV_VREF: 250}
+  REFERENCEVOLTAGE_1: {INV_VREF: 363, NOINV_VREF: 250}
+  CH_0: {TRIM_INV: 22}
+  CH_1: {TRIM_INV: 20}
+  CH_2: {TRIM_INV: 22}
+  CH_3: {TRIM_INV: 28}
+  CH_4: {TRIM_INV: 0}
+  CH_5: {TRIM_INV: 32}
+  CH_6: {TRIM_INV: 19}
+  CH_7: {TRIM_INV: 21}
+  CH_8: {TRIM_INV: 25}
+  CH_9: {TRIM_INV: 36}
+  CH_10: {TRIM_INV: 40}
+  CH_11: {TRIM_INV: 46}
+  CH_12: {TRIM_INV: 43}
+  CH_13: {TRIM_INV: 30}
+  CH_14: {TRIM_INV: 36}
+  CH_15: {TRIM_INV: 33}
+  CH_16: {TRIM_INV: 46}
+  CH_17: {TRIM_INV: 48}
+  CH_18: {TRIM_INV: 37}
+  CH_19: {TRIM_INV: 21}
+  CH_20: {TRIM_INV: 47}
+  CH_21: {TRIM_INV: 27}
+  CH_22: {TRIM_INV: 27}
+  CH_23: {TRIM_INV: 33}
+  CH_24: {TRIM_INV: 22}
+  CH_25: {TRIM_INV: 43}
+  CH_26: {TRIM_INV: 32}
+  CH_27: {TRIM_INV: 11}
+  CH_28: {TRIM_INV: 28}
+  CH_29: {TRIM_INV: 48}
+  CH_30: {TRIM_INV: 48}
+  CH_31: {TRIM_INV: 48}
+  CH_32: {TRIM_INV: 36}
+  CH_33: {TRIM_INV: 44}
+  CH_34: {TRIM_INV: 28}
+  CH_35: {TRIM_INV: 21}
+  CH_36: {TRIM_INV: 6}
+  CH_37: {TRIM_INV: 24}
+  CH_38: {TRIM_INV: 43}
+  CH_39: {TRIM_INV: 1}
+  CH_40: {TRIM_INV: 48}
+  CH_41: {TRIM_INV: 37}
+  CH_42: {TRIM_INV: 21}
+  CH_43: {TRIM_INV: 28}
+  CH_44: {TRIM_INV: 32}
+  CH_45: {TRIM_INV: 33}
+  CH_46: {TRIM_INV: 26}
+  CH_47: {TRIM_INV: 47}
+  CH_48: {TRIM_INV: 39}
+  CH_49: {TRIM_INV: 43}
+  CH_50: {TRIM_INV: 12}
+  CH_51: {TRIM_INV: 19}
+  CH_52: {TRIM_INV: 41}
+  CH_53: {TRIM_INV: 30}
+  CH_54: {TRIM_INV: 41}
+  CH_55: {TRIM_INV: 45}
+  CH_56: {TRIM_INV: 23}
+  CH_57: {TRIM_INV: 37}
+  CH_58: {TRIM_INV: 38}
+  CH_59: {TRIM_INV: 37}
+  CH_60: {TRIM_INV: 25}
+  CH_61: {TRIM_INV: 34}
+  CH_62: {TRIM_INV: 24}
+  CH_63: {TRIM_INV: 7}
+  CH_64: {TRIM_INV: 5}
+  CH_65: {TRIM_INV: 33}
+  CH_66: {TRIM_INV: 23}
+  CH_67: {TRIM_INV: 23}
+  CH_68: {TRIM_INV: 29}
+  CH_69: {TRIM_INV: 33}
+  CH_70: {TRIM_INV: 41}
+  CH_71: {TRIM_INV: 42}
+expected_pedestal:
+  roc0: [191.0, 191.0, 191.0, 191.0, 191.0, 191.0, 191.0, 154.0, 191.0, 191.0, 194.0, 191.0, 191.0, 191.0, 155.0, 175.0, 188.0,
+    191.0, 191.0, 191.0, 191.0, 191.0, 166.0, 191.0, 191.0, 191.0, 179.0, 191.0, 191.0, 191.0, 172.0, 191.0, 164.0, 182.0,
+    191.0, 191.0, 187.0, 190.5, 197.0, 189.0, 190.0, 190.0, 190.0, 190.0, 190.0, 190.0, 191.0, 191.0, 153.0, 189.0, 185.0,
+    188.0, 151.0, 190.0, 190.0, 191.0, 190.0, 190.0, 190.0, 167.0, 191.0, 189.0, 189.5, 190.0, 162.0, 190.0, 166.0, 191.0,
+    190.0, 189.5, 191.0, 191.0]
+  roc1: [201.0, 199.0, 199.0, 199.0, 199.5, 200.0, 198.0, 199.0, 197.0, 199.5, 201.0, 199.0, 200.0, 198.0, 200.0, 200.0, 201.0,
+    201.0, 199.0, 199.0, 200.0, 199.0, 201.0, 201.0, 199.0, 200.0, 199.0, 198.0, 197.0, 200.0, 200.0, 200.0, 200.0, 200.0,
+    198.5, 201.0, 201.0, 201.0, 201.0, 202.0, 201.0, 200.0, 201.5, 201.0, 198.0, 200.0, 202.0, 200.0, 202.0, 201.0, 202.0,
+    201.0, 202.0, 202.0, 202.0, 202.0, 201.0, 201.0, 202.0, 201.0, 202.0, 201.0, 200.5, 202.0, 202.0, 201.0, 201.5, 201.0,
+    202.0, 201.0, 201.0, 200.5]
+  roc2: [189.0, 182.0, 186.0, 191.0, 190.0, 189.0, 190.0, 191.0, 190.0, 199.0, 185.0, 185.0, 190.0, 167.5, 190.0, 190.0, 189.0,
+    191.0, 191.0, 190.5, 182.0, 190.0, 190.0, 191.0, 178.0, 188.0, 189.0, 190.0, 189.0, 191.0, 190.0, 191.0, 190.0, 191.0,
+    190.0, 191.0, 191.0, 191.0, 191.0, 191.0, 191.0, 187.0, 200.0, 191.0, 191.0, 191.0, 191.0, 191.0, 191.0, 191.0, 182.0,
+    182.0, 191.0, 200.5, 191.0, 191.0, 191.0, 161.5, 173.0, 166.0, 166.5, 191.0, 193.0, 193.0, 192.0, 191.0, 191.0, 191.0,
+    191.0, 192.0, 193.0, 193.0]
+  roc3: [200.0, 198.0, 198.0, 181.0, 197.0, 197.0, 197.0, 197.0, 198.0, 200.0, 195.5, 196.5, 198.0, 199.0, 198.0, 198.0, 191.0,
+    198.0, 198.0, 198.0, 197.0, 197.0, 196.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 198.0,
+    196.0, 197.0, 194.5, 196.0, 190.0, 194.0, 194.0, 184.0, 191.0, 194.0, 196.0, 194.0, 194.0, 194.0, 194.0, 194.0, 194.0,
+    194.0, 195.0, 194.0, 194.0, 191.0, 191.5, 213.0, 194.0, 193.0, 194.0, 194.0, 194.0, 193.0, 193.0, 193.5, 193.5, 195.0,
+    194.0, 194.0, 193.0, 195.0]
+  roc4: [205.0, 203.0, 204.0, 201.0, 203.0, 203.0, 202.5, 205.0, 203.0, 203.0, 205.0, 202.5, 203.0, 204.0, 202.0, 203.5, 202.0,
+    199.5, 203.0, 203.0, 204.0, 203.5, 203.0, 204.0, 205.0, 204.0, 204.0, 203.0, 204.0, 197.0, 204.0, 204.0, 204.0, 204.0,
+    205.0, 202.0, 199.0, 199.0, 200.0, 199.0, 198.0, 199.0, 200.0, 198.0, 201.0, 200.0, 198.0, 200.0, 201.0, 199.0, 199.0,
+    199.0, 199.0, 198.0, 200.0, 200.0, 199.5, 199.0, 199.0, 199.0, 199.0, 198.0, 200.0, 200.0, 200.0, 200.0, 201.0, 198.0,
+    198.0, 200.0, 198.0, 200.0]

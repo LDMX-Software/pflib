@@ -1,0 +1,5 @@
+# passive read of all lpGBT ADC inputs
+ADC
+ALL
+EXIT
+EXIT

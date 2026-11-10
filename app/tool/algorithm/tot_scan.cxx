@@ -34,7 +34,10 @@ std::map<int, std::map<std::string, std::map<std::string, uint64_t>>> tot_scan(
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link)};
     parameters[refvol_page]["TOT_VREF"] = tot_vref_initial;
     parameters[refvol_page]["INTCTEST"] = 1;
-    parameters[refvol_page]["CHOICE_CINJ"] = 1;
+    // only the SiPM ROC has CHOICE_CINJ
+    if (pftool::state.readout_config_is_hcal()) {
+      parameters[refvol_page]["CHOICE_CINJ"] = 1;
+    }
   }
 
   for (int ch{0}; ch < 72; ch++) {

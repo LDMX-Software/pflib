@@ -1,0 +1,10 @@
+# read-only: board temperature and SiPM/LED DAC readback, HCal boards 0, 2, 3
+BIAS
+STATUS
+0
+STATUS
+2
+STATUS
+3
+EXIT
+EXIT

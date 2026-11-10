@@ -100,6 +100,11 @@ std::string BaseMenu::readline(const std::string& prompt,
     cmdTextQueue_.pop_front();
   } else {
     char* res = ::readline(trueprompt.c_str());
+    // EOF: Ctrl-D or end of piped input
+    if (res == nullptr) {
+      std::cout << std::endl;
+      PFEXCEPTION_RAISE("EOF", "input ended at prompt: " + prompt);
+    }
     retval = std::string(res);
     free(res);
     if (retval.empty())
@@ -142,6 +147,10 @@ std::string BaseMenu::readline_nosplit(const std::string& prompt,
   if (!defval.empty()) trueprompt += " [" + defval + "] ";
 
   char* res = ::readline(trueprompt.c_str());
+  if (res == nullptr) {
+    std::cout << std::endl;
+    PFEXCEPTION_RAISE("EOF", "input ended at prompt: " + prompt);
+  }
   retval = std::string(res);
   free(res);
 
@@ -228,7 +237,15 @@ bool BaseMenu::readline_bool(const std::string& prompt, bool aval) {
   return (rv.find_first_of("yY1tT") != std::string::npos);
 }
 
-std::string BaseMenu::readline_cmd() { return readline(" > ", cmd_options_); }
+std::string BaseMenu::readline_cmd() {
+  try {
+    return readline(" > ", cmd_options_);
+  } catch (const pflib::Exception& e) {
+    if (e.name() != "EOF") throw;
+    // leave this menu, repeated EOFs unwind to the root and quit
+    return "EXIT";
+  }
+}
 
 char* BaseMenu::matcher(const char* prefix, int state) {
   static int list_index, len;

@@ -1,0 +1,41 @@
+# HCal ZS from zs-hcal.yaml (hcal_zs_yaml.py), then a 1000-event check (zs-hcal-check.csv)
+TASKS
+SET_ZS_THRESHOLDS
+YAML
+zs-hcal.yaml
+EXIT
+DAQ
+# clear events left over from earlier runs
+RESET
+SETUP
+FORMAT
+CONFIG
+# contributor id
+
+# ECON ID
+
+# samples per ROR
+
+# sample of interest
+
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+EXIT
+PEDESTAL
+# how many events?
+1000
+# readout rate (Hz)
+
+# filename
+zs-hcal-check
+# decode into CSV?
+Y
+STATUS
+SETUP
+DISABLE
+EXIT
+EXIT
