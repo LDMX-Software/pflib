@@ -173,24 +173,23 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_status() {
   retval["BUFFBYPASS_ERROR"] = (val >> 4) & 0x1;
   retval["CDR_LOCK"] = transright_.read(7) & 0xFFF;
 
-  std::string prefix = "LINK" + std::to_string(ilink_);
   if (isdaq_) {
     static const uint32_t LINK_STATUS_REG = 2;
     val = coder_.read(LINK_STATUS_REG);
     // READY is lpgbt_decoder_read
-    retval[prefix + " READY"] = (val >> 0) & 0x1;
+    retval["READY"] = (val >> 0) & 0x1;
     // NOT_IN_RESET is resetn_decoder_gth_clock
-    retval[prefix + " NOT_IN_RESET"] = (val >> 1) & 0x1;
+    retval["NOT_IN_RESET"] = (val >> 1) & 0x1;
     /**
      * The LINK_ERRORS are not being incremented when a known error is injected,
      * so without a future firmware patch, we are electing to ignore them.
-    retval[prefix + " LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
+    retval["LINK_ERRORS"] = coder_.read(4 + (ilink_ % 2)) & 0xFFFFFF;
      */
   } else {
     static const uint32_t LINK_STATUS_REG = 0xC04 / 4;
     val = coder_.read(LINK_STATUS_REG);
-    retval[prefix + " READY"] = (val >> 31) & 0x1;
-    retval[prefix + " NOT_IN_RESET"] = (val >> 30) & 0x1;
+    retval["READY"] = (val >> 31) & 0x1;
+    retval["NOT_IN_RESET"] = (val >> 30) & 0x1;
   }
 
   return retval;
@@ -219,7 +218,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   } else if (isdaq_) {
     static const std::array<const char*, 6> cnames = {
         "LINK_WORD", "LINK_ERROR", "LINK_CLOCK",
-        "CLOCK_40",  "AXI_CLK",    "LINK_FECERR"};
+        "BX_CLK",  "AXI_CLK",    "LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       uint32_t val = coder_.read(CRATES_OFFSET + i);
