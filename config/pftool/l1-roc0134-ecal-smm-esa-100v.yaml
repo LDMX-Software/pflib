@@ -1,0 +1,6 @@
+target:
+  type: "EcalSMMBittware"
+  ilink: 1
+  dev: "/dev/datadev_1"
+  rocmask: 0x1b # ROC0,1,3,4; ROC5 hangs the I2C bus (01-Nov), ROC2 links unstable (eRx 0,1 off in the ECON-D, 10-Nov)
+calib: config/calib/ecal-smm-esa-l1/2026-11-07-100V-roc01234.yaml
