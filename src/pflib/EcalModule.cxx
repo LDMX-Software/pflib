@@ -114,6 +114,31 @@ void EcalModule::softResetECON() {
 const std::vector<std::pair<int, int>> EcalModule::ROC_ERX_MAPPING_DAQ = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 
+/**
+ * TRIG eLinks 1 and 3 are ignored since they are all-zero
+ * when summing by 9 channels in the HGCROC.
+ * Since each half of the HGCROC produces a pair of TRIG eLinks,
+ * but we only need one of the two, we re-index and have the
+ * TRIG eLinks indexed by HGCROC half like is done with the DAQ eLinks.
+ *
+ *
+ * This reference table was manually copied from the hardware schematic.
+ *
+ * Sector | Side | Elink | ROC | TRIG | DIN
+ * -------|------|-------|-----|------|----
+ *  2     | L    | 2     | 2   | 2    | 0
+ *  2     | R    | 0     | 3   | 0    | 1
+ *  2     | L    | 0     | 2   | 0    | 2
+ *  2     | R    | 2     | 3   | 2    | 3
+ *  1     | L    | 2     | 0   | 2    | 4
+ *  1     | R    | 0     | 1   | 0    | 5
+ *  1     | L    | 0     | 0   | 0    | 6
+ *  1     | R    | 2     | 1   | 2    | 7
+ *  3     | R    | 0     | 5   | 0    | 8
+ *  3     | L    | 2     | 4   | 2    | 9
+ *  3     | R    | 2     | 5   | 2    | 10
+ *  3     | L    | 0     | 4   | 0    | 11
+ */
 const std::vector<std::pair<int, std::vector<int>>>
     EcalModule::ROC_ERX_MAPPING_TRG = {
         {1, {6, 4}}, {1, {5, 7}},  {1, {2, 0}},
