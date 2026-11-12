@@ -4,6 +4,7 @@
 
 #include "pflib/EcalModule.h"
 #include "pflib/Target.h"
+#include "pflib/TRIG.h"
 
 namespace pflib {
 
@@ -40,6 +41,7 @@ class EcalSingleModuleMotherboard : public Target {
   virtual std::vector<int> econ_ids() const override;
   virtual ROC& roc(int which) override;
   virtual ECON& econ(int which) override;
+  virtual TRIG* trig(int itrig=0) override;
   virtual void softResetROC(int which) override;
   virtual void softResetECON(int which = -1) override;
   virtual void hardResetROCs() override;
@@ -54,6 +56,8 @@ class EcalSingleModuleMotherboard : public Target {
   Target::DaqFormat format_;
   /// the contributor ID for DAQ
   int contrib_id_;
+  /// the TRIG object that we could be using to readout the ECON-T from this module
+  std::unique_ptr<TRIG> trig_;
 };
 
 }  // namespace pflib

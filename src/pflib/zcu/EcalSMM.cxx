@@ -4,6 +4,7 @@
 #include "pflib/zcu/zcu_daq.h"
 #include "pflib/zcu/zcu_elinks.h"
 #include "pflib/zcu/zcu_optolink.h"
+#include "pflib/zcu/zcu_trig.h"
 
 namespace pflib {
 
@@ -34,6 +35,16 @@ class EcalSMMTargetZCU : public EcalSingleModuleMotherboard {
     daq_ = std::make_unique<ZCU_Capture>(itarget);
 
     fc_ = std::shared_ptr<FastControl>(make_FastControlCMS_MMap());
+
+    /// try to make a trig object, but ok to fail
+    try {
+      trig_ = std::make_unique<ZCUtrig>();
+      trig_->set_l1a_per_ror(daq().samples_per_ror());
+    } catch (pflib::Exception& e) {
+      pflib_log(info) << "failed to create TRIG connection with " << e.what();
+      pflib_log(info)
+          << "(only necessary if you are trying to capture the trigger path)";
+    }
   }
 
   virtual Elinks& elinks() override { return *elinks_; }

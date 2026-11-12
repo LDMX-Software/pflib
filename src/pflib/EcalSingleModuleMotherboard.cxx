@@ -99,6 +99,11 @@ ECON& EcalSingleModuleMotherboard::econ(int which) {
   return the_module_->econ(which);
 }
 
+TRIG* EcalSingleModuleMotherboard::trig(int itrig) {
+  if (itrig == 0) return trig_.get();
+  else return nullptr;
+}
+
 void EcalSingleModuleMotherboard::softResetROC(int which) {
   /// the soft reset is applied to all ROCs on the board
   return the_module_->softResetROC();
