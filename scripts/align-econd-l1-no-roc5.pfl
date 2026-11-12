@@ -1,4 +1,4 @@
-# ECon-D alignment, L1 with ROC0-4 (ROC5 off): ./build/pftool -s scripts/align-econd-l1-no-roc5.pfl config/pftool/l1-no-roc5-ecal-smm-esa-100v.yaml
+# ECon-D alignment, L1 without ROC2 and ROC5 (eRx 0-3 off in the ECON-D yaml): ./build/pftool -s scripts/align-econd-l1-no-roc5.pfl config/pftool/l1-roc0134-ecal-smm-esa-100v.yaml
 # ECON run bit first so the PUSM has time to reach READY
 ECON
 LOAD
