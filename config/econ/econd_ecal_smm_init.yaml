@@ -33,7 +33,7 @@ FORMATTERBUFFER:
   GLOBAL_IDLE_PATTERN: 0x1277cc # must match what's in ECON-lpGBT align code
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1
-  GLOBAL_MATCH_THRESHOLD: 0
+  GLOBAL_MATCH_THRESHOLD: 8 # 12 active eRx (EBO fix, 11-Nov)
   GLOBAL_ACTIVE_ERXS: 0xFFF # must bit-match the channels enabled in the ERX block above
   #GLOBAL_HGCROC_HDR_MARKER: 0x5 # for HGCROCv3a, HGCROCv3b and newer have the default marker of 0xf
 ALIGNER:
