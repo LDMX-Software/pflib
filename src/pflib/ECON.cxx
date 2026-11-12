@@ -81,6 +81,7 @@ static const uint32_t MASK_FCMDINVERT = 1;
 
 void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
   if (active) {
+    pflib_log(debug) << "asserting the run bit on the ECON";
     // set run bit to 1
     std::vector<uint8_t> RUNBIT_read = getValues(ADDR_RUNBIT, NBYTES_RUNBIT);
     std::vector<uint8_t> RUNBIT_one = newParam(
@@ -88,6 +89,8 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
     setValues(ADDR_RUNBIT, RUNBIT_one);
 
     if (edgesel >= 0 && fcmd_invert >= 0) {
+      pflib_log(debug) << "setting edge_sel = " << edgesel
+                      << " and fcmd_invert = " << fcmd_invert;
       // set EdgeSel to 0
       std::vector<uint8_t> FCMDEDGE_read = getValues(ADDR_FCMD, NBYTES_FCMD);
       std::vector<uint8_t> FCMDEDGE_edgesel =
@@ -185,6 +188,10 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values) {
 
   // perform write, then read back (a garbled I2C transfer can land elsewhere)
   i2c_->general_write_read(econ_base_, wbuf, values.size());
+
+  // TODO: check that the register we are writing to should be read-able
+  //       there are some write-only registers used for sending signals
+  //       to the chip
   for (int attempt = 0; attempt < 2; attempt++) {
     std::vector<uint8_t> back = getValues(reg_addr, values.size());
     if (back == values) return;
