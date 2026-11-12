@@ -1,6 +1,6 @@
 ERX:
-  0_ENABLE: 1 # ROC2
-  1_ENABLE: 1 # ROC2
+  0_ENABLE: 0 # ROC2, off on L1 (unstable links, 10-Nov)
+  1_ENABLE: 0 # ROC2, off on L1 (unstable links, 10-Nov)
   2_ENABLE: 0 # ROC5, off on L1
   3_ENABLE: 0 # ROC5, off on L1
   4_ENABLE: 1 # ROC4
@@ -33,8 +33,8 @@ FORMATTERBUFFER:
   GLOBAL_IDLE_PATTERN: 0x1277cc # must match what's in ECON-lpGBT align code
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1
-  GLOBAL_MATCH_THRESHOLD: 0
-  GLOBAL_ACTIVE_ERXS: 0xFF3 # all but eRx 2,3 (ROC5)
+  GLOBAL_MATCH_THRESHOLD: 5 # 8 active eRx
+  GLOBAL_ACTIVE_ERXS: 0xFF0 # all but eRx 0,1 (ROC2) and 2,3 (ROC5)
   #GLOBAL_HGCROC_HDR_MARKER: 0x5 # for HGCROCv3a, HGCROCv3b and newer have the default marker of 0xf
 ALIGNER:
   GLOBAL_FREEZE_OUTPUT_ENABLE: 0 # use this since channels might not be locked
