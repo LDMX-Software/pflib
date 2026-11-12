@@ -313,13 +313,8 @@ void align_phase_word(Target* tgt) {
 
   auto& econ = tgt->econ(iecon);
   bool is_daq = (econ.type() == "econd");
-  int edgesel = 0;
-  int invertfcmd = pftool::state.readout_config_is_hcal() ? 1 : 0;
-  // Ensure ECON is in Run mode
-  econ.setRunMode(true, edgesel, invertfcmd);
 
-  // we just put the ECON into run mode so if its not in READY
-  // then something is wrong and we should bail
+  // the ECON should be READY, otherwise we should bail
   auto pusm_state = econ.readParameter("CLOCKSANDRESETS", "GLOBAL_PUSM_STATE");
   pflib_log(debug) << "econ PUSM STATE = " << pusm_state;
 
@@ -328,7 +323,8 @@ void align_phase_word(Target* tgt) {
                     << ECON_EXPECTED_PUSM_STATE
                     << " implying that more configuration/setup needs to "
                        "happen before alignment";
-    pflib_log(error) << "NOT running ECON-ROC alignment";
+    pflib_log(error) << "Put iecon=" << iecon << " into RUNMODE "
+                        " before running ECON-ROC alignment";
     return;
   }
 
