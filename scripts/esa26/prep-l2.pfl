@@ -1,7 +1,7 @@
 # run prep: L1OFFSET, 5 samples, central L1As
 ROC
 LOAD
-config/esa26/l1off-65.yaml
+config/esa26/l1off-66.yaml
 # chip defaults first?
 N
 # all ROCs?
