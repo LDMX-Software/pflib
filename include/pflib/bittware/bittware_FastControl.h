@@ -12,7 +12,11 @@ namespace bittware {
  */
 class BWFastControl : public FastControl {
  public:
-  BWFastControl(const char* dev);
+  /**
+   * @param[in] ilink optical link of our DAQ lpGBT, link resets only go
+   * there (firmware quad version >= 6); -1 sends them to all links
+   */
+  BWFastControl(const char* dev, int ilink = -1);
   virtual std::map<std::string, uint32_t> getCmdCounters();
   virtual void resetCounters();
   virtual void sendL1A();
@@ -46,7 +50,13 @@ class BWFastControl : public FastControl {
   virtual void fc_override_link_ready(bool override_link_ready) override;
 
  private:
+  /// mask link resets to all links but ours (true) or clear the mask
+  void mask_other_links(bool mask);
+
   AxiLite axi_;
+  AxiLite quad_;
+  int ilink_;
+  bool has_mask_;
 };
 
 }  // namespace bittware
