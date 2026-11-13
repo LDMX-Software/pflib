@@ -7,6 +7,7 @@
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/ECONDFormatter.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/EcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
@@ -576,6 +577,41 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(econt)
 
+BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
+  using pflib::packing::EcalECONTCaptureFrame;
+  std::vector<uint32_t> words = {
+    0x17019741,
+    0x18090f58,
+    0xd1a2c58b,
+    0x8d1e2c58,
+    0xa3458f22,
+    0x4468d180
+  };
+  EcalECONTCaptureFrame::SingleECONTSample s;
+  s.from(words);
+  BOOST_CHECK_EQUAL(s.bx(), 1);
+  BOOST_CHECK_EQUAL(s.encoded_sum(), 0x70);
+  BOOST_CHECK_EQUAL(s.ch_map().count(), 18);
+  BOOST_CHECK_EQUAL(s.tc(0), 53); 
+  BOOST_CHECK_EQUAL(s.tc(1), 35); 
+  BOOST_CHECK_EQUAL(s.tc(2), 17); 
+  BOOST_CHECK_EQUAL(s.tc(3), 40);
+  BOOST_CHECK_EQUAL(s.tc(4), 44);
+  BOOST_CHECK_EQUAL(s.tc(5), 22);
+  BOOST_CHECK_EQUAL(s.tc(6), 11);
+  BOOST_CHECK_EQUAL(s.tc(7), 35);
+  BOOST_CHECK_EQUAL(s.tc(8), 17);
+  BOOST_CHECK_EQUAL(s.tc(9), 56);
+  BOOST_CHECK_EQUAL(s.tc(10), 44);
+  BOOST_CHECK_EQUAL(s.tc(11), 22);
+  BOOST_CHECK_EQUAL(s.tc(12), 10);
+  BOOST_CHECK_EQUAL(s.tc(13), 13);
+  BOOST_CHECK_EQUAL(s.tc(14), 5);
+  BOOST_CHECK_EQUAL(s.tc(15), 35);
+  BOOST_CHECK_EQUAL(s.tc(16), 50);
+  BOOST_CHECK_EQUAL(s.tc(17), 9);
+}
+
 BOOST_AUTO_TEST_CASE(single_sample) {
   using pflib::packing::HcalECONTCaptureFrame;
   std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0};
@@ -662,6 +698,7 @@ BOOST_AUTO_TEST_CASE(decode_5E4M) {
   BOOST_CHECK_EQUAL(decode5E4M(7), 7);
   BOOST_CHECK_EQUAL(decode5E4M(0b010001001), 0b110011000000);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
 

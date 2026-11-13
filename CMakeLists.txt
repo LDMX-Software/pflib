@@ -110,6 +110,7 @@ add_library(packing SHARED
   src/pflib/packing/ECONTAlignmentWord.cxx
   src/pflib/packing/ECONTCaptureHeader.cxx
   src/pflib/packing/HcalECONTCaptureFrame.cxx
+  src/pflib/packing/EcalECONTCaptureFrame.cxx
   src/pflib/packing/HcalECONTRocSTCMapping.cxx
   src/pflib/packing/TrigAlgoOutput.cxx
 )
