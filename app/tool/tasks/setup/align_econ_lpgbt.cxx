@@ -5,7 +5,7 @@
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
 #include "pflib/utility/string_format.h"
-#include "pflib/packing/Hex.h"
+#include "pflib/packing/ECONTAlignmentWord.h"
 
 ENABLE_LOGGING();
 
@@ -139,46 +139,6 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
 }
 
-/**
- * The ECON-T alignment outputs a fixed pattern consisting of two 16-bit words.
- *
- * See Section 20 of the ECON-T manual.
- *
- * The two 16-bit words look like
- *  5b BX | 11b Pattern
- * where BX is a BX counter and the 11b pattern is set by
- * FormatterBUffer.global.link_reset_pattern.
- */
-struct ECONTAlignPattern {
-  uint32_t sample;
-  uint32_t bx0() const {
-    return (sample >> 11) & 0x1f;
-  }
-  uint32_t bx1() const {
-    return (sample >> (16+11)) & 0x1f;
-  }
-  uint32_t patt0() const {
-    return (sample & 0x7ff);
-  }
-  uint32_t patt1() const {
-    return ((sample >> 16) & 0x7ff);
-  }
-  /**
-   * A valid match is where both BX stored in the two 16-bit words match
-   * and both 11b patterns match the passed in value.
-   */
-  bool match(uint32_t pattern) {
-    return (bx0() == bx1()) and (patt0() == pattern) and (patt1() == pattern);
-  }
-  friend std::ostream& operator<<(std::ostream& o, const ECONTAlignPattern& self) {
-    o << std::dec << std::setw(2) << self.bx1() << " "
-      << std::hex << std::setw(3) << self.patt1() << " "
-      << std::dec << std::setw(2) << self.bx0() << " "
-      << std::hex << std::setw(3) << self.patt0();
-    return o;
-  }
-};
-
 static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
                                   bool check_all_phases) {
   /**
@@ -270,11 +230,9 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
         usleep(3000);
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> words = 
-            trig->read_capture_buffer(i_elinks.at(ilink));
-        std::vector<ECONTAlignPattern> samples(words.size());
-        for (std::size_t i{0}; i < words.size(); i++) {
-          samples[i].sample = words[i];
+        std::vector<pflib::packing::ECONTAlignmentWord> samples;
+        for (const auto& w : trig->read_capture_buffer(i_elinks.at(ilink))) {
+          samples.emplace_back(w);
         }
         // only checking first sample because read_capture_buffer
         // is hardcoded for 1 sample to reflect current firmware
