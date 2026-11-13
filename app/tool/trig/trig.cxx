@@ -9,12 +9,10 @@
 #include "decode_multi_sample.h"
 #include "histo.h"
 #include "pflib/packing/DecompressAEBM.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/zcu/zcu_trig.h"
 #include "self_trig.h"
 #include "timein.h"
 #include "watch_run.h"
-using pflib::packing::HcalECONTCaptureFrame;
 
 #include <optional>
 
@@ -96,26 +94,6 @@ void trig(const std::string& cmd, Target* target) {
     for (int iword{0}; iword < event.size(); iword++) {
       uint32_t word{event[iword]};
       printf("%08x\n", word);
-    }
-
-    std::vector<HcalECONTCaptureFrame> frames =
-        decode_multi_sample<HcalECONTCaptureFrame>(trig->get_l1a_per_ror(),
-                                                   event);
-    printf("N ECON-T: %d, N samples: %d\n", frames.at(0).n_econt(),
-           frames.at(0).n_samples());
-    for (int i_econt{0}; i_econt < frames.at(0).n_econt(); i_econt++) {
-      printf("ECON-T%d\nBX STC0 STC1 STC2 STC3 STC4 STC5 STC6 STC7\n",
-             i_econt + 1);
-      for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
-        const auto& frame{frames[i_l1a]};
-        for (int i{0}; i < frame.n_samples(); i++) {
-          printf("%2d", frame.bx(i_econt, i));
-          for (int j{0}; j < 8; j++) {
-            printf(" %4d", frame.stc_sum(j, i_econt, i));
-          }
-          printf("\n");
-        }
-      }
     }
   }
 }

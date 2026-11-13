@@ -3,12 +3,13 @@
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/TrigPathCaptureFrame.h"
+using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample>;
 #include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
 #include "pflib/packing/TrigAlgoOutput.h"
 #include "pflib/utility/string_format.h"
-using pflib::packing::HcalECONTCaptureFrame;
 using pflib::packing::MultiSampleECONDEventPacket;
 
 ENABLE_LOGGING();
@@ -67,7 +68,7 @@ class WriteROCCHannels {
               << ',' << sample.tot();
       }
       for (const auto& [econt, stc] : stcs_to_readout_) {
-        file_ << ',' << trig[i_sample].stc_sum(stc, econt, 0);
+        file_ << ',' << trig[i_sample].sample(0).stc_sum(stc+8*econt);
       }
       file_ << '\n';
     }
