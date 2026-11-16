@@ -606,7 +606,7 @@ BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
   BOOST_CHECK_EQUAL(s.tc(17), 9);
 }
 
-BOOST_AUTO_TEST_CASE(single_sample) {
+BOOST_AUTO_TEST_CASE(stc_pair_sample) {
   std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0,
                                  0x40005020, 0x10080444, 0xa2d148b0};
   pflib::packing::HcalBackplaneECONTPairSample sample;
