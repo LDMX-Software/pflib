@@ -4,7 +4,7 @@
 #include "pflib/packing/Mask.h"
 
 namespace pflib::packing {
-
+  
 void HcalBackplaneECONTPairSample::from(std::span<uint32_t> data) {
   if (data.size() != WORD_LEN) {
     pflib_log(error)
@@ -14,14 +14,14 @@ void HcalBackplaneECONTPairSample::from(std::span<uint32_t> data) {
   }
   for (int i_econt{0}; i_econt < 2; i_econt++) {
     bx_[i_econt] = ((data[3 * i_econt] >> 28) & mask<4>);
-    for (int i{0}; i < N_STC; i++) {
+    for (int i{0}; i < 8; i++) {
       // max is all within the first 32b word even if there
       // are more eTx
       max_tc_[8 * i_econt + i] =
           ((data[3 * i_econt] >> (26 - 2 * i)) & mask<2>);
     }
 
-    // just hardcoding 3 eTx per ECON-T
+    // just hardcoding 8 STC and 3 eTx per ECON-T
     stc_sums_[8 * i_econt + 0] = ((data[3 * i_econt] >> 3) & mask<9>);
     stc_sums_[8 * i_econt + 1] =
         (((data[3 * i_econt] & mask<3>) << 6) |
