@@ -34,6 +34,7 @@ FORMATTERBUFFER:
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1
   GLOBAL_MATCH_THRESHOLD: 5 # 8 active eRx
+  GLOBAL_BCR_BUCKET_DEFAULT: 1 # default 3514 puts ECON BX 51 behind the ROCs
   GLOBAL_ACTIVE_ERXS: 0xFF0 # all but eRx 0,1 (ROC2) and 2,3 (ROC5)
   #GLOBAL_HGCROC_HDR_MARKER: 0x5 # for HGCROCv3a, HGCROCv3b and newer have the default marker of 0xf
 ALIGNER:
