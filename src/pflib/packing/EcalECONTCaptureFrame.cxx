@@ -12,8 +12,10 @@ void EcalECONTSample::from(std::span<uint32_t> data) {
   }
   bx_ = ((data[0] >> 28) & mask<4>);
   sum_ = ((data[0] >> 20) & mask<8>);
-  tc_ch_map_ = ((data[0] & mask<20>) << 28) | ((data[1] >> 3) & mask<28>);
-  int bits_left = 3;
+  tc_ch_map_ = (data[0] & mask<20>);
+  tc_ch_map_ <<= 28;
+  tc_ch_map_ |= ((data[1] >> 4) & mask<28>);
+  int bits_left = 4;
   int i_word = 1;
   for (int i{0}; i < N_TC; i++) {
     if (bits_left >= 6) {

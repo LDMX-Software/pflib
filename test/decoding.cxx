@@ -586,24 +586,24 @@ BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
   BOOST_CHECK_EQUAL(s.bx(), 1);
   BOOST_CHECK_EQUAL(s.encoded_sum(), 0x70);
   BOOST_CHECK_EQUAL(s.ch_map().count(), 18);
-  BOOST_CHECK_EQUAL(s.tc(0), 53);
-  BOOST_CHECK_EQUAL(s.tc(1), 35);
-  BOOST_CHECK_EQUAL(s.tc(2), 17);
-  BOOST_CHECK_EQUAL(s.tc(3), 40);
-  BOOST_CHECK_EQUAL(s.tc(4), 44);
-  BOOST_CHECK_EQUAL(s.tc(5), 22);
-  BOOST_CHECK_EQUAL(s.tc(6), 11);
+  BOOST_CHECK_EQUAL(s.tc(0), 35);
+  BOOST_CHECK_EQUAL(s.tc(1), 52);
+  BOOST_CHECK_EQUAL(s.tc(2), 26);
+  BOOST_CHECK_EQUAL(s.tc(3), 11);
+  BOOST_CHECK_EQUAL(s.tc(4),  5);
+  BOOST_CHECK_EQUAL(s.tc(5), 34);
+  BOOST_CHECK_EQUAL(s.tc(6), 56);
   BOOST_CHECK_EQUAL(s.tc(7), 35);
   BOOST_CHECK_EQUAL(s.tc(8), 17);
   BOOST_CHECK_EQUAL(s.tc(9), 56);
   BOOST_CHECK_EQUAL(s.tc(10), 44);
   BOOST_CHECK_EQUAL(s.tc(11), 22);
   BOOST_CHECK_EQUAL(s.tc(12), 10);
-  BOOST_CHECK_EQUAL(s.tc(13), 13);
-  BOOST_CHECK_EQUAL(s.tc(14), 5);
-  BOOST_CHECK_EQUAL(s.tc(15), 35);
-  BOOST_CHECK_EQUAL(s.tc(16), 50);
-  BOOST_CHECK_EQUAL(s.tc(17), 9);
+  BOOST_CHECK_EQUAL(s.tc(13), 40);
+  BOOST_CHECK_EQUAL(s.tc(14), 52);
+  BOOST_CHECK_EQUAL(s.tc(15), 22);
+  BOOST_CHECK_EQUAL(s.tc(16), 15);
+  BOOST_CHECK_EQUAL(s.tc(17), 8);
 }
 
 BOOST_AUTO_TEST_CASE(stc_pair_sample) {
