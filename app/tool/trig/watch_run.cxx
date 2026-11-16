@@ -2,7 +2,7 @@
 
 #include "decode_multi_sample.h"
 #include "pflib/TRIG.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/HcalBackplaneECONTPairSample.h"
 #include "pflib/packing/TrigPathCaptureFrame.h"
 using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<
     pflib::packing::HcalBackplaneECONTPairSample>;

@@ -66,8 +66,8 @@ const ECONTCaptureHeader& TrigPathCaptureFrame<T>::header() const {
 
 }  // namespace pflib::packing
 
-#include "pflib/packing/EcalECONTCaptureFrame.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
+#include "pflib/packing/EcalECONTSample.h"
+#include "pflib/packing/HcalBackplaneECONTPairSample.h"
 // explicit template instantiation to only compile once here
 template class pflib::packing::TrigPathCaptureFrame<
     pflib::packing::HcalBackplaneECONTPairSample>;
