@@ -90,7 +90,7 @@ void ECON::setRunMode(bool active, int edgesel, int fcmd_invert) {
 
     if (edgesel >= 0 && fcmd_invert >= 0) {
       pflib_log(debug) << "setting edge_sel = " << edgesel
-                      << " and fcmd_invert = " << fcmd_invert;
+                       << " and fcmd_invert = " << fcmd_invert;
       // set EdgeSel to 0
       std::vector<uint8_t> FCMDEDGE_read = getValues(ADDR_FCMD, NBYTES_FCMD);
       std::vector<uint8_t> FCMDEDGE_edgesel =

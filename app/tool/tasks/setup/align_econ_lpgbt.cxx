@@ -4,8 +4,8 @@
 
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
-#include "pflib/utility/string_format.h"
 #include "pflib/packing/ECONTAlignmentWord.h"
+#include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
 
@@ -237,7 +237,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
         // only checking first sample because read_capture_buffer
         // is hardcoded for 1 sample to reflect current firmware
         pflib_log(info) << "ilink=" << ilink << " phase=" << phase
-                         << " sample={" << samples[0] << "}";
+                        << " sample={" << samples[0] << "}";
         if (samples[0].match(idle)) {
           // all of the readings match the configured idle, success!
           got_idle_phase = phase;

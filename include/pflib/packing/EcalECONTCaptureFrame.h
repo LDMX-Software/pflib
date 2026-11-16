@@ -2,8 +2,8 @@
 #ifndef PFLIB_PACKING_ECALECONTCAPTUREFRAME_H
 #define PFLIB_PACKING_ECALECONTCAPTUREFRAME_H
 
-#include <optional>
 #include <bitset>
+#include <optional>
 
 #include "pflib/logging/Logging.h"
 #include "pflib/packing/ECONTCaptureHeader.h"
@@ -34,13 +34,13 @@ namespace pflib::packing {
  * - ... continue down in 6 bit increments
  */
 class EcalECONTSample {
-  mutable ::pflib::logging::logger the_log_{
-      ::pflib::logging::get("decoding")};
+  mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
   static constexpr std::size_t N_TC = 18;
   std::array<int, N_TC> max_tc_;
   std::bitset<48> tc_ch_map_;
   int sum_;
   int bx_;
+
  public:
   static constexpr int WORD_LEN = 6;
   void from(std::span<uint32_t> data);

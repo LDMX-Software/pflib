@@ -13,23 +13,26 @@ void HcalBackplaneECONTPairSample::from(std::span<uint32_t> data) {
     return;
   }
   for (int i_econt{0}; i_econt < 2; i_econt++) {
-    bx_[i_econt] = ((data[3*i_econt] >> 28) & mask<4>);
+    bx_[i_econt] = ((data[3 * i_econt] >> 28) & mask<4>);
     for (int i{0}; i < N_STC; i++) {
       // max is all within the first 32b word even if there
       // are more eTx
-      max_tc_[8*i_econt+i] = ((data[3*i_econt] >> (26 - 2 * i)) & mask<2>);
+      max_tc_[8 * i_econt + i] =
+          ((data[3 * i_econt] >> (26 - 2 * i)) & mask<2>);
     }
-  
+
     // just hardcoding 3 eTx per ECON-T
-    stc_sums_[8*i_econt+0] = ((data[3*i_econt] >> 3) & mask<9>);
-    stc_sums_[8*i_econt+1] =
-        (((data[3*i_econt] & mask<3>) << 6) | ((data[3*i_econt+1] >> (32 - 6)) & mask<6>));
-    stc_sums_[8*i_econt+2] = ((data[3*i_econt+1] >> 17) & mask<9>);
-    stc_sums_[8*i_econt+3] = ((data[3*i_econt+1] >> 8) & mask<9>);
-    stc_sums_[8*i_econt+4] = (((data[3*i_econt+1] & mask<8>) << 1) | ((data[3*i_econt+2] >> 31) & mask<1>));
-    stc_sums_[8*i_econt+5] = ((data[3*i_econt+2] >> 22) & mask<9>);
-    stc_sums_[8*i_econt+6] = ((data[3*i_econt+2] >> 13) & mask<9>);
-    stc_sums_[8*i_econt+7] = ((data[3*i_econt+2] >> 4) & mask<9>);
+    stc_sums_[8 * i_econt + 0] = ((data[3 * i_econt] >> 3) & mask<9>);
+    stc_sums_[8 * i_econt + 1] =
+        (((data[3 * i_econt] & mask<3>) << 6) |
+         ((data[3 * i_econt + 1] >> (32 - 6)) & mask<6>));
+    stc_sums_[8 * i_econt + 2] = ((data[3 * i_econt + 1] >> 17) & mask<9>);
+    stc_sums_[8 * i_econt + 3] = ((data[3 * i_econt + 1] >> 8) & mask<9>);
+    stc_sums_[8 * i_econt + 4] = (((data[3 * i_econt + 1] & mask<8>) << 1) |
+                                  ((data[3 * i_econt + 2] >> 31) & mask<1>));
+    stc_sums_[8 * i_econt + 5] = ((data[3 * i_econt + 2] >> 22) & mask<9>);
+    stc_sums_[8 * i_econt + 6] = ((data[3 * i_econt + 2] >> 13) & mask<9>);
+    stc_sums_[8 * i_econt + 7] = ((data[3 * i_econt + 2] >> 4) & mask<9>);
   }
 }
 

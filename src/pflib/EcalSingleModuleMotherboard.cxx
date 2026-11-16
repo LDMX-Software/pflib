@@ -100,8 +100,10 @@ ECON& EcalSingleModuleMotherboard::econ(int which) {
 }
 
 TRIG* EcalSingleModuleMotherboard::trig(int itrig) {
-  if (itrig == 0) return trig_.get();
-  else return nullptr;
+  if (itrig == 0)
+    return trig_.get();
+  else
+    return nullptr;
 }
 
 void EcalSingleModuleMotherboard::softResetROC(int which) {

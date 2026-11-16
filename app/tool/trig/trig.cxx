@@ -4,6 +4,9 @@
  */
 #include "pflib/TRIG.h"
 
+#include <optional>
+
+#include "../pftool.h"
 #include "algo.h"
 #include "align.h"
 #include "decode_multi_sample.h"
@@ -13,10 +16,6 @@
 #include "self_trig.h"
 #include "timein.h"
 #include "watch_run.h"
-
-#include <optional>
-
-#include "../pftool.h"
 
 ENABLE_LOGGING();
 

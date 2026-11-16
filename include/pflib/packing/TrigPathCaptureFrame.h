@@ -19,9 +19,10 @@ namespace pflib::packing {
  * @tparam SingelECONTSample This class must define how to decode a single
  * sample from the ECONT(s).
  */
-template<class SingleECONTSample>
+template <class SingleECONTSample>
 class TrigPathCaptureFrame {
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("decoding")};
+
  public:
   TrigPathCaptureFrame() = default;
   TrigPathCaptureFrame(std::span<uint32_t> data);
@@ -38,15 +39,15 @@ class TrigPathCaptureFrame {
   /**
    * get a sample at a specific index
    *
-   * @param[in] i_sample index for desired sample, default is SoI as defined by capture header
+   * @param[in] i_sample index for desired sample, default is SoI as defined by
+   * capture header
    */
   const SingleECONTSample& sample(std::optional<int> i_sample = {}) const;
   /// get access to header
   const ECONTCaptureHeader& header() const;
   /// get the total length of this frame
-  int length() const {
-    return header().length();
-  }
+  int length() const { return header().length(); }
+
  private:
   ECONTCaptureHeader header_;
   std::vector<SingleECONTSample> samples_;

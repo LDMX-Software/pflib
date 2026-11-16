@@ -3,7 +3,8 @@
 #include "pflib/TRIG.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TrigPathCaptureFrame.h"
-using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample>;
+using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<
+    pflib::packing::HcalBackplaneECONTPairSample>;
 #include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
@@ -241,14 +242,17 @@ void timein(Target* tgt) {
     printf("TRG Data\n");
     printf(" i:  ped -> chrg\n");
     for (int i_l1a{0}; i_l1a < trg_pedestals.size(); i_l1a++) {
-      for (int i_sample{0}; i_sample < trg_pedestals[i_l1a].header().n_samples();
-           i_sample++) {
-        int pedestal{trg_pedestals[i_l1a].sample(i_sample).stc_sum(stc_oi+8*econt_oi)},
-            charge{trg_charge[i_l1a].sample(i_sample).stc_sum(stc_oi+8*econt_oi)};
+      for (int i_sample{0};
+           i_sample < trg_pedestals[i_l1a].header().n_samples(); i_sample++) {
+        int pedestal{trg_pedestals[i_l1a].sample(i_sample).stc_sum(
+            stc_oi + 8 * econt_oi)},
+            charge{trg_charge[i_l1a].sample(i_sample).stc_sum(stc_oi +
+                                                              8 * econt_oi)};
         printf("%c%d: %4d -> %4d (0x%03x)\n",
                (i_l1a + i_sample == tgt->daq().soi()) ? '*' : ' ',
                i_l1a + i_sample, pedestal, charge,
-               trg_charge[i_l1a].sample(i_sample).encoded_stc_sum(stc_oi+8*econt_oi));
+               trg_charge[i_l1a].sample(i_sample).encoded_stc_sum(
+                   stc_oi + 8 * econt_oi));
       }
     }
 

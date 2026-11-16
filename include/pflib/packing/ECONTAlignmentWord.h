@@ -31,9 +31,10 @@ struct ECONTAlignmentWord {
    * and both 11b patterns match the passed in value.
    */
   bool match(uint32_t pattern) const;
-  friend std::ostream& operator<<(std::ostream& o, const ECONTAlignmentWord& self);
+  friend std::ostream& operator<<(std::ostream& o,
+                                  const ECONTAlignmentWord& self);
 };
 
-}
+}  // namespace pflib::packing
 
 #endif

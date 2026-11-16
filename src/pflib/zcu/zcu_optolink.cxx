@@ -218,7 +218,7 @@ std::map<std::string, uint32_t> ZCUOptoLink::opto_rates() {
   } else if (isdaq_) {
     static const std::array<const char*, 6> cnames = {
         "LINK_WORD", "LINK_ERROR", "LINK_CLOCK",
-        "BX_CLK",  "AXI_CLK",    "LINK_FECERR"};
+        "BX_CLK",    "AXI_CLK",    "LINK_FECERR"};
     const int CRATES_OFFSET = 80;
     for (int i = 0; i < cnames.size(); i++) {
       uint32_t val = coder_.read(CRATES_OFFSET + i);

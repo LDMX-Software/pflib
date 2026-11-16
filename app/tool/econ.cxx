@@ -196,8 +196,8 @@ static void econ(const std::string& cmd, Target* pft) {
     int edgesel = 0;
     int invertfcmd = 0;
     if (pftool::state.readout_config_is_hcal()) {
-      invertfcmd = 1; // invert fast command
-      edgesel = 0; // sample on falling edge
+      invertfcmd = 1;  // invert fast command
+      edgesel = 0;     // sample on falling edge
     } else {
       // for the ecal, _don't_ invert fast command
       // and sample on the rising edge

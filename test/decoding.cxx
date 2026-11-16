@@ -6,12 +6,12 @@
 #include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/ECONDEventPacket.h"
 #include "pflib/packing/ECONDFormatter.h"
-#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/EcalECONTCaptureFrame.h"
-#include "pflib/packing/TrigPathCaptureFrame.h"
+#include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/Mask.h"
 #include "pflib/packing/Sample.h"
+#include "pflib/packing/TrigPathCaptureFrame.h"
 #include "pflib/packing/TriggerLinkFrame.h"
 
 int decode5E4M(int w) { return pflib::packing::decompressAEBM<5, 4>(w); }
@@ -579,22 +579,16 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(econt)
 
 BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
-  std::vector<uint32_t> words = {
-    0x17019741,
-    0x18090f58,
-    0xd1a2c58b,
-    0x8d1e2c58,
-    0xa3458f22,
-    0x4468d180
-  };
+  std::vector<uint32_t> words = {0x17019741, 0x18090f58, 0xd1a2c58b,
+                                 0x8d1e2c58, 0xa3458f22, 0x4468d180};
   pflib::packing::EcalECONTSample s;
   s.from(words);
   BOOST_CHECK_EQUAL(s.bx(), 1);
   BOOST_CHECK_EQUAL(s.encoded_sum(), 0x70);
   BOOST_CHECK_EQUAL(s.ch_map().count(), 18);
-  BOOST_CHECK_EQUAL(s.tc(0), 53); 
-  BOOST_CHECK_EQUAL(s.tc(1), 35); 
-  BOOST_CHECK_EQUAL(s.tc(2), 17); 
+  BOOST_CHECK_EQUAL(s.tc(0), 53);
+  BOOST_CHECK_EQUAL(s.tc(1), 35);
+  BOOST_CHECK_EQUAL(s.tc(2), 17);
   BOOST_CHECK_EQUAL(s.tc(3), 40);
   BOOST_CHECK_EQUAL(s.tc(4), 44);
   BOOST_CHECK_EQUAL(s.tc(5), 22);
@@ -613,10 +607,8 @@ BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
 }
 
 BOOST_AUTO_TEST_CASE(single_sample) {
-  std::vector<uint32_t> words = {
-    0x40005020, 0x10080444, 0xa2d148b0,
-    0x40005020, 0x10080444, 0xa2d148b0
-    };
+  std::vector<uint32_t> words = {0x40005020, 0x10080444, 0xa2d148b0,
+                                 0x40005020, 0x10080444, 0xa2d148b0};
   pflib::packing::HcalBackplaneECONTPairSample sample;
   sample.from(words);
   BOOST_CHECK_EQUAL(sample.bx(0), 4);
@@ -643,7 +635,9 @@ BOOST_AUTO_TEST_CASE(two_econts) {
       0x10540408, 0x160010e1, 0x50085020, 0x10080444,
       0xa2d148b0, 0x50040020, 0x10080445, 0x22914890,
   };
-  pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample> frame;
+  pflib::packing::TrigPathCaptureFrame<
+      pflib::packing::HcalBackplaneECONTPairSample>
+      frame;
   frame.from(words);
 
   BOOST_CHECK_EQUAL(frame.header().n_samples(), 1);
@@ -698,7 +692,6 @@ BOOST_AUTO_TEST_CASE(decode_5E4M) {
   BOOST_CHECK_EQUAL(decode5E4M(7), 7);
   BOOST_CHECK_EQUAL(decode5E4M(0b010001001), 0b110011000000);
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
 

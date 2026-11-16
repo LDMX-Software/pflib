@@ -50,6 +50,7 @@ class HcalBackplaneECONTPairSample {
   std::array<int, N_STC> max_tc_;
   std::array<int, N_STC> stc_sums_;
   std::array<int, 2> bx_;
+
  public:
   /// 2 ECON-T producing 3 words each
   static constexpr int WORD_LEN = 6;

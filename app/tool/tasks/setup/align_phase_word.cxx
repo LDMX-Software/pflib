@@ -323,7 +323,8 @@ void align_phase_word(Target* tgt) {
                     << ECON_EXPECTED_PUSM_STATE
                     << " implying that more configuration/setup needs to "
                        "happen before alignment";
-    pflib_log(error) << "Put iecon=" << iecon << " into RUNMODE "
+    pflib_log(error) << "Put iecon=" << iecon
+                     << " into RUNMODE "
                         " before running ECON-ROC alignment";
     return;
   }

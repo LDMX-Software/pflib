@@ -4,7 +4,8 @@
 #include "pflib/TRIG.h"
 #include "pflib/packing/HcalECONTCaptureFrame.h"
 #include "pflib/packing/TrigPathCaptureFrame.h"
-using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample>;
+using HcalECONTCaptureFrame = pflib::packing::TrigPathCaptureFrame<
+    pflib::packing::HcalBackplaneECONTPairSample>;
 #include "pflib/packing/HcalECONTRocSTCMapping.h"
 #include "pflib/packing/Hex.h"
 #include "pflib/packing/MultiSampleECONDEventPacket.h"
@@ -159,7 +160,8 @@ void self_trig(Target* tgt) {
       for (int i_l1a{0}; i_l1a < trg_charge.size(); i_l1a++) {
         for (int i_sample{0}; i_sample < trg_charge[i_l1a].header().n_samples();
              i_sample++) {
-          int charge{trg_charge[i_l1a].sample(i_sample).stc_sum(stc_oi+8*econt_oi)};
+          int charge{trg_charge[i_l1a].sample(i_sample).stc_sum(stc_oi +
+                                                                8 * econt_oi)};
           printf("%2d: %4d\n", i_l1a + i_sample, charge);
         }
       }
