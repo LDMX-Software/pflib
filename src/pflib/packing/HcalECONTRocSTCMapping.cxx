@@ -34,10 +34,17 @@ std::pair<int, int> HcalECONTRocSTCMapping::toECONTSTC(int i_roc,
    * is identical to the STC index.
    *
    * The ECON-T IDs kept in the mapping are for the Target::econ
-   * accessor, the HcalECONTCaptureFrame does not have the ECON-D
+   * accessor, the HcalBackplaneECONTPairSample does not have the ECON-D
    * so the indices are are lowered by one.
    */
   return std::make_pair(econt_id - 1, erxs.at(roc_trg_channel));
+}
+
+int HcalECONTRocSTCMapping::toSTC(int i_roc, int ch) const {
+  auto [i_econt, i_stc] = toECONTSTC(i_roc, ch);
+  // this must match how the ECON-T are serialized in the firmware
+  // and decoded by HcalBackplaneECONTPairSample
+  return 8*i_econt+i_stc;
 }
 
 }  // namespace pflib::packing

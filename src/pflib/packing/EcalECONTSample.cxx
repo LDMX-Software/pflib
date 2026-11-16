@@ -1,4 +1,4 @@
-#include "pflib/packing/EcalECONTCaptureFrame.h"
+#include "pflib/packing/EcalECONTSample.h"
 
 #include "pflib/packing/DecompressAEBM.h"
 #include "pflib/packing/Mask.h"
