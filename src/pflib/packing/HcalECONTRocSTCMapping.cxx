@@ -44,7 +44,7 @@ int HcalECONTRocSTCMapping::toSTC(int i_roc, int ch) const {
   auto [i_econt, i_stc] = toECONTSTC(i_roc, ch);
   // this must match how the ECON-T are serialized in the firmware
   // and decoded by HcalBackplaneECONTPairSample
-  return 8*i_econt+i_stc;
+  return 8 * i_econt + i_stc;
 }
 
 }  // namespace pflib::packing

@@ -4,7 +4,7 @@
 #include "pflib/packing/Mask.h"
 
 namespace pflib::packing {
-  
+
 void HcalBackplaneECONTPairSample::from(std::span<uint32_t> data) {
   if (data.size() != WORD_LEN) {
     pflib_log(error)

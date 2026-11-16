@@ -590,7 +590,7 @@ BOOST_AUTO_TEST_CASE(ecal_sample_best_choice) {
   BOOST_CHECK_EQUAL(s.tc(1), 52);
   BOOST_CHECK_EQUAL(s.tc(2), 26);
   BOOST_CHECK_EQUAL(s.tc(3), 11);
-  BOOST_CHECK_EQUAL(s.tc(4),  5);
+  BOOST_CHECK_EQUAL(s.tc(4), 5);
   BOOST_CHECK_EQUAL(s.tc(5), 34);
   BOOST_CHECK_EQUAL(s.tc(6), 56);
   BOOST_CHECK_EQUAL(s.tc(7), 35);
