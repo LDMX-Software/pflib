@@ -161,13 +161,13 @@ void led_bias_scan(Target* tgt) {
         header["SiPM DAC start"] = SiPMstart;
         header["SiPM DAC end"] = SiPMend;
         f << std::boolalpha << "# " << header << '\n'
-          << "time,cmb_role,i_cmb_port,ch,dacSiPM,dacLED,temperature,"
+          << "time,cmb_role,i_cmb_port,ch,dacSiPM,dacLED,flash_dacLED,temperature,"
           << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f,
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
 
-        auto write_ports = [&](int min_port, int max_port, const std::string& role, uint16_t led_dac) {
+        auto write_ports = [&](int min_port, int max_port, const std::string& role, uint16_t led_dac, uint16_t flash_led_dac) {
           for (int port = min_port; port <= max_port; port++) {
             for (int j = 0; j < 4; j++) {
 
@@ -175,7 +175,7 @@ void led_bias_scan(Target* tgt) {
               auto [i_erx, i_ch] = mapping.toErxChannel(iboard, ch);
 
               f << time << ',' << role << ',' << port << ',' << ch << ',' << dacSiPM << ','
-                << led_dac << ',' << temperature << ',';
+                << led_dac << ',' << flash_led_dac << ',' << temperature << ',';
 
               ep.samples[ep.i_soi].channel(i_erx, i_ch).to_csv(f);
               f << '\n';
@@ -183,9 +183,9 @@ void led_bias_scan(Target* tgt) {
           }
         };
 
-        write_ports(min_cmb_port_flash, max_cmb_port_flash, "flash", dacLED);
+        write_ports(min_cmb_port_flash, max_cmb_port_flash, "flash", dacLED, dacLED);
         if (rec) {
-          write_ports(min_cmb_port_rec, max_cmb_port_rec, "record", 0);
+          write_ports(min_cmb_port_rec, max_cmb_port_rec, "record", 0, dacLED);
         }
       },
       n_links};
