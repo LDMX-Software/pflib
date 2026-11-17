@@ -32,7 +32,7 @@ class EcalSMMTargetBW : public EcalSingleModuleMotherboard {
 
     elinks_ = std::make_unique<OptoElinksBW>(itarget, dev);
     daq_ = std::make_unique<bittware::HcalBackplaneBW_Capture>(dev, itarget);
-    fc_ = std::make_shared<bittware::BWFastControl>(dev, itarget);
+    fc_ = std::make_shared<bittware::BWFastControl>(dev);
   }
 
   virtual Elinks& elinks() override { return *elinks_; }

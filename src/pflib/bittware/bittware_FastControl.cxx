@@ -32,22 +32,22 @@ static constexpr int BIT_FIRE_CALIB_INT = 11;
 static constexpr int BIT_FIRE_CALIB_EXT = 12;
 static constexpr int BIT_RESET_COUNTERS = 30;
 
-// lpGBT quad coder: links masked here get IDLE instead of LINK_RESET
-static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000;
-static constexpr int QUAD_REG_CTL = 0x600;
-static constexpr uint32_t QUAD_MASK_LINKRESET = 0x000F0000;
-static constexpr uint32_t QUAD_LINKRESET_MASK_VERSION = 6;
-
 static constexpr int REG_LINK_STATUS = 0xC00;
 static constexpr uint32_t MASK_LINK_READY = 0x00000001;
 static constexpr int REG_COUNTER_BASE = 0xC10;
 
-BWFastControl::BWFastControl(const char* dev, int ilink)
-    : axi_(0x1000, dev), quad_(QUAD_CODER0_BASE_ADDRESS, dev), ilink_(ilink) {
-  has_mask_ = (ilink_ >= 0 && ilink_ < 4 &&
-               quad_.get_firmware_version() >= QUAD_LINKRESET_MASK_VERSION);
-  // never leave other links masked from an earlier session
-  if (has_mask_) mask_other_links(false);
+// lpGBT quad coder: per-link FC command masks (quad firmware version >= 7)
+static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000;
+static constexpr int QUAD_REG_CTL = 0x600;
+static constexpr uint32_t QUAD_MASK_LINKRESET = 0x000F0000;
+static constexpr uint32_t QUAD_MASK_L1A = 0x00F00000;
+static constexpr uint32_t QUAD_MASK_CALIB = 0x0F000000;
+static constexpr uint32_t QUAD_MASK_RESETS = 0xF0000000;
+static constexpr uint32_t QUAD_FC_MASKS_VERSION = 7;
+
+BWFastControl::BWFastControl(const char* dev)
+    : axi_(0x1000, dev), quad_(QUAD_CODER0_BASE_ADDRESS, dev) {
+  has_masks_ = (quad_.get_firmware_version() >= QUAD_FC_MASKS_VERSION);
   static const int BX_FOR_CALIB = 42;
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_BX, BX_FOR_CALIB);
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
@@ -70,11 +70,37 @@ BWFastControl::BWFastControl(const char* dev, int ilink)
   printf("  FC LINK_READY      : %s\n",
          (axi_.readMasked(REG_LINK_STATUS, MASK_LINK_READY) == 1) ? "true"
                                                                   : "false");
-  if (has_mask_) {
-    printf("  LINK RESETS        : link %d only\n", ilink_);
-  } else {
-    printf("  LINK RESETS        : all links\n");
+  int lr, l1a, cal, rst;
+  if (fc_get_masks(lr, l1a, cal, rst) && (lr | l1a | cal | rst)) {
+    // diagnostic masks are kept across sessions, make them hard to miss
+    printf(
+        "  WARNING: FC MASKS SET (bit = optical link): LINK_RESET 0x%x L1A "
+        "0x%x CALIB 0x%x RESETS 0x%x\n",
+        lr, l1a, cal, rst);
   }
+}
+
+bool BWFastControl::fc_get_masks(int& linkreset, int& l1a, int& calib,
+                                 int& resets) {
+  if (!has_masks_) return false;
+  linkreset = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_LINKRESET);
+  l1a = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_L1A);
+  calib = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_CALIB);
+  resets = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_RESETS);
+  return true;
+}
+
+void BWFastControl::fc_set_masks(int linkreset, int l1a, int calib,
+                                 int resets) {
+  if (!has_masks_) {
+    printf("WARNING: quad firmware < %u has no FC masks, nothing set\n",
+           QUAD_FC_MASKS_VERSION);
+    return;
+  }
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_LINKRESET, linkreset & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_L1A, l1a & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_CALIB, calib & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_RESETS, resets & 0xF);
 }
 
 static constexpr const char* names[] = {"BCR",
@@ -112,42 +138,21 @@ void BWFastControl::setL1AperROR(int n) {
 int BWFastControl::getL1AperROR() {
   return axi_.readMasked(REG_CTL, MASK_L1A_PER_ROR);
 }
-void BWFastControl::mask_other_links(bool mask) {
-  uint32_t others = mask ? (0xF & ~(1u << ilink_)) : 0;
-  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_LINKRESET, others);
-}
 void BWFastControl::linkreset_rocs() {
   uint32_t val = axi_.read(REG_CTL);
   axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
-  if (has_mask_) {
-    mask_other_links(true);
-    usleep(100);
-  }
 
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCD);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ROCT);
-  if (has_mask_) {
-    // let the ROC-T reset go out (up to one orbit) before unmasking
-    usleep(1000);
-    mask_other_links(false);
-  }
   axi_.write(REG_CTL, val);
 }
 void BWFastControl::linkreset_econs() {
   uint32_t val = axi_.read(REG_CTL);
   axi_.writeMasked(REG_CTL, MASK_ENABLE_L1A, 0);
-  if (has_mask_) {
-    mask_other_links(true);
-    usleep(100);
-  }
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECOND);
   usleep(1000);
   axi_.write(REG_PULSE, 1 << BIT_FIRE_LINKRESET_ECONT);
-  if (has_mask_) {
-    usleep(1000);
-    mask_other_links(false);
-  }
   axi_.write(REG_CTL, val);
 }
 void BWFastControl::bufferclear() { axi_.write(REG_PULSE, 1 << BIT_FIRE_EBR); }
