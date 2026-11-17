@@ -14,35 +14,45 @@ output_dir.mkdir(exist_ok = True)
 
 df = pd.read_csv(args.dataset, comment='#', skipinitialspace=True)
 
-channel_groups = df.groupby('ch')
+for channel, ch_df in df.groupby('ch'): #group by channel
 
-for channel, ch_df in channel_groups:
+    for role, role_df in ch_df.groupby('cmb_role'): # group by flashing or recording CMB
 
-    # group by SiPM DAC
-    sipm_groups = ch_df.groupby('dacSiPM')
+        for dacSiPM, sipm_df in ch_df.groupby('dacSiPM'): #group by SiPM
 
-    for dacSiPM, sipm_df in sipm_groups:
+            if role == "flash":
+                led_col = "dacLED" #the applied LED DAC on the CMB that was flashed
+                title = " LEDs flashed on this CMB"
+            else:
+                led_col = "flash_dacLED" #the LED DAC value that was applied on the CMB that flashed
+                title = "LEDs flashed on other CMB"
 
-        fig, ax = plt.subplots(figsize=(8, 5))
 
-        med = sipm_df.groupby(['dacLED', 'time'], as_index=False).agg(adc=('adc', 'median')).sort_values(['dacLED', 'time']) # compute median over multiple events
+            fig, ax = plt.subplots(figsize=(8, 5))
 
-        cmap = plt.get_cmap('viridis')
-        led_groups = med.groupby('dacLED')
-        n = len(led_groups)
+            mean = sipm_df.groupby([led_col, 'time'], as_index=False).agg(adc=('adc', 'mean')).sort_values([led_col, 'time']) # compute mean over multiple events
 
-        for i, (dacLED, med_df) in enumerate(led_groups):
+            cmap = plt.get_cmap('viridis')
+            led_groups = mean.groupby(led_col)
+            n = len(led_groups)
 
-            color = cmap(i / max(n - 1, 1))
-            ax.scatter(med_df['time'], med_df['adc'], marker='o', s=10, linewidth=1, color=color, label=f'LED DAC {dacLED}')
+            for i, (dacLED, mean_df) in enumerate(led_groups):
 
-        ax.set_xlabel('Time [ns]')
-        ax.set_ylabel('Median ADC')
-        ax.set_title(f'LED Pulse Scan\n HGCROC Channel {channel}, SiPM DAC {dacSiPM}')
-        ax.grid(True)
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=7)
-        plt.tight_layout()
+                color = cmap(i / max(n - 1, 1))
+                ax.scatter(mean_df['time'], mean_df['adc'], marker='o', s=10, linewidth=1, color=color, label=f'LED DAC {dacLED}')
 
-        output_name = (f'channel_{channel}_sipmDAC_{dacSiPM}.png')
-        plt.savefig(output_dir / output_name, dpi=300)
-        plt.close()
+            ax.set_xlabel('Time [ns]')
+            ax.set_ylabel('Mean ADC')
+            ax.set_title(f'LED Pulse Scan\n HGCROC Channel {channel}, SiPM DAC {dacSiPM}\n {title}')
+            ax.grid(True)
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=7)
+            plt.tight_layout()
+
+            output_name = (f'channel_{channel}_sipmDAC_{dacSiPM}_{role}.png')
+            plt.savefig(output_dir / output_name, dpi=300)
+            plt.close()
+
+
+
+
+
