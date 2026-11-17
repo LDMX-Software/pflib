@@ -307,9 +307,10 @@ static void fc(const std::string& cmd, Target* pft) {
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
     int lr, l1a, cal, rst;
     if (pft->fc().fc_get_masks(lr, l1a, cal, rst)) {
-      printf("  FC masks (link bits) : LINK_RESET 0x%x L1A 0x%x CALIB 0x%x"
-             " RESETS 0x%x\n",
-             lr, l1a, cal, rst);
+      printf(
+          "  FC masks (link bits) : LINK_RESET 0x%x L1A 0x%x CALIB 0x%x"
+          " RESETS 0x%x\n",
+          lr, l1a, cal, rst);
     }
   }
 }

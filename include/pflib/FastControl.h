@@ -138,8 +138,7 @@ class FastControl {
    *
    * @return false if the firmware has no masks
    */
-  virtual bool fc_get_masks(int& linkreset, int& l1a, int& calib,
-                            int& resets) {
+  virtual bool fc_get_masks(int& linkreset, int& l1a, int& calib, int& resets) {
     return false;
   }
 
