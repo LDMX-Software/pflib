@@ -12,14 +12,13 @@
 #include "decode_multi_sample.h"
 #include "histo.h"
 #include "pflib/packing/DecompressAEBM.h"
+#include "pflib/packing/EcalECONTSample.h"
+#include "pflib/packing/HcalBackplaneECONTPairSample.h"
+#include "pflib/packing/TrigPathCaptureFrame.h"
 #include "pflib/zcu/zcu_trig.h"
 #include "self_trig.h"
 #include "timein.h"
 #include "watch_run.h"
-
-#include "pflib/packing/TrigPathCaptureFrame.h"
-#include "pflib/packing/HcalBackplaneECONTPairSample.h"
-#include "pflib/packing/EcalECONTSample.h"
 
 ENABLE_LOGGING();
 
@@ -99,11 +98,14 @@ void trig(const std::string& cmd, Target* target) {
       printf("%08x\n", word);
     }
     if (pftool::state.readout_config_is_hcal()) {
-      pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample> frame;
+      pflib::packing::TrigPathCaptureFrame<
+          pflib::packing::HcalBackplaneECONTPairSample>
+          frame;
       frame.from(event);
       std::cout << frame << std::flush;
     } else {
-      pflib::packing::TrigPathCaptureFrame<pflib::packing::EcalECONTSample> frame;
+      pflib::packing::TrigPathCaptureFrame<pflib::packing::EcalECONTSample>
+          frame;
       frame.from(event);
       std::cout << frame << std::flush;
     }

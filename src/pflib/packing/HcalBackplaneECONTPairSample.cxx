@@ -50,7 +50,8 @@ int HcalBackplaneECONTPairSample::max_tc(int i_stc) const {
   return max_tc_.at(i_stc);
 }
 
-std::ostream& operator<<(std::ostream& o, const HcalBackplaneECONTPairSample& self) {
+std::ostream& operator<<(std::ostream& o,
+                         const HcalBackplaneECONTPairSample& self) {
   o << "HcalBackplaneECONTPairSample { "
     << "bx: (" << self.bx(0) << ", " << self.bx(1) << "), "
     << "stc_sums: [ ";

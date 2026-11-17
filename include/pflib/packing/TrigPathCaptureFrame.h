@@ -47,13 +47,15 @@ class TrigPathCaptureFrame {
   const ECONTCaptureHeader& header() const;
   /// get the total length of this frame
   int length() const { return header().length(); }
+
  private:
   ECONTCaptureHeader header_;
   std::vector<SingleECONTSample> samples_;
 };
 
-template<class SingleECONTSample>
-std::ostream& operator<<(std::ostream& o, const TrigPathCaptureFrame<SingleECONTSample>& self) {
+template <class SingleECONTSample>
+std::ostream& operator<<(std::ostream& o,
+                         const TrigPathCaptureFrame<SingleECONTSample>& self) {
   o << self.header() << '\n';
   for (int i_sample{0}; i_sample < self.header().n_samples(); i_sample++) {
     o << (i_sample == self.header().pre_samples() ? '*' : ' ')
