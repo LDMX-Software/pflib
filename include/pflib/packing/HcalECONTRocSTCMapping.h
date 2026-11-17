@@ -43,9 +43,22 @@ class HcalECONTRocSTCMapping {
    * @param[in] i_roc ROC index
    * @param[in] ch channel within that ROC [0,72)
    * @return [i_econt, i_stc] where i_econt is the index of the ECON-T
-   * in HcalECONTCaptureFrame and i_stc is the index of the STC in that ECON-T
+   * on the backplane and i_stc is the index of the STC in that ECON-T
    */
   std::pair<int, int> toECONTSTC(int i_roc, int ch) const;
+  /**
+   * get the STC index for the input ROC/channel
+   *
+   * Since a pair of ECON-Ts are included on each Hcal Backplane,
+   * they are unpacked together into HcalBackplaneECONTPairSample
+   * with the lower indices [0:7] corresponding to the first ECON-T
+   * and the higher indices [0:14] corresponding to the second.
+   *
+   * @param[in] i_roc ROC index
+   * @param[in] ch channel within that ROC [0,72)
+   * @return i_stc index of the STC from a given Hcal Backplane
+   */
+  int toSTC(int i_roc, int ch) const;
 };
 
 }  // namespace pflib::packing

@@ -4,6 +4,7 @@
 
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
+#include "pflib/packing/ECONTAlignmentWord.h"
 #include "pflib/utility/string_format.h"
 
 ENABLE_LOGGING();
@@ -140,6 +141,15 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
 
 static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
                                   bool check_all_phases) {
+  /**
+   * This function is where we deduce the value for
+   * FormatterBuffer.Global.align_serializer_N
+   * where N is the output link index from the ECON.
+   *
+   * Technically (for both ECONs) this value is 6 bits and therefore can
+   * go up to 64. We only check up to 32 here because we can shift by
+   * increments of 32 using our capture firmware.
+   */
   if (econ.type() == "econd") {
     // word-alignment
     uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
@@ -207,28 +217,28 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
     if (pftool::state.readout_config_is_hcal()) {
       i_elinks = HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon);
     } else {
-      pflib_log(warn)
-          << "unsure on which links to check for EcalSMM, looking at all 6";
+      pflib_log(debug) << "looking at first 6 eRx for EcalSMM";
     }
 
     bool all_succeed = true;
     for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
       std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
       int got_idle_phase = -1;
-      for (int phase = 0; phase < 16; phase++) {
+      for (int phase = 0; phase < 32; phase++) {
         std::vector<uint16_t> readings;
         econ.applyParameter("FORMATTERBUFFER", reg_name, phase);
         usleep(3000);
         tgt->fc().linkreset_econs();
         usleep(3000);
-        std::vector<uint32_t> samples =
-            trig->read_capture_buffer(i_elinks.at(ilink));
-        for (const auto& sample : samples) {
-          readings.push_back((sample >> 16) & ALIGN_MASK);
-          readings.push_back(sample & ALIGN_MASK);
+        std::vector<pflib::packing::ECONTAlignmentWord> samples;
+        for (const auto& w : trig->read_capture_buffer(i_elinks.at(ilink))) {
+          samples.emplace_back(w);
         }
-        if (std::count(readings.begin(), readings.end(), idle) ==
-            readings.size()) {
+        // only checking first sample because read_capture_buffer
+        // is hardcoded for 1 sample to reflect current firmware
+        pflib_log(info) << "ilink=" << ilink << " phase=" << phase
+                        << " sample={" << samples[0] << "}";
+        if (samples[0].match(idle)) {
           // all of the readings match the configured idle, success!
           got_idle_phase = phase;
           if (not check_all_phases) {
@@ -241,6 +251,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
         pflib_log(warn) << "unable to find word alignment for link " << ilink
                         << " from ECON-T";
       } else {
+        pflib_log(info) << "found pattern on phase " << got_idle_phase
+                        << " for link " << ilink;
         econ.applyParameter("FORMATTERBUFFER", reg_name, got_idle_phase);
       }
     }

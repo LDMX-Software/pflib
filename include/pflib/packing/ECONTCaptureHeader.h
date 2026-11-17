@@ -38,6 +38,8 @@ class ECONTCaptureHeader {
   int n_links() const;
   int pre_samples() const;
   int n_samples() const;
+  friend std::ostream& operator<<(std::ostream& o,
+                                  const ECONTCaptureHeader& self);
 };
 
 }  // namespace pflib::packing

@@ -107,8 +107,11 @@ add_library(packing SHARED
   src/pflib/packing/ECONDEventPacket.cxx
   src/pflib/packing/ECONDFormatter.cxx
   src/pflib/packing/MultiSampleECONDEventPacket.cxx
+  src/pflib/packing/ECONTAlignmentWord.cxx
   src/pflib/packing/ECONTCaptureHeader.cxx
-  src/pflib/packing/HcalECONTCaptureFrame.cxx
+  src/pflib/packing/TrigPathCaptureFrame.cxx
+  src/pflib/packing/HcalBackplaneECONTPairSample.cxx
+  src/pflib/packing/EcalECONTSample.cxx
   src/pflib/packing/HcalECONTRocSTCMapping.cxx
   src/pflib/packing/TrigAlgoOutput.cxx
 )
