@@ -23,6 +23,7 @@ FORMATTERBUFFER:
 ROCDAQCTRL:
   GLOBAL_PASS_THRU_MODE: 1 # pass through mode 
   GLOBAL_MATCH_THRESHOLD: 0 # number of eRx that must agree on a Header Word for that word to be considered a Header Word
+  GLOBAL_BCR_BUCKET_DEFAULT: 1 # default 3514 puts ECON BX 51 behind the ROCs
   GLOBAL_ACTIVE_ERXS: 0b000000111111 # bit-mask equivalent of ERX.i_ENABLE
 ELINKPROCESSORS:
   GLOBAL_V_RECONSTRUCT_THRESH: 0 # number of erxs that should have the same EBO for the vertical reconstruction (sums the number of 1s and 0s in the bit values from all 12 eRx) to be successful

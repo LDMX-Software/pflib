@@ -1,4 +1,4 @@
-# run prep: L1OFFSET, 5 samples, central L1As
+# run prep: L1OFFSET, run clear, 5 samples, central L1As
 ROC
 LOAD
 config/esa26/l1off-63.yaml
@@ -6,6 +6,12 @@ config/esa26/l1off-63.yaml
 N
 # all ROCs?
 Y
+EXIT
+# EBR + OCR + ECR: ROC and ECON-D counters agree (M bit)
+EXPERT
+FAST_CONTROL
+RUN_CLEAR
+EXIT
 EXIT
 DAQ
 RESET
