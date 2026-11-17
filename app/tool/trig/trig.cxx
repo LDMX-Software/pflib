@@ -98,16 +98,17 @@ void trig(const std::string& cmd, Target* target) {
       printf("%08x\n", word);
     }
     if (pftool::state.readout_config_is_hcal()) {
-      pflib::packing::TrigPathCaptureFrame<
-          pflib::packing::HcalBackplaneECONTPairSample>
-          frame;
-      frame.from(event);
-      std::cout << frame << std::flush;
+      using OneL1AFrame = pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample>;
+      std::vector<OneL1AFrame> frames = decode_multi_sample<OneL1AFrame>(trig->get_l1a_per_ror(), event);
+      for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
+        std::cout << frames[i_l1a] << std::flush;
+      }
     } else {
-      pflib::packing::TrigPathCaptureFrame<pflib::packing::EcalECONTSample>
-          frame;
-      frame.from(event);
-      std::cout << frame << std::flush;
+      using OneL1AFrame = pflib::packing::TrigPathCaptureFrame<pflib::packing::EcalECONTSample>;
+      std::vector<OneL1AFrame> frames = decode_multi_sample<OneL1AFrame>(trig->get_l1a_per_ror(), event);
+      for (int i_l1a{0}; i_l1a < frames.size(); i_l1a++) {
+        std::cout << frames[i_l1a] << std::flush;
+      }
     }
   }
 }
