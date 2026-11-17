@@ -17,6 +17,10 @@
 #include "timein.h"
 #include "watch_run.h"
 
+#include "pflib/packing/TrigPathCaptureFrame.h"
+#include "pflib/packing/HcalBackplaneECONTPairSample.h"
+#include "pflib/packing/EcalECONTSample.h"
+
 ENABLE_LOGGING();
 
 void trig_render(Target* tgt) {}
@@ -93,6 +97,15 @@ void trig(const std::string& cmd, Target* target) {
     for (int iword{0}; iword < event.size(); iword++) {
       uint32_t word{event[iword]};
       printf("%08x\n", word);
+    }
+    if (pftool::state.readout_config_is_hcal()) {
+      pflib::packing::TrigPathCaptureFrame<pflib::packing::HcalBackplaneECONTPairSample> frame;
+      frame.from(event);
+      std::cout << frame << std::flush;
+    } else {
+      pflib::packing::TrigPathCaptureFrame<pflib::packing::EcalECONTSample> frame;
+      frame.from(event);
+      std::cout << frame << std::flush;
     }
   }
 }

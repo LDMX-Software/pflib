@@ -56,6 +56,7 @@ class EcalECONTSample {
   int tc(int i_tc) const;
   /// get the channel map showing which TC were included in readout
   std::bitset<48> ch_map() const;
+  friend std::ostream& operator<<(std::ostream& o, const EcalECONTSample& self);
 };
 
 }  // namespace pflib::packing

@@ -50,4 +50,15 @@ int HcalBackplaneECONTPairSample::max_tc(int i_stc) const {
   return max_tc_.at(i_stc);
 }
 
+std::ostream& operator<<(std::ostream& o, const HcalBackplaneECONTPairSample& self) {
+  o << "HcalBackplaneECONTPairSample { "
+    << "bx: (" << self.bx(0) << ", " << self.bx(1) << "), "
+    << "stc_sums: [ ";
+  for (int i{0}; i < HcalBackplaneECONTPairSample::N_STC; i++) {
+    o << self.stc_sum(i) << " ";
+  }
+  o << "] }";
+  return o;
+}
+
 }  // namespace pflib::packing

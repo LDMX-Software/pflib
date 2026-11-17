@@ -43,4 +43,10 @@ std::bitset<48> EcalECONTSample::ch_map() const { return tc_ch_map_; }
 
 int EcalECONTSample::tc(int i_tc) const { return max_tc_.at(i_tc); }
 
+std::ostream& operator<<(std::ostream& o, const EcalECONTSample& self) {
+  o << "EcalECONTSample { bx: " << self.bx() << ", "
+    << "sum: " << self.sum() << " }";
+  return o;
+}
+
 }  // namespace pflib::packing

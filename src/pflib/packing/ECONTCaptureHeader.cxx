@@ -45,4 +45,15 @@ int ECONTCaptureHeader::n_links() const { return n_links_; }
 int ECONTCaptureHeader::pre_samples() const { return pre_samples_; }
 
 int ECONTCaptureHeader::n_samples() const { return n_samples_; }
+
+std::ostream& operator<<(std::ostream& o, const ECONTCaptureHeader& self) {
+  o << "ECONTCaptureHeader { version: " << self.version() << ", "
+    << "econ_id: " << self.econ_id() << ", "
+    << "length: " << self.length() << ", "
+    << "n_links: " << self.n_links() << ", "
+    << "pre_samples: " << self.pre_samples() << ", "
+    << "n_samples: " << self.n_samples() << " }";
+  return o;
+}
+
 }  // namespace pflib::packing

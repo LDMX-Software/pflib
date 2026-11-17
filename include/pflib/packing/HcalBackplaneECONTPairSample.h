@@ -64,6 +64,7 @@ class HcalBackplaneECONTPairSample {
   int encoded_stc_sum(int i_stc) const;
   /// index of the TC within the STC that was the maximum
   int max_tc(int i_stc) const;
+  friend std::ostream& operator<<(std::ostream& o, const HcalBackplaneECONTPairSample& self);
 };
 
 }  // namespace pflib::packing
