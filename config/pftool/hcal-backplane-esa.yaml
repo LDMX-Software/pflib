@@ -2,5 +2,5 @@ target:
   type: "HcalBackplaneBittware"
   ilink: 0
   dev: "/dev/datadev_2"
-  boardmask: 0b1101 # all but HGCROC1
+  boardmask: 0b1111
 calib: config/calib/hcal-backplane-esa/2026-11-01b.yaml
