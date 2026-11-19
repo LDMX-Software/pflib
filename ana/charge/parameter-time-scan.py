@@ -43,7 +43,7 @@ parser.add_argument('-yl', '--ylabel', default='ADC', type=str, help=f'What to l
 args = parser.parse_args()
 
 if args.output is None:
-    args.output = args.time_scan.with_suffix(".png")
+    args.output = args.time_scan.with_suffix("")
 
 multicsv = bool(args.extra_csv_files)
 
@@ -479,9 +479,9 @@ def heatmaps(
 
         #normalize each column (i.e. ADC axis for each time slice)
         H_norm = np.zeros_like(H)
-        col_max = H.max(axis=0, keepdims=True) #max count per timeslice
-        nonzero_mask = col_max != 0 #to handle division by zero
-        H_norm[:, nonzero_mask[0]] = H[:, nonzero_mask[0]] / col_max[:, nonzero_mask[0]]
+        row_max = H.max(axis=1, keepdims=True) #max count per timeslice
+        nonzero_mask = row_max[:,0] != 0 #to handle division by zero
+        H_norm[nonzero_mask, :] = H[nonzero_mask, :] / row_max[nonzero_mask, :]
 
         return H_norm
 
@@ -492,7 +492,7 @@ def heatmaps(
 
         plt.figure()
         plt.imshow(
-            H_combined.T,
+            H_norm.T,
             extent=[x_min, x_max, y_min, y_max],
             origin='lower',
             aspect='auto',
@@ -501,15 +501,15 @@ def heatmaps(
             vmax=1
         )
 
-        calib_vals = [group_df[parameter_names[0]].iloc[0] for _, group_df in groups]
-        calib_str = ", ".join(str(v) for v in calib_vals)
+        #calib_vals = [group_df[param_name[0]].iloc[0] for _, group_df in groups]
+        #calib_str = ", ".join(str(v) for v in calib_vals)
 
         plt.colorbar(label='Normalized Counts')
         plt.xlabel('time / ns = (charge_to_l1a - 20 + 1)*25 - samples.phase_strobe*25/16')
         plt.ylabel('ADC')
-        plt.title(f'Combined Normalized Heatmap\nCALIB values: {calib_str}')
+        plt.title(f'Individual Normalized Heatmap\nCALIB: {val}')
         plt.tight_layout()
-        plt.savefig(f'{args.output}_CombinedHeatmap.png', dpi=200)
+        plt.savefig(f'{args.output}_CALIB{val}_Heatmap.png', dpi=200)
         plt.close()
 
 
@@ -527,7 +527,7 @@ def heatmaps(
         extent=[x_min, x_max, y_min, y_max],
         origin='lower',
         aspect='auto',
-        cmap='Blues',
+        cmap='viridis',
         vmin=0,
         vmax=1
     )
@@ -557,10 +557,10 @@ def multiparams(
     So far only tested for PARAMS.
     """
     for i in range(len(samples_collection)):
-        if args.plot_function == 'TIME' and args.plot_type == 'SCATTER':
+        if args.plot_function == 'ADC-TIME' and args.plot_type == 'SCATTER':
             time(samples_collection[i], run_params_collection[i], ax)
-        elif args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-            heatmap(samples_collection[i], run_params_collection[i], ax)
+        elif args.plot_function == 'ADC-TIME' and args.plot_type == 'HEATMAP':
+            heatmaps(samples_collection[i], run_params_collection[i], ax)
         elif args.plot_function == 'PARAMS':
             param(samples_collection[i], run_params_collection[i], ax)
 
@@ -595,9 +595,10 @@ if args.plot_function == 'PARAMS':
     plt_gen(param, samples, run_params, args.output,
             xlabel = args.xlabel, ylabel = args.ylabel)
 
-if args.plot_function == 'TIME' and args.plot_type == 'HEATMAP':
-    plt_gen(heatmap, samples, run_params, args.output,
-            xlabel = args.xlabel, ylabel = args.ylabel)
+if args.plot_function == 'ADC-TIME' and args.plot_type == 'HEATMAP':
+    #plt_gen(heatmaps, samples, run_params, args.output,
+    #        xlabel = args.xlabel, ylabel = args.ylabel)
+    heatmaps(samples, run_params, None)
 
 if multicsv:
     plt_gen(multiparams, samples_collection, run_params_collection, args.output, 

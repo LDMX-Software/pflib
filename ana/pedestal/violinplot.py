@@ -33,10 +33,13 @@ fig, axes = plt.subplots(
     nrows=nrows,
     figsize=(12, 5*nrows),
     sharex=True,
+    squeeze=False,
     gridspec_kw = dict(
         hspace = 0.1
     )
 )
+
+axes = axes.flatten()
 
 labels = []
 for pedestals in args.pedestals:
@@ -52,7 +55,7 @@ for pedestals in args.pedestals:
         major_id = ids[i_row]
         ax.set_title(f'{label} {major_id}')
         art = ax.violinplot(
-            [ samples[(samples[major_column]==major_id)&(samples.channel==ch)].adc for ch in channels],
+            [ samples[(samples[major_column]==major_id)&(samples.channel==ch)].adc for ch in channels], widths=0.8
         )
         if i_row == 0:
             labels.append((
@@ -68,7 +71,7 @@ axes[-1].set_xticks(
     [i+1 for i in range(len(channels))],
     channels
 )
-axes[-1].tick_params("x", rotation=90, rotation_mode="xtick")
+axes[-1].tick_params(axis="x", labelrotation=90)
 axes[-1].set_xlabel('Channel')
 axes[0].legend(*zip(*labels))
 fig.savefig(args.output, bbox_inches='tight')
