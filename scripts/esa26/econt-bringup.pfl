@@ -15,11 +15,6 @@ config/econ/econt_hcal_stc.yaml
 N
 RUNMODE
 Y
-IECON
-1
-LOAD
-config/esa26/econt1-noroc1.yaml
-N
 EXIT
 TASKS
 SETUP
