@@ -133,6 +133,22 @@ class FastControl {
   /** accept external RORs even when the FC link is down */
   virtual void fc_override_link_ready(bool override_link_ready) {}
 
+  /**
+   * read the per-link FC command masks (diagnostic), bit i = optical link i
+   *
+   * @return false if the firmware has no masks
+   */
+  virtual bool fc_get_masks(int& linkreset, int& l1a, int& calib, int& resets) {
+    return false;
+  }
+
+  /**
+   * set the per-link FC command masks; a masked link does not get
+   * LINK_RESETs / L1As+PREL1As / CALPULSEs / EBR+CHIPSYNC+ECR+OCR,
+   * BCR always goes through
+   */
+  virtual void fc_set_masks(int linkreset, int l1a, int calib, int resets) {}
+
   /** get the period in us for the timer trigger */
   virtual int fc_timer_setup_read() { return -1; }
 

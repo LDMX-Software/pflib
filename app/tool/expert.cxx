@@ -200,6 +200,7 @@ static void elinks(const std::string& cmd, Target* pft) {
  *   pflib::FastControl::getErrorCounters, pflib::FastControl::getCmdCounters,
  *   pflib::FastControl::getMultisampleSetup
  * - ORBIT_BLINKER: toggle if orbit blinker is on or not
+ * - MASKS: per-link FC command masks, pflib::FastControl::fc_set_masks
  * - EXTERNAL: enable external RORs and choose whether to accept them
  *   while the FC link is down, pflib::FastControl::fc_enables and
  *   pflib::FastControl::fc_override_link_ready
@@ -276,6 +277,21 @@ static void fc(const std::string& cmd, Target* pft) {
     do_status = true;
   }
 
+  if (cmd == "MASKS") {
+    int lr, l1a, cal, rst;
+    if (!pft->fc().fc_get_masks(lr, l1a, cal, rst)) {
+      printf("  No per-link FC masks in this firmware\n");
+    } else {
+      printf("  Per-link FC masks, bit i = optical link i (0 = send)\n");
+      lr = pftool::readline_int("LINK_RESET mask?", lr, true);
+      l1a = pftool::readline_int("L1A + PREL1A mask?", l1a, true);
+      cal = pftool::readline_int("CALPULSE mask?", cal, true);
+      rst = pftool::readline_int("EBR + CHIPSYNC + ECR + OCR mask?", rst, true);
+      pft->fc().fc_set_masks(lr, l1a, cal, rst);
+      do_status = true;
+    }
+  }
+
   if (cmd == "STATUS" || do_status) {
     std::map<std::string, uint32_t> cnt = pft->fc().getCmdCounters();
     for (const auto& pair : cnt) {
@@ -289,6 +305,13 @@ static void fc(const std::string& cmd, Target* pft) {
     printf("  FC Link Ready        : %d\n", link_ready);
     printf("  Override Link Ready  : %d\n", override_link_ready);
     printf("  ELink Event Occupancy: %d\n", pft->daq().getEventOccupancy());
+    int lr, l1a, cal, rst;
+    if (pft->fc().fc_get_masks(lr, l1a, cal, rst)) {
+      printf(
+          "  FC masks (link bits) : LINK_RESET 0x%x L1A 0x%x CALIB 0x%x"
+          " RESETS 0x%x\n",
+          lr, l1a, cal, rst);
+    }
   }
 }
 
@@ -321,6 +344,7 @@ auto menu_fc =
         ->line("LINK_RESET", "Send a link reset", fc)
         ->line("BUFFER_CLEAR", "Send a buffer clear", fc)
         ->line("RUN_CLEAR", "Send a run clear", fc)
+        ->line("MASKS", "per-link FC command masks (diagnostic)", fc)
         ->line("COUNTER_RESET", "Reset counters", fc)
         ->line("CALIB", "Setup calibration pulse", fc)
         ->line("SEND_CALIB", "send a calib pulse command",

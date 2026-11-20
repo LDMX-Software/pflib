@@ -36,7 +36,18 @@ static constexpr int REG_LINK_STATUS = 0xC00;
 static constexpr uint32_t MASK_LINK_READY = 0x00000001;
 static constexpr int REG_COUNTER_BASE = 0xC10;
 
-BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
+// lpGBT quad coder: per-link FC command masks (quad firmware version >= 7)
+static constexpr uint32_t QUAD_CODER0_BASE_ADDRESS = 0x3000;
+static constexpr int QUAD_REG_CTL = 0x600;
+static constexpr uint32_t QUAD_MASK_LINKRESET = 0x000F0000;
+static constexpr uint32_t QUAD_MASK_L1A = 0x00F00000;
+static constexpr uint32_t QUAD_MASK_CALIB = 0x0F000000;
+static constexpr uint32_t QUAD_MASK_RESETS = 0xF0000000;
+static constexpr uint32_t QUAD_FC_MASKS_VERSION = 7;
+
+BWFastControl::BWFastControl(const char* dev)
+    : axi_(0x1000, dev), quad_(QUAD_CODER0_BASE_ADDRESS, dev) {
+  has_masks_ = (quad_.get_firmware_version() >= QUAD_FC_MASKS_VERSION);
   static const int BX_FOR_CALIB = 42;
   axi_.writeMasked(REG_CALIB_INT, MASK_CALIB_BX, BX_FOR_CALIB);
   axi_.writeMasked(REG_CALIB_EXT, MASK_CALIB_BX, BX_FOR_CALIB);
@@ -59,6 +70,37 @@ BWFastControl::BWFastControl(const char* dev) : axi_(0x1000, dev) {
   printf("  FC LINK_READY      : %s\n",
          (axi_.readMasked(REG_LINK_STATUS, MASK_LINK_READY) == 1) ? "true"
                                                                   : "false");
+  int lr, l1a, cal, rst;
+  if (fc_get_masks(lr, l1a, cal, rst) && (lr | l1a | cal | rst)) {
+    // diagnostic masks are kept across sessions, make them hard to miss
+    printf(
+        "  WARNING: FC MASKS SET (bit = optical link): LINK_RESET 0x%x L1A "
+        "0x%x CALIB 0x%x RESETS 0x%x\n",
+        lr, l1a, cal, rst);
+  }
+}
+
+bool BWFastControl::fc_get_masks(int& linkreset, int& l1a, int& calib,
+                                 int& resets) {
+  if (!has_masks_) return false;
+  linkreset = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_LINKRESET);
+  l1a = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_L1A);
+  calib = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_CALIB);
+  resets = quad_.readMasked(QUAD_REG_CTL, QUAD_MASK_RESETS);
+  return true;
+}
+
+void BWFastControl::fc_set_masks(int linkreset, int l1a, int calib,
+                                 int resets) {
+  if (!has_masks_) {
+    printf("WARNING: quad firmware < %u has no FC masks, nothing set\n",
+           QUAD_FC_MASKS_VERSION);
+    return;
+  }
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_LINKRESET, linkreset & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_L1A, l1a & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_CALIB, calib & 0xF);
+  quad_.writeMasked(QUAD_REG_CTL, QUAD_MASK_RESETS, resets & 0xF);
 }
 
 static constexpr const char* names[] = {"BCR",

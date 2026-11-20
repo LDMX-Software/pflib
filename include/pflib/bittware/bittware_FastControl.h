@@ -45,8 +45,15 @@ class BWFastControl : public FastControl {
                             bool& override_link_ready) override;
   virtual void fc_override_link_ready(bool override_link_ready) override;
 
+  virtual bool fc_get_masks(int& linkreset, int& l1a, int& calib,
+                            int& resets) override;
+  virtual void fc_set_masks(int linkreset, int l1a, int calib,
+                            int resets) override;
+
  private:
   AxiLite axi_;
+  AxiLite quad_;
+  bool has_masks_;
 };
 
 }  // namespace bittware
