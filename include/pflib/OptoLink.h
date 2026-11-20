@@ -39,10 +39,7 @@ class OptoLink {
   virtual lpGBT_ConfigTransport& lpgbt_transport() = 0;
 
   // get an lpGBT object using the transport
-  lpGBT& lpgbt() {
-    if (!lpgbt_) lpgbt_ = std::make_unique<lpGBT>(lpgbt_transport());
-    return *lpgbt_;
-  }
+  lpGBT& lpgbt();
 
   // setup various aspects
   /// there are four TX elinks configured in the coder block, this is needed for
@@ -54,6 +51,11 @@ class OptoLink {
                           std::vector<uint8_t>& rx) = 0;
   virtual void capture_ic(int mode, std::vector<uint8_t>& tx,
                           std::vector<uint8_t>& rx) = 0;
+
+  /**
+   * printout the status of the optical link to cout
+   */
+  void print_status();
 
  private:
   std::unique_ptr<lpGBT> lpgbt_;
