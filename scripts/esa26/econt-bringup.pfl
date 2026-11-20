@@ -78,6 +78,12 @@ config/esa26/trigped-roc0.yaml
 N
 N
 IROC
+1
+LOAD
+config/esa26/trigped-roc1.yaml
+N
+N
+IROC
 2
 LOAD
 config/esa26/trigped-roc2.yaml
