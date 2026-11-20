@@ -70,6 +70,35 @@ void ROC::setPointer(uint16_t addr) {
   PFEXCEPTION_RAISE("I2CPointer", "Failed to set the ROC register pointer");
 }
 
+int ROC::countI2CErrors(int n_tries) {
+  // register addresses with different bit patterns
+  static const uint16_t ADDRS[] = {0x0155, 0x02aa, 0x0533, 0x0acc,
+                                   0x0b0f, 0x04f0, 0x03e1, 0x0a55};
+  static const int N_READ = 8;
+  i2c_->set_bus_speed(bus_khz_);
+  int errors{0};
+  for (int i_try{0}; i_try < n_tries; i_try++) {
+    uint16_t addr = ADDRS[i_try % 8];
+    try {
+      std::vector<uint8_t> chunks[2];
+      bool pointer_ok{true};
+      // R3 moves the pointer on, so set it before each read
+      for (auto& chunk : chunks) {
+        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
+        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
+        uint16_t got = i2c_->read_byte(roc_base_ + 0) |
+                       (uint16_t(i2c_->read_byte(roc_base_ + 1)) << 8);
+        if (got != addr) pointer_ok = false;
+        chunk = i2c_->general_write_read(roc_base_ + 3, {}, N_READ);
+      }
+      if (not pointer_ok or chunks[0] != chunks[1]) errors++;
+    } catch (const pflib::Exception&) {
+      errors++;
+    }
+  }
+  return errors;
+}
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
   i2c_->set_bus_speed(bus_khz_);
 

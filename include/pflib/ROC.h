@@ -171,6 +171,18 @@ class ROC {
    */
   void setBusSpeed(int khz);
 
+  /**
+   * Test the I2C bus to this ROC without retries
+   *
+   * Each try writes the register pointer, reads it back and reads the
+   * registers behind it twice. Nothing in the configuration of the chip
+   * is changed.
+   *
+   * @param[in] n_tries number of tries
+   * @return number of tries with a failed transaction or a wrong readback
+   */
+  int countI2CErrors(int n_tries);
+
  private:
   /// set the register pointer (R0, R1) and read it back until it matches
   void setPointer(uint16_t addr);

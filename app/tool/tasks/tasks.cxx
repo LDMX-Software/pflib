@@ -26,6 +26,7 @@
 #include "setup/align_econ_lpgbt.h"
 #include "setup/align_phase_word.h"
 #include "setup/check_lpgbt_backend.h"
+#include "setup/scl_delay_scan.h"
 #include "toa_scan.h"
 #include "toa_vref_scan.h"
 #include "tot_scan.h"
@@ -98,6 +99,9 @@ auto menu_expert_tasks =
 
 auto menu_setup_tasks =
     menu_tasks->submenu("SETUP", "tasks when setting up a newly-powered system")
+        ->line("SCL_DELAY_SCAN",
+               "pick the SCL delay with the fewest ROC I2C errors",
+               scl_delay_scan)
         ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
         ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
                align_econ_lpgbt)
