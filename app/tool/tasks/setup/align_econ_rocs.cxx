@@ -1,4 +1,4 @@
-#include "align_phase_word.h"
+#include "align_econ_rocs.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -302,15 +302,7 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   }
 }
 
-void align_phase_word(Target* tgt) {
-  bool on_zcu =
-      (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
-      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
-      (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
-
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
+void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
   auto& econ = tgt->econ(iecon);
   bool is_daq = (econ.type() == "econd");
 
@@ -379,12 +371,9 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   if (not align_phase(tgt, econ, channels)) {
-    bool cont = pftool::readline_bool("Continue? ", false);
-    if (not cont) {
-      for (int i_roc : roc_ids) {
-        tgt->roc(i_roc).setRegisters(resets[i_roc]);
-      }
-      return;
+    pflib_log(error) << "phase alignment failed, exiting";
+    for (int i_roc : roc_ids) {
+      tgt->roc(i_roc).setRegisters(resets[i_roc]);
     }
   }
 

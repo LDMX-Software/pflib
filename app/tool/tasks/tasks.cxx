@@ -24,7 +24,7 @@
 #include "set_toa.h"
 #include "set_zs_thresholds.h"
 #include "setup/align_econ_lpgbt.h"
-#include "setup/align_phase_word.h"
+#include "setup/align_econ_rocs.h"
 #include "setup/check_lpgbt_backend.h"
 #include "setup/scl_delay_scan.h"
 #include "toa_scan.h"
@@ -102,8 +102,19 @@ auto menu_setup_tasks =
         ->line("SCL_DELAY_SCAN",
                "pick the SCL delay with the fewest ROC I2C errors",
                scl_delay_scan)
-        ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
-        ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
+        ->line("ALIGN_ECON_ROCS", "align ECON and the ROCs",
+            [](Target* tgt) {
+              bool on_zcu =
+                  (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
+                  (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
+                  (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
+            
+              int iecon =
+                  pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+  
+              align_econ_rocs(tgt, iecon, on_zcu);
+            })
+        ->line("ALIGN_ECON_LPGBT", "align ECON and its associated lpGBT",
                align_econ_lpgbt)
         ->line("CHECK_LPGBT_BACKEND", "check lpGBT-Backend data pipeline",
                check_lpgbt_backend);
