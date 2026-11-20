@@ -115,7 +115,21 @@ auto menu_setup_tasks =
               align_econ_rocs(tgt, iecon, on_zcu);
             })
         ->line("ALIGN_ECON_LPGBT", "align ECON and its associated lpGBT",
-               align_econ_lpgbt)
+            [](Target* tgt) {
+              bool is_hcal = pftool::state.readout_config_is_hcal();
+              int iecon = 
+                pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
+              bool check_all_phases = pftool::readline_bool("Check all phases? ", false);
+              pflib::ECON& econ = tgt->econ(iecon);
+              if (pftool::readline_bool("Do bit alignment?", true)) {
+                align_econ_lpgbt_bit(tgt, econ, iecon, check_all_phases, is_hcal);
+              }
+              if (pftool::readline_bool("Continue to word alignment?", true)) {
+                uint32_t idle_pattern = ((econ.type() == "econd") ? 0x1277cc : 0x526);
+                idle_pattern = pftool::readline_int("Idle pattern: ", idle_pattern, true);
+                align_econ_lpgbt_word(tgt, econ, iecon, check_all_phases, is_hcal, idle_pattern);
+              }
+            })
         ->line("CHECK_LPGBT_BACKEND", "check lpGBT-Backend data pipeline",
                check_lpgbt_backend);
 
