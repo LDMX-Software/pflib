@@ -164,11 +164,20 @@ class ROC {
    */
   TempParameters<ROC>::Builder testParameters();
 
+  /**
+   * Set the I2C bus speed used for the transactions with this ROC
+   *
+   * @param[in] khz bus speed in kHz
+   */
+  void setBusSpeed(int khz);
+
  private:
   /// set the register pointer (R0, R1) and read it back until it matches
   void setPointer(uint16_t addr);
   std::shared_ptr<I2C> i2c_;
   uint8_t roc_base_;
+  /// I2C bus speed in kHz
+  int bus_khz_{1400};
   std::string type_version_;
   Compiler compiler_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc")};

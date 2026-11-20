@@ -415,6 +415,11 @@ int main(int argc, char* argv[]) {
       pflib_log(fatal) << "Target type '" << target_type << "' not recognized.";
       return 1;
     }
+    // slower ROC I2C for boards with errors at the default speed
+    if (target.exists("roc_i2c_khz")) {
+      auto khz = target.get<int>("roc_i2c_khz");
+      for (int i_roc : tgt->roc_ids()) tgt->roc(i_roc).setBusSpeed(khz);
+    }
   } catch (const pflib::Exception& e) {
     pflib_log(fatal) << "Init Error [" << e.name() << "] : " << e.message();
     return 3;
