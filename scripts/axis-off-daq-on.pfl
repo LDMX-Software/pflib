@@ -1,0 +1,14 @@
+# disable AXIS, but enable DAQ, for LED flashing
+DAQ
+SETUP
+DISABLE
+ENABLE
+# external/central L1A?
+N
+# readout to AXIS?
+N
+STATUS
+EXIT
+RESET
+EXIT
+EXIT
