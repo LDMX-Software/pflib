@@ -23,8 +23,8 @@
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
 #include "set_zs_thresholds.h"
-#include "setup/align_econ_lpgbt.h"
-#include "setup/align_econ_rocs.h"
+#include "pflib/align_econ_lpgbt.h"
+#include "pflib/align_econ_rocs.h"
 #include "setup/check_lpgbt_backend.h"
 #include "setup/scl_delay_scan.h"
 #include "toa_scan.h"
@@ -112,7 +112,7 @@ auto menu_setup_tasks =
               int iecon =
                   pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   
-              align_econ_rocs(tgt, iecon, on_zcu);
+               pflib::align_econ_rocs(tgt, iecon, on_zcu);
             })
         ->line("ALIGN_ECON_LPGBT", "align ECON and its associated lpGBT",
             [](Target* tgt) {
@@ -120,14 +120,14 @@ auto menu_setup_tasks =
               int iecon = 
                 pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
               bool check_all_phases = pftool::readline_bool("Check all phases? ", false);
-              pflib::ECON& econ = tgt->econ(iecon);
               if (pftool::readline_bool("Do bit alignment?", true)) {
-                align_econ_lpgbt_bit(tgt, econ, iecon, check_all_phases, is_hcal);
+                pflib::align_econ_lpgbt_bit(tgt, iecon, check_all_phases, is_hcal);
               }
               if (pftool::readline_bool("Continue to word alignment?", true)) {
-                uint32_t idle_pattern = ((econ.type() == "econd") ? 0x1277cc : 0x526);
+                // WARN: assuming ECON-D is index 0 and index 0 is ECON-D
+                uint32_t idle_pattern = ((iecon == 0) ? 0x1277cc : 0x526);
                 idle_pattern = pftool::readline_int("Idle pattern: ", idle_pattern, true);
-                align_econ_lpgbt_word(tgt, econ, iecon, check_all_phases, is_hcal, idle_pattern);
+                pflib::align_econ_lpgbt_word(tgt, iecon, check_all_phases, is_hcal, idle_pattern);
               }
             })
         ->line("CHECK_LPGBT_BACKEND", "check lpGBT-Backend data pipeline",
