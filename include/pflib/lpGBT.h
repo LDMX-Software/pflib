@@ -205,6 +205,27 @@ class lpGBT {
                              bool lpgbt_only = false, int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 
+  /**
+   * status of an eRx group including state, locked, and phase
+   */
+  class eRxStatus {
+    int state_;
+    bool locked_;
+    int phase_;
+    friend lpGBT;
+    eRxStatus(uint8_t locked_status, uint8_t current_phase10);
+   public:
+    const char* state_name() const;
+    int state() const;
+    bool locked() const;
+    int phase() const;
+  };
+
+  /**
+   * Get the eRx group status
+   */
+  eRxStatus get_erx_status(int ierx);
+
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate
      in 320 Mbps mode. \param ietx ETx index (0-6) \param enable Enable the ETx
       \param drive Driver strength (0-7)

@@ -9,46 +9,6 @@
 
 ENABLE_LOGGING();
 
-static void print_locked_status(pflib::lpGBT& lpgbt) {
-  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
-
-  for (int ierx{0}; ierx < 6; ierx++) {
-    int grp = ierx;
-    if (grp > 2) grp++;
-    // get EPRXnLocked and EPRXnCurrentPhase10 where n is grp
-    std::vector<uint8_t> read_result = lpgbt.read(REG_EPRX0LOCKED + 3 * grp, 2);
-    uint8_t locked_status = read_result.at(0);
-    uint8_t current_phase10 = read_result.at(1);
-
-    // lpGBT mezzanine directs inputs into channel 0 of their group
-    bool ch0_locked = ((locked_status >> 4) & 0x1);
-    uint8_t ch0_phase = (current_phase10 & 0xf);
-    uint8_t state = (locked_status & 0x3);
-    const char* state_name{"???"};
-    switch (state) {
-      case 0:
-        state_name = "Reset";
-        break;
-      case 1:
-        state_name = "Force Down";
-        break;
-      case 2:
-        state_name = "Confirm early state";
-        break;
-      case 3:
-        state_name = "Free running state";
-        break;
-      default:
-        state_name = "Unknown";
-        break;
-    }
-
-    printf(" Group %d\n", grp);
-    printf("  state: %s (%d)\n", state_name, state);
-    printf("  ch 0: %s\n", (ch0_locked ? "LOCKED" : "UNLOCKED"));
-    printf("  ch 0 phase: %u\n", ch0_phase);
-  }
-}
 
 /**
  * The HcalBackplane has two ECON-Ts connected to the TRIG lpGBT
@@ -83,60 +43,23 @@ void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
                          ? (tgt->get_opto_link("DAQ").lpgbt_transport())
                          : (tgt->get_opto_link("TRG").lpgbt_transport())};
 
-  printf("\n --- PRE-PRBS STATUS ---\n");
-  print_locked_status(lpgbt);
-  uint32_t prbs_state;
-
-  if (is_econd) {
-    printf(" NOTE: Only checking Group 0, Channel 0\n");
-    prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-    printf(" ECON PRBS State: %u\n", prbs_state);
-    uint8_t invert = (is_hcal) ? (1) : (0);
-    std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
-
-    parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
-    econ.applyParameters(parameters);
-    usleep(10000);
-
-    parameters.clear();
-    parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 1;
-    econ.applyParameters(parameters);
-    usleep(10000);
-
-    auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
-    printf(" ECOND data invert state: %lu\n", invert_state);
-  }
   econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 1);
 
-  if (is_econd) {
-    // ECON-D only has one output link through lpGBT
-    printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
-    lpgbt.check_prbs_errors_erx(0, check_all_phases);
-  } else if (is_hcal) {
-    for (int ierx : HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon)) {
-      printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
-      lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
-    }
-  } else {
-    // ECON-T with Ecal system
-    pflib_log(warn) << "unsure on which links to check for EcalSMM";
-    for (int ierx{0}; ierx < 6; ierx++) {
-      printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
-      lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
-    }
+  const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP : ECAL_SMM_I_ECON_TO_GROUP};
+  for (int ierx : i_econ_to_group.at(iecon)) {
+    pflib_log(info) << "checking ECON -> lpGBT eRx " << ierx << "...";
+    lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
+
+    pflib::lpGBT::eRxStatus status = lpgbt.get_erx_status(ierx);
+    pflib_log(info) << "locked: " << status.locked() << ", phase: " << status.phase();
   }
 
-  printf("\n --- POST-PRBS STATUS ---\n");
-  print_locked_status(lpgbt);
-
-  if (is_econd)
-    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 0);
-  else
-    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 0);
+  econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 0);
 }
 
-static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
-                                  bool check_all_phases, uint32_t idle_pattern) {
+void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
+                           bool check_all_phases, uint32_t idle_pattern,
+                           bool is_hcal) {
   /**
    * This function is where we deduce the value for
    * FormatterBuffer.Global.align_serializer_N
@@ -158,7 +81,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
       got.push_back(spy[0]);
       uint32_t obs = spy[0] >> 8;
       if (obs == idle_pattern) {
-        printf(" Found alignment at %d\n", phase);
+        pflib_log(info) << "found alignment at " << phase;
         found_alignment = true;
         if (not check_all_phases) {
           break;
@@ -166,10 +89,10 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
       }
     }
     if (!found_alignment) {
+      pflib_log(warn) << "did not find alignment, recieved the following words at each phase.";
       for (int phase = 0; phase < 32; phase++) {
         printf(" %2d 0x%08x\n", phase, got[phase]);
       }
-      printf(" WARNING: Did not find alignment\n");
     }
   }
   if (econ.type() == "econt") {
@@ -177,6 +100,10 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
     // word-alignment
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
+    if (not trig) {
+      PFEXCEPTION_RAISE("BadConf",
+          "TRIG object is not available, meaning we cannot do word alignment between the ECON-T and the TRIG lpGBT within pflib alone.");
+    }
 
     int delay;
     uint16_t pattern;
@@ -205,13 +132,8 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
      * ECON-T1 eTx 0, 1, 2 -> TRIG lpGBT eRx 0, 1, 2
      * ECON-T2 eTx 0, 1, 2 -> TRIG lpGBT eRx 3, 4, 5
      */
-    std::vector<int> i_elinks{0, 1, 2, 3, 4, 5};
-    if (pftool::state.readout_config_is_hcal()) {
-      i_elinks = HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon);
-    } else {
-      pflib_log(debug) << "looking at first 6 eRx for EcalSMM";
-    }
-
+    const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP : ECAL_SMM_I_ECON_TO_GROUP};
+    std::vector<int> i_elinks = i_econ_to_group.at(iecon);
     bool all_succeed = true;
     for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
       std::string reg_name = string_format("GLOBAL_ALIGN_SERIALIZER_%d", ilink);
@@ -286,26 +208,5 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
     } else {
       pflib_log(warn) << "unable to check if the separate links are in time";
     }
-  }
-}
-
-void align_econ_lpgbt(
-    Target* tgt,
-    int iecon,
-    bool check_all_phases,
-
-    ) {
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
-  bool check_all_phases = pftool::readline_bool("Check all phases? ", false);
-
-  pflib::ECON& econ = tgt->econ(iecon);
-
-  if (pftool::readline_bool("Do bit alignment?", true)) {
-    align_econ_lpgbt_bit(tgt, econ, iecon, check_all_phases);
-  }
-  if (pftool::readline_bool("Continue to word alignment?", true)) {
-    align_econ_lpgbt_word(tgt, econ, iecon, check_all_phases);
   }
 }

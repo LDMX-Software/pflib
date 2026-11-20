@@ -679,6 +679,56 @@ void lpGBT::check_prbs_errors_erx(int ierx, bool check_all_phases,
   tport_.write_reg(REG_ULDATASOURCE1, (0 & 0x7) << 0);
 }
 
+lpGBT::eRxStatus::eRxStatus(uint8_t locked_status, uint8_t current_phase10) {
+  // lpGBT mezzanine directs inputs into channel 0 of their group
+  locked_ = (((locked_status >> 4) & 0x1) == 1);
+  phase_ = (current_phase10 & 0xf);
+  state_ = (locked_status & 0x3);
+}
+
+int lpGBT::eRxStatus::state() const {
+  return state_;
+}
+
+int lpGBT::eRxStatus::phase() const {
+  return phase_;
+}
+
+bool lpGBT::eRxStatus::locked() const {
+  return locked_;
+}
+
+const char* lpGBT::eRxStatus::state_name() const {
+  switch (state_) {
+    case 0:
+      return "Reset";
+      break;
+    case 1:
+      return "Force Down";
+      break;
+    case 2:
+      return "Confirm early state";
+      break;
+    case 3:
+      return "Free running state";
+      break;
+    default:
+      return "Unknown";
+      break;
+  }
+  return "???";
+}
+
+lpGBT::eRxStatus lpGBT::get_erx_status(int ierx) {
+  constexpr uint16_t REG_EPRX0LOCKED = 0x152;
+  int grp = ierx;
+  if (grp > 2) grp++;
+  std::vector<uint8_t> read_result = this->read(REG_EPRX0LOCKED + 3 * grp, 2);
+  uint8_t locked_status = read_result.at(0);
+  uint8_t current_phase10 = read_result.at(1);
+  return eRxStatus(locked_status, current_phase10);
+}
+
 void lpGBT::setup_etx(int itx, bool enable, bool invert, int drive, int pe_mode,
                       int pe_strength, int pe_width) {
   if (itx < 0 || itx > 6) return;
