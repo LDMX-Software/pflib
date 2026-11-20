@@ -19,7 +19,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 unmapped = open(os.path.join(here, '../../config/esa26/off-unmapped.yaml')).read()
 off = {(roc, int(ch)) for roc in (0, 2) for ch in re.findall(r'^CH_(\d+):', unmapped, re.M)}
 # HCal DAQ eRx per ROC half
-erx = {0: (3, 2), 2: (4, 5), 3: (1, 0)}
+erx = {0: (3, 2), 1: (6, 7), 2: (4, 5), 3: (1, 0)}  # pflib HcalBackplane::ROC_ERX_MAPPING_DAQ; ROC1 added 18-Nov
 L = ['ROCDAQCTRL:', '  GLOBAL_PASS_THRU_MODE: 0', 'ZS:']
 cs = []
 for roc, (e0, e1) in erx.items():

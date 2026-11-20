@@ -1,4 +1,4 @@
-# SiPM bias 03-Nov: 3600, but DAC ch 0,1,2,8,9,10 on boards 0 and 2 at 3300 (over-biased at 3600 since 03-Nov, onset ~3330)
+# board 1 (HGCROC1, added 18-Nov) at 3600. SiPM bias 03-Nov: 3600, but DAC ch 0,1,2,8,9,10 on boards 0 and 2 at 3300 (over-biased at 3600 since 03-Nov, onset ~3330)
 BIAS
 INIT
 0
@@ -66,5 +66,11 @@ SET_SIPM
 2
 10
 3300
+INIT
+1
+SET_SIPM
+1
+-1
+3600
 EXIT
 EXIT
