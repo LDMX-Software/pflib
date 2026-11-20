@@ -933,6 +933,35 @@ std::vector<uint8_t> lpGBT::i2c_read_data(int ibus) {
   return retval;
 }
 
+void lpGBT::print_i2c_scan(int ibus) {
+  setup_i2c(ibus, 100);
+  for (int addr = 0; addr < 0x80; addr++) {
+    bool success = true;
+    char failchar{'^'};
+    start_i2c_read(ibus, addr);  // try reading a byte
+    try {
+      success = i2c_transaction_check(ibus, true);
+    } catch (pflib::Exception& e) {
+      if (e.name() == "I2CErrorNoCLK")
+        failchar = 'C';
+      else if (e.name() == "I2CErrorNoACK")
+        failchar = '-';
+      else if (e.name() == "I2CErrorSDALow")
+        failchar = '*';
+      else
+        failchar = '?';
+      //	printf(e.what());
+      success = false;
+    }
+    if ((addr % 0x10) == 0) printf("\n%02x ", addr);
+    if (success)
+      printf("%02x ", addr);
+    else
+      printf("%c%c ", failchar, failchar);
+  }
+  printf("\n");
+}
+
 void lpGBT::finalize_setup() { write(REG_POWERUP2, 0x4 | 0x2); }
 
 int lpGBT::status() { return read(REG_POWERUP_STATUS); }

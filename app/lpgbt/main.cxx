@@ -54,20 +54,7 @@ void opto(const std::string& cmd, ToolBox* target) {
 
   if (cmd == "FULLSTATUS") {
     printf("Olink: %s\n", olink_choice.c_str());
-    printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
-           olink.get_rx_polarity());
-    std::map<std::string, uint32_t> info;
-    info = olink.opto_status();
-    printf("Optical status:\n");
-    for (auto i : info) {
-      printf("  %-20s : 0x%04x\n", i.first.c_str(), i.second);
-    }
-    info = olink.opto_rates();
-    printf("Optical rates:\n");
-    for (auto i : info) {
-      printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
-             i.second);
-    }
+    olink.print_status();
   }
   if (cmd == "RESET") {
     olink.reset_link();
@@ -90,41 +77,12 @@ void opto(const std::string& cmd, ToolBox* target) {
   }
 }
 
-void i2c_scan(int ibus, ToolBox* target) {
-  target->lpgbt->setup_i2c(ibus, 100);
-  for (int addr = 0; addr < 0x80; addr++) {
-    bool success = true;
-    char failchar;
-    target->lpgbt->start_i2c_read(ibus, addr);  // try reading a byte
-    try {
-      target->lpgbt->i2c_transaction_check(ibus, true);
-    } catch (pflib::Exception& e) {
-      if (e.name() == "I2CErrorNoCLK")
-        failchar = 'C';
-      else if (e.name() == "I2CErrorNoACK")
-        failchar = '-';
-      else if (e.name() == "I2CErrorSDALow")
-        failchar = '*';
-      else
-        failchar = '?';
-      //	printf(e.what());
-      success = false;
-    }
-    if ((addr % 0x10) == 0) printf("\n%02x ", addr);
-    if (success)
-      printf("%02x ", addr);
-    else
-      printf("%c%c ", failchar, failchar);
-  }
-  printf("\n");
-}
-
 void i2c(const std::string& cmd, ToolBox* target) {
   static int ibus = 0;
   ibus = tool::readline_int("Which I2C bus?", ibus);
   target->lpgbt->setup_i2c(ibus, 100);
   if (cmd == "SCAN") {
-    i2c_scan(ibus, target);
+    target->lpgbt->print_i2c_scan(ibus);
   }
   static int i2c_addr = 0;
   if (cmd == "WRITE") {
@@ -830,7 +788,7 @@ void test_comms(ToolBox* target) {
     usleep(1000);
 
     // do I2C scan
-    i2c_scan(1, target);
+    target->lpgbt->print_i2c_scan(1);
 
   } while (tool::readline_bool("Test another board or try again? ", true));
 }
