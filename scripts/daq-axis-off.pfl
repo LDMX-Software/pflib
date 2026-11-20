@@ -9,7 +9,6 @@ ENABLE
 N
 # readout to AXIS?
 N
-DISABLE
 STATUS
 EXIT
 RESET
