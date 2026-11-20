@@ -9,10 +9,10 @@
 #include "pflib/align_econ_rocs.h"
 #include "pflib/align_econ_lpgbt.h"
 
+static pflib::logging::fixture f;
 static auto the_log_{pflib::logging::get("pfalign-links")};
 
 int main(int argc, char* argv[]) try {
-  pflib::logging::fixture f;
 
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
@@ -122,12 +122,12 @@ int main(int argc, char* argv[]) try {
       for (int ierx{0}; ierx < 12; ierx++) {
         parameters["ERX"][std::to_string(ierx)+"_ENABLE"] = erx_enable[iecon].test(ierx);
       }
-      parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = erx_enable[iecon].to_ulong();
       parameters["FORMATTERBUFFER"]["GLOBAL_LINK_RESET_PATTERN"] = 0x526;
       uint64_t active_etx_bitmask = 0b1;
       if (iecon == 0) {
         // assuming that the ECON-D is index 0
         parameters["FORMATTERBUFFER"]["GLOBAL_IDLE_PATTERN"] = 0x1277cc;
+        parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = erx_enable[iecon].to_ulong();
       } else if (is_hcal) {
         active_etx_bitmask = 0b111;
       } else {
