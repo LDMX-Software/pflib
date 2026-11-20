@@ -28,8 +28,8 @@ EXIT
 PEDESTAL
 # how many events?
 1000
-# readout rate (Hz)
-
+# readout rate (Hz): 100, with 4 HCal ROCs (8 eRx) faster pedestal captures corrupt in the 512-word spy buffer (18-Nov)
+100
 # filename
 hcal-pt
 # decode into CSV?
