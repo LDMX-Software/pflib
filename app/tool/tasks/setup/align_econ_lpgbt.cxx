@@ -61,12 +61,23 @@ std::vector<std::vector<int>> HCAL_BACKPLANE_I_ECON_TO_GROUP = {
     {3, 4, 5}   // ECON-T2
 };
 
-static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
-                                 bool check_all_phases) {
+/**
+ * The EcalSMM has one ECON-D connected to the DAQ lpGBT
+ * and one ECON-T connected to the first six inputs to the
+ * TRIG lpGBT
+ */
+std::vector<std::vector<int>> ECAL_SMM_I_ECON_TO_GROUP = {
+  {0},               // ECON-D
+  {0, 1, 2, 3, 4, 5} // ECON-T
+};
+
+void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
+                          bool check_all_phases, bool is_hcal) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
   bool is_econd = (econ.type() == "econd");
+  std::string prbs_parameter = (is_econd ? "GLOBAL_PRBS_ON" : "GLOBAL_ETX_PATTERN");
 
   pflib::lpGBT lpgbt{(is_econd)
                          ? (tgt->get_opto_link("DAQ").lpgbt_transport())
@@ -80,12 +91,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     printf(" NOTE: Only checking Group 0, Channel 0\n");
     prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
     printf(" ECON PRBS State: %u\n", prbs_state);
-
-    bool default_invert = (pftool::state.readout_config_is_hcal());
-
-    bool do_invert =
-        pftool::readline_bool("Invert elink data?", default_invert);
-    uint8_t invert = (do_invert) ? (1) : (0);
+    uint8_t invert = (is_hcal) ? (1) : (0);
     std::map<std::string, std::map<std::string, uint64_t>> parameters = {};
 
     parameters["CLOCKSANDRESETS"]["GLOBAL_PUSM_RUN"] = 0;
@@ -100,23 +106,13 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
     auto invert_state = econ.readParameter("ETX", "0_INVERT_DATA");
     printf(" ECOND data invert state: %lu\n", invert_state);
   }
-  if (is_econd)
-    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON", 1);
-  else
-    econ.applyParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN", 1);
-
-  if (is_econd)
-    prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_PRBS_ON");
-  else
-    prbs_state = econ.readParameter("FORMATTERBUFFER", "GLOBAL_ETX_PATTERN");
-
-  printf(" ECON PRBS State: %u\n", prbs_state);
+  econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 1);
 
   if (is_econd) {
     // ECON-D only has one output link through lpGBT
     printf("Checking ECON-D -> DAQ lpGBT eRx 0...\n");
     lpgbt.check_prbs_errors_erx(0, check_all_phases);
-  } else if (pftool::state.readout_config_is_hcal()) {
+  } else if (is_hcal) {
     for (int ierx : HCAL_BACKPLANE_I_ECON_TO_GROUP.at(iecon)) {
       printf("Checking ECON-T -> TRG lpGBT eRx %d...\n", ierx);
       lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
@@ -140,7 +136,7 @@ static void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
 }
 
 static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
-                                  bool check_all_phases) {
+                                  bool check_all_phases, uint32_t idle_pattern) {
   /**
    * This function is where we deduce the value for
    * FormatterBuffer.Global.align_serializer_N
@@ -151,9 +147,6 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
    * increments of 32 using our capture firmware.
    */
   if (econ.type() == "econd") {
-    // word-alignment
-    uint32_t idle = pftool::readline_int("Idle pattern", 0x1277CC, true);
-
     bool found_alignment = false;
 
     std::vector<uint32_t> got;
@@ -164,7 +157,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
       std::vector<uint32_t> spy = tgt->elinks().spy(0, true);
       got.push_back(spy[0]);
       uint32_t obs = spy[0] >> 8;
-      if (obs == idle) {
+      if (obs == idle_pattern) {
         printf(" Found alignment at %d\n", phase);
         found_alignment = true;
         if (not check_all_phases) {
@@ -182,7 +175,6 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
   if (econ.type() == "econt") {
     using pflib::utility::string_format;
     // word-alignment
-    uint32_t idle = pftool::readline_int("Idle pattern", 0x526, true);
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
 
@@ -238,7 +230,7 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
         // is hardcoded for 1 sample to reflect current firmware
         pflib_log(info) << "ilink=" << ilink << " phase=" << phase
                         << " sample={" << samples[0] << "}";
-        if (samples[0].match(idle)) {
+        if (samples[0].match(idle_pattern)) {
           // all of the readings match the configured idle, success!
           got_idle_phase = phase;
           if (not check_all_phases) {
@@ -297,7 +289,12 @@ static void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
   }
 }
 
-void align_econ_lpgbt(Target* tgt) {
+void align_econ_lpgbt(
+    Target* tgt,
+    int iecon,
+    bool check_all_phases,
+
+    ) {
   int iecon =
       pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
 
