@@ -124,6 +124,14 @@ void EcalSingleModuleMotherboard::hardResetECONs() {
   return the_module_->hardResetECONs();
 }
 
+void EcalSingleModuleMotherboard::setSclDelay(int delay) {
+  the_module_->setSclDelay(delay);
+}
+
+int EcalSingleModuleMotherboard::getSclDelay() {
+  return the_module_->getSclDelay();
+}
+
 void EcalSingleModuleMotherboard::setup_run(int irun, Target::DaqFormat format,
                                             int contrib_id) {
   format_ = format;

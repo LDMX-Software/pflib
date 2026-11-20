@@ -2,3 +2,4 @@ target:
   type: "EcalSMMBittware"
   ilink: 1
   dev: "/dev/datadev_1"
+  roc_i2c_khz: 200

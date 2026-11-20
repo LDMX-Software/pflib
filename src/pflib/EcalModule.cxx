@@ -111,6 +111,22 @@ void EcalModule::softResetECON() {
   gpio.setGPO(string_format("M%d_ECON_RE_Sb", imodule_), true);
 }
 
+void EcalModule::setSclDelay(int delay) {
+  if (delay < 0 or delay > 3) {
+    PFEXCEPTION_RAISE("InvalidDelay", "SCL delay " + std::to_string(delay) +
+                                          " is not in 0 to 3");
+  }
+  GPIO& gpio = lpGBT_.gpio_interface();
+  gpio.setGPO(string_format("M%d_SCL_DELAY0", imodule_), delay & 0x1);
+  gpio.setGPO(string_format("M%d_SCL_DELAY1", imodule_), delay & 0x2);
+}
+
+int EcalModule::getSclDelay() {
+  GPIO& gpio = lpGBT_.gpio_interface();
+  return (gpio.getGPO(string_format("M%d_SCL_DELAY0", imodule_)) ? 1 : 0) +
+         (gpio.getGPO(string_format("M%d_SCL_DELAY1", imodule_)) ? 2 : 0);
+}
+
 const std::vector<std::pair<int, int>> EcalModule::ROC_ERX_MAPPING_DAQ = {
     {9, 10}, {5, 6}, {0, 1}, {11, 8}, {7, 4}, {3, 2}};
 

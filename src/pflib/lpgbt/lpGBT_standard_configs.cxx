@@ -126,6 +126,15 @@ void setup_erxtraining(pflib::lpGBT&, bool prbs_on) {
 }
 
 void setup_ecal_daq_gpio(pflib::lpGBT& lpgbt) {
+  // SCL delay select of the motherboard, 0 is the shortest path
+  lpgbt.gpio_cfg_set(
+      0,
+      lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
+      "M0_SCL_DELAY0");
+  lpgbt.gpio_cfg_set(
+      1,
+      lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
+      "M0_SCL_DELAY1");
   lpgbt.gpio_cfg_set(
       4,
       lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
@@ -154,13 +163,6 @@ void setup_ecal(pflib::lpGBT& lpgbt, ECAL_lpGBT_Config mode) {
     lpgbt.gpio_set(6, true);
     lpgbt.gpio_set(7, true);
     lpgbt.gpio_set(8, true);
-
-    /*
-    lpgbt.gpio_cfg_set(0, lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN |
-    lpGBT::GPIO_IS_STRONG, "DELAY_PICK0"); lpgbt.gpio_cfg_set(1,
-    lpGBT::GPIO_IS_OUTPUT | lpGBT::GPIO_IS_PULLDOWN | lpGBT::GPIO_IS_STRONG,
-    "DELAY_PICK1"); lpgbt.gpio_set(0,false); lpgbt.gpio_set(1,false);
-    */
 
     lpgbt.setup_eclk(0, 320);  // MODULE0 CLK320
     lpgbt.setup_eclk(7, 40);   // REFCLK_TO_TRIG

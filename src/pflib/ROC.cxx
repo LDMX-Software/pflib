@@ -40,6 +40,8 @@ ROC::ROC(std::shared_ptr<I2C> i2c, uint8_t roc_base_addr,
 
 const std::string& ROC::type() const { return type_version_; }
 
+void ROC::setBusSpeed(int khz) { bus_khz_ = khz; }
+
 /// maximum number of times to attempt I2C transaction
 static const int MAX_TRIES = 20;
 
@@ -68,8 +70,37 @@ void ROC::setPointer(uint16_t addr) {
   PFEXCEPTION_RAISE("I2CPointer", "Failed to set the ROC register pointer");
 }
 
+int ROC::countI2CErrors(int n_tries) {
+  // register addresses with different bit patterns
+  static const uint16_t ADDRS[] = {0x0155, 0x02aa, 0x0533, 0x0acc,
+                                   0x0b0f, 0x04f0, 0x03e1, 0x0a55};
+  static const int N_READ = 8;
+  i2c_->set_bus_speed(bus_khz_);
+  int errors{0};
+  for (int i_try{0}; i_try < n_tries; i_try++) {
+    uint16_t addr = ADDRS[i_try % 8];
+    try {
+      std::vector<uint8_t> chunks[2];
+      bool pointer_ok{true};
+      // R3 moves the pointer on, so set it before each read
+      for (auto& chunk : chunks) {
+        i2c_->write_byte(roc_base_ + 0, addr & 0xff);
+        i2c_->write_byte(roc_base_ + 1, (addr >> 8) & 0xff);
+        uint16_t got = i2c_->read_byte(roc_base_ + 0) |
+                       (uint16_t(i2c_->read_byte(roc_base_ + 1)) << 8);
+        if (got != addr) pointer_ok = false;
+        chunk = i2c_->general_write_read(roc_base_ + 3, {}, N_READ);
+      }
+      if (not pointer_ok or chunks[0] != chunks[1]) errors++;
+    } catch (const pflib::Exception&) {
+      errors++;
+    }
+  }
+  return errors;
+}
+
 std::vector<uint8_t> ROC::readPage(int ipage, int len) {
-  i2c_->set_bus_speed(1400);
+  i2c_->set_bus_speed(bus_khz_);
 
   /**
    * The HGCROC itself supports a variant of multi-byte transactions
@@ -129,7 +160,7 @@ std::vector<uint8_t> ROC::readPage(int ipage, int len) {
 }
 
 void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
-  i2c_->set_bus_speed(1400);
+  i2c_->set_bus_speed(bus_khz_);
 
   /**
    * The HGCROC itself supports a variant of multi-byte transactions
@@ -182,7 +213,7 @@ void ROC::writePage(int ipage, std::vector<uint8_t> vals) {
 }
 
 uint8_t ROC::getValue(int ipage, int offset) {
-  i2c_->set_bus_speed(1400);
+  i2c_->set_bus_speed(bus_khz_);
 
   // set the address
   uint16_t fulladdr = (ipage << 5) | offset;
@@ -288,7 +319,7 @@ bool ROC::isRunMode() {
 }
 
 void ROC::setValue(int page, int offset, uint8_t value) {
-  i2c_->set_bus_speed(1400);
+  i2c_->set_bus_speed(bus_khz_);
   uint16_t fulladdr = (page << 5) | offset;
 
   for (int i_try{0}; i_try < MAX_TRIES; i_try++) {

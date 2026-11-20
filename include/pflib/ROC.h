@@ -164,11 +164,32 @@ class ROC {
    */
   TempParameters<ROC>::Builder testParameters();
 
+  /**
+   * Set the I2C bus speed used for the transactions with this ROC
+   *
+   * @param[in] khz bus speed in kHz
+   */
+  void setBusSpeed(int khz);
+
+  /**
+   * Test the I2C bus to this ROC without retries
+   *
+   * Each try writes the register pointer, reads it back and reads the
+   * registers behind it twice. Nothing in the configuration of the chip
+   * is changed.
+   *
+   * @param[in] n_tries number of tries
+   * @return number of tries with a failed transaction or a wrong readback
+   */
+  int countI2CErrors(int n_tries);
+
  private:
   /// set the register pointer (R0, R1) and read it back until it matches
   void setPointer(uint16_t addr);
   std::shared_ptr<I2C> i2c_;
   uint8_t roc_base_;
+  /// I2C bus speed in kHz
+  int bus_khz_{1400};
   std::string type_version_;
   Compiler compiler_;
   mutable ::pflib::logging::logger the_log_{::pflib::logging::get("roc")};

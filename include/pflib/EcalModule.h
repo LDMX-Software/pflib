@@ -78,6 +78,16 @@ class EcalModule {
   /** Generate a soft reset */
   void softResetECON();
 
+  /**
+   * Select the SCL delay path of the motherboard
+   *
+   * @param[in] delay 0 (shortest) to 3
+   */
+  void setSclDelay(int delay);
+
+  /** Get the selected SCL delay path */
+  int getSclDelay();
+
   /** Get the mapping of ROC channels to ERX channels in the DAQ path */
   static const std::vector<std::pair<int, int>>& getHardwareRocErxMappingDAQ();
 

@@ -223,7 +223,7 @@ bool lpGBT::gpio_get(int ibit) {
   if (ibit == 3) ibit = 15;  // yes this is strange
   uint16_t reg = (ibit < 8) ? (REG_PIOINL) : (REG_PIOINH);
   uint8_t value = tport_.read_reg(reg);
-  return (value & (1 << (ibit & 8)));
+  return (value & (1 << (ibit % 8)));
 }
 
 void lpGBT::gpio_set(uint16_t values) {

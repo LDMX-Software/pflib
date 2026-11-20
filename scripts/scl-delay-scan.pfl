@@ -1,0 +1,9 @@
+# ECal SMM: pick the SCL delay with the fewest ROC I2C errors
+# run after power-up, before roc-hardreset.pfl + roc-apply-calib.pfl
+TASKS
+SETUP
+SCL_DELAY_SCAN
+# I2C tries per ROC and delay
+100
+EXIT
+EXIT
