@@ -46,6 +46,10 @@ class EcalSingleModuleMotherboard : public Target {
   virtual void softResetECON(int which = -1) override;
   virtual void hardResetROCs() override;
   virtual void hardResetECONs() override;
+  /// select the SCL delay path, 0 (shortest) to 3
+  void setSclDelay(int delay);
+  /// get the selected SCL delay path
+  int getSclDelay();
   virtual void setup_run(int irun, Target::DaqFormat format,
                          int contrib_id) override;
 
