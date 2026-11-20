@@ -1,12 +1,15 @@
-#include "align_econ_rocs.h"
+#include "pflib/align_econ_rocs.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "../../SpaceSeparated.h"
+#include "pflib/Target.h"
+#include "pflib/utility/SpaceSeparated.h"
 #include "pflib/ROC.h"
 #include "pflib/packing/Hex.h"
 
-ENABLE_LOGGING();
+namespace pflib {
+
+static auto the_log_{pflib::logging::get("align_econ_rocs")};
 
 // ROC Idle Frame
 constexpr uint32_t ROC_WORD_IDLE_FRAME = 0x12c5c57;
@@ -396,4 +399,6 @@ void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
   for (int i_roc : roc_ids) {
     tgt->roc(i_roc).setRegisters(resets[i_roc]);
   }
+}
+
 }

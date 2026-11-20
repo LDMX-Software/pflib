@@ -1,14 +1,16 @@
-#include "align_econ_lpgbt.h"
+#include "pflib/align_econ_lpgbt.h"
 
 #include <algorithm>
 
+#include "pflib/Target.h"
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
 #include "pflib/packing/ECONTAlignmentWord.h"
 #include "pflib/utility/string_format.h"
 
-ENABLE_LOGGING();
+namespace pflib {
 
+static auto the_log_{pflib::logging::get("align_econ_lpgbt")};
 
 /**
  * The HcalBackplane has two ECON-Ts connected to the TRIG lpGBT
@@ -31,11 +33,12 @@ std::vector<std::vector<int>> ECAL_SMM_I_ECON_TO_GROUP = {
   {0, 1, 2, 3, 4, 5} // ECON-T
 };
 
-void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
+void align_econ_lpgbt_bit(Target* tgt, int iecon,
                           bool check_all_phases, bool is_hcal) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
+  pflib::ECON& econ = tgt->econ(iecon);
   bool is_econd = (econ.type() == "econd");
   std::string prbs_parameter = (is_econd ? "GLOBAL_PRBS_ON" : "GLOBAL_ETX_PATTERN");
 
@@ -57,7 +60,7 @@ void align_econ_lpgbt_bit(Target* tgt, pflib::ECON& econ, int iecon,
   econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 0);
 }
 
-void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
+void align_econ_lpgbt_word(Target* tgt, int iecon,
                            bool check_all_phases, uint32_t idle_pattern,
                            bool is_hcal) {
   /**
@@ -69,6 +72,7 @@ void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
    * go up to 64. We only check up to 32 here because we can shift by
    * increments of 32 using our capture firmware.
    */
+  pflib::ECON& econ = tgt->econ(iecon);
   if (econ.type() == "econd") {
     bool found_alignment = false;
 
@@ -209,4 +213,6 @@ void align_econ_lpgbt_word(Target* tgt, pflib::ECON& econ, int iecon,
       pflib_log(warn) << "unable to check if the separate links are in time";
     }
   }
+}
+
 }
