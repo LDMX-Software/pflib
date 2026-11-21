@@ -145,7 +145,8 @@ std::vector<uint8_t> ECON::getValues(int reg_addr, int nbytes) {
   return data;
 }
 
-void ECON::setValue(int reg_addr, uint64_t value, int nbytes, bool readback_check) {
+void ECON::setValue(int reg_addr, uint64_t value, int nbytes,
+                    bool readback_check) {
   if (nbytes <= 0 || nbytes > 8) {
     pflib_log(error) << "ECON::setValue called with invalid nbytes = "
                      << nbytes;
@@ -161,7 +162,8 @@ void ECON::setValue(int reg_addr, uint64_t value, int nbytes, bool readback_chec
   setValues(reg_addr, data, readback_check);
 }
 
-void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values, bool readback_check) {
+void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values,
+                     bool readback_check) {
   if (values.empty()) {
     pflib_log(error) << "ECON::setValues called with empty data vector";
     return;
@@ -206,7 +208,8 @@ void ECON::setValues(int reg_addr, const std::vector<uint8_t>& values, bool read
       }
       pflib_log(warn) << "ECON readback mismatch (attempt " << attempt
                       << "):" << oss.str();
-      if (attempt == 0) i2c_->general_write_read(econ_base_, wbuf, values.size());
+      if (attempt == 0)
+        i2c_->general_write_read(econ_base_, wbuf, values.size());
     }
   }
 }

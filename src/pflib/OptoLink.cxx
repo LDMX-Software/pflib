@@ -9,8 +9,7 @@ lpGBT& OptoLink::lpgbt() {
 }
 
 void OptoLink::print_status() {
-  printf("Polarity -- TX: %d  RX: %d\n", get_tx_polarity(),
-         get_rx_polarity());
+  printf("Polarity -- TX: %d  RX: %d\n", get_tx_polarity(), get_rx_polarity());
   std::map<std::string, uint32_t> info;
   info = opto_status();
   printf("Optical status:\n");
@@ -25,4 +24,4 @@ void OptoLink::print_status() {
   }
 }
 
-}
+}  // namespace pflib

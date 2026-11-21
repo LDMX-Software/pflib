@@ -1,19 +1,18 @@
-#include <vector>
 #include <bitset>
+#include <vector>
 
-#include "pflib/Parameters.h"
-#include "pflib/logging/Logging.h"
-#include "pflib/Target.h"
 #include "pflib/ECON.h"
+#include "pflib/Parameters.h"
 #include "pflib/ROC.h"
-#include "pflib/align_econ_rocs.h"
+#include "pflib/Target.h"
 #include "pflib/align_econ_lpgbt.h"
+#include "pflib/align_econ_rocs.h"
+#include "pflib/logging/Logging.h"
 
 static pflib::logging::fixture f;
 static auto the_log_{pflib::logging::get("pfalign-links")};
 
 int main(int argc, char* argv[]) try {
-
   if (argc < 2 or (!strcmp(argv[1], "-h") or !strcmp(argv[1], "--help"))) {
     printf("\nUSAGE:\n");
     printf("   %s [-h | --help] config.yaml...\n\n", argv[0]);
@@ -52,7 +51,7 @@ int main(int argc, char* argv[]) try {
     std::unique_ptr<pflib::Target> tgt;
     if (target_type == "Fiberless" or target_type == "HcalFMC") {
       PFEXCEPTION_RAISE("BadConf",
-          "There are no ECONs on fiberless targets to align.");
+                        "There are no ECONs on fiberless targets to align.");
     } else if (target_type == "HcalBackplaneZCU") {
       is_hcal = true;
       on_zcu = true;
@@ -90,7 +89,7 @@ int main(int argc, char* argv[]) try {
 #endif
     } else {
       PFEXCEPTION_RAISE("BadConf",
-          "Unrecognized target type '"+target_type+"'.");
+                        "Unrecognized target type '" + target_type + "'.");
     }
 
     // basic configuration of ECONs
@@ -118,18 +117,21 @@ int main(int argc, char* argv[]) try {
     // now that we know which eRx should be enable for each ECON
     // let's configure the ECONs
     for (int iecon : tgt->econ_ids()) {
-      pflib_log(info) << "ECON " << iecon << " eRx enable: " << erx_enable[iecon];
+      pflib_log(info) << "ECON " << iecon
+                      << " eRx enable: " << erx_enable[iecon];
 
       std::map<std::string, std::map<std::string, uint64_t>> parameters;
       for (int ierx{0}; ierx < 12; ierx++) {
-        parameters["ERX"][std::to_string(ierx)+"_ENABLE"] = erx_enable[iecon].test(ierx);
+        parameters["ERX"][std::to_string(ierx) + "_ENABLE"] =
+            erx_enable[iecon].test(ierx);
       }
       parameters["FORMATTERBUFFER"]["GLOBAL_LINK_RESET_PATTERN"] = 0x526;
       uint64_t active_etx_bitmask = 0b1;
       if (iecon == 0) {
         // assuming that the ECON-D is index 0
         parameters["FORMATTERBUFFER"]["GLOBAL_IDLE_PATTERN"] = 0x1277cc;
-        parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] = erx_enable[iecon].to_ulong();
+        parameters["ROCDAQCTRL"]["GLOBAL_ACTIVE_ERXS"] =
+            erx_enable[iecon].to_ulong();
       } else if (is_hcal) {
         active_etx_bitmask = 0b111;
       } else {
@@ -143,7 +145,8 @@ int main(int argc, char* argv[]) try {
       uint64_t invert_etx_data = (is_hcal ? 1 : 0);
       for (int etx{0}; etx < 12; etx++) {
         if ((active_etx_bitmask >> etx) & 0b1) {
-          parameters["ETX"][std::to_string(etx)+"_INVERT_DATA"] = invert_etx_data;
+          parameters["ETX"][std::to_string(etx) + "_INVERT_DATA"] =
+              invert_etx_data;
         }
       }
 
@@ -177,9 +180,11 @@ int main(int argc, char* argv[]) try {
       // ability to capture words from the lpGBT, only
       // possible for DATA path or TRIG path on ZCU
       if (iecon == 0 or on_zcu) {
-        align_econ_lpgbt_word(tgt.get(), 0, false, (iecon == 0) ? 0x1277cc : 0x526, is_hcal);
+        align_econ_lpgbt_word(tgt.get(), 0, false,
+                              (iecon == 0) ? 0x1277cc : 0x526, is_hcal);
       } else {
-        pflib_log(warn) << "unable to word-align ECON " << iecon << " with its TRIG lpGBT";
+        pflib_log(warn) << "unable to word-align ECON " << iecon
+                        << " with its TRIG lpGBT";
       }
     }
   }

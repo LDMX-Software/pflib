@@ -686,17 +686,11 @@ lpGBT::eRxStatus::eRxStatus(uint8_t locked_status, uint8_t current_phase10) {
   state_ = (locked_status & 0x3);
 }
 
-int lpGBT::eRxStatus::state() const {
-  return state_;
-}
+int lpGBT::eRxStatus::state() const { return state_; }
 
-int lpGBT::eRxStatus::phase() const {
-  return phase_;
-}
+int lpGBT::eRxStatus::phase() const { return phase_; }
 
-bool lpGBT::eRxStatus::locked() const {
-  return locked_;
-}
+bool lpGBT::eRxStatus::locked() const { return locked_; }
 
 const char* lpGBT::eRxStatus::state_name() const {
   switch (state_) {
