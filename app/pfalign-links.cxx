@@ -111,12 +111,14 @@ int main(int argc, char* argv[]) try {
       }
     }
 
+    pflib_log(info) << "HARD reset on ECONs and soft reset on ROCs";
+    tgt->hardResetECONs();
+    tgt->softResetROC(-1);
+
     // now that we know which eRx should be enable for each ECON
     // let's configure the ECONs
     for (int iecon : tgt->econ_ids()) {
       pflib_log(info) << "ECON " << iecon << " eRx enable: " << erx_enable[iecon];
-
-      // TODO: need a hard/soft reset?
 
       std::map<std::string, std::map<std::string, uint64_t>> parameters;
       for (int ierx{0}; ierx < 12; ierx++) {
@@ -163,7 +165,7 @@ int main(int argc, char* argv[]) try {
       // sleep a bit
       sleep(1);
 
-      // TODO share econ_status
+      tgt->econ(iecon).print_status();
 
       // align bits and words between ECON and ROCs
       align_econ_rocs(tgt.get(), iecon, on_zcu);
