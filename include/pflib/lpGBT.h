@@ -214,6 +214,7 @@ class lpGBT {
     int phase_;
     friend lpGBT;
     eRxStatus(uint8_t locked_status, uint8_t current_phase10);
+
    public:
     const char* state_name() const;
     int state() const;
@@ -305,8 +306,8 @@ class lpGBT {
    *
    * For each address between 0x00 and 0x80, we attempt a single I2C
    * transaction and print two characters.
-   * - "^^" is printed when there was no exception but the transaction check failed
-   *   usually this is because the bus provided was not 0 or 1
+   * - "^^" is printed when there was no exception but the transaction check
+   * failed usually this is because the bus provided was not 0 or 1
    * - "--" is printed if the I2C transaction was not acknowledged
    *   (i.e. likely there is no chip responding at that address)
    * - "CC" is printed if the I2C response has no clock
@@ -314,8 +315,8 @@ class lpGBT {
    * - "**" is printed if the SDA line is low
    *   (i.e. there is likely a power issue)
    * - "??" is printed if there was any other I2C error
-   *   Likely, this is due to the underlying `read` of the lpGBT transport registers
-   *   meaning the optical link is probably not locked with the lpGBT.
+   *   Likely, this is due to the underlying `read` of the lpGBT transport
+   * registers meaning the optical link is probably not locked with the lpGBT.
    * - "XY" where XY are hex digits means a successful transaction took place
    *
    * @param[in] ibus bus index of I2C transactions to scan over, 0 or 1

@@ -2,10 +2,10 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "pflib/Target.h"
-#include "pflib/utility/SpaceSeparated.h"
 #include "pflib/ROC.h"
+#include "pflib/Target.h"
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/SpaceSeparated.h"
 
 namespace pflib {
 
@@ -377,8 +377,7 @@ void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
     for (int i_roc : roc_ids) {
       tgt->roc(i_roc).setRegisters(resets[i_roc]);
     }
-    PFEXCEPTION_RAISE("PhAlign",
-        "ECON/ROC phase alignment failed");
+    PFEXCEPTION_RAISE("PhAlign", "ECON/ROC phase alignment failed");
   }
 
   // do something funkier for word alignment
@@ -402,4 +401,4 @@ void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
   }
 }
 
-}
+}  // namespace pflib

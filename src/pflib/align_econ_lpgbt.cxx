@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include "pflib/Target.h"
 #include "pflib/OptoLink.h"
 #include "pflib/TRIG.h"
+#include "pflib/Target.h"
 #include "pflib/packing/ECONTAlignmentWord.h"
 #include "pflib/utility/string_format.h"
 
@@ -29,18 +29,19 @@ std::vector<std::vector<int>> HCAL_BACKPLANE_I_ECON_TO_GROUP = {
  * TRIG lpGBT
  */
 std::vector<std::vector<int>> ECAL_SMM_I_ECON_TO_GROUP = {
-  {0},               // ECON-D
-  {0, 1, 2, 3, 4, 5} // ECON-T
+    {0},                // ECON-D
+    {0, 1, 2, 3, 4, 5}  // ECON-T
 };
 
-void align_econ_lpgbt_bit(Target* tgt, int iecon,
-                          bool check_all_phases, bool is_hcal) {
+void align_econ_lpgbt_bit(Target* tgt, int iecon, bool check_all_phases,
+                          bool is_hcal) {
   // ----- bit alignment with PRBS7 as input -----
   // assumes the OptoLinks are named "DAQ" and "TRG" like in HcalBackplaneZCU,
   // EcalSMMTargetZCU, HcalBackplaneBW, and EcalSMMTargetBW
   pflib::ECON& econ = tgt->econ(iecon);
   bool is_econd = (econ.type() == "econd");
-  std::string prbs_parameter = (is_econd ? "GLOBAL_PRBS_ON" : "GLOBAL_ETX_PATTERN");
+  std::string prbs_parameter =
+      (is_econd ? "GLOBAL_PRBS_ON" : "GLOBAL_ETX_PATTERN");
 
   pflib::lpGBT lpgbt{(is_econd)
                          ? (tgt->get_opto_link("DAQ").lpgbt_transport())
@@ -48,21 +49,22 @@ void align_econ_lpgbt_bit(Target* tgt, int iecon,
 
   econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 1);
 
-  const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP : ECAL_SMM_I_ECON_TO_GROUP};
+  const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP
+                                      : ECAL_SMM_I_ECON_TO_GROUP};
   for (int ierx : i_econ_to_group.at(iecon)) {
     pflib_log(info) << "checking ECON -> lpGBT eRx " << ierx << "...";
     lpgbt.check_prbs_errors_erx(ierx, check_all_phases);
 
     pflib::lpGBT::eRxStatus status = lpgbt.get_erx_status(ierx);
-    pflib_log(info) << "locked: " << status.locked() << ", phase: " << status.phase();
+    pflib_log(info) << "locked: " << status.locked()
+                    << ", phase: " << status.phase();
   }
 
   econ.applyParameter("FORMATTERBUFFER", prbs_parameter, 0);
 }
 
-void align_econ_lpgbt_word(Target* tgt, int iecon,
-                           bool check_all_phases, uint32_t idle_pattern,
-                           bool is_hcal) {
+void align_econ_lpgbt_word(Target* tgt, int iecon, bool check_all_phases,
+                           uint32_t idle_pattern, bool is_hcal) {
   /**
    * This function is where we deduce the value for
    * FormatterBuffer.Global.align_serializer_N
@@ -93,7 +95,8 @@ void align_econ_lpgbt_word(Target* tgt, int iecon,
       }
     }
     if (!found_alignment) {
-      pflib_log(warn) << "did not find alignment, recieved the following words at each phase.";
+      pflib_log(warn) << "did not find alignment, recieved the following words "
+                         "at each phase.";
       for (int phase = 0; phase < 32; phase++) {
         printf(" %2d 0x%08x\n", phase, got[phase]);
       }
@@ -105,8 +108,10 @@ void align_econ_lpgbt_word(Target* tgt, int iecon,
     static uint32_t ALIGN_MASK = 0x7FF;
     pflib::TRIG* trig = tgt->trig(0);
     if (not trig) {
-      PFEXCEPTION_RAISE("BadConf",
-          "TRIG object is not available, meaning we cannot do word alignment between the ECON-T and the TRIG lpGBT within pflib alone.");
+      PFEXCEPTION_RAISE(
+          "BadConf",
+          "TRIG object is not available, meaning we cannot do word alignment "
+          "between the ECON-T and the TRIG lpGBT within pflib alone.");
     }
 
     int delay;
@@ -136,7 +141,8 @@ void align_econ_lpgbt_word(Target* tgt, int iecon,
      * ECON-T1 eTx 0, 1, 2 -> TRIG lpGBT eRx 0, 1, 2
      * ECON-T2 eTx 0, 1, 2 -> TRIG lpGBT eRx 3, 4, 5
      */
-    const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP : ECAL_SMM_I_ECON_TO_GROUP};
+    const auto& i_econ_to_group{is_hcal ? HCAL_BACKPLANE_I_ECON_TO_GROUP
+                                        : ECAL_SMM_I_ECON_TO_GROUP};
     std::vector<int> i_elinks = i_econ_to_group.at(iecon);
     bool all_succeed = true;
     for (int ilink{0}; ilink < i_elinks.size(); ilink++) {
@@ -215,4 +221,4 @@ void align_econ_lpgbt_word(Target* tgt, int iecon,
   }
 }
 
-}
+}  // namespace pflib

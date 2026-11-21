@@ -8,6 +8,6 @@ class Target;
 
 void align_econ_rocs(Target* tgt, int iecon, bool on_zcu);
 
-}
+}  // namespace pflib
 
 #endif
