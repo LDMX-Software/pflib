@@ -20,11 +20,11 @@
 #include "multi_channel_scan.h"
 #include "noinv_vref_scan.h"
 #include "parameter_timescan.h"
+#include "pflib/align_econ_lpgbt.h"
+#include "pflib/align_econ_rocs.h"
 #include "sampling_phase_scan.h"
 #include "set_toa.h"
 #include "set_zs_thresholds.h"
-#include "setup/align_econ_lpgbt.h"
-#include "setup/align_phase_word.h"
 #include "setup/check_lpgbt_backend.h"
 #include "setup/scl_delay_scan.h"
 #include "toa_scan.h"
@@ -102,9 +102,41 @@ auto menu_setup_tasks =
         ->line("SCL_DELAY_SCAN",
                "pick the SCL delay with the fewest ROC I2C errors",
                scl_delay_scan)
-        ->line("PHASE_WORD_ALIGN", "align phase and word", align_phase_word)
-        ->line("ALIGN_ECON_LPGBT", "align ECON-D to lpGBT interface",
-               align_econ_lpgbt)
+        ->line("ALIGN_ECON_ROCS", "align ECON and the ROCs",
+               [](Target* tgt) {
+                 bool on_zcu = (pftool::state.readout_config() ==
+                                pftool::State::CFG_HCALFMC) ||
+                               (pftool::state.readout_config() ==
+                                pftool::State::CFG_HCALOPTO_ZCU) ||
+                               (pftool::state.readout_config() ==
+                                pftool::State::CFG_ECALOPTO_ZCU);
+
+                 int iecon = pftool::readline_int("Which ECON to manage: ",
+                                                  pftool::state.iecon);
+
+                 pflib::align_econ_rocs(tgt, iecon, on_zcu);
+               })
+        ->line(
+            "ALIGN_ECON_LPGBT", "align ECON and its associated lpGBT",
+            [](Target* tgt) {
+              bool is_hcal = pftool::state.readout_config_is_hcal();
+              int iecon = pftool::readline_int("Which ECON to manage: ",
+                                               pftool::state.iecon);
+              bool check_all_phases =
+                  pftool::readline_bool("Check all phases? ", false);
+              if (pftool::readline_bool("Do bit alignment?", true)) {
+                pflib::align_econ_lpgbt_bit(tgt, iecon, check_all_phases,
+                                            is_hcal);
+              }
+              if (pftool::readline_bool("Continue to word alignment?", true)) {
+                // WARN: assuming ECON-D is index 0 and index 0 is ECON-D
+                uint32_t idle_pattern = ((iecon == 0) ? 0x1277cc : 0x526);
+                idle_pattern =
+                    pftool::readline_int("Idle pattern: ", idle_pattern, true);
+                pflib::align_econ_lpgbt_word(tgt, iecon, check_all_phases,
+                                             is_hcal, idle_pattern);
+              }
+            })
         ->line("CHECK_LPGBT_BACKEND", "check lpGBT-Backend data pipeline",
                check_lpgbt_backend);
 

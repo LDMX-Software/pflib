@@ -1,12 +1,15 @@
-#include "align_phase_word.h"
+#include "pflib/align_econ_rocs.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "../../SpaceSeparated.h"
 #include "pflib/ROC.h"
+#include "pflib/Target.h"
 #include "pflib/packing/Hex.h"
+#include "pflib/utility/SpaceSeparated.h"
 
-ENABLE_LOGGING();
+namespace pflib {
+
+static auto the_log_{pflib::logging::get("align_econ_rocs")};
 
 // ROC Idle Frame
 constexpr uint32_t ROC_WORD_IDLE_FRAME = 0x12c5c57;
@@ -302,15 +305,7 @@ void align_word(Target* tgt, pflib::ECON& econ, std::vector<int> channels,
   }
 }
 
-void align_phase_word(Target* tgt) {
-  bool on_zcu =
-      (pftool::state.readout_config() == pftool::State::CFG_HCALFMC) ||
-      (pftool::state.readout_config() == pftool::State::CFG_HCALOPTO_ZCU) ||
-      (pftool::state.readout_config() == pftool::State::CFG_ECALOPTO_ZCU);
-
-  int iecon =
-      pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
-
+void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
   auto& econ = tgt->econ(iecon);
   bool is_daq = (econ.type() == "econd");
 
@@ -379,13 +374,10 @@ void align_phase_word(Target* tgt) {
 
   // ----- PHASE ALIGNMENT ----- //
   if (not align_phase(tgt, econ, channels)) {
-    bool cont = pftool::readline_bool("Continue? ", false);
-    if (not cont) {
-      for (int i_roc : roc_ids) {
-        tgt->roc(i_roc).setRegisters(resets[i_roc]);
-      }
-      return;
+    for (int i_roc : roc_ids) {
+      tgt->roc(i_roc).setRegisters(resets[i_roc]);
     }
+    PFEXCEPTION_RAISE("PhAlign", "ECON/ROC phase alignment failed");
   }
 
   // do something funkier for word alignment
@@ -408,3 +400,5 @@ void align_phase_word(Target* tgt) {
     tgt->roc(i_roc).setRegisters(resets[i_roc]);
   }
 }
+
+}  // namespace pflib
