@@ -140,7 +140,9 @@ int main(int argc, char* argv[]) try {
       // leave it as its default 0 for the Ecal
       uint64_t invert_etx_data = (is_hcal ? 1 : 0);
       for (int etx{0}; etx < 12; etx++) {
-        parameters["ETX"][std::to_string(etx)+"_INVERT_DATA"] = invert_etx_data;
+        if ((active_etx_bitmask >> etx) & 0b1) {
+          parameters["ETX"][std::to_string(etx)+"_INVERT_DATA"] = invert_etx_data;
+        }
       }
 
       pflib::ECON& econ{tgt->econ(iecon)};
