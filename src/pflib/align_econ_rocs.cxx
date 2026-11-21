@@ -374,10 +374,11 @@ void align_econ_rocs(Target* tgt, int iecon, bool on_zcu) {
 
   // ----- PHASE ALIGNMENT ----- //
   if (not align_phase(tgt, econ, channels)) {
-    pflib_log(error) << "phase alignment failed, exiting";
     for (int i_roc : roc_ids) {
       tgt->roc(i_roc).setRegisters(resets[i_roc]);
     }
+    PFEXCEPTION_RAISE("PhAlign",
+        "ECON/ROC phase alignment failed");
   }
 
   // do something funkier for word alignment
