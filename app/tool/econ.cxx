@@ -85,6 +85,7 @@ static void econ_expert(const std::string& cmd, Target* tgt) {
  * - HARDRESET : pflib::Target::hardResetECONs
  * - SOFTRESET : pflib::Target::softResetECON with which=-1
  * - IECON : Change which ECON to focus on
+ * - STATUS : print selected ECON and its status
  * - PAGE_NAMES : Use pflib::parameters to get list ECON page names
  * - PARAM_NAMES : Use pflib::parameters to get list ECON parameter names
  * - RUNMODE : enable run bit on the ECON
@@ -111,6 +112,10 @@ static void econ(const std::string& cmd, Target* pft) {
         pftool::readline_int("Which ECON to manage: ", pftool::state.iecon);
   }
   pflib::ECON& econ = pft->econ(pftool::state.iecon);
+  if (cmd == "STATUS") {
+    printf("IECON: %d (%s)\n", pftool::state.iecon, econ.type().c_str());
+    econ.print_status();
+  }
   if (cmd == "PAGENAMES") {
     for (const std::string& pn : pftool::state.econ_page_names(econ)) {
       std::cout << pn << "\n";
@@ -222,9 +227,7 @@ static void econ(const std::string& cmd, Target* pft) {
 namespace {
 auto menu_econ =
     pftool::menu("ECON", "ECON Chip Configuration", econ_render, NEED_FIBER)
-        ->line(
-            "STATUS", "print status and FC counters",
-            [](Target* tgt) { tgt->econ(pftool::state.iecon).print_status(); })
+        ->line("STATUS", "print status and FC counters", econ)
         ->line("HARDRESET", "Hard reset to all ECONs", econ)
         ->line("SOFTRESET", "Soft reset to all ECONs", econ)
         ->line("IECON", "Change the active ECON number", econ)
