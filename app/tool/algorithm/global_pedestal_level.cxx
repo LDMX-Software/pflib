@@ -2,6 +2,7 @@
 
 #include "../daq_run.h"
 #include "../tasks/global_pedestal_level.h"
+#include "pflib/Exception.h"
 #include "pflib/utility/mean.h"
 #include "pflib/utility/median.h"
 #include "pflib/utility/stdev.h"
@@ -16,6 +17,11 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
                                  std::vector<double>& stdevs, int& step) {
   static auto the_log_{::pflib::logging::get("global_pedestal_level:sort")};
   pflib_log(info) << "Sorting Data";
+  if (inv_vrefs.size() < 3) {
+    pflib_log(warn) << "only " << inv_vrefs.size()
+                    << " scan points, need 3 for derivatives";
+    return;
+  }
   // We ignore first and last elements since they miss derivs
   struct DerivPoint {
     int i;
@@ -63,6 +69,10 @@ void DataFitter::sort_and_append(std::vector<int>& inv_vrefs,
   //
   // We could use both LH and RH derivs to improve selections (?).
 
+  if (LH_derivs.empty()) {
+    pflib_log(warn) << "no scan points in the linear regime";
+    return;
+  }
   LH_std_median_ = pflib::utility::median(LH_stdevs);
   LH_median_ = pflib::utility::median(LH_derivs);
 
@@ -83,6 +93,7 @@ int DataFitter::fit(int target) {
   pflib_log(info) << "Fitting Data";
   // Calculate the median intercept and slope
   pflib_log(info) << linear_.size();
+  if (linear_.empty()) return -1;
 
   std::vector<double> intercepts;
   std::vector<double> slopes;
@@ -125,6 +136,10 @@ int DataFitter::linear_fit(int& target) {
   static auto the_log_{
       ::pflib::logging::get("global_pedestal_level:linear_fit")};
   pflib_log(info) << "Fitting Data";
+  if (linear_.size() < 2) {
+    pflib_log(warn) << "only " << linear_.size() << " linear points, no fit";
+    return -1;
+  }
 
   // preform a linear fit
   double x_sum = 0;
@@ -148,6 +163,7 @@ int DataFitter::linear_fit(int& target) {
     pflib_log(info) << "Included inv_vref: " << p.x_;
   }
 
+  if (s_x == 0) return -1;
   double slope = s_xy / s_x;
   double intercept = y_mean - slope * x_mean;
 
@@ -208,6 +224,28 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
 
     auto data = buffer.get_buffer();
 
+    // skip readouts with a corrupt ECON-D packet (header, length or CRC)
+    std::vector<std::size_t> good;
+    for (std::size_t i{0}; i < data.size(); i++) {
+      bool ok = data[i].i_soi < data[i].samples.size();
+      for (const auto& s : data[i].samples) {
+        for (bool c : s.corruption) ok = ok && !c;
+      }
+      if (ok) good.push_back(i);
+    }
+    if (good.empty() or 2 * good.size() < data.size()) {
+      PFEXCEPTION_RAISE(
+          "BadData",
+          pflib::utility::string_format(
+              "%zu of %zu readouts have a corrupt ECON-D packet at INV_VREF "
+              "= %d, check the DAQ setup and the decoding warnings",
+              data.size() - good.size(), data.size(), inv_vref));
+    }
+    if (good.size() < data.size()) {
+      pflib_log(warn) << "skipping " << data.size() - good.size() << " of "
+                      << data.size() << " readouts with a corrupt packet";
+    }
+
     for (int i_roc : tgt->roc_ids()) {
       const pflib::packing::SingleECONDRocErxMapping& mapping =
           tgt->getRocErxMapping();
@@ -217,8 +255,8 @@ void get_param(Target* tgt, DecodeAndBuffer& buffer, const std::size_t& nevents,
       for (int ch{0}; ch < 72; ch++) {
         auto [i_erx, i_ch] = mapping.toErxChannel(i_roc, ch);
         std::vector<int> adcs;
-        adcs.reserve(data.size());
-        for (std::size_t i{0}; i < data.size(); i++) {
+        adcs.reserve(good.size());
+        for (std::size_t i : good) {
           adcs.push_back(data[i].soi().channel(i_erx, i_ch).adc());
         }
         ch_medians[ch / 36].push_back(pflib::utility::median(adcs));
@@ -332,6 +370,15 @@ global_pedestal_level(Target* tgt) {
         pflib_log(info) << "Target inv_vref outside of parameter range. "
                         << "Setting noinv_vref of roc " << i_roc
                         << " link 1 to " << noinv_vref_tgt[i_roc][1];
+      }
+      for (int i_link = 0; i_link < 2; i_link++) {
+        if (noinv_vref_tgt[i_roc][i_link] < 0) {
+          PFEXCEPTION_RAISE(
+              "NoFit", pflib::utility::string_format(
+                           "no NOINV_VREF >= 0 gives a usable INV_VREF fit "
+                           "for ROC %d link %d",
+                           i_roc, i_link));
+        }
       }
     }
   }
