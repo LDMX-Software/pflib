@@ -1,5 +1,8 @@
 #include "pflib/bittware/bittware_daq.h"
 
+#include <utility>
+#include <vector>
+
 #include "pflib/packing/Hex.h"
 #include "pflib/utility/string_format.h"
 
@@ -199,6 +202,31 @@ std::map<std::string, uint32_t> HcalBackplaneBW_Capture::get_debug(
         capture_.read(ADDR_BASE_LINK_COUNTER + 0x11 * stepsize);
     dbg[string_format("ECON%d.STATE", ilink)] =
         capture_.read(ADDR_BASE_LINK_COUNTER + 0x12 * stepsize);
+
+    // mid-packet stall counters (capture firmware 0x15+, zero before)
+    uint32_t stall_pkts =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x1F * stepsize);
+    dbg[string_format("ECON%d.STALL_WORDS", ilink)] =
+        capture_.read(ADDR_BASE_LINK_COUNTER + 0x1E * stepsize);
+    dbg[string_format("ECON%d.STALL_PKTS", ilink)] = stall_pkts & 0xFFFF;
+    dbg[string_format("ECON%d.STALL_CUT_HEADER", ilink)] =
+        (stall_pkts >> 16) & 0xFF;
+    dbg[string_format("ECON%d.STALL_CUT_TIMEOUT", ilink)] =
+        (stall_pkts >> 24) & 0xFF;
+    // header checks against the card's own L1A record
+    static const std::vector<std::pair<int, const char*>> hdr_counters = {
+        {0x08, "HDR_SEEN"},     {0x09, "HDR_CRC_ERR"},
+        {0x0A, "HDR_HAM_ERR"},  {0x0B, "HDR_REJECTED"},
+        {0x0C, "EVT_MISMATCH"}, {0x0D, "BX_MISMATCH"},
+        {0x0E, "ORB_MISMATCH"}, {0x0F, "EVT_SKIPPED"},
+        {0x14, "HT_BAD"},       {0x15, "EBO_BAD"},
+        {0x16, "M_BAD"},        {0x17, "S_ERR"},
+        {0x18, "TRUNC"},        {0x19, "UNEXPECTED"},
+        {0x1A, "LAST_HDR0"},    {0x1B, "LAST_HDR1"},
+        {0x1C, "LAST_LOCAL"},   {0x1D, "EVT_OUTSTANDING"}};
+    for (const auto& [idx, name] : hdr_counters)
+      dbg[string_format("ECON%d.%s", ilink, name)] =
+          capture_.read(ADDR_BASE_LINK_COUNTER + idx * stepsize);
     capture_.writeMasked(ADDR_PAGE_SPY, MASK_PAGE_SPY, 0);
     dbg[string_format("ECON%d.NEXT_EVENT_SIZE", ilink)] =
         capture_.readMasked(ADDR_INFO, MASK_IO_SIZE_NEXT);
