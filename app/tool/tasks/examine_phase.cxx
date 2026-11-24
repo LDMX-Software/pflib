@@ -29,14 +29,17 @@ void scan_phase_strobe(Target* tgt, pflib::ROC& roc, int i_roc,
   pflib_log(info) << "Scanning phase_strobe";
   for (int phase_strobe = 0; phase_strobe < 16; phase_strobe++) {
     pflib_log(info) << "Phase_strobe: " << phase_strobe;
-    auto test_param = roc.testParameters()
-                          .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
-                          .add("REFERENCEVOLTAGE_0", "CHOICE_CINJ", 1)
-                          .add("CH_17", "HIGHRANGE", 1)
-                          .add("REFERENCEVOLTAGE_0", "TOA_VREF", 0)
-                          .add("REFERENCEVOLTAGE_0", "CALIB", 400)
-                          .add("TOP", "PHASE_STROBE", phase_strobe)
-                          .apply();
+    auto test_param_builder = roc.testParameters();
+    test_param_builder.add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
+        .add("CH_17", "HIGHRANGE", 1)
+        .add("REFERENCEVOLTAGE_0", "TOA_VREF", 0)
+        .add("REFERENCEVOLTAGE_0", "CALIB", 400)
+        .add("TOP", "PHASE_STROBE", phase_strobe);
+    // only the SiPM ROC has this
+    if (pftool::state.readout_config_is_hcal()) {
+      test_param_builder.add("REFERENCEVOLTAGE_0", "CHOICE_CINJ", 1);
+    }
+    auto test_param = test_param_builder.apply();
 
     std::map<int, std::vector<int>> adcs;
     usleep(10);
@@ -107,14 +110,17 @@ int peak_bx(Target* tgt, pflib::ROC& roc, int i_roc, DecodeAndBuffer& buffer,
     for (int bx = 1; bx <= 100; bx++) {
       std::vector<int> adcs;
       // set parameters
-      auto test_param = roc.testParameters()
-                            .add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
-                            .add("REFERENCEVOLTAGE_0", "CHOICE_CINJ", 1)
-                            .add("CH_17", "HIGHRANGE", 1)
-                            .add("REFERENCEVOLTAGE_0", "TOA_VREF", 0)
-                            .add("REFERENCEVOLTAGE_0", "CALIB", bx_calib)
-                            .add("TOP", "PHASE_STROBE", 0)
-                            .apply();
+      auto test_param_builder = roc.testParameters();
+      test_param_builder.add("REFERENCEVOLTAGE_0", "INTCTEST", 1)
+          .add("CH_17", "HIGHRANGE", 1)
+          .add("REFERENCEVOLTAGE_0", "TOA_VREF", 0)
+          .add("REFERENCEVOLTAGE_0", "CALIB", bx_calib)
+          .add("TOP", "PHASE_STROBE", 0);
+      // only the SiPM ROC has this
+      if (pftool::state.readout_config_is_hcal()) {
+        test_param_builder.add("REFERENCEVOLTAGE_0", "CHOICE_CINJ", 1);
+      }
+      auto test_param = test_param_builder.apply();
       tgt->fc().fc_setup_calib(bx, enable_follow_l1a);
       pflib_log(info) << "Testing bx: " << bx;
       usleep(10);

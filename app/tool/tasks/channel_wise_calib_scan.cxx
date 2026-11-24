@@ -29,7 +29,10 @@ void channel_wise_calib_scan(Target* tgt) {
     auto refvol_page =
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", i_link);
     setup_parameters[refvol_page]["INTCTEST"] = 1;
-    setup_parameters[refvol_page]["CHOICE_CINJ"] = 1;
+    // only the SiPM ROC has these
+    if (pftool::state.readout_config_is_hcal()) {
+      setup_parameters[refvol_page]["CHOICE_CINJ"] = 1;
+    }
   }
   for (int ch = 0; ch < 72; ch++) {
     auto ch_page = pflib::utility::string_format("CH_%d", ch);

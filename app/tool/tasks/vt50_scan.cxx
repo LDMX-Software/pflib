@@ -31,17 +31,20 @@ void vt50_scan(Target* tgt) {
   auto channel_page = pflib::utility::string_format("CH_%d", channel);
   int link = (channel / 36);
   auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
-  auto test_param_handle =
-      roc.testParameters()
-          .add(refvol_page, "INTCTEST", 1)
-          .add(refvol_page, "TOA_VREF", toa_threshold)
-          .add(refvol_page, "CHOICE_CINJ", (highrange && !preCC) ? 1 : 0)
-          .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
-          .add(channel_page, "LOWRANGE",
-               preCC       ? 0
-               : highrange ? 0
-                           : 1)
-          .apply();
+  auto test_param_builder = roc.testParameters();
+  test_param_builder.add(refvol_page, "INTCTEST", 1)
+      .add(refvol_page, "TOA_VREF", toa_threshold)
+      .add(channel_page, "HIGHRANGE", (highrange || preCC) ? 1 : 0)
+      .add(channel_page, "LOWRANGE",
+           preCC       ? 0
+           : highrange ? 0
+                       : 1);
+  // only the SiPM ROC has this
+  if (pftool::state.readout_config_is_hcal()) {
+    test_param_builder.add(refvol_page, "CHOICE_CINJ",
+                           (highrange && !preCC) ? 1 : 0);
+  }
+  auto test_param_handle = test_param_builder.apply();
 
   std::string vref_page = refvol_page;
   std::string calib_page = refvol_page;
