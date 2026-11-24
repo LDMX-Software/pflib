@@ -8,54 +8,6 @@
 #include "pflib/lpGBT.h"
 #include "pflib/lpgbt/lpGBT_standard_configs.h"
 
-// TODO: move to OptoLink to share between app/lpgbt and here
-void print_opto_status(pflib::OptoLink& olink) {
-  printf("Polarity -- TX: %d  RX: %d\n", olink.get_tx_polarity(),
-         olink.get_rx_polarity());
-  std::map<std::string, uint32_t> info;
-  info = olink.opto_status();
-  printf("Optical status:\n");
-  for (auto i : info) {
-    printf("  %-20s : 0x%04x\n", i.first.c_str(), i.second);
-  }
-  info = olink.opto_rates();
-  printf("Optical rates:\n");
-  for (auto i : info) {
-    printf("  %-20s : %.3f MHz (0x%04x)\n", i.first.c_str(), i.second / 1e3,
-           i.second);
-  }
-}
-
-// TODO: move to lpGBT to share between app/lpgbt and here
-void i2c_scan(int ibus, pflib::lpGBT& lpgbt) {
-  lpgbt.setup_i2c(ibus, 100);
-  for (int addr = 0; addr < 0x80; addr++) {
-    bool success = true;
-    char failchar;
-    lpgbt.start_i2c_read(ibus, addr);  // try reading a byte
-    try {
-      lpgbt.i2c_transaction_check(ibus, true);
-    } catch (pflib::Exception& e) {
-      if (e.name() == "I2CErrorNoCLK")
-        failchar = 'C';
-      else if (e.name() == "I2CErrorNoACK")
-        failchar = '-';
-      else if (e.name() == "I2CErrorSDALow")
-        failchar = '*';
-      else
-        failchar = '?';
-      //	printf(e.what());
-      success = false;
-    }
-    if ((addr % 0x10) == 0) printf("\n%02x ", addr);
-    if (success)
-      printf("%02x ", addr);
-    else
-      printf("%c%c ", failchar, failchar);
-  }
-  printf("\n");
-}
-
 // one-line countdown while the front end powers up
 void wait_for_power_up(int seconds) {
   const std::string label = "Waiting for the front end to power up";
@@ -170,7 +122,7 @@ int main(int argc, char* argv[]) try {
 
   for (const auto& tgt : targets) {
     printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
-    print_opto_status(*tgt.olink_data);
+    tgt.olink_data->print_status();
   }
 
   pflib_log(info) << "reseting DATA fiber where slow control is";
@@ -189,7 +141,7 @@ int main(int argc, char* argv[]) try {
 
   for (const auto& tgt : targets) {
     printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
-    print_opto_status(*tgt.olink_data);
+    tgt.olink_data->print_status();
   }
 
   // wait for power
@@ -209,7 +161,7 @@ int main(int argc, char* argv[]) try {
   any_fail = false;
   for (const auto& tgt : targets) {
     printf("%s DATA Opto Fiber Status\n", tgt.name.c_str());
-    print_opto_status(*tgt.olink_data);
+    tgt.olink_data->print_status();
     auto info = tgt.olink_data->opto_status();
     if (info["READY"] != 1) {
       pflib_log(error) << "board is not reporting READY";
@@ -263,9 +215,10 @@ int main(int argc, char* argv[]) try {
     // do i2c scan, Hcal uses Bus 0 and Bus 1 while Ecal only uses Bus 1
     if (tgt.hcal) {
       pflib_log(info) << "I2C Scan on Bus 0 of " << tgt.name;
+      tgt.lpgbt_ic->print_i2c_scan(0);
     }
     pflib_log(info) << "I2C Scan on Bus 1 of " << tgt.name;
-    i2c_scan(1, *tgt.lpgbt_ic);
+    tgt.lpgbt_ic->print_i2c_scan(1);
   }
 
   for (const auto& tgt : targets) {
@@ -275,7 +228,7 @@ int main(int argc, char* argv[]) try {
       tgt.olink_trig->run_linktrick();
       usleep(1000);
       pflib_log(info) << "TRIG Opto Fiber Status from " << tgt.name;
-      print_opto_status(*tgt.olink_trig);
+      tgt.olink_trig->print_status();
     }
   }
 

@@ -34,8 +34,10 @@ class ECON {
   int nLinks();
 
   std::vector<uint8_t> getValues(int reg_addr, int nbytes);
-  void setValue(int reg_addr, uint64_t value, int nbytes);
-  void setValues(int reg_addr, const std::vector<uint8_t>& values);
+  void setValue(int reg_addr, uint64_t value, int nbytes,
+                bool readback_check = true);
+  void setValues(int reg_addr, const std::vector<uint8_t>& values,
+                 bool readback_check = true);
 
   void setRegisters(const std::map<int, std::map<int, uint8_t>>& registers);
   void loadParameters(const std::string& file_path, bool prepend_defaults);
@@ -55,6 +57,9 @@ class ECON {
                          bool print_values = false);
 
   void dumpSettings(const std::string& filename, bool should_decompile);
+
+  /// print a status message to screen
+  void print_status();
 
   TempParameters<ECON>::Builder testParameters();
 

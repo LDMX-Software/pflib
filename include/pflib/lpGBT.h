@@ -205,6 +205,28 @@ class lpGBT {
                              bool lpgbt_only = false, int data_rate_code = 3,
                              uint8_t bert_time_code = 4);
 
+  /**
+   * status of an eRx group including state, locked, and phase
+   */
+  class eRxStatus {
+    int state_;
+    bool locked_;
+    int phase_;
+    friend lpGBT;
+    eRxStatus(uint8_t locked_status, uint8_t current_phase10);
+
+   public:
+    const char* state_name() const;
+    int state() const;
+    bool locked() const;
+    int phase() const;
+  };
+
+  /**
+   * Get the eRx group status
+   */
+  eRxStatus get_erx_status(int ierx);
+
   /** Setup the given elink-tx.  For LDMX, all elink-tx are assumed to operate
      in 320 Mbps mode. \param ietx ETx index (0-6) \param enable Enable the ETx
       \param drive Driver strength (0-7)
@@ -278,6 +300,28 @@ class lpGBT {
 
   /** Get back the data from the read */
   std::vector<uint8_t> i2c_read_data(int ibus);
+
+  /**
+   * scan over a range of I2C addresses and print a status for each
+   *
+   * For each address between 0x00 and 0x80, we attempt a single I2C
+   * transaction and print two characters.
+   * - "^^" is printed when there was no exception but the transaction check
+   * failed usually this is because the bus provided was not 0 or 1
+   * - "--" is printed if the I2C transaction was not acknowledged
+   *   (i.e. likely there is no chip responding at that address)
+   * - "CC" is printed if the I2C response has no clock
+   *   (i.e. the lpGBT is misconfigured probably)
+   * - "**" is printed if the SDA line is low
+   *   (i.e. there is likely a power issue)
+   * - "??" is printed if there was any other I2C error
+   *   Likely, this is due to the underlying `read` of the lpGBT transport
+   * registers meaning the optical link is probably not locked with the lpGBT.
+   * - "XY" where XY are hex digits means a successful transaction took place
+   *
+   * @param[in] ibus bus index of I2C transactions to scan over, 0 or 1
+   */
+  void print_i2c_scan(int ibus);
 
   /** finalize the configuration */
   void finalize_setup();

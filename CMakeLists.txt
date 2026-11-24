@@ -135,6 +135,7 @@ set(pflib_src
   src/pflib/Elinks.cxx
   src/pflib/Parameters.cxx
   src/pflib/DAQ.cxx
+  src/pflib/OptoLink.cxx
   src/pflib/lpGBT.cxx
   src/pflib/lpgbt/lpGBT_ConfigTransport_I2C.cxx
   src/pflib/lpgbt/lpGBT_Registers.cxx
@@ -157,6 +158,8 @@ set(pflib_src
   src/pflib/EcalSingleModuleMotherboard.cxx
   src/pflib/Bias.cxx
   src/pflib/TRIG.cxx
+  src/pflib/align_econ_rocs.cxx
+  src/pflib/align_econ_lpgbt.cxx
 )
 
 if (${Rogue_FOUND})
@@ -268,6 +271,12 @@ if (${Rogue_FOUND})
   target_compile_definitions(pfinit-opto-fiber PRIVATE USE_ROGUE)
 endif()
 
+add_executable(pfalign-links app/pfalign-links.cxx)
+target_link_libraries(pfalign-links pflib menu)
+if (${Rogue_FOUND})
+  target_compile_definitions(pfalign-links PRIVATE USE_ROGUE)
+endif()
+
 # add pflib prefix to all our pflib libraries
 set_target_properties(pflib menu packing logging version utility register_maps PROPERTIES PREFIX "libpflib_")
 # remove 'lib' prefix from pypflib so we can 'import pypflib' in Python
@@ -275,7 +284,7 @@ set_target_properties(pypflib PROPERTIES PREFIX "")
 install(PROGRAMS app/rogue-decoder.py DESTINATION bin)
 # not installing the C++ rogue-decoder because it won't work with Rogue 6.8
 # due to a linking error from within Rogue
-install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults pfinit-opto-fiber
+install(TARGETS pflib packing logging version utility register_maps pypflib pftool pfdecoder econd-decoder pfdecompile pfcompile pfdefaults pfinit-opto-fiber pfalign-links
   EXPORT pflibTargets 
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
