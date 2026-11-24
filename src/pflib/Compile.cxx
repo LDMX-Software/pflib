@@ -392,10 +392,9 @@ std::map<std::string, std::map<std::string, uint64_t>> Compiler::defaults() {
   // chip-driven status and counters: writes do not stick and fail the
   // readback check
   static const std::set<std::pair<std::string, std::string>> not_writable = {
-      {"TOP", "B_OUT"},          {"TOP", "SROUT"},
-      {"TOP", "STATUSL"},        {"TOP", "STATUSR"},
-      {"TOP", "LOCK_COUNT"},     {"TOP", "FC_ERROR_COUNT"},
-      {"TOP", "ERR_COUNTL"},     {"TOP", "ERR_COUNTR"}};
+      {"TOP", "B_OUT"},      {"TOP", "SROUT"},      {"TOP", "STATUSL"},
+      {"TOP", "STATUSR"},    {"TOP", "LOCK_COUNT"}, {"TOP", "FC_ERROR_COUNT"},
+      {"TOP", "ERR_COUNTL"}, {"TOP", "ERR_COUNTR"}};
   std::map<std::string, std::map<std::string, uint64_t>> settings;
   for (auto& page : parameter_lut_) {
     for (auto& param : page.second.second) {
