@@ -103,9 +103,12 @@ void multi_channel_scan(Target* tgt) {
         pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
     auto test_param_handle = roc.testParameters();
     test_param_handle.add(refvol_page, "CALIB", highrange ? calib : 0)
-        .add(refvol_page, "CALIB_2V5", highrange ? 0 : calib)
-        .add(refvol_page, "INTCTEST", 1)
-        .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0);
+        .add(refvol_page, "INTCTEST", 1);
+    // only the SiPM ROC has these
+    if (pftool::state.readout_config_is_hcal()) {
+      test_param_handle.add(refvol_page, "CALIB_2V5", highrange ? 0 : calib)
+          .add(refvol_page, "CHOICE_CINJ", highrange ? 1 : 0);
+    }
     auto test_param = test_param_handle.apply();
 
     std::filesystem::path parameter_points_file =
