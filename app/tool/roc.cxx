@@ -71,9 +71,7 @@ static void roc_expert(const std::string& cmd, Target* tgt) {
               << std::flush;
     std::string fname = pftool::readline("Filename: ");
     bool is_csv = fname.ends_with(".csv");
-    if (not is_csv and fname.ends_with(".ihex")) {
-      is_csv = false;
-    } else {
+    if (not is_csv and not fname.ends_with(".ihex")) {
       is_csv = pftool::readline_bool(
           "Unrecognized file extension. Should we treat it as a CSV (y) or "
           "IHEX (n)? ",
