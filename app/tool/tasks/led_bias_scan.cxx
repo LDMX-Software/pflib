@@ -75,10 +75,6 @@ void led_bias_scan(Target* tgt) {
     if (min_cmb_port_flash <= max_cmb_port_rec && min_cmb_port_rec <= max_cmb_port_flash) {
       PFEXCEPTION_RAISE("ValueError", "Flashing and recording CMB port ranges must not overlap");
     }
-
-    if (min_cmb_port_flash <= max_cmb_port_rec && max_cmb_port_flash >= min_cmb_port_rec) {
-        PFEXCEPTION_RAISE("Flash and recording CMB port ranges overlap!");
-    }
   }
 
   int nevents = pftool::readline_int("How many events per time point? ", 1);
