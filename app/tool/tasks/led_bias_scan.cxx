@@ -23,21 +23,18 @@ void led_bias_scan(Target* tgt) {
 
   auto hcalbp = dynamic_cast<pflib::HcalTarget*>(tgt);
   if (!hcalbp) {
-    PFEXCEPTION_RAISE("BadTarget",
-                      "led_bias_scan only available for Hcal targets");
+    PFEXCEPTION_RAISE("BadTarget", "led_bias_scan only available for Hcal targets");
   }
   int iboard = 0;
   iboard = pftool::readline_int("Which board? ", iboard);
   // static void bias(const std::string& cmd, pflib::HcalTarget* pft){
   auto& bias = hcalbp->bias(iboard);
 
-  int LEDstart = pftool::readline_int(
-      "Which LED DAC start value (set equal to end for constant)? ", 2000);
+  int LEDstart = pftool::readline_int("Which LED DAC start value (set equal to end for constant)? ", 2000);
   int LEDend = pftool::readline_int("Which LED DAC end value? ", 2500);
   int LEDstep = pftool::readline_int("What LED DAC stepsize? ", 50);
 
-  if (LEDstart < 0 || LEDstart > 4095 || LEDend < 0 || LEDend > 4095 ||
-      LEDend < LEDstart) {
+  if (LEDstart < 0 || LEDstart > 4095 || LEDend < 0 || LEDend > 4095 || LEDend < LEDstart) {
     PFEXCEPTION_RAISE("ValueError", "Invalid LED DAC range");
   }
 
@@ -45,13 +42,10 @@ void led_bias_scan(Target* tgt) {
     PFEXCEPTION_RAISE("ValueError", "Invalid LED DAC stepsize");
   }
 
-  int SiPMstart = pftool::readline_int(
-      "Which SiPM DAC start value (set equal to end for constant)? ", 3600);
+  int SiPMstart = pftool::readline_int("Which SiPM DAC start value (set equal to end for constant)? ", 3600);
   int SiPMend = pftool::readline_int("Which SiPM DAC end value? ", 3600);
-  int SiPMstep =
-      pftool::readline_int("What stepsize (choose random for constant)? ", 20);
-  if (SiPMstart < 0 || SiPMstart > 4095 || SiPMend < 0 || SiPMend > 4095 ||
-      SiPMend < SiPMstart) {
+  int SiPMstep = pftool::readline_int("What stepsize (choose random for constant)? ", 20);
+  if (SiPMstart < 0 || SiPMstart > 4095 || SiPMend < 0 || SiPMend > 4095 || SiPMend < SiPMstart) {
     PFEXCEPTION_RAISE("ValueError", "Invalid SiPM DAC range");
   }
 
@@ -59,43 +53,31 @@ void led_bias_scan(Target* tgt) {
     PFEXCEPTION_RAISE("ValueError", "Invalid SiPM DAC stepsize");
   }
 
-  int min_cmb_port_flash =
-      pftool::readline_int("CMB port to start flashing LEDs on? ", 0);
-  int max_cmb_port_flash = pftool::readline_int(
-      "CMB port to end flashing LEDs on (if only one port, enter same as "
-      "above)? ",
-      0);
-  bool rec = pftool::readline_bool(
-      "Do you want to record on another CMB (no LED flashing)[Y] or not [N]?",
-      false);
+  int min_cmb_port_flash = pftool::readline_int("CMB port to start flashing LEDs on? ", 0);
+  int max_cmb_port_flash = pftool::readline_int("CMB port to end flashing LEDs on (if only one port, enter same as above)? ", 0);
+  bool rec = pftool::readline_bool("Do you want to record on another CMB (no LED flashing)[Y] or not [N]?", false);
   int min_cmb_port_rec = 0;
   int max_cmb_port_rec = -1;
   if (rec) {
-    min_cmb_port_rec = pftool::readline_int(
-        "CMB port to start recording on (no LED bias)?", 1);
-    max_cmb_port_rec = pftool::readline_int(
-        "CMB port to end recording on (if only one port enter same as above)?",
-        1);
+    min_cmb_port_rec = pftool::readline_int("CMB port to start recording on (no LED bias)?", 1);
+    max_cmb_port_rec = pftool::readline_int("CMB port to end recording on (if only one port enter same as above)?", 1);
   }
 
-  if (min_cmb_port_flash < 0 || max_cmb_port_flash > 15 ||
-      min_cmb_port_flash > max_cmb_port_flash) {
+  if (min_cmb_port_flash < 0 || max_cmb_port_flash > 15 || min_cmb_port_flash > max_cmb_port_flash) {
     PFEXCEPTION_RAISE("ValueError", "Invalid flashing CMB port range");
   }
 
   if (rec) {
-    if (min_cmb_port_rec < 0 || max_cmb_port_rec > 15 ||
-        min_cmb_port_rec > max_cmb_port_rec) {
+    if (min_cmb_port_rec < 0 || max_cmb_port_rec > 15 || min_cmb_port_rec > max_cmb_port_rec) {
       PFEXCEPTION_RAISE("ValueError", "Invalid recording CMB port range");
     }
-  }
 
-  if (rec) {
-    if (min_cmb_port_flash <= max_cmb_port_rec &&
-        min_cmb_port_rec <= max_cmb_port_flash) {
-      PFEXCEPTION_RAISE(
-          "ValueError",
-          "Flashing and recording CMB port ranges must not overlap");
+    if (min_cmb_port_flash <= max_cmb_port_rec && min_cmb_port_rec <= max_cmb_port_flash) {
+      PFEXCEPTION_RAISE("ValueError", "Flashing and recording CMB port ranges must not overlap");
+    }
+
+    if (min_cmb_port_flash <= max_cmb_port_rec && max_cmb_port_flash >= min_cmb_port_rec) {
+        PFEXCEPTION_RAISE("Flash and recording CMB port ranges overlap!");
     }
   }
 
@@ -103,8 +85,7 @@ void led_bias_scan(Target* tgt) {
   int start_bx = pftool::readline_int("Starting BX? ", 0);
   int n_bx = pftool::readline_int("Number of BX? ", 10);
   int start_led = tgt->fc().fc_get_setup_led();
-  int end_led = pftool::readline_int(
-      "Calibration L1A offset for LED? (Hopefully 16-20)", start_led);
+  int end_led = pftool::readline_int("Calibration L1A offset for LED? (Hopefully 16-20)", start_led);
   tgt->fc().fc_setup_led(end_led);
 
   pflib::ROC roc{tgt->roc(iboard)};
@@ -118,8 +99,7 @@ void led_bias_scan(Target* tgt) {
   for (int ch = 0; ch < 72; ch++) {
     int link = (ch / 36);
     auto channel_page = pflib::utility::string_format("CH_%d", ch);
-    auto refvol_page =
-        pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
+    auto refvol_page = pflib::utility::string_format("REFERENCEVOLTAGE_%d", link);
     test_param_builder.add(refvol_page, "CALIB", 0)
         .add(refvol_page, "CALIB_2V5", 0)
         .add(refvol_page, "INTCTEST", 1)
@@ -150,7 +130,7 @@ void led_bias_scan(Target* tgt) {
       fname,
       [&](std::ofstream& f) {
         nlohmann::ordered_json header;
-	header["ROC number"] = iboard;
+        header["ROC number"] = iboard;
         header["Min CMB port with LED flashing"] = min_cmb_port_flash;
         header["Max CMB port with LED flashing"] = max_cmb_port_flash;
         header["Second CMB recording enabled"] = rec;
@@ -163,15 +143,12 @@ void led_bias_scan(Target* tgt) {
         header["SiPM DAC start"] = SiPMstart;
         header["SiPM DAC end"] = SiPMend;
         f << std::boolalpha << "# " << header << '\n'
-          << "time,cmb_role,i_cmb_port,ch,dacSiPM,dacLED,flash_dacLED,"
-             "temperature,"
+          << "time,cmb_role,i_cmb_port,ch,dacSiPM,dacLED,flash_dacLED,temperature,"
           << pflib::packing::Sample::to_csv_header << '\n';
       },
       [&](std::ofstream& f,
           const pflib::packing::MultiSampleECONDEventPacket& ep) {
-        auto write_ports = [&](int min_port, int max_port,
-                               const std::string& role, uint16_t led_dac,
-                               uint16_t flash_led_dac) {
+        auto write_ports = [&](int min_port, int max_port, const std::string& role, uint16_t led_dac, uint16_t flash_led_dac) {
           for (int port = min_port; port <= max_port; port++) {
             for (int j = 0; j < 4; j++) {
               int ch = cmb_to_ch[port][j];
@@ -187,8 +164,7 @@ void led_bias_scan(Target* tgt) {
           }
         };
 
-        write_ports(active_flash_port, active_flash_port, "flash", dacLED,
-                    dacLED);
+        write_ports(active_flash_port, active_flash_port, "flash", dacLED, dacLED);
         if (rec) {
           write_ports(min_cmb_port_rec, max_cmb_port_rec, "record", 0, dacLED);
         }
@@ -205,14 +181,14 @@ void led_bias_scan(Target* tgt) {
       // Setting SiPM and LED bias on CMB with LED flashing
       for (int i = min_cmb_port_flash; i <= max_cmb_port_flash; i++) {
         usleep(10);
-	active_flash_port = i;
+        active_flash_port = i;
         bias.setSiPM(i, dacSiPM);
 
-	//ensure all other LEDs are off, and only the i'th one is turned on again
-	for (int j = min_cmb_port_flash; j <= max_cmb_port_flash; j++) {
-	  usleep(10);
-	  bias.setLED(j,0);
-	}
+        //ensure all other LEDs are off, and only the i'th one is turned on again
+        for (int j = min_cmb_port_flash; j <= max_cmb_port_flash; j++) {
+          usleep(10);
+          bias.setLED(j,0);
+        }
 
         usleep(10);
         bias.setLED(i, dacLED);
@@ -220,43 +196,41 @@ void led_bias_scan(Target* tgt) {
         pflib_log(info) << "Flashing CMB port " << i
                         << " | SiPM bias = " << dacSiPM
                         << " | LED bias = " << dacLED;
-     	
 
-      // Setting only SiPM bias and zero LED bias on recording CMB
-      if (rec) {
-        for (int i = min_cmb_port_rec; i <= max_cmb_port_rec; i++) {
-          usleep(10);
-          bias.setSiPM(i, dacSiPM);
-          usleep(10);
-          bias.setLED(i, 0);
+        // Setting only SiPM bias and zero LED bias on recording CMB
+        if (rec) {
+          for (int rec_port = min_cmb_port_rec; rec_port <= max_cmb_port_rec; rec_port++) {
+            usleep(10);
+            bias.setSiPM(rec_port, dacSiPM);
+            usleep(10);
+            bias.setLED(rec_port, 0);
 
-          pflib_log(info) << "Recording CMB port " << i
-                          << " | SiPM bias = " << dacSiPM << " | LED bias = 0";
+            pflib_log(info) << "Recording CMB port " << rec_port
+                            << " | SiPM bias = " << dacSiPM << " | LED bias = 0";
+          }
+        }
+
+        temperature = bias.readTemp();
+
+        for (charge_to_l1a = central_charge_to_l1a + start_bx;
+            charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
+            charge_to_l1a++) {
+          tgt->fc().fc_setup_led(charge_to_l1a);
+          for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
+            auto phase_strobe_test_handle =
+                roc.testParameters()
+                    .add("TOP", "PHASE_STROBE", phase_strobe)
+                    .apply();
+            usleep(10);
+            time =
+                (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
+                phase_strobe * clock_cycle / n_phase_strobe;
+            daq_run(tgt, "LED", writer, nevents, pftool::state.daq_rate);
+          }
         }
       }
-
-      temperature = bias.readTemp();
-
-
-      for (charge_to_l1a = central_charge_to_l1a + start_bx;
-           charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
-           charge_to_l1a++) {
-        tgt->fc().fc_setup_led(charge_to_l1a);
-        for (phase_strobe = 0; phase_strobe < n_phase_strobe; phase_strobe++) {
-          auto phase_strobe_test_handle =
-              roc.testParameters()
-                  .add("TOP", "PHASE_STROBE", phase_strobe)
-                  .apply();
-          usleep(10);
-          time =
-              (charge_to_l1a - central_charge_to_l1a + offset) * clock_cycle -
-              phase_strobe * clock_cycle / n_phase_strobe;
-          daq_run(tgt, "LED", writer, nevents, pftool::state.daq_rate);
-        }
-      }
-     }
-     // reset charge_to_l1a to central value
-     tgt->fc().fc_setup_led(central_charge_to_l1a);
+    // reset charge_to_l1a to central value
+    tgt->fc().fc_setup_led(central_charge_to_l1a);
     }
   }
   // reset the biases to zero for all channels (as it is unable to read back original values)
