@@ -26,7 +26,7 @@ void led_bias_scan(Target* tgt) {
     PFEXCEPTION_RAISE("BadTarget",
                       "led_bias_scan only available for Hcal targets");
   }
-  int iboard = 1;
+  int iboard = 0;
   iboard = pftool::readline_int("Which board? ", iboard);
   // static void bias(const std::string& cmd, pflib::HcalTarget* pft){
   auto& bias = hcalbp->bias(iboard);
@@ -132,21 +132,6 @@ void led_bias_scan(Target* tgt) {
 
   auto& mapping{tgt->getRocErxMapping()};
 
-  std::map<int, int> ch_to_SiPM;
-  std::map<int, int> ch_to_LED;
-
-  for (int i = min_cmb_port_flash; i <= max_cmb_port_flash; i++) {
-    ch_to_SiPM[i] = bias.readSiPM(i).value_or(-1);
-    ch_to_LED[i] = bias.readLED(i).value_or(-1);
-  }
-
-  if (rec) {
-    for (int i = min_cmb_port_rec; i <= max_cmb_port_rec; i++) {
-      ch_to_SiPM[i] = bias.readSiPM(i).value_or(-1);
-      ch_to_LED[i] = bias.readLED(i).value_or(-1);
-    }
-  }
-
   uint16_t dacSiPM{0};
   uint16_t dacLED{0};
   int central_charge_to_l1a;
@@ -158,12 +143,14 @@ void led_bias_scan(Target* tgt) {
   int offset{1};
   int n_links = 2 * tgt->nrocs();
   double temperature{0};
+  int active_flash_port = -1;
 
   // for CMB ports that just record data but don't flash the LEDs
   DecodeAndWriteToCSV writer{
       fname,
       [&](std::ofstream& f) {
         nlohmann::ordered_json header;
+	header["ROC number"] = iboard;
         header["Min CMB port with LED flashing"] = min_cmb_port_flash;
         header["Max CMB port with LED flashing"] = max_cmb_port_flash;
         header["Second CMB recording enabled"] = rec;
@@ -200,7 +187,7 @@ void led_bias_scan(Target* tgt) {
           }
         };
 
-        write_ports(min_cmb_port_flash, max_cmb_port_flash, "flash", dacLED,
+        write_ports(active_flash_port, active_flash_port, "flash", dacLED,
                     dacLED);
         if (rec) {
           write_ports(min_cmb_port_rec, max_cmb_port_rec, "record", 0, dacLED);
@@ -218,14 +205,22 @@ void led_bias_scan(Target* tgt) {
       // Setting SiPM and LED bias on CMB with LED flashing
       for (int i = min_cmb_port_flash; i <= max_cmb_port_flash; i++) {
         usleep(10);
+	active_flash_port = i;
         bias.setSiPM(i, dacSiPM);
+
+	//ensure all other LEDs are off, and only the i'th one is turned on again
+	for (int j = min_cmb_port_flash; j <= max_cmb_port_flash; j++) {
+	  usleep(10);
+	  bias.setLED(j,0);
+	}
+
         usleep(10);
         bias.setLED(i, dacLED);
 
         pflib_log(info) << "Flashing CMB port " << i
                         << " | SiPM bias = " << dacSiPM
                         << " | LED bias = " << dacLED;
-      }
+     	
 
       // Setting only SiPM bias and zero LED bias on recording CMB
       if (rec) {
@@ -241,6 +236,7 @@ void led_bias_scan(Target* tgt) {
       }
 
       temperature = bias.readTemp();
+
 
       for (charge_to_l1a = central_charge_to_l1a + start_bx;
            charge_to_l1a < central_charge_to_l1a + start_bx + n_bx;
@@ -258,21 +254,22 @@ void led_bias_scan(Target* tgt) {
           daq_run(tgt, "LED", writer, nevents, pftool::state.daq_rate);
         }
       }
-      // reset charge_to_l1a to central value
-      tgt->fc().fc_setup_led(central_charge_to_l1a);
+     }
+     // reset charge_to_l1a to central value
+     tgt->fc().fc_setup_led(central_charge_to_l1a);
     }
   }
-  // reset the biases to original value for all channels
+  // reset the biases to zero for all channels (as it is unable to read back original values)
   for (int i = min_cmb_port_flash; i <= max_cmb_port_flash; i++) {
-    bias.setSiPM(i, ch_to_SiPM[i]);
-    bias.setLED(i, ch_to_LED[i]);
+    bias.setSiPM(i,0);
+    bias.setLED(i,0);
   }
 
-  // reset the biases to original value for all channels
+  // reset the biases to zero for all channels
   if (rec) {
     for (int i = min_cmb_port_rec; i <= max_cmb_port_rec; i++) {
-      bias.setSiPM(i, ch_to_SiPM[i]);
-      bias.setLED(i, ch_to_LED[i]);
+      bias.setSiPM(i,0);
+      bias.setLED(i,0);
     }
   }
 }
